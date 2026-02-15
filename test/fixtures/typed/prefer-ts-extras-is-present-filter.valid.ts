@@ -1,7 +1,7 @@
 declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;
 
-declare const nullableEntries: readonly (string | null)[];
-declare const nullableMonitors: readonly (null | { readonly id: string } | undefined)[];
+declare const nullableEntries: readonly (null | string)[];
+declare const nullableMonitors: readonly (null | undefined | { readonly id: string })[];
 declare const maybeNumbers: readonly (null | number | undefined)[];
 
 const entries = nullableEntries.filter(isPresent);

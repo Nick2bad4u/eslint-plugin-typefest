@@ -1,7 +1,9 @@
 import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import * as path from "node:path";
-import { afterAll, describe, it } from "vitest";
+import { afterAll,
+describe,
+it } from "vitest";
 
 import typefestPlugin from "../../plugin.mjs";
 
@@ -40,7 +42,7 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
 };
 
 export const getPluginRule = (ruleId: string): PluginRuleModule => {
-    const rules = typefestPlugin.rules;
+    const {rules} = typefestPlugin;
     if (!rules) {
         throw new Error("typefestPlugin.rules must be defined");
     }

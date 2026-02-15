@@ -1,6 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe,
+expect,
+it } from "vitest";
 
 import typefestPlugin from "../plugin.mjs";
 
@@ -19,12 +21,13 @@ function isRuleWithMeta(value: unknown): value is RuleWithMeta {
 
 describe("typefest rule docs", () => {
     it("every rule has a docs url and a matching docs/rules/<id>.md file", () => {
-        const rules = typefestPlugin.rules;
+        const {rules} = typefestPlugin;
         expect(rules).toBeDefined();
 
         const docsDir = path.join(process.cwd(), "docs", "rules");
 
-        for (const [ruleId, rule] of Object.entries(rules ?? {})) {
+        for (const [ruleId,
+rule] of Object.entries(rules ?? {})) {
             const docs = isRuleWithMeta(rule)
                 ? (rule.meta?.docs ?? null)
                 : null;

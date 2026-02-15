@@ -1,37 +1,42 @@
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.mjs";
+import { type TSESTree } from "@typescript-eslint/utils";
+
+import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const PROMISABLE_TYPE_NAME = "Promisable";
 const PROMISE_TYPE_NAME = "Promise";
 
-/**
- * @param {import("@typescript-eslint/utils").TSESTree.TypeNode} node
- * @param {string} expectedTypeName
- * @returns {node is import("@typescript-eslint/utils").TSESTree.TSTypeReference & {
- *   typeName: import("@typescript-eslint/utils").TSESTree.Identifier;
- * }}
- */
-const isIdentifierTypeReference = (node, expectedTypeName) =>
+const isIdentifierTypeReference = (
+    node: TSESTree.TypeNode,
+    expectedTypeName: string
+): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
 
-/**
- * @param {import("@typescript-eslint/utils").TSESTree.TypeNode} node
- * @returns {import("@typescript-eslint/utils").TSESTree.TypeNode | null}
- */
-const getPromiseInnerType = (node) => {
+const getPromiseInnerType = (node: TSESTree.TypeNode): TSESTree.TypeNode | null => {
     if (!isIdentifierTypeReference(node, PROMISE_TYPE_NAME)) {
         return null;
     }
 
-    const firstTypeArgument = node.typeArguments?.params[0];
-    return firstTypeArgument ?? null;
+    return node.typeArguments?.params[0] ?? null;
 };
 
 const preferTypeFestPromisableRule = createTypedRule({
-    /**
-     * @param {import("@typescript-eslint/utils").TSESLint.RuleContext<string, readonly unknown[]>} context
-     */
+    name: "prefer-type-fest-promisable",
+    meta: {
+        type: "suggestion",
+        docs: {
+            description:
+                "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-promisable.md",
+        },
+        schema: [],
+        messages: {
+            preferPromisable:
+                "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
+        },
+    },
+    defaultOptions: [],
     create(context) {
         const filePath = context.filename ?? "";
 
@@ -42,16 +47,12 @@ const preferTypeFestPromisableRule = createTypedRule({
         const { sourceCode } = context;
 
         return {
-            /**
-             * @param {import("@typescript-eslint/utils").TSESTree.TSUnionType} node
-             */
             TSUnionType(node) {
                 if (node.types.length !== 2) {
                     return;
                 }
 
-                const firstMember = node.types[0];
-                const secondMember = node.types[1];
+                const [firstMember, secondMember] = node.types;
                 if (!firstMember || !secondMember) {
                     return;
                 }
@@ -95,36 +96,19 @@ const preferTypeFestPromisableRule = createTypedRule({
                 }
 
                 const promiseInnerText = sourceCode.getText(promiseInner);
-                const synchronousMemberText =
-                    sourceCode.getText(synchronousMember);
+                const synchronousMemberText = sourceCode.getText(synchronousMember);
 
                 if (promiseInnerText !== synchronousMemberText) {
                     return;
                 }
 
                 context.report({
-                    messageId: "preferPromisable",
                     node,
+                    messageId: "preferPromisable",
                 });
             },
         };
     },
-    defaultOptions: [],
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
-            recommended: false,
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-promisable.md",
-        },
-        schema: [],
-        messages: {
-            preferPromisable:
-                "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
-        },
-    },
-    name: "prefer-type-fest-promisable",
 });
 
 export default preferTypeFestPromisableRule;

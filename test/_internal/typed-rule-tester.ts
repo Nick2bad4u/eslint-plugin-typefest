@@ -2,7 +2,9 @@ import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { afterAll, describe, it } from "vitest";
+import { afterAll,
+describe,
+it } from "vitest";
 
 import { repoPath } from "./ruleTester";
 
