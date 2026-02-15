@@ -1,0 +1,71 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "eslint-plugin-typefest",
+    "version": "0.1.0",
+    "description": "ESLint rules for adopting type-fest and ts-extras conventions.",
+    "keywords": [
+        "eslint",
+        "eslint-plugin",
+        "type-fest",
+        "ts-extras",
+        "typescript"
+    ],
+    "homepage": "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    "bugs": {
+        "url": "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues",
+        "email": "20943337+Nick2bad4u@users.noreply.github.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-typefest.git"
+    },
+    "license": "MIT",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://nick2bad4u.github.io)",
+    "type": "module",
+    "main": "./plugin.mjs",
+    "sideEffects": false,
+    "exports": {
+        ".": "./plugin.mjs"
+    },
+    "files": [
+        "plugin.mjs",
+        "rules",
+        "_internal",
+        "docs",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "lint": "eslint . --max-warnings=0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "typecheck": "tsc -p tsconfig.eslint.json --noEmit",
+        "release:check": "npm run lint && npm run typecheck && npm run test && npm pack --dry-run",
+        "prepublishOnly": "npm run lint && npm run typecheck && npm run test"
+    },
+    "dependencies": {
+        "@typescript-eslint/utils": "^8.55.0"
+    },
+    "peerDependencies": {
+        "eslint": "^9.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.5.2",
+        "@typescript-eslint/parser": "^8.55.0",
+        "@typescript-eslint/rule-tester": "^8.55.0",
+        "eslint": "^9.39.2",
+        "ts-extras": "^0.17.0",
+        "typescript": "^5.9.3",
+        "type-fest": "^5.4.4",
+        "vitest": "^4.0.18"
+    },
+    "engines": {
+        "node": ">=20.19.0"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}
