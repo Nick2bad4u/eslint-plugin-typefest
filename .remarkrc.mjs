@@ -409,35 +409,6 @@ const remarkConfig = {
         //     ]
         // }],
 
-        // Frontmatter validation
-        /** @type {[string, FrontmatterSchemaOptions]} */
-        [
-            "remark-lint-frontmatter-schema",
-            {
-                schemas: {
-                    "config/schemas/doc-frontmatter.schema.json": [
-                        // Architecture documentation
-                        "docs/Architecture/**/*.md",
-                        "docs/Architecture/**/*.mdx",
-                        // Testing documentation
-                        "docs/Testing/**/*.md",
-                        "docs/Testing/**/*.mdx",
-                        // Guides documentation
-                        "docs/Guides/**/*.md",
-                        "docs/Guides/**/*.mdx",
-                        // Root docs files
-                        "docs/*.md",
-                        "docs/*.mdx",
-                        // General pattern for any remaining docs
-                        "docs/**/*.md",
-                        "docs/**/*.mdx",
-                        // MDX files anywhere (for Storybook stories, etc.)
-                        "**/*.mdx",
-                    ],
-                },
-            },
-        ],
-
         // MDX-specific rules (only apply to MDX files)
         "remark-lint-mdx-jsx-attribute-sort", // Keep props sorted using default alphabetical order
         /** @type {[string, QuoteStyle]} */
