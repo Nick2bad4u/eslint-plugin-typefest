@@ -4,6 +4,7 @@
     "compilerOptions": {
         "checkJs": false,
         "incremental": true,
+        "outDir": ".cache/builds/eslint",
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.eslint.tsbuildinfo"
     }
 }

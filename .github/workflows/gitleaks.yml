@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: GitLeaks Scan
+on:
+    pull_request:
+    push:
+    workflow_dispatch:
+    schedule:
+        - cron: "12 4 * * *" # run once a day at 4:12 AM
+jobs:
+    scan:
+        name: gitleaks
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              with:
+                  egress-policy: audit
+
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  fetch-depth: 0
+            - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITLEAKS_CONFIG: .gitleaks.toml
+                  # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Uncomment if using in an organization
+concurrency:
+    group: gitleaks-${{ github.ref }}
+    cancel-in-progress: false

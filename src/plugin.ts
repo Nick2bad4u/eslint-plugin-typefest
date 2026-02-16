@@ -4,11 +4,15 @@ import type { ESLint, Linter } from "eslint";
 import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
 import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
+import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
 import preferTsExtrasArrayFindRule from "./rules/prefer-ts-extras-array-find.js";
 import preferTsExtrasArrayFindLastRule from "./rules/prefer-ts-extras-array-find-last.js";
 import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
 import preferTsExtrasArrayIncludesRule from "./rules/prefer-ts-extras-array-includes.js";
 import preferTsExtrasArrayJoinRule from "./rules/prefer-ts-extras-array-join.js";
+import preferTsExtrasIsFiniteRule from "./rules/prefer-ts-extras-is-finite.js";
+import preferTsExtrasIsIntegerRule from "./rules/prefer-ts-extras-is-integer.js";
+import preferTsExtrasIsSafeIntegerRule from "./rules/prefer-ts-extras-is-safe-integer.js";
 import preferTsExtrasKeyInRule from "./rules/prefer-ts-extras-key-in.js";
 import preferTsExtrasObjectEntriesRule from "./rules/prefer-ts-extras-object-entries.js";
 import preferTsExtrasObjectFromEntriesRule from "./rules/prefer-ts-extras-object-from-entries.js";
@@ -36,6 +40,7 @@ const typefestPlugin = {
     },
     rules: {
         "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
+        "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
         "prefer-ts-extras-array-find": preferTsExtrasArrayFindRule,
         "prefer-ts-extras-array-find-last": preferTsExtrasArrayFindLastRule,
         "prefer-ts-extras-array-find-last-index":
@@ -43,7 +48,10 @@ const typefestPlugin = {
         "prefer-ts-extras-array-includes": preferTsExtrasArrayIncludesRule,
         "prefer-ts-extras-array-join": preferTsExtrasArrayJoinRule,
         "prefer-ts-extras-is-defined-filter": preferTsExtrasIsDefinedFilterRule,
+        "prefer-ts-extras-is-finite": preferTsExtrasIsFiniteRule,
+        "prefer-ts-extras-is-integer": preferTsExtrasIsIntegerRule,
         "prefer-ts-extras-is-present-filter": preferTsExtrasIsPresentFilterRule,
+        "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
         "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
         "prefer-ts-extras-object-entries": preferTsExtrasObjectEntriesRule,
         "prefer-ts-extras-object-from-entries": preferTsExtrasObjectFromEntriesRule,
@@ -102,11 +110,15 @@ const recommendedRuleNames = [
     "prefer-ts-extras-is-defined-filter",
     "prefer-ts-extras-is-present-filter",
     "prefer-ts-extras-array-at",
+    "prefer-ts-extras-array-concat",
     "prefer-ts-extras-array-find",
     "prefer-ts-extras-array-find-last",
     "prefer-ts-extras-array-find-last-index",
     "prefer-ts-extras-array-includes",
     "prefer-ts-extras-array-join",
+    "prefer-ts-extras-is-finite",
+    "prefer-ts-extras-is-integer",
+    "prefer-ts-extras-is-safe-integer",
     "prefer-ts-extras-key-in",
     "prefer-ts-extras-object-entries",
     "prefer-ts-extras-object-from-entries",

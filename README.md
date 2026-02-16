@@ -1,27 +1,10 @@
 # eslint-plugin-typefest
 
 ESLint plugin focused on encouraging consistent usage of:
-
-- [`type-fest`](https://github.com/sindresorhus/type-fest)
-- [`ts-extras`](https://github.com/sindresorhus/ts-extras)
-
-## Install
-
-```bash
-npm install --save-dev eslint-plugin-typefest
-```
-
-## Usage (flat config)
-
-```js
-import typefest from "eslint-plugin-typefest";
-
-export default [
-    typefest.configs.recommended,
-];
-```
-
-### TypeScript parser setup
+ - `typefest/prefer-ts-extras-array-concat`](docs/rules/prefer-ts-extras-array-concat.md)
+ - `typefest/prefer-ts-extras-is-finite`](docs/rules/prefer-ts-extras-is-finite.md)
+ - `typefest/prefer-ts-extras-is-integer`](docs/rules/prefer-ts-extras-is-integer.md)
+ - `typefest/prefer-ts-extras-is-safe-integer`](docs/rules/prefer-ts-extras-is-safe-integer.md)
 
 These rules target TypeScript syntax, so configure
 `@typescript-eslint/parser` for TS files:
@@ -63,13 +46,17 @@ export default [
 - `typefest/prefer-type-fest-unknown-record`
 - `typefest/prefer-type-fest-value-of`
 - `typefest/prefer-ts-extras-array-at`
+- `typefest/prefer-ts-extras-array-concat`
 - `typefest/prefer-ts-extras-array-find`
 - `typefest/prefer-ts-extras-array-find-last`
 - `typefest/prefer-ts-extras-array-find-last-index`
 - `typefest/prefer-ts-extras-array-includes`
 - `typefest/prefer-ts-extras-array-join`
 - `typefest/prefer-ts-extras-is-defined-filter`
+- `typefest/prefer-ts-extras-is-finite`
+- `typefest/prefer-ts-extras-is-integer`
 - `typefest/prefer-ts-extras-is-present-filter`
+- `typefest/prefer-ts-extras-is-safe-integer`
 - `typefest/prefer-ts-extras-key-in`
 - `typefest/prefer-ts-extras-object-entries`
 - `typefest/prefer-ts-extras-object-from-entries`
