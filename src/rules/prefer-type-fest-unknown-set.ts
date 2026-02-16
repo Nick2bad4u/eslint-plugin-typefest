@@ -2,7 +2,7 @@ import { type TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const SET_TYPE_NAME = "Set";
+const READONLY_SET_TYPE_NAME = "ReadonlySet";
 
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
@@ -29,13 +29,13 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> = createT
         type: "suggestion",
         docs: {
             description:
-                "require TypeFest UnknownSet over Set<unknown> aliases.",
+                "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-set.md",
         },
         schema: [],
         messages: {
             preferUnknownSet:
-                "Prefer `UnknownSet` from type-fest over `Set<unknown>`.",
+                "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
         },
     },
     defaultOptions: [],
@@ -48,7 +48,9 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> = createT
 
         return {
             TSTypeReference(node) {
-                if (!isIdentifierTypeReference(node, SET_TYPE_NAME)) {
+                if (
+                    !isIdentifierTypeReference(node, READONLY_SET_TYPE_NAME)
+                ) {
                     return;
                 }
 

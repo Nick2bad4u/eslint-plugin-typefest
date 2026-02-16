@@ -1,5 +1,5 @@
-type MonitorIdSet = Set<unknown>;
-type PayloadKeySet = Set<unknown>;
+type MonitorIdSet = ReadonlySet<unknown>;
+type PayloadKeySet = ReadonlySet<unknown>;
 
 declare const monitorIdSet: MonitorIdSet;
 declare const payloadKeySet: PayloadKeySet;

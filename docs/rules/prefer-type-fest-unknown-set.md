@@ -1,10 +1,10 @@
 # Prefer TypeFest UnknownSet
 
-Require TypeFest `UnknownSet` over `Set<unknown>`.
+Require TypeFest `UnknownSet` over `ReadonlySet<unknown>`.
 
 ## What it checks
 
-- `Set<unknown>` type references.
+- `ReadonlySet<unknown>` type references.
 
 ## Why
 

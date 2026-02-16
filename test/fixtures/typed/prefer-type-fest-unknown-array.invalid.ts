@@ -1,5 +1,5 @@
-type RawMessageBatch = unknown[];
-type StreamPayloadList = Array<unknown>;
+type RawMessageBatch = readonly unknown[];
+type StreamPayloadList = ReadonlyArray<unknown>;
 
 declare const rawMessages: RawMessageBatch;
 declare const streamPayloads: StreamPayloadList;

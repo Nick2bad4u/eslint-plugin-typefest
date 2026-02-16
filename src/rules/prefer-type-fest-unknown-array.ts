@@ -2,7 +2,7 @@ import { type TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const ARRAY_TYPE_NAME = "Array";
+const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
 
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
@@ -23,19 +23,34 @@ const hasSingleUnknownTypeArgument = (node: TSESTree.TSTypeReference): boolean =
     return firstTypeArgument?.type === "TSUnknownKeyword";
 };
 
+const isReadonlyUnknownArrayType = (
+    node: TSESTree.TSTypeOperator
+): boolean => {
+    if (node.operator !== "readonly") {
+        return false;
+    }
+
+    const typeAnnotation = node.typeAnnotation;
+    if (!typeAnnotation || typeAnnotation.type !== "TSArrayType") {
+        return false;
+    }
+
+    return typeAnnotation.elementType.type === "TSUnknownKeyword";
+};
+
 const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-unknown-array",
     meta: {
         type: "suggestion",
         docs: {
             description:
-                "require TypeFest UnknownArray over unknown[] and Array<unknown> aliases.",
+                "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
         },
         schema: [],
         messages: {
             preferUnknownArray:
-                "Prefer `UnknownArray` from type-fest over `unknown[]` or `Array<unknown>`.",
+                "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
         },
     },
     defaultOptions: [],
@@ -47,8 +62,8 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> = creat
         }
 
         return {
-            TSArrayType(node) {
-                if (node.elementType.type !== "TSUnknownKeyword") {
+            TSTypeOperator(node) {
+                if (!isReadonlyUnknownArrayType(node)) {
                     return;
                 }
 
@@ -58,7 +73,9 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> = creat
                 });
             },
             TSTypeReference(node) {
-                if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
+                if (
+                    !isIdentifierTypeReference(node, READONLY_ARRAY_TYPE_NAME)
+                ) {
                     return;
                 }
 

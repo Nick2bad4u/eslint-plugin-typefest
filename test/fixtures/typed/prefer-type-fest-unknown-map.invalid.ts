@@ -1,5 +1,5 @@
-type MonitorPayloadMap = Map<unknown, unknown>;
-type SiteMetaMap = Map<unknown, unknown>;
+type MonitorPayloadMap = ReadonlyMap<unknown, unknown>;
+type SiteMetaMap = ReadonlyMap<unknown, unknown>;
 
 declare const monitorPayloadMap: MonitorPayloadMap;
 declare const siteMetaMap: SiteMetaMap;

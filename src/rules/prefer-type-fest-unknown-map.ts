@@ -2,7 +2,7 @@ import { type TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const MAP_TYPE_NAME = "Map";
+const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
 
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
@@ -33,13 +33,13 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> = createT
         type: "suggestion",
         docs: {
             description:
-                "require TypeFest UnknownMap over Map<unknown, unknown> aliases.",
+                "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-map.md",
         },
         schema: [],
         messages: {
             preferUnknownMap:
-                "Prefer `UnknownMap` from type-fest over `Map<unknown, unknown>`.",
+                "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",
         },
     },
     defaultOptions: [],
@@ -52,7 +52,9 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> = createT
 
         return {
             TSTypeReference(node) {
-                if (!isIdentifierTypeReference(node, MAP_TYPE_NAME)) {
+                if (
+                    !isIdentifierTypeReference(node, READONLY_MAP_TYPE_NAME)
+                ) {
                     return;
                 }
 

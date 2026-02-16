@@ -52,10 +52,16 @@ describe("typefest plugin configs", () => {
             expect.arrayContaining([
                 "all",
                 "default",
+                "minimal",
                 "recommended",
+                "safe",
+                "strict",
                 "flat/all",
                 "flat/default",
+                "flat/minimal",
                 "flat/recommended",
+                "flat/safe",
+                "flat/strict",
             ])
         );
     });

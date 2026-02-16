@@ -20,10 +20,10 @@ npm run release:check
 2. Commit and push to `main`.
 3. Create and push a matching `v*` tag:
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
 
 The release workflow will:
 

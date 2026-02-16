@@ -1,11 +1,11 @@
 # Prefer TypeFest UnknownArray
 
-Require TypeFest `UnknownArray` over `unknown[]` and `Array<unknown>`.
+Require TypeFest `UnknownArray` over `readonly unknown[]` and `ReadonlyArray<unknown>`.
 
 ## What it checks
 
-- `unknown[]`
-- `Array<unknown>`
+- `readonly unknown[]`
+- `ReadonlyArray<unknown>`
 
 ## Why
 

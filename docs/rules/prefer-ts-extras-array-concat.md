@@ -2,7 +2,7 @@
 
 Prefer [`arrayConcat`](https://github.com/sindresorhus/ts-extras#arrayconcat) from `ts-extras` over `array.concat(...)`.
 
-`arrayConcat(...)` preserves stronger tuple and readonly-array typing in many generic flows.
+`arrayConcat(...)` preserves stronger tuple and readonly-array typing across generic flows.
 
 ## ❌ Incorrect
 
