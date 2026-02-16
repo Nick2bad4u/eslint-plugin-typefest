@@ -90,7 +90,7 @@ const isNullishFilterGuardBody = (
     return hasNullComparison && hasUndefinedComparison;
 };
 
-const preferTsExtrasIsPresentFilterRule = createTypedRule({
+const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-is-present-filter",
     meta: {
         type: "suggestion",

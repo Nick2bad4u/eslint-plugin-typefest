@@ -6,7 +6,7 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasSetHasRule = createTypedRule({
+const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-set-has",
     meta: {
         type: "suggestion",

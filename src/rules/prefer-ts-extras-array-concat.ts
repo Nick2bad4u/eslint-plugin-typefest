@@ -6,14 +6,13 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayConcatRule = createTypedRule({
+const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-array-concat",
     meta: {
         type: "suggestion",
         docs: {
             description:
                 "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
-            recommended: true,
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-concat.md",
         },
         schema: [],

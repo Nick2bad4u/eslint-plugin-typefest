@@ -1,38 +1,24 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
-    "extends": "./tsconfig.json",
     "compilerOptions": {
-        "composite": true,
         "allowJs": true,
-        "checkJs": true,
-        "module": "ESNext",
+        "checkJs": false,
+        "erasableSyntaxOnly": false,
         "isolatedDeclarations": false,
+        "noEmit": true,
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.js.tsbuildinfo",
-        "outDir": ".cache/builds/js",
-        "moduleResolution": "Bundler",
-        "target": "ES2024",
-        "lib": [
-            "ES2024"
-        ],
-        "strict": true,
-        "skipLibCheck": true,
-        "noEmit": false,
         "types": [
-            "node",
-            "vitest/globals"
+            "node"
         ]
     },
-    "include": [
-        "./**/*.ts",
-        "./**/*.tsx",
-        "./**/*.mts",
-        "./**/*.cts",
-        "./**/*.js",
-        "./**/*.mjs",
-        "./**/*.cjs"
-    ],
     "exclude": [
-        "node_modules",
-        "dist"
+        ".cache/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**"
+    ],
+    "extends": "./tsconfig.json",
+    "include": [
+        "*.mjs"
     ]
 }

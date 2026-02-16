@@ -1,30 +1,35 @@
-import preferTsExtrasArrayConcatRule from "../src/rules/prefer-ts-extras-array-concat.js";
-import { readTypedFixture, typedRuleTester } from "./_internal/typed-rule-tester.js";
+import { getPluginRule } from "./_internal/ruleTester";
+import {
+    createTypedRuleTester,
+    readTypedFixture,
+    typedFixturePath,
+} from "./_internal/typed-rule-tester";
 
-const validFixture = readTypedFixture("prefer-ts-extras-array-concat.valid.ts");
-const invalidFixture = readTypedFixture("prefer-ts-extras-array-concat.invalid.ts");
+const rule = getPluginRule("prefer-ts-extras-array-concat");
+const ruleTester = createTypedRuleTester();
 
-typedRuleTester.run(
-    "prefer-ts-extras-array-concat",
-    preferTsExtrasArrayConcatRule,
-    {
-        invalid: [
-            {
-                code: invalidFixture,
-                errors: [
-                    {
-                        messageId: "preferTsExtrasArrayConcat",
-                    },
-                    {
-                        messageId: "preferTsExtrasArrayConcat",
-                    },
-                ],
-            },
-        ],
-        valid: [
-            {
-                code: validFixture,
-            },
-        ],
-    }
-);
+const validFixtureName = "prefer-ts-extras-array-concat.valid.ts";
+const invalidFixtureName = "prefer-ts-extras-array-concat.invalid.ts";
+
+ruleTester.run("prefer-ts-extras-array-concat", rule, {
+    invalid: [
+        {
+            code: readTypedFixture(invalidFixtureName),
+            errors: [
+                {
+                    messageId: "preferTsExtrasArrayConcat",
+                },
+                {
+                    messageId: "preferTsExtrasArrayConcat",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+        },
+    ],
+});

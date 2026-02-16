@@ -19,7 +19,7 @@ const isRecordLikeUnknown = (typeNode: TSESTree.TSTypeReference): boolean => {
     );
 };
 
-const preferTypeFestJsonValueRule = createTypedRule({
+const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-json-value",
     meta: {
         type: "suggestion",

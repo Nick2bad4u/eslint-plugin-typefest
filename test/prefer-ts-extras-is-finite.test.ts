@@ -1,13 +1,20 @@
-import preferTsExtrasIsFiniteRule from "../src/rules/prefer-ts-extras-is-finite.js";
-import { readTypedFixture, typedRuleTester } from "./_internal/typed-rule-tester.js";
+import { getPluginRule } from "./_internal/ruleTester";
+import {
+    createTypedRuleTester,
+    readTypedFixture,
+    typedFixturePath,
+} from "./_internal/typed-rule-tester";
 
-const validFixture = readTypedFixture("prefer-ts-extras-is-finite.valid.ts");
-const invalidFixture = readTypedFixture("prefer-ts-extras-is-finite.invalid.ts");
+const rule = getPluginRule("prefer-ts-extras-is-finite");
+const ruleTester = createTypedRuleTester();
 
-typedRuleTester.run("prefer-ts-extras-is-finite", preferTsExtrasIsFiniteRule, {
+const validFixtureName = "prefer-ts-extras-is-finite.valid.ts";
+const invalidFixtureName = "prefer-ts-extras-is-finite.invalid.ts";
+
+ruleTester.run("prefer-ts-extras-is-finite", rule, {
     invalid: [
         {
-            code: invalidFixture,
+            code: readTypedFixture(invalidFixtureName),
             errors: [
                 {
                     messageId: "preferTsExtrasIsFinite",
@@ -16,11 +23,13 @@ typedRuleTester.run("prefer-ts-extras-is-finite", preferTsExtrasIsFiniteRule, {
                     messageId: "preferTsExtrasIsFinite",
                 },
             ],
+            filename: typedFixturePath(invalidFixtureName),
         },
     ],
     valid: [
         {
-            code: validFixture,
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
         },
     ],
 });

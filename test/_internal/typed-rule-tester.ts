@@ -31,9 +31,17 @@ export const createTypedRuleTester = (): RuleTester =>
             parser: tsParser,
             parserOptions: {
                 ecmaVersion: "latest",
-                projectService: true,
+                projectService: {
+                    allowDefaultProject: [
+                        "file.ts",
+                        "test/fixtures/typed/*.ts",
+                    ],
+                    defaultProject: "tsconfig.eslint.json",
+                },
                 sourceType: "module",
                 tsconfigRootDir: repoPath(),
             },
         },
     });
+
+export const typedRuleTester = createTypedRuleTester();

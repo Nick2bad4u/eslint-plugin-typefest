@@ -1,32 +1,35 @@
-import preferTsExtrasIsSafeIntegerRule from "../src/rules/prefer-ts-extras-is-safe-integer.js";
-import { readTypedFixture, typedRuleTester } from "./_internal/typed-rule-tester.js";
+import { getPluginRule } from "./_internal/ruleTester";
+import {
+    createTypedRuleTester,
+    readTypedFixture,
+    typedFixturePath,
+} from "./_internal/typed-rule-tester";
 
-const validFixture = readTypedFixture("prefer-ts-extras-is-safe-integer.valid.ts");
-const invalidFixture = readTypedFixture(
-    "prefer-ts-extras-is-safe-integer.invalid.ts"
-);
+const rule = getPluginRule("prefer-ts-extras-is-safe-integer");
+const ruleTester = createTypedRuleTester();
 
-typedRuleTester.run(
-    "prefer-ts-extras-is-safe-integer",
-    preferTsExtrasIsSafeIntegerRule,
-    {
-        invalid: [
-            {
-                code: invalidFixture,
-                errors: [
-                    {
-                        messageId: "preferTsExtrasIsSafeInteger",
-                    },
-                    {
-                        messageId: "preferTsExtrasIsSafeInteger",
-                    },
-                ],
-            },
-        ],
-        valid: [
-            {
-                code: validFixture,
-            },
-        ],
-    }
-);
+const validFixtureName = "prefer-ts-extras-is-safe-integer.valid.ts";
+const invalidFixtureName = "prefer-ts-extras-is-safe-integer.invalid.ts";
+
+ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
+    invalid: [
+        {
+            code: readTypedFixture(invalidFixtureName),
+            errors: [
+                {
+                    messageId: "preferTsExtrasIsSafeInteger",
+                },
+                {
+                    messageId: "preferTsExtrasIsSafeInteger",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+        },
+    ],
+});

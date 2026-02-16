@@ -1,6 +1,6 @@
 declare function isInteger(value: unknown): value is number;
 
-const maybeRetryCount: unknown = Math.random() > 0.5 ? 3 : 4;
+const maybeRetryCount: unknown = 3;
 if (isInteger(maybeRetryCount)) {
     const nextRetryCount = maybeRetryCount + 1;
     if (nextRetryCount > 1000) {

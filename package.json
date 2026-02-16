@@ -21,41 +21,36 @@
     },
     "license": "MIT",
     "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://nick2bad4u.github.io)",
-    "type": "module",
-    "main": "./dist/plugin.js",
-    "types": "./dist/plugin.d.ts",
     "sideEffects": false,
+    "type": "module",
     "exports": {
         ".": "./dist/plugin.js"
     },
+    "main": "./dist/plugin.js",
+    "types": "./dist/plugin.d.ts",
     "files": [
         "dist",
         "docs",
-        "README.md",
-        "CHANGELOG.md",
-        "LICENSE"
+        "CHANGELOG.md"
     ],
     "scripts": {
         "build": "tsc -p tsconfig.build.json",
         "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
-        "pretest": "npm run build",
         "lint:action": "npm run lint:actions",
         "lint:actions": "actionlint -config-file ActionLintConfig.yaml -pyflakes \"\" -shellcheck \"\"",
-        "test": "vitest run",
+        "lint:fix": "eslint . --fix",
         "lint:prettier": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
         "lint:prettier:fix": "prettier . --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
-        "test:watch": "vitest",
-        "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit",
+        "prepublishOnly": "npm run release:check",
         "release:check": "npm run lint && npm run typecheck && npm run test && npm pack --dry-run",
-        "prepublishOnly": "npm run release:check"
+        "pretest": "npm run build",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit"
     },
     "dependencies": {
         "@typescript-eslint/utils": "^8.55.0"
-    },
-    "peerDependencies": {
-        "eslint": "^9.0.0"
     },
     "devDependencies": {
         "@double-great/remark-lint-alt-text": "^1.1.1",
@@ -241,11 +236,13 @@
         "vitest": "^4.0.18",
         "yaml-eslint-parser": "^2.0.0"
     },
+    "peerDependencies": {
+        "eslint": "^9.0.0"
+    },
     "engines": {
         "node": ">=20.19.0"
     },
     "publishConfig": {
-        "access": "public",
         "provenance": true
     }
 }

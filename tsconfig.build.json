@@ -1,31 +1,31 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
-    "extends": "./tsconfig.json",
     "compilerOptions": {
         "composite": true,
-        "allowJs": false,
-        "checkJs": false,
         "declaration": true,
         "declarationMap": true,
         "emitDeclarationOnly": false,
+        "isolatedDeclarations": false,
+        "isolatedModules": false,
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "noEmit": false,
         "outDir": "./dist",
-        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.build.tsbuildinfo",
-        "resolveJsonModule": true,
         "rootDir": "./src",
         "sourceMap": true,
+        "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.build.tsbuildinfo",
         "types": [
             "node"
         ]
     },
+    "exclude": [
+        ".cache/**",
+        "dist/**",
+        "node_modules/**",
+        "test/**"
+    ],
+    "extends": "./tsconfig.json",
     "include": [
         "src/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "test"
     ]
 }

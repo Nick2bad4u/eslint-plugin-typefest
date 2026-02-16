@@ -11,10 +11,6 @@
         "assumeChangesOnlyAffectDirectDependencies": true,
         "baseUrl": ".",
         "checkJs": false,
-        "composite": true,
-        "declaration": true,
-        "declarationDir": ".cache/builds/app/types",
-        "declarationMap": true,
         "diagnostics": false,
         "disableReferencedProjectLoad": false,
         "disableSizeLimit": true,
@@ -22,7 +18,6 @@
         "disableSourceOfProjectReferenceRedirect": false,
         "downlevelIteration": true,
         "emitBOM": false,
-        "emitDeclarationOnly": false,
         "emitDecoratorMetadata": false,
         "erasableSyntaxOnly": true,
         "esModuleInterop": true,
@@ -37,7 +32,6 @@
         "incremental": true,
         "inlineSourceMap": false,
         "inlineSources": false,
-        "isolatedDeclarations": true,
         "isolatedModules": true,
         "jsx": "react-jsx",
         "jsxImportSource": "react",
@@ -55,7 +49,7 @@
         "moduleResolution": "bundler",
         "newLine": "crlf",
         "noCheck": false,
-        "noEmit": false,
+        "noEmit": true,
         "noEmitHelpers": false,
         "noEmitOnError": false,
         "noErrorTruncation": true,
@@ -73,14 +67,13 @@
         "noUncheckedSideEffectImports": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "outDir": ".cache/builds/app",
         "paths": {
-            "@plugin/*": [
-                "src/*"
-            ],
             "@assets/*": [
                 "assets/*"
             ],
+            "@plugin/*": [
+                "src/*"
+            ]
         },
         "preserveConstEnums": true,
         "preserveSymlinks": false,
@@ -116,50 +109,16 @@
         "verbatimModuleSyntax": true
     },
     "exclude": [
-        "**/dist",
-        "**/dist/**",
-        "**/docs/**",
-        "**/node_modules",
-        "**/node_modules/@types/**",
-        "**/node_modules/@typescript-eslint/**",
-        "**/node_modules/**",
-        "**/node_modules/typescript/**",
-        "coverage",
-        "dist",
-        "electron",
-        "shared",
-        "node_modules",
-        "node_modules/**/*",
-        "out",
-        "release",
-        "src/**/*.test.ts",
-        "src/**/*.test.tsx",
-        "src/test/**",
-        "storybook/**",
-        "temp",
-        "temp/**",
-        ".cache",
         ".cache/**",
-        ".coverage",
-        ".storybook/**",
-        "storybook-static/**"
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "test/fixtures/**"
     ],
     "include": [
-        "./**/*.ts",
-        "./**/*.tsx",
-        "./**/*.mts",
-        "./**/*.cts",
-        "./**/*.js",
-        "./**/*.mjs",
-        "./**/*.cjs"
-    ],
-    "references": [
-        {
-            "path": "./tsconfig.js.json"
-        },
-        {
-            "path": "./tsconfig.build.json"
-        }
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "vite.config.ts"
     ],
     "typeAcquisition": {
         "enable": true,

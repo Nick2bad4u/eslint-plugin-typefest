@@ -1,6 +1,6 @@
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const preferTsExtrasObjectKeysRule = createTypedRule({
+const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-object-keys",
     meta: {
         type: "suggestion",

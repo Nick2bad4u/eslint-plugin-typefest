@@ -21,7 +21,7 @@ const getPromiseInnerType = (node: TSESTree.TypeNode): TSESTree.TypeNode | null 
     return node.typeArguments?.params[0] ?? null;
 };
 
-const preferTypeFestPromisableRule = createTypedRule({
+const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-promisable",
     meta: {
         type: "suggestion",

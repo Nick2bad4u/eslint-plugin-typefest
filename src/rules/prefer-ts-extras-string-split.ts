@@ -4,7 +4,7 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasStringSplitRule = createTypedRule({
+const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-string-split",
     meta: {
         type: "suggestion",

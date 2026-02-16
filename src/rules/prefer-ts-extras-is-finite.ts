@@ -1,13 +1,12 @@
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const preferTsExtrasIsFiniteRule = createTypedRule({
+const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-is-finite",
     meta: {
         type: "suggestion",
         docs: {
             description:
                 "require ts-extras isFinite over Number.isFinite for consistent predicate helper usage.",
-            recommended: true,
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-finite.md",
         },
         schema: [],

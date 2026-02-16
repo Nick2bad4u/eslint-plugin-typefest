@@ -21,10 +21,15 @@ import preferTsExtrasObjectKeysRule from "./rules/prefer-ts-extras-object-keys.j
 import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-values.js";
 import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
+import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
+import preferTypeFestExceptRule from "./rules/prefer-type-fest-except.js";
 import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
+import preferTypeFestUnknownArrayRule from "./rules/prefer-type-fest-unknown-array.js";
+import preferTypeFestUnknownMapRule from "./rules/prefer-type-fest-unknown-map.js";
 import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-record.js";
+import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.js";
 import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
 
 const require = createRequire(import.meta.url);
@@ -60,10 +65,15 @@ const typefestPlugin = {
         "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
         "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
         "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
+        "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
+        "prefer-type-fest-except": preferTypeFestExceptRule,
         "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
         "prefer-type-fest-promisable": preferTypeFestPromisableRule,
         "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
+        "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
+        "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
         "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,
+        "prefer-type-fest-unknown-set": preferTypeFestUnknownSetRule,
         "prefer-type-fest-value-of": preferTypeFestValueOfRule,
     },
 };
@@ -104,8 +114,13 @@ function errorRulesFor(ruleNames: readonly string[]): RulesConfig {
 }
 
 const recommendedRuleNames = [
+    "prefer-type-fest-async-return-type",
+    "prefer-type-fest-except",
     "prefer-type-fest-promisable",
+    "prefer-type-fest-unknown-array",
+    "prefer-type-fest-unknown-map",
     "prefer-type-fest-unknown-record",
+    "prefer-type-fest-unknown-set",
     "prefer-type-fest-value-of",
     "prefer-ts-extras-is-defined-filter",
     "prefer-ts-extras-is-present-filter",

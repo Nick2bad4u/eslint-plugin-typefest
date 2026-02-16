@@ -1,13 +1,20 @@
-import preferTsExtrasIsIntegerRule from "../src/rules/prefer-ts-extras-is-integer.js";
-import { readTypedFixture, typedRuleTester } from "./_internal/typed-rule-tester.js";
+import { getPluginRule } from "./_internal/ruleTester";
+import {
+    createTypedRuleTester,
+    readTypedFixture,
+    typedFixturePath,
+} from "./_internal/typed-rule-tester";
 
-const validFixture = readTypedFixture("prefer-ts-extras-is-integer.valid.ts");
-const invalidFixture = readTypedFixture("prefer-ts-extras-is-integer.invalid.ts");
+const rule = getPluginRule("prefer-ts-extras-is-integer");
+const ruleTester = createTypedRuleTester();
 
-typedRuleTester.run("prefer-ts-extras-is-integer", preferTsExtrasIsIntegerRule, {
+const validFixtureName = "prefer-ts-extras-is-integer.valid.ts";
+const invalidFixtureName = "prefer-ts-extras-is-integer.invalid.ts";
+
+ruleTester.run("prefer-ts-extras-is-integer", rule, {
     invalid: [
         {
-            code: invalidFixture,
+            code: readTypedFixture(invalidFixtureName),
             errors: [
                 {
                     messageId: "preferTsExtrasIsInteger",
@@ -16,11 +23,13 @@ typedRuleTester.run("prefer-ts-extras-is-integer", preferTsExtrasIsIntegerRule, 
                     messageId: "preferTsExtrasIsInteger",
                 },
             ],
+            filename: typedFixturePath(invalidFixtureName),
         },
     ],
     valid: [
         {
-            code: validFixture,
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
         },
     ],
 });

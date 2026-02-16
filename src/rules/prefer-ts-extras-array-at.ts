@@ -7,7 +7,7 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayAtRule = createTypedRule({
+const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-array-at",
     meta: {
         type: "suggestion",

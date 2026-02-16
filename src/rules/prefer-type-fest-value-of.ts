@@ -2,7 +2,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
-const preferTypeFestValueOfRule = createTypedRule({
+const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-value-of",
     meta: {
         type: "suggestion",

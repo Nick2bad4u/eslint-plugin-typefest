@@ -15,7 +15,7 @@ const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {
     return keyType?.type === "TSStringKeyword" && valueType?.type === "TSUnknownKeyword";
 };
 
-const preferTypeFestUnknownRecordRule = createTypedRule({
+const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-unknown-record",
     meta: {
         type: "suggestion",

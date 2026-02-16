@@ -38,7 +38,7 @@ const isUndefinedFilterGuardBody = (
     );
 };
 
-const preferTsExtrasIsDefinedFilterRule = createTypedRule({
+const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-is-defined-filter",
     meta: {
         type: "suggestion",

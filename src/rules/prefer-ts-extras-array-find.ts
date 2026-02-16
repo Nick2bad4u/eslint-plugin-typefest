@@ -6,7 +6,7 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayFindRule = createTypedRule({
+const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-array-find",
     meta: {
         type: "suggestion",

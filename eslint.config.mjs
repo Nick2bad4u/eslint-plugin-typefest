@@ -9,7 +9,6 @@
 
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupPluginRules } from "@eslint/compat";
-
 import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
@@ -98,6 +97,7 @@ import globals from "globals";
 import jsoncEslintParser from "jsonc-eslint-parser";
 import { createRequire } from "node:module";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 // import github from 'eslint-plugin-github' -- unused for now
@@ -106,14 +106,16 @@ import * as yamlEslintParser from "yaml-eslint-parser";
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
 const enableJsonSchemaValidation =
-    process.env[ "UW_ENABLE_JSON_SCHEMA_VALIDATION" ] === "1";
+    globalThis.process.env[ "UW_ENABLE_JSON_SCHEMA_VALIDATION" ] === "1";
+
+const jsonSchemaValidatorPackageName = "eslint-plugin-json-schema-validator";
 
 let eslintPluginJsonSchemaValidator = undefined;
 
 if ( enableJsonSchemaValidation ) {
     eslintPluginJsonSchemaValidator = (
         // @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-        await import( "eslint-plugin-json-schema-validator" )
+        await import( jsonSchemaValidatorPackageName )
     ).default;
 }
 
@@ -130,8 +132,9 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
 /** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
 
 const require = createRequire( import.meta.url );
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-const ROOT_DIR = import.meta.dirname;
+// eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
+const configDirectoryPath = path.dirname( fileURLToPath( import.meta.url ) );
+const processEnvironment = globalThis.process.env;
 
 /**
  * Controls eslint-plugin-file-progress behavior.
@@ -147,10 +150,10 @@ const ROOT_DIR = import.meta.dirname;
  * - "off" / "0" / "false": disable progress
  */
 const UW_ESLINT_PROGRESS_MODE = (
-    process.env[ "UW_ESLINT_PROGRESS" ] ?? "on"
+    processEnvironment[ "UW_ESLINT_PROGRESS" ] ?? "on"
 ).toLowerCase();
 
-const IS_CI = ( process.env[ "CI" ] ?? "" ).toLowerCase() === "true";
+const IS_CI = ( processEnvironment[ "CI" ] ?? "" ).toLowerCase() === "true";
 const DISABLE_PROGRESS =
     UW_ESLINT_PROGRESS_MODE === "off" ||
     UW_ESLINT_PROGRESS_MODE === "0" ||
@@ -173,7 +176,7 @@ const fileProgressOverridesConfig = {
     },
 };
 
-if ( !process.env[ "RECHECK_JAR" ] ) {
+if ( !processEnvironment[ "RECHECK_JAR" ] ) {
     const resolvedRecheckJarPath = ( () => {
         try {
             return require.resolve( "recheck-jar/recheck.jar" );
@@ -185,7 +188,7 @@ if ( !process.env[ "RECHECK_JAR" ] ) {
         }
     } )();
     if ( resolvedRecheckJarPath ) {
-        process.env[ "RECHECK_JAR" ] = path.normalize( resolvedRecheckJarPath );
+        processEnvironment[ "RECHECK_JAR" ] = path.normalize( resolvedRecheckJarPath );
     }
 }
 
@@ -196,7 +199,7 @@ import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 // MARK: Global Configs and Rules
 // ═══════════════════════════════════════════════════════════════════════════════
 export default defineConfig( [
-    globalIgnores( [ "**/CHANGELOG.md" ] ),
+    globalIgnores( [ "**/CHANGELOG.md", ".remarkrc.mjs" ] ),
     gitignore( {
         name: "Global - .gitignore Rules",
         root: true,
@@ -437,13 +440,12 @@ export default defineConfig( [
                 jsDocParsingMode: "all",
                 project: [ "./tsconfig.eslint.json" ],
                 sourceType: "module",
-                tsconfigRootDir: path.resolve( import.meta.dirname ),
+                tsconfigRootDir: configDirectoryPath,
                 warnOnUnsupportedTypeScriptVersion: true,
             },
         },
         name: "ESLint Plugin Source Files - project/**/*.*",
         plugins: {
-            "@eslint-community/eslint-comments": comments,
             "@microsoft/sdl": pluginMicrosoftSdl,
             "@typescript-eslint": tseslint,
             canonical: pluginCanonical,
@@ -638,19 +640,19 @@ export default defineConfig( [
         rules: {
             "@typescript-eslint/ban-ts-comment": "off",
             "@typescript-eslint/consistent-type-definitions": "off",
-            "@typescript-eslint/prefer-nullish-coalescing": "off",
-            "@typescript-eslint/restrict-template-expressions": "off",
-            "@typescript-eslint/no-unsafe-assignment": "off",
-            "@typescript-eslint/no-unsafe-member-access": "off",
             "@typescript-eslint/no-unnecessary-condition": "off",
             "@typescript-eslint/no-unsafe-argument": "off",
+            "@typescript-eslint/no-unsafe-assignment": "off",
             "@typescript-eslint/no-unsafe-call": "off",
             "@typescript-eslint/no-unsafe-enum-comparison": "off",
+            "@typescript-eslint/no-unsafe-member-access": "off",
             "@typescript-eslint/no-unsafe-return": "off",
+            "@typescript-eslint/prefer-nullish-coalescing": "off",
+            "@typescript-eslint/restrict-template-expressions": "off",
             canonical: "off",
             "canonical/destructuring-property-newline": "off",
-            "canonical/import-specifier-newline": "off",
             "canonical/id-match": "off",
+            "canonical/import-specifier-newline": "off",
             complexity: "off",
             "consistent-return": "off",
             "eslint-plugin/meta-property-ordering": "off",
@@ -666,17 +668,17 @@ export default defineConfig( [
             "max-lines": "off",
             "max-lines-per-function": "off",
             "max-statements": "off",
-            "new-cap": "off",
-            "n/no-mixed-requires": "off",
             "n/no-extraneous-import": "off",
+            "n/no-mixed-requires": "off",
             "n/no-sync": "off",
             "n/no-unsupported-features/node-builtins": "off",
+            "new-cap": "off",
             "no-continue": "off",
             "no-inline-comments": "off",
             "no-magic-numbers": "off",
             "no-ternary": "off",
-            "no-underscore-dangle": "off",
             "no-undefined": "off",
+            "no-underscore-dangle": "off",
             "no-use-before-define": "off",
             "one-var": "off",
             "perfectionist/sort-imports": "off",
@@ -700,6 +702,7 @@ export default defineConfig( [
             "unicorn/import-style": "off",
             "unicorn/no-nested-ternary": "off",
             "unicorn/no-null": "off",
+            "unicorn/prefer-import-meta-properties": "off",
             "unicorn/prevent-abbreviations": "off",
         },
     },
@@ -707,6 +710,7 @@ export default defineConfig( [
         files: [ "test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}" ],
         name: "ESLint Plugin Tests - internal tooling",
         rules: {
+            "@typescript-eslint/array-type": "off",
             "@typescript-eslint/no-floating-promises": "off",
             "@typescript-eslint/no-unnecessary-condition": "off",
             "@typescript-eslint/no-unsafe-assignment": "off",
@@ -715,19 +719,20 @@ export default defineConfig( [
             eqeqeq: "off",
             "func-style": "off",
             "max-statements": "off",
-            "n/no-sync": "off",
             "n/no-missing-import": "off",
+            "n/no-sync": "off",
             "n/no-unpublished-import": "off",
             "no-magic-numbers": "off",
             "no-ternary": "off",
-            "no-underscore-dangle": "off",
             "no-undefined": "off",
+            "no-underscore-dangle": "off",
             "no-use-before-define": "off",
             "one-var": "off",
             "sort-imports": "off",
             "unicorn/import-style": "off",
             "unicorn/no-array-callback-reference": "off",
             "unicorn/no-null": "off",
+            "unicorn/prefer-spread": "off",
             "unicorn/prevent-abbreviations": "off",
         },
     },

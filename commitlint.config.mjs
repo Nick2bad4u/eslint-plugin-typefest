@@ -41,28 +41,28 @@ export default /** @type {CommitlintConfig} */ {
         /**
          * Ignore merge commits.
          *
-         * @param commit
+         * @param {string} commit - The raw commit message being validated.
          */
         (commit) => commit.includes("Merge"),
 
         /**
          * Ignore revert commits (handled by 'revert' type).
          *
-         * @param commit
+         * @param {string} commit - The raw commit message being validated.
          */
         (commit) => commit.includes("Revert"),
 
         /**
          * Ignore automated release commits.
          *
-         * @param commit
+         * @param {string} commit - The raw commit message being validated.
          */
         (commit) => /^chore\(release\)/v.test(commit),
 
         /**
          * Ignore dependency updates with automated format.
          *
-         * @param commit
+         * @param {string} commit - The raw commit message being validated.
          */
         (commit) => /^build\(deps.*\): bump/v.test(commit),
     ],

@@ -4,15 +4,20 @@ import type ts from "typescript";
 const RULE_DOCS_URL_BASE =
     "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
 
+type TypedRuleServices = {
+    checker: ts.TypeChecker;
+    parserServices: ReturnType<typeof ESLintUtils.getParserServices>;
+};
+
 /** Creates a typed rule with package docs URLs. */
-export const createTypedRule = ESLintUtils.RuleCreator(
+export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> = ESLintUtils.RuleCreator(
     (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
 );
 
 /** Retrieves parser services and type checker for typed rules. */
 export const getTypedRuleServices = (
     context: TSESLint.RuleContext<string, readonly unknown[]>
-) => {
+): TypedRuleServices => {
     const parserServices = ESLintUtils.getParserServices(context, true);
 
     if (!parserServices.program) {

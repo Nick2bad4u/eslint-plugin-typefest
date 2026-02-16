@@ -41,7 +41,7 @@ const typeContainsTaggedReference = (typeNode: TSESTree.TypeNode): boolean => {
     return false;
 };
 
-const preferTypeFestTaggedBrandsRule = createTypedRule({
+const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-type-fest-tagged-brands",
     meta: {
         type: "suggestion",

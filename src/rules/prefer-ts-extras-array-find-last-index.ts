@@ -6,7 +6,7 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayFindLastIndexRule = createTypedRule({
+const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> = createTypedRule({
     name: "prefer-ts-extras-array-find-last-index",
     meta: {
         type: "suggestion",
