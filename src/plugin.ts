@@ -42,6 +42,9 @@ import preferTypeFestJsonPrimitiveRule from "./rules/prefer-type-fest-json-primi
 import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
 import preferTypeFestKeysOfUnionRule from "./rules/prefer-type-fest-keys-of-union.js";
 import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
+import preferTypeFestOmitIndexSignatureRule from "./rules/prefer-type-fest-omit-index-signature.js";
+import preferTypeFestRequireAllOrNoneRule from "./rules/prefer-type-fest-require-all-or-none.js";
+import preferTypeFestRequireAtLeastOneRule from "./rules/prefer-type-fest-require-at-least-one.js";
 import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
 import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require-one-or-none.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
@@ -114,6 +117,12 @@ const typefestPlugin = {
         "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
         "prefer-type-fest-keys-of-union": preferTypeFestKeysOfUnionRule,
         "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
+        "prefer-type-fest-omit-index-signature":
+            preferTypeFestOmitIndexSignatureRule,
+        "prefer-type-fest-require-all-or-none":
+            preferTypeFestRequireAllOrNoneRule,
+        "prefer-type-fest-require-at-least-one":
+            preferTypeFestRequireAtLeastOneRule,
         "prefer-type-fest-require-exactly-one":
             preferTypeFestRequireExactlyOneRule,
         "prefer-type-fest-require-one-or-none":
@@ -183,6 +192,9 @@ const minimalRuleNames = [
     "prefer-type-fest-json-value",
     "prefer-type-fest-keys-of-union",
     "prefer-type-fest-non-empty-tuple",
+    "prefer-type-fest-omit-index-signature",
+    "prefer-type-fest-require-all-or-none",
+    "prefer-type-fest-require-at-least-one",
     "prefer-type-fest-require-exactly-one",
     "prefer-type-fest-require-one-or-none",
     "prefer-type-fest-primitive",

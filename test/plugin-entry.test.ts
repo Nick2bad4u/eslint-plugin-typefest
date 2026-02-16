@@ -37,6 +37,8 @@ describe("plugin entry module", () => {
                 "prefer-type-fest-json-array": expect.any(Object),
                 "prefer-type-fest-json-primitive": expect.any(Object),
                 "prefer-type-fest-keys-of-union": expect.any(Object),
+                "prefer-type-fest-require-all-or-none": expect.any(Object),
+                "prefer-type-fest-require-at-least-one": expect.any(Object),
                 "prefer-type-fest-require-exactly-one": expect.any(Object),
                 "prefer-type-fest-require-one-or-none": expect.any(Object),
                 "prefer-type-fest-schema": expect.any(Object),

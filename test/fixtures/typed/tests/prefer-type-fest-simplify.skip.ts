@@ -1,10 +1,10 @@
 import type { Expand } from "type-fest";
 
+type ShouldBeSkippedInTestFile = Expand<UserProfile>;
+
 interface UserProfile {
     readonly id: string;
 }
-
-type ShouldBeSkippedInTestFile = Expand<UserProfile>;
 
 declare const shouldBeSkippedInTestFile: ShouldBeSkippedInTestFile;
 
