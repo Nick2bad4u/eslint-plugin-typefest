@@ -47,7 +47,7 @@
         "."
     ],
     "files.exclude": {
-        "**/.cache/**": true,
+        "**/.cache/**": false,
         "**/.husky/**": true,
         "**/.nyc_output/**": true,
         "**/.stryker-tmp/**": true,
@@ -71,7 +71,7 @@
         "**/docs/docusaurus/docs/index.md": true
     },
     "files.readonlyInclude": {
-        "**/.cache/**": true,
+        "**/.cache/**": false,
         "**/.docusaurus/**": true,
         "**/.nyc_output/**": true,
         "**/.stryker-tmp/**": true,

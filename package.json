@@ -104,7 +104,7 @@
         "update-deps": "npx ncu -i --install never && npm install --force"
     },
     "dependencies": {
-        "@typescript-eslint/utils": "^8.55.0"
+        "@typescript-eslint/utils": "^8.56.0"
     },
     "devDependencies": {
         "@double-great/remark-lint-alt-text": "^1.1.1",
@@ -112,7 +112,7 @@
         "@eslint/compat": "^2.0.2",
         "@eslint/config-helpers": "^0.5.2",
         "@eslint/css": "^0.14.1",
-        "@eslint/js": "^9.39.2",
+        "@eslint/js": "^10.0.1",
         "@eslint/json": "^1.0.1",
         "@eslint/markdown": "^7.5.1",
         "@html-eslint/eslint-plugin": "^0.55.0",
@@ -123,9 +123,9 @@
         "@types/eslint-plugin-jsx-a11y": "~6.10.1",
         "@types/eslint-plugin-security": "~3.0.1",
         "@types/node": "^25.2.3",
-        "@typescript-eslint/eslint-plugin": "^8.55.0",
-        "@typescript-eslint/parser": "^8.55.0",
-        "@typescript-eslint/rule-tester": "^8.55.0",
+        "@typescript-eslint/eslint-plugin": "^8.56.0",
+        "@typescript-eslint/parser": "^8.56.0",
+        "@typescript-eslint/rule-tester": "^8.56.0",
         "@vitest/coverage-v8": "^4.0.18",
         "@vitest/eslint-plugin": "^1.6.9",
         "actionlint": "^2.0.6",
@@ -316,7 +316,7 @@
         "ts-extras": "^0.17.0",
         "type-fest": "^5.4.4",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.55.0",
+        "typescript-eslint": "^8.56.0",
         "typesync": "^0.14.3",
         "vite": "^7.3.1",
         "vite-tsconfig-paths": "^6.1.1",
@@ -324,7 +324,7 @@
         "yaml-eslint-parser": "^2.0.0"
     },
     "peerDependencies": {
-        "eslint": "^9.0.0"
+        "eslint": "^10.0.0"
     },
     "engines": {
         "node": ">=20.19.0"
