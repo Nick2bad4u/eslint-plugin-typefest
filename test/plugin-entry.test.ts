@@ -31,8 +31,19 @@ describe("plugin entry module", () => {
         expect(plugin.rules).toEqual(
             expect.objectContaining({
                 "prefer-ts-extras-not": expect.any(Object),
+                "prefer-type-fest-conditional-pick": expect.any(Object),
+                "prefer-type-fest-if": expect.any(Object),
+                "prefer-type-fest-iterable-element": expect.any(Object),
                 "prefer-type-fest-json-array": expect.any(Object),
                 "prefer-type-fest-json-primitive": expect.any(Object),
+                "prefer-type-fest-keys-of-union": expect.any(Object),
+                "prefer-type-fest-require-exactly-one": expect.any(Object),
+                "prefer-type-fest-require-one-or-none": expect.any(Object),
+                "prefer-type-fest-schema": expect.any(Object),
+                "prefer-type-fest-set-optional": expect.any(Object),
+                "prefer-type-fest-simplify": expect.any(Object),
+                "prefer-type-fest-tuple-of": expect.any(Object),
+                "prefer-type-fest-unwrap-tagged": expect.any(Object),
             })
         );
     });

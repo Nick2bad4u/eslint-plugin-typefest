@@ -1,8 +1,12 @@
 import { type TSESTree } from "@typescript-eslint/utils";
 
+import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const OMIT_TYPE_NAME = "Omit";
+const exceptAliasReplacements = {
+    HomomorphicOmit: "Except",
+} as const;
 
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
@@ -36,15 +40,40 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                context.sourceCode,
+                exceptAliasReplacements
+            );
+
             return {
                 TSTypeReference(node) {
-                    if (!isIdentifierTypeReference(node, OMIT_TYPE_NAME)) {
+                    const isBuiltinOmitReference = isIdentifierTypeReference(
+                        node,
+                        OMIT_TYPE_NAME
+                    );
+
+                    if (isBuiltinOmitReference) {
+                        const typeArgumentCount =
+                            node.typeArguments?.params.length ?? 0;
+                        if (typeArgumentCount < 2) {
+                            return;
+                        }
+
+                        context.report({
+                            node,
+                            messageId: "preferExcept",
+                        });
                         return;
                     }
 
-                    const typeArgumentCount =
-                        node.typeArguments?.params.length ?? 0;
-                    if (typeArgumentCount < 2) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
                         return;
                     }
 

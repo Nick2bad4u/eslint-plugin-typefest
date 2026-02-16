@@ -1,5 +1,6 @@
 import { type TSESTree } from "@typescript-eslint/utils";
 
+import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const BRAND_PROPERTY_NAMES = new Set([
@@ -7,6 +8,10 @@ const BRAND_PROPERTY_NAMES = new Set([
     "__tag",
     "brand",
 ]);
+const taggedAliasReplacements = {
+    Branded: "Tagged",
+    Opaque: "Tagged",
+} as const;
 
 const hasAdHocBrandLiteral = (typeNode: TSESTree.TypeNode): boolean => {
     if (typeNode.type !== "TSIntersectionType") {
@@ -64,6 +69,8 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
             },
             schema: [],
             messages: {
+                preferTaggedAlias:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
                 preferTaggedBrand:
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },
@@ -75,7 +82,33 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                context.sourceCode,
+                taggedAliasReplacements
+            );
+
             return {
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTaggedAlias",
+                        data: {
+                            alias: importedAliasMatch.importedName,
+                            replacement: importedAliasMatch.replacementName,
+                        },
+                    });
+                },
                 TSTypeAliasDeclaration(node) {
                     if (typeContainsTaggedReference(node.typeAnnotation)) {
                         return;

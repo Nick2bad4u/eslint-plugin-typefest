@@ -49,15 +49,23 @@ describe("typefest plugin configs", () => {
         expect(keys).toEqual(
             expect.arrayContaining([
                 "all",
+                "assertive",
+                "complete",
+                "core",
                 "default",
                 "minimal",
                 "recommended",
+                "runtime",
                 "safe",
                 "strict",
+                "flat/assertive",
                 "flat/all",
+                "flat/complete",
+                "flat/core",
                 "flat/default",
                 "flat/minimal",
                 "flat/recommended",
+                "flat/runtime",
                 "flat/safe",
                 "flat/strict",
             ])

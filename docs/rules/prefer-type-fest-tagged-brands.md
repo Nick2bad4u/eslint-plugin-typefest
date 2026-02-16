@@ -5,6 +5,7 @@ Prefers TypeFest `Tagged` for branded primitive identifiers over ad-hoc `__brand
 ## What it checks
 
 - Type aliases that use intersection branding with explicit brand-marker fields.
+- Type references that resolve to imported `Opaque` / `Branded` aliases.
 - Existing `Tagged` usage is ignored.
 
 ## Why

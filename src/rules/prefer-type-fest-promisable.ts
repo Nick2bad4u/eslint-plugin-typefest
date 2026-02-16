@@ -1,9 +1,13 @@
 import { type TSESTree } from "@typescript-eslint/utils";
 
+import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const PROMISABLE_TYPE_NAME = "Promisable";
 const PROMISE_TYPE_NAME = "Promise";
+const promisableAliasReplacements = {
+    MaybePromise: "Promisable",
+} as const;
 
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
@@ -48,6 +52,10 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             }
 
             const { sourceCode } = context;
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                sourceCode,
+                promisableAliasReplacements
+            );
 
             return {
                 TSUnionType(node) {
@@ -107,6 +115,23 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         sourceCode.getText(synchronousMember);
 
                     if (promiseInnerText !== synchronousMemberText) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferPromisable",
+                    });
+                },
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
                         return;
                     }
 

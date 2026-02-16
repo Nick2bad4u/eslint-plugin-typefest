@@ -1,6 +1,11 @@
 import { type TSESLint, type TSESTree } from "@typescript-eslint/utils";
 
+import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+
+const writableAliasReplacements = {
+    Mutable: "Writable",
+} as const;
 
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
@@ -82,6 +87,8 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             },
             schema: [],
             messages: {
+                preferWritableAlias:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
                 preferWritable:
                     "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
             },
@@ -95,6 +102,10 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             }
 
             const sourceCode = context.sourceCode;
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                sourceCode,
+                writableAliasReplacements
+            );
 
             return {
                 TSMappedType(node) {
@@ -105,6 +116,27 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     context.report({
                         node,
                         messageId: "preferWritable",
+                    });
+                },
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferWritableAlias",
+                        data: {
+                            alias: importedAliasMatch.importedName,
+                            replacement: importedAliasMatch.replacementName,
+                        },
                     });
                 },
             };

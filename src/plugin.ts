@@ -32,15 +32,26 @@ import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
 import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestArrayableRule from "./rules/prefer-type-fest-arrayable.js";
+import preferTypeFestConditionalPickRule from "./rules/prefer-type-fest-conditional-pick.js";
 import preferTypeFestExceptRule from "./rules/prefer-type-fest-except.js";
+import preferTypeFestIfRule from "./rules/prefer-type-fest-if.js";
+import preferTypeFestIterableElementRule from "./rules/prefer-type-fest-iterable-element.js";
 import preferTypeFestJsonArrayRule from "./rules/prefer-type-fest-json-array.js";
 import preferTypeFestJsonObjectRule from "./rules/prefer-type-fest-json-object.js";
 import preferTypeFestJsonPrimitiveRule from "./rules/prefer-type-fest-json-primitive.js";
 import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
+import preferTypeFestKeysOfUnionRule from "./rules/prefer-type-fest-keys-of-union.js";
 import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
+import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
+import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require-one-or-none.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
+import preferTypeFestSchemaRule from "./rules/prefer-type-fest-schema.js";
+import preferTypeFestSetOptionalRule from "./rules/prefer-type-fest-set-optional.js";
+import preferTypeFestSimplifyRule from "./rules/prefer-type-fest-simplify.js";
 import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
+import preferTypeFestTupleOfRule from "./rules/prefer-type-fest-tuple-of.js";
+import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
 import preferTypeFestUnknownArrayRule from "./rules/prefer-type-fest-unknown-array.js";
 import preferTypeFestUnknownMapRule from "./rules/prefer-type-fest-unknown-map.js";
 import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-record.js";
@@ -93,15 +104,28 @@ const typefestPlugin = {
         "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
         "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
         "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
+        "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
         "prefer-type-fest-except": preferTypeFestExceptRule,
+        "prefer-type-fest-if": preferTypeFestIfRule,
+        "prefer-type-fest-iterable-element": preferTypeFestIterableElementRule,
         "prefer-type-fest-json-array": preferTypeFestJsonArrayRule,
         "prefer-type-fest-json-object": preferTypeFestJsonObjectRule,
         "prefer-type-fest-json-primitive": preferTypeFestJsonPrimitiveRule,
         "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
+        "prefer-type-fest-keys-of-union": preferTypeFestKeysOfUnionRule,
         "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
+        "prefer-type-fest-require-exactly-one":
+            preferTypeFestRequireExactlyOneRule,
+        "prefer-type-fest-require-one-or-none":
+            preferTypeFestRequireOneOrNoneRule,
         "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
         "prefer-type-fest-promisable": preferTypeFestPromisableRule,
+        "prefer-type-fest-schema": preferTypeFestSchemaRule,
+        "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
+        "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
         "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
+        "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
+        "prefer-type-fest-unwrap-tagged": preferTypeFestUnwrapTaggedRule,
         "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
         "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
         "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,
@@ -149,15 +173,26 @@ function errorRulesFor(ruleNames: readonly string[]): RulesConfig {
 const minimalRuleNames = [
     "prefer-type-fest-async-return-type",
     "prefer-type-fest-arrayable",
+    "prefer-type-fest-conditional-pick",
     "prefer-type-fest-except",
+    "prefer-type-fest-if",
+    "prefer-type-fest-iterable-element",
     "prefer-type-fest-json-array",
     "prefer-type-fest-json-object",
     "prefer-type-fest-json-primitive",
     "prefer-type-fest-json-value",
+    "prefer-type-fest-keys-of-union",
     "prefer-type-fest-non-empty-tuple",
+    "prefer-type-fest-require-exactly-one",
+    "prefer-type-fest-require-one-or-none",
     "prefer-type-fest-primitive",
     "prefer-type-fest-promisable",
+    "prefer-type-fest-schema",
+    "prefer-type-fest-set-optional",
+    "prefer-type-fest-simplify",
     "prefer-type-fest-tagged-brands",
+    "prefer-type-fest-tuple-of",
+    "prefer-type-fest-unwrap-tagged",
     "prefer-type-fest-unknown-array",
     "prefer-type-fest-unknown-map",
     "prefer-type-fest-unknown-record",
@@ -281,15 +316,23 @@ const unscopedStrictConfig = withTypefestPlugin({
     }
 ).configs = {
     all: unscopedAllConfig,
+    assertive: unscopedRecommendedConfig,
+    complete: unscopedAllConfig,
+    core: unscopedMinimalConfig,
     default: unscopedDefaultConfig,
+    "flat/assertive": flatRecommendedConfig,
     "flat/all": flatAllConfig,
+    "flat/complete": flatAllConfig,
+    "flat/core": flatMinimalConfig,
     "flat/default": flatDefaultConfig,
     "flat/minimal": flatMinimalConfig,
     "flat/recommended": flatRecommendedConfig,
+    "flat/runtime": flatSafeConfig,
     "flat/safe": flatSafeConfig,
     "flat/strict": flatStrictConfig,
     minimal: unscopedMinimalConfig,
     recommended: unscopedRecommendedConfig,
+    runtime: unscopedSafeConfig,
     safe: unscopedSafeConfig,
     strict: unscopedStrictConfig,
 };

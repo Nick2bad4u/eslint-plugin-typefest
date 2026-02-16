@@ -48,16 +48,29 @@ export default [
 
 The plugin ships both unscoped and flat-prefixed presets.
 
-| Preset | Purpose |
-| --- | --- |
-| `typefest.configs.minimal` | Core TypeFest alias preferences only |
-| `typefest.configs.safe` | `minimal` + safe ts-extras helper replacements |
-| `typefest.configs.recommended` | `safe` + assertion helper preferences |
-| `typefest.configs.strict` | Current strict superset of recommended rules |
-| `typefest.configs.all` | Every rule exported by this plugin |
+| Preset                         | Purpose                                        |
+| ------------------------------ | ---------------------------------------------- |
+| `typefest.configs.minimal`     | Core TypeFest alias preferences only           |
+| `typefest.configs.safe`        | `minimal` + safe ts-extras helper replacements |
+| `typefest.configs.recommended` | `safe` + assertion helper preferences          |
+| `typefest.configs.strict`      | Current strict superset of recommended rules   |
+| `typefest.configs.all`         | Every rule exported by this plugin             |
+
+Clearer semantic aliases are also available:
+
+| Alias                        | Maps to                        |
+| ---------------------------- | ------------------------------ |
+| `typefest.configs.core`      | `typefest.configs.minimal`     |
+| `typefest.configs.runtime`   | `typefest.configs.safe`        |
+| `typefest.configs.assertive` | `typefest.configs.recommended` |
+| `typefest.configs.complete`  | `typefest.configs.all`         |
 
 Flat-prefixed aliases are also available:
 
+- `typefest.configs["flat/core"]`
+- `typefest.configs["flat/runtime"]`
+- `typefest.configs["flat/assertive"]`
+- `typefest.configs["flat/complete"]`
 - `typefest.configs["flat/minimal"]`
 - `typefest.configs["flat/safe"]`
 - `typefest.configs["flat/recommended"]`

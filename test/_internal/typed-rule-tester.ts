@@ -29,6 +29,7 @@ export const createTypedRuleTester = (): RuleTester =>
                     allowDefaultProject: [
                         "file.ts",
                         "test/fixtures/typed/*.ts",
+                        "test/fixtures/typed/tests/*.ts",
                     ],
                     defaultProject: "tsconfig.eslint.json",
                 },

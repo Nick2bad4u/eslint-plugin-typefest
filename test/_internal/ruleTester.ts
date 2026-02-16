@@ -3,7 +3,7 @@ import { RuleTester } from "@typescript-eslint/rule-tester";
 import * as path from "node:path";
 import { afterAll, describe, it } from "vitest";
 
-import typefestPlugin from "../../plugin.mjs";
+import typefestPlugin from "../../src/plugin";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;

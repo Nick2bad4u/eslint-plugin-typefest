@@ -10,6 +10,8 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-writable.valid.ts";
 const invalidFixtureName = "prefer-type-fest-writable.invalid.ts";
+const importedAliasFixtureName =
+    "prefer-type-fest-writable-imported-alias.invalid.ts";
 
 ruleTester.run("prefer-type-fest-writable", rule, {
     invalid: [
@@ -24,6 +26,19 @@ ruleTester.run("prefer-type-fest-writable", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+        },
+        {
+            code: readTypedFixture(importedAliasFixtureName),
+            errors: [
+                {
+                    data: {
+                        alias: "Mutable",
+                        replacement: "Writable",
+                    },
+                    messageId: "preferWritableAlias",
+                },
+            ],
+            filename: typedFixturePath(importedAliasFixtureName),
         },
     ],
     valid: [
