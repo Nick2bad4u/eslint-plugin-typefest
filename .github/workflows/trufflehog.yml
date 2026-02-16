@@ -19,16 +19,16 @@ jobs:
             cancel-in-progress: false
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
               with:
                   egress-policy: audit
 
             - name: Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   fetch-depth: 0
             - name: Secret Scanning (entire repo)
-              uses: trufflesecurity/trufflehog@116e7171542d2f1dad8810f00dcfacbe0b809183 # v3.92.5
+              uses: trufflesecurity/trufflehog@6961f2bace57ab32b23b3ba40f8f420f6bc7e004 # v3.93.3
               with:
                   base: ""
                   head: ${{ github.ref_name }}
