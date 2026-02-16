@@ -37,6 +37,7 @@ import preferTypeFestJsonArrayRule from "./rules/prefer-type-fest-json-array.js"
 import preferTypeFestJsonObjectRule from "./rules/prefer-type-fest-json-object.js";
 import preferTypeFestJsonPrimitiveRule from "./rules/prefer-type-fest-json-primitive.js";
 import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
+import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
 import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
@@ -45,6 +46,7 @@ import preferTypeFestUnknownMapRule from "./rules/prefer-type-fest-unknown-map.j
 import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-record.js";
 import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.js";
 import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
+import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json") as { version: string };
@@ -96,6 +98,7 @@ const typefestPlugin = {
         "prefer-type-fest-json-object": preferTypeFestJsonObjectRule,
         "prefer-type-fest-json-primitive": preferTypeFestJsonPrimitiveRule,
         "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
+        "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
         "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
         "prefer-type-fest-promisable": preferTypeFestPromisableRule,
         "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
@@ -104,6 +107,7 @@ const typefestPlugin = {
         "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,
         "prefer-type-fest-unknown-set": preferTypeFestUnknownSetRule,
         "prefer-type-fest-value-of": preferTypeFestValueOfRule,
+        "prefer-type-fest-writable": preferTypeFestWritableRule,
     },
 };
 
@@ -150,6 +154,7 @@ const minimalRuleNames = [
     "prefer-type-fest-json-object",
     "prefer-type-fest-json-primitive",
     "prefer-type-fest-json-value",
+    "prefer-type-fest-non-empty-tuple",
     "prefer-type-fest-primitive",
     "prefer-type-fest-promisable",
     "prefer-type-fest-tagged-brands",
@@ -158,6 +163,7 @@ const minimalRuleNames = [
     "prefer-type-fest-unknown-record",
     "prefer-type-fest-unknown-set",
     "prefer-type-fest-value-of",
+    "prefer-type-fest-writable",
 ] as const;
 
 const safeRuleNames = [
