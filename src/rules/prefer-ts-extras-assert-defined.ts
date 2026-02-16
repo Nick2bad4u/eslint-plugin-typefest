@@ -38,45 +38,49 @@ const extractDefinedGuardExpression = (
     return null;
 };
 
-const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-assert-defined",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras assertDefined over manual undefined-guard throw blocks.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
-        },
-        schema: [],
-        messages: {
-            preferTsExtrasAssertDefined:
-                "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            IfStatement(node) {
-                if (node.alternate || !isThrowOnlyConsequent(node.consequent)) {
-                    return;
-                }
-
-                if (!extractDefinedGuardExpression(node.test)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasAssertDefined",
-                });
+const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-assert-defined",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferTsExtrasAssertDefined:
+                    "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                IfStatement(node) {
+                    if (
+                        node.alternate ||
+                        !isThrowOnlyConsequent(node.consequent)
+                    ) {
+                        return;
+                    }
+
+                    if (!extractDefinedGuardExpression(node.test)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasAssertDefined",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasAssertDefinedRule;

@@ -31,45 +31,48 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
         return false;
     }
 
-    const uniqueKinds = new Set(primitiveMembers.map((typeNode) => typeNode.type));
+    const uniqueKinds = new Set(
+        primitiveMembers.map((typeNode) => typeNode.type)
+    );
     return uniqueKinds.size === primitiveKeywordKinds.size;
 };
 
-const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-primitive",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest Primitive over explicit primitive keyword unions.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
-        },
-        schema: [],
-        messages: {
-            preferPrimitive:
-                "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            TSUnionType(node) {
-                if (!hasPrimitiveUnionShape(node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferPrimitive",
-                });
+const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-primitive",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest Primitive over explicit primitive keyword unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferPrimitive:
+                    "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                TSUnionType(node) {
+                    if (!hasPrimitiveUnionShape(node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferPrimitive",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestPrimitiveRule;

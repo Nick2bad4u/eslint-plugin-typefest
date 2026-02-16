@@ -6,7 +6,10 @@ type SiteMetaMap = UnknownMap;
 declare const monitorPayloadMap: MonitorPayloadMap;
 declare const siteMetaMap: SiteMetaMap;
 
-if (monitorPayloadMap.size === siteMetaMap.size && monitorPayloadMap.size > 999) {
+if (
+    monitorPayloadMap.size === siteMetaMap.size &&
+    monitorPayloadMap.size > 999
+) {
     throw new TypeError("Unexpectedly large monitor payload map");
 }
 

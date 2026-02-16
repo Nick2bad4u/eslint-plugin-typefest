@@ -2,9 +2,7 @@ import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { afterAll,
-describe,
-it } from "vitest";
+import { afterAll, describe, it } from "vitest";
 
 import { repoPath } from "./ruleTester";
 
@@ -13,11 +11,7 @@ RuleTester.describe = describe;
 RuleTester.it = it;
 RuleTester.itOnly = it.only;
 
-const typedFixturesRoot = repoPath(
-    "test",
-    "fixtures",
-    "typed"
-);
+const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 
 export const typedFixturePath = (...segments: string[]): string =>
     path.join(typedFixturesRoot, ...segments);

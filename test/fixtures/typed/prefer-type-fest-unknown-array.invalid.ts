@@ -7,10 +7,7 @@ declare const streamPayloads: StreamPayloadList;
 const firstRawMessage = rawMessages.at(0);
 const firstStreamPayload = streamPayloads.at(0);
 
-if (
-    firstRawMessage === firstStreamPayload &&
-    firstRawMessage !== undefined
-) {
+if (firstRawMessage === firstStreamPayload && firstRawMessage !== undefined) {
     throw new TypeError("Unexpected negative payload length");
 }
 

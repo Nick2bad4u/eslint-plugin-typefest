@@ -16,7 +16,10 @@ const monitorEntries = Object.entries(monitorStateById);
 const secondMonitorEntries = Object.entries(monitorStateById);
 const typedEntries = objectEntries(monitorStateById);
 
-if (monitorEntries.length + secondMonitorEntries.length + typedEntries.length > 10) {
+if (
+    monitorEntries.length + secondMonitorEntries.length + typedEntries.length >
+    10
+) {
     throw new TypeError("Unexpected monitor entries count");
 }
 

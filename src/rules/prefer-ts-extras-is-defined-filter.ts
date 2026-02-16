@@ -38,69 +38,75 @@ const isUndefinedFilterGuardBody = (
     );
 };
 
-const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-is-defined-filter",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
-        },
-        schema: [],
-        messages: {
-            preferTsExtrasIsDefinedFilter:
-                "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            CallExpression(node) {
-                const { callee } = node;
-
-                if (
-                    callee.type !== "MemberExpression" ||
-                    callee.computed ||
-                    callee.property.type !== "Identifier" ||
-                    callee.property.name !== "filter" ||
-                    node.arguments.length === 0
-                ) {
-                    return;
-                }
-
-                const callback = node.arguments[0];
-
-                if (
-                    callback?.type !== "ArrowFunctionExpression" ||
-                    callback.params.length !== 1 ||
-                    callback.body.type === "BlockStatement"
-                ) {
-                    return;
-                }
-
-                const parameter = callback.params[0];
-                if (parameter?.type !== "Identifier") {
-                    return;
-                }
-
-                if (!isUndefinedFilterGuardBody(callback.body, parameter.name)) {
-                    return;
-                }
-
-                context.report({
-                    node: callback,
-                    messageId: "preferTsExtrasIsDefinedFilter",
-                });
+const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-is-defined-filter",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferTsExtrasIsDefinedFilter:
+                    "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                CallExpression(node) {
+                    const { callee } = node;
+
+                    if (
+                        callee.type !== "MemberExpression" ||
+                        callee.computed ||
+                        callee.property.type !== "Identifier" ||
+                        callee.property.name !== "filter" ||
+                        node.arguments.length === 0
+                    ) {
+                        return;
+                    }
+
+                    const callback = node.arguments[0];
+
+                    if (
+                        callback?.type !== "ArrowFunctionExpression" ||
+                        callback.params.length !== 1 ||
+                        callback.body.type === "BlockStatement"
+                    ) {
+                        return;
+                    }
+
+                    const parameter = callback.params[0];
+                    if (parameter?.type !== "Identifier") {
+                        return;
+                    }
+
+                    if (
+                        !isUndefinedFilterGuardBody(
+                            callback.body,
+                            parameter.name
+                        )
+                    ) {
+                        return;
+                    }
+
+                    context.report({
+                        node: callback,
+                        messageId: "preferTsExtrasIsDefinedFilter",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasIsDefinedFilterRule;

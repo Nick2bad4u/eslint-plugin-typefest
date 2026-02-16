@@ -12,7 +12,9 @@ const isIdentifierTypeReference = (
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
 
-const hasSingleUnknownTypeArgument = (node: TSESTree.TSTypeReference): boolean => {
+const hasSingleUnknownTypeArgument = (
+    node: TSESTree.TSTypeReference
+): boolean => {
     const typeArguments = node.typeArguments?.params ?? [];
 
     if (typeArguments.length !== 1) {
@@ -23,9 +25,7 @@ const hasSingleUnknownTypeArgument = (node: TSESTree.TSTypeReference): boolean =
     return firstTypeArgument?.type === "TSUnknownKeyword";
 };
 
-const isReadonlyUnknownArrayType = (
-    node: TSESTree.TSTypeOperator
-): boolean => {
+const isReadonlyUnknownArrayType = (node: TSESTree.TSTypeOperator): boolean => {
     if (node.operator !== "readonly") {
         return false;
     }
@@ -38,58 +38,62 @@ const isReadonlyUnknownArrayType = (
     return typeAnnotation.elementType.type === "TSUnknownKeyword";
 };
 
-const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-unknown-array",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
-        },
-        schema: [],
-        messages: {
-            preferUnknownArray:
-                "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            TSTypeOperator(node) {
-                if (!isReadonlyUnknownArrayType(node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferUnknownArray",
-                });
+const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-unknown-array",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
             },
-            TSTypeReference(node) {
-                if (
-                    !isIdentifierTypeReference(node, READONLY_ARRAY_TYPE_NAME)
-                ) {
-                    return;
-                }
-
-                if (!hasSingleUnknownTypeArgument(node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferUnknownArray",
-                });
+            schema: [],
+            messages: {
+                preferUnknownArray:
+                    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
             },
-        };
-    },
-});
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                TSTypeOperator(node) {
+                    if (!isReadonlyUnknownArrayType(node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferUnknownArray",
+                    });
+                },
+                TSTypeReference(node) {
+                    if (
+                        !isIdentifierTypeReference(
+                            node,
+                            READONLY_ARRAY_TYPE_NAME
+                        )
+                    ) {
+                        return;
+                    }
+
+                    if (!hasSingleUnknownTypeArgument(node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferUnknownArray",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestUnknownArrayRule;

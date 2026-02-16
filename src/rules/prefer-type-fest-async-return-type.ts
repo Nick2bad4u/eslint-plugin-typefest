@@ -26,55 +26,64 @@ const getSingleTypeArgument = (
     return onlyTypeArgument ?? null;
 };
 
-const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-async-return-type",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-async-return-type.md",
-        },
-        schema: [],
-        messages: {
-            preferAsyncReturnType:
-                "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            TSTypeReference(node) {
-                if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {
-                    return;
-                }
-
-                const awaitedInnerType = getSingleTypeArgument(node);
-                if (!awaitedInnerType || awaitedInnerType.type !== "TSTypeReference") {
-                    return;
-                }
-
-                if (!isIdentifierTypeReference(awaitedInnerType, RETURN_TYPE_NAME)) {
-                    return;
-                }
-
-                if (getSingleTypeArgument(awaitedInnerType) === null) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferAsyncReturnType",
-                });
+const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-async-return-type",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-async-return-type.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferAsyncReturnType:
+                    "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                TSTypeReference(node) {
+                    if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {
+                        return;
+                    }
+
+                    const awaitedInnerType = getSingleTypeArgument(node);
+                    if (
+                        !awaitedInnerType ||
+                        awaitedInnerType.type !== "TSTypeReference"
+                    ) {
+                        return;
+                    }
+
+                    if (
+                        !isIdentifierTypeReference(
+                            awaitedInnerType,
+                            RETURN_TYPE_NAME
+                        )
+                    ) {
+                        return;
+                    }
+
+                    if (getSingleTypeArgument(awaitedInnerType) === null) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferAsyncReturnType",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestAsyncReturnTypeRule;

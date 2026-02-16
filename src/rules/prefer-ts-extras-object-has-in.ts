@@ -15,45 +15,46 @@ const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {
     );
 };
 
-const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-object-has-in",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
-        },
-        schema: [],
-        messages: {
-            preferTsExtrasObjectHasIn:
-                "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            CallExpression(node) {
-                if (!isReflectHasCall(node)) {
-                    return;
-                }
-
-                if (node.arguments.length < 2) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasObjectHasIn",
-                });
+const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-object-has-in",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferTsExtrasObjectHasIn:
+                    "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                CallExpression(node) {
+                    if (!isReflectHasCall(node)) {
+                        return;
+                    }
+
+                    if (node.arguments.length < 2) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasObjectHasIn",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasObjectHasInRule;

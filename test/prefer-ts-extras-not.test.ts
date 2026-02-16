@@ -1,0 +1,35 @@
+import { getPluginRule } from "./_internal/ruleTester";
+import {
+    createTypedRuleTester,
+    readTypedFixture,
+    typedFixturePath,
+} from "./_internal/typed-rule-tester";
+
+const rule = getPluginRule("prefer-ts-extras-not");
+const ruleTester = createTypedRuleTester();
+
+const validFixtureName = "prefer-ts-extras-not.valid.ts";
+const invalidFixtureName = "prefer-ts-extras-not.invalid.ts";
+
+ruleTester.run("prefer-ts-extras-not", rule, {
+    invalid: [
+        {
+            code: readTypedFixture(invalidFixtureName),
+            errors: [
+                {
+                    messageId: "preferTsExtrasNot",
+                },
+                {
+                    messageId: "preferTsExtrasNot",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+        },
+    ],
+});

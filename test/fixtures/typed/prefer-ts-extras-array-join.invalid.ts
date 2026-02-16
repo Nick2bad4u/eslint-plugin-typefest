@@ -10,7 +10,10 @@ const monitorKey = monitorSegments.join(":");
 const monitorTagSummary = monitorTags.join(",");
 const typedMonitorKey = arrayJoin(monitorSegments, ":");
 
-if (monitorKey.length > monitorTagSummary.length && typedMonitorKey.length > 100) {
+if (
+    monitorKey.length > monitorTagSummary.length &&
+    typedMonitorKey.length > 100
+) {
     throw new TypeError("Unexpected joined key length in fixture");
 }
 

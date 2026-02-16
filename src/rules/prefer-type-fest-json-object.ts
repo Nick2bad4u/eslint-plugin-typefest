@@ -22,7 +22,9 @@ const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
 const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
-const isRecordJsonValueReference = (node: TSESTree.TSTypeReference): boolean => {
+const isRecordJsonValueReference = (
+    node: TSESTree.TSTypeReference
+): boolean => {
     if (!isIdentifierTypeReference(node, RECORD_TYPE_NAME)) {
         return false;
     }
@@ -40,41 +42,42 @@ const isRecordJsonValueReference = (node: TSESTree.TSTypeReference): boolean => 
     return isStringKeyType(keyType) && isJsonValueType(valueType);
 };
 
-const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-json-object",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-object.md",
-        },
-        schema: [],
-        messages: {
-            preferJsonObject:
-                "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            TSTypeReference(node) {
-                if (!isRecordJsonValueReference(node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferJsonObject",
-                });
+const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-json-object",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-object.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferJsonObject:
+                    "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                TSTypeReference(node) {
+                    if (!isRecordJsonValueReference(node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferJsonObject",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestJsonObjectRule;

@@ -5,7 +5,10 @@ declare function arrayFindLast<TValue>(
 
 const monitorIds = ["alpha", "beta"] as const;
 
-const selectedMonitorId = arrayFindLast(monitorIds, (value) => value === "beta");
+const selectedMonitorId = arrayFindLast(
+    monitorIds,
+    (value) => value === "beta"
+);
 
 if (selectedMonitorId === "alpha") {
     throw new TypeError("Unexpected selected monitor id in fixture");

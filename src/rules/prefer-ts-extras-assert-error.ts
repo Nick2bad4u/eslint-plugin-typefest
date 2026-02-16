@@ -63,7 +63,10 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
 
             return {
                 IfStatement(node) {
-                    if (node.alternate || !isThrowOnlyConsequent(node.consequent)) {
+                    if (
+                        node.alternate ||
+                        !isThrowOnlyConsequent(node.consequent)
+                    ) {
                         return;
                     }
 

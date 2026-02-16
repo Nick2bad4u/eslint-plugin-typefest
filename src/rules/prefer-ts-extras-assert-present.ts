@@ -40,12 +40,10 @@ const extractEqNullGuardExpression = (
 
 const extractNullishEqualityPart = (
     expression: TSESTree.Expression
-):
-    | {
-          expression: TSESTree.Expression;
-          kind: "null" | "undefined";
-      }
-    | null => {
+): {
+    expression: TSESTree.Expression;
+    kind: "null" | "undefined";
+} | null => {
     if (
         expression.type !== "BinaryExpression" ||
         (expression.operator !== "==" && expression.operator !== "===")
@@ -84,75 +82,83 @@ const extractNullishEqualityPart = (
     return null;
 };
 
-const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-assert-present",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras assertPresent over manual nullish-guard throw blocks.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
-        },
-        schema: [],
-        messages: {
-            preferTsExtrasAssertPresent:
-                "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        const sourceCode = context.sourceCode;
-
-        const extractPresentGuardExpression = (
-            test: TSESTree.Expression
-        ): null | TSESTree.Expression => {
-            const eqNullExpression = extractEqNullGuardExpression(test);
-            if (eqNullExpression) {
-                return eqNullExpression;
-            }
-
-            if (
-                test.type !== "LogicalExpression" ||
-                test.operator !== "||"
-            ) {
-                return null;
-            }
-
-            const leftPart = extractNullishEqualityPart(test.left);
-            const rightPart = extractNullishEqualityPart(test.right);
-
-            if (!leftPart || !rightPart || leftPart.kind === rightPart.kind) {
-                return null;
-            }
-
-            return sourceCode.getText(leftPart.expression) ===
-                sourceCode.getText(rightPart.expression)
-                ? leftPart.expression
-                : null;
-        };
-
-        return {
-            IfStatement(node) {
-                if (node.alternate || !isThrowOnlyConsequent(node.consequent)) {
-                    return;
-                }
-
-                if (!extractPresentGuardExpression(node.test)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasAssertPresent",
-                });
+const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-assert-present",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras assertPresent over manual nullish-guard throw blocks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferTsExtrasAssertPresent:
+                    "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            const sourceCode = context.sourceCode;
+
+            const extractPresentGuardExpression = (
+                test: TSESTree.Expression
+            ): null | TSESTree.Expression => {
+                const eqNullExpression = extractEqNullGuardExpression(test);
+                if (eqNullExpression) {
+                    return eqNullExpression;
+                }
+
+                if (
+                    test.type !== "LogicalExpression" ||
+                    test.operator !== "||"
+                ) {
+                    return null;
+                }
+
+                const leftPart = extractNullishEqualityPart(test.left);
+                const rightPart = extractNullishEqualityPart(test.right);
+
+                if (
+                    !leftPart ||
+                    !rightPart ||
+                    leftPart.kind === rightPart.kind
+                ) {
+                    return null;
+                }
+
+                return sourceCode.getText(leftPart.expression) ===
+                    sourceCode.getText(rightPart.expression)
+                    ? leftPart.expression
+                    : null;
+            };
+
+            return {
+                IfStatement(node) {
+                    if (
+                        node.alternate ||
+                        !isThrowOnlyConsequent(node.consequent)
+                    ) {
+                        return;
+                    }
+
+                    if (!extractPresentGuardExpression(node.test)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasAssertPresent",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasAssertPresentRule;

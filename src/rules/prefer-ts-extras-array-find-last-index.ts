@@ -6,79 +6,92 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-array-find-last-index",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find-last-index.md",
+const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-array-find-last-index",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find-last-index.md",
+            },
+            schema: [],
+            messages: {
+                preferTsExtrasArrayFindLastIndex:
+                    "Prefer `arrayFindLastIndex` from `ts-extras` over `array.findLastIndex(...)` for stronger predicate inference.",
+            },
         },
-        schema: [],
-        messages: {
-            preferTsExtrasArrayFindLastIndex:
-                "Prefer `arrayFindLastIndex` from `ts-extras` over `array.findLastIndex(...)` for stronger predicate inference.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        const { checker, parserServices } = getTypedRuleServices(context);
-
-        const isArrayLikeType = (type: ts.Type): boolean => {
-            const typedChecker = checker as ts.TypeChecker & {
-                isArrayType?: (candidateType: ts.Type) => boolean;
-                isTupleType?: (candidateType: ts.Type) => boolean;
-            };
-
-            if (typedChecker.isArrayType?.(type) || typedChecker.isTupleType?.(type)) {
-                return true;
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
             }
 
-            if (type.isUnion()) {
-                return type.types.some((partType) => isArrayLikeType(partType));
-            }
+            const { checker, parserServices } = getTypedRuleServices(context);
 
-            const typeText = checker.typeToString(type);
-            return typeText.endsWith("[]") || typeText.endsWith("readonly []");
-        };
-
-        return {
-            CallExpression(node) {
-                if (node.callee.type !== "MemberExpression" || node.callee.computed) {
-                    return;
-                }
+            const isArrayLikeType = (type: ts.Type): boolean => {
+                const typedChecker = checker as ts.TypeChecker & {
+                    isArrayType?: (candidateType: ts.Type) => boolean;
+                    isTupleType?: (candidateType: ts.Type) => boolean;
+                };
 
                 if (
-                    node.callee.property.type !== "Identifier" ||
-                    node.callee.property.name !== "findLastIndex"
+                    typedChecker.isArrayType?.(type) ||
+                    typedChecker.isTupleType?.(type)
                 ) {
-                    return;
+                    return true;
                 }
 
-                try {
-                    const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node.callee.object);
-                    const objectType = checker.getTypeAtLocation(tsNode);
+                if (type.isUnion()) {
+                    return type.types.some((partType) =>
+                        isArrayLikeType(partType)
+                    );
+                }
 
-                    if (!isArrayLikeType(objectType)) {
+                const typeText = checker.typeToString(type);
+                return (
+                    typeText.endsWith("[]") || typeText.endsWith("readonly []")
+                );
+            };
+
+            return {
+                CallExpression(node) {
+                    if (
+                        node.callee.type !== "MemberExpression" ||
+                        node.callee.computed
+                    ) {
                         return;
                     }
-                } catch {
-                    return;
-                }
 
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasArrayFindLastIndex",
-                });
-            },
-        };
-    },
-});
+                    if (
+                        node.callee.property.type !== "Identifier" ||
+                        node.callee.property.name !== "findLastIndex"
+                    ) {
+                        return;
+                    }
+
+                    try {
+                        const tsNode = parserServices.esTreeNodeToTSNodeMap.get(
+                            node.callee.object
+                        );
+                        const objectType = checker.getTypeAtLocation(tsNode);
+
+                        if (!isArrayLikeType(objectType)) {
+                            return;
+                        }
+                    } catch {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasArrayFindLastIndex",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasArrayFindLastIndexRule;

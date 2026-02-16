@@ -1,6 +1,4 @@
-import { describe,
-expect,
-it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import typefestPlugin from "../plugin.mjs";
 

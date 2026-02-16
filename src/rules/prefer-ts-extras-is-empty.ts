@@ -18,94 +18,107 @@ const isLengthMemberExpression = (
     node.property.type === "Identifier" &&
     node.property.name === "length";
 
-const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-is-empty",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-empty.md",
+const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-is-empty",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-empty.md",
+            },
+            schema: [],
+            messages: {
+                preferTsExtrasIsEmpty:
+                    "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",
+            },
         },
-        schema: [],
-        messages: {
-            preferTsExtrasIsEmpty:
-                "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
 
-        const { checker, parserServices } = getTypedRuleServices(context);
+            const { checker, parserServices } = getTypedRuleServices(context);
 
-        const isArrayLikeType = (type: ts.Type): boolean => {
-            const typedChecker = checker as ts.TypeChecker & {
-                isArrayType?: (candidateType: ts.Type) => boolean;
-                isTupleType?: (candidateType: ts.Type) => boolean;
+            const isArrayLikeType = (type: ts.Type): boolean => {
+                const typedChecker = checker as ts.TypeChecker & {
+                    isArrayType?: (candidateType: ts.Type) => boolean;
+                    isTupleType?: (candidateType: ts.Type) => boolean;
+                };
+
+                if (
+                    typedChecker.isArrayType?.(type) ||
+                    typedChecker.isTupleType?.(type)
+                ) {
+                    return true;
+                }
+
+                if (type.isUnion()) {
+                    return type.types.every((partType) =>
+                        isArrayLikeType(partType)
+                    );
+                }
+
+                const typeText = checker.typeToString(type);
+                return (
+                    typeText.endsWith("[]") ||
+                    typeText.startsWith("readonly [") ||
+                    typeText.startsWith("[")
+                );
             };
 
-            if (typedChecker.isArrayType?.(type) || typedChecker.isTupleType?.(type)) {
-                return true;
-            }
-
-            if (type.isUnion()) {
-                return type.types.every((partType) => isArrayLikeType(partType));
-            }
-
-            const typeText = checker.typeToString(type);
-            return (
-                typeText.endsWith("[]") ||
-                typeText.startsWith("readonly [") ||
-                typeText.startsWith("[")
-            );
-        };
-
-        const isArrayLikeExpression = (expression: TSESTree.Expression): boolean => {
-            try {
-                const tsNode = parserServices.esTreeNodeToTSNodeMap.get(expression);
-                const expressionType = checker.getTypeAtLocation(tsNode);
-                return isArrayLikeType(expressionType);
-            } catch {
-                return false;
-            }
-        };
-
-        return {
-            BinaryExpression(node) {
-                if (node.operator !== "==" && node.operator !== "===") {
-                    return;
+            const isArrayLikeExpression = (
+                expression: TSESTree.Expression
+            ): boolean => {
+                try {
+                    const tsNode =
+                        parserServices.esTreeNodeToTSNodeMap.get(expression);
+                    const expressionType = checker.getTypeAtLocation(tsNode);
+                    return isArrayLikeType(expressionType);
+                } catch {
+                    return false;
                 }
+            };
 
-                const isLeftLengthCheck =
-                    isLengthMemberExpression(node.left) && isZeroLiteral(node.right);
-                const isRightLengthCheck =
-                    isLengthMemberExpression(node.right) && isZeroLiteral(node.left);
+            return {
+                BinaryExpression(node) {
+                    if (node.operator !== "==" && node.operator !== "===") {
+                        return;
+                    }
 
-                if (!isLeftLengthCheck && !isRightLengthCheck) {
-                    return;
-                }
+                    const isLeftLengthCheck =
+                        isLengthMemberExpression(node.left) &&
+                        isZeroLiteral(node.right);
+                    const isRightLengthCheck =
+                        isLengthMemberExpression(node.right) &&
+                        isZeroLiteral(node.left);
 
-                const lengthNode = isLeftLengthCheck ? node.left : node.right;
+                    if (!isLeftLengthCheck && !isRightLengthCheck) {
+                        return;
+                    }
 
-                if (!isLengthMemberExpression(lengthNode)) {
-                    return;
-                }
+                    const lengthNode = isLeftLengthCheck
+                        ? node.left
+                        : node.right;
 
-                if (!isArrayLikeExpression(lengthNode.object)) {
-                    return;
-                }
+                    if (!isLengthMemberExpression(lengthNode)) {
+                        return;
+                    }
 
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasIsEmpty",
-                });
-            },
-        };
-    },
-});
+                    if (!isArrayLikeExpression(lengthNode.object)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasIsEmpty",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasIsEmptyRule;

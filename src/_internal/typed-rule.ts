@@ -10,9 +10,10 @@ type TypedRuleServices = {
 };
 
 /** Creates a typed rule with package docs URLs. */
-export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> = ESLintUtils.RuleCreator(
-    (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
-);
+export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> =
+    ESLintUtils.RuleCreator(
+        (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
+    );
 
 /** Retrieves parser services and type checker for typed rules. */
 export const getTypedRuleServices = (
@@ -45,7 +46,9 @@ export const isTypeAssignableTo = (
         return checkerWithAssignable.isTypeAssignableTo(sourceType, targetType);
     }
 
-    return checker.typeToString(sourceType) === checker.typeToString(targetType);
+    return (
+        checker.typeToString(sourceType) === checker.typeToString(targetType)
+    );
 };
 
 export const getSignatureParameterTypeAt = ({

@@ -1,9 +1,7 @@
 import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import * as path from "node:path";
-import { afterAll,
-describe,
-it } from "vitest";
+import { afterAll, describe, it } from "vitest";
 
 import typefestPlugin from "../../plugin.mjs";
 
@@ -42,16 +40,14 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
 };
 
 export const getPluginRule = (ruleId: string): PluginRuleModule => {
-    const {rules} = typefestPlugin;
+    const { rules } = typefestPlugin;
     if (!rules) {
         throw new Error("typefestPlugin.rules must be defined");
     }
 
     const dynamicRules = rules as Record<string, unknown>;
     if (!Object.hasOwn(dynamicRules, ruleId)) {
-        throw new Error(
-            `Rule '${ruleId}' is not registered in typefestPlugin`
-        );
+        throw new Error(`Rule '${ruleId}' is not registered in typefestPlugin`);
     }
 
     const rule = dynamicRules[ruleId];

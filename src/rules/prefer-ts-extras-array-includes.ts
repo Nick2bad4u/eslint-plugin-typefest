@@ -7,82 +7,96 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
-const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-array-includes",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-includes.md",
+const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-array-includes",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-includes.md",
+            },
+            schema: [],
+            messages: {
+                preferTsExtrasArrayIncludes:
+                    "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+            },
         },
-        schema: [],
-        messages: {
-            preferTsExtrasArrayIncludes:
-                "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        const { checker, parserServices } = getTypedRuleServices(context);
-
-        const isArrayLikeType = (type: ts.Type): boolean => {
-            const typedChecker = checker as ts.TypeChecker & {
-                isArrayType?: (candidateType: ts.Type) => boolean;
-                isTupleType?: (candidateType: ts.Type) => boolean;
-            };
-
-            if (typedChecker.isArrayType?.(type) || typedChecker.isTupleType?.(type)) {
-                return true;
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
             }
 
-            if (type.isUnion()) {
-                return type.types.some((partType) => isArrayLikeType(partType));
-            }
+            const { checker, parserServices } = getTypedRuleServices(context);
 
-            const typeText = checker.typeToString(type);
-            return typeText.endsWith("[]") || typeText.endsWith("readonly []");
-        };
-
-        const isArrayLikeExpression = (expression: TSESTree.Expression): boolean => {
-            try {
-                const tsNode = parserServices.esTreeNodeToTSNodeMap.get(expression);
-                const expressionType = checker.getTypeAtLocation(tsNode);
-                return isArrayLikeType(expressionType);
-            } catch {
-                return false;
-            }
-        };
-
-        return {
-            CallExpression(node) {
-                if (node.callee.type !== "MemberExpression" || node.callee.computed) {
-                    return;
-                }
+            const isArrayLikeType = (type: ts.Type): boolean => {
+                const typedChecker = checker as ts.TypeChecker & {
+                    isArrayType?: (candidateType: ts.Type) => boolean;
+                    isTupleType?: (candidateType: ts.Type) => boolean;
+                };
 
                 if (
-                    node.callee.property.type !== "Identifier" ||
-                    node.callee.property.name !== "includes"
+                    typedChecker.isArrayType?.(type) ||
+                    typedChecker.isTupleType?.(type)
                 ) {
-                    return;
+                    return true;
                 }
 
-                if (!isArrayLikeExpression(node.callee.object)) {
-                    return;
+                if (type.isUnion()) {
+                    return type.types.some((partType) =>
+                        isArrayLikeType(partType)
+                    );
                 }
 
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasArrayIncludes",
-                });
-            },
-        };
-    },
-});
+                const typeText = checker.typeToString(type);
+                return (
+                    typeText.endsWith("[]") || typeText.endsWith("readonly []")
+                );
+            };
+
+            const isArrayLikeExpression = (
+                expression: TSESTree.Expression
+            ): boolean => {
+                try {
+                    const tsNode =
+                        parserServices.esTreeNodeToTSNodeMap.get(expression);
+                    const expressionType = checker.getTypeAtLocation(tsNode);
+                    return isArrayLikeType(expressionType);
+                } catch {
+                    return false;
+                }
+            };
+
+            return {
+                CallExpression(node) {
+                    if (
+                        node.callee.type !== "MemberExpression" ||
+                        node.callee.computed
+                    ) {
+                        return;
+                    }
+
+                    if (
+                        node.callee.property.type !== "Identifier" ||
+                        node.callee.property.name !== "includes"
+                    ) {
+                        return;
+                    }
+
+                    if (!isArrayLikeExpression(node.callee.object)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasArrayIncludes",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasArrayIncludesRule;

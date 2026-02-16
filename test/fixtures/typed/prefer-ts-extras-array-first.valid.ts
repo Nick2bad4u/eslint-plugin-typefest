@@ -1,4 +1,6 @@
-declare function arrayFirst<TValue>(array: readonly TValue[]): TValue | undefined;
+declare function arrayFirst<TValue>(
+    array: readonly TValue[]
+): TValue | undefined;
 
 const monitorStatuses = ["down", "up"] as const;
 

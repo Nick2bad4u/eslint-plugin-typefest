@@ -18,7 +18,6 @@
 // @ts-ignore -- Ignore missing types for remark-ignore
 import { ignoreStart, ignoreEnd } from "remark-ignore";
 
-
 // Type definitions for remark configuration
 /** @typedef {import("unified").Preset} Preset */
 /** @typedef {import("unified").Plugin} Plugin */

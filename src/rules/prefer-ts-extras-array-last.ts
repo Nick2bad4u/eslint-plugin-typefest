@@ -63,88 +63,103 @@ const isLastIndexPattern = (
     );
 };
 
-const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-array-last",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
+const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-array-last",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
+            },
+            schema: [],
+            messages: {
+                preferTsExtrasArrayLast:
+                    "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
+            },
         },
-        schema: [],
-        messages: {
-            preferTsExtrasArrayLast:
-                "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
 
-        const sourceCode = context.sourceCode;
-        const { checker, parserServices } = getTypedRuleServices(context);
+            const sourceCode = context.sourceCode;
+            const { checker, parserServices } = getTypedRuleServices(context);
 
-        const isArrayLikeType = (type: ts.Type): boolean => {
-            const typedChecker = checker as ts.TypeChecker & {
-                isArrayType?: (candidateType: ts.Type) => boolean;
-                isTupleType?: (candidateType: ts.Type) => boolean;
+            const isArrayLikeType = (type: ts.Type): boolean => {
+                const typedChecker = checker as ts.TypeChecker & {
+                    isArrayType?: (candidateType: ts.Type) => boolean;
+                    isTupleType?: (candidateType: ts.Type) => boolean;
+                };
+
+                if (
+                    typedChecker.isArrayType?.(type) ||
+                    typedChecker.isTupleType?.(type)
+                ) {
+                    return true;
+                }
+
+                if (type.isUnion()) {
+                    return type.types.some((partType) =>
+                        isArrayLikeType(partType)
+                    );
+                }
+
+                const typeText = checker.typeToString(type);
+                return (
+                    typeText.endsWith("[]") ||
+                    typeText.startsWith("readonly [") ||
+                    typeText.startsWith("[")
+                );
             };
 
-            if (typedChecker.isArrayType?.(type) || typedChecker.isTupleType?.(type)) {
-                return true;
-            }
-
-            if (type.isUnion()) {
-                return type.types.some((partType) => isArrayLikeType(partType));
-            }
-
-            const typeText = checker.typeToString(type);
-            return (
-                typeText.endsWith("[]") ||
-                typeText.startsWith("readonly [") ||
-                typeText.startsWith("[")
-            );
-        };
-
-        const isArrayLikeExpression = (expression: TSESTree.Expression): boolean => {
-            try {
-                const tsNode = parserServices.esTreeNodeToTSNodeMap.get(expression);
-                const expressionType = checker.getTypeAtLocation(tsNode);
-                return isArrayLikeType(expressionType);
-            } catch {
-                return false;
-            }
-        };
-
-        return {
-            MemberExpression(node) {
-                if (!node.computed) {
-                    return;
+            const isArrayLikeExpression = (
+                expression: TSESTree.Expression
+            ): boolean => {
+                try {
+                    const tsNode =
+                        parserServices.esTreeNodeToTSNodeMap.get(expression);
+                    const expressionType = checker.getTypeAtLocation(tsNode);
+                    return isArrayLikeType(expressionType);
+                } catch {
+                    return false;
                 }
+            };
 
-                if (isWriteTarget(node)) {
-                    return;
-                }
+            return {
+                MemberExpression(node) {
+                    if (!node.computed) {
+                        return;
+                    }
 
-                if (!isArrayLikeExpression(node.object)) {
-                    return;
-                }
+                    if (isWriteTarget(node)) {
+                        return;
+                    }
 
-                if (!isLastIndexPattern(sourceCode, node.object, node.property)) {
-                    return;
-                }
+                    if (!isArrayLikeExpression(node.object)) {
+                        return;
+                    }
 
-                context.report({
-                    node,
-                    messageId: "preferTsExtrasArrayLast",
-                });
-            },
-        };
-    },
-});
+                    if (
+                        !isLastIndexPattern(
+                            sourceCode,
+                            node.object,
+                            node.property
+                        )
+                    ) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferTsExtrasArrayLast",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasArrayLastRule;

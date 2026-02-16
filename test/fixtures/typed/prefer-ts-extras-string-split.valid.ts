@@ -1,7 +1,4 @@
-declare function stringSplit(
-    value: string,
-    separator: string
-): string[];
+declare function stringSplit(value: string, separator: string): string[];
 
 const monitorKey = "alpha:up";
 

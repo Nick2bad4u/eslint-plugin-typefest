@@ -3,6 +3,8 @@ import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    getSignatureParameterTypeAt,
+    getTypedRuleServices,
     isTestFilePath,
     isTypeAssignableTo,
 } from "../../src/_internal/typed-rule";
@@ -76,6 +78,33 @@ const assertNonTestPaths = (): void => {
     expect(isTestFilePath("src/tests-helper.ts")).toBe(false);
 };
 
+interface ParserServicesLike {
+    esTreeNodeToTSNodeMap: WeakMap<object, object>;
+    program: null | ts.Program;
+    tsNodeToESTreeNodeMap: WeakMap<object, object>;
+}
+
+const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
+    languageOptions: {
+        parser: {
+            meta: {
+                name: "@typescript-eslint/parser",
+            },
+        },
+    },
+    sourceCode: {
+        parserServices,
+    },
+});
+
+const createParserServices = (
+    program: null | ts.Program
+): ParserServicesLike => ({
+    esTreeNodeToTSNodeMap: new WeakMap<object, object>(),
+    program,
+    tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
+});
+
 describe("isTestFilePath", () => {
     it("accepts known test suffixes regardless of filename casing", () => {
         assertKnownSuffixesProperty();
@@ -136,5 +165,78 @@ describe("isTypeAssignableTo", () => {
         } as unknown as ts.TypeChecker;
 
         expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(false);
+    });
+});
+
+describe("getTypedRuleServices", () => {
+    it("returns parser services and type checker when program is available", () => {
+        const checker = {} as ts.TypeChecker;
+        const parserServices = createParserServices({
+            getTypeChecker: () => checker,
+        } as ts.Program);
+
+        const context = createTypedRuleContext(parserServices);
+
+        const result = getTypedRuleServices(context as never);
+
+        expect(result.parserServices).toBe(parserServices);
+        expect(result.checker).toBe(checker);
+    });
+
+    it("throws when parser services do not expose a TypeScript program", () => {
+        const parserServices = createParserServices(null);
+
+        const context = createTypedRuleContext(parserServices);
+
+        expect(() => getTypedRuleServices(context as never)).toThrowError(
+            /requires parserServices\.program/v
+        );
+    });
+});
+
+describe("getSignatureParameterTypeAt", () => {
+    const location = {} as ts.Node;
+
+    it("returns undefined when the parameter index is out of range", () => {
+        const checker = {
+            getTypeOfSymbolAtLocation: vi.fn(),
+        } as unknown as ts.TypeChecker;
+        const signature = {
+            parameters: [],
+        } as unknown as ts.Signature;
+
+        expect(
+            getSignatureParameterTypeAt({
+                checker,
+                index: 0,
+                location,
+                signature,
+            })
+        ).toBeUndefined();
+    });
+
+    it("delegates to checker.getTypeOfSymbolAtLocation when parameter exists", () => {
+        const parameter = {} as ts.Symbol;
+        const signature = {
+            parameters: [parameter],
+        } as unknown as ts.Signature;
+        const expectedType = {} as ts.Type;
+
+        const checkerWithSpy = {
+            getTypeOfSymbolAtLocation: vi.fn().mockReturnValue(expectedType),
+        } as unknown as ts.TypeChecker;
+
+        expect(
+            getSignatureParameterTypeAt({
+                checker: checkerWithSpy,
+                index: 0,
+                location,
+                signature,
+            })
+        ).toBe(expectedType);
+        expect(checkerWithSpy.getTypeOfSymbolAtLocation).toHaveBeenCalledWith(
+            parameter,
+            location
+        );
     });
 });

@@ -61,7 +61,8 @@ const hasArrayableShape = (
         );
     }
 
-    const firstArrayElementType = getArrayTypeReferenceElementType(firstUnionType);
+    const firstArrayElementType =
+        getArrayTypeReferenceElementType(firstUnionType);
     if (firstArrayElementType) {
         return (
             normalizeTypeNodeText(sourceCode, firstArrayElementType) ===
@@ -69,7 +70,8 @@ const hasArrayableShape = (
         );
     }
 
-    const secondArrayElementType = getArrayTypeReferenceElementType(secondUnionType);
+    const secondArrayElementType =
+        getArrayTypeReferenceElementType(secondUnionType);
     if (secondArrayElementType) {
         return (
             normalizeTypeNodeText(sourceCode, secondArrayElementType) ===
@@ -80,43 +82,44 @@ const hasArrayableShape = (
     return false;
 };
 
-const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-arrayable",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
-        },
-        schema: [],
-        messages: {
-            preferArrayable:
-                "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        const sourceCode = context.sourceCode;
-
-        return {
-            TSUnionType(node) {
-                if (!hasArrayableShape(sourceCode, node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferArrayable",
-                });
+const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-arrayable",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferArrayable:
+                    "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            const sourceCode = context.sourceCode;
+
+            return {
+                TSUnionType(node) {
+                    if (!hasArrayableShape(sourceCode, node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferArrayable",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestArrayableRule;

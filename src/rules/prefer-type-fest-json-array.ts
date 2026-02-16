@@ -30,9 +30,7 @@ const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
         return false;
     }
 
-    return (
-        isJsonValueType(typeAnnotation.elementType)
-    );
+    return isJsonValueType(typeAnnotation.elementType);
 };
 
 const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
@@ -96,41 +94,42 @@ const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
     return firstGenericPair || secondGenericPair;
 };
 
-const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-type-fest-json-array",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
-        },
-        schema: [],
-        messages: {
-            preferJsonArray:
-                "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            TSUnionType(node) {
-                if (!hasJsonArrayUnionShape(node)) {
-                    return;
-                }
-
-                context.report({
-                    node,
-                    messageId: "preferJsonArray",
-                });
+const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-type-fest-json-array",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferJsonArray:
+                    "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                TSUnionType(node) {
+                    if (!hasJsonArrayUnionShape(node)) {
+                        return;
+                    }
+
+                    context.report({
+                        node,
+                        messageId: "preferJsonArray",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTypeFestJsonArrayRule;

@@ -26,6 +26,7 @@ import preferTsExtrasObjectFromEntriesRule from "./rules/prefer-ts-extras-object
 import preferTsExtrasObjectHasInRule from "./rules/prefer-ts-extras-object-has-in.js";
 import preferTsExtrasObjectHasOwnRule from "./rules/prefer-ts-extras-object-has-own.js";
 import preferTsExtrasObjectKeysRule from "./rules/prefer-ts-extras-object-keys.js";
+import preferTsExtrasNotRule from "./rules/prefer-ts-extras-not.js";
 import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-values.js";
 import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
@@ -84,6 +85,7 @@ const typefestPlugin = {
         "prefer-ts-extras-object-has-in": preferTsExtrasObjectHasInRule,
         "prefer-ts-extras-object-has-own": preferTsExtrasObjectHasOwnRule,
         "prefer-ts-extras-object-keys": preferTsExtrasObjectKeysRule,
+        "prefer-ts-extras-not": preferTsExtrasNotRule,
         "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
         "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
         "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
@@ -182,6 +184,7 @@ const safeRuleNames = [
     "prefer-ts-extras-object-has-in",
     "prefer-ts-extras-object-has-own",
     "prefer-ts-extras-object-keys",
+    "prefer-ts-extras-not",
     "prefer-ts-extras-object-values",
     "prefer-ts-extras-set-has",
     "prefer-ts-extras-string-split",

@@ -9,7 +9,10 @@ const firstStatus = monitorStatuses.at(0);
 const lastStatus = monitorStatuses.at(-1);
 const typedLastStatus = arrayAt(monitorStatuses, -1);
 
-if ((firstStatus === lastStatus || firstStatus === typedLastStatus) && firstStatus === "up") {
+if (
+    (firstStatus === lastStatus || firstStatus === typedLastStatus) &&
+    firstStatus === "up"
+) {
     throw new TypeError("Unexpected arrayAt result in fixture");
 }
 

@@ -6,7 +6,6 @@
 /* eslint-disable @eslint-community/eslint-comments/disable-enable-pair -- Eslint doesn't use default */
 /* eslint-disable import-x/no-named-as-default-member -- Rule wants packages not in dev, doesn't apply, eslint doesnt use default import */
 
-
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupPluginRules } from "@eslint/compat";
 import css from "@eslint/css";
@@ -15,7 +14,6 @@ import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import html from "@html-eslint/eslint-plugin";
 import * as htmlParser from "@html-eslint/parser";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginMicrosoftSdl from "@microsoft/eslint-plugin-sdl";
 import stylistic from "@stylistic/eslint-plugin";
 import tseslint from "@typescript-eslint/eslint-plugin";
@@ -24,7 +22,6 @@ import vitest from "@vitest/eslint-plugin";
 import gitignore from "eslint-config-flat-gitignore";
 import eslintConfigPrettier from "eslint-config-prettier";
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import arrayFunc from "eslint-plugin-array-func";
 import pluginCanonical from "eslint-plugin-canonical";
 import pluginCasePolice from "eslint-plugin-case-police";
@@ -32,16 +29,13 @@ import eslintPluginCommentLength from "eslint-plugin-comment-length";
 import pluginCompat from "eslint-plugin-compat";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import etc from "eslint-plugin-etc";
 import progress from "eslint-plugin-file-progress";
 import pluginFunctional from "eslint-plugin-functional";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import jsxA11y from "eslint-plugin-jsx-a11y";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import listeners from "eslint-plugin-listeners";
 import eslintPluginMath from "eslint-plugin-math";
 import * as mdx from "eslint-plugin-mdx";
@@ -49,47 +43,35 @@ import moduleInterop from "eslint-plugin-module-interop";
 import nodePlugin from "eslint-plugin-n";
 import nitpick from "eslint-plugin-nitpick";
 import noBarrelFiles from "eslint-plugin-no-barrel-files";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
+import noConstructorBind from "eslint-plugin-no-constructor-bind";
+import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
 import noSecrets from "eslint-plugin-no-secrets";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import nounsanitized from "eslint-plugin-no-unsanitized";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import eslintPluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import nodeDependencies from "eslint-plugin-node-dependencies";
 import packageJson from "eslint-plugin-package-json";
 import pluginPerfectionist from "eslint-plugin-perfectionist";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginPreferArrow from "eslint-plugin-prefer-arrow";
 import pluginPrettier from "eslint-plugin-prettier";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginPromise from "eslint-plugin-promise";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginRedos from "eslint-plugin-redos";
 import pluginRegexp from "eslint-plugin-regexp";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import * as pluginJSDoc from "eslint-plugin-require-jsdoc";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginSecurity from "eslint-plugin-security";
 import sonarjs, { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginSortClassMembers from "eslint-plugin-sort-class-members";
 import storybook from "eslint-plugin-storybook";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import styledA11y from "eslint-plugin-styled-components-a11y";
 import eslintPluginToml from "eslint-plugin-toml";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginTotalFunctions from "eslint-plugin-total-functions";
 import pluginTsdoc from "eslint-plugin-tsdoc";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginTSDocRequire from "eslint-plugin-tsdoc-require";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 // import * as cssPlugin from "eslint-plugin-css"
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import pluginWriteGood from "eslint-plugin-write-good-comments";
-// @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
 import xss from "eslint-plugin-xss";
 import eslintPluginYml from "eslint-plugin-yml";
 import zod from "eslint-plugin-zod";
@@ -106,17 +88,16 @@ import * as yamlEslintParser from "yaml-eslint-parser";
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
 const enableJsonSchemaValidation =
-    globalThis.process.env[ "UW_ENABLE_JSON_SCHEMA_VALIDATION" ] === "1";
+    globalThis.process.env["UW_ENABLE_JSON_SCHEMA_VALIDATION"] === "1";
 
 const jsonSchemaValidatorPackageName = "eslint-plugin-json-schema-validator";
 
 let eslintPluginJsonSchemaValidator = undefined;
 
-if ( enableJsonSchemaValidation ) {
-    eslintPluginJsonSchemaValidator = (
-        // @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-        await import( jsonSchemaValidatorPackageName )
-    ).default;
+if (enableJsonSchemaValidation) {
+    eslintPluginJsonSchemaValidator =
+        // eslint-disable-next-line no-unsanitized/method -- Controlled package name constant; no user input reaches dynamic import.
+        (await import(jsonSchemaValidatorPackageName)).default;
 }
 
 const jsonSchemaValidatorPlugins = enableJsonSchemaValidation
@@ -131,9 +112,9 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
 /** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
 
-const require = createRequire( import.meta.url );
+const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
-const configDirectoryPath = path.dirname( fileURLToPath( import.meta.url ) );
+const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const processEnvironment = globalThis.process.env;
 
 /**
@@ -150,10 +131,10 @@ const processEnvironment = globalThis.process.env;
  * - "off" / "0" / "false": disable progress
  */
 const UW_ESLINT_PROGRESS_MODE = (
-    processEnvironment[ "UW_ESLINT_PROGRESS" ] ?? "on"
+    processEnvironment["UW_ESLINT_PROGRESS"] ?? "on"
 ).toLowerCase();
 
-const IS_CI = ( processEnvironment[ "CI" ] ?? "" ).toLowerCase() === "true";
+const IS_CI = (processEnvironment["CI"] ?? "").toLowerCase() === "true";
 const DISABLE_PROGRESS =
     UW_ESLINT_PROGRESS_MODE === "off" ||
     UW_ESLINT_PROGRESS_MODE === "0" ||
@@ -176,19 +157,21 @@ const fileProgressOverridesConfig = {
     },
 };
 
-if ( !processEnvironment[ "RECHECK_JAR" ] ) {
-    const resolvedRecheckJarPath = ( () => {
+if (!processEnvironment["RECHECK_JAR"]) {
+    const resolvedRecheckJarPath = (() => {
         try {
-            return require.resolve( "recheck-jar/recheck.jar" );
+            return require.resolve("recheck-jar/recheck.jar");
         } catch {
             console.warn(
                 '[eslint.config] Unable to resolve "recheck-jar/recheck.jar". eslint-plugin-redos will rely on its internal resolution logic.'
             );
             return undefined;
         }
-    } )();
-    if ( resolvedRecheckJarPath ) {
-        processEnvironment[ "RECHECK_JAR" ] = path.normalize( resolvedRecheckJarPath );
+    })();
+    if (resolvedRecheckJarPath) {
+        processEnvironment["RECHECK_JAR"] = path.normalize(
+            resolvedRecheckJarPath
+        );
     }
 }
 
@@ -198,13 +181,13 @@ import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 // #region 🌍 Global Configs and Rules
 // MARK: Global Configs and Rules
 // ═══════════════════════════════════════════════════════════════════════════════
-export default defineConfig( [
-    globalIgnores( [ "**/CHANGELOG.md", ".remarkrc.mjs" ] ),
-    gitignore( {
+export default defineConfig([
+    globalIgnores(["**/CHANGELOG.md", ".remarkrc.mjs"]),
+    gitignore({
         name: "Global - .gitignore Rules",
         root: true,
         strict: true,
-    } ),
+    }),
     // Stylistic.configs.customize({
     //     arrowParens: true,
     //     blockSpacing: true,
@@ -283,16 +266,16 @@ export default defineConfig( [
     // MARK:  Base Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
     importX.flatConfigs.typescript,
-    progress.configs[ "recommended-ci" ],
+    progress.configs["recommended-ci"],
     fileProgressOverridesConfig,
     noBarrelFiles.flat,
     // @ts-expect-error: nitpick.configs.recommended may not have correct types, but runtime usage is verified and safe
     nitpick.configs.recommended,
     comments.recommended,
     arrayFunc.configs.all,
-    ...storybook.configs[ "flat/recommended" ],
+    ...storybook.configs["flat/recommended"],
     ...pluginCasePolice.configs.recommended,
-    ...jsdocPlugin.configs[ "examples-and-default-expressions" ],
+    ...jsdocPlugin.configs["examples-and-default-expressions"],
     // #endregion
     // #region 🧩 Custom Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -335,7 +318,7 @@ export default defineConfig( [
     // MARK: Custom Global Rules
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "storybook/**/*.{ts,tsx,js,jsx,mts,mjs}" ],
+        files: ["storybook/**/*.{ts,tsx,js,jsx,mts,mjs}"],
         name: "Storybook: Dev Helpers - storybook/**/*.{ts,tsx,js,jsx,mts,mjs}",
         rules: {
             "import-x/no-extraneous-dependencies": "off",
@@ -399,15 +382,13 @@ export default defineConfig( [
                 noWarnOnMultipleProjects: true, // Don't warn about multiple projects
             },
             "import-x/resolver-next": [
-                createTypeScriptImportResolver( {
+                createTypeScriptImportResolver({
                     alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
                     bun: true, // Resolve Bun modules (https://github.com/import-js/eslint-import-resolver-typescript#bun)
                     noWarnOnMultipleProjects: true, // Don't warn about multiple projects
                     // Use an array
-                    project: [
-                        "./tsconfig.eslint.json",
-                    ],
-                } ),
+                    project: ["./tsconfig.eslint.json"],
+                }),
             ],
         },
     },
@@ -438,7 +419,7 @@ export default defineConfig( [
                 },
                 ecmaVersion: "latest",
                 jsDocParsingMode: "all",
-                project: [ "./tsconfig.eslint.json" ],
+                project: ["./tsconfig.eslint.json"],
                 sourceType: "module",
                 tsconfigRootDir: configDirectoryPath,
                 warnOnUnsupportedTypeScriptVersion: true,
@@ -452,7 +433,7 @@ export default defineConfig( [
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
-            etc: fixupPluginRules( etc ),
+            etc: fixupPluginRules(etc),
             "import-x": importX,
             jsdoc: jsdocPlugin,
             listeners,
@@ -470,7 +451,7 @@ export default defineConfig( [
             security: pluginSecurity,
             sonarjs,
             "sort-class-members": pluginSortClassMembers,
-            "total-functions": fixupPluginRules( pluginTotalFunctions ),
+            "total-functions": fixupPluginRules(pluginTotalFunctions),
             unicorn: eslintPluginUnicorn,
             xss,
             zod,
@@ -478,29 +459,26 @@ export default defineConfig( [
         rules: {
             // TypeScript backend rules
             ...js.configs.all.rules,
-            ...tseslint.configs[ "recommendedTypeChecked" ],
-            // @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-            ...tseslint.configs[ "recommended" ].rules,
-            ...tseslint.configs[ "strictTypeChecked" ],
-            // @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-            ...tseslint.configs[ "strict" ].rules,
-            ...tseslint.configs[ "stylisticTypeChecked" ],
-            // @ts-expect-error -- Wrong or Missing Types due to old plugin, or types dont sastify strict mode
-            ...tseslint.configs[ "stylistic" ].rules,
+            ...tseslint.configs["recommendedTypeChecked"],
+            ...tseslint.configs["recommended"].rules,
+            ...tseslint.configs["strictTypeChecked"],
+            ...tseslint.configs["strict"].rules,
+            ...tseslint.configs["stylisticTypeChecked"],
+            ...tseslint.configs["stylistic"].rules,
             ...pluginRegexp.configs.all.rules,
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
-            ...pluginPromise.configs[ "flat/recommended" ].rules,
+            ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs[ "recommended-natural" ].rules,
+            ...pluginPerfectionist.configs["recommended-natural"].rules,
             ...pluginSecurity.configs.recommended.rules,
-            ...nodePlugin.configs[ "flat/all" ].rules,
+            ...nodePlugin.configs["flat/all"].rules,
             ...eslintPluginMath.configs.recommended.rules,
             ...comments.recommended.rules,
             ...pluginCanonical.configs.recommended.rules,
-            ...pluginSortClassMembers.configs[ "flat/recommended" ].rules,
+            ...pluginSortClassMembers.configs["flat/recommended"].rules,
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
             ...pluginMicrosoftSdl.configs.required.rules,
             ...listeners.configs.strict.rules,
@@ -624,8 +602,12 @@ export default defineConfig( [
             "xss/no-mixed-html": [
                 "off",
                 {
-                    encoders: [ "utils.htmlEncode()", "CSS.escape()", "Number()" ],
-                    unsafe: [ ".html()" ],
+                    encoders: [
+                        "utils.htmlEncode()",
+                        "CSS.escape()",
+                        "Number()",
+                    ],
+                    unsafe: [".html()"],
                 },
             ],
         },
@@ -707,7 +689,7 @@ export default defineConfig( [
         },
     },
     {
-        files: [ "test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}" ],
+        files: ["test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}"],
         name: "ESLint Plugin Tests - internal tooling",
         rules: {
             "@typescript-eslint/array-type": "off",
@@ -739,7 +721,7 @@ export default defineConfig( [
         },
     },
     {
-        files: [ "test/_internal/ruleTester.ts" ],
+        files: ["test/_internal/ruleTester.ts"],
         name: "ESLint Plugin Tests - internal helper filename",
         rules: {
             "unicorn/filename-case": "off",
@@ -751,7 +733,7 @@ export default defineConfig( [
     // MARK: Package.json Linting
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/package.json" ],
+        files: ["**/package.json"],
         languageOptions: {
             parser: jsoncEslintParser,
             parserOptions: { jsonSyntax: "JSON" },
@@ -896,7 +878,7 @@ export default defineConfig( [
     // MARK: Markdown (md/*, markdown/*, markup/*, atom/*, rss/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{md,markup,atom,rss,markdown}" ],
+        files: ["**/*.{md,markup,atom,rss,markdown}"],
         ignores: [
             "**/docs/packages/**",
             "**/docs/TSDoc/**",
@@ -934,14 +916,14 @@ export default defineConfig( [
             "mdx/remark": "warn",
         },
         settings: {
-            processor: mdx.createRemarkProcessor( {
+            processor: mdx.createRemarkProcessor({
                 // Enable remark configuration file (.remarkrc.mjs) for comprehensive linting
                 ignoreRemarkConfig: false,
                 // Disable code block linting for regular markdown (use markdown plugin instead)
                 lintCodeBlocks: false,
                 // Path to remark config (optional, will auto-discover .remarkrc.mjs)
                 remarkConfigPath: ".remarkrc.mjs",
-            } ),
+            }),
         },
     },
     // #endregion
@@ -950,7 +932,7 @@ export default defineConfig( [
     // MARK: YAML/YML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{yaml,yml}" ],
+        files: ["**/*.{yaml,yml}"],
         ignores: [],
         language: "yml/yaml",
         languageOptions: {
@@ -1005,8 +987,8 @@ export default defineConfig( [
     // MARK: HTML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{html,htm,xhtml}" ],
-        ignores: [ "report/**" ],
+        files: ["**/*.{html,htm,xhtml}"],
+        ignores: ["report/**"],
         languageOptions: {
             parser: htmlParser,
         },
@@ -1075,7 +1057,7 @@ export default defineConfig( [
                         "CSS.escape()",
                         "Number()",
                     ],
-                    unsafe: [ ".html()" ],
+                    unsafe: [".html()"],
                 },
             ],
         },
@@ -1086,13 +1068,13 @@ export default defineConfig( [
     // MARK: JSONC (jsonc/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.jsonc", ".vscode/*.json" ],
+        files: ["**/*.jsonc", ".vscode/*.json"],
         ignores: [],
         name: "JSONC - **/*.JSONC",
         // ═══════════════════════════════════════════════════════════════════════════════
         // Plugin Config for eslint-plugin-jsonc to enable Prettier formatting
         // ═══════════════════════════════════════════════════════════════════════════════
-        ...eslintPluginJsonc.configs[ "flat/prettier" ][ 0 ],
+        ...eslintPluginJsonc.configs["flat/prettier"][0],
         language: "json/jsonc",
         languageOptions: {
             parser: jsoncEslintParser,
@@ -1202,10 +1184,10 @@ export default defineConfig( [
     // MARK: JSON (json/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.json" ],
+        files: ["**/*.json"],
         // Package.json has a dedicated config block above that uses jsonc-eslint-parser
         // (needed for some package.json-specific tooling rules).
-        ignores: [ "**/package.json" ],
+        ignores: ["**/package.json"],
         language: "json/json",
         name: "JSON - **/*.JSON",
         plugins: {
@@ -1216,7 +1198,7 @@ export default defineConfig( [
         rules: {
             ...json.configs.recommended.rules,
             ...jsonSchemaValidatorRules,
-            "json/sort-keys": [ "warn" ],
+            "json/sort-keys": ["warn"],
             "json/top-level-interop": "warn",
             "no-secrets/no-pattern-match": "off",
             "no-secrets/no-secrets": [
@@ -1233,7 +1215,7 @@ export default defineConfig( [
     // MARK: JSON5 (json5/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.json5" ],
+        files: ["**/*.json5"],
         language: "json/json5",
         name: "JSON5 - **/*.JSON5",
         plugins: {
@@ -1259,8 +1241,8 @@ export default defineConfig( [
     // MARK: TOML (toml/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.toml" ],
-        ignores: [ "lychee.toml" ],
+        files: ["**/*.toml"],
+        ignores: ["lychee.toml"],
         languageOptions: {
             parser: tomlEslintParser,
             parserOptions: { tomlVersion: "1.0.0" },
@@ -1298,7 +1280,7 @@ export default defineConfig( [
     // MARK: JS JsDoc
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "scripts/**/*.{js,cjs,mjs}", "storybook/**/*.{js,cjs,mjs}" ],
+        files: ["scripts/**/*.{js,cjs,mjs}", "storybook/**/*.{js,cjs,mjs}"],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -1316,7 +1298,7 @@ export default defineConfig( [
         rules: {
             // Start from upstream defaults for JS so new recommended rules are
             // picked up automatically when eslint-plugin-jsdoc updates.
-            ...jsdocPlugin.configs[ "flat/recommended" ].rules,
+            ...jsdocPlugin.configs["flat/recommended"].rules,
             "jsdoc/check-access": "warn", // Recommended
             "jsdoc/check-alignment": "warn", // Recommended
             "jsdoc/check-indentation": "off",
@@ -1466,14 +1448,14 @@ export default defineConfig( [
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
-            ...pluginPromise.configs[ "flat/recommended" ].rules,
+            ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...jsxA11y.flatConfigs.strict.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs[ "recommended-natural" ].rules,
+            ...pluginPerfectionist.configs["recommended-natural"].rules,
             ...pluginRedos.configs.recommended.rules,
             ...pluginSecurity.configs.recommended.rules,
-            ...nodePlugin.configs[ "flat/recommended" ].rules,
+            ...nodePlugin.configs["flat/recommended"].rules,
             ...eslintPluginMath.configs.recommended.rules,
             camelcase: "off",
             "capitalized-comments": [
@@ -1490,7 +1472,7 @@ export default defineConfig( [
             "depend/ban-dependencies": [
                 "warn",
                 {
-                    allowed: [ "eslint-plugin-react", "axios" ],
+                    allowed: ["eslint-plugin-react", "axios"],
                 },
             ],
             "dot-notation": "off",
@@ -1529,7 +1511,7 @@ export default defineConfig( [
             "sonarjs/arguments-usage": "warn",
             "sonarjs/array-constructor": "warn",
             "sonarjs/aws-iam-all-resources-accessible": "warn",
-            "sonarjs/cognitive-complexity": [ "warn", 30 ],
+            "sonarjs/cognitive-complexity": ["warn", 30],
             "sonarjs/comment-regex": "warn",
             "sonarjs/declarations-in-global-scope": "off",
             "sonarjs/elseif-without-else": "off",
@@ -1667,14 +1649,14 @@ export default defineConfig( [
     // MARK: Disables
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/package.json", "**/package-lock.json" ],
+        files: ["**/package.json", "**/package-lock.json"],
         name: "JSON: Files - Disables",
         rules: {
             "json/sort-keys": "off",
         },
     },
     {
-        files: [ "**/.vscode/**" ],
+        files: ["**/.vscode/**"],
         name: "VS Code Files - Disables",
         rules: {
             "jsonc/array-bracket-newline": "off",
@@ -1691,7 +1673,7 @@ export default defineConfig( [
     // `...uptimeWatcherTypeUtilsRepoConfigs`.
     // Keep them centralized there to avoid config drift.
     {
-        files: [ "**/**" ],
+        files: ["**/**"],
         name: "Global: Stylistic Overrides",
         plugins: {
             "@stylistic": stylistic,
@@ -1706,7 +1688,7 @@ export default defineConfig( [
                 "error",
                 "always",
                 {
-                    exceptions: [ "-", "+" ],
+                    exceptions: ["-", "+"],
                 },
             ],
         },
@@ -1717,12 +1699,20 @@ export default defineConfig( [
     // MARK: Global Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/**" ],
+        files: ["**/**"],
         name: "Global: Globals",
+        plugins: {
+            canonical: pluginCanonical,
+            functional: pluginFunctional,
+            "no-constructor-bind": noConstructorBind,
+            "no-explicit-type-exports": noExplicitTypeExports,
+            "no-secrets": noSecrets,
+            "no-unsanitized": nounsanitized,
+            "prefer-arrow": pluginPreferArrow,
+            "styled-components-a11y": styledA11y,
+            "write-good-comments": pluginWriteGood,
+        },
         rules: {
-            // Better-tailwindcss
-            "better-tailwindcss/multiline": "off",
-            "better-tailwindcss/sort-classes": "off",
             "callback-return": "off",
             "canonical/destructuring-property-newline": "off",
             "canonical/import-specifier-newline": "off",
@@ -1735,16 +1725,43 @@ export default defineConfig( [
             "functional/prefer-tacit": "off",
             "functional/readonly-type": "off",
             "functional/type-declaration-immutability": "off",
-            // Github - to be enabled in future
-            "github/filenames-match-regex": "off",
-            "i18n-text/no-en": "off",
-            "no-hardcoded-strings/no-hardcoded-strings": "off", // Will use i18n in future
+            "no-console": "off",
+            "no-constructor-bind/no-constructor-bind": "error",
+            "no-constructor-bind/no-constructor-state": "error",
+            "no-debugger": "error",
+            "no-duplicate-imports": [
+                "error",
+                {
+                    allowSeparateTypeImports: true,
+                },
+            ],
+            "no-empty-character-class": "error",
+            "no-explicit-type-exports/no-explicit-type-exports": "error",
+            "no-inline-comments": "off",
+            "no-invalid-regexp": "error",
+            "no-magic-numbers": "off",
+            "no-plusplus": "off",
+            "no-secrets/no-pattern-match": "off",
+            "no-secrets/no-secrets": [
+                "error",
+                {
+                    tolerance: 5,
+                },
+            ],
+            "no-ternary": "off",
+            "no-undef-init": "off",
+            "no-undefined": "off",
+            "no-unexpected-multiline": "error",
+            "no-unsanitized/method": "error",
+            "no-unsanitized/property": "error",
+            "no-useless-backreference": "error",
+            "no-void": "off",
+            "object-shorthand": "off",
+            "one-var": "off",
             "prefer-arrow/prefer-arrow-functions": "off", // Too strict
             // Styled-components-a11y (and jsx-a11y equivalents)
             "styled-components-a11y/lang": "off",
-            "uptime-watcher/no-call-identifiers": "off",
-            "uptime-watcher/no-local-identifiers": "off",
-            "write-good-comments/write-good-comments": "off", // Too strict
+            "write-good-comments/write-good-comments": "off", // Too strict,
         },
     },
     {
@@ -1828,8 +1845,8 @@ export default defineConfig( [
     },
     // Ensure Electron override wins over any later preset configs.
     {
-        files: [ "electron/**/*.{ts,tsx}" ],
-        ignores: [ "electron/test/**/*" ],
+        files: ["electron/**/*.{ts,tsx}"],
+        ignores: ["electron/test/**/*"],
         name: "Electron: disable unicorn import.meta suggestions",
         rules: {
             "unicorn/prefer-import-meta-properties": "off",
@@ -1839,4 +1856,4 @@ export default defineConfig( [
     // #region 🧹 Prettier Disable Config
     eslintConfigPrettier,
     // #endregion
-] );
+]);

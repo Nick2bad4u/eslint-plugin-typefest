@@ -5,7 +5,10 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const flattenLogicalAndTerms = (
     expression: TSESTree.Expression
 ): readonly TSESTree.Expression[] => {
-    if (expression.type !== "LogicalExpression" || expression.operator !== "&&") {
+    if (
+        expression.type !== "LogicalExpression" ||
+        expression.operator !== "&&"
+    ) {
         return [expression];
     }
 
@@ -71,7 +74,10 @@ const isNullishFilterGuardBody = (
 ): boolean => {
     const { body } = callback;
 
-    if (isNullComparison(body, parameterName) || isUndefinedComparison(body, parameterName)) {
+    if (
+        isNullComparison(body, parameterName) ||
+        isUndefinedComparison(body, parameterName)
+    ) {
         if (body.operator === "!=") {
             return true;
         }
@@ -90,73 +96,80 @@ const isNullishFilterGuardBody = (
     return hasNullComparison && hasUndefinedComparison;
 };
 
-const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> = createTypedRule({
-    name: "prefer-ts-extras-is-present-filter",
-    meta: {
-        type: "suggestion",
-        docs: {
-            description:
-                "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
-        },
-        schema: [],
-        messages: {
-            preferTsExtrasIsPresentFilter:
-                "Prefer `isPresent` from `ts-extras` in `filter(...)` callbacks over inline nullish comparisons.",
-        },
-    },
-    defaultOptions: [],
-    create(context) {
-        const filePath = context.filename ?? "";
-
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
-        return {
-            CallExpression(node) {
-                const { callee } = node;
-
-                if (
-                    callee.type !== "MemberExpression" ||
-                    callee.computed ||
-                    callee.property.type !== "Identifier" ||
-                    callee.property.name !== "filter" ||
-                    node.arguments.length === 0
-                ) {
-                    return;
-                }
-
-                const callback = node.arguments[0];
-
-                if (
-                    callback?.type !== "ArrowFunctionExpression" ||
-                    callback.params.length !== 1 ||
-                    callback.body.type === "BlockStatement"
-                ) {
-                    return;
-                }
-
-                const parameter = callback.params[0];
-                if (parameter?.type !== "Identifier") {
-                    return;
-                }
-
-                const expressionCallback = callback as TSESTree.ArrowFunctionExpression & {
-                    body: TSESTree.Expression;
-                };
-
-                if (!isNullishFilterGuardBody(expressionCallback, parameter.name)) {
-                    return;
-                }
-
-                context.report({
-                    node: expressionCallback,
-                    messageId: "preferTsExtrasIsPresentFilter",
-                });
+const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        name: "prefer-ts-extras-is-present-filter",
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
             },
-        };
-    },
-});
+            schema: [],
+            messages: {
+                preferTsExtrasIsPresentFilter:
+                    "Prefer `isPresent` from `ts-extras` in `filter(...)` callbacks over inline nullish comparisons.",
+            },
+        },
+        defaultOptions: [],
+        create(context) {
+            const filePath = context.filename ?? "";
+
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            return {
+                CallExpression(node) {
+                    const { callee } = node;
+
+                    if (
+                        callee.type !== "MemberExpression" ||
+                        callee.computed ||
+                        callee.property.type !== "Identifier" ||
+                        callee.property.name !== "filter" ||
+                        node.arguments.length === 0
+                    ) {
+                        return;
+                    }
+
+                    const callback = node.arguments[0];
+
+                    if (
+                        callback?.type !== "ArrowFunctionExpression" ||
+                        callback.params.length !== 1 ||
+                        callback.body.type === "BlockStatement"
+                    ) {
+                        return;
+                    }
+
+                    const parameter = callback.params[0];
+                    if (parameter?.type !== "Identifier") {
+                        return;
+                    }
+
+                    const expressionCallback =
+                        callback as TSESTree.ArrowFunctionExpression & {
+                            body: TSESTree.Expression;
+                        };
+
+                    if (
+                        !isNullishFilterGuardBody(
+                            expressionCallback,
+                            parameter.name
+                        )
+                    ) {
+                        return;
+                    }
+
+                    context.report({
+                        node: expressionCallback,
+                        messageId: "preferTsExtrasIsPresentFilter",
+                    });
+                },
+            };
+        },
+    });
 
 export default preferTsExtrasIsPresentFilterRule;
