@@ -4,16 +4,28 @@ Require TypeFest `RequireOneOrNone<T, Keys>` over imported aliases like `AtMostO
 
 ## Rule details
 
-This rule aligns your type-level code with canonical `type-fest` utility names.
+This rule standardizes “zero-or-one key” constraints to
+`RequireOneOrNone<T, Keys>` from `type-fest`.
 
-Using the canonical utility improves discoverability, reduces alias churn (`Mutable`, `PartialBy`, `AllKeys`, and similar), and keeps project types consistent with the `type-fest` API docs.
+Use this utility when a payload may omit all optional selectors, but must not
+provide two selectors at the same time.
+
 ## What it checks
 
 - Type references that resolve to imported `AtMostOne` aliases.
 
+### Detection boundaries
+
+- ✅ Reports imported aliases, including renamed imports.
+- ❌ Does not report namespace-qualified alias usage.
+- ❌ Does not auto-fix.
+
 ## Why
 
 `RequireOneOrNone` is the canonical TypeFest utility for expressing “zero or exactly one” optional key constraints. Canonical naming keeps type utility usage predictable in public codebases.
+
+This pattern appears in query/filter payloads where no selector is valid but
+multiple selectors conflict.
 
 ## ❌ Incorrect
 
@@ -52,33 +64,45 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: RequireOneOrNone
-import type { AtMostOne } from "utility-types";
+import type { AtMostOne as LegacyAtMostOne } from "legacy-type-utils";
 
-type Auth = AtMostOne<{ token?: string; apiKey?: string }>;
+type MonitorLookup = LegacyAtMostOne<
+    {
+        monitorId?: string;
+        slug?: string;
+    },
+    "monitorId" | "slug"
+>;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical type-fest utility for consistent intent and typing.
 import type { RequireOneOrNone } from "type-fest";
 
-type Auth = RequireOneOrNone<{ token?: string; apiKey?: string }>;
+type MonitorLookup = RequireOneOrNone<
+    {
+        monitorId?: string;
+        slug?: string;
+    },
+    "monitorId" | "slug"
+>;
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-type SessionKey = RequireOneOrNone<{ userId?: string; guestId?: string }>;
+type SessionIdentity = RequireOneOrNone<
+    { userId?: string; guestId?: string },
+    "userId" | "guestId"
+>;
 ```
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 
@@ -95,10 +119,9 @@ type SessionKey = RequireOneOrNone<{ userId?: string; guestId?: string }>;
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports imported `AtMostOne` alias references.
+- Does not provide autofix or suggestions.
+- Typical migration: `AtMostOne<T, K>` → `RequireOneOrNone<T, K>`.
 
 ## ESLint flat config example
 
@@ -122,11 +145,13 @@ and then override this rule as needed.
 
 ### Why replace working aliases with canonical type-fest names?
 
-Canonical `type-fest` naming reduces type alias drift and makes intent discoverable for contributors who already know the upstream utility names.
+These constraints usually define valid user input states. Canonical naming makes
+those states easier to audit and maintain.
 
 ### Does this affect runtime JavaScript?
 
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
+
 ## When not to use it
 
 You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.

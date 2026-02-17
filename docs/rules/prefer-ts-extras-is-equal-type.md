@@ -6,7 +6,9 @@ Prefer [`isEqualType`](https://github.com/sindresorhus/ts-extras#isequaltype) fr
 
 This rule aligns your runtime code with `ts-extras`, which describes these helpers as strongly-typed alternatives to native operations and predicates.
 
-Using the helper function in one standard form improves readability, preserves stronger type information, and reduces ad-hoc inline checks.
+It targets one specific assertion style and replaces it with a clearer,
+function-shaped form.
+
 ## What it checks
 
 This rule intentionally targets a narrow assertion pattern:
@@ -14,9 +16,19 @@ This rule intentionally targets a narrow assertion pattern:
 - Variables typed as `IsEqual<T, U>` and initialized with boolean literals (`true`/`false`).
 - Namespace-qualified `type-fest` forms such as `TypeFest.IsEqual<T, U>`.
 
+### Detection boundaries
+
+- ✅ Reports `const x: IsEqual<A, B> = true`.
+- ✅ Reports namespace imports (`TypeFest.IsEqual<A, B>`).
+- ❌ Does not report type aliases (`type X = IsEqual<A, B>`).
+- ❌ Does not report variables initialized from expressions (`someCondition`) instead of boolean literals.
+
 ## Why
 
 `isEqualType<T, U>()` expresses compile-time type equality checks for assertion-style code and avoids manual boolean literal scaffolding.
+
+This makes test/fixture code easier to scan because type assertions look like
+explicit calls instead of pseudo-runtime constants.
 
 ## ❌ Incorrect
 
@@ -49,29 +61,31 @@ Using one canonical helper across the codebase reduces custom one-off checks and
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: isEqualType
-const _assert: IsEqual<UserDto, User> = true;
+import type * as TypeFest from "type-fest";
+
+const dtoMatchesModel: TypeFest.IsEqual<UserDto, UserModel> = true;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical ts-extras utility for consistent intent and typing.
-isEqualType<UserDto, User>(true);
+import { isEqualType } from "ts-extras";
+
+const dtoMatchesModel = isEqualType<UserDto, UserModel>();
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-isEqualType<Readonly<User>, User>(false);
+const idsAreEqual = isEqualType<Id, string>();
+const payloadsAreEqual = isEqualType<ApiPayload, InternalPayload>();
 ```
 
 ## Why this helps in real projects
 
-- **Consistent runtime semantics:** using one `ts-extras` helper style avoids a mix of native checks and custom wrappers.
-- **Better narrowing ergonomics:** `ts-extras` helpers are designed as strongly-typed runtime utilities, making intent clearer to both TypeScript and code reviewers.
-- **Faster maintenance:** refactors become easier when teams can search for one canonical helper instead of multiple ad-hoc patterns.
+- **Consistent runtime behavior:** one helper per operation keeps assertions, guards, and collection checks aligned.
+- **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
+- **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
 ## Adoption and migration tips
 
@@ -88,10 +102,9 @@ isEqualType<Readonly<User>, User>(false);
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports boolean-literal variable assertions typed as `IsEqual<T, U>`.
+- Provides **suggestions** (not autofix) that replace the declarator with `name = isEqualType<T, U>()`.
+- Import management is manual: ensure `isEqualType` is imported from `ts-extras` and remove unused `IsEqual` imports.
 
 ## ESLint flat config example
 
@@ -120,6 +133,10 @@ This plugin favors `ts-extras` because it provides strongly-typed runtime helper
 ### Does this change runtime output?
 
 `ts-extras` helpers are runtime functions, so they are emitted in JavaScript. The goal of this rule is not to remove runtime behavior, but to standardize and strengthen it.
+
+In this specific case, the call is primarily used for type assertion style and
+code readability in typed test/verification paths.
+
 ## When not to use it
 
 You may disable this rule if your project intentionally avoids runtime helper dependencies, or if you are writing compatibility code where the native built-in form is required for interop constraints.

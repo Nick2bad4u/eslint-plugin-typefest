@@ -5,19 +5,31 @@ Require TypeFest `RequireAllOrNone<T, Keys>` over imported aliases like
 
 ## Rule details
 
-This rule aligns your type-level code with canonical `type-fest` utility names.
+This rule standardizes “atomic key group” constraints to
+`RequireAllOrNone<T, Keys>` from `type-fest`.
 
-Using the canonical utility improves discoverability, reduces alias churn (`Mutable`, `PartialBy`, `AllKeys`, and similar), and keeps project types consistent with the `type-fest` API docs.
+Use this utility when fields only make sense as a complete set (for example,
+`username` + `password`, or `country` + `vatId`).
+
 ## What it checks
 
 - Type references that resolve to imported `AllOrNone` aliases.
 - Type references that resolve to imported `AllOrNothing` aliases.
+
+### Detection boundaries
+
+- ✅ Reports imported aliases, including renamed imports.
+- ❌ Does not report namespace-qualified alias usage.
+- ❌ Does not auto-fix.
 
 ## Why
 
 `RequireAllOrNone` is the canonical TypeFest utility for expressing atomic key
 groups (either every key in the group exists, or none of them do). Canonical
 naming reduces semantic drift across utility libraries.
+
+This is one of the easiest places for contract bugs to hide in API request
+types. A single canonical utility makes these constraints explicit.
 
 ## ❌ Incorrect
 
@@ -50,33 +62,30 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: RequireAllOrNone
-import type { AllOrNone } from "utility-types";
+import type { AllOrNothing as LegacyAllOrNothing } from "legacy-type-utils";
 
-type Auth = AllOrNone<User, "username" | "password">;
+type BillingIdentity = LegacyAllOrNothing<OrderInput, "country" | "vatId">;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical type-fest utility for consistent intent and typing.
 import type { RequireAllOrNone } from "type-fest";
 
-type Auth = RequireAllOrNone<User, "username" | "password">;
+type BillingIdentity = RequireAllOrNone<OrderInput, "country" | "vatId">;
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-type Billing = RequireAllOrNone<Order, "vatId" | "country">;
+type OAuthPair = RequireAllOrNone<AuthInput, "clientId" | "clientSecret">;
 ```
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 
@@ -93,10 +102,11 @@ type Billing = RequireAllOrNone<Order, "vatId" | "country">;
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports imported `AllOrNone` and `AllOrNothing` alias references.
+- Does not provide autofix or suggestions.
+- Typical migration:
+  - `AllOrNone<T, K>` → `RequireAllOrNone<T, K>`
+  - `AllOrNothing<T, K>` → `RequireAllOrNone<T, K>`
 
 ## ESLint flat config example
 
@@ -120,11 +130,14 @@ and then override this rule as needed.
 
 ### Why replace working aliases with canonical type-fest names?
 
-Canonical `type-fest` naming reduces type alias drift and makes intent discoverable for contributors who already know the upstream utility names.
+Because these key-group constraints usually model real business rules. Using
+the canonical utility keeps those rules recognizable and less error-prone in
+code reviews.
 
 ### Does this affect runtime JavaScript?
 
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
+
 ## When not to use it
 
 You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.

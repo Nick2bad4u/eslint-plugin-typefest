@@ -4,16 +4,31 @@ Require TypeFest `Schema<ObjectType, ValueType>` over imported aliases like `Rec
 
 ## Rule details
 
-This rule aligns your type-level code with canonical `type-fest` utility names.
+This rule keeps deep object-shape transforms on the canonical `type-fest`
+utility: `Schema<ObjectType, ValueType>`.
 
-Using the canonical utility improves discoverability, reduces alias churn (`Mutable`, `PartialBy`, `AllKeys`, and similar), and keeps project types consistent with the `type-fest` API docs.
+It is designed for consistency, not aggressive rewriting. Replacing third-party
+aliases such as `RecordDeep` with `Schema` is usually straightforward, but you
+should still validate semantics if your old utility had custom behavior.
+
 ## What it checks
 
-- Type references that resolve to imported `RecordDeep` aliases.
+- Imported `RecordDeep` aliases used as identifier type references.
+
+### Detection boundaries
+
+- ✅ Reports `import type { RecordDeep } ...` + `RecordDeep<...>` usage.
+- ✅ Reports locally renamed imports (`RecordDeep as LegacyRecordDeep`).
+- ❌ Does not report namespace-qualified usages such as `Legacy.RecordDeep<...>`.
+- ❌ Does not auto-fix.
 
 ## Why
 
 `Schema` is the canonical TypeFest utility for deep value-shape transformation across object types. Standardized naming helps readers recognize intent immediately.
+
+`type-fest` describes itself as **"A collection of essential TypeScript
+types"**. Using canonical names means engineers can jump directly between your
+code and upstream docs without translation.
 
 ## ❌ Incorrect
 
@@ -46,33 +61,30 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: Schema
-import type { RecordDeep } from "utility-types";
+import type { RecordDeep as LegacyRecordDeep } from "legacy-type-utils";
 
-type FeatureFlags = RecordDeep<Config, boolean>;
+type AuditMask = LegacyRecordDeep<UserProfile, "REDACTED">;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical type-fest utility for consistent intent and typing.
 import type { Schema } from "type-fest";
 
-type FeatureFlags = Schema<Config, boolean>;
+type AuditMask = Schema<UserProfile, "REDACTED">;
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-type Masked = Schema<User, string>;
+type FeatureFlags = Schema<EnvironmentConfig, boolean>;
 ```
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 
@@ -89,10 +101,18 @@ type Masked = Schema<User, string>;
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports imported `RecordDeep` alias usage in type references.
+- Does not provide autofix or suggestions.
+
+Migration is usually:
+
+```ts
+type Before = RecordDeep<Config, string>;
+type After = Schema<Config, string>;
+```
+
+Re-run type tests after migration, especially when old aliases came from utility
+libraries with slightly different recursive behavior.
 
 ## ESLint flat config example
 
@@ -116,11 +136,13 @@ and then override this rule as needed.
 
 ### Why replace working aliases with canonical type-fest names?
 
-Canonical `type-fest` naming reduces type alias drift and makes intent discoverable for contributors who already know the upstream utility names.
+Canonical names make deep-transform intent obvious and searchable. That matters
+most in large codebases with generated DTO types and shared contracts.
 
 ### Does this affect runtime JavaScript?
 
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
+
 ## When not to use it
 
 You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.

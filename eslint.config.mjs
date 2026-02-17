@@ -28,7 +28,7 @@ import pluginCasePolice from "eslint-plugin-case-police";
 import eslintPluginCommentLength from "eslint-plugin-comment-length";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
-import etc from "eslint-plugin-etc";
+import etcPlugin from "eslint-plugin-etc";
 import progress from "eslint-plugin-file-progress";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
@@ -102,7 +102,6 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
     : {};
 
 const canonicalPlugin = fixupPluginRules(pluginCanonical);
-// @ts-expect-error -- Plugin needs update for Eslint v10
 const noConstructorBindPlugin = fixupPluginRules(noConstructorBind);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
@@ -113,10 +112,10 @@ const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
 const securityPlugin = fixupPluginRules(pluginSecurity);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
-// @ts-expect-error -- Plugin needs update for Eslint v10
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
+const etc = fixupPluginRules(etcPlugin);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
@@ -485,9 +484,10 @@ export default defineConfig([
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
-            etc: fixupPluginRules(etc),
+            "loadable-imports": pluginLoadableImports,
+            etc: etc,
             "import-x": importX,
+            js: js,
             jsdoc: jsdocPlugin,
             listeners,
             math: eslintPluginMath,
@@ -502,7 +502,7 @@ export default defineConfig([
             regexp: pluginRegexp,
             "require-jsdoc": pluginJSDoc,
             security: securityPlugin,
-            sonarjs,
+            sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             "total-functions": fixupPluginRules(pluginTotalFunctions),
             tsdoc: pluginTsdoc,
@@ -544,6 +544,8 @@ export default defineConfig([
             ...pluginTotalFunctions.configs.recommended.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...etc.configs.recommended.rules,
+
+            "loadable-imports/sort": "error",
 
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
             "@eslint-community/eslint-comments/no-unused-disable": "warn",
@@ -813,6 +815,17 @@ export default defineConfig([
 
             "canonical/prefer-use-mount": "warn",
             "canonical/sort-react-dependencies": "warn",
+            "comment-length/limit-tagged-template-literal-comments": [
+                "warn",
+                {
+                    ignoreCommentsWithCode: true,
+                    ignoreUrls: true,
+                    logicalWrap: true,
+                    maxLength: 120,
+                    mode: "compact-on-overflow",
+                    tabSize: 4,
+                },
+            ],
             "comment-length/limit-multi-line-comments": [
                 "warn",
                 {
@@ -821,7 +834,7 @@ export default defineConfig([
                     logicalWrap: true,
                     maxLength: 120,
                     mode: "compact-on-overflow",
-                    tabSize: 2,
+                    tabSize: 4,
                 },
             ],
 
@@ -833,18 +846,15 @@ export default defineConfig([
                     logicalWrap: true,
                     maxLength: 120,
                     mode: "compact-on-overflow",
-                    tabSize: 2,
+                    tabSize: 4,
                 },
             ],
-            "comment-length/limit-tagged-template-literal-comments": "off",
             "eslint-plugin/consistent-output": "error",
             "eslint-plugin/fixer-return": "error",
             "eslint-plugin/meta-property-ordering": "warn",
-
             "eslint-plugin/no-deprecated-context-methods": "error",
             "eslint-plugin/no-deprecated-report-api": "error",
             "eslint-plugin/no-identical-tests": "error",
-
             "eslint-plugin/no-matching-violation-suggest-message-ids": "error",
             "eslint-plugin/no-meta-replaced-by": "error",
             "eslint-plugin/no-meta-schema-default": "error",
@@ -994,14 +1004,14 @@ export default defineConfig([
                     stopAfterFirstProblem: false,
                 },
             ],
-            "total-functions/no-hidden-type-assertions": "off",
-            "total-functions/no-nested-fp-ts-effects": "off",
-            "total-functions/no-partial-division": "off",
-            "total-functions/no-partial-url-constructor": "off",
-            "total-functions/no-unsafe-mutable-readonly-assignment": "off",
-            "total-functions/no-unsafe-readonly-mutable-assignment": "off",
-            "total-functions/no-unsafe-type-assertion": "off",
-            "total-functions/require-strict-mode": "off",
+            "total-functions/no-hidden-type-assertions": "warn",
+            "total-functions/no-nested-fp-ts-effects": "warn",
+            "total-functions/no-partial-division": "warn",
+            "total-functions/no-partial-url-constructor": "warn",
+            "total-functions/no-unsafe-mutable-readonly-assignment": "warn",
+            "total-functions/no-unsafe-readonly-mutable-assignment": "warn",
+            "total-functions/no-unsafe-type-assertion": "warn",
+            "total-functions/require-strict-mode": "warn",
             // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
             // supports ESLint 10 rule context APIs.
             "tsdoc-require/require": "off",
@@ -1056,8 +1066,6 @@ export default defineConfig([
             complexity: "off",
             "consistent-return": "off",
             "dot-notation": "off",
-            "eslint-plugin/meta-property-ordering": "off",
-            "eslint-plugin/require-meta-docs-recommended": "off",
             "func-style": "off",
             "id-length": "off",
             "import-x/extensions": "off",
@@ -1091,10 +1099,6 @@ export default defineConfig([
             "no-void": "off",
             "object-shorthand": "off",
             "one-var": "off",
-            "perfectionist/sort-imports": "off",
-            "perfectionist/sort-object-types": "off",
-            "perfectionist/sort-objects": "off",
-            "perfectionist/sort-union-types": "off",
             "prefer-arrow-callback": [
                 "warn",
                 { allowNamedFunctions: true, allowUnboundThis: true },
@@ -1505,8 +1509,6 @@ export default defineConfig([
             // This rule is currently not viable for most ecosystems (many packages
             // do not publish provenance metadata consistently).
             "node-dependencies/require-provenance-deps": "off",
-            // Deprecated rule (replaced by node-dependencies/compat-engines)
-            "node-dependencies/valid-engines": "off",
             "node-dependencies/valid-semver": "error",
             // Package.json Plugin Rules (package-json/*)
             "package-json/bin-name-casing": "warn",
@@ -1530,16 +1532,16 @@ export default defineConfig([
                     ignorePrivate: true,
                 },
             ],
-            "package-json/require-files": "off",
+            "package-json/require-files": "warn",
             "package-json/require-homepage": "warn",
             "package-json/require-keywords": "warn",
             "package-json/require-license": "warn",
             "package-json/require-name": "warn",
             "package-json/require-optionalDependencies": "off",
-            "package-json/require-peerDependencies": "off",
+            "package-json/require-peerDependencies": "warn",
             "package-json/require-repository": "error",
             "package-json/require-scripts": "warn",
-            "package-json/require-sideEffects": "off",
+            "package-json/require-sideEffects": "warn",
             // Not needed for Electron applications and Breaks Docusaurus
             "package-json/require-type": [
                 "error",
@@ -1555,7 +1557,7 @@ export default defineConfig([
             ],
             "package-json/require-version": "warn",
             "package-json/restrict-dependency-ranges": "warn",
-            "package-json/restrict-private-properties": "off",
+            "package-json/restrict-private-properties": "warn",
             // This repo intentionally uses stable camelCase script names.
             "package-json/scripts-name-casing": "warn",
             "package-json/sort-collections": [
@@ -1678,7 +1680,7 @@ export default defineConfig([
             "yml/block-mapping-question-indicator-newline": "error",
             "yml/block-sequence": "warn",
             "yml/block-sequence-hyphen-indicator-newline": "error",
-            "yml/file-extension": "off",
+            "yml/file-extension": "warn",
             "yml/flow-mapping-curly-newline": "error",
             "yml/flow-mapping-curly-spacing": "error",
             "yml/flow-sequence-bracket-newline": "error",

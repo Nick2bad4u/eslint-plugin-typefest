@@ -5,25 +5,36 @@ Require TypeFest `If` + `Is*` utilities over deprecated aliases like `IfAny`,
 
 ## Rule details
 
-This rule aligns your type-level code with canonical `type-fest` utility names.
+This rule standardizes deprecated `If*` aliases to the canonical `If<Is*>`
+pattern from `type-fest`.
 
-Using the canonical utility improves discoverability, reduces alias churn (`Mutable`, `PartialBy`, `AllKeys`, and similar), and keeps project types consistent with the `type-fest` API docs.
+It is intentionally strict about naming consistency and intentionally conservative
+about fixing. Rewriting `IfAny<T, A, B>` into `If<IsAny<T>, A, B>` is a
+structural transform, not a safe one-token rename.
+
 ## What it checks
 
-- Type references that resolve to imported deprecated aliases:
+- Imported type aliases used as identifier type references:
   - `IfAny`
   - `IfNever`
   - `IfUnknown`
   - `IfNull`
   - `IfEmptyObject`
 
+### Detection boundaries
+
+- ✅ Reports `import type { IfAny } ...` followed by `IfAny<...>` usage.
+- ✅ Reports locally renamed imports (`import type { IfAny as LegacyIfAny } ...`).
+- ❌ Does not report namespace-qualified references like `LegacyTypes.IfAny<...>` (the matcher targets identifier references).
+- ❌ Does not auto-fix because migration requires rebuilding type arguments.
+
 ## Why
 
 These aliases are deprecated in TypeFest. The canonical pattern is to use
 `If<...>` with the corresponding `Is*` utility (for example, `If<IsAny<T>, ...>`).
 
-This rule intentionally reports without autofix because migration requires
-semantic rewriting, not a one-token rename.
+In practice, teams that keep old aliases around end up with mixed style across
+packages (`IfAny`, `IfUnknown`, custom wrappers). This rule prevents that drift.
 
 ## ❌ Incorrect
 
@@ -56,35 +67,32 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: If
-import type { IfNever } from "type-fest";
+import type { IfUnknown as LegacyIfUnknown } from "legacy-type-utils";
 
-type Result = IfNever<T, "never", "other">;
+type ParseMode<T> = LegacyIfUnknown<T, "strict", "lenient">;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical type-fest utility for consistent intent and typing.
-import type { If, IsNever } from "type-fest";
+import type { If, IsUnknown } from "type-fest";
 
-type Result = If<IsNever<T>, "never", "other">;
+type ParseMode<T> = If<IsUnknown<T>, "strict", "lenient">;
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-import type { If, IsUnknown } from "type-fest";
+import type { If, IsNull } from "type-fest";
 
-type ReadMode<T> = If<IsUnknown<T>, "unsafe", "safe">;
+type NullLabel<T> = If<IsNull<T>, "nullable", "non-nullable">;
 ```
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 
@@ -101,10 +109,14 @@ type ReadMode<T> = If<IsUnknown<T>, "unsafe", "safe">;
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports deprecated imported aliases when they appear in type references.
+- Does not provide autofix or suggestions.
+- Recommended migration pattern per alias:
+  - `IfAny<T, A, B>` → `If<IsAny<T>, A, B>`
+  - `IfNever<T, A, B>` → `If<IsNever<T>, A, B>`
+  - `IfUnknown<T, A, B>` → `If<IsUnknown<T>, A, B>`
+  - `IfNull<T, A, B>` → `If<IsNull<T>, A, B>`
+  - `IfEmptyObject<T, A, B>` → `If<IsEmptyObject<T>, A, B>`
 
 ## ESLint flat config example
 
@@ -128,11 +140,14 @@ and then override this rule as needed.
 
 ### Why replace working aliases with canonical type-fest names?
 
-Canonical `type-fest` naming reduces type alias drift and makes intent discoverable for contributors who already know the upstream utility names.
+Because this is a long-term maintenance choice, not a short-term syntax choice.
+Canonical names map directly to upstream docs, reduce cognitive branching during
+review, and make cross-repo refactors less fragile.
 
 ### Does this affect runtime JavaScript?
 
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
+
 ## When not to use it
 
 You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.

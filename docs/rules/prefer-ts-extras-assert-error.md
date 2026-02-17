@@ -1,19 +1,35 @@
 # prefer-ts-extras-assert-error
 
-Require `assertError()` from `ts-extras` over manual `instanceof Error` throw guards.
+Require `assertError()` from `ts-extras` over manual `instanceof Error` throw
+guards.
 
 ## Rule details
 
-This rule aligns your runtime code with `ts-extras`, which describes these helpers as strongly-typed alternatives to native operations and predicates.
+This rule aligns runtime error assertions with `ts-extras`, which describes
+itself as **"Essential utilities for TypeScript projects"**.
 
-Using the helper function in one standard form improves readability, preserves stronger type information, and reduces ad-hoc inline checks.
+Using one assertion helper (`assertError`) keeps unknown-error handling
+consistent and easier to review across code paths.
+
 ## What it checks
 
 - `if (!(value instanceof Error)) { throw ... }`
 
+Only `if` statements with no `else` branch and a throw-only consequent are
+reported.
+
+### Detection boundaries
+
+- ✅ Reports negative `instanceof Error` guards wrapped in `!()`.
+- ❌ Does not report positive-form patterns like
+  `if (value instanceof Error) { ... } else { throw ... }`.
+- ❌ Does not report checks against custom error classes in this rule.
+- ❌ Does not auto-fix.
+
 ## Why
 
-`assertError()` communicates error-assertion intent directly and centralizes assertion behavior.
+`assertError()` communicates intent directly: "this value must be an `Error`".
+That reduces repetitive custom guard code in `catch` pipelines.
 
 ## ❌ Incorrect
 
@@ -33,62 +49,66 @@ assertError(error);
 
 `ts-extras` describes itself as **"Essential utilities for TypeScript projects"**.
 
-Unlike `type-fest` (types only), `ts-extras` functions run at runtime and are compiled into JavaScript.
+`ts-extras` utilities are runtime helpers designed for predictable behavior with strong TypeScript narrowing support.
 
-For this rule, the canonical helper is **`assertError`**: `assertError` asserts that a value is an `Error`.
-
-Using one canonical helper across the codebase reduces custom one-off checks and improves readability for code reviewers.
+Standardizing on canonical helper names lowers cognitive overhead and makes refactors and onboarding easier.
 
 ## Additional examples
 
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: assertError
-if (!(caught instanceof Error)) {
-    throw new TypeError("Expected Error");
+if (!(reason instanceof Error)) {
+    throw new TypeError("Expected Error instance");
 }
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical ts-extras utility for consistent intent and typing.
-assertError(caught);
+assertError(reason);
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-assertError(reason);
+assertError(caughtValue);
+assertError(lastFailureReason);
 ```
 
 ## Why this helps in real projects
 
-- **Consistent runtime semantics:** using one `ts-extras` helper style avoids a mix of native checks and custom wrappers.
-- **Better narrowing ergonomics:** `ts-extras` helpers are designed as strongly-typed runtime utilities, making intent clearer to both TypeScript and code reviewers.
-- **Faster maintenance:** refactors become easier when teams can search for one canonical helper instead of multiple ad-hoc patterns.
+- **Consistent runtime behavior:** one helper per operation keeps assertions, guards, and collection checks aligned.
+- **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
+- **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
 ## Adoption and migration tips
 
-1. Start with the most common call sites in hot paths and shared utilities.
-2. Replace repetitive inline predicates/checks with the canonical helper shown in this doc.
-3. Re-run tests after migration to confirm behavior and narrowing expectations.
-4. If your team has wrapper utilities, either migrate wrappers to call the canonical helper or deprecate them to avoid duplication.
+1. Start in boundary layers (`catch`, message handlers, job workers).
+2. Replace repeated `instanceof Error` throw guards with `assertError(...)`.
+3. Re-run tests to validate any intentional differences in thrown error types.
 
 ### Rollout strategy
 
-- Enable this rule in warning mode first to estimate migration size.
-- Apply fixes in small batches (per package or folder) to keep reviews readable.
-- Switch to error mode after the baseline is cleaned up.
+- Enable in warning mode first.
+- Migrate folder-by-folder to keep PRs readable.
+- Promote to error once baseline cleanup is complete.
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports negative `instanceof Error` throw guards in `if` statements.
+- Does not provide autofix or suggestions.
+
+Manual migration pattern:
+
+```ts
+if (!(errorLike instanceof Error)) {
+    throw new TypeError("Expected Error");
+}
+
+// becomes
+assertError(errorLike);
+```
 
 ## ESLint flat config example
 
@@ -106,20 +126,25 @@ export default [
 ```
 
 For broader adoption, you can also start from `typefest.configs["flat/ts-extras"]`
-or `typefest.configs["flat/ts-extras-experimental"]` and then override this rule as needed.
+or `typefest.configs["flat/ts-extras-experimental"]` and then override this
+rule as needed.
 
 ## Frequently asked questions
 
-### Why not keep native checks/methods everywhere?
+### Why not keep native checks everywhere?
 
-This plugin favors `ts-extras` because it provides strongly-typed runtime helpers with consistent naming. That consistency improves readability and reduces repeated custom guard logic across modules.
+You can, but this rule enforces consistency. Standardized assertion helpers are
+easier to scan and maintain than project-specific guard variants.
 
 ### Does this change runtime output?
 
-`ts-extras` helpers are runtime functions, so they are emitted in JavaScript. The goal of this rule is not to remove runtime behavior, but to standardize and strengthen it.
+Yes, `ts-extras` helpers are runtime functions and are emitted to JavaScript.
+The goal is standardized behavior and clearer intent, not zero runtime code.
+
 ## When not to use it
 
-You may disable this rule if your project intentionally avoids runtime helper dependencies, or if you are writing compatibility code where the native built-in form is required for interop constraints.
+Disable this rule if your project intentionally avoids runtime helper
+dependencies or enforces a different assertion utility layer.
 
 ## Further reading
 

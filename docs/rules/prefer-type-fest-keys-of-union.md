@@ -46,7 +46,7 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: KeysOfUnion
+// Legacy pattern repeated inline across modules.
 import type { AllKeys } from "utility-types";
 
 type Keys = AllKeys<A | B>;
@@ -70,9 +70,9 @@ type EventKeys = KeysOfUnion<CreateEvent | DeleteEvent>;
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 

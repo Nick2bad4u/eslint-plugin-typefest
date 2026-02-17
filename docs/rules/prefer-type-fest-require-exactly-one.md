@@ -4,17 +4,29 @@ Require TypeFest `RequireExactlyOne<T, Keys>` over imported aliases like `OneOf`
 
 ## Rule details
 
-This rule aligns your type-level code with canonical `type-fest` utility names.
+This rule standardizes XOR-style object constraints to
+`RequireExactlyOne<T, Keys>` from `type-fest`.
 
-Using the canonical utility improves discoverability, reduces alias churn (`Mutable`, `PartialBy`, `AllKeys`, and similar), and keeps project types consistent with the `type-fest` API docs.
+Use this when callers must choose one mode, not multiple modes (for example,
+`id` _or_ `slug`, `apiKey` _or_ `token`).
+
 ## What it checks
 
 - Type references that resolve to imported `OneOf` aliases.
 - Type references that resolve to imported `RequireOnlyOne` aliases.
 
+### Detection boundaries
+
+- ✅ Reports imported aliases, including renamed imports.
+- ❌ Does not report namespace-qualified alias usage.
+- ❌ Does not auto-fix.
+
 ## Why
 
 `RequireExactlyOne` is the canonical TypeFest utility for enforcing exactly one active key among a set. Using the canonical name reduces semantic drift between utility libraries.
+
+This is one of the most error-prone constraints in hand-written unions. Using a
+known utility keeps intent obvious and consistent.
 
 ## ❌ Incorrect
 
@@ -53,33 +65,47 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: RequireExactlyOne
-import type { OneOf } from "utility-types";
+import type { RequireOnlyOne as LegacyRequireOnlyOne } from "legacy-type-utils";
 
-type Auth = OneOf<{ token?: string; apiKey?: string }>;
+type LookupInput = LegacyRequireOnlyOne<
+    {
+        id?: string;
+        slug?: string;
+        externalRef?: string;
+    },
+    "id" | "slug" | "externalRef"
+>;
 ```
 
 ### ✅ Correct (additional scenario)
 
 ```ts
-// Use the canonical type-fest utility for consistent intent and typing.
 import type { RequireExactlyOne } from "type-fest";
 
-type Auth = RequireExactlyOne<{ token?: string; apiKey?: string }>;
+type LookupInput = RequireExactlyOne<
+    {
+        id?: string;
+        slug?: string;
+        externalRef?: string;
+    },
+    "id" | "slug" | "externalRef"
+>;
 ```
 
 ### ✅ Correct (team-scale usage)
 
 ```ts
-// Repeat the same canonical pattern across modules to keep APIs predictable.
-type Lookup = RequireExactlyOne<{ id?: string; slug?: string }>;
+type AuthInput = RequireExactlyOne<
+    { token?: string; apiKey?: string; oauthCode?: string },
+    "token" | "apiKey" | "oauthCode"
+>;
 ```
 
 ## Why this helps in real projects
 
-- **Canonical type vocabulary:** standardizing on `type-fest` names reduces alias drift across teams and packages.
-- **Cleaner API contracts:** compile-time utility types communicate intent directly in public and internal type signatures.
-- **Lower onboarding cost:** new contributors can rely on documented `type-fest` terminology instead of project-specific aliases.
+- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
+- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
+- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
 ## Adoption and migration tips
 
@@ -96,10 +122,11 @@ type Lookup = RequireExactlyOne<{ id?: string; slug?: string }>;
 
 ## Rule behavior and fixes
 
-- This rule reports non-canonical usage patterns and points you to the canonical helper/type.
-- Fix availability depends on the exact pattern matched by the rule implementation.
-- When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- Reports imported `OneOf` and `RequireOnlyOne` alias references.
+- Does not provide autofix or suggestions.
+- Typical migration:
+  - `OneOf<T, K>` → `RequireExactlyOne<T, K>`
+  - `RequireOnlyOne<T, K>` → `RequireExactlyOne<T, K>`
 
 ## ESLint flat config example
 
@@ -123,11 +150,13 @@ and then override this rule as needed.
 
 ### Why replace working aliases with canonical type-fest names?
 
-Canonical `type-fest` naming reduces type alias drift and makes intent discoverable for contributors who already know the upstream utility names.
+Because XOR constraints are easy to misread. Canonical naming gives reviewers a
+single, well-known mental model.
 
 ### Does this affect runtime JavaScript?
 
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
+
 ## When not to use it
 
 You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.

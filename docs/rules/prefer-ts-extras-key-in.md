@@ -41,7 +41,7 @@ Using one canonical helper across the codebase reduces custom one-off checks and
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Avoid non-canonical patterns: keyIn
+// Legacy pattern repeated inline across modules.
 if (candidate in record) {
     console.log(record[candidate as keyof typeof record]);
 }
@@ -65,9 +65,9 @@ const canRead = keyIn(data, selectedKey);
 
 ## Why this helps in real projects
 
-- **Consistent runtime semantics:** using one `ts-extras` helper style avoids a mix of native checks and custom wrappers.
-- **Better narrowing ergonomics:** `ts-extras` helpers are designed as strongly-typed runtime utilities, making intent clearer to both TypeScript and code reviewers.
-- **Faster maintenance:** refactors become easier when teams can search for one canonical helper instead of multiple ad-hoc patterns.
+- **Consistent runtime behavior:** one helper per operation keeps assertions, guards, and collection checks aligned.
+- **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
+- **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
 ## Adoption and migration tips
 
