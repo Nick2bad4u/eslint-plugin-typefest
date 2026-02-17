@@ -74,7 +74,7 @@ describe("typefest plugin configs", () => {
 
     it("every exported config registers the plugin as 'typefest'", () => {
         for (const config of Object.values(configs ?? {}) as FlatConfigLike[]) {
-            expect(Array.isArray(config)).toBe(false);
+            expect(Array.isArray(config)).toBeFalsy();
 
             expect(config).toEqual(
                 expect.objectContaining({

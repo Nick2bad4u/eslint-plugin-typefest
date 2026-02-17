@@ -212,7 +212,7 @@ import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 // MARK: Global Configs and Rules
 // ═══════════════════════════════════════════════════════════════════════════════
 export default defineConfig([
-    globalIgnores(["**/CHANGELOG.md", ".remarkrc.mjs"]),
+    globalIgnores(["**/CHANGELOG.md", ".remarkrc.mjs", "test//fixtures/**"]),
     gitignore({
         name: "Global - .gitignore Rules",
         root: true,
@@ -828,9 +828,7 @@ export default defineConfig([
     // MARK: 🧪 Tests
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [
-            "test/**/*.{spec,test}.{ts,tsx,mts,cts,mjs,js,jsx,cjs}",
-        ],
+        files: ["test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}"],
         languageOptions: {
             globals: {
                 ...globals.node,

@@ -40,7 +40,7 @@ describe("typefest rule docs", () => {
             expect(typeof description).toBe("string");
 
             const expectedPath = path.join(docsDir, `${ruleId}.md`);
-            expect(fs.existsSync(expectedPath)).toBe(true);
+            expect(fs.existsSync(expectedPath)).toBeTruthy();
         }
     });
 });

@@ -11,11 +11,6 @@ import {
 const isCiEnvironment = process.env["CI"] === "true";
 const configuredMaxWorkers =
     process.env["MAX_THREADS"] ?? (isCiEnvironment ? "1" : "8");
-const requestedFileParallelism = process.env["VITEST_FILE_PARALLELISM"];
-const isFileParallelismEnabled =
-    requestedFileParallelism === undefined
-        ? !isCiEnvironment
-        : ["1", "true"].includes(requestedFileParallelism.toLowerCase());
 const parsedMaxWorkers = Number.parseInt(configuredMaxWorkers, 10);
 const maxWorkerCount =
     Number.isFinite(parsedMaxWorkers) && parsedMaxWorkers > 0
@@ -167,7 +162,7 @@ export default defineConfig({
         },
         env: {
             NODE_ENV: "test",
-             
+
             PACKAGE_VERSION: process.env["PACKAGE_VERSION"] ?? "unknown",
         },
         environment: "node",
@@ -194,9 +189,9 @@ export default defineConfig({
             shouldAdvanceTime: false,
             shouldClearNativeTimers: true,
         },
-        // Run test files in parallel by default for local development speed.
-        // CI remains serial by default unless explicitly overridden.
-        fileParallelism: isFileParallelismEnabled,
+        // Always run test files in parallel locally for speed.
+        // CI disables file-level parallelism for deterministic resource usage.
+        fileParallelism: !isCiEnvironment,
         globals: true,
         include: [...testFilePatterns],
         includeTaskLocation: true,

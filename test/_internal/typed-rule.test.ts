@@ -35,7 +35,7 @@ const assertKnownSuffixesProperty = (): void => {
                     .replaceAll("\\", "_");
                 const candidatePath = `${safePrefix.toUpperCase()}${suffix.toUpperCase()}`;
 
-                expect(isTestFilePath(candidatePath)).toBe(true);
+                expect(isTestFilePath(candidatePath)).toBeTruthy();
             }
         )
     );
@@ -60,22 +60,22 @@ const assertTestsDirectoryProperty = (): void => {
                 const testsPath = String.raw`${prefix}\TeStS\file.ts`;
                 const underscoreTestsPath = `${prefix}/__TeStS__/file.ts`;
 
-                expect(isTestFilePath(testsPath)).toBe(true);
-                expect(isTestFilePath(underscoreTestsPath)).toBe(true);
+                expect(isTestFilePath(testsPath)).toBeTruthy();
+                expect(isTestFilePath(underscoreTestsPath)).toBeTruthy();
             }
         )
     );
 };
 
 const assertNonTestPaths = (): void => {
-    expect(isTestFilePath("src/rules/prefer-type-fest-json-value.ts")).toBe(
-        false
-    );
-    expect(isTestFilePath("src/_internal/typed-rule.ts")).toBe(false);
-    expect(isTestFilePath("docs/rules/prefer-type-fest-json-array.md")).toBe(
-        false
-    );
-    expect(isTestFilePath("src/tests-helper.ts")).toBe(false);
+    expect(
+        isTestFilePath("src/rules/prefer-type-fest-json-value.ts")
+    ).toBeFalsy();
+    expect(isTestFilePath("src/_internal/typed-rule.ts")).toBeFalsy();
+    expect(
+        isTestFilePath("docs/rules/prefer-type-fest-json-array.md")
+    ).toBeFalsy();
+    expect(isTestFilePath("src/tests-helper.ts")).toBeFalsy();
 };
 
 interface ParserServicesLike {
@@ -105,21 +105,24 @@ const createParserServices = (
     tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
 });
 
-describe("isTestFilePath", () => {
+describe(isTestFilePath, () => {
     it("accepts known test suffixes regardless of filename casing", () => {
+        expect.hasAssertions();
         assertKnownSuffixesProperty();
     });
 
     it("accepts paths containing tests directories with mixed separators/casing", () => {
+        expect.hasAssertions();
         assertTestsDirectoryProperty();
     });
 
     it("rejects non-test paths", () => {
+        expect.hasAssertions();
         assertNonTestPaths();
     });
 });
 
-describe("isTypeAssignableTo", () => {
+describe(isTypeAssignableTo, () => {
     const sourceType = {} as ts.Type;
     const targetType = {} as ts.Type;
 
@@ -132,7 +135,9 @@ describe("isTypeAssignableTo", () => {
             isTypeAssignableTo: isTypeAssignableToMock,
         } as unknown as ts.TypeChecker;
 
-        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(true);
+        expect(
+            isTypeAssignableTo(checker, sourceType, targetType)
+        ).toBeTruthy();
         expect(isTypeAssignableToMock).toHaveBeenCalledWith(
             sourceType,
             targetType
@@ -140,35 +145,37 @@ describe("isTypeAssignableTo", () => {
     });
 
     it("falls back to typeToString equality when native assignability API is unavailable", () => {
-        const typeToStringMock = vi
+        const stringifyTypeMock = vi
             .fn<(type: ts.Type) => string>()
             .mockReturnValue("shared");
 
         const checker = {
-            typeToString: typeToStringMock,
+            typeToString: stringifyTypeMock,
         } as unknown as ts.TypeChecker;
 
-        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(true);
-        expect(typeToStringMock).toHaveBeenCalledWith(sourceType);
-        expect(typeToStringMock).toHaveBeenCalledWith(targetType);
+        expect(
+            isTypeAssignableTo(checker, sourceType, targetType)
+        ).toBeTruthy();
+        expect(stringifyTypeMock).toHaveBeenCalledWith(sourceType);
+        expect(stringifyTypeMock).toHaveBeenCalledWith(targetType);
     });
 
     it("returns false when typeToString fallback values differ", () => {
-        const typeToStringMock = vi
+        const stringifyTypeMock = vi
             .fn<(type: ts.Type) => string>()
             .mockImplementation((type) =>
                 type === sourceType ? "source" : "target"
             );
 
         const checker = {
-            typeToString: typeToStringMock,
+            typeToString: stringifyTypeMock,
         } as unknown as ts.TypeChecker;
 
-        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(false);
+        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBeFalsy();
     });
 });
 
-describe("getTypedRuleServices", () => {
+describe(getTypedRuleServices, () => {
     it("returns parser services and type checker when program is available", () => {
         const checker = {} as ts.TypeChecker;
         const parserServices = createParserServices({
@@ -194,7 +201,7 @@ describe("getTypedRuleServices", () => {
     });
 });
 
-describe("getSignatureParameterTypeAt", () => {
+describe(getSignatureParameterTypeAt, () => {
     const location = {} as ts.Node;
 
     it("returns undefined when the parameter index is out of range", () => {
