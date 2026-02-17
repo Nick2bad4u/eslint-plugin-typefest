@@ -109,16 +109,19 @@ const createParserServices = (
 describe(isTestFilePath, () => {
     it("accepts known test suffixes regardless of filename casing", () => {
         expect.hasAssertions();
+
         assertKnownSuffixesProperty();
     });
 
     it("accepts paths containing tests directories with mixed separators/casing", () => {
         expect.hasAssertions();
+
         assertTestsDirectoryProperty();
     });
 
     it("rejects non-test paths", () => {
         expect.hasAssertions();
+
         assertNonTestPaths();
     });
 });

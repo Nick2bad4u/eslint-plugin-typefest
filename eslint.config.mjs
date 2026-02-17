@@ -9,7 +9,6 @@
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
-// import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
@@ -68,7 +67,6 @@ import pluginTsdoc from "eslint-plugin-tsdoc";
 import pluginTSDocRequire from "eslint-plugin-tsdoc-require";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
-// import * as cssPlugin from "eslint-plugin-css"
 import pluginWriteGood from "eslint-plugin-write-good-comments";
 import eslintPluginYml from "eslint-plugin-yml";
 import globals from "globals";
@@ -78,8 +76,6 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
-
-// import github from 'eslint-plugin-github' -- unused for now
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
@@ -941,10 +937,7 @@ export default defineConfig([
             "import-x/no-unassigned-import": [
                 "error",
                 {
-                    allow: [
-                        "**/*.css",
-                        "**/*.scss",
-                    ], // Allow CSS imports without assignment
+                    allow: ["**/*.css", "**/*.scss"], // Allow CSS imports without assignment
                 },
             ],
             "import-x/no-unresolved": "off",
@@ -970,7 +963,8 @@ export default defineConfig([
             "n/no-missing-import": "off",
             // NOTE(ESLint10): Re-enable once eslint-plugin-no-lookahead-lookbehind-regexp supports
             // ESLint 10 without legacy context helpers.
-            "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp": "off",
+            "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp":
+                "off",
             "promise/no-multiple-resolved": "warn",
             "promise/prefer-await-to-callbacks": "off",
             "promise/prefer-await-to-then": "warn",
@@ -1020,14 +1014,19 @@ export default defineConfig([
     },
     {
         files: [
+            "commitlint.config.mjs",
             "eslint.config.mjs",
             "plugin.mjs",
             "src/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
+            "vite.config.ts",
         ],
         name: "ESLint Plugin Source - internal rule authoring overrides",
         rules: {
             "@typescript-eslint/ban-ts-comment": "off",
             "@typescript-eslint/consistent-type-definitions": "off",
+            "@typescript-eslint/explicit-function-return-type": "off",
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-misused-spread": "off",
             "@typescript-eslint/no-unnecessary-condition": "off",
             "@typescript-eslint/no-unsafe-argument": "off",
             "@typescript-eslint/no-unsafe-assignment": "off",
@@ -1035,6 +1034,8 @@ export default defineConfig([
             "@typescript-eslint/no-unsafe-enum-comparison": "off",
             "@typescript-eslint/no-unsafe-member-access": "off",
             "@typescript-eslint/no-unsafe-return": "off",
+            "@typescript-eslint/no-unsafe-type-assertion": "off",
+            "@typescript-eslint/prefer-destructuring": "off",
             "@typescript-eslint/prefer-nullish-coalescing": "off",
             "@typescript-eslint/restrict-template-expressions": "off",
             camelcase: "off",
@@ -1059,6 +1060,9 @@ export default defineConfig([
             "eslint-plugin/require-meta-docs-recommended": "off",
             "func-style": "off",
             "id-length": "off",
+            "import-x/extensions": "off",
+            "import-x/no-commonjs": "off",
+            "import-x/no-rename-default": "off",
             "init-declarations": "off",
             "jsdoc/require-description": "off",
             "jsdoc/require-param-description": "off",
@@ -1068,6 +1072,7 @@ export default defineConfig([
             "max-lines-per-function": "off",
             "max-params": "off",
             "max-statements": "off",
+            "module-interop/no-import-cjs": "off",
             "n/no-extraneous-import": "off",
             "n/no-mixed-requires": "off",
             "n/no-sync": "off",
@@ -1103,6 +1108,7 @@ export default defineConfig([
             "security/detect-object-injection": "off",
             "sonarjs/cognitive-complexity": "off",
             "sonarjs/different-types-comparison": "off",
+            "sonarjs/no-commented-code": "off",
             "sonarjs/no-nested-conditional": "off",
             "sort-imports": "off",
             "sort-keys": "off",
@@ -1216,17 +1222,22 @@ export default defineConfig([
             ...pluginTestingLibrary.configs["flat/react"].rules,
 
             "@jcoreio/implicit-dependencies/no-implicit": "off",
+            "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/no-empty-function": "off", // Empty mocks/stubs are common
             "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for React components
             "@typescript-eslint/no-non-null-assertion": "off",
             "@typescript-eslint/no-restricted-types": "off", // Tests may need generic Function types
-
+            "@typescript-eslint/no-shadow": "off",
             "@typescript-eslint/no-unsafe-function-type": "off", // Tests may use generic handlers
+            "@typescript-eslint/no-unsafe-type-assertion": "off",
             "@typescript-eslint/no-unused-vars": "off",
+
             "@typescript-eslint/no-use-before-define": "off", // Allow use before define in tests
             "@typescript-eslint/no-useless-default-assignment": "warn",
+            "@typescript-eslint/prefer-destructuring": "off",
             "@typescript-eslint/strict-void-return": "warn",
+            "@typescript-eslint/unbound-method": "off",
             camelcase: "off",
             "capitalized-comments": [
                 "error",
@@ -1264,6 +1275,7 @@ export default defineConfig([
             ],
             "max-params": "off",
             "max-statements": "off",
+            "module-interop/no-import-cjs": "off",
             "new-cap": "off", // Allow new-cap for class constructors
             "no-await-in-loop": "off", // Allow await in loops for sequential operations
             "no-barrel-files/no-barrel-files": "off", // Allow barrel files in tests for convenience
@@ -1385,6 +1397,7 @@ export default defineConfig([
             "unicorn/prefer-global-this": "off", // Allow globalThis for test setups
             "unicorn/prefer-optional-catch-binding": "off", // Allow optional catch binding for test flexibility
             "unicorn/prevent-abbreviations": "off", // Too many false positives in tests
+            "vitest/max-expects": "off",
             "vitest/no-alias-methods": "warn",
             "vitest/no-commented-out-tests": "warn",
             "vitest/no-conditional-expect": "off",
@@ -1401,12 +1414,14 @@ export default defineConfig([
             "vitest/prefer-called-with": "off",
             "vitest/prefer-comparison-matcher": "warn",
             "vitest/prefer-describe-function-title": "warn",
+            "vitest/prefer-expect-assertions": "off",
             "vitest/prefer-expect-resolves": "warn",
             // NOTE: conflicts with uptime-watcher/test-no-mock-return-value-constructors
             // (enabled via uptime-watcher `configs.repo`).
             "vitest/prefer-mock-return-shorthand": "off",
             "vitest/prefer-spy-on": "off",
             "vitest/prefer-strict-boolean-matchers": "off",
+            "vitest/prefer-strict-equal": "off",
             "vitest/prefer-to-be": "off",
             "vitest/prefer-to-be-falsy": "warn",
             "vitest/prefer-to-be-object": "warn",
@@ -1415,6 +1430,7 @@ export default defineConfig([
             "vitest/prefer-to-have-length": "warn",
             "vitest/prefer-todo": "warn",
             "vitest/prefer-vi-mocked": "off",
+            "vitest/require-hook": "off",
             "vitest/require-mock-type-parameters": "off",
             "vitest/valid-expect": "warn",
             "vitest/valid-title": "warn",
@@ -1702,7 +1718,7 @@ export default defineConfig([
         },
         name: "HTML - **/*.{HTML,HTM,XHTML}",
         plugins: {
-            html: html
+            html: html,
         },
         rules: {
             ...html.configs.recommended.rules,
@@ -1755,7 +1771,7 @@ export default defineConfig([
             "html/require-meta-description": "warn",
             "html/require-meta-viewport": "warn",
             "html/require-open-graph-protocol": "warn",
-            "html/sort-attrs": "warn"
+            "html/sort-attrs": "warn",
         },
     },
     // #endregion

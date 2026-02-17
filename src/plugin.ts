@@ -2,7 +2,9 @@ import { createRequire } from "node:module";
 import type { ESLint, Linter } from "eslint";
 
 import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
+import preferTsExtrasIsDefinedRule from "./rules/prefer-ts-extras-is-defined.js";
 import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
+import preferTsExtrasIsPresentRule from "./rules/prefer-ts-extras-is-present.js";
 import preferTsExtrasAsWritableRule from "./rules/prefer-ts-extras-as-writable.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
@@ -17,6 +19,7 @@ import preferTsExtrasAssertDefinedRule from "./rules/prefer-ts-extras-assert-def
 import preferTsExtrasAssertErrorRule from "./rules/prefer-ts-extras-assert-error.js";
 import preferTsExtrasAssertPresentRule from "./rules/prefer-ts-extras-assert-present.js";
 import preferTsExtrasIsFiniteRule from "./rules/prefer-ts-extras-is-finite.js";
+import preferTsExtrasIsEqualTypeRule from "./rules/prefer-ts-extras-is-equal-type.js";
 import preferTsExtrasIsEmptyRule from "./rules/prefer-ts-extras-is-empty.js";
 import preferTsExtrasIsInfiniteRule from "./rules/prefer-ts-extras-is-infinite.js";
 import preferTsExtrasIsIntegerRule from "./rules/prefer-ts-extras-is-integer.js";
@@ -93,11 +96,14 @@ const typefestPlugin = {
         "prefer-ts-extras-assert-defined": preferTsExtrasAssertDefinedRule,
         "prefer-ts-extras-assert-error": preferTsExtrasAssertErrorRule,
         "prefer-ts-extras-assert-present": preferTsExtrasAssertPresentRule,
+        "prefer-ts-extras-is-defined": preferTsExtrasIsDefinedRule,
         "prefer-ts-extras-is-defined-filter": preferTsExtrasIsDefinedFilterRule,
         "prefer-ts-extras-is-empty": preferTsExtrasIsEmptyRule,
+        "prefer-ts-extras-is-equal-type": preferTsExtrasIsEqualTypeRule,
         "prefer-ts-extras-is-finite": preferTsExtrasIsFiniteRule,
         "prefer-ts-extras-is-infinite": preferTsExtrasIsInfiniteRule,
         "prefer-ts-extras-is-integer": preferTsExtrasIsIntegerRule,
+        "prefer-ts-extras-is-present": preferTsExtrasIsPresentRule,
         "prefer-ts-extras-is-present-filter": preferTsExtrasIsPresentFilterRule,
         "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
         "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
@@ -227,7 +233,9 @@ const typeFestRuleNames = [
 ] as const;
 
 const tsExtrasRuntimeRuleNames = [
+    "prefer-ts-extras-is-defined",
     "prefer-ts-extras-is-defined-filter",
+    "prefer-ts-extras-is-present",
     "prefer-ts-extras-is-present-filter",
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -258,6 +266,7 @@ const tsExtrasExperimentalRuleNames = [
     "prefer-ts-extras-array-find",
     "prefer-ts-extras-array-find-last",
     "prefer-ts-extras-array-find-last-index",
+    "prefer-ts-extras-is-equal-type",
 ] as const;
 
 const tsExtrasAssertiveRuleNames = [
@@ -269,6 +278,9 @@ const tsExtrasAssertiveRuleNames = [
 const tsExtrasRuleNames = [
     ...tsExtrasRuntimeRuleNames,
     ...tsExtrasAssertiveRuleNames,
+] as const;
+
+const tsExtrasExperimentalOnlyRuleNames = [
     ...tsExtrasExperimentalRuleNames,
 ] as const;
 
@@ -341,6 +353,11 @@ const flatTsExtrasConfig = withTypefestPlugin({
     rules: errorRulesFor(tsExtrasRuleNames),
 });
 
+const flatTsExtrasExperimentalConfig = withTypefestPlugin({
+    name: "typefest:flat/ts-extras-experimental",
+    rules: errorRulesFor(tsExtrasExperimentalOnlyRuleNames),
+});
+
 const unscopedAllConfig = withTypefestPlugin({
     name: "typefest:all",
     rules: allRules,
@@ -386,6 +403,11 @@ const unscopedTsExtrasConfig = withTypefestPlugin({
     rules: errorRulesFor(tsExtrasRuleNames),
 });
 
+const unscopedTsExtrasExperimentalConfig = withTypefestPlugin({
+    name: "typefest:ts-extras-experimental",
+    rules: errorRulesFor(tsExtrasExperimentalOnlyRuleNames),
+});
+
 (
     typefestPlugin as unknown as {
         configs: Record<string, FlatConfig>;
@@ -407,6 +429,7 @@ const unscopedTsExtrasConfig = withTypefestPlugin({
     "flat/safe": flatSafeConfig,
     "flat/strict": flatStrictConfig,
     "flat/ts-extras": flatTsExtrasConfig,
+    "flat/ts-extras-experimental": flatTsExtrasExperimentalConfig,
     "flat/ts-extras-safe": flatTsExtrasSafeConfig,
     "flat/type-fest": flatTypeFestConfig,
     minimal: unscopedMinimalConfig,
@@ -415,6 +438,7 @@ const unscopedTsExtrasConfig = withTypefestPlugin({
     safe: unscopedSafeConfig,
     strict: unscopedStrictConfig,
     "ts-extras": unscopedTsExtrasConfig,
+    "ts-extras-experimental": unscopedTsExtrasExperimentalConfig,
     "ts-extras-safe": unscopedTsExtrasSafeConfig,
     "type-fest": unscopedTypeFestConfig,
 };

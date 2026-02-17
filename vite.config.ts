@@ -1,5 +1,5 @@
 // eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair -- project-wide disable pattern for build configs
-/* eslint-disable n/no-process-env, comment-length/limit-single-line-comments, sort-imports   -- Disable specific rules for build configs */
+/* eslint-disable n/no-process-env, comment-length/limit-single-line-comments   -- Disable specific rules for build configs */
 
 import pc from "picocolors";
 import {
@@ -113,7 +113,7 @@ export default defineConfig({
                 "lcov",
                 "html",
             ],
-            // eslint-disable-next-line sort-keys -- Keep alongside `reporter` for Vitest reporter configuration readability.
+
             reportOnFailure: true,
             reportsDirectory: "./coverage",
             skipFull: false, // Don't skip full coverage collection

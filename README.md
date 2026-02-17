@@ -48,19 +48,20 @@ export default [
 
 The plugin ships both unscoped and flat-prefixed presets.
 
-| Preset                               | Purpose                                         |
-| ------------------------------------ | ----------------------------------------------- |
-| `typefest.configs.minimal`           | Core TypeFest alias preferences only            |
-| `typefest.configs["type-fest"]`      | TypeFest rules only (`minimal` equivalent)      |
-| `typefest.configs["ts-extras-safe"]` | Runtime-safe ts-extras rules only               |
-| `typefest.configs["ts-extras"]`      | All ts-extras rules + assertions + `arrayFind*` |
-| `typefest.configs.safe`              | `minimal` + safe ts-extras helper replacements  |
-| `typefest.configs.recommended`       | `safe` + assertion helper preferences           |
-| `typefest.configs.strict`            | Current strict superset of recommended rules    |
-| `typefest.configs.all`               | Every rule exported by this plugin              |
+| Preset                                       | Purpose                                        |
+| -------------------------------------------- | ---------------------------------------------- |
+| `typefest.configs.minimal`                   | Core TypeFest alias preferences only           |
+| `typefest.configs["type-fest"]`              | TypeFest rules only (`minimal` equivalent)     |
+| `typefest.configs["ts-extras-safe"]`         | Runtime-safe ts-extras rules only              |
+| `typefest.configs["ts-extras"]`              | Stable ts-extras rules + assertions            |
+| `typefest.configs["ts-extras-experimental"]` | Experimental ts-extras rules only              |
+| `typefest.configs.safe`                      | `minimal` + safe ts-extras helper replacements |
+| `typefest.configs.recommended`               | `safe` + assertion helper preferences          |
+| `typefest.configs.strict`                    | Current strict superset of recommended rules   |
+| `typefest.configs.all`                       | Every rule exported by this plugin             |
 
 `safe`/`recommended` intentionally exclude the experimental
-`prefer-ts-extras-array-find*` rules.
+`prefer-ts-extras-array-find*` and `prefer-ts-extras-is-equal-type` rules.
 
 Clearer semantic aliases are also available:
 
@@ -85,6 +86,7 @@ Flat-prefixed aliases are also available:
 - `typefest.configs["flat/type-fest"]`
 - `typefest.configs["flat/ts-extras-safe"]`
 - `typefest.configs["flat/ts-extras"]`
+- `typefest.configs["flat/ts-extras-experimental"]`
 
 `typefest.configs.default` and `typefest.configs["flat/default"]` currently
 map to the `safe` tier.

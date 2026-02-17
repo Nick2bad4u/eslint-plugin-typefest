@@ -193,16 +193,19 @@ const assertIgnoresUnsupportedDeclarationsAndSpecifiers = (): void => {
 describe(collectImportedTypeAliasMatches, () => {
     it("collects matching named imports and preserves module source", () => {
         expect.hasAssertions();
+
         assertCollectsMatchingNamedImports();
     });
 
     it("ignores non-import declarations, unsupported specifiers, and literal import names", () => {
         expect.hasAssertions();
+
         assertIgnoresUnsupportedDeclarationsAndSpecifiers();
     });
 
     it("matches replacement entries for arbitrary alias imports", () => {
         expect.hasAssertions();
+
         assertArbitraryAliasProperty();
     });
 });

@@ -10,6 +10,7 @@ const expectedConfigRegistryShape = expect.objectContaining({
     "flat/safe": expect.any(Object),
     "flat/strict": expect.any(Object),
     "flat/ts-extras": expect.any(Object),
+    "flat/ts-extras-experimental": expect.any(Object),
     "flat/ts-extras-safe": expect.any(Object),
     "flat/type-fest": expect.any(Object),
     minimal: expect.any(Object),
@@ -17,12 +18,16 @@ const expectedConfigRegistryShape = expect.objectContaining({
     safe: expect.any(Object),
     strict: expect.any(Object),
     "ts-extras": expect.any(Object),
+    "ts-extras-experimental": expect.any(Object),
     "ts-extras-safe": expect.any(Object),
     "type-fest": expect.any(Object),
 });
 
 const expectedRuleRegistryShape = expect.objectContaining({
     "prefer-ts-extras-as-writable": expect.any(Object),
+    "prefer-ts-extras-is-defined": expect.any(Object),
+    "prefer-ts-extras-is-equal-type": expect.any(Object),
+    "prefer-ts-extras-is-present": expect.any(Object),
     "prefer-ts-extras-not": expect.any(Object),
     "prefer-ts-extras-safe-cast-to": expect.any(Object),
     "prefer-type-fest-conditional-pick": expect.any(Object),

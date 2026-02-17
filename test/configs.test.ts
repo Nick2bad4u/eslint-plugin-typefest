@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import typefestPlugin from "../plugin.mjs";
+import plugin from "../plugin.mjs";
 
 interface FlatConfigLike {
     files?: unknown;
@@ -8,24 +8,6 @@ interface FlatConfigLike {
     name?: unknown;
     plugins?: Record<string, unknown>;
     rules?: Record<string, unknown>;
-}
-
-function getPluginConfigs(plugin: unknown): null | Record<string, unknown> {
-    if (!isObject(plugin)) {
-        return null;
-    }
-
-    const configsKey = "configs" as const;
-    const configs = plugin[configsKey];
-    if (!isObject(configs)) {
-        return null;
-    }
-
-    return configs;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }
 
 function getConfigRules(
@@ -46,6 +28,37 @@ function getConfigRules(
     return rules;
 }
 
+function getPluginConfigs(plugin: unknown): null | Record<string, unknown> {
+    if (!isObject(plugin)) {
+        return null;
+    }
+
+    const configsKey = "configs" as const;
+    const configs = plugin[configsKey];
+    if (!isObject(configs)) {
+        return null;
+    }
+
+    return configs;
+}
+
+function getPluginRules(plugin: unknown): null | Record<string, unknown> {
+    if (!isObject(plugin)) {
+        return null;
+    }
+
+    const rules = plugin["rules"];
+    if (!isObject(rules)) {
+        return null;
+    }
+
+    return rules;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
 /**
  * Lightweight shape checks for `plugin.configs.*`.
  *
@@ -55,7 +68,8 @@ function getConfigRules(
  * configs, or forgetting to register the plugin on a config item).
  */
 describe("typefest plugin configs", () => {
-    const configs = getPluginConfigs(typefestPlugin);
+    const configs = getPluginConfigs(plugin);
+    const rules = getPluginRules(plugin);
 
     it("exports the expected config keys", () => {
         expect(configs).toBeDefined();
@@ -77,6 +91,7 @@ describe("typefest plugin configs", () => {
                 "safe",
                 "strict",
                 "ts-extras",
+                "ts-extras-experimental",
                 "ts-extras-safe",
                 "type-fest",
                 "flat/assertive",
@@ -90,6 +105,7 @@ describe("typefest plugin configs", () => {
                 "flat/safe",
                 "flat/strict",
                 "flat/ts-extras",
+                "flat/ts-extras-experimental",
                 "flat/ts-extras-safe",
                 "flat/type-fest",
             ])
@@ -110,12 +126,60 @@ describe("typefest plugin configs", () => {
         }
     });
 
-    it("keeps arrayFind* rules out of safe tier but available in ts-extras", () => {
+    it("maps all exported rules to all/type-fest/ts-extras presets consistently", () => {
+        expect(rules).toBeDefined();
+
+        const allRules = getConfigRules(configs, "all");
+        const rulesForTypeFest = getConfigRules(configs, "type-fest");
+        const rulesForTsExtras = getConfigRules(configs, "ts-extras");
+        const rulesForTsExtrasExperimental = getConfigRules(
+            configs,
+            "ts-extras-experimental"
+        );
+
+        expect(allRules).toBeDefined();
+        expect(rulesForTypeFest).toBeDefined();
+        expect(rulesForTsExtras).toBeDefined();
+        expect(rulesForTsExtrasExperimental).toBeDefined();
+
+        for (const ruleId of Object.keys(rules ?? {})) {
+            const pluginRuleName = `typefest/${ruleId}`;
+
+            expect(allRules).toHaveProperty(pluginRuleName, "error");
+
+            if (ruleId.startsWith("prefer-type-fest-")) {
+                expect(rulesForTypeFest).toHaveProperty(
+                    pluginRuleName,
+                    "error"
+                );
+                expect(rulesForTsExtras).not.toHaveProperty(pluginRuleName);
+            }
+
+            if (ruleId.startsWith("prefer-ts-extras-")) {
+                const isInStableTsExtras =
+                    rulesForTsExtras?.[pluginRuleName] === "error";
+                const isInExperimentalTsExtras =
+                    rulesForTsExtrasExperimental?.[pluginRuleName] === "error";
+
+                expect(
+                    isInStableTsExtras || isInExperimentalTsExtras
+                ).toBeTruthy();
+                expect(rulesForTypeFest).not.toHaveProperty(pluginRuleName);
+            }
+        }
+    });
+
+    it("keeps experimental ts-extras rules out of safe and standard ts-extras tiers", () => {
         const safeRules = getConfigRules(configs, "safe");
         const tsExtrasRules = getConfigRules(configs, "ts-extras");
+        const tsExtrasExperimentalRules = getConfigRules(
+            configs,
+            "ts-extras-experimental"
+        );
 
         expect(safeRules).toBeDefined();
         expect(tsExtrasRules).toBeDefined();
+        expect(tsExtrasExperimentalRules).toBeDefined();
 
         expect(safeRules).not.toHaveProperty(
             "typefest/prefer-ts-extras-array-find"
@@ -126,17 +190,78 @@ describe("typefest plugin configs", () => {
         expect(safeRules).not.toHaveProperty(
             "typefest/prefer-ts-extras-array-find-last-index"
         );
+        expect(safeRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-is-equal-type"
+        );
+        expect(tsExtrasRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find"
+        );
+        expect(tsExtrasRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last"
+        );
+        expect(tsExtrasRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last-index"
+        );
+        expect(tsExtrasRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-is-equal-type"
+        );
 
-        expect(tsExtrasRules).toHaveProperty(
+        expect(tsExtrasExperimentalRules).toHaveProperty(
             "typefest/prefer-ts-extras-array-find",
             "error"
         );
-        expect(tsExtrasRules).toHaveProperty(
+        expect(tsExtrasExperimentalRules).toHaveProperty(
             "typefest/prefer-ts-extras-array-find-last",
             "error"
         );
-        expect(tsExtrasRules).toHaveProperty(
+        expect(tsExtrasExperimentalRules).toHaveProperty(
             "typefest/prefer-ts-extras-array-find-last-index",
+            "error"
+        );
+        expect(tsExtrasExperimentalRules).toHaveProperty(
+            "typefest/prefer-ts-extras-is-equal-type",
+            "error"
+        );
+    });
+
+    it("keeps established runtime helpers in safe and ts-extras-safe tiers", () => {
+        const safeRules = getConfigRules(configs, "safe");
+        const tsExtrasSafeRules = getConfigRules(configs, "ts-extras-safe");
+
+        expect(safeRules).toBeDefined();
+        expect(tsExtrasSafeRules).toBeDefined();
+
+        expect(safeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-as-writable",
+            "error"
+        );
+        expect(safeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-safe-cast-to",
+            "error"
+        );
+        expect(safeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-is-defined",
+            "error"
+        );
+        expect(safeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-is-present",
+            "error"
+        );
+
+        expect(tsExtrasSafeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-as-writable",
+            "error"
+        );
+        expect(tsExtrasSafeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-safe-cast-to",
+            "error"
+        );
+        expect(tsExtrasSafeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-is-defined",
+            "error"
+        );
+        expect(tsExtrasSafeRules).toHaveProperty(
+            "typefest/prefer-ts-extras-is-present",
             "error"
         );
     });

@@ -1,5 +1,5 @@
 /**
- * Commitlint configuration for Uptime Watcher.
+ * Commitlint configuration for eslint-plugin-typefest.
  *
  * Enforces conventional commit format with emoji and bracketed type, e.g., "✨
  * [feat] Add dark mode toggle". Each commit bullet point should start with one
@@ -16,7 +16,43 @@
  * @see {@link https://www.conventionalcommits.org/ | Conventional Commits Specification}
  */
 
-export default /** @type {CommitlintConfig} */ {
+/**
+ * @param {string} commit
+ *
+ * @returns {boolean}
+ */
+function isDependencyBumpCommit(commit) {
+    return /^build\(deps.*\): bump/v.test(commit);
+}
+
+/**
+ * @param {string} commit
+ *
+ * @returns {boolean}
+ */
+function isMergeCommit(commit) {
+    return commit.includes("Merge");
+}
+
+/**
+ * @param {string} commit
+ *
+ * @returns {boolean}
+ */
+function isReleaseCommit(commit) {
+    return commit.startsWith("chore(release)");
+}
+
+/**
+ * @param {string} commit
+ *
+ * @returns {boolean}
+ */
+function isRevertCommit(commit) {
+    return commit.includes("Revert");
+}
+
+const commitlintConfig = /** @type {CommitlintConfig} */ ({
     $schema: "https://www.schemastore.org/commitlintrc.json",
 
     /**
@@ -38,33 +74,10 @@ export default /** @type {CommitlintConfig} */ {
      * Ignore certain commit patterns.
      */
     ignores: [
-        /**
-         * Ignore merge commits.
-         *
-         * @param {string} commit - The raw commit message being validated.
-         */
-        (commit) => commit.includes("Merge"),
-
-        /**
-         * Ignore revert commits (handled by 'revert' type).
-         *
-         * @param {string} commit - The raw commit message being validated.
-         */
-        (commit) => commit.includes("Revert"),
-
-        /**
-         * Ignore automated release commits.
-         *
-         * @param {string} commit - The raw commit message being validated.
-         */
-        (commit) => commit.startsWith("chore(release)"),
-
-        /**
-         * Ignore dependency updates with automated format.
-         *
-         * @param {string} commit - The raw commit message being validated.
-         */
-        (commit) => /^build\(deps.*\): bump/v.test(commit),
+        isMergeCommit,
+        isRevertCommit,
+        isReleaseCommit,
+        isDependencyBumpCommit,
     ],
 
     /**
@@ -341,4 +354,6 @@ export default /** @type {CommitlintConfig} */ {
             3,
         ],
     },
-};
+});
+
+export default commitlintConfig;
