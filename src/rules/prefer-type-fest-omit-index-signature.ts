@@ -1,28 +1,24 @@
 import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const ifAliasReplacements = {
-    IfAny: "IsAny",
-    IfEmptyObject: "IsEmptyObject",
-    IfNever: "IsNever",
-    IfNull: "IsNull",
-    IfUnknown: "IsUnknown",
+const omitIndexSignatureAliasReplacements = {
+    RemoveIndexSignature: "OmitIndexSignature",
 } as const;
 
-const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
+const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-if",
+        name: "prefer-type-fest-omit-index-signature",
         meta: {
             type: "suggestion",
             docs: {
                 description:
-                    "require TypeFest If + Is* utilities over deprecated If* aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md",
+                    "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
             },
             schema: [],
             messages: {
-                preferTypeFestIf:
-                    "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`.",
+                preferOmitIndexSignature:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
             },
         },
         defaultOptions: [],
@@ -35,7 +31,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
 
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
-                ifAliasReplacements
+                omitIndexSignatureAliasReplacements
             );
 
             return {
@@ -53,7 +49,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
 
                     context.report({
                         node,
-                        messageId: "preferTypeFestIf",
+                        messageId: "preferOmitIndexSignature",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
@@ -64,4 +60,4 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
         },
     });
 
-export default preferTypeFestIfRule;
+export default preferTypeFestOmitIndexSignatureRule;

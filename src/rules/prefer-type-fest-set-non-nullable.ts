@@ -1,28 +1,24 @@
 import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const ifAliasReplacements = {
-    IfAny: "IsAny",
-    IfEmptyObject: "IsEmptyObject",
-    IfNever: "IsNever",
-    IfNull: "IsNull",
-    IfUnknown: "IsUnknown",
+const setNonNullableAliasReplacements = {
+    NonNullableBy: "SetNonNullable",
 } as const;
 
-const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
+const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-if",
+        name: "prefer-type-fest-set-non-nullable",
         meta: {
             type: "suggestion",
             docs: {
                 description:
-                    "require TypeFest If + Is* utilities over deprecated If* aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md",
+                    "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-non-nullable.md",
             },
             schema: [],
             messages: {
-                preferTypeFestIf:
-                    "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`.",
+                preferSetNonNullable:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
             },
         },
         defaultOptions: [],
@@ -35,7 +31,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
 
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
-                ifAliasReplacements
+                setNonNullableAliasReplacements
             );
 
             return {
@@ -53,7 +49,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
 
                     context.report({
                         node,
-                        messageId: "preferTypeFestIf",
+                        messageId: "preferSetNonNullable",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
@@ -64,4 +60,4 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
         },
     });
 
-export default preferTypeFestIfRule;
+export default preferTypeFestSetNonNullableRule;

@@ -1,7 +1,4 @@
-import type {
-    OneOf,
-    RequireOnlyOne,
-} from "legacy-type-utils";
+import type { OneOf, RequireOnlyOne } from "legacy-type-utils";
 
 type AuthByOneOf = OneOf<AuthPayload>;
 type AuthByRequireOnlyOne = RequireOnlyOne<AuthPayload>;

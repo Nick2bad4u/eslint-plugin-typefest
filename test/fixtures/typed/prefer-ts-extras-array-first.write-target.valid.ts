@@ -1,4 +1,8 @@
-const mutableLatencies = [120, 95, 102];
+const mutableLatencies = [
+    120,
+    95,
+    102,
+];
 
 mutableLatencies[0] = 90;
 mutableLatencies[0]++;

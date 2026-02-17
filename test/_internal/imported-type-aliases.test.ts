@@ -74,7 +74,10 @@ const mapToRecord = <TValue>(
 
 const buildExpectedMatches = (
     records: readonly ImportedAliasRecord[]
-): ReadonlyMap<string, { importedName: string; replacementName: string; sourceValue: string }> => {
+): ReadonlyMap<
+    string,
+    { importedName: string; replacementName: string; sourceValue: string }
+> => {
     const expected = new Map<
         string,
         {
@@ -125,7 +128,9 @@ const assertArbitraryAliasProperty = (): void => {
                 const actual = collectMatchesFromAliasRecords(records);
                 const expected = buildExpectedMatches(records);
 
-                expect(mapToRecord(actual)).toStrictEqual(mapToRecord(expected));
+                expect(mapToRecord(actual)).toStrictEqual(
+                    mapToRecord(expected)
+                );
             }
         )
     );

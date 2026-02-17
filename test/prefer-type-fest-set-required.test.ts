@@ -7,16 +7,16 @@ import {
 
 const ruleTester = createTypedRuleTester();
 
-const validFixtureName = "prefer-type-fest-require-at-least-one.valid.ts";
+const validFixtureName = "prefer-type-fest-set-required.valid.ts";
 const namespaceValidFixtureName =
-    "prefer-type-fest-require-at-least-one.namespace.valid.ts";
+    "prefer-type-fest-set-required.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-require-at-least-one.skip.ts";
-const invalidFixtureName = "prefer-type-fest-require-at-least-one.invalid.ts";
+const skipTestPathFixtureName = "prefer-type-fest-set-required.skip.ts";
+const invalidFixtureName = "prefer-type-fest-set-required.invalid.ts";
 
 ruleTester.run(
-    "prefer-type-fest-require-at-least-one",
-    getPluginRule("prefer-type-fest-require-at-least-one"),
+    "prefer-type-fest-set-required",
+    getPluginRule("prefer-type-fest-set-required"),
     {
         invalid: [
             {
@@ -24,10 +24,10 @@ ruleTester.run(
                 errors: [
                     {
                         data: {
-                            alias: "AtLeastOne",
-                            replacement: "RequireAtLeastOne",
+                            alias: "RequiredBy",
+                            replacement: "SetRequired",
                         },
-                        messageId: "preferRequireAtLeastOne",
+                        messageId: "preferSetRequired",
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),

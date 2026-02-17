@@ -50,7 +50,10 @@ import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
 import preferTypeFestSchemaRule from "./rules/prefer-type-fest-schema.js";
+import preferTypeFestSetNonNullableRule from "./rules/prefer-type-fest-set-non-nullable.js";
 import preferTypeFestSetOptionalRule from "./rules/prefer-type-fest-set-optional.js";
+import preferTypeFestSetReadonlyRule from "./rules/prefer-type-fest-set-readonly.js";
+import preferTypeFestSetRequiredRule from "./rules/prefer-type-fest-set-required.js";
 import preferTypeFestSimplifyRule from "./rules/prefer-type-fest-simplify.js";
 import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "./rules/prefer-type-fest-tuple-of.js";
@@ -130,7 +133,10 @@ const typefestPlugin = {
         "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
         "prefer-type-fest-promisable": preferTypeFestPromisableRule,
         "prefer-type-fest-schema": preferTypeFestSchemaRule,
+        "prefer-type-fest-set-non-nullable": preferTypeFestSetNonNullableRule,
         "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
+        "prefer-type-fest-set-readonly": preferTypeFestSetReadonlyRule,
+        "prefer-type-fest-set-required": preferTypeFestSetRequiredRule,
         "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
         "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
         "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
@@ -200,7 +206,10 @@ const minimalRuleNames = [
     "prefer-type-fest-primitive",
     "prefer-type-fest-promisable",
     "prefer-type-fest-schema",
+    "prefer-type-fest-set-non-nullable",
     "prefer-type-fest-set-optional",
+    "prefer-type-fest-set-readonly",
+    "prefer-type-fest-set-required",
     "prefer-type-fest-simplify",
     "prefer-type-fest-tagged-brands",
     "prefer-type-fest-tuple-of",

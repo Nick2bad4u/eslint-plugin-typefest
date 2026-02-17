@@ -10,7 +10,9 @@ const typedFirstStatus = arrayFirst(monitorStatuses);
 
 if (
     typeof typedFirstStatus === "string" &&
-    firstStatus.length + firstStatusViaStringIndex.length + typedFirstStatus.length <
+    firstStatus.length +
+        firstStatusViaStringIndex.length +
+        typedFirstStatus.length <
         0
 ) {
     throw new TypeError("Unexpected array-first result in fixture");

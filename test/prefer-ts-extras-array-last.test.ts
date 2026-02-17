@@ -9,8 +9,7 @@ const rule = getPluginRule("prefer-ts-extras-array-last");
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-last.valid.ts";
-const patternValidFixtureName =
-    "prefer-ts-extras-array-last.patterns.valid.ts";
+const patternValidFixtureName = "prefer-ts-extras-array-last.patterns.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-last.invalid.ts";
 const skipFixtureName = "tests/prefer-ts-extras-array-last.skip.ts";
 

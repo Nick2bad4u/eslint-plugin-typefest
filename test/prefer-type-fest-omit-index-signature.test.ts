@@ -7,16 +7,16 @@ import {
 
 const ruleTester = createTypedRuleTester();
 
-const validFixtureName = "prefer-type-fest-require-at-least-one.valid.ts";
+const validFixtureName = "prefer-type-fest-omit-index-signature.valid.ts";
 const namespaceValidFixtureName =
-    "prefer-type-fest-require-at-least-one.namespace.valid.ts";
+    "prefer-type-fest-omit-index-signature.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-require-at-least-one.skip.ts";
-const invalidFixtureName = "prefer-type-fest-require-at-least-one.invalid.ts";
+const skipTestPathFixtureName = "prefer-type-fest-omit-index-signature.skip.ts";
+const invalidFixtureName = "prefer-type-fest-omit-index-signature.invalid.ts";
 
 ruleTester.run(
-    "prefer-type-fest-require-at-least-one",
-    getPluginRule("prefer-type-fest-require-at-least-one"),
+    "prefer-type-fest-omit-index-signature",
+    getPluginRule("prefer-type-fest-omit-index-signature"),
     {
         invalid: [
             {
@@ -24,10 +24,10 @@ ruleTester.run(
                 errors: [
                     {
                         data: {
-                            alias: "AtLeastOne",
-                            replacement: "RequireAtLeastOne",
+                            alias: "RemoveIndexSignature",
+                            replacement: "OmitIndexSignature",
                         },
-                        messageId: "preferRequireAtLeastOne",
+                        messageId: "preferOmitIndexSignature",
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),

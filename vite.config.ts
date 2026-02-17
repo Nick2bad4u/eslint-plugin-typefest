@@ -1,5 +1,5 @@
 // eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair -- project-wide disable pattern for build configs
-/* eslint-disable n/no-process-env, capitalized-comments, comment-length/limit-single-line-comments, sort-imports   -- Disable specific rules for build configs */
+/* eslint-disable n/no-process-env, comment-length/limit-single-line-comments, sort-imports   -- Disable specific rules for build configs */
 
 import pc from "picocolors";
 import {
@@ -8,13 +8,26 @@ import {
     defineConfig,
 } from "vitest/config";
 
+const isCiEnvironment = process.env["CI"] === "true";
+const configuredMaxWorkers =
+    process.env["MAX_THREADS"] ?? (isCiEnvironment ? "1" : "8");
+const requestedFileParallelism = process.env["VITEST_FILE_PARALLELISM"];
+const isFileParallelismEnabled =
+    requestedFileParallelism === undefined
+        ? !isCiEnvironment
+        : ["1", "true"].includes(requestedFileParallelism.toLowerCase());
+const parsedMaxWorkers = Number.parseInt(configuredMaxWorkers, 10);
+const maxWorkerCount =
+    Number.isFinite(parsedMaxWorkers) && parsedMaxWorkers > 0
+        ? parsedMaxWorkers
+        : 1;
 const testExcludePatterns = [
-        "**/.cache/**",
-        "**/coverage/**",
-        "**/dist/**",
-        "**/node_modules/**",
-    ],
-    testFilePatterns = ["test/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}"];
+    "**/.cache/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
+];
+const testFilePatterns = ["test/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}"];
 
 /**
  * Vitest configuration for eslint-plugin-typefest.
@@ -154,7 +167,7 @@ export default defineConfig({
         },
         env: {
             NODE_ENV: "test",
-            // eslint-disable-next-line dot-notation -- ProcessEnv uses an index signature under strict TS settings.
+             
             PACKAGE_VERSION: process.env["PACKAGE_VERSION"] ?? "unknown",
         },
         environment: "node",
@@ -181,7 +194,9 @@ export default defineConfig({
             shouldAdvanceTime: false,
             shouldClearNativeTimers: true,
         },
-        fileParallelism: false,
+        // Run test files in parallel by default for local development speed.
+        // CI remains serial by default unless explicitly overridden.
+        fileParallelism: isFileParallelismEnabled,
         globals: true,
         include: [...testFilePatterns],
         includeTaskLocation: true,
@@ -189,15 +204,7 @@ export default defineConfig({
         logHeapUsage: true,
         // NOTE: Vitest v4 removed `test.poolOptions`. Use `maxWorkers` instead.
         // On Windows, keeping this bounded avoids worker starvation/timeouts.
-        maxWorkers: Math.max(
-            1,
-            Number(
-                // eslint-disable-next-line dot-notation -- ProcessEnv uses an index signature under strict TS settings.
-                process.env["MAX_THREADS"] ??
-                    // eslint-disable-next-line dot-notation -- ProcessEnv uses an index signature under strict TS settings.
-                    (process.env["CI"] ? "1" : "8")
-            )
-        ),
+        maxWorkers: maxWorkerCount,
         name: {
             color: "cyan",
             label: "Frontend", // Simplified label to match vitest.config.ts

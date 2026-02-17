@@ -7,8 +7,8 @@ export type ImportedTypeAliasMatch = {
 };
 
 /**
- * Collects imported type alias local names that should be replaced by
- * canonical type-fest utility names.
+ * Collects imported type alias local names that should be replaced by canonical
+ * type-fest utility names.
  */
 export const collectImportedTypeAliasMatches = (
     sourceCode: Readonly<TSESLint.SourceCode>,

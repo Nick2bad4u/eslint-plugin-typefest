@@ -4,7 +4,7 @@
  * @see {@link https://www.schemastore.org/eslintrc.json} for JSON schema validation
  */
 /* eslint-disable @eslint-community/eslint-comments/disable-enable-pair -- Eslint doesn't use default */
-/* eslint-disable import-x/no-named-as-default-member -- Rule wants packages not in dev, doesn't apply, eslint doesnt use default import */
+/* eslint-disable import-x/no-named-as-default-member, n/no-unsupported-features/node-builtins -- Rule wants packages not in dev, doesn't apply, eslint doesnt use default import */
 
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
@@ -37,6 +37,7 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import listeners from "eslint-plugin-listeners";
+import loadbleImportsPlugin from "eslint-plugin-loadable-imports";
 import eslintPluginMath from "eslint-plugin-math";
 import moduleInterop from "eslint-plugin-module-interop";
 import nodePlugin from "eslint-plugin-n";
@@ -46,6 +47,7 @@ import noConstructorBind from "eslint-plugin-no-constructor-bind";
 import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
+import pluginNoOnly from "eslint-plugin-no-only-tests";
 import noSecrets from "eslint-plugin-no-secrets";
 import nounsanitized from "eslint-plugin-no-unsanitized";
 import eslintPluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
@@ -63,6 +65,7 @@ import sonarjs, { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
 import pluginSortClassMembers from "eslint-plugin-sort-class-members";
 import storybook from "eslint-plugin-storybook";
 import styledA11y from "eslint-plugin-styled-components-a11y";
+import pluginTestingLibrary from "eslint-plugin-testing-library";
 import eslintPluginToml from "eslint-plugin-toml";
 import pluginTotalFunctions from "eslint-plugin-total-functions";
 import pluginTsdoc from "eslint-plugin-tsdoc";
@@ -81,6 +84,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
+
 // import github from 'eslint-plugin-github' -- unused for now
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
@@ -108,15 +112,24 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
     : {};
 
 const canonicalPlugin = fixupPluginRules(pluginCanonical);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const functionalPlugin = fixupPluginRules(pluginFunctional);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const noConstructorBindPlugin = fixupPluginRules(noConstructorBind);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const noUnsanitizedPlugin = fixupPluginRules(nounsanitized);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
 const securityPlugin = fixupPluginRules(pluginSecurity);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
 const styledA11yPlugin = fixupPluginRules(styledA11y);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
+// @ts-expect-error -- Plugin needs update for Eslint v10
+const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
@@ -295,8 +308,9 @@ export default defineConfig([
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "No barrel files (code files only)",
     },
-    // @ts-expect-error: nitpick.configs.recommended may not have correct types, but runtime usage is verified and safe
     {
+        // @ts-expect-error: nitpick.configs.recommended may not have correct types,
+        // but runtime usage is verified and safe
         ...nitpick.configs.recommended,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Nitpick recommended (code files only)",
@@ -307,11 +321,13 @@ export default defineConfig([
         name: "ESLint comments recommended (code files only)",
     },
     {
+        // @ts-expect-error -- Plugin needs update for Eslint v10
         ...arrayFunc.configs.all,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
     },
     ...storybook.configs["flat/recommended"],
+    // @ts-expect-error -- Plugin needs update for Eslint v10
     ...fixupConfigRules(pluginCasePolice.configs.recommended).map((config) => ({
         ...config,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
@@ -319,13 +335,15 @@ export default defineConfig([
             ? `Case police (code files only): ${config.name}`
             : "Case police (code files only)",
     })),
-    ...jsdocPlugin.configs["examples-and-default-expressions"].map((config) => ({
-        ...config,
-        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-        name: config.name
-            ? `JSDoc examples/default expressions (code files only): ${config.name}`
-            : "JSDoc examples/default expressions (code files only)",
-    })),
+    ...jsdocPlugin.configs["examples-and-default-expressions"].map(
+        (config) => ({
+            ...config,
+            files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
+            name: config.name
+                ? `JSDoc examples/default expressions (code files only): ${config.name}`
+                : "JSDoc examples/default expressions (code files only)",
+        })
+    ),
     // #endregion
     // #region 🧩 Custom Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -367,15 +385,6 @@ export default defineConfig([
     // ═══════════════════════════════════════════════════════════════════════════════
     // MARK: Custom Global Rules
     // ═══════════════════════════════════════════════════════════════════════════════
-    {
-        files: ["storybook/**/*.{ts,tsx,js,jsx,mts,mjs}"],
-        name: "Storybook: Dev Helpers - storybook/**/*.{ts,tsx,js,jsx,mts,mjs}",
-        rules: {
-            "import-x/no-extraneous-dependencies": "off",
-            "n/no-extraneous-import": "off",
-            "sonarjs/no-implicit-dependencies": "off",
-        },
-    },
     {
         name: "Array conversion: prefer spread",
         rules: {
@@ -437,7 +446,12 @@ export default defineConfig([
                     bun: true, // Resolve Bun modules (https://github.com/import-js/eslint-import-resolver-typescript#bun)
                     noWarnOnMultipleProjects: true, // Don't warn about multiple projects
                     // Use an array
-                    project: ["./tsconfig.eslint.json"],
+                    project: [
+                        "./tsconfig.eslint.json",
+                        "./tsconfig.json",
+                        "./tsconfig.build.json",
+                        "./tsconfig.js.json",
+                    ],
                 }),
             ],
         },
@@ -483,6 +497,7 @@ export default defineConfig([
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             etc: fixupPluginRules(etc),
             "import-x": importX,
             jsdoc: jsdocPlugin,
@@ -519,6 +534,7 @@ export default defineConfig([
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
@@ -528,12 +544,16 @@ export default defineConfig([
             ...eslintPluginMath.configs.recommended.rules,
             ...comments.recommended.rules,
             ...pluginCanonical.configs.recommended.rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginSortClassMembers.configs["flat/recommended"].rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginMicrosoftSdl.configs.required.rules,
             ...listeners.configs.strict.rules,
             ...moduleInterop.configs.recommended.rules,
             ...pluginTotalFunctions.configs.recommended.rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...etc.configs.recommended.rules,
             ...zod.configs.recommended.rules,
 
@@ -681,12 +701,25 @@ export default defineConfig([
             "@typescript-eslint/no-unsafe-return": "off",
             "@typescript-eslint/prefer-nullish-coalescing": "off",
             "@typescript-eslint/restrict-template-expressions": "off",
+            camelcase: "off",
             canonical: "off",
             "canonical/destructuring-property-newline": "off",
             "canonical/id-match": "off",
             "canonical/import-specifier-newline": "off",
+            "capitalized-comments": [
+                "error",
+                "always",
+                {
+                    ignoreConsecutiveComments: true,
+                    ignoreInlineComments: true,
+                    ignorePattern:
+                        "pragma|ignored|import|prettier|eslint|tslint|copyright|license|eslint-disable|@ts-.*|jsx-a11y.*|@eslint.*|global|jsx|jsdoc|prettier|istanbul|jcoreio|metamask|microsoft|no-unsafe-optional-chaining|no-unnecessary-type-assertion|no-non-null-asserted-optional-chain|no-non-null-asserted-nullish-coalescing|@typescript-eslint.*|@docusaurus.*|@react.*|boundaries.*|depend.*|deprecation.*|etc.*|ex.*|functional.*|import-x.*|import-zod.*|jsx-a11y.*|loadable-imports.*|math.*|n.*|neverthrow.*|no-constructor-bind.*|no-explicit-type-exports.*|no-function-declare-after-return.*|no-lookahead-lookbehind-regexp.*|no-secrets.*|no-unary-plus.*|no-unawaited-dot-catch-throw.*|no-unsanitized.*|no-use-extend-native.*|observers.*|prefer-arrow.*|perfectionist.*|prettier.*|promise.*|react.*|react-hooks.*|react-hooks-addons.*|redos.*|regexp.*|require-jsdoc.*|safe-jsx.*|security.*|sonarjs.*|sort-class-members.*|sort-destructure-keys.*|sort-keys-fix.*|sql-template.*|ssr-friendly.*|styled-components-a11y.*|switch-case.*|total-functions.*|tsdoc.*|unicorn.*|unused-imports.*|usememo-recommendations.*|validate-jsx-nesting.*|write-good-comments.*|xss.*",
+                },
+            ],
+            "class-methods-use-this": "off",
             complexity: "off",
             "consistent-return": "off",
+            "dot-notation": "off",
             "eslint-plugin/meta-property-ordering": "off",
             "eslint-plugin/require-meta-docs-recommended": "off",
             "func-style": "off",
@@ -697,29 +730,41 @@ export default defineConfig([
             "jsdoc/require-description": "off",
             "jsdoc/require-param-description": "off",
             "jsdoc/require-returns-description": "off",
+            "max-classes-per-file": "off",
             "max-lines": "off",
             "max-lines-per-function": "off",
+            "max-params": "off",
             "max-statements": "off",
             "n/no-extraneous-import": "off",
             "n/no-mixed-requires": "off",
             "n/no-sync": "off",
             "n/no-unsupported-features/node-builtins": "off",
             "new-cap": "off",
+            "no-console": "off",
             "no-continue": "off",
             "no-inline-comments": "off",
             "no-magic-numbers": "off",
+            "no-plusplus": "off",
             "no-ternary": "off",
+            "no-undef-init": "off",
             "no-undefined": "off",
             "no-underscore-dangle": "off",
             "no-use-before-define": "off",
+            "no-void": "off",
+            "object-shorthand": "off",
             "one-var": "off",
             "perfectionist/sort-imports": "off",
             "perfectionist/sort-object-types": "off",
             "perfectionist/sort-objects": "off",
             "perfectionist/sort-union-types": "off",
+            "prefer-arrow-callback": [
+                "warn",
+                { allowNamedFunctions: true, allowUnboundThis: true },
+            ],
             "prefer-destructuring": "off",
             "regexp/require-unicode-regexp": "off",
             "regexp/require-unicode-sets-regexp": "off",
+            "require-await": "off",
             "require-unicode-regexp": "off",
             "security/detect-non-literal-fs-filename": "off",
             "security/detect-object-injection": "off",
@@ -775,6 +820,286 @@ export default defineConfig([
         name: "ESLint Plugin Tests - internal helper filename",
         rules: {
             "unicorn/filename-case": "off",
+        },
+    },
+    // #endregion
+    // #region 🧪 Tests
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MARK: 🧪 Tests
+    // ═══════════════════════════════════════════════════════════════════════════════
+    {
+        files: [
+            "test/**/*.{spec,test}.{ts,tsx,mts,cts,mjs,js,jsx,cjs}",
+        ],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+                ...vitest.environments.env.globals,
+                afterAll: "readonly",
+                afterEach: "readonly",
+                beforeAll: "readonly",
+                beforeEach: "readonly",
+                describe: "readonly",
+                expect: "readonly",
+                it: "readonly",
+                NodeJS: "readonly",
+                test: "readonly",
+                vi: "readonly",
+            },
+            parser: tseslintParser,
+            parserOptions: {
+                ecmaFeatures: {
+                    impliedStrict: true,
+                },
+                ecmaVersion: "latest",
+                jsDocParsingMode: "all",
+                project: "./tsconfig.eslint.json",
+                sourceType: "module",
+                tsconfigRootDir: path.resolve(import.meta.dirname),
+                warnOnUnsupportedTypeScriptVersion: true,
+            },
+        },
+        name: "Tests test/**/*.{spec,test}.*.{TS,TSX,MTS,CTS,MJS,JS,JSX,CJS}",
+        plugins: {
+            "@typescript-eslint": tseslint,
+            "import-x": importX,
+            "loadable-imports": pluginLoadableImports,
+            n: nodePlugin,
+            "no-only-tests": pluginNoOnly,
+            "testing-library": pluginTestingLibrary,
+            unicorn: eslintPluginUnicorn,
+            "unused-imports": pluginUnusedImports,
+            vitest: vitest,
+        },
+        rules: {
+            // Test Files Backend Rules (Electron Tests)
+            ...js.configs.all.rules,
+            ...tseslint.configs["recommendedTypeChecked"],
+            ...tseslint.configs["recommended"].rules,
+            ...tseslint.configs["strictTypeChecked"],
+            ...tseslint.configs["strict"].rules,
+            ...tseslint.configs["stylisticTypeChecked"],
+            ...tseslint.configs["stylistic"].rules,
+            ...vitest.configs.recommended.rules,
+            ...eslintPluginUnicorn.configs.all.rules,
+            ...pluginTestingLibrary.configs["flat/react"].rules,
+            "@jcoreio/implicit-dependencies/no-implicit": "off",
+            "@typescript-eslint/no-empty-function": "off", // Empty mocks/stubs are common
+            "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for React components
+            "@typescript-eslint/no-non-null-assertion": "off",
+            "@typescript-eslint/no-restricted-types": "off", // Tests may need generic Function types
+            "@typescript-eslint/no-unsafe-function-type": "off", // Tests may use generic handlers
+            "@typescript-eslint/no-unused-vars": "off",
+            "@typescript-eslint/no-use-before-define": "off", // Allow use before define in tests
+            "@typescript-eslint/no-useless-default-assignment": "warn",
+            "@typescript-eslint/strict-void-return": "warn",
+            camelcase: "off",
+            "capitalized-comments": [
+                "error",
+                "always",
+                {
+                    ignoreConsecutiveComments: true,
+                    ignoreInlineComments: true,
+                    ignorePattern:
+                        "pragma|ignored|import|prettier|eslint|tslint|copyright|license|eslint-disable|@ts-.*|jsx-a11y.*|@eslint.*|global|jsx|jsdoc|prettier|istanbul|jcoreio|metamask|microsoft|no-unsafe-optional-chaining|no-unnecessary-type-assertion|no-non-null-asserted-optional-chain|no-non-null-asserted-nullish-coalescing|@typescript-eslint.*|@docusaurus.*|@react.*|boundaries.*|depend.*|deprecation.*|etc.*|ex.*|functional.*|import-x.*|import-zod.*|jsx-a11y.*|loadable-imports.*|math.*|n.*|neverthrow.*|no-constructor-bind.*|no-explicit-type-exports.*|no-function-declare-after-return.*|no-lookahead-lookbehind-regexp.*|no-secrets.*|no-unary-plus.*|no-unawaited-dot-catch-throw.*|no-unsanitized.*|no-use-extend-native.*|observers.*|prefer-arrow.*|perfectionist.*|prettier.*|promise.*|react.*|react-hooks.*|react-hooks-addons.*|redos.*|regexp.*|require-jsdoc.*|safe-jsx.*|security.*|sonarjs.*|sort-class-members.*|sort-destructure-keys.*|sort-keys-fix.*|sql-template.*|ssr-friendly.*|styled-components-a11y.*|switch-case.*|total-functions.*|tsdoc.*|unicorn.*|unused-imports.*|usememo-recommendations.*|validate-jsx-nesting.*|write-good-comments.*|xss.*",
+                },
+            ],
+            "class-methods-use-this": "off",
+            complexity: "off",
+            "default-case": "off",
+            "dot-notation": "off",
+            eqeqeq: "off", // Allow == and != in tests for flexibility
+            "func-name-matching": "off", // Allow function names to not match variable names
+            "func-names": "off",
+            // Relaxed function rules for backend tests (explicit for clarity)
+            "func-style": "off",
+            "id-length": "off",
+            "init-declarations": "off",
+            "loadable-imports/sort": "error",
+            "max-classes-per-file": "off",
+            "max-depth": "off",
+            "max-lines": "off",
+            "max-lines-per-function": [
+                "error",
+                {
+                    IIFEs: false,
+                    max: 2000,
+                    skipBlankLines: true,
+                    skipComments: true,
+                },
+            ],
+            "max-params": "off",
+            "max-statements": "off",
+            "new-cap": "off", // Allow new-cap for class constructors
+            "no-await-in-loop": "off", // Allow await in loops for sequential operations
+            "no-barrel-files/no-barrel-files": "off", // Allow barrel files in tests for convenience
+            "no-console": "off",
+            "no-duplicate-imports": "off", // Allow duplicate imports for test setups
+            "no-inline-comments": "off",
+            "no-loop-func": "off", // Allow functions in loops for test setups
+            "no-magic-numbers": "off",
+            "no-new": "off", // Allow new for class constructors
+            // No Only Tests
+            "no-only-tests/no-only-tests": "error",
+            "no-plusplus": "off",
+            "no-promise-executor-return": "off", // Allow returning values from promise executors
+            "no-redeclare": "off", // Allow redeclaring variables in tests
+            "no-shadow": "off",
+            "no-ternary": "off",
+            "no-throw-literal": "off",
+            "no-undef-init": "off",
+            "no-undefined": "off",
+            "no-underscore-dangle": "off",
+            "no-use-before-define": "off", // Allow use before define in tests
+            "no-useless-assignment": "off",
+            "no-void": "off",
+            "object-shorthand": "off",
+            "one-var": "off",
+            "prefer-arrow-callback": [
+                "warn",
+                { allowNamedFunctions: true, allowUnboundThis: true },
+            ],
+            "prefer-destructuring": "off",
+            "require-await": "off",
+            "require-unicode-regexp": "off",
+            "sort-imports": "off",
+            "sort-keys": "off",
+            "testing-library/await-async-queries": "error",
+            "testing-library/no-await-sync-queries": "error",
+            "testing-library/no-debugging-utils": "off",
+            "testing-library/no-node-access": "off",
+            "testing-library/prefer-screen-queries": "warn",
+            "testing-library/prefer-user-event-setup": "warn",
+            "unicorn/consistent-function-scoping": "off", // Tests often use different scoping
+            "unicorn/filename-case": "off", // Allow test files to have any case
+            "unicorn/import-style": [
+                "error",
+                {
+                    styles: {
+                        fs: { default: false, named: true, namespace: true },
+                        // ─────────────────────────────────────────────────────────────
+                        // crypto: disallow default imports, allow named + namespace
+                        // (named is most common; namespace is sometimes handy)
+                        // ─────────────────────────────────────────────────────────────
+                        "node:crypto": {
+                            default: false,
+                            named: true,
+                            namespace: true,
+                        },
+                        // ─────────────────────────────────────────────────────────────
+                        // Filesystem: disallow default imports, but allow named + namespace
+                        // (named is ergonomic; namespace is useful for vi.spyOn(fs, "..."))
+                        // ─────────────────────────────────────────────────────────────
+                        "node:fs": {
+                            default: false,
+                            named: true,
+                            namespace: true,
+                        },
+                        "node:fs/promises": {
+                            default: false,
+                            named: true,
+                            namespace: true,
+                        },
+                        // ─────────────────────────────────────────────────────────────
+                        // Node “path-like” modules: allow ONLY namespace imports
+                        // (prevents `import path from "node:path"` which relies on default interop)
+                        // ─────────────────────────────────────────────────────────────
+                        "node:path": { default: false, namespace: true },
+                        "node:path/posix": { default: false, namespace: true },
+                        "node:path/win32": { default: false, namespace: true },
+                        // ─────────────────────────────────────────────────────────────
+                        // timers/promises: named is the common usage
+                        // ─────────────────────────────────────────────────────────────
+                        "node:timers/promises": { named: true },
+                        // ─────────────────────────────────────────────────────────────
+                        // util: keep unicorn’s intent (named only)
+                        // ─────────────────────────────────────────────────────────────
+                        "node:util": { named: true },
+                        path: { default: false, namespace: true }, // Just in case any non-node: path remains
+                        util: { named: true },
+                    },
+                },
+            ],
+            "unicorn/no-await-expression-member": "off", // Allow await in test expressions
+            "unicorn/no-keyword-prefix": [
+                "error",
+                {
+                    checkProperties: false,
+                    disallowedPrefixes: [
+                        "interface",
+                        "type",
+                        "enum",
+                    ],
+                },
+            ], // Allow "class" prefix for className and other legitimate uses
+            "unicorn/no-null": "off", // Null is common in test setups
+            "unicorn/no-unused-properties": "off", // Allow unused properties in test setups
+            "unicorn/no-useless-undefined": "off", // Allow undefined in test setups
+            "unicorn/prefer-global-this": "off", // Allow globalThis for test setups
+            "unicorn/prefer-optional-catch-binding": "off", // Allow optional catch binding for test flexibility
+            "unicorn/prevent-abbreviations": "off", // Too many false positives in tests
+            "vitest/no-alias-methods": "warn",
+            "vitest/no-commented-out-tests": "warn",
+            "vitest/no-conditional-expect": "off",
+            "vitest/no-disabled-tests": "warn",
+            "vitest/no-focused-tests": "warn",
+            "vitest/no-identical-title": "warn",
+            "vitest/no-import-node-test": "warn",
+            "vitest/no-interpolation-in-snapshots": "warn",
+            "vitest/no-standalone-expect": "off",
+            "vitest/no-test-prefixes": "warn",
+            "vitest/prefer-called-exactly-once-with": "off",
+            "vitest/prefer-called-once": "off",
+            "vitest/prefer-called-times": "warn",
+            "vitest/prefer-called-with": "off",
+            "vitest/prefer-comparison-matcher": "warn",
+            "vitest/prefer-describe-function-title": "warn",
+            "vitest/prefer-expect-resolves": "warn",
+            // NOTE: conflicts with uptime-watcher/test-no-mock-return-value-constructors
+            // (enabled via uptime-watcher `configs.repo`).
+            "vitest/prefer-mock-return-shorthand": "off",
+            "vitest/prefer-spy-on": "off",
+            "vitest/prefer-strict-boolean-matchers": "off",
+            "vitest/prefer-to-be": "off",
+            "vitest/prefer-to-be-falsy": "warn",
+            "vitest/prefer-to-be-object": "warn",
+            "vitest/prefer-to-be-truthy": "warn",
+            "vitest/prefer-to-contain": "warn",
+            "vitest/prefer-to-have-length": "warn",
+            "vitest/prefer-todo": "warn",
+            "vitest/prefer-vi-mocked": "off",
+            "vitest/require-mock-type-parameters": "off",
+            "vitest/valid-expect": "warn",
+            "vitest/valid-title": "warn",
+            "vitest/warn-todo": "warn",
+        },
+        settings: {
+            "import-x/resolver": {
+                node: true,
+                project: ["config/testing/tsconfig.electron.test.json"],
+                // You will also need to install and configure the TypeScript resolver
+                // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
+                typescript: true,
+            },
+            "import/resolver": {
+                // You will also need to install and configure the TypeScript resolver
+                // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
+                typescript: {
+                    alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
+                    project: ["config/testing/tsconfig.electron.test.json"],
+                },
+            },
+            n: {
+                allowModules: [
+                    "electron",
+                    "node",
+                    "electron-devtools-installer",
+                ],
+            },
+            vitest: {
+                typecheck: true,
+            },
         },
     },
     // #endregion
@@ -1485,6 +1810,7 @@ export default defineConfig([
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
+            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...jsxA11y.flatConfigs.strict.rules,
@@ -1506,12 +1832,6 @@ export default defineConfig([
                 },
             ],
             "class-methods-use-this": "off",
-            "depend/ban-dependencies": [
-                "warn",
-                {
-                    allowed: ["eslint-plugin-react", "axios"],
-                },
-            ],
             "dot-notation": "off",
             "func-style": "off",
             "id-length": "off",
@@ -1751,8 +2071,21 @@ export default defineConfig([
         },
         rules: {
             "callback-return": "off",
+            camelcase: "off",
             "canonical/destructuring-property-newline": "off",
             "canonical/import-specifier-newline": "off",
+            "capitalized-comments": [
+                "error",
+                "always",
+                {
+                    ignoreConsecutiveComments: true,
+                    ignoreInlineComments: true,
+                    ignorePattern:
+                        "pragma|ignored|import|prettier|eslint|tslint|copyright|license|eslint-disable|@ts-.*|jsx-a11y.*|@eslint.*|global|jsx|jsdoc|prettier|istanbul|jcoreio|metamask|microsoft|no-unsafe-optional-chaining|no-unnecessary-type-assertion|no-non-null-asserted-optional-chain|no-non-null-asserted-nullish-coalescing|@typescript-eslint.*|@docusaurus.*|@react.*|boundaries.*|depend.*|deprecation.*|etc.*|ex.*|functional.*|import-x.*|import-zod.*|jsx-a11y.*|loadable-imports.*|math.*|n.*|neverthrow.*|no-constructor-bind.*|no-explicit-type-exports.*|no-function-declare-after-return.*|no-lookahead-lookbehind-regexp.*|no-secrets.*|no-unary-plus.*|no-unawaited-dot-catch-throw.*|no-unsanitized.*|no-use-extend-native.*|observers.*|prefer-arrow.*|perfectionist.*|prettier.*|promise.*|react.*|react-hooks.*|react-hooks-addons.*|redos.*|regexp.*|require-jsdoc.*|safe-jsx.*|security.*|sonarjs.*|sort-class-members.*|sort-destructure-keys.*|sort-keys-fix.*|sql-template.*|ssr-friendly.*|styled-components-a11y.*|switch-case.*|total-functions.*|tsdoc.*|unicorn.*|unused-imports.*|usememo-recommendations.*|validate-jsx-nesting.*|write-good-comments.*|xss.*",
+                },
+            ],
+            "class-methods-use-this": "off",
+            "dot-notation": "off",
             // Deprecated rules - to be removed in future
             "functional/no-promise-reject": "off",
             "functional/no-this-expressions": "off",
@@ -1762,6 +2095,20 @@ export default defineConfig([
             "functional/prefer-tacit": "off",
             "functional/readonly-type": "off",
             "functional/type-declaration-immutability": "off",
+            "id-length": "off",
+            "max-classes-per-file": "off",
+            "max-lines": "off",
+            // Sonar quality helpers
+            "max-lines-per-function": [
+                "error",
+                {
+                    IIFEs: false,
+                    max: 1000,
+                    skipBlankLines: true,
+                    skipComments: true,
+                },
+            ],
+            "max-params": "off",
             "no-console": "off",
             "no-constructor-bind/no-constructor-bind": "error",
             "no-constructor-bind/no-constructor-state": "error",
@@ -1795,7 +2142,13 @@ export default defineConfig([
             "no-void": "off",
             "object-shorthand": "off",
             "one-var": "off",
+            "prefer-arrow-callback": [
+                "warn",
+                { allowNamedFunctions: true, allowUnboundThis: true },
+            ],
             "prefer-arrow/prefer-arrow-functions": "off", // Too strict
+            "require-await": "off",
+            "require-unicode-regexp": "off",
             // Styled-components-a11y (and jsx-a11y equivalents)
             "styled-components-a11y/lang": "off",
             "write-good-comments/write-good-comments": "off", // Too strict,
