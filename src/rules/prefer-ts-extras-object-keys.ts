@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-object-keys",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras objectKeys over Object.keys for stronger key inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasObjectKeys:
-                    "Prefer `objectKeys` from `ts-extras` over `Object.keys(...)` for stronger key inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasObjectKeys",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras objectKeys over Object.keys for stronger key inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md",
+            },
+            messages: {
+                preferTsExtrasObjectKeys:
+                    "Prefer `objectKeys` from `ts-extras` over `Object.keys(...)` for stronger key inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-object-keys",
     });
 
 export default preferTsExtrasObjectKeysRule;

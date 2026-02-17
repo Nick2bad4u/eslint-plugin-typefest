@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-safe-integer",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-safe-integer.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsSafeInteger:
-                    "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasIsSafeInteger",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-safe-integer.md",
+            },
+            messages: {
+                preferTsExtrasIsSafeInteger:
+                    "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-safe-integer",
     });
 
 export default preferTsExtrasIsSafeIntegerRule;

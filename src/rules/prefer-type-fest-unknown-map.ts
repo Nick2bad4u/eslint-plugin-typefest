@@ -31,21 +31,6 @@ const hasUnknownMapTypeArguments = (
 
 const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-unknown-map",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-map.md",
-            },
-            schema: [],
-            messages: {
-                preferUnknownMap:
-                    "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -66,12 +51,27 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferUnknownMap",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-map.md",
+            },
+            messages: {
+                preferUnknownMap:
+                    "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-unknown-map",
     });
 
 export default preferTypeFestUnknownMapRule;

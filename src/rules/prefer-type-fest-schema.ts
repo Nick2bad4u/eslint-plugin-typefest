@@ -7,21 +7,6 @@ const schemaAliasReplacements = {
 
 const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-schema",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Schema over imported aliases such as RecordDeep.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-schema.md",
-            },
-            schema: [],
-            messages: {
-                preferSchema:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSchema",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSchema",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Schema over imported aliases such as RecordDeep.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-schema.md",
+            },
+            messages: {
+                preferSchema:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-schema",
     });
 
 export default preferTypeFestSchemaRule;

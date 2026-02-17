@@ -1,5 +1,5 @@
-import type ts from "typescript";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
 
 import {
     createTypedRule,
@@ -20,21 +20,6 @@ const isLengthMemberExpression = (
 
 const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-empty",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-empty.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsEmpty:
-                    "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -113,12 +98,27 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasIsEmpty",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-empty.md",
+            },
+            messages: {
+                preferTsExtrasIsEmpty:
+                    "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-empty",
     });
 
 export default preferTsExtrasIsEmptyRule;

@@ -8,21 +8,6 @@ import {
 
 const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-concat",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-concat.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayConcat:
-                    "Prefer `arrayConcat` from `ts-extras` over `array.concat(...)` for stronger tuple and readonly-array typing.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -86,12 +71,27 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayConcat",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-concat.md",
+            },
+            messages: {
+                preferTsExtrasArrayConcat:
+                    "Prefer `arrayConcat` from `ts-extras` over `array.concat(...)` for stronger tuple and readonly-array typing.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-concat",
     });
 
 export default preferTsExtrasArrayConcatRule;

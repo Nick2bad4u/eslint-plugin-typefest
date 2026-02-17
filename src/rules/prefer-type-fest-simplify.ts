@@ -8,21 +8,6 @@ const simplifyAliasReplacements = {
 
 const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-simplify",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Simplify over imported alias types like Prettify/Expand.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-simplify.md",
-            },
-            schema: [],
-            messages: {
-                preferSimplify:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -49,16 +34,31 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSimplify",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSimplify",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Simplify over imported alias types like Prettify/Expand.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-simplify.md",
+            },
+            messages: {
+                preferSimplify:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-simplify",
     });
 
 export default preferTypeFestSimplifyRule;

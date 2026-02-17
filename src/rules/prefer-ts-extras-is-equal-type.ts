@@ -7,24 +7,6 @@ const TYPE_FEST_PACKAGE_NAME = "type-fest";
 
 const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-equal-type",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md",
-            },
-            hasSuggestions: true,
-            schema: [],
-            messages: {
-                preferTsExtrasIsEqualType:
-                    "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables.",
-                suggestTsExtrasIsEqualType:
-                    "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const isEqualLocalNames = new Set<string>();
             const typeFestNamespaceImportNames = new Set<string>();
@@ -111,14 +93,12 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     const identifierName = node.id.name;
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasIsEqualType",
+                        node,
                         suggest:
                             typeArguments.length === 2
                                 ? [
                                       {
-                                          messageId:
-                                              "suggestTsExtrasIsEqualType",
                                           fix(fixer) {
                                               const [leftType, rightType] =
                                                   typeArguments;
@@ -141,6 +121,8 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                                                   `${identifierName} = isEqualType<${leftTypeText}, ${rightTypeText}>()`
                                               );
                                           },
+                                          messageId:
+                                              "suggestTsExtrasIsEqualType",
                                       },
                                   ]
                                 : null,
@@ -148,6 +130,24 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md",
+            },
+            hasSuggestions: true,
+            messages: {
+                preferTsExtrasIsEqualType:
+                    "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables.",
+                suggestTsExtrasIsEqualType:
+                    "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-equal-type",
     });
 
 export default preferTsExtrasIsEqualTypeRule;

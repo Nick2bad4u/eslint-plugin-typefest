@@ -7,21 +7,6 @@ const unwrapTaggedAliasReplacements = {
 
 const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-unwrap-tagged",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unwrap-tagged.md",
-            },
-            schema: [],
-            messages: {
-                preferUnwrapTagged:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferUnwrapTagged",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferUnwrapTagged",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unwrap-tagged.md",
+            },
+            messages: {
+                preferUnwrapTagged:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-unwrap-tagged",
     });
 
 export default preferTypeFestUnwrapTaggedRule;

@@ -7,21 +7,6 @@ const setRequiredAliasReplacements = {
 
 const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-set-required",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest SetRequired over imported aliases such as RequiredBy.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-required.md",
-            },
-            schema: [],
-            messages: {
-                preferSetRequired:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSetRequired",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSetRequired",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest SetRequired over imported aliases such as RequiredBy.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-required.md",
+            },
+            messages: {
+                preferSetRequired:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-set-required",
     });
 
 export default preferTypeFestSetRequiredRule;

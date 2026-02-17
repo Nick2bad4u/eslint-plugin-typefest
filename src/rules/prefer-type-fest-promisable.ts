@@ -19,7 +19,7 @@ const isIdentifierTypeReference = (
 
 const getPromiseInnerType = (
     node: TSESTree.TypeNode
-): TSESTree.TypeNode | null => {
+): null | TSESTree.TypeNode => {
     if (!isIdentifierTypeReference(node, PROMISE_TYPE_NAME)) {
         return null;
     }
@@ -29,21 +29,6 @@ const getPromiseInnerType = (
 
 const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-promisable",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-promisable.md",
-            },
-            schema: [],
-            messages: {
-                preferPromisable:
-                    "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -58,6 +43,23 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
+                        return;
+                    }
+
+                    context.report({
+                        messageId: "preferPromisable",
+                        node,
+                    });
+                },
                 TSUnionType(node) {
                     if (node.types.length !== 2) {
                         return;
@@ -119,29 +121,27 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferPromisable",
-                    });
-                },
-                TSTypeReference(node) {
-                    if (node.typeName.type !== "Identifier") {
-                        return;
-                    }
-
-                    const importedAliasMatch = importedAliasMatches.get(
-                        node.typeName.name
-                    );
-                    if (!importedAliasMatch) {
-                        return;
-                    }
-
-                    context.report({
                         node,
-                        messageId: "preferPromisable",
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-promisable.md",
+            },
+            messages: {
+                preferPromisable:
+                    "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-promisable",
     });
 
 export default preferTypeFestPromisableRule;

@@ -4,21 +4,6 @@ const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
 const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-value-of",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-value-of.md",
-            },
-            schema: [],
-            messages: {
-                preferValueOf:
-                    "Prefer `ValueOf<T>` from type-fest over `T[keyof T]` for object value unions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -49,12 +34,27 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferValueOf",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-value-of.md",
+            },
+            messages: {
+                preferValueOf:
+                    "Prefer `ValueOf<T>` from type-fest over `T[keyof T]` for object value unions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-value-of",
     });
 
 export default preferTypeFestValueOfRule;

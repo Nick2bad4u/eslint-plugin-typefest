@@ -252,23 +252,6 @@ const isStrictAbsentCheck = ({
 
 const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-present",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isPresent over inline nullish comparisons outside filter callbacks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsPresent:
-                    "Prefer `isPresent(value)` from `ts-extras` over inline nullish comparisons.",
-                preferTsExtrasIsPresentNegated:
-                    "Prefer `!isPresent(value)` from `ts-extras` over inline nullish comparisons.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -292,15 +275,15 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (comparison.operator === "!=") {
                         context.report({
-                            node,
                             messageId: "preferTsExtrasIsPresent",
+                            node,
                         });
                     }
 
                     if (comparison.operator === "==") {
                         context.report({
-                            node,
                             messageId: "preferTsExtrasIsPresentNegated",
+                            node,
                         });
                     }
                 },
@@ -320,8 +303,8 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         })
                     ) {
                         context.report({
-                            node,
                             messageId: "preferTsExtrasIsPresent",
+                            node,
                         });
                         return;
                     }
@@ -333,13 +316,30 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         })
                     ) {
                         context.report({
-                            node,
                             messageId: "preferTsExtrasIsPresentNegated",
+                            node,
                         });
                     }
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isPresent over inline nullish comparisons outside filter callbacks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present.md",
+            },
+            messages: {
+                preferTsExtrasIsPresent:
+                    "Prefer `isPresent(value)` from `ts-extras` over inline nullish comparisons.",
+                preferTsExtrasIsPresentNegated:
+                    "Prefer `!isPresent(value)` from `ts-extras` over inline nullish comparisons.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-present",
     });
 
 export default preferTsExtrasIsPresentRule;

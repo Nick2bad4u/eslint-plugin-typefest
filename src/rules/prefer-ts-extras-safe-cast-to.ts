@@ -1,5 +1,6 @@
-import ts from "typescript";
 import type { TSESTree } from "@typescript-eslint/utils";
+
+import ts from "typescript";
 
 import {
     createTypedRule,
@@ -18,21 +19,6 @@ const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>
 
 const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-safe-cast-to",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-safe-cast-to.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasSafeCastTo:
-                    "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -76,8 +62,8 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasSafeCastTo",
+                        node,
                     });
                 } catch {
                     // Best effort only: skip when parser services/type info is unavailable for this node.
@@ -101,6 +87,21 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-safe-cast-to.md",
+            },
+            messages: {
+                preferTsExtrasSafeCastTo:
+                    "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-safe-cast-to",
     });
 
 export default preferTsExtrasSafeCastToRule;

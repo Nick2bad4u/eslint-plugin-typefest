@@ -1,42 +1,43 @@
-import { createRequire } from "node:module";
 import type { ESLint, Linter } from "eslint";
 
-import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
-import preferTsExtrasIsDefinedRule from "./rules/prefer-ts-extras-is-defined.js";
-import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
-import preferTsExtrasIsPresentRule from "./rules/prefer-ts-extras-is-present.js";
-import preferTsExtrasAsWritableRule from "./rules/prefer-ts-extras-as-writable.js";
+import { createRequire } from "node:module";
+
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
-import preferTsExtrasArrayFindRule from "./rules/prefer-ts-extras-array-find.js";
-import preferTsExtrasArrayFindLastRule from "./rules/prefer-ts-extras-array-find-last.js";
 import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
+import preferTsExtrasArrayFindLastRule from "./rules/prefer-ts-extras-array-find-last.js";
+import preferTsExtrasArrayFindRule from "./rules/prefer-ts-extras-array-find.js";
 import preferTsExtrasArrayFirstRule from "./rules/prefer-ts-extras-array-first.js";
 import preferTsExtrasArrayIncludesRule from "./rules/prefer-ts-extras-array-includes.js";
 import preferTsExtrasArrayJoinRule from "./rules/prefer-ts-extras-array-join.js";
 import preferTsExtrasArrayLastRule from "./rules/prefer-ts-extras-array-last.js";
+import preferTsExtrasAsWritableRule from "./rules/prefer-ts-extras-as-writable.js";
 import preferTsExtrasAssertDefinedRule from "./rules/prefer-ts-extras-assert-defined.js";
 import preferTsExtrasAssertErrorRule from "./rules/prefer-ts-extras-assert-error.js";
 import preferTsExtrasAssertPresentRule from "./rules/prefer-ts-extras-assert-present.js";
-import preferTsExtrasIsFiniteRule from "./rules/prefer-ts-extras-is-finite.js";
-import preferTsExtrasIsEqualTypeRule from "./rules/prefer-ts-extras-is-equal-type.js";
+import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
+import preferTsExtrasIsDefinedRule from "./rules/prefer-ts-extras-is-defined.js";
 import preferTsExtrasIsEmptyRule from "./rules/prefer-ts-extras-is-empty.js";
+import preferTsExtrasIsEqualTypeRule from "./rules/prefer-ts-extras-is-equal-type.js";
+import preferTsExtrasIsFiniteRule from "./rules/prefer-ts-extras-is-finite.js";
 import preferTsExtrasIsInfiniteRule from "./rules/prefer-ts-extras-is-infinite.js";
 import preferTsExtrasIsIntegerRule from "./rules/prefer-ts-extras-is-integer.js";
+import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
+import preferTsExtrasIsPresentRule from "./rules/prefer-ts-extras-is-present.js";
 import preferTsExtrasIsSafeIntegerRule from "./rules/prefer-ts-extras-is-safe-integer.js";
 import preferTsExtrasKeyInRule from "./rules/prefer-ts-extras-key-in.js";
+import preferTsExtrasNotRule from "./rules/prefer-ts-extras-not.js";
 import preferTsExtrasObjectEntriesRule from "./rules/prefer-ts-extras-object-entries.js";
 import preferTsExtrasObjectFromEntriesRule from "./rules/prefer-ts-extras-object-from-entries.js";
 import preferTsExtrasObjectHasInRule from "./rules/prefer-ts-extras-object-has-in.js";
 import preferTsExtrasObjectHasOwnRule from "./rules/prefer-ts-extras-object-has-own.js";
 import preferTsExtrasObjectKeysRule from "./rules/prefer-ts-extras-object-keys.js";
-import preferTsExtrasNotRule from "./rules/prefer-ts-extras-not.js";
 import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-values.js";
 import preferTsExtrasSafeCastToRule from "./rules/prefer-ts-extras-safe-cast-to.js";
 import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
-import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestArrayableRule from "./rules/prefer-type-fest-arrayable.js";
+import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestConditionalPickRule from "./rules/prefer-type-fest-conditional-pick.js";
 import preferTypeFestExceptRule from "./rules/prefer-type-fest-except.js";
 import preferTypeFestIfRule from "./rules/prefer-type-fest-if.js";
@@ -48,12 +49,12 @@ import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js"
 import preferTypeFestKeysOfUnionRule from "./rules/prefer-type-fest-keys-of-union.js";
 import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
 import preferTypeFestOmitIndexSignatureRule from "./rules/prefer-type-fest-omit-index-signature.js";
+import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
+import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestRequireAllOrNoneRule from "./rules/prefer-type-fest-require-all-or-none.js";
 import preferTypeFestRequireAtLeastOneRule from "./rules/prefer-type-fest-require-at-least-one.js";
 import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
 import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require-one-or-none.js";
-import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
-import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
 import preferTypeFestSchemaRule from "./rules/prefer-type-fest-schema.js";
 import preferTypeFestSetNonNullableRule from "./rules/prefer-type-fest-set-non-nullable.js";
 import preferTypeFestSetOptionalRule from "./rules/prefer-type-fest-set-optional.js";
@@ -62,11 +63,11 @@ import preferTypeFestSetRequiredRule from "./rules/prefer-type-fest-set-required
 import preferTypeFestSimplifyRule from "./rules/prefer-type-fest-simplify.js";
 import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "./rules/prefer-type-fest-tuple-of.js";
-import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
 import preferTypeFestUnknownArrayRule from "./rules/prefer-type-fest-unknown-array.js";
 import preferTypeFestUnknownMapRule from "./rules/prefer-type-fest-unknown-map.js";
 import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-record.js";
 import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.js";
+import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
 import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
 import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
@@ -107,19 +108,19 @@ const typefestPlugin = {
         "prefer-ts-extras-is-present-filter": preferTsExtrasIsPresentFilterRule,
         "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
         "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
+        "prefer-ts-extras-not": preferTsExtrasNotRule,
         "prefer-ts-extras-object-entries": preferTsExtrasObjectEntriesRule,
         "prefer-ts-extras-object-from-entries":
             preferTsExtrasObjectFromEntriesRule,
         "prefer-ts-extras-object-has-in": preferTsExtrasObjectHasInRule,
         "prefer-ts-extras-object-has-own": preferTsExtrasObjectHasOwnRule,
         "prefer-ts-extras-object-keys": preferTsExtrasObjectKeysRule,
-        "prefer-ts-extras-not": preferTsExtrasNotRule,
         "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
         "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
         "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
         "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
-        "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
         "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
+        "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
         "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
         "prefer-type-fest-except": preferTypeFestExceptRule,
         "prefer-type-fest-if": preferTypeFestIfRule,
@@ -132,6 +133,8 @@ const typefestPlugin = {
         "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
         "prefer-type-fest-omit-index-signature":
             preferTypeFestOmitIndexSignatureRule,
+        "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
+        "prefer-type-fest-promisable": preferTypeFestPromisableRule,
         "prefer-type-fest-require-all-or-none":
             preferTypeFestRequireAllOrNoneRule,
         "prefer-type-fest-require-at-least-one":
@@ -140,8 +143,6 @@ const typefestPlugin = {
             preferTypeFestRequireExactlyOneRule,
         "prefer-type-fest-require-one-or-none":
             preferTypeFestRequireOneOrNoneRule,
-        "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
-        "prefer-type-fest-promisable": preferTypeFestPromisableRule,
         "prefer-type-fest-schema": preferTypeFestSchemaRule,
         "prefer-type-fest-set-non-nullable": preferTypeFestSetNonNullableRule,
         "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
@@ -150,11 +151,11 @@ const typefestPlugin = {
         "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
         "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
         "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
-        "prefer-type-fest-unwrap-tagged": preferTypeFestUnwrapTaggedRule,
         "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
         "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
         "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,
         "prefer-type-fest-unknown-set": preferTypeFestUnknownSetRule,
+        "prefer-type-fest-unwrap-tagged": preferTypeFestUnwrapTaggedRule,
         "prefer-type-fest-value-of": preferTypeFestValueOfRule,
         "prefer-type-fest-writable": preferTypeFestWritableRule,
     },
@@ -418,8 +419,8 @@ const unscopedTsExtrasExperimentalConfig = withTypefestPlugin({
     complete: unscopedAllConfig,
     core: unscopedMinimalConfig,
     default: unscopedDefaultConfig,
-    "flat/assertive": flatRecommendedConfig,
     "flat/all": flatAllConfig,
+    "flat/assertive": flatRecommendedConfig,
     "flat/complete": flatAllConfig,
     "flat/core": flatMinimalConfig,
     "flat/default": flatDefaultConfig,

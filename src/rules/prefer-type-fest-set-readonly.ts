@@ -7,21 +7,6 @@ const setReadonlyAliasReplacements = {
 
 const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-set-readonly",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest SetReadonly over imported aliases such as ReadonlyBy.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-readonly.md",
-            },
-            schema: [],
-            messages: {
-                preferSetReadonly:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSetReadonly",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSetReadonly",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest SetReadonly over imported aliases such as ReadonlyBy.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-readonly.md",
+            },
+            messages: {
+                preferSetReadonly:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-set-readonly",
     });
 
 export default preferTypeFestSetReadonlyRule;

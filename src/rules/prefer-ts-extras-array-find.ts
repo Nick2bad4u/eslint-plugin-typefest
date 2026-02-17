@@ -8,21 +8,6 @@ import {
 
 const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-find",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayFind over Array#find for stronger predicate inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayFind:
-                    "Prefer `arrayFind` from `ts-extras` over `array.find(...)` for stronger predicate inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -86,12 +71,27 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayFind",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayFind over Array#find for stronger predicate inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find.md",
+            },
+            messages: {
+                preferTsExtrasArrayFind:
+                    "Prefer `arrayFind` from `ts-extras` over `array.find(...)` for stronger predicate inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-find",
     });
 
 export default preferTsExtrasArrayFindRule;

@@ -7,21 +7,6 @@ const WRITABLE_TYPE_NAME = "Writable" as const;
 
 const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-as-writable",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-as-writable.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasAsWritable:
-                    "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -93,8 +78,8 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 }
 
                 context.report({
-                    node,
                     messageId: "preferTsExtrasAsWritable",
+                    node,
                 });
             };
 
@@ -107,6 +92,21 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-as-writable.md",
+            },
+            messages: {
+                preferTsExtrasAsWritable:
+                    "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-as-writable",
     });
 
 export default preferTsExtrasAsWritableRule;

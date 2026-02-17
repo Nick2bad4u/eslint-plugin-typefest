@@ -7,21 +7,6 @@ const requireOneOrNoneAliasReplacements = {
 
 const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-require-one-or-none",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-one-or-none.md",
-            },
-            schema: [],
-            messages: {
-                preferRequireOneOrNone:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferRequireOneOrNone",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferRequireOneOrNone",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-one-or-none.md",
+            },
+            messages: {
+                preferRequireOneOrNone:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-require-one-or-none",
     });
 
 export default preferTypeFestRequireOneOrNoneRule;

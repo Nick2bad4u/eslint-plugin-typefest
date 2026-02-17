@@ -40,21 +40,6 @@ const extractDefinedGuardExpression = (
 
 const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-assert-defined",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras assertDefined over manual undefined-guard throw blocks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasAssertDefined:
-                    "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -75,12 +60,27 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasAssertDefined",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
+            },
+            messages: {
+                preferTsExtrasAssertDefined:
+                    "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-assert-defined",
     });
 
 export default preferTsExtrasAssertDefinedRule;

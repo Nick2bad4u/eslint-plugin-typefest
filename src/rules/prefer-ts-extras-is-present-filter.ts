@@ -98,21 +98,6 @@ const isNullishFilterGuardBody = (
 
 const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-present-filter",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsPresentFilter:
-                    "Prefer `isPresent` from `ts-extras` in `filter(...)` callbacks over inline nullish comparisons.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -164,12 +149,27 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node: expressionCallback,
                         messageId: "preferTsExtrasIsPresentFilter",
+                        node: expressionCallback,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
+            },
+            messages: {
+                preferTsExtrasIsPresentFilter:
+                    "Prefer `isPresent` from `ts-extras` in `filter(...)` callbacks over inline nullish comparisons.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-present-filter",
     });
 
 export default preferTsExtrasIsPresentFilterRule;

@@ -96,21 +96,6 @@ const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
 
 const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-json-array",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
-            },
-            schema: [],
-            messages: {
-                preferJsonArray:
-                    "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -124,12 +109,27 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferJsonArray",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
+            },
+            messages: {
+                preferJsonArray:
+                    "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-json-array",
     });
 
 export default preferTypeFestJsonArrayRule;

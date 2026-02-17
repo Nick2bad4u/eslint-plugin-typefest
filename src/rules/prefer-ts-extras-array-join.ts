@@ -8,21 +8,6 @@ import {
 
 const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-join",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-join.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayJoin:
-                    "Prefer `arrayJoin` from `ts-extras` over `array.join(...)` for stronger tuple-aware typing.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -86,12 +71,27 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayJoin",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-join.md",
+            },
+            messages: {
+                preferTsExtrasArrayJoin:
+                    "Prefer `arrayJoin` from `ts-extras` over `array.join(...)` for stronger tuple-aware typing.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-join",
     });
 
 export default preferTsExtrasArrayJoinRule;

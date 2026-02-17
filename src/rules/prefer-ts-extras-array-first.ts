@@ -1,5 +1,5 @@
-import type ts from "typescript";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
 
 import {
     createTypedRule,
@@ -32,21 +32,6 @@ const isZeroProperty = (
 
 const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-first",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-first.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayFirst:
-                    "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -110,12 +95,27 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayFirst",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-first.md",
+            },
+            messages: {
+                preferTsExtrasArrayFirst:
+                    "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-first",
     });
 
 export default preferTsExtrasArrayFirstRule;

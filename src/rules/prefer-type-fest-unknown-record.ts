@@ -20,21 +20,6 @@ const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {
 
 const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-unknown-record",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-record.md",
-            },
-            schema: [],
-            messages: {
-                preferUnknownRecord:
-                    "Prefer `UnknownRecord` from type-fest over `Record<string, unknown>` for clearer intent and stronger shared typing conventions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -49,12 +34,27 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferUnknownRecord",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-record.md",
+            },
+            messages: {
+                preferUnknownRecord:
+                    "Prefer `UnknownRecord` from type-fest over `Record<string, unknown>` for clearer intent and stronger shared typing conventions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-unknown-record",
     });
 
 export default preferTypeFestUnknownRecordRule;

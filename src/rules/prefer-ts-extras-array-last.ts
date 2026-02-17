@@ -1,5 +1,5 @@
-import type ts from "typescript";
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
 
 import {
     createTypedRule,
@@ -65,21 +65,6 @@ const isLastIndexPattern = (
 
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-last",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayLast:
-                    "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -154,12 +139,27 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayLast",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
+            },
+            messages: {
+                preferTsExtrasArrayLast:
+                    "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-last",
     });
 
 export default preferTsExtrasArrayLastRule;

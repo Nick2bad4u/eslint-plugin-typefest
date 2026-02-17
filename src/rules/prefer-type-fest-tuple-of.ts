@@ -7,21 +7,6 @@ const tupleOfAliasReplacements = {
 
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-tuple-of",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require Readonly<TupleOf<Length, Element>> over imported ReadonlyTuple aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tuple-of.md",
-            },
-            schema: [],
-            messages: {
-                preferTupleOf:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferTupleOf",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferTupleOf",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require Readonly<TupleOf<Length, Element>> over imported ReadonlyTuple aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tuple-of.md",
+            },
+            messages: {
+                preferTupleOf:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-tuple-of",
     });
 
 export default preferTypeFestTupleOfRule;

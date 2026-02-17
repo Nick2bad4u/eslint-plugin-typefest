@@ -28,21 +28,6 @@ const getSingleTypeArgument = (
 
 const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-async-return-type",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-async-return-type.md",
-            },
-            schema: [],
-            messages: {
-                preferAsyncReturnType:
-                    "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -75,12 +60,27 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferAsyncReturnType",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-async-return-type.md",
+            },
+            messages: {
+                preferAsyncReturnType:
+                    "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-async-return-type",
     });
 
 export default preferTypeFestAsyncReturnTypeRule;

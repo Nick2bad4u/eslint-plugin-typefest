@@ -27,21 +27,6 @@ const hasSingleUnknownTypeArgument = (
 
 const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-unknown-set",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-set.md",
-            },
-            schema: [],
-            messages: {
-                preferUnknownSet:
-                    "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -62,12 +47,27 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferUnknownSet",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-set.md",
+            },
+            messages: {
+                preferUnknownSet:
+                    "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-unknown-set",
     });
 
 export default preferTypeFestUnknownSetRule;

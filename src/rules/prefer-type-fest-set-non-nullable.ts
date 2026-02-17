@@ -7,21 +7,6 @@ const setNonNullableAliasReplacements = {
 
 const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-set-non-nullable",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-non-nullable.md",
-            },
-            schema: [],
-            messages: {
-                preferSetNonNullable:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSetNonNullable",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSetNonNullable",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-non-nullable.md",
+            },
+            messages: {
+                preferSetNonNullable:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-set-non-nullable",
     });
 
 export default preferTypeFestSetNonNullableRule;

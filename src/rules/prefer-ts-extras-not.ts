@@ -57,21 +57,6 @@ const getNegatedPredicateCall = (
 
 const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-not",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-not.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasNot:
-                    "Prefer `not(<predicate>)` from `ts-extras` over inline `value => !predicate(value)` callbacks.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -98,12 +83,27 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node: firstArgument,
                         messageId: "preferTsExtrasNot",
+                        node: firstArgument,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-not.md",
+            },
+            messages: {
+                preferTsExtrasNot:
+                    "Prefer `not(<predicate>)` from `ts-extras` over inline `value => !predicate(value)` callbacks.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-not",
     });
 
 export default preferTsExtrasNotRule;

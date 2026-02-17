@@ -52,21 +52,6 @@ const getRestArrayElementType = (
 
 const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-non-empty-tuple",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-non-empty-tuple.md",
-            },
-            schema: [],
-            messages: {
-                preferNonEmptyTuple:
-                    "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -119,12 +104,27 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferNonEmptyTuple",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-non-empty-tuple.md",
+            },
+            messages: {
+                preferNonEmptyTuple:
+                    "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-non-empty-tuple",
     });
 
 export default preferTypeFestNonEmptyTupleRule;

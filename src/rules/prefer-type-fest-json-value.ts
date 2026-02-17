@@ -22,21 +22,6 @@ const isRecordLikeUnknown = (typeNode: TSESTree.TSTypeReference): boolean => {
 
 const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-json-value",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-value.md",
-            },
-            schema: [],
-            messages: {
-                preferJsonValue:
-                    "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -51,12 +36,27 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferJsonValue",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-value.md",
+            },
+            messages: {
+                preferJsonValue:
+                    "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-json-value",
     });
 
 export default preferTypeFestJsonValueRule;

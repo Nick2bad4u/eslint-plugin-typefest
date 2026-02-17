@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-object-from-entries",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras objectFromEntries over Object.fromEntries for stronger key/value inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-from-entries.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasObjectFromEntries:
-                    "Prefer `objectFromEntries` from `ts-extras` over `Object.fromEntries(...)` for stronger key and value inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasObjectFromEntries",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras objectFromEntries over Object.fromEntries for stronger key/value inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-from-entries.md",
+            },
+            messages: {
+                preferTsExtrasObjectFromEntries:
+                    "Prefer `objectFromEntries` from `ts-extras` over `Object.fromEntries(...)` for stronger key and value inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-object-from-entries",
     });
 
 export default preferTsExtrasObjectFromEntriesRule;

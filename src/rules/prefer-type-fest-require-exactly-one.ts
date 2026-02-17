@@ -8,21 +8,6 @@ const requireExactlyOneAliasReplacements = {
 
 const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-require-exactly-one",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-exactly-one.md",
-            },
-            schema: [],
-            messages: {
-                preferRequireExactlyOne:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -49,16 +34,31 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferRequireExactlyOne",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferRequireExactlyOne",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-exactly-one.md",
+            },
+            messages: {
+                preferRequireExactlyOne:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-require-exactly-one",
     });
 
 export default preferTypeFestRequireExactlyOneRule;

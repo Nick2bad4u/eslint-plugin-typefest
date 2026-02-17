@@ -8,21 +8,6 @@ const requireAllOrNoneAliasReplacements = {
 
 const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-require-all-or-none",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-all-or-none.md",
-            },
-            schema: [],
-            messages: {
-                preferRequireAllOrNone:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -49,16 +34,31 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferRequireAllOrNone",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferRequireAllOrNone",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-all-or-none.md",
+            },
+            messages: {
+                preferRequireAllOrNone:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-require-all-or-none",
     });
 
 export default preferTypeFestRequireAllOrNoneRule;

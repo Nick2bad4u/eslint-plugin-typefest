@@ -40,21 +40,6 @@ const isUndefinedFilterGuardBody = (
 
 const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-defined-filter",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsDefinedFilter:
-                    "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -101,12 +86,27 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node: callback,
                         messageId: "preferTsExtrasIsDefinedFilter",
+                        node: callback,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
+            },
+            messages: {
+                preferTsExtrasIsDefinedFilter:
+                    "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-defined-filter",
     });
 
 export default preferTsExtrasIsDefinedFilterRule;

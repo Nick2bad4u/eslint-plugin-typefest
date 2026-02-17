@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-object-entries",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras objectEntries over Object.entries for stronger key/value inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-entries.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasObjectEntries:
-                    "Prefer `objectEntries` from `ts-extras` over `Object.entries(...)` for stronger key and value inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasObjectEntries",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras objectEntries over Object.entries for stronger key/value inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-entries.md",
+            },
+            messages: {
+                preferTsExtrasObjectEntries:
+                    "Prefer `objectEntries` from `ts-extras` over `Object.entries(...)` for stronger key and value inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-object-entries",
     });
 
 export default preferTsExtrasObjectEntriesRule;

@@ -7,21 +7,6 @@ const requireAtLeastOneAliasReplacements = {
 
 const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-require-at-least-one",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-at-least-one.md",
-            },
-            schema: [],
-            messages: {
-                preferRequireAtLeastOne:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferRequireAtLeastOne",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferRequireAtLeastOne",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-at-least-one.md",
+            },
+            messages: {
+                preferRequireAtLeastOne:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-require-at-least-one",
     });
 
 export default preferTypeFestRequireAtLeastOneRule;

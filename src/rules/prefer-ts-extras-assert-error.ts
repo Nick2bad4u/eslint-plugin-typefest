@@ -40,21 +40,6 @@ const extractAssertErrorTarget = (
 
 const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-assert-error",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras assertError over manual instanceof Error throw guards.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-error.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasAssertError:
-                    "Prefer `assertError` from `ts-extras` over manual `instanceof Error` throw guards.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -75,12 +60,27 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasAssertError",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras assertError over manual instanceof Error throw guards.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-error.md",
+            },
+            messages: {
+                preferTsExtrasAssertError:
+                    "Prefer `assertError` from `ts-extras` over manual `instanceof Error` throw guards.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-assert-error",
     });
 
 export default preferTsExtrasAssertErrorRule;

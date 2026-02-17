@@ -117,23 +117,6 @@ const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
 
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-defined",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsDefined:
-                    "Prefer `isDefined(value)` from `ts-extras` over inline undefined comparisons.",
-                preferTsExtrasIsDefinedNegated:
-                    "Prefer `!isDefined(value)` from `ts-extras` over inline undefined comparisons.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -160,14 +143,31 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: match.prefersNegatedHelper
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined.md",
+            },
+            messages: {
+                preferTsExtrasIsDefined:
+                    "Prefer `isDefined(value)` from `ts-extras` over inline undefined comparisons.",
+                preferTsExtrasIsDefinedNegated:
+                    "Prefer `!isDefined(value)` from `ts-extras` over inline undefined comparisons.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-defined",
     });
 
 export default preferTsExtrasIsDefinedRule;

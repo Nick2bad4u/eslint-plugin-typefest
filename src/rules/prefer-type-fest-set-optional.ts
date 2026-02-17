@@ -7,21 +7,6 @@ const setOptionalAliasReplacements = {
 
 const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-set-optional",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest SetOptional over imported alias types like PartialBy.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-optional.md",
-            },
-            schema: [],
-            messages: {
-                preferSetOptional:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferSetOptional",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferSetOptional",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest SetOptional over imported alias types like PartialBy.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-optional.md",
+            },
+            messages: {
+                preferSetOptional:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-set-optional",
     });
 
 export default preferTypeFestSetOptionalRule;

@@ -11,21 +11,6 @@ const ifAliasReplacements = {
 
 const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-if",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest If + Is* utilities over deprecated If* aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md",
-            },
-            schema: [],
-            messages: {
-                preferTypeFestIf:
-                    "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -52,16 +37,31 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferTypeFestIf",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferTypeFestIf",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest If + Is* utilities over deprecated If* aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md",
+            },
+            messages: {
+                preferTypeFestIf:
+                    "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-if",
     });
 
 export default preferTypeFestIfRule;

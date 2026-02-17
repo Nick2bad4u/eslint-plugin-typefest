@@ -77,23 +77,6 @@ const hasWritableMappedTypeShape = (
 
 const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-writable",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
-            },
-            schema: [],
-            messages: {
-                preferWritableAlias:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-                preferWritable:
-                    "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -114,8 +97,8 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferWritable",
+                        node,
                     });
                 },
                 TSTypeReference(node) {
@@ -131,16 +114,33 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferWritableAlias",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferWritableAlias",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
+            },
+            messages: {
+                preferWritableAlias:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                preferWritable:
+                    "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-writable",
     });
 
 export default preferTypeFestWritableRule;

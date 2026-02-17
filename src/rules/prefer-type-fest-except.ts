@@ -18,21 +18,6 @@ const isIdentifierTypeReference = (
 
 const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-except",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Except over Omit when removing properties from object types.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-except.md",
-            },
-            schema: [],
-            messages: {
-                preferExcept:
-                    "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -60,8 +45,8 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                         }
 
                         context.report({
-                            node,
                             messageId: "preferExcept",
+                            node,
                         });
                         return;
                     }
@@ -78,12 +63,27 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferExcept",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Except over Omit when removing properties from object types.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-except.md",
+            },
+            messages: {
+                preferExcept:
+                    "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-except",
     });
 
 export default preferTypeFestExceptRule;

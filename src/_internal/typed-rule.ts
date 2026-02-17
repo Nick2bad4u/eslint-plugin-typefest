@@ -1,5 +1,6 @@
-import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 import type ts from "typescript";
+
+import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 
 const RULE_DOCS_URL_BASE =
     "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
@@ -53,14 +54,14 @@ export const isTypeAssignableTo = (
 
 export const getSignatureParameterTypeAt = ({
     checker,
-    signature,
     index,
     location,
+    signature,
 }: {
     checker: ts.TypeChecker;
-    signature: ts.Signature | null | undefined;
     index: number;
     location: ts.Node;
+    signature: null | ts.Signature | undefined;
 }): ts.Type | undefined => {
     const symbol = signature?.parameters[index];
     if (!symbol) {

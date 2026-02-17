@@ -40,10 +40,10 @@ const extractEqNullGuardExpression = (
 
 const extractNullishEqualityPart = (
     expression: TSESTree.Expression
-): {
+): null | {
     expression: TSESTree.Expression;
     kind: "null" | "undefined";
-} | null => {
+} => {
     if (
         expression.type !== "BinaryExpression" ||
         (expression.operator !== "==" && expression.operator !== "===")
@@ -84,21 +84,6 @@ const extractNullishEqualityPart = (
 
 const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-assert-present",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras assertPresent over manual nullish-guard throw blocks.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasAssertPresent:
-                    "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -153,12 +138,27 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasAssertPresent",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras assertPresent over manual nullish-guard throw blocks.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
+            },
+            messages: {
+                preferTsExtrasAssertPresent:
+                    "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-assert-present",
     });
 
 export default preferTsExtrasAssertPresentRule;

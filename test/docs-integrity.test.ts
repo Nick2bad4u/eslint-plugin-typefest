@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import plugin from "../plugin.mjs";
 
@@ -32,15 +32,13 @@ describe("typefest rule docs", () => {
 
             const url = docs?.url;
 
-            expect(typeof url).toBe("string");
-
             if (typeof url === "string") {
                 expect(url).toContain(`/docs/rules/${ruleId}.md`);
             }
 
             const description = docs?.description;
 
-            expect(typeof description).toBe("string");
+            expectTypeOf(description).toBeString();
 
             const expectedPath = path.join(docsDir, `${ruleId}.md`);
 

@@ -6,21 +6,6 @@ import {
 
 const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-string-split",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras stringSplit over String#split for stronger tuple inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-string-split.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasStringSplit:
-                    "Prefer `stringSplit` from `ts-extras` over `string.split(...)` for stronger tuple inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -76,12 +61,27 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasStringSplit",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras stringSplit over String#split for stronger tuple inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-string-split.md",
+            },
+            messages: {
+                preferTsExtrasStringSplit:
+                    "Prefer `stringSplit` from `ts-extras` over `string.split(...)` for stronger tuple inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-string-split",
     });
 
 export default preferTsExtrasStringSplitRule;

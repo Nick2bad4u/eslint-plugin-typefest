@@ -7,21 +7,6 @@ const conditionalPickAliasReplacements = {
 
 const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-conditional-pick",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest ConditionalPick over imported aliases such as PickByTypes.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md",
-            },
-            schema: [],
-            messages: {
-                preferConditionalPick:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferConditionalPick",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferConditionalPick",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest ConditionalPick over imported aliases such as PickByTypes.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md",
+            },
+            messages: {
+                preferConditionalPick:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-conditional-pick",
     });
 
 export default preferTypeFestConditionalPickRule;

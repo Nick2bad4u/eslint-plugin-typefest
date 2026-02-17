@@ -7,21 +7,6 @@ const keysOfUnionAliasReplacements = {
 
 const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-keys-of-union",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-keys-of-union.md",
-            },
-            schema: [],
-            messages: {
-                preferKeysOfUnion:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferKeysOfUnion",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferKeysOfUnion",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-keys-of-union.md",
+            },
+            messages: {
+                preferKeysOfUnion:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-keys-of-union",
     });
 
 export default preferTypeFestKeysOfUnionRule;

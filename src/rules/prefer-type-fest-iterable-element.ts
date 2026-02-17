@@ -9,21 +9,6 @@ const iterableElementAliasReplacements = {
 
 const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-iterable-element",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-iterable-element.md",
-            },
-            schema: [],
-            messages: {
-                preferIterableElement:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -50,16 +35,31 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferIterableElement",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferIterableElement",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-iterable-element.md",
+            },
+            messages: {
+                preferIterableElement:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-iterable-element",
     });
 
 export default preferTypeFestIterableElementRule;

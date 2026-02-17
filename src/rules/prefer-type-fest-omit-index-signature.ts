@@ -7,21 +7,6 @@ const omitIndexSignatureAliasReplacements = {
 
 const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-omit-index-signature",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
-            },
-            schema: [],
-            messages: {
-                preferOmitIndexSignature:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -48,16 +33,31 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
-                        messageId: "preferOmitIndexSignature",
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        messageId: "preferOmitIndexSignature",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
+            },
+            messages: {
+                preferOmitIndexSignature:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-omit-index-signature",
     });
 
 export default preferTypeFestOmitIndexSignatureRule;

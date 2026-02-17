@@ -8,21 +8,6 @@ import {
 
 const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-set-has",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras setHas over Set#has for stronger element narrowing.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-set-has.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasSetHas:
-                    "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -73,12 +58,27 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasSetHas",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras setHas over Set#has for stronger element narrowing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-set-has.md",
+            },
+            messages: {
+                preferTsExtrasSetHas:
+                    "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-set-has",
     });
 
 export default preferTsExtrasSetHasRule;

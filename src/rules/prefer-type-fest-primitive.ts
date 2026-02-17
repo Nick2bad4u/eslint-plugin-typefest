@@ -39,21 +39,6 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
 
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-primitive",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Primitive over explicit primitive keyword unions.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
-            },
-            schema: [],
-            messages: {
-                preferPrimitive:
-                    "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -67,12 +52,27 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferPrimitive",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            type: "suggestion",
+            docs: {
+                description:
+                    "require TypeFest Primitive over explicit primitive keyword unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
+            },
+            schema: [],
+            messages: {
+                preferPrimitive:
+                    "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
+            },
+        },
+        name: "prefer-type-fest-primitive",
     });
 
 export default preferTypeFestPrimitiveRule;

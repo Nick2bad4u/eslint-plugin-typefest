@@ -84,21 +84,6 @@ const hasArrayableShape = (
 
 const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-arrayable",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
-            },
-            schema: [],
-            messages: {
-                preferArrayable:
-                    "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -114,12 +99,27 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferArrayable",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
+            },
+            messages: {
+                preferArrayable:
+                    "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-arrayable",
     });
 
 export default preferTypeFestArrayableRule;

@@ -17,21 +17,6 @@ const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {
 
 const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-object-has-in",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasObjectHasIn:
-                    "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -49,12 +34,27 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasObjectHasIn",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
+            },
+            messages: {
+                preferTsExtrasObjectHasIn:
+                    "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-object-has-in",
     });
 
 export default preferTsExtrasObjectHasInRule;

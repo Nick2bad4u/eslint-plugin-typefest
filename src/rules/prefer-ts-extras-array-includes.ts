@@ -1,5 +1,5 @@
-import type ts from "typescript";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
 
 import {
     createTypedRule,
@@ -9,21 +9,6 @@ import {
 
 const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-includes",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-includes.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayIncludes:
-                    "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -91,12 +76,27 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayIncludes",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-includes.md",
+            },
+            messages: {
+                preferTsExtrasArrayIncludes:
+                    "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-includes",
     });
 
 export default preferTsExtrasArrayIncludesRule;

@@ -1,5 +1,5 @@
-import type ts from "typescript";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
 
 import {
     createTypedRule,
@@ -9,21 +9,6 @@ import {
 
 const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-array-at",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras arrayAt over Array#at for stronger element inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-at.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasArrayAt:
-                    "Prefer `arrayAt` from `ts-extras` over `array.at(...)` for stronger element inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -91,12 +76,27 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasArrayAt",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras arrayAt over Array#at for stronger element inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-at.md",
+            },
+            messages: {
+                preferTsExtrasArrayAt:
+                    "Prefer `arrayAt` from `ts-extras` over `array.at(...)` for stronger element inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-array-at",
     });
 
 export default preferTsExtrasArrayAtRule;

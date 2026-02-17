@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-object-values",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras objectValues over Object.values for stronger value inference.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-values.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasObjectValues:
-                    "Prefer `objectValues` from `ts-extras` over `Object.values(...)` for stronger value inference.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasObjectValues",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras objectValues over Object.values for stronger value inference.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-values.md",
+            },
+            messages: {
+                preferTsExtrasObjectValues:
+                    "Prefer `objectValues` from `ts-extras` over `Object.values(...)` for stronger value inference.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-object-values",
     });
 
 export default preferTsExtrasObjectValuesRule;

@@ -33,21 +33,6 @@ const hasJsonPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
 
 const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-json-primitive",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-primitive.md",
-            },
-            schema: [],
-            messages: {
-                preferJsonPrimitive:
-                    "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -61,12 +46,27 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferJsonPrimitive",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-primitive.md",
+            },
+            messages: {
+                preferJsonPrimitive:
+                    "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-json-primitive",
     });
 
 export default preferTypeFestJsonPrimitiveRule;

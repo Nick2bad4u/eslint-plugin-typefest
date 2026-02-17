@@ -59,7 +59,59 @@ const typeContainsTaggedReference = (typeNode: TSESTree.TypeNode): boolean => {
 
 const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-tagged-brands",
+        create(context) {
+            const filePath = context.filename ?? "";
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
+
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                context.sourceCode,
+                taggedAliasReplacements
+            );
+
+            return {
+                TSTypeAliasDeclaration(node) {
+                    if (typeContainsTaggedReference(node.typeAnnotation)) {
+                        return;
+                    }
+
+                    if (!hasAdHocBrandLiteral(node.typeAnnotation)) {
+                        return;
+                    }
+
+                    context.report({
+                        data: {
+                            alias: node.id.name,
+                        },
+                        messageId: "preferTaggedBrand",
+                        node: node.id,
+                    });
+                },
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
+
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
+                        return;
+                    }
+
+                    context.report({
+                        data: {
+                            alias: importedAliasMatch.importedName,
+                            replacement: importedAliasMatch.replacementName,
+                        },
+                        messageId: "preferTaggedAlias",
+                        node,
+                    });
+                },
+            };
+        },
+        defaultOptions: [],
         meta: {
             type: "suggestion",
             docs: {
@@ -75,59 +127,7 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },
         },
-        defaultOptions: [],
-        create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
-            const importedAliasMatches = collectImportedTypeAliasMatches(
-                context.sourceCode,
-                taggedAliasReplacements
-            );
-
-            return {
-                TSTypeReference(node) {
-                    if (node.typeName.type !== "Identifier") {
-                        return;
-                    }
-
-                    const importedAliasMatch = importedAliasMatches.get(
-                        node.typeName.name
-                    );
-                    if (!importedAliasMatch) {
-                        return;
-                    }
-
-                    context.report({
-                        node,
-                        messageId: "preferTaggedAlias",
-                        data: {
-                            alias: importedAliasMatch.importedName,
-                            replacement: importedAliasMatch.replacementName,
-                        },
-                    });
-                },
-                TSTypeAliasDeclaration(node) {
-                    if (typeContainsTaggedReference(node.typeAnnotation)) {
-                        return;
-                    }
-
-                    if (!hasAdHocBrandLiteral(node.typeAnnotation)) {
-                        return;
-                    }
-
-                    context.report({
-                        node: node.id,
-                        messageId: "preferTaggedBrand",
-                        data: {
-                            alias: node.id.name,
-                        },
-                    });
-                },
-            };
-        },
+        name: "prefer-type-fest-tagged-brands",
     });
 
 export default preferTypeFestTaggedBrandsRule;

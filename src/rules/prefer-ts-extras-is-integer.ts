@@ -2,21 +2,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-ts-extras-is-integer",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require ts-extras isInteger over Number.isInteger for consistent predicate helper usage.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-integer.md",
-            },
-            schema: [],
-            messages: {
-                preferTsExtrasIsInteger:
-                    "Prefer `isInteger` from `ts-extras` over `Number.isInteger(...)`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
@@ -47,12 +32,27 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferTsExtrasIsInteger",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require ts-extras isInteger over Number.isInteger for consistent predicate helper usage.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-integer.md",
+            },
+            messages: {
+                preferTsExtrasIsInteger:
+                    "Prefer `isInteger` from `ts-extras` over `Number.isInteger(...)`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-ts-extras-is-integer",
     });
 
 export default preferTsExtrasIsIntegerRule;

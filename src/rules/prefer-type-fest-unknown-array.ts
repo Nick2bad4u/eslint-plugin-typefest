@@ -40,21 +40,6 @@ const isReadonlyUnknownArrayType = (node: TSESTree.TSTypeOperator): boolean => {
 
 const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        name: "prefer-type-fest-unknown-array",
-        meta: {
-            type: "suggestion",
-            docs: {
-                description:
-                    "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
-            },
-            schema: [],
-            messages: {
-                preferUnknownArray:
-                    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
-            },
-        },
-        defaultOptions: [],
         create(context) {
             const filePath = context.filename ?? "";
 
@@ -69,8 +54,8 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferUnknownArray",
+                        node,
                     });
                 },
                 TSTypeReference(node) {
@@ -88,12 +73,27 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        node,
                         messageId: "preferUnknownArray",
+                        node,
                     });
                 },
             };
         },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
+            },
+            messages: {
+                preferUnknownArray:
+                    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
+            },
+            schema: [],
+            type: "suggestion",
+        },
+        name: "prefer-type-fest-unknown-array",
     });
 
 export default preferTypeFestUnknownArrayRule;
