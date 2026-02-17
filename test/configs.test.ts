@@ -28,6 +28,24 @@ function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
+function getConfigRules(
+    configs: null | Record<string, unknown>,
+    configName: string
+): null | Record<string, unknown> {
+    const config = configs?.[configName];
+
+    if (!isObject(config)) {
+        return null;
+    }
+
+    const rules = config["rules"];
+    if (!isObject(rules)) {
+        return null;
+    }
+
+    return rules;
+}
+
 /**
  * Lightweight shape checks for `plugin.configs.*`.
  *
@@ -58,6 +76,9 @@ describe("typefest plugin configs", () => {
                 "runtime",
                 "safe",
                 "strict",
+                "ts-extras",
+                "ts-extras-safe",
+                "type-fest",
                 "flat/assertive",
                 "flat/all",
                 "flat/complete",
@@ -68,6 +89,9 @@ describe("typefest plugin configs", () => {
                 "flat/runtime",
                 "flat/safe",
                 "flat/strict",
+                "flat/ts-extras",
+                "flat/ts-extras-safe",
+                "flat/type-fest",
             ])
         );
     });
@@ -84,5 +108,36 @@ describe("typefest plugin configs", () => {
                 })
             );
         }
+    });
+
+    it("keeps arrayFind* rules out of safe tier but available in ts-extras", () => {
+        const safeRules = getConfigRules(configs, "safe");
+        const tsExtrasRules = getConfigRules(configs, "ts-extras");
+
+        expect(safeRules).toBeDefined();
+        expect(tsExtrasRules).toBeDefined();
+
+        expect(safeRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find"
+        );
+        expect(safeRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last"
+        );
+        expect(safeRules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last-index"
+        );
+
+        expect(tsExtrasRules).toHaveProperty(
+            "typefest/prefer-ts-extras-array-find",
+            "error"
+        );
+        expect(tsExtrasRules).toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last",
+            "error"
+        );
+        expect(tsExtrasRules).toHaveProperty(
+            "typefest/prefer-ts-extras-array-find-last-index",
+            "error"
+        );
     });
 });

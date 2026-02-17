@@ -1,4 +1,4 @@
-import { type TSESLint, type TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
@@ -35,8 +35,8 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const constraint = node.constraint;
-    if (!constraint || constraint.type !== "TSTypeOperator") {
+    const { constraint } = node;
+    if (constraint?.type !== "TSTypeOperator") {
         return false;
     }
 
@@ -49,8 +49,8 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const typeAnnotation = node.typeAnnotation;
-    if (!typeAnnotation || typeAnnotation.type !== "TSIndexedAccessType") {
+    const { typeAnnotation } = node;
+    if (typeAnnotation?.type !== "TSIndexedAccessType") {
         return false;
     }
 
@@ -64,7 +64,7 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const indexType = typeAnnotation.indexType;
+    const { indexType } = typeAnnotation;
     if (
         indexType.type !== "TSTypeReference" ||
         indexType.typeName.type !== "Identifier"
@@ -101,7 +101,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
-            const sourceCode = context.sourceCode;
+            const { sourceCode } = context;
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 sourceCode,
                 writableAliasReplacements

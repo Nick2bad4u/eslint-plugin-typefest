@@ -8,7 +8,7 @@
 
 "$schema"   = "https://raw.githubusercontent.com/Nick2bad4u/Uptime-Watcher/refs/heads/main/config/schemas/generic.schema.json"
 description = "Configuration file for git-cliff to generate changelogs based on conventional commits."
-name        = "Uptime-Watcher Changelog Configuration"
+name        = "eslint-plugin-typefest Changelog Configuration"
 version     = "1.0.0"
 
 [changelog]
@@ -28,16 +28,16 @@ All notable changes to this project will be documented in this file.\n
   ## [Unreleased]
 {% endif %}
 {% if commit_range and commit_range.from and commit_range.to %}
-  [[{{ commit_range.from | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/Uptime-Watcher/commit/{{ commit_range.from }})...
-  [{{ commit_range.to | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/Uptime-Watcher/commit/{{ commit_range.to }})]
-  ([compare](https://github.com/Nick2bad4u/Uptime-Watcher/compare/{{ commit_range.from }}...{{ commit_range.to }}))
+  [[{{ commit_range.from | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/eslint-plugin-typefest/commit/{{ commit_range.from }})...
+  [{{ commit_range.to | truncate(length=7, end="") }}](https://github.com/Nick2bad4u/eslint-plugin-typefest/commit/{{ commit_range.to }})]
+  ([compare](https://github.com/Nick2bad4u/eslint-plugin-typefest/compare/{{ commit_range.from }}...{{ commit_range.to }}))
 {% endif %}
 {% for group, commits in commits | group_by(attribute="group") %}
   ### {{ group | striptags | trim | upper_first }}
   {% for commit in commits %}
     - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
       {% if commit.breaking %}[**breaking**] {% endif %}\
-      {{ commit.message | upper_first | replace(from="\n", to="\n    ") }} [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/Uptime-Watcher/commit/{{ commit.id }})
+      {{ commit.message | upper_first | replace(from="\n", to="\n    ") }} [`({{ commit.id | truncate(length=7, end="") }})`](https://github.com/Nick2bad4u/eslint-plugin-typefest/commit/{{ commit.id }})
 
   {% endfor %}
 {% endfor %}\n
@@ -58,16 +58,16 @@ All notable changes to this project will be documented in this file.\n
     # template for the changelog footer
     footer = """
 ## Contributors
-Thanks to all the [contributors](https://github.com/Nick2bad4u/Uptime-Watcher/graphs/contributors) for their hard work!
+Thanks to all the [contributors](https://github.com/Nick2bad4u/eslint-plugin-typefest/graphs/contributors) for their hard work!
 ## License
-This project is licensed under the [UnLicense](https://github.com/Nick2bad4u/Uptime-Watcher/blob/main/LICENSE)
+This project is licensed under the [UnLicense](https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/LICENSE)
 *This changelog was automatically generated with [git-cliff](https://github.com/orhun/git-cliff).*
 """
     # Remove leading and trailing whitespace from the changelog content
     trim = true
     # postprocessors
     postprocessors = [
-        # { pattern = 'Uptime-Watcher', replace = "[Uptime-Watcher](https://github.com/Nick2bad4u/Uptime-Watcher)" }, # replace repository URL
+        # { pattern = 'eslint-plugin-typefest', replace = "[eslint-plugin-typefest](https://github.com/Nick2bad4u/eslint-plugin-typefest)" }, # replace repository URL
         { pattern = 'Merge branch', replace = "[chore] Merge Branch" }, # replace merge branch commit messages
         { pattern = '\[dependency\]', replace = 'test' },
         { pattern = 'merge branch', replace = "[chore] Merge Branch" }, # replace merge branch commit messages
@@ -192,6 +192,6 @@ This project is licensed under the [UnLicense](https://github.com/Nick2bad4u/Upt
     # GitHub integration for better changelog links
     # [remote.github]
     # owner = "Nick2bad4u"
-    # repo = "Uptime-Watcher"
+    # repo = "eslint-plugin-typefest"
     # api_url = "https://api.github.com"
     # native_tls = false

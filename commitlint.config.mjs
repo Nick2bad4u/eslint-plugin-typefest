@@ -57,7 +57,7 @@ export default /** @type {CommitlintConfig} */ {
          *
          * @param {string} commit - The raw commit message being validated.
          */
-        (commit) => /^chore\(release\)/v.test(commit),
+        (commit) => commit.startsWith("chore(release)"),
 
         /**
          * Ignore dependency updates with automated format.

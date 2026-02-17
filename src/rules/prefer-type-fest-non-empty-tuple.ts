@@ -1,4 +1,4 @@
-import { type TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -43,7 +43,7 @@ const getRestArrayElementType = (
     }
 
     const restType = unwrapRestAnnotation(element.typeAnnotation);
-    if (!restType || restType.type !== "TSArrayType") {
+    if (restType?.type !== "TSArrayType") {
         return null;
     }
 
@@ -83,7 +83,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const tupleType = node.typeAnnotation;
-                    if (!tupleType || tupleType.type !== "TSTupleType") {
+                    if (tupleType?.type !== "TSTupleType") {
                         return;
                     }
 

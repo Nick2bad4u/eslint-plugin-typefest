@@ -3,6 +3,7 @@ import type { ESLint, Linter } from "eslint";
 
 import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
 import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
+import preferTsExtrasAsWritableRule from "./rules/prefer-ts-extras-as-writable.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
 import preferTsExtrasArrayFindRule from "./rules/prefer-ts-extras-array-find.js";
@@ -28,6 +29,7 @@ import preferTsExtrasObjectHasOwnRule from "./rules/prefer-ts-extras-object-has-
 import preferTsExtrasObjectKeysRule from "./rules/prefer-ts-extras-object-keys.js";
 import preferTsExtrasNotRule from "./rules/prefer-ts-extras-not.js";
 import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-values.js";
+import preferTsExtrasSafeCastToRule from "./rules/prefer-ts-extras-safe-cast-to.js";
 import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
 import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
@@ -87,6 +89,7 @@ const typefestPlugin = {
         "prefer-ts-extras-array-includes": preferTsExtrasArrayIncludesRule,
         "prefer-ts-extras-array-join": preferTsExtrasArrayJoinRule,
         "prefer-ts-extras-array-last": preferTsExtrasArrayLastRule,
+        "prefer-ts-extras-as-writable": preferTsExtrasAsWritableRule,
         "prefer-ts-extras-assert-defined": preferTsExtrasAssertDefinedRule,
         "prefer-ts-extras-assert-error": preferTsExtrasAssertErrorRule,
         "prefer-ts-extras-assert-present": preferTsExtrasAssertPresentRule,
@@ -106,6 +109,7 @@ const typefestPlugin = {
         "prefer-ts-extras-object-keys": preferTsExtrasObjectKeysRule,
         "prefer-ts-extras-not": preferTsExtrasNotRule,
         "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
+        "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
         "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
         "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
         "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
@@ -185,7 +189,7 @@ function errorRulesFor(ruleNames: readonly string[]): RulesConfig {
     return rules;
 }
 
-const minimalRuleNames = [
+const typeFestRuleNames = [
     "prefer-type-fest-async-return-type",
     "prefer-type-fest-arrayable",
     "prefer-type-fest-conditional-pick",
@@ -222,19 +226,16 @@ const minimalRuleNames = [
     "prefer-type-fest-writable",
 ] as const;
 
-const safeRuleNames = [
-    ...minimalRuleNames,
+const tsExtrasRuntimeRuleNames = [
     "prefer-ts-extras-is-defined-filter",
     "prefer-ts-extras-is-present-filter",
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
-    "prefer-ts-extras-array-find",
-    "prefer-ts-extras-array-find-last",
-    "prefer-ts-extras-array-find-last-index",
     "prefer-ts-extras-array-first",
     "prefer-ts-extras-array-includes",
     "prefer-ts-extras-array-join",
     "prefer-ts-extras-array-last",
+    "prefer-ts-extras-as-writable",
     "prefer-ts-extras-is-empty",
     "prefer-ts-extras-is-finite",
     "prefer-ts-extras-is-infinite",
@@ -248,15 +249,39 @@ const safeRuleNames = [
     "prefer-ts-extras-object-keys",
     "prefer-ts-extras-not",
     "prefer-ts-extras-object-values",
+    "prefer-ts-extras-safe-cast-to",
     "prefer-ts-extras-set-has",
     "prefer-ts-extras-string-split",
 ] as const;
 
-const recommendedRuleNames = [
-    ...safeRuleNames,
+const tsExtrasExperimentalRuleNames = [
+    "prefer-ts-extras-array-find",
+    "prefer-ts-extras-array-find-last",
+    "prefer-ts-extras-array-find-last-index",
+] as const;
+
+const tsExtrasAssertiveRuleNames = [
     "prefer-ts-extras-assert-defined",
     "prefer-ts-extras-assert-error",
     "prefer-ts-extras-assert-present",
+] as const;
+
+const tsExtrasRuleNames = [
+    ...tsExtrasRuntimeRuleNames,
+    ...tsExtrasAssertiveRuleNames,
+    ...tsExtrasExperimentalRuleNames,
+] as const;
+
+const minimalRuleNames = [...typeFestRuleNames] as const;
+
+const safeRuleNames = [
+    ...typeFestRuleNames,
+    ...tsExtrasRuntimeRuleNames,
+] as const;
+
+const recommendedRuleNames = [
+    ...safeRuleNames,
+    ...tsExtrasAssertiveRuleNames,
 ] as const;
 
 const strictRuleNames = [...recommendedRuleNames] as const;
@@ -301,6 +326,21 @@ const flatStrictConfig = withTypefestPlugin({
     rules: errorRulesFor(strictRuleNames),
 });
 
+const flatTypeFestConfig = withTypefestPlugin({
+    name: "typefest:flat/type-fest",
+    rules: errorRulesFor(typeFestRuleNames),
+});
+
+const flatTsExtrasSafeConfig = withTypefestPlugin({
+    name: "typefest:flat/ts-extras-safe",
+    rules: errorRulesFor(tsExtrasRuntimeRuleNames),
+});
+
+const flatTsExtrasConfig = withTypefestPlugin({
+    name: "typefest:flat/ts-extras",
+    rules: errorRulesFor(tsExtrasRuleNames),
+});
+
 const unscopedAllConfig = withTypefestPlugin({
     name: "typefest:all",
     rules: allRules,
@@ -331,6 +371,21 @@ const unscopedStrictConfig = withTypefestPlugin({
     rules: errorRulesFor(strictRuleNames),
 });
 
+const unscopedTypeFestConfig = withTypefestPlugin({
+    name: "typefest:type-fest",
+    rules: errorRulesFor(typeFestRuleNames),
+});
+
+const unscopedTsExtrasSafeConfig = withTypefestPlugin({
+    name: "typefest:ts-extras-safe",
+    rules: errorRulesFor(tsExtrasRuntimeRuleNames),
+});
+
+const unscopedTsExtrasConfig = withTypefestPlugin({
+    name: "typefest:ts-extras",
+    rules: errorRulesFor(tsExtrasRuleNames),
+});
+
 (
     typefestPlugin as unknown as {
         configs: Record<string, FlatConfig>;
@@ -351,11 +406,17 @@ const unscopedStrictConfig = withTypefestPlugin({
     "flat/runtime": flatSafeConfig,
     "flat/safe": flatSafeConfig,
     "flat/strict": flatStrictConfig,
+    "flat/ts-extras": flatTsExtrasConfig,
+    "flat/ts-extras-safe": flatTsExtrasSafeConfig,
+    "flat/type-fest": flatTypeFestConfig,
     minimal: unscopedMinimalConfig,
     recommended: unscopedRecommendedConfig,
     runtime: unscopedSafeConfig,
     safe: unscopedSafeConfig,
     strict: unscopedStrictConfig,
+    "ts-extras": unscopedTsExtrasConfig,
+    "ts-extras-safe": unscopedTsExtrasSafeConfig,
+    "type-fest": unscopedTypeFestConfig,
 };
 
 export default typefestPlugin as unknown as ESLint.Plugin;

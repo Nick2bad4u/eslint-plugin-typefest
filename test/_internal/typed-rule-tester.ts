@@ -7,9 +7,9 @@ import { afterAll, describe, it } from "vitest";
 import { repoPath } from "./ruleTester";
 
 RuleTester.afterAll = afterAll;
-RuleTester.describe = describe;
-RuleTester.it = it;
-RuleTester.itOnly = it.only;
+RuleTester.describe = describe as unknown as typeof RuleTester.describe;
+RuleTester.it = it as unknown as typeof RuleTester.it;
+RuleTester.itOnly = it as unknown as typeof RuleTester.itOnly;
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 

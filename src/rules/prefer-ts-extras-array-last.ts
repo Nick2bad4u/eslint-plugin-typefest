@@ -1,5 +1,5 @@
-import ts from "typescript";
-import { type TSESLint, type TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     createTypedRule,
@@ -8,7 +8,7 @@ import {
 } from "../_internal/typed-rule.js";
 
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
-    const parent = node.parent;
+    const { parent } = node;
 
     if (parent.type === "AssignmentExpression" && parent.left === node) {
         return true;
@@ -86,7 +86,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
-            const sourceCode = context.sourceCode;
+            const { sourceCode } = context;
             const { checker, parserServices } = getTypedRuleServices(context);
 
             const isArrayLikeType = (type: ts.Type): boolean => {

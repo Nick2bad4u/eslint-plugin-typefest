@@ -1,5 +1,5 @@
-import ts from "typescript";
-import { type TSESTree } from "@typescript-eslint/utils";
+import type ts from "typescript";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     createTypedRule,

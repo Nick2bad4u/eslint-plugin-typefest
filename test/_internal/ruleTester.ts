@@ -6,9 +6,9 @@ import { afterAll, describe, it } from "vitest";
 import typefestPlugin from "../../src/plugin";
 
 RuleTester.afterAll = afterAll;
-RuleTester.describe = describe;
-RuleTester.it = it;
-RuleTester.itOnly = it.only;
+RuleTester.describe = describe as unknown as typeof RuleTester.describe;
+RuleTester.it = it as unknown as typeof RuleTester.it;
+RuleTester.itOnly = it as unknown as typeof RuleTester.itOnly;
 
 type PluginRuleModule = Parameters<RuleTester["run"]>[1];
 

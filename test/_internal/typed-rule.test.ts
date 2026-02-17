@@ -1,5 +1,6 @@
+import type ts from "typescript";
+
 import fc from "fast-check";
-import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
 import {

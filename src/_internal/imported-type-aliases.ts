@@ -1,4 +1,4 @@
-import { type TSESLint } from "@typescript-eslint/utils";
+import type { TSESLint } from "@typescript-eslint/utils";
 
 export type ImportedTypeAliasMatch = {
     importedName: string;

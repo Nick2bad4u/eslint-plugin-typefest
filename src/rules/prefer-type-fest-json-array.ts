@@ -1,4 +1,4 @@
-import { type TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -25,8 +25,8 @@ const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
         return false;
     }
 
-    const typeAnnotation = node.typeAnnotation;
-    if (!typeAnnotation || typeAnnotation.type !== "TSArrayType") {
+    const { typeAnnotation } = node;
+    if (typeAnnotation?.type !== "TSArrayType") {
         return false;
     }
 

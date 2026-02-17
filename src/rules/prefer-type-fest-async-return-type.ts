@@ -1,4 +1,4 @@
-import { type TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -57,10 +57,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const awaitedInnerType = getSingleTypeArgument(node);
-                    if (
-                        !awaitedInnerType ||
-                        awaitedInnerType.type !== "TSTypeReference"
-                    ) {
+                    if (awaitedInnerType?.type !== "TSTypeReference") {
                         return;
                     }
 

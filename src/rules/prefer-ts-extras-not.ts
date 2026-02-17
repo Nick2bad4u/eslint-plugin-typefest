@@ -1,4 +1,4 @@
-import { type TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -30,7 +30,7 @@ const getNegatedPredicateCall = (
     }
 
     const [firstParameter] = callback.params;
-    if (!firstParameter || firstParameter.type !== "Identifier") {
+    if (firstParameter?.type !== "Identifier") {
         return null;
     }
 

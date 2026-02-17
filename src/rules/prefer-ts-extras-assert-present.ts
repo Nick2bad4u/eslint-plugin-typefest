@@ -1,4 +1,4 @@
-import { type TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -105,7 +105,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
-            const sourceCode = context.sourceCode;
+            const { sourceCode } = context;
 
             const extractPresentGuardExpression = (
                 test: TSESTree.Expression
