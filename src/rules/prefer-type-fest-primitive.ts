@@ -2,16 +2,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const primitiveKeywordKinds = new Set([
-    "TSBigIntKeyword",
-    "TSBooleanKeyword",
-    "TSNullKeyword",
-    "TSNumberKeyword",
-    "TSStringKeyword",
-    "TSSymbolKeyword",
-    "TSUndefinedKeyword",
-]);
-
 const isPrimitiveKeywordNode = (
     node: TSESTree.TypeNode
 ): node is
@@ -21,20 +11,80 @@ const isPrimitiveKeywordNode = (
     | TSESTree.TSNumberKeyword
     | TSESTree.TSStringKeyword
     | TSESTree.TSSymbolKeyword
-    | TSESTree.TSUndefinedKeyword => primitiveKeywordKinds.has(node.type);
+    | TSESTree.TSUndefinedKeyword =>
+    node.type === "TSBigIntKeyword" ||
+    node.type === "TSBooleanKeyword" ||
+    node.type === "TSNullKeyword" ||
+    node.type === "TSNumberKeyword" ||
+    node.type === "TSStringKeyword" ||
+    node.type === "TSSymbolKeyword" ||
+    node.type === "TSUndefinedKeyword";
 
 const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
-    const primitiveMembers = node.types.filter((typeNode) =>
-        isPrimitiveKeywordNode(typeNode)
-    );
-    if (primitiveMembers.length !== 7) {
+    if (node.types.length !== 7) {
         return false;
     }
 
-    const uniqueKinds = new Set(
-        primitiveMembers.map((typeNode) => typeNode.type)
+    let hasBigInt = false;
+    let hasBoolean = false;
+    let hasNull = false;
+    let hasNumber = false;
+    let hasString = false;
+    let hasSymbol = false;
+    let hasUndefined = false;
+
+    for (const typeNode of node.types) {
+        if (!isPrimitiveKeywordNode(typeNode)) {
+            return false;
+        }
+
+        if (typeNode.type === "TSBigIntKeyword") {
+            hasBigInt = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSBooleanKeyword") {
+            hasBoolean = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSNullKeyword") {
+            hasNull = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSNumberKeyword") {
+            hasNumber = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSStringKeyword") {
+            hasString = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSSymbolKeyword") {
+            hasSymbol = true;
+            continue;
+        }
+
+        if (typeNode.type === "TSUndefinedKeyword") {
+            hasUndefined = true;
+            continue;
+        }
+
+        return false;
+    }
+
+    return (
+        hasBigInt &&
+        hasBoolean &&
+        hasNull &&
+        hasNumber &&
+        hasString &&
+        hasSymbol &&
+        hasUndefined
     );
-    return uniqueKinds.size === primitiveKeywordKinds.size;
 };
 
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
@@ -60,17 +110,17 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
         },
         defaultOptions: [],
         meta: {
-            type: "suggestion",
             docs: {
                 description:
                     "require TypeFest Primitive over explicit primitive keyword unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
             },
-            schema: [],
             messages: {
                 preferPrimitive:
                     "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
             },
+            schema: [],
+            type: "suggestion",
         },
         name: "prefer-type-fest-primitive",
     });

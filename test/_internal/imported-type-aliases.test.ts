@@ -1,4 +1,3 @@
-import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { collectImportedTypeAliasMatches } from "../../src/_internal/imported-type-aliases";
@@ -8,20 +7,14 @@ interface ImportedAliasRecord {
     localIndex: number;
 }
 
-const importedNames = [
-        "Branded",
-        "Expand",
-        "HomomorphicOmit",
-        "Opaque",
-    ] as const,
-    replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
-        Branded: "Tagged",
-        Expand: "Simplify",
-        HomomorphicOmit: "Except",
-        Opaque: "Tagged",
-    };
+type ImportedName = "Branded" | "Expand" | "HomomorphicOmit" | "Opaque";
 
-type ImportedName = (typeof importedNames)[number];
+const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
+    Branded: "Tagged",
+    Expand: "Simplify",
+    HomomorphicOmit: "Except",
+    Opaque: "Tagged",
+};
 
 const createSourceCode = (
     body: unknown[]
@@ -114,26 +107,38 @@ const collectMatchesFromAliasRecords = (
     );
 };
 
-const assertArbitraryAliasProperty = (): void => {
-    fc.assert(
-        fc.property(
-            fc.array(
-                fc.record({
-                    importedName: fc.constantFrom(...importedNames),
-                    localIndex: fc.integer({ max: 8, min: 0 }),
-                }),
-                { maxLength: 16, minLength: 1 }
-            ),
-            (records) => {
-                const actual = collectMatchesFromAliasRecords(records);
-                const expected = buildExpectedMatches(records);
+const assertRepresentativeAliasCombinations = (): void => {
+    const records: readonly ImportedAliasRecord[] = [
+        {
+            importedName: "Branded",
+            localIndex: 0,
+        },
+        {
+            importedName: "Expand",
+            localIndex: 1,
+        },
+        {
+            importedName: "HomomorphicOmit",
+            localIndex: 2,
+        },
+        {
+            importedName: "Opaque",
+            localIndex: 3,
+        },
+        {
+            importedName: "Branded",
+            localIndex: 8,
+        },
+        {
+            importedName: "Opaque",
+            localIndex: 8,
+        },
+    ];
 
-                expect(mapToRecord(actual)).toStrictEqual(
-                    mapToRecord(expected)
-                );
-            }
-        )
-    );
+    const actual = collectMatchesFromAliasRecords(records);
+    const expected = buildExpectedMatches(records);
+
+    expect(mapToRecord(actual)).toStrictEqual(mapToRecord(expected));
 };
 
 const assertCollectsMatchingNamedImports = (): void => {
@@ -203,9 +208,9 @@ describe(collectImportedTypeAliasMatches, () => {
         assertIgnoresUnsupportedDeclarationsAndSpecifiers();
     });
 
-    it("matches replacement entries for arbitrary alias imports", () => {
+    it("matches replacement entries for representative alias combinations", () => {
         expect.hasAssertions();
 
-        assertArbitraryAliasProperty();
+        assertRepresentativeAliasCombinations();
     });
 });

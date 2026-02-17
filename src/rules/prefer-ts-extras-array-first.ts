@@ -8,7 +8,7 @@ import {
 } from "../_internal/typed-rule.js";
 
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
-    const {parent} = node;
+    const { parent } = node;
 
     if (parent.type === "AssignmentExpression" && parent.left === node) {
         return true;

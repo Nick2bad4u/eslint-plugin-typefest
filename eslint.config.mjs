@@ -81,16 +81,16 @@ import * as yamlEslintParser from "yaml-eslint-parser";
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
 const enableJsonSchemaValidation =
-    globalThis.process.env[ "UW_ENABLE_JSON_SCHEMA_VALIDATION" ] === "1";
+    globalThis.process.env["UW_ENABLE_JSON_SCHEMA_VALIDATION"] === "1";
 
 const jsonSchemaValidatorPackageName = "eslint-plugin-json-schema-validator";
 
 let eslintPluginJsonSchemaValidator = undefined;
 
-if ( enableJsonSchemaValidation ) {
+if (enableJsonSchemaValidation) {
     eslintPluginJsonSchemaValidator =
         // eslint-disable-next-line no-unsanitized/method -- Controlled package name constant; no user input reaches dynamic import.
-        ( await import( jsonSchemaValidatorPackageName ) ).default;
+        (await import(jsonSchemaValidatorPackageName)).default;
 }
 
 const jsonSchemaValidatorPlugins = enableJsonSchemaValidation
@@ -101,35 +101,34 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
     ? { "json-schema-validator/no-invalid": "error" }
     : {};
 
-const canonicalPlugin = fixupPluginRules( pluginCanonical );
-const noConstructorBindPlugin = fixupPluginRules( noConstructorBind );
+const canonicalPlugin = fixupPluginRules(pluginCanonical);
+const noConstructorBindPlugin = fixupPluginRules(noConstructorBind);
 // @ts-expect-error -- Plugin needs update for Eslint v10
-const noExplicitTypeExportsPlugin = fixupPluginRules( noExplicitTypeExports );
+const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
 // @ts-expect-error -- Plugin needs update for Eslint v10
-const noUnsanitizedPlugin = fixupPluginRules( nounsanitized );
+const noUnsanitizedPlugin = fixupPluginRules(nounsanitized);
 // @ts-expect-error -- Plugin needs update for Eslint v10
-const preferArrowPlugin = fixupPluginRules( pluginPreferArrow );
-const securityPlugin = fixupPluginRules( pluginSecurity );
+const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
+const securityPlugin = fixupPluginRules(pluginSecurity);
 // @ts-expect-error -- Plugin needs update for Eslint v10
-const sortClassMembersPlugin = fixupPluginRules( pluginSortClassMembers );
-const writeGoodCommentsPlugin = fixupPluginRules( pluginWriteGood );
+const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
+const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 // @ts-expect-error -- Plugin needs update for Eslint v10
-const pluginLoadableImports = fixupPluginRules( loadbleImportsPlugin );
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const etc = fixupPluginRules( etcPlugin );
+const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
+const etc = fixupPluginRules(etcPlugin);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
 /** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
 
-const require = createRequire( import.meta.url );
+const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
-const configDirectoryPath = path.dirname( fileURLToPath( import.meta.url ) );
+const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 // eslint-disable-next-line sonarjs/no-require-or-define -- Runtime ESLint major detection is required to conditionally disable incompatible third-party presets.
-const eslintVersion = require( "eslint/package.json" ).version;
+const eslintVersion = require("eslint/package.json").version;
 
 const eslintMajorVersion = Number.parseInt(
-    eslintVersion.split( "." )[ 0 ] ?? "0",
+    eslintVersion.split(".")[0] ?? "0",
     10
 );
 const isEslintV10OrNewer = eslintMajorVersion >= 10;
@@ -149,10 +148,10 @@ const processEnvironment = globalThis.process.env;
  * - "off" / "0" / "false": disable progress
  */
 const UW_ESLINT_PROGRESS_MODE = (
-    processEnvironment[ "UW_ESLINT_PROGRESS" ] ?? "on"
+    processEnvironment["UW_ESLINT_PROGRESS"] ?? "on"
 ).toLowerCase();
 
-const IS_CI = ( processEnvironment[ "CI" ] ?? "" ).toLowerCase() === "true";
+const IS_CI = (processEnvironment["CI"] ?? "").toLowerCase() === "true";
 const DISABLE_PROGRESS =
     UW_ESLINT_PROGRESS_MODE === "off" ||
     UW_ESLINT_PROGRESS_MODE === "0" ||
@@ -175,19 +174,19 @@ const fileProgressOverridesConfig = {
     },
 };
 
-if ( !processEnvironment[ "RECHECK_JAR" ] ) {
-    const resolvedRecheckJarPath = ( () => {
+if (!processEnvironment["RECHECK_JAR"]) {
+    const resolvedRecheckJarPath = (() => {
         try {
-            return require.resolve( "recheck-jar/recheck.jar" );
+            return require.resolve("recheck-jar/recheck.jar");
         } catch {
             console.warn(
                 '[eslint.config] Unable to resolve "recheck-jar/recheck.jar". eslint-plugin-redos will rely on its internal resolution logic.'
             );
             return undefined;
         }
-    } )();
-    if ( resolvedRecheckJarPath ) {
-        processEnvironment[ "RECHECK_JAR" ] = path.normalize(
+    })();
+    if (resolvedRecheckJarPath) {
+        processEnvironment["RECHECK_JAR"] = path.normalize(
             resolvedRecheckJarPath
         );
     }
@@ -197,17 +196,17 @@ if ( !processEnvironment[ "RECHECK_JAR" ] ) {
 // #region 🌍 Global Configs and Rules
 // MARK: Global Configs and Rules
 // ═══════════════════════════════════════════════════════════════════════════════
-export default defineConfig( [
-    globalIgnores( [
+export default defineConfig([
+    globalIgnores([
         "**/CHANGELOG.md",
         ".remarkrc.mjs",
         "test//fixtures/**",
-    ] ),
-    gitignore( {
+    ]),
+    gitignore({
         name: "Global - .gitignore Rules",
         root: true,
         strict: true,
-    } ),
+    }),
     // Stylistic.configs.customize({
     //     arrowParens: true,
     //     blockSpacing: true,
@@ -286,51 +285,51 @@ export default defineConfig( [
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         ...importX.flatConfigs.typescript,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Import-X TypeScript (code files only)",
     },
-    ...( isEslintV10OrNewer
+    ...(isEslintV10OrNewer
         ? []
-        : [ progress.configs[ "recommended-ci" ], fileProgressOverridesConfig ] ),
+        : [progress.configs["recommended-ci"], fileProgressOverridesConfig]),
     {
         ...noBarrelFiles.flat,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "No barrel files (code files only)",
     },
     {
         // @ts-expect-error: nitpick.configs.recommended may not have correct types,
         // but runtime usage is verified and safe
         ...nitpick.configs.recommended,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Nitpick recommended (code files only)",
     },
     {
         ...comments.recommended,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "ESLint comments recommended (code files only)",
     },
     {
         // @ts-expect-error -- Plugin needs update for Eslint v10
         ...arrayFunc.configs.all,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
     },
     // @ts-expect-error -- Plugin needs update for Eslint v10
-    ...fixupConfigRules( pluginCasePolice.configs.recommended ).map( ( config ) => ( {
+    ...fixupConfigRules(pluginCasePolice.configs.recommended).map((config) => ({
         ...config,
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: config.name
-            ? `Case police (code files only): ${ config.name }`
+            ? `Case police (code files only): ${config.name}`
             : "Case police (code files only)",
-    } ) ),
-    ...jsdocPlugin.configs[ "examples-and-default-expressions" ].map(
-        ( config ) => ( {
+    })),
+    ...jsdocPlugin.configs["examples-and-default-expressions"].map(
+        (config) => ({
             ...config,
-            files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+            files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
             name: config.name
-                ? `JSDoc examples/default expressions (code files only): ${ config.name }`
+                ? `JSDoc examples/default expressions (code files only): ${config.name}`
                 : "JSDoc examples/default expressions (code files only)",
-        } )
+        })
     ),
     // #endregion
     // #region 🧩 Custom Flat Configs
@@ -429,7 +428,7 @@ export default defineConfig( [
                 noWarnOnMultipleProjects: true, // Don't warn about multiple projects
             },
             "import-x/resolver-next": [
-                createTypeScriptImportResolver( {
+                createTypeScriptImportResolver({
                     alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
                     bun: true, // Resolve Bun modules (https://github.com/import-js/eslint-import-resolver-typescript#bun)
                     noWarnOnMultipleProjects: true, // Don't warn about multiple projects
@@ -440,7 +439,7 @@ export default defineConfig( [
                         "./tsconfig.build.json",
                         "./tsconfig.js.json",
                     ],
-                } ),
+                }),
             ],
         },
     },
@@ -471,7 +470,7 @@ export default defineConfig( [
                 },
                 ecmaVersion: "latest",
                 jsDocParsingMode: "all",
-                project: [ "./tsconfig.eslint.json" ],
+                project: ["./tsconfig.eslint.json"],
                 sourceType: "module",
                 tsconfigRootDir: configDirectoryPath,
                 warnOnUnsupportedTypeScriptVersion: true,
@@ -505,7 +504,7 @@ export default defineConfig( [
             security: securityPlugin,
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
-            "total-functions": fixupPluginRules( pluginTotalFunctions ),
+            "total-functions": fixupPluginRules(pluginTotalFunctions),
             tsdoc: pluginTsdoc,
             "tsdoc-require": pluginTSDocRequire,
             unicorn: eslintPluginUnicorn,
@@ -514,28 +513,28 @@ export default defineConfig( [
         rules: {
             // TypeScript backend rules
             ...js.configs.all.rules,
-            ...tseslint.configs[ "recommendedTypeChecked" ],
-            ...tseslint.configs[ "recommended" ].rules,
-            ...tseslint.configs[ "strictTypeChecked" ],
-            ...tseslint.configs[ "strict" ].rules,
-            ...tseslint.configs[ "stylisticTypeChecked" ],
-            ...tseslint.configs[ "stylistic" ].rules,
+            ...tseslint.configs["recommendedTypeChecked"],
+            ...tseslint.configs["recommended"].rules,
+            ...tseslint.configs["strictTypeChecked"],
+            ...tseslint.configs["strict"].rules,
+            ...tseslint.configs["stylisticTypeChecked"],
+            ...tseslint.configs["stylistic"].rules,
             ...pluginRegexp.configs.all.rules,
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
-            ...pluginPromise.configs[ "flat/recommended" ].rules,
+            ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs[ "recommended-natural" ].rules,
+            ...pluginPerfectionist.configs["recommended-natural"].rules,
             ...pluginSecurity.configs.recommended.rules,
-            ...nodePlugin.configs[ "flat/all" ].rules,
+            ...nodePlugin.configs["flat/all"].rules,
             ...eslintPluginMath.configs.recommended.rules,
             ...comments.recommended.rules,
             ...pluginCanonical.configs.recommended.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
-            ...pluginSortClassMembers.configs[ "flat/recommended" ].rules,
+            ...pluginSortClassMembers.configs["flat/recommended"].rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
@@ -632,7 +631,7 @@ export default defineConfig( [
             "@typescript-eslint/no-empty-function": [
                 "error",
                 {
-                    allow: [ "arrowFunctions" ], // Allow empty arrow functions for React useEffect cleanup
+                    allow: ["arrowFunctions"], // Allow empty arrow functions for React useEffect cleanup
                 },
             ],
             "@typescript-eslint/no-empty-object-type": "error",
@@ -691,7 +690,7 @@ export default defineConfig( [
                                 "It provides no type safety when calling the function, which can be a common source of bugs.",
                                 "If you are expecting the function to accept certain arguments, you should explicitly define the function shape.",
                                 "Use '(...args: unknown[]) => unknown' for generic handlers or define specific function signatures.",
-                            ].join( "\n" ),
+                            ].join("\n"),
                         },
                     },
                 },
@@ -772,7 +771,7 @@ export default defineConfig( [
                 "warn",
                 {
                     allowAny: true,
-                    allowedPromiseNames: [ "Promise" ],
+                    allowedPromiseNames: ["Promise"],
                     checkArrowFunctions: false,
                 },
             ],
@@ -781,7 +780,7 @@ export default defineConfig( [
             "@typescript-eslint/require-await": "error", // Functions marked async must use await
             "@typescript-eslint/restrict-plus-operands": "warn",
             "@typescript-eslint/restrict-template-expressions": "warn",
-            "@typescript-eslint/return-await": [ "error", "in-try-catch" ], // Proper await handling in try-catch
+            "@typescript-eslint/return-await": ["error", "in-try-catch"], // Proper await handling in try-catch
             "@typescript-eslint/strict-boolean-expressions": "off",
             "@typescript-eslint/switch-exhaustiveness-check": "error", // Ensure switch statements are exhaustive
             "@typescript-eslint/triple-slash-reference": "warn",
@@ -803,7 +802,7 @@ export default defineConfig( [
                     aliases: [
                         {
                             alias: "@plugin/",
-                            matchParent: path.resolve( import.meta.dirname ),
+                            matchParent: path.resolve(import.meta.dirname),
                             matchPath: "^plugin/",
                             maxRelativeDepth: 0,
                         },
@@ -851,18 +850,19 @@ export default defineConfig( [
 
             "eslint-plugin/consistent-output": "error",
             "eslint-plugin/fixer-return": "error",
-            "eslint-plugin/meta-property-ordering": [ "error",
+            "eslint-plugin/meta-property-ordering": [
+                "error",
                 [
-                    'defaultOptions',
-                    'deprecated',
-                    'docs',
-                    'fixable',
-                    'hasSuggestions',
-                    'messages',
-                    'replacedBy',
-                    'schema',
-                    'type'
-                ]
+                    "defaultOptions",
+                    "deprecated",
+                    "docs",
+                    "fixable",
+                    "hasSuggestions",
+                    "messages",
+                    "replacedBy",
+                    "schema",
+                    "type",
+                ],
             ],
             "eslint-plugin/no-deprecated-context-methods": "error",
             "eslint-plugin/no-deprecated-report-api": "error",
@@ -885,7 +885,7 @@ export default defineConfig( [
             "eslint-plugin/report-message-format": "warn",
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
-            "eslint-plugin/require-meta-docs-recommended": "warn",
+            "eslint-plugin/require-meta-docs-recommended": "off",
             "eslint-plugin/require-meta-docs-url": "error",
             "eslint-plugin/require-meta-fixable": "error",
             "eslint-plugin/require-meta-has-suggestions": "error",
@@ -959,7 +959,7 @@ export default defineConfig( [
             "import-x/no-unassigned-import": [
                 "error",
                 {
-                    allow: [ "**/*.css", "**/*.scss" ], // Allow CSS imports without assignment
+                    allow: ["**/*.css", "**/*.scss"], // Allow CSS imports without assignment
                 },
             ],
             "import-x/no-unresolved": "off",
@@ -1140,7 +1140,7 @@ export default defineConfig( [
         },
     },
     {
-        files: [ "test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}" ],
+        files: ["test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}"],
         name: "ESLint Plugin Tests - internal tooling",
         rules: {
             "@typescript-eslint/array-type": "off",
@@ -1172,7 +1172,7 @@ export default defineConfig( [
         },
     },
     {
-        files: [ "test/_internal/ruleTester.ts" ],
+        files: ["test/_internal/ruleTester.ts"],
         name: "ESLint Plugin Tests - internal helper filename",
         rules: {
             "unicorn/filename-case": "off",
@@ -1184,7 +1184,7 @@ export default defineConfig( [
     // MARK: 🧪 Tests
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}" ],
+        files: ["test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}"],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -1209,7 +1209,7 @@ export default defineConfig( [
                 jsDocParsingMode: "all",
                 project: "./tsconfig.eslint.json",
                 sourceType: "module",
-                tsconfigRootDir: path.resolve( import.meta.dirname ),
+                tsconfigRootDir: path.resolve(import.meta.dirname),
                 warnOnUnsupportedTypeScriptVersion: true,
             },
         },
@@ -1228,15 +1228,15 @@ export default defineConfig( [
         rules: {
             // Test Files Backend Rules (Electron Tests)
             ...js.configs.all.rules,
-            ...tseslint.configs[ "recommendedTypeChecked" ],
-            ...tseslint.configs[ "recommended" ].rules,
-            ...tseslint.configs[ "strictTypeChecked" ],
-            ...tseslint.configs[ "strict" ].rules,
-            ...tseslint.configs[ "stylisticTypeChecked" ],
-            ...tseslint.configs[ "stylistic" ].rules,
+            ...tseslint.configs["recommendedTypeChecked"],
+            ...tseslint.configs["recommended"].rules,
+            ...tseslint.configs["strictTypeChecked"],
+            ...tseslint.configs["strict"].rules,
+            ...tseslint.configs["stylisticTypeChecked"],
+            ...tseslint.configs["stylistic"].rules,
             ...vitest.configs.all.rules,
             ...eslintPluginUnicorn.configs.all.rules,
-            ...pluginTestingLibrary.configs[ "flat/react" ].rules,
+            ...pluginTestingLibrary.configs["flat/react"].rules,
 
             "@jcoreio/implicit-dependencies/no-implicit": "off",
             "@typescript-eslint/explicit-function-return-type": "off",
@@ -1331,7 +1331,7 @@ export default defineConfig( [
             "testing-library/consistent-data-testid": [
                 "warn",
                 {
-                    testIdAttribute: [ "data-testid" ],
+                    testIdAttribute: ["data-testid"],
                     testIdPattern:
                         "^[a-z]+([A-Z][a-z]+)*(-[a-z]+([A-Z][a-z]+)*)*$", // Kebab-case or camelCase
                 },
@@ -1456,7 +1456,7 @@ export default defineConfig( [
         settings: {
             "import-x/resolver": {
                 node: true,
-                project: [ "config/testing/tsconfig.electron.test.json" ],
+                project: ["./tsconfig.eslint.json"],
                 // You will also need to install and configure the TypeScript resolver
                 // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
                 typescript: true,
@@ -1466,7 +1466,7 @@ export default defineConfig( [
                 // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
                 typescript: {
                     alwaysTryTypes: true, // Always try to resolve types under `<root>@types` directory even if it doesn't contain any source code, like `@types/unist`
-                    project: [ "config/testing/tsconfig.electron.test.json" ],
+                    project: ["./tsconfig.eslint.json"],
                 },
             },
             n: {
@@ -1487,7 +1487,7 @@ export default defineConfig( [
     // MARK: Package.json Linting
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/package.json" ],
+        files: ["**/package.json"],
         languageOptions: {
             parser: jsoncEslintParser,
             parserOptions: { jsonSyntax: "JSON" },
@@ -1630,7 +1630,7 @@ export default defineConfig( [
     // MARK: Markdown (md/*, markdown/*, markup/*, atom/*, rss/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{md,markup,atom,rss,markdown}" ],
+        files: ["**/*.{md,markup,atom,rss,markdown}"],
         ignores: [
             "**/docs/packages/**",
             "**/docs/TSDoc/**",
@@ -1671,7 +1671,7 @@ export default defineConfig( [
     // MARK: YAML/YML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{yaml,yml}" ],
+        files: ["**/*.{yaml,yml}"],
         ignores: [],
         language: "yml/yaml",
         languageOptions: {
@@ -1726,8 +1726,8 @@ export default defineConfig( [
     // MARK: HTML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{html,htm,xhtml}" ],
-        ignores: [ "report/**" ],
+        files: ["**/*.{html,htm,xhtml}"],
+        ignores: ["report/**"],
         languageOptions: {
             parser: htmlParser,
         },
@@ -1795,13 +1795,13 @@ export default defineConfig( [
     // MARK: JSONC (jsonc/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.jsonc", ".vscode/*.json" ],
+        files: ["**/*.jsonc", ".vscode/*.json"],
         ignores: [],
         name: "JSONC - **/*.JSONC",
         // ═══════════════════════════════════════════════════════════════════════════════
         // Plugin Config for eslint-plugin-jsonc to enable Prettier formatting
         // ═══════════════════════════════════════════════════════════════════════════════
-        ...eslintPluginJsonc.configs[ "flat/prettier" ][ 0 ],
+        ...eslintPluginJsonc.configs["flat/prettier"][0],
         language: "json/jsonc",
         languageOptions: {
             parser: jsoncEslintParser,
@@ -1911,10 +1911,10 @@ export default defineConfig( [
     // MARK: JSON (json/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.json" ],
+        files: ["**/*.json"],
         // Package.json has a dedicated config block above that uses jsonc-eslint-parser
         // (needed for some package.json-specific tooling rules).
-        ignores: [ "**/package.json" ],
+        ignores: ["**/package.json"],
         language: "json/json",
         name: "JSON - **/*.JSON",
         plugins: {
@@ -1925,7 +1925,7 @@ export default defineConfig( [
         rules: {
             ...json.configs.recommended.rules,
             ...jsonSchemaValidatorRules,
-            "json/sort-keys": [ "warn" ],
+            "json/sort-keys": ["warn"],
             "json/top-level-interop": "warn",
             "no-secrets/no-pattern-match": "off",
             "no-secrets/no-secrets": [
@@ -1942,7 +1942,7 @@ export default defineConfig( [
     // MARK: JSON5 (json5/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.json5" ],
+        files: ["**/*.json5"],
         language: "json/json5",
         name: "JSON5 - **/*.JSON5",
         plugins: {
@@ -1968,8 +1968,8 @@ export default defineConfig( [
     // MARK: TOML (toml/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.toml" ],
-        ignores: [ "lychee.toml" ],
+        files: ["**/*.toml"],
+        ignores: ["lychee.toml"],
         languageOptions: {
             parser: tomlEslintParser,
             parserOptions: { tomlVersion: "1.0.0" },
@@ -2007,7 +2007,7 @@ export default defineConfig( [
     // MARK: JS JsDoc
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "scripts/**/*.{js,cjs,mjs}" ],
+        files: ["scripts/**/*.{js,cjs,mjs}"],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -2025,7 +2025,7 @@ export default defineConfig( [
         rules: {
             // Start from upstream defaults for JS so new recommended rules are
             // picked up automatically when eslint-plugin-jsdoc updates.
-            ...jsdocPlugin.configs[ "flat/recommended" ].rules,
+            ...jsdocPlugin.configs["flat/recommended"].rules,
             "jsdoc/check-access": "warn", // Recommended
             "jsdoc/check-alignment": "warn", // Recommended
             "jsdoc/check-indentation": "off",
@@ -2173,13 +2173,13 @@ export default defineConfig( [
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
-            ...pluginPromise.configs[ "flat/recommended" ].rules,
+            ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs[ "recommended-natural" ].rules,
+            ...pluginPerfectionist.configs["recommended-natural"].rules,
             ...pluginRedos.configs.recommended.rules,
             ...pluginSecurity.configs.recommended.rules,
-            ...nodePlugin.configs[ "flat/recommended" ].rules,
+            ...nodePlugin.configs["flat/recommended"].rules,
             ...eslintPluginMath.configs.recommended.rules,
             camelcase: "off",
             "capitalized-comments": [
@@ -2229,7 +2229,7 @@ export default defineConfig( [
             "sonarjs/arguments-usage": "warn",
             "sonarjs/array-constructor": "warn",
             "sonarjs/aws-iam-all-resources-accessible": "warn",
-            "sonarjs/cognitive-complexity": [ "warn", 30 ],
+            "sonarjs/cognitive-complexity": ["warn", 30],
             "sonarjs/comment-regex": "warn",
             "sonarjs/declarations-in-global-scope": "off",
             "sonarjs/elseif-without-else": "off",
@@ -2368,14 +2368,14 @@ export default defineConfig( [
     // MARK: Disables
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/package.json", "**/package-lock.json" ],
+        files: ["**/package.json", "**/package-lock.json"],
         name: "JSON: Files - Disables",
         rules: {
             "json/sort-keys": "off",
         },
     },
     {
-        files: [ "**/.vscode/**" ],
+        files: ["**/.vscode/**"],
         name: "VS Code Files - Disables",
         rules: {
             "jsonc/array-bracket-newline": "off",
@@ -2392,7 +2392,7 @@ export default defineConfig( [
     // `...uptimeWatcherTypeUtilsRepoConfigs`.
     // Keep them centralized there to avoid config drift.
     {
-        files: [ "**/**" ],
+        files: ["**/**"],
         name: "Global: Stylistic Overrides",
         plugins: {
             "@stylistic": stylistic,
@@ -2413,7 +2413,7 @@ export default defineConfig( [
                 "error",
                 "always",
                 {
-                    exceptions: [ "-", "+" ],
+                    exceptions: ["-", "+"],
                 },
             ],
         },
@@ -2424,7 +2424,7 @@ export default defineConfig( [
     // MARK: Global Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: [ "**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}" ],
+        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Global: Globals",
         plugins: {
             canonical: canonicalPlugin,
@@ -2543,4 +2543,4 @@ export default defineConfig( [
     // #region 🧹 Prettier Disable Config
     eslintConfigPrettier,
     // #endregion
-] );
+]);

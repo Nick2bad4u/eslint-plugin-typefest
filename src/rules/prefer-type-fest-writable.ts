@@ -132,10 +132,10 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
             },
             messages: {
-                preferWritableAlias:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
                 preferWritable:
                     "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
+                preferWritableAlias:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

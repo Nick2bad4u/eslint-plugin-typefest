@@ -113,19 +113,19 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
         },
         defaultOptions: [],
         meta: {
-            type: "suggestion",
             docs: {
                 description:
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tagged-brands.md",
             },
-            schema: [],
             messages: {
                 preferTaggedAlias:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
                 preferTaggedBrand:
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },
+            schema: [],
+            type: "suggestion",
         },
         name: "prefer-type-fest-tagged-brands",
     });

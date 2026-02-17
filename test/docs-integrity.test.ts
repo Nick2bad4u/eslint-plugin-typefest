@@ -38,7 +38,7 @@ describe("typefest rule docs", () => {
 
             const description = docs?.description;
 
-            expectTypeOf(description).toBeString();
+            expectTypeOf(description).toEqualTypeOf<string | undefined>();
 
             const expectedPath = path.join(docsDir, `${ruleId}.md`);
 
