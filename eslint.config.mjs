@@ -8,6 +8,7 @@
 
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
+import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 // import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
@@ -130,6 +131,7 @@ const require = createRequire(import.meta.url);
 const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 // eslint-disable-next-line sonarjs/no-require-or-define -- Runtime ESLint major detection is required to conditionally disable incompatible third-party presets.
 const eslintVersion = require("eslint/package.json").version;
+
 const eslintMajorVersion = Number.parseInt(
     eslintVersion.split(".")[0] ?? "0",
     10
@@ -194,8 +196,6 @@ if (!processEnvironment["RECHECK_JAR"]) {
         );
     }
 }
-
-import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // #region 🌍 Global Configs and Rules
@@ -489,14 +489,11 @@ export default defineConfig([
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
-            tsdoc: pluginTsdoc,
-            "tsdoc-require": pluginTSDocRequire,
             // @ts-expect-error -- Plugin needs update for Eslint v10
             etc: fixupPluginRules(etc),
             "import-x": importX,
             jsdoc: jsdocPlugin,
             listeners,
-            "unused-imports": pluginUnusedImports,
             math: eslintPluginMath,
             "module-interop": moduleInterop,
             n: nodePlugin,
@@ -512,7 +509,10 @@ export default defineConfig([
             sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             "total-functions": fixupPluginRules(pluginTotalFunctions),
+            tsdoc: pluginTsdoc,
+            "tsdoc-require": pluginTSDocRequire,
             unicorn: eslintPluginUnicorn,
+            "unused-imports": pluginUnusedImports,
         },
         rules: {
             // TypeScript backend rules
@@ -549,33 +549,14 @@ export default defineConfig([
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...etc.configs.recommended.rules,
 
-            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
-            // supports ESLint 10 rule context APIs.
-            "tsdoc-require/require": "off",
-            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc supports
-            // ESLint 10 without legacy context helpers.
-            "tsdoc/syntax": "off",
+            "@eslint-community/eslint-comments/no-restricted-disable": "warn",
+            "@eslint-community/eslint-comments/no-unused-disable": "warn",
 
-            // NOTE(ESLint10): Re-enable once eslint-plugin-no-lookahead-lookbehind-regexp supports
-            // ESLint 10 without legacy context helpers.
-            "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp": "off",
+            "@eslint-community/eslint-comments/no-use": "off",
 
-            "unused-imports/no-unused-imports": "error",
-            "unused-imports/no-unused-vars": "error",
-
-            "etc/no-commented-out-code": "off",
-            "etc/no-const-enum": "warn",
-            "etc/no-enum": "off",
-            "etc/no-foreach": "off",
-            "etc/no-internal": "off",
-            "etc/no-misused-generics": "warn",
-            "etc/no-t": "off",
-            "etc/prefer-interface": "off",
-            "etc/prefer-less-than": "off",
-            "etc/throw-error": "warn",
-            "etc/underscore-internal": "off",
-
+            "@eslint-community/eslint-comments/require-description": "warn",
             "@microsoft/sdl/no-angular-bypass-sanitizer": "warn",
+
             "@microsoft/sdl/no-angular-sanitization-trusted-urls": "warn",
             "@microsoft/sdl/no-angularjs-bypass-sce": "warn",
             "@microsoft/sdl/no-angularjs-enable-svg": "warn",
@@ -587,12 +568,12 @@ export default defineConfig([
             "@microsoft/sdl/no-html-method": "warn",
             "@microsoft/sdl/no-inner-html": "warn",
             "@microsoft/sdl/no-insecure-random": "off",
+
             "@microsoft/sdl/no-insecure-url": "warn",
             "@microsoft/sdl/no-msapp-exec-unsafe": "warn",
             "@microsoft/sdl/no-postmessage-star-origin": "warn",
             "@microsoft/sdl/no-unsafe-alloc": "warn",
             "@microsoft/sdl/no-winjs-html-unsafe": "warn",
-
             "@typescript-eslint/await-thenable": "error", // Prevent awaiting non-promises
             "@typescript-eslint/ban-ts-comment": "warn",
             "@typescript-eslint/ban-tslint-comment": "warn",
@@ -606,6 +587,7 @@ export default defineConfig([
             "@typescript-eslint/consistent-type-definitions": "warn",
             "@typescript-eslint/consistent-type-exports": "warn",
             "@typescript-eslint/consistent-type-imports": "warn",
+
             "@typescript-eslint/default-param-last": "warn",
             "@typescript-eslint/dot-notation": [
                 "warn",
@@ -808,18 +790,33 @@ export default defineConfig([
             "@typescript-eslint/unbound-method": "warn",
             "@typescript-eslint/unified-signatures": "warn",
             "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
+            "canonical/filename-match-regex": "off", // Taken care of by unicorn rules
+            "canonical/filename-no-index": "error",
+            "canonical/import-specifier-newline": "off",
+            "canonical/no-barrel-import": "error",
+            "canonical/no-export-all": "error",
+            "canonical/no-import-namespace-destructure": "warn",
+            "canonical/no-re-export": "warn",
+            "canonical/no-reassign-imports": "error",
+            "canonical/no-restricted-imports": "off",
+            "canonical/prefer-import-alias": [
+                "off",
+                {
+                    aliases: [
+                        {
+                            alias: "@plugin/",
+                            matchParent: path.resolve(import.meta.dirname),
+                            matchPath: "^plugin/",
+                            maxRelativeDepth: 0,
+                        },
+                    ],
+                },
+            ],
+            "canonical/prefer-inline-type-import": "off",
+            "canonical/prefer-react-lazy": "off",
 
-            "math/abs": "warn",
-            "math/prefer-exponentiation-operator": "warn",
-            "math/prefer-math-sum-precise": "warn",
-
-            "promise/no-multiple-resolved": "warn",
-            "promise/prefer-await-to-callbacks": "off",
-            "promise/prefer-await-to-then": "warn",
-            "promise/prefer-catch": "warn",
-            "promise/spec-only": "warn",
-
-            "comment-length/limit-tagged-template-literal-comments": "off",
+            "canonical/prefer-use-mount": "warn",
+            "canonical/sort-react-dependencies": "warn",
             "comment-length/limit-multi-line-comments": [
                 "warn",
                 {
@@ -831,6 +828,7 @@ export default defineConfig([
                     tabSize: 2,
                 },
             ],
+
             "comment-length/limit-single-line-comments": [
                 "warn",
                 {
@@ -842,13 +840,15 @@ export default defineConfig([
                     tabSize: 2,
                 },
             ],
-
+            "comment-length/limit-tagged-template-literal-comments": "off",
             "eslint-plugin/consistent-output": "error",
             "eslint-plugin/fixer-return": "error",
             "eslint-plugin/meta-property-ordering": "warn",
+
             "eslint-plugin/no-deprecated-context-methods": "error",
             "eslint-plugin/no-deprecated-report-api": "error",
             "eslint-plugin/no-identical-tests": "error",
+
             "eslint-plugin/no-matching-violation-suggest-message-ids": "error",
             "eslint-plugin/no-meta-replaced-by": "error",
             "eslint-plugin/no-meta-schema-default": "error",
@@ -878,23 +878,106 @@ export default defineConfig([
             "eslint-plugin/test-case-property-ordering": "warn",
             "eslint-plugin/test-case-shorthand-strings": "error",
             "eslint-plugin/unique-test-case-names": "error",
+            "etc/no-commented-out-code": "off",
+            "etc/no-const-enum": "warn",
+            "etc/no-enum": "off",
+            "etc/no-foreach": "off",
+            "etc/no-internal": "off",
+            "etc/no-misused-generics": "warn",
+
+            "etc/no-t": "off",
+            "etc/prefer-interface": "off",
+            "etc/prefer-less-than": "off",
+            "etc/throw-error": "warn",
+
+            "etc/underscore-internal": "off",
+            "import-x/consistent-type-specifier-style": "off",
+            "import-x/default": "warn",
 
             "import-x/dynamic-import-chunkname": "off",
-            "import-x/no-nodejs-modules": "off",
-            "import-x/no-unresolved": "off",
-            "import-x/order": "off",
+            // Webpack-only guidance; disabled for Vite/Electron.
+            "import-x/export": "warn",
+            "import-x/exports-last": "off",
 
+            "import-x/extensions": "warn",
+            "import-x/first": "warn",
+
+            "import-x/group-exports": "off",
+
+            "import-x/max-dependencies": "off",
+            // Import/Export Rules (import-x/*)
+            "import-x/named": "warn",
+            "import-x/namespace": "warn",
+            "import-x/newline-after-import": "warn",
+            "import-x/no-absolute-path": "warn",
+            "import-x/no-amd": "warn",
+            "import-x/no-anonymous-default-export": "warn",
+            "import-x/no-commonjs": "warn",
+
+            "import-x/no-cycle": "warn",
+            "import-x/no-default-export": "off",
+            "import-x/no-deprecated": "warn",
+            "import-x/no-duplicates": "warn",
+            "import-x/no-dynamic-require": "warn",
+            "import-x/no-empty-named-blocks": "warn",
+            "import-x/no-extraneous-dependencies": "warn",
+            "import-x/no-import-module-exports": "warn",
+            "import-x/no-internal-modules": "off",
+            "import-x/no-mutable-exports": "warn",
+            "import-x/no-named-as-default": "off",
+            "import-x/no-named-as-default-member": "off",
+            "import-x/no-named-default": "warn",
+            "import-x/no-named-export": "off",
+
+            "import-x/no-namespace": "off",
+            "import-x/no-nodejs-modules": "off",
+
+            "import-x/no-relative-packages": "warn",
+            "import-x/no-relative-parent-imports": "off",
+            "import-x/no-rename-default": "warn",
+            "import-x/no-restricted-paths": "warn",
+            "import-x/no-self-import": "warn",
+            // Import rules
+            "import-x/no-unassigned-import": [
+                "error",
+                {
+                    allow: [
+                        "**/*.css",
+                        "**/*.scss",
+                    ], // Allow CSS imports without assignment
+                },
+            ],
+            "import-x/no-unresolved": "off",
+            "import-x/no-unused-modules": "warn",
+            "import-x/no-useless-path-segments": "warn",
+            "import-x/no-webpack-loader-syntax": "warn",
+            "import-x/order": "off",
+            "import-x/prefer-default-export": "off",
+            "import-x/prefer-namespace-import": "off",
+            // NOTE(ESLint10): Re-enable once import-x/unambiguous is
+            // compatible with ESLint 10 parser context assumptions.
+            "import-x/unambiguous": "off",
             "jsdoc/require-description": "warn",
             "jsdoc/require-param-description": "warn",
             "jsdoc/require-returns-description": "warn",
-
+            "math/abs": "warn",
+            "math/prefer-exponentiation-operator": "warn",
+            "math/prefer-math-sum-precise": "warn",
+            "module-interop/no-import-cjs": "warn",
+            "module-interop/no-require-esm": "warn",
             "n/file-extension-in-import": "off",
             "n/no-missing-file-extension": "off",
             "n/no-missing-import": "off",
-
+            // NOTE(ESLint10): Re-enable once eslint-plugin-no-lookahead-lookbehind-regexp supports
+            // ESLint 10 without legacy context helpers.
+            "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp": "off",
+            "promise/no-multiple-resolved": "warn",
+            "promise/prefer-await-to-callbacks": "off",
+            "promise/prefer-await-to-then": "warn",
+            "promise/prefer-catch": "warn",
+            "promise/spec-only": "warn",
             "security/detect-non-literal-fs-filename": "off",
             "security/detect-object-injection": "off",
-
             "sort-class-members/sort-class-members": [
                 "warn",
                 {
@@ -917,7 +1000,6 @@ export default defineConfig([
                     stopAfterFirstProblem: false,
                 },
             ],
-
             "total-functions/no-hidden-type-assertions": "off",
             "total-functions/no-nested-fp-ts-effects": "off",
             "total-functions/no-partial-division": "off",
@@ -926,96 +1008,14 @@ export default defineConfig([
             "total-functions/no-unsafe-readonly-mutable-assignment": "off",
             "total-functions/no-unsafe-type-assertion": "off",
             "total-functions/require-strict-mode": "off",
-
-            "canonical/filename-match-regex": "off", // Taken care of by unicorn rules
-            "canonical/filename-no-index": "error",
-            "canonical/import-specifier-newline": "off",
-            "canonical/no-barrel-import": "error",
-            "canonical/no-export-all": "error",
-            "canonical/no-import-namespace-destructure": "warn",
-            "canonical/no-re-export": "warn",
-            "canonical/no-reassign-imports": "error",
-            "canonical/no-restricted-imports": "off",
-            "canonical/prefer-import-alias": [
-                "off",
-                {
-                    aliases: [
-                        {
-                            alias: "@plugin/",
-                            matchParent: path.resolve(import.meta.dirname),
-                            matchPath: "^plugin/",
-                            maxRelativeDepth: 0,
-                        },
-                    ],
-                },
-            ],
-            "canonical/prefer-inline-type-import": "off",
-            "canonical/prefer-react-lazy": "off",
-            "canonical/prefer-use-mount": "warn",
-            "canonical/sort-react-dependencies": "warn",
-
-            "module-interop/no-import-cjs": "warn",
-            "module-interop/no-require-esm": "warn",
-
-            "import-x/no-named-as-default": "off",
-            "import-x/no-named-as-default-member": "off",
-            "import-x/consistent-type-specifier-style": "off",
-            "import-x/default": "warn",
-            // Webpack-only guidance; disabled for Vite/Electron.
-            "import-x/export": "warn",
-            "import-x/no-empty-named-blocks": "warn",
-            "import-x/exports-last": "off",
-            "import-x/extensions": "warn",
-            "import-x/first": "warn",
-            "import-x/group-exports": "off",
-            "import-x/max-dependencies": "off",
-            // Import/Export Rules (import-x/*)
-            "import-x/named": "warn",
-            "import-x/namespace": "warn",
-            "import-x/newline-after-import": "warn",
-            "import-x/no-absolute-path": "warn",
-            "import-x/no-amd": "warn",
-            "import-x/no-anonymous-default-export": "warn",
-            "import-x/no-commonjs": "warn",
-            "import-x/no-cycle": "warn",
-            "import-x/no-default-export": "off",
-            "import-x/no-deprecated": "warn",
-            "import-x/no-duplicates": "warn",
-            "import-x/no-dynamic-require": "warn",
-            "import-x/no-extraneous-dependencies": "warn",
-            "import-x/no-import-module-exports": "warn",
-            "import-x/no-internal-modules": "off",
-            "import-x/no-mutable-exports": "warn",
-            "import-x/no-named-default": "warn",
-            "import-x/no-named-export": "off",
-            "import-x/no-namespace": "off",
-            "import-x/no-relative-packages": "warn",
-            "import-x/no-relative-parent-imports": "off",
-            "import-x/no-rename-default": "warn",
-            "import-x/no-restricted-paths": "warn",
-            "import-x/no-self-import": "warn",
-            // Import rules
-            "import-x/no-unassigned-import": [
-                "error",
-                {
-                    allow: [
-                        "**/*.css",
-                        "**/*.scss",
-                    ], // Allow CSS imports without assignment
-                },
-            ],
-            "import-x/no-unused-modules": "warn",
-            "import-x/no-useless-path-segments": "warn",
-            "import-x/no-webpack-loader-syntax": "warn",
-            "import-x/prefer-default-export": "off",
-            "import-x/prefer-namespace-import": "off",
-            // NOTE(ESLint10): Re-enable once import-x/unambiguous is
-            // compatible with ESLint 10 parser context assumptions.
-            "import-x/unambiguous": "off",
-            "@eslint-community/eslint-comments/no-restricted-disable": "warn",
-            "@eslint-community/eslint-comments/no-unused-disable": "warn",
-            "@eslint-community/eslint-comments/no-use": "off",
-            "@eslint-community/eslint-comments/require-description": "warn",
+            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
+            // supports ESLint 10 rule context APIs.
+            "tsdoc-require/require": "off",
+            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc supports
+            // ESLint 10 without legacy context helpers.
+            "tsdoc/syntax": "off",
+            "unused-imports/no-unused-imports": "error",
+            "unused-imports/no-unused-vars": "error",
         },
     },
     {
@@ -1215,26 +1215,13 @@ export default defineConfig([
             ...eslintPluginUnicorn.configs.all.rules,
             ...pluginTestingLibrary.configs["flat/react"].rules,
 
-            "testing-library/consistent-data-testid": [
-                "warn",
-                {
-                    testIdAttribute: ["data-testid"],
-                    testIdPattern:
-                        "^[a-z]+([A-Z][a-z]+)*(-[a-z]+([A-Z][a-z]+)*)*$", // Kebab-case or camelCase
-                },
-            ],
-            "testing-library/no-test-id-queries": "warn",
-            "testing-library/prefer-explicit-assert": "warn",
-            "testing-library/prefer-implicit-assert": "warn",
-            "testing-library/prefer-query-matchers": "warn",
-            "testing-library/prefer-user-event": "warn",
-
             "@jcoreio/implicit-dependencies/no-implicit": "off",
             "@typescript-eslint/no-empty-function": "off", // Empty mocks/stubs are common
             "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for React components
             "@typescript-eslint/no-non-null-assertion": "off",
             "@typescript-eslint/no-restricted-types": "off", // Tests may need generic Function types
+
             "@typescript-eslint/no-unsafe-function-type": "off", // Tests may use generic handlers
             "@typescript-eslint/no-unused-vars": "off",
             "@typescript-eslint/no-use-before-define": "off", // Allow use before define in tests
@@ -1312,10 +1299,23 @@ export default defineConfig([
             "sort-imports": "off",
             "sort-keys": "off",
             "testing-library/await-async-queries": "error",
+            "testing-library/consistent-data-testid": [
+                "warn",
+                {
+                    testIdAttribute: ["data-testid"],
+                    testIdPattern:
+                        "^[a-z]+([A-Z][a-z]+)*(-[a-z]+([A-Z][a-z]+)*)*$", // Kebab-case or camelCase
+                },
+            ],
             "testing-library/no-await-sync-queries": "error",
             "testing-library/no-debugging-utils": "off",
             "testing-library/no-node-access": "off",
+            "testing-library/no-test-id-queries": "warn",
+            "testing-library/prefer-explicit-assert": "warn",
+            "testing-library/prefer-implicit-assert": "warn",
+            "testing-library/prefer-query-matchers": "warn",
             "testing-library/prefer-screen-queries": "warn",
+            "testing-library/prefer-user-event": "warn",
             "testing-library/prefer-user-event-setup": "warn",
             "unicorn/consistent-function-scoping": "off", // Tests often use different scoping
             "unicorn/filename-case": "off", // Allow test files to have any case
@@ -1708,8 +1708,6 @@ export default defineConfig([
             ...html.configs.recommended.rules,
             "html/class-spacing": "warn",
             "html/css-no-empty-blocks": "warn",
-            "html/no-redundant-role": "warn",
-            "html/no-invalid-attr-value": "warn",
             "html/id-naming-convention": "warn",
             "html/indent": "error",
             "html/lowercase": "warn",
@@ -1729,12 +1727,14 @@ export default defineConfig([
             "html/no-ineffective-attrs": "warn",
             // HTML Eslint Plugin Rules (html/*)
             "html/no-inline-styles": "warn",
+            "html/no-invalid-attr-value": "warn",
             "html/no-invalid-entity": "warn",
             "html/no-invalid-role": "warn",
             "html/no-multiple-empty-lines": "warn",
             "html/no-nested-interactive": "warn",
             "html/no-non-scalable-viewport": "warn",
             "html/no-positive-tabindex": "warn",
+            "html/no-redundant-role": "warn",
             "html/no-restricted-attr-values": "warn",
             "html/no-restricted-attrs": "warn",
             "html/no-restricted-tags": "warn",
@@ -2113,7 +2113,7 @@ export default defineConfig([
         name: "JS/MJS Config - **/*.config.{JS,MJS,CTS,CJS}",
         plugins: {
             "@typescript-eslint": tseslint,
-            // css: css,
+            // Css: css,
             depend: depend,
             "import-x": importX,
             js: js,
@@ -2369,14 +2369,14 @@ export default defineConfig([
         rules: {
             "@stylistic/curly-newline": "off",
             "@stylistic/exp-jsx-props-style": "off",
+            "@stylistic/exp-list-style": "off",
             "@stylistic/jsx-curly-brace-presence": "off",
             "@stylistic/jsx-function-call-newline": "off",
             "@stylistic/jsx-pascal-case": "off",
             "@stylistic/jsx-self-closing-comp": "off",
-            "@stylistic/exp-list-style": "off",
             "@stylistic/line-comment-position": "off",
-            "@stylistic/multiline-comment-style": "off",
             "@stylistic/lines-between-class-members": "off",
+            "@stylistic/multiline-comment-style": "off",
             "@stylistic/padding-line-between-statements": "off",
             "@stylistic/spaced-comment": [
                 "error",
@@ -2420,6 +2420,7 @@ export default defineConfig([
                 },
             ],
             "class-methods-use-this": "off",
+            "depend/ban-dependencies": "off",
             "dot-notation": "off",
             // Deprecated rules - to be removed in future
             "id-length": "off",
@@ -2436,7 +2437,6 @@ export default defineConfig([
                 },
             ],
             "max-params": "off",
-            "depend/ban-dependencies": "off",
             "no-console": "off",
             "no-constructor-bind/no-constructor-bind": "error",
             "no-constructor-bind/no-constructor-state": "error",
@@ -2450,7 +2450,6 @@ export default defineConfig([
             "no-empty-character-class": "error",
             "no-explicit-type-exports/no-explicit-type-exports": "error",
             "no-inline-comments": "off",
-            "prettier/prettier": "off", // Using in Prettier directly for less noise for AI
             "no-invalid-regexp": "error",
             "no-magic-numbers": "off",
             "no-plusplus": "off",
@@ -2476,6 +2475,7 @@ export default defineConfig([
                 { allowNamedFunctions: true, allowUnboundThis: true },
             ],
             "prefer-arrow/prefer-arrow-functions": "off", // Too strict
+            "prettier/prettier": "off", // Using in Prettier directly for less noise for AI
             "require-await": "off",
             "require-unicode-regexp": "off",
             "write-good-comments/write-good-comments": "off", // Too strict,
