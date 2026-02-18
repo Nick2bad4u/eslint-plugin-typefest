@@ -3,6 +3,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-docs";
 import type * as Preset from "@docusaurus/preset-classic";
+import { fileURLToPath } from "node:url";
 
 const siteUrl =
     process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
@@ -12,6 +13,9 @@ const enableExperimentalFaster =
 
 const organizationName = "Nick2bad4u";
 const projectName = "eslint-plugin-typefest";
+const modernEnhancementsClientModule = fileURLToPath(
+    new URL("src/js/modernEnhancements.ts", import.meta.url)
+);
 
 const pwaThemeColor = "#2E2A33";
 const pwaTileColor = "#2E2A33";
@@ -51,6 +55,7 @@ const config: Config = {
     favicon: "img/logo.svg",
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: futureConfig,
+    clientModules: [modernEnhancementsClientModule],
     i18n: {
         defaultLocale: "en",
         locales: ["en"],

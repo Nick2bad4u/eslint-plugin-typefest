@@ -7,12 +7,12 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is undefined filter guard body.
+ * Check whether the input is undefined filter guard body.
  *
- * @param body - Input value for body.
- * @param parameterName - Input value for parameterName.
+ * @param body - Value to inspect.
+ * @param parameterName - Value to inspect.
  *
- * @returns `true` when is undefined filter guard body; otherwise `false`.
+ * @returns `true` when the value is undefined filter guard body; otherwise `false`.
  */
 
 const isUndefinedFilterGuardBody = (

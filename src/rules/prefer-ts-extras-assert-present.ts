@@ -7,33 +7,33 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is null expression.
+ * Check whether the input is null expression.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is null expression; otherwise `false`.
+ * @returns `true` when the value is null expression; otherwise `false`.
  */
 
 const isNullExpression = (node: TSESTree.Expression): boolean =>
     node.type === "Literal" && node.value === null;
 
 /**
- * Check whether is undefined expression.
+ * Check whether the input is undefined expression.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is undefined expression; otherwise `false`.
+ * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
 const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
     node.type === "Identifier" && node.name === "undefined";
 
 /**
- * Check whether is throw only consequent.
+ * Check whether the input is throw only consequent.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is throw only consequent; otherwise `false`.
+ * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
 const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
@@ -51,9 +51,9 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 /**
  * ExtractEqNullGuardExpression helper.
  *
- * @param test - Input value for test.
+ * @param test - Value to inspect.
  *
- * @returns Computed result for `extractEqNullGuardExpression`.
+ * @returns ExtractEqNullGuardExpression helper result.
  */
 
 const extractEqNullGuardExpression = (
@@ -77,9 +77,9 @@ const extractEqNullGuardExpression = (
 /**
  * ExtractNullishEqualityPart helper.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns Computed result for `extractNullishEqualityPart`.
+ * @returns ExtractNullishEqualityPart helper result.
  */
 
 const extractNullishEqualityPart = (

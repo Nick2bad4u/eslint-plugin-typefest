@@ -9,9 +9,9 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 /**
  * FlattenLogicalAndTerms helper.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns Computed result for `flattenLogicalAndTerms`.
+ * @returns FlattenLogicalAndTerms helper result.
  */
 
 const flattenLogicalAndTerms = (
@@ -31,12 +31,12 @@ const flattenLogicalAndTerms = (
 };
 
 /**
- * Check whether is null comparison.
+ * Check whether the input is null comparison.
  *
- * @param node - Input value for node.
- * @param parameterName - Input value for parameterName.
+ * @param node - Value to inspect.
+ * @param parameterName - Value to inspect.
  *
- * @returns `true` when is null comparison; otherwise `false`.
+ * @returns `true` when the value is null comparison; otherwise `false`.
  */
 
 const isNullComparison = (
@@ -55,12 +55,12 @@ const isNullComparison = (
             node.left.value === null));
 
 /**
- * Check whether is undefined comparison.
+ * Check whether the input is undefined comparison.
  *
- * @param node - Input value for node.
- * @param parameterName - Input value for parameterName.
+ * @param node - Value to inspect.
+ * @param parameterName - Value to inspect.
  *
- * @returns `true` when is undefined comparison; otherwise `false`.
+ * @returns `true` when the value is undefined comparison; otherwise `false`.
  */
 
 const isUndefinedComparison = (
@@ -99,12 +99,12 @@ const isUndefinedComparison = (
 };
 
 /**
- * Check whether is nullish filter guard body.
+ * Check whether the input is nullish filter guard body.
  *
- * @param callback - Input value for callback.
- * @param parameterName - Input value for parameterName.
+ * @param callback - Value to inspect.
+ * @param parameterName - Value to inspect.
  *
- * @returns `true` when is nullish filter guard body; otherwise `false`.
+ * @returns `true` when the value is nullish filter guard body; otherwise `false`.
  */
 
 const isNullishFilterGuardBody = (

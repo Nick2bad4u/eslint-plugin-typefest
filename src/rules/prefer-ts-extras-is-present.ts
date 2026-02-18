@@ -23,9 +23,9 @@ type NullishKind = "null" | "undefined";
 /**
  * FlattenLogicalTerms helper.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns Computed result for `flattenLogicalTerms`.
+ * @returns FlattenLogicalTerms helper result.
  */
 
 const flattenLogicalTerms = ({
@@ -55,11 +55,11 @@ const flattenLogicalTerms = ({
 };
 
 /**
- * Check whether is undefined identifier.
+ * Check whether the input is undefined identifier.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns `true` when is undefined identifier; otherwise `false`.
+ * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
 const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
@@ -68,9 +68,9 @@ const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
 /**
  * GetNullishComparison helper.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns Computed result for `getNullishComparison`.
+ * @returns GetNullishComparison helper result.
  */
 
 const getNullishComparison = (
@@ -128,11 +128,11 @@ const getNullishComparison = (
 };
 
 /**
- * Check whether is filter call.
+ * Check whether the input is filter call.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns `true` when is filter call; otherwise `false`.
+ * @returns `true` when the value is filter call; otherwise `false`.
  */
 
 const isFilterCall = (
@@ -149,11 +149,11 @@ const isFilterCall = (
     expression.callee.property.name === FILTER_METHOD_NAME;
 
 /**
- * Check whether is function callback node.
+ * Check whether the input is function callback node.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is function callback node; otherwise `false`.
+ * @returns `true` when the value is function callback node; otherwise `false`.
  */
 
 const isFunctionCallbackNode = (
@@ -165,20 +165,20 @@ const isFunctionCallbackNode = (
 /**
  * GetParentNode helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getParentNode`.
+ * @returns GetParentNode helper result.
  */
 
 const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
 
 /**
- * Check whether is within filter callback.
+ * Check whether the input is within filter callback.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is within filter callback; otherwise `false`.
+ * @returns `true` when the value is within filter callback; otherwise `false`.
  */
 
 const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
@@ -204,11 +204,11 @@ const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
 };
 
 /**
- * Utility for have same compared expression.
+ * Check whether two comparisons share the same compared expression.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when have same compared expression; otherwise `false`.
+ * @returns `true` when both sides have same compared expression; otherwise `false`.
  */
 
 const haveSameComparedExpression = ({
@@ -223,11 +223,11 @@ const haveSameComparedExpression = ({
     sourceCode.getText(first).trim() === sourceCode.getText(second).trim();
 
 /**
- * Check whether is strict present check.
+ * Check whether the input is strict present check.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is strict present check; otherwise `false`.
+ * @returns `true` when the value is strict present check; otherwise `false`.
  */
 
 const isStrictPresentCheck = ({
@@ -279,11 +279,11 @@ const isStrictPresentCheck = ({
 };
 
 /**
- * Check whether is strict absent check.
+ * Check whether the input is strict absent check.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is strict absent check; otherwise `false`.
+ * @returns `true` when the value is strict absent check; otherwise `false`.
  */
 
 const isStrictAbsentCheck = ({

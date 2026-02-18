@@ -9,12 +9,12 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const ARRAY_TYPE_NAME = "Array";
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -28,9 +28,9 @@ const isIdentifierTypeReference = (
 /**
  * GetArrayTypeReferenceElementType helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getArrayTypeReferenceElementType`.
+ * @returns GetArrayTypeReferenceElementType helper result.
  */
 
 const getArrayTypeReferenceElementType = (
@@ -52,10 +52,10 @@ const getArrayTypeReferenceElementType = (
 /**
  * NormalizeTypeNodeText helper.
  *
- * @param sourceCode - Input value for sourceCode.
- * @param node - Input value for node.
+ * @param sourceCode - Value to inspect.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `normalizeTypeNodeText`.
+ * @returns NormalizeTypeNodeText helper result.
  */
 
 const normalizeTypeNodeText = (
@@ -66,8 +66,8 @@ const normalizeTypeNodeText = (
 /**
  * Check whether has arrayable shape.
  *
- * @param sourceCode - Input value for sourceCode.
- * @param node - Input value for node.
+ * @param sourceCode - Value to inspect.
+ * @param node - Value to inspect.
  *
  * @returns `true` when has arrayable shape; otherwise `false`.
  */

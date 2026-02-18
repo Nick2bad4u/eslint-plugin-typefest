@@ -14,12 +14,12 @@ const promisableAliasReplacements = {
 } as const;
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -33,9 +33,9 @@ const isIdentifierTypeReference = (
 /**
  * GetPromiseInnerType helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getPromiseInnerType`.
+ * @returns GetPromiseInnerType helper result.
  */
 
 const getPromiseInnerType = (

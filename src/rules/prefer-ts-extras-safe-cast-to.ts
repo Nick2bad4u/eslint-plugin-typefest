@@ -14,11 +14,11 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is ignored type annotation.
+ * Check whether the input is ignored type annotation.
  *
- * @param typeAnnotation - Input value for typeAnnotation.
+ * @param typeAnnotation - Value to inspect.
  *
- * @returns `true` when is ignored type annotation; otherwise `false`.
+ * @returns `true` when the value is ignored type annotation; otherwise `false`.
  */
 
 const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>

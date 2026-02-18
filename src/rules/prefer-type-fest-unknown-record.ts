@@ -7,11 +7,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is record string unknown.
+ * Check whether the input is record string unknown.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is record string unknown; otherwise `false`.
+ * @returns `true` when the value is record string unknown; otherwise `false`.
  */
 
 const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {

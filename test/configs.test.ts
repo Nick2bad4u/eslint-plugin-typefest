@@ -17,10 +17,10 @@ interface FlatConfigLike {
 /**
  * GetConfigRules helper.
  *
- * @param configs - Input value for configs.
- * @param configName - Input value for configName.
+ * @param configs - Value to inspect.
+ * @param configName - Value to inspect.
  *
- * @returns Computed result for `getConfigRules`.
+ * @returns GetConfigRules helper result.
  */
 
 function getConfigRules(
@@ -43,9 +43,9 @@ function getConfigRules(
 /**
  * GetPluginConfigs helper.
  *
- * @param pluginValue - Input value for pluginValue.
+ * @param pluginValue - Value to inspect.
  *
- * @returns Computed result for `getPluginConfigs`.
+ * @returns GetPluginConfigs helper result.
  */
 
 function getPluginConfigs(
@@ -66,9 +66,9 @@ function getPluginConfigs(
 /**
  * GetPluginRules helper.
  *
- * @param pluginValue - Input value for pluginValue.
+ * @param pluginValue - Value to inspect.
  *
- * @returns Computed result for `getPluginRules`.
+ * @returns GetPluginRules helper result.
  */
 
 function getPluginRules(pluginValue: unknown): null | Record<string, unknown> {
@@ -85,11 +85,11 @@ function getPluginRules(pluginValue: unknown): null | Record<string, unknown> {
 }
 
 /**
- * Check whether is object.
+ * Check whether the input is object.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is object; otherwise `false`.
+ * @returns `true` when the value is object; otherwise `false`.
  */
 
 function isObject(value: unknown): value is Record<string, unknown> {

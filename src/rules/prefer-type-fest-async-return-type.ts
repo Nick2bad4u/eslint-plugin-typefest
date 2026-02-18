@@ -10,12 +10,12 @@ const AWAITED_TYPE_NAME = "Awaited";
 const RETURN_TYPE_NAME = "ReturnType";
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -29,9 +29,9 @@ const isIdentifierTypeReference = (
 /**
  * GetSingleTypeArgument helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getSingleTypeArgument`.
+ * @returns GetSingleTypeArgument helper result.
  */
 
 const getSingleTypeArgument = (

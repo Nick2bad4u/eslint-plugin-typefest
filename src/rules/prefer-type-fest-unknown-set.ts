@@ -9,12 +9,12 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const READONLY_SET_TYPE_NAME = "ReadonlySet";
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -28,7 +28,7 @@ const isIdentifierTypeReference = (
 /**
  * Check whether has single unknown type argument.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
  * @returns `true` when has single unknown type argument; otherwise `false`.
  */

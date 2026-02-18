@@ -7,11 +7,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is infinity reference.
+ * Check whether the input is infinity reference.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is infinity reference; otherwise `false`.
+ * @returns `true` when the value is infinity reference; otherwise `false`.
  */
 
 const isInfinityReference = (node: TSESTree.Expression): boolean => {

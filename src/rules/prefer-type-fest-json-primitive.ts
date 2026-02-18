@@ -7,11 +7,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is json primitive keyword node.
+ * Check whether the input is json primitive keyword node.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is json primitive keyword node; otherwise `false`.
+ * @returns `true` when the value is json primitive keyword node; otherwise `false`.
  */
 
 const isJsonPrimitiveKeywordNode = (
@@ -29,7 +29,7 @@ const isJsonPrimitiveKeywordNode = (
 /**
  * Check whether has json primitive union shape.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
  * @returns `true` when has json primitive union shape; otherwise `false`.
  */

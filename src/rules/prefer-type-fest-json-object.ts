@@ -10,12 +10,12 @@ const JSON_VALUE_TYPE_NAME = "JsonValue";
 const RECORD_TYPE_NAME = "Record";
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -27,11 +27,11 @@ const isIdentifierTypeReference = (
     node.typeName.name === expectedTypeName;
 
 /**
- * Check whether is string key type.
+ * Check whether the input is string key type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is string key type; otherwise `false`.
+ * @returns `true` when the value is string key type; otherwise `false`.
  */
 
 const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
@@ -41,22 +41,22 @@ const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
         node.literal.value === "string");
 
 /**
- * Check whether is json value type.
+ * Check whether the input is json value type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is json value type; otherwise `false`.
+ * @returns `true` when the value is json value type; otherwise `false`.
  */
 
 const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
- * Check whether is record json value reference.
+ * Check whether the input is record json value reference.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is record json value reference; otherwise `false`.
+ * @returns `true` when the value is record json value reference; otherwise `false`.
  */
 
 const isRecordJsonValueReference = (

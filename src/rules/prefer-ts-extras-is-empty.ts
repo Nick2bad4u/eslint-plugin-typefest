@@ -12,22 +12,22 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is zero literal.
+ * Check whether the input is zero literal.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is zero literal; otherwise `false`.
+ * @returns `true` when the value is zero literal; otherwise `false`.
  */
 
 const isZeroLiteral = (node: TSESTree.Expression): boolean =>
     node.type === "Literal" && node.value === 0;
 
 /**
- * Check whether is length member expression.
+ * Check whether the input is length member expression.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is length member expression; otherwise `false`.
+ * @returns `true` when the value is length member expression; otherwise `false`.
  */
 
 const isLengthMemberExpression = (

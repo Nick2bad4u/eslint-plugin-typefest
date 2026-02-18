@@ -23,9 +23,9 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
 /**
  * CreateSourceCode helper.
  *
- * @param body - Input value for body.
+ * @param body - Value to inspect.
  *
- * @returns Computed result for `createSourceCode`.
+ * @returns CreateSourceCode helper result.
  */
 
 const createSourceCode = (
@@ -40,10 +40,10 @@ const createSourceCode = (
 /**
  * CreateIdentifierImportSpecifier helper.
  *
- * @param importedName - Input value for importedName.
- * @param localName - Input value for localName.
+ * @param importedName - Value to inspect.
+ * @param localName - Value to inspect.
  *
- * @returns Computed result for `createIdentifierImportSpecifier`.
+ * @returns CreateIdentifierImportSpecifier helper result.
  */
 
 const createIdentifierImportSpecifier = (
@@ -63,10 +63,10 @@ const createIdentifierImportSpecifier = (
 /**
  * CreateLiteralImportSpecifier helper.
  *
- * @param importedName - Input value for importedName.
- * @param localName - Input value for localName.
+ * @param importedName - Value to inspect.
+ * @param localName - Value to inspect.
  *
- * @returns Computed result for `createLiteralImportSpecifier`.
+ * @returns CreateLiteralImportSpecifier helper result.
  */
 
 const createLiteralImportSpecifier = (
@@ -86,9 +86,9 @@ const createLiteralImportSpecifier = (
 /**
  * CreateImportDeclaration helper.
  *
- * @param specifiers - Input value for specifiers.
+ * @param specifiers - Value to inspect.
  *
- * @returns Computed result for `createImportDeclaration`.
+ * @returns CreateImportDeclaration helper result.
  */
 
 const createImportDeclaration = (specifiers: unknown[]): unknown => ({
@@ -102,9 +102,9 @@ const createImportDeclaration = (specifiers: unknown[]): unknown => ({
 /**
  * MapToRecord helper.
  *
- * @param map - Input value for map.
+ * @param map - Value to inspect.
  *
- * @returns Computed result for `mapToRecord`.
+ * @returns MapToRecord helper result.
  */
 
 const mapToRecord = <TValue>(
@@ -114,9 +114,9 @@ const mapToRecord = <TValue>(
 /**
  * BuildExpectedMatches helper.
  *
- * @param records - Input value for records.
+ * @param records - Value to inspect.
  *
- * @returns Computed result for `buildExpectedMatches`.
+ * @returns BuildExpectedMatches helper result.
  */
 
 const buildExpectedMatches = (
@@ -148,9 +148,9 @@ const buildExpectedMatches = (
 /**
  * CollectMatchesFromAliasRecords helper.
  *
- * @param records - Input value for records.
+ * @param records - Value to inspect.
  *
- * @returns Computed result for `collectMatchesFromAliasRecords`.
+ * @returns CollectMatchesFromAliasRecords helper result.
  */
 
 const collectMatchesFromAliasRecords = (
@@ -170,9 +170,9 @@ const collectMatchesFromAliasRecords = (
 };
 
 /**
- * Utility for assert representative alias combinations.
+ * Helper utility for assert representative alias combinations.
  *
- * @returns Computed result for `assertRepresentativeAliasCombinations`.
+ * @returns AssertRepresentativeAliasCombinations helper result.
  */
 
 const assertRepresentativeAliasCombinations = (): void => {
@@ -210,9 +210,9 @@ const assertRepresentativeAliasCombinations = (): void => {
 };
 
 /**
- * Utility for assert collects matching named imports.
+ * Helper utility for assert collects matching named imports.
  *
- * @returns Computed result for `assertCollectsMatchingNamedImports`.
+ * @returns AssertCollectsMatchingNamedImports helper result.
  */
 
 const assertCollectsMatchingNamedImports = (): void => {
@@ -241,9 +241,9 @@ const assertCollectsMatchingNamedImports = (): void => {
 };
 
 /**
- * Utility for assert ignores unsupported declarations and specifiers.
+ * Helper utility for assert ignores unsupported declarations and specifiers.
  *
- * @returns Computed result for `assertIgnoresUnsupportedDeclarationsAndSpecifiers`.
+ * @returns AssertIgnoresUnsupportedDeclarationsAndSpecifiers helper result.
  */
 
 const assertIgnoresUnsupportedDeclarationsAndSpecifiers = (): void => {

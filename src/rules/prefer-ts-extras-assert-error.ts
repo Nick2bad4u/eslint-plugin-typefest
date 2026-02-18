@@ -7,11 +7,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is throw only consequent.
+ * Check whether the input is throw only consequent.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is throw only consequent; otherwise `false`.
+ * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
 const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
@@ -27,11 +27,11 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 };
 
 /**
- * Check whether is error instanceof expression.
+ * Check whether the input is error instanceof expression.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is error instanceof expression; otherwise `false`.
+ * @returns `true` when the value is error instanceof expression; otherwise `false`.
  */
 
 const isErrorInstanceofExpression = (
@@ -45,9 +45,9 @@ const isErrorInstanceofExpression = (
 /**
  * ExtractAssertErrorTarget helper.
  *
- * @param test - Input value for test.
+ * @param test - Value to inspect.
  *
- * @returns Computed result for `extractAssertErrorTarget`.
+ * @returns ExtractAssertErrorTarget helper result.
  */
 
 const extractAssertErrorTarget = (

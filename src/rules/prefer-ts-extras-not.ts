@@ -9,11 +9,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const FILTER_METHOD_NAME = "filter";
 
 /**
- * Check whether is filter call.
+ * Check whether the input is filter call.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is filter call; otherwise `false`.
+ * @returns `true` when the value is filter call; otherwise `false`.
  */
 
 const isFilterCall = (
@@ -30,12 +30,12 @@ const isFilterCall = (
     node.callee.property.name === FILTER_METHOD_NAME;
 
 /**
- * Check whether is target callback parameter.
+ * Check whether the input is target callback parameter.
  *
- * @param argument - Input value for argument.
- * @param parameterName - Input value for parameterName.
+ * @param argument - Value to inspect.
+ * @param parameterName - Value to inspect.
  *
- * @returns `true` when is target callback parameter; otherwise `false`.
+ * @returns `true` when the value is target callback parameter; otherwise `false`.
  */
 
 const isTargetCallbackParameter = (
@@ -46,9 +46,9 @@ const isTargetCallbackParameter = (
 /**
  * GetNegatedPredicateCall helper.
  *
- * @param callback - Input value for callback.
+ * @param callback - Value to inspect.
  *
- * @returns Computed result for `getNegatedPredicateCall`.
+ * @returns GetNegatedPredicateCall helper result.
  */
 
 const getNegatedPredicateCall = (

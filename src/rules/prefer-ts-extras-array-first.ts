@@ -12,11 +12,11 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is write target.
+ * Check whether the input is write target.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is write target; otherwise `false`.
+ * @returns `true` when the value is write target; otherwise `false`.
  */
 
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
@@ -38,11 +38,11 @@ const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
 };
 
 /**
- * Check whether is zero property.
+ * Check whether the input is zero property.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is zero property; otherwise `false`.
+ * @returns `true` when the value is zero property; otherwise `false`.
  */
 
 const isZeroProperty = (

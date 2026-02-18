@@ -20,7 +20,7 @@ const taggedAliasReplacements = {
 /**
  * Check whether has ad hoc brand literal.
  *
- * @param typeNode - Input value for typeNode.
+ * @param typeNode - Value to inspect.
  *
  * @returns `true` when has ad hoc brand literal; otherwise `false`.
  */
@@ -49,9 +49,9 @@ const hasAdHocBrandLiteral = (typeNode: TSESTree.TypeNode): boolean => {
 };
 
 /**
- * Utility for type contains tagged reference.
+ * Helper utility for type contains tagged reference.
  *
- * @param typeNode - Input value for typeNode.
+ * @param typeNode - Value to inspect.
  *
  * @returns `true` when type contains tagged reference; otherwise `false`.
  */

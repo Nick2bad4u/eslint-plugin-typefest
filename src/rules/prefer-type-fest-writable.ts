@@ -14,9 +14,9 @@ const writableAliasReplacements = {
 /**
  * NormalizeTypeText helper.
  *
- * @param text - Input value for text.
+ * @param text - Value to inspect.
  *
- * @returns Computed result for `normalizeTypeText`.
+ * @returns NormalizeTypeText helper result.
  */
 
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
@@ -24,10 +24,10 @@ const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 /**
  * NormalizeTypeNodeText helper.
  *
- * @param sourceCode - Input value for sourceCode.
- * @param node - Input value for node.
+ * @param sourceCode - Value to inspect.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `normalizeTypeNodeText`.
+ * @returns NormalizeTypeNodeText helper result.
  */
 
 const normalizeTypeNodeText = (
@@ -38,8 +38,8 @@ const normalizeTypeNodeText = (
 /**
  * Check whether has writable mapped type shape.
  *
- * @param sourceCode - Input value for sourceCode.
- * @param node - Input value for node.
+ * @param sourceCode - Value to inspect.
+ * @param node - Value to inspect.
  *
  * @returns `true` when has writable mapped type shape; otherwise `false`.
  */

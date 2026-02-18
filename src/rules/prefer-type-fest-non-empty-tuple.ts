@@ -9,9 +9,9 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 /**
  * NormalizeTypeText helper.
  *
- * @param text - Input value for text.
+ * @param text - Value to inspect.
  *
- * @returns Computed result for `normalizeTypeText`.
+ * @returns NormalizeTypeText helper result.
  */
 
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
@@ -22,9 +22,9 @@ type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
 /**
  * GetRequiredTupleElementType helper.
  *
- * @param element - Input value for element.
+ * @param element - Value to inspect.
  *
- * @returns Computed result for `getRequiredTupleElementType`.
+ * @returns GetRequiredTupleElementType helper result.
  */
 
 const getRequiredTupleElementType = (
@@ -48,9 +48,9 @@ const getRequiredTupleElementType = (
 /**
  * UnwrapRestAnnotation helper.
  *
- * @param annotation - Input value for annotation.
+ * @param annotation - Value to inspect.
  *
- * @returns Computed result for `unwrapRestAnnotation`.
+ * @returns UnwrapRestAnnotation helper result.
  */
 
 const unwrapRestAnnotation = (
@@ -66,9 +66,9 @@ const unwrapRestAnnotation = (
 /**
  * GetRestArrayElementType helper.
  *
- * @param element - Input value for element.
+ * @param element - Value to inspect.
  *
- * @returns Computed result for `getRestArrayElementType`.
+ * @returns GetRestArrayElementType helper result.
  */
 
 const getRestArrayElementType = (

@@ -43,11 +43,11 @@ export const createRuleTester = (): RuleTester =>
     });
 
 /**
- * Check whether is record.
+ * Check whether the input is record.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is record; otherwise `false`.
+ * @returns `true` when the value is record; otherwise `false`.
  */
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

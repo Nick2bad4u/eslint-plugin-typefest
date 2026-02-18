@@ -7,11 +7,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is reflect has call.
+ * Check whether the input is reflect has call.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is reflect has call; otherwise `false`.
+ * @returns `true` when the value is reflect has call; otherwise `false`.
  */
 
 const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {

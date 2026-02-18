@@ -30,9 +30,9 @@ const knownTestSuffixes = [
 ] as const;
 
 /**
- * Utility for assert known suffixes property.
+ * Helper utility for assert known suffixes property.
  *
- * @returns Computed result for `assertKnownSuffixesProperty`.
+ * @returns AssertKnownSuffixesProperty helper result.
  */
 
 const assertKnownSuffixesProperty = (): void => {
@@ -53,9 +53,9 @@ const assertKnownSuffixesProperty = (): void => {
 };
 
 /**
- * Utility for assert tests directory property.
+ * Helper utility for assert tests directory property.
  *
- * @returns Computed result for `assertTestsDirectoryProperty`.
+ * @returns AssertTestsDirectoryProperty helper result.
  */
 
 const assertTestsDirectoryProperty = (): void => {
@@ -85,9 +85,9 @@ const assertTestsDirectoryProperty = (): void => {
 };
 
 /**
- * Utility for assert non test paths.
+ * Helper utility for assert non test paths.
  *
- * @returns Computed result for `assertNonTestPaths`.
+ * @returns AssertNonTestPaths helper result.
  */
 
 const assertNonTestPaths = (): void => {
@@ -110,9 +110,9 @@ interface ParserServicesLike {
 /**
  * CreateTypedRuleContext helper.
  *
- * @param parserServices - Input value for parserServices.
+ * @param parserServices - Value to inspect.
  *
- * @returns Computed result for `createTypedRuleContext`.
+ * @returns CreateTypedRuleContext helper result.
  */
 
 const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
@@ -131,9 +131,9 @@ const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
 /**
  * CreateParserServices helper.
  *
- * @param program - Input value for program.
+ * @param program - Value to inspect.
  *
- * @returns Computed result for `createParserServices`.
+ * @returns CreateParserServices helper result.
  */
 
 const createParserServices = (

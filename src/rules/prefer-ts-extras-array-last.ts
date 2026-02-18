@@ -12,11 +12,11 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is write target.
+ * Check whether the input is write target.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is write target; otherwise `false`.
+ * @returns `true` when the value is write target; otherwise `false`.
  */
 
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
@@ -38,13 +38,13 @@ const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
 };
 
 /**
- * Check whether is last index pattern.
+ * Check whether the input is last index pattern.
  *
- * @param sourceCode - Input value for sourceCode.
- * @param objectExpression - Input value for objectExpression.
- * @param propertyExpression - Input value for propertyExpression.
+ * @param sourceCode - Value to inspect.
+ * @param objectExpression - Value to inspect.
+ * @param propertyExpression - Value to inspect.
  *
- * @returns `true` when is last index pattern; otherwise `false`.
+ * @returns `true` when the value is last index pattern; otherwise `false`.
  */
 
 const isLastIndexPattern = (

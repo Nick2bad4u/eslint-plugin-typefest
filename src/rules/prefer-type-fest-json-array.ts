@@ -11,12 +11,12 @@ const JSON_VALUE_TYPE_NAME = "JsonValue";
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
 
 /**
- * Check whether is identifier type reference.
+ * Check whether the input is identifier type reference.
  *
- * @param node - Input value for node.
- * @param expectedTypeName - Input value for expectedTypeName.
+ * @param node - Value to inspect.
+ * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -28,33 +28,33 @@ const isIdentifierTypeReference = (
     node.typeName.name === expectedTypeName;
 
 /**
- * Check whether is json value type.
+ * Check whether the input is json value type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is json value type; otherwise `false`.
+ * @returns `true` when the value is json value type; otherwise `false`.
  */
 
 const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
- * Check whether is json value array type.
+ * Check whether the input is json value array type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is json value array type; otherwise `false`.
+ * @returns `true` when the value is json value array type; otherwise `false`.
  */
 
 const isJsonValueArrayType = (node: TSESTree.TypeNode): boolean =>
     node.type === "TSArrayType" && isJsonValueType(node.elementType);
 
 /**
- * Check whether is readonly json value array type.
+ * Check whether the input is readonly json value array type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is readonly json value array type; otherwise `false`.
+ * @returns `true` when the value is readonly json value array type; otherwise `false`.
  */
 
 const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
@@ -71,11 +71,11 @@ const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
 };
 
 /**
- * Check whether is generic json value array type.
+ * Check whether the input is generic json value array type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is generic json value array type; otherwise `false`.
+ * @returns `true` when the value is generic json value array type; otherwise `false`.
  */
 
 const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
@@ -93,11 +93,11 @@ const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
 };
 
 /**
- * Check whether is generic readonly json value array type.
+ * Check whether the input is generic readonly json value array type.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is generic readonly json value array type; otherwise `false`.
+ * @returns `true` when the value is generic readonly json value array type; otherwise `false`.
  */
 
 const isGenericReadonlyJsonValueArrayType = (
@@ -119,7 +119,7 @@ const isGenericReadonlyJsonValueArrayType = (
 /**
  * Check whether has json array union shape.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
  * @returns `true` when has json array union shape; otherwise `false`.
  */

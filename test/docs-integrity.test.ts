@@ -18,11 +18,11 @@ interface RuleWithMeta {
 }
 
 /**
- * Check whether is rule with meta.
+ * Check whether the input is rule with meta.
  *
- * @param value - Input value for value.
+ * @param value - Value to inspect.
  *
- * @returns `true` when is rule with meta; otherwise `false`.
+ * @returns `true` when the value is rule with meta; otherwise `false`.
  */
 
 function isRuleWithMeta(value: unknown): value is RuleWithMeta {

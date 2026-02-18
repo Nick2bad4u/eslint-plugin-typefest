@@ -7,22 +7,22 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether is undefined expression.
+ * Check whether the input is undefined expression.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is undefined expression; otherwise `false`.
+ * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
 const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
     node.type === "Identifier" && node.name === "undefined";
 
 /**
- * Check whether is throw only consequent.
+ * Check whether the input is throw only consequent.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is throw only consequent; otherwise `false`.
+ * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
 const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
@@ -40,9 +40,9 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 /**
  * ExtractDefinedGuardExpression helper.
  *
- * @param test - Input value for test.
+ * @param test - Value to inspect.
  *
- * @returns Computed result for `extractDefinedGuardExpression`.
+ * @returns ExtractDefinedGuardExpression helper result.
  */
 
 const extractDefinedGuardExpression = (

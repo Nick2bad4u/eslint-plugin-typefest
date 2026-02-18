@@ -18,11 +18,11 @@ type UndefinedComparisonMatch = {
 };
 
 /**
- * Check whether is undefined identifier.
+ * Check whether the input is undefined identifier.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns `true` when is undefined identifier; otherwise `false`.
+ * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
 const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
@@ -31,9 +31,9 @@ const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
 /**
  * GetUndefinedComparisonMatch helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getUndefinedComparisonMatch`.
+ * @returns GetUndefinedComparisonMatch helper result.
  */
 
 const getUndefinedComparisonMatch = (
@@ -92,11 +92,11 @@ const getUndefinedComparisonMatch = (
 };
 
 /**
- * Check whether is filter call.
+ * Check whether the input is filter call.
  *
- * @param expression - Input value for expression.
+ * @param expression - Value to inspect.
  *
- * @returns `true` when is filter call; otherwise `false`.
+ * @returns `true` when the value is filter call; otherwise `false`.
  */
 
 const isFilterCall = (
@@ -113,11 +113,11 @@ const isFilterCall = (
     expression.callee.property.name === FILTER_METHOD_NAME;
 
 /**
- * Check whether is function callback node.
+ * Check whether the input is function callback node.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is function callback node; otherwise `false`.
+ * @returns `true` when the value is function callback node; otherwise `false`.
  */
 
 const isFunctionCallbackNode = (
@@ -129,20 +129,20 @@ const isFunctionCallbackNode = (
 /**
  * GetParentNode helper.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns Computed result for `getParentNode`.
+ * @returns GetParentNode helper result.
  */
 
 const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
 
 /**
- * Check whether is within filter callback.
+ * Check whether the input is within filter callback.
  *
- * @param node - Input value for node.
+ * @param node - Value to inspect.
  *
- * @returns `true` when is within filter callback; otherwise `false`.
+ * @returns `true` when the value is within filter callback; otherwise `false`.
  */
 
 const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
