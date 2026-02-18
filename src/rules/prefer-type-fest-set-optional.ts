@@ -9,6 +9,12 @@ const setOptionalAliasReplacements = {
     PartialBy: "SetOptional",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-set-optional`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-set-optional",
     });
 
+/**
+ * Default export for the `prefer-type-fest-set-optional` rule module.
+ */
 export default preferTypeFestSetOptionalRule;
+

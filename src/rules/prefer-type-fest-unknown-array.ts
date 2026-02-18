@@ -42,6 +42,12 @@ const isReadonlyUnknownArrayType = (node: TSESTree.TSTypeOperator): boolean => {
     return typeAnnotation.elementType.type === "TSUnknownKeyword";
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-unknown-array`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -100,4 +106,8 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-unknown-array",
     });
 
+/**
+ * Default export for the `prefer-type-fest-unknown-array` rule module.
+ */
 export default preferTypeFestUnknownArrayRule;
+

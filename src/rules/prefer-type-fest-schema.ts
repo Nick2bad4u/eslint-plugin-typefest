@@ -9,6 +9,12 @@ const schemaAliasReplacements = {
     RecordDeep: "Schema",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-schema`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-schema",
     });
 
+/**
+ * Default export for the `prefer-type-fest-schema` rule module.
+ */
 export default preferTypeFestSchemaRule;
+

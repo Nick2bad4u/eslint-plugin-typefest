@@ -9,6 +9,12 @@ const keysOfUnionAliasReplacements = {
     AllKeys: "KeysOfUnion",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-keys-of-union`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-keys-of-union",
     });
 
+/**
+ * Default export for the `prefer-type-fest-keys-of-union` rule module.
+ */
 export default preferTypeFestKeysOfUnionRule;
+

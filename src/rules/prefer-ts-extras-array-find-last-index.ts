@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-find-last-index`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -98,4 +104,8 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-find-last-index",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-find-last-index` rule module.
+ */
 export default preferTsExtrasArrayFindLastIndexRule;
+

@@ -8,6 +8,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-string-split`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -88,4 +94,8 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-string-split",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-string-split` rule module.
+ */
 export default preferTsExtrasStringSplitRule;
+

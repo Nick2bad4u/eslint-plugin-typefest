@@ -9,18 +9,29 @@ import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 const RULE_DOCS_URL_BASE =
     "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
 
+/**
+ * Parser services and type checker bundle used by typed rules.
+ */
 type TypedRuleServices = {
     checker: ts.TypeChecker;
     parserServices: ReturnType<typeof ESLintUtils.getParserServices>;
 };
 
-/** Creates a typed rule with package docs URLs. */
+/**
+ * Create typed rules with docs URLs that point to this repository's rule docs.
+ */
 export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> =
     ESLintUtils.RuleCreator(
         (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
     );
 
-/** Retrieves parser services and type checker for typed rules. */
+/**
+ * Retrieve parser services and type checker for typed rules.
+ *
+ * @param context - Rule context from the current lint evaluation.
+ *
+ * @returns Parser services and type checker references.
+ */
 export const getTypedRuleServices = (
     context: TSESLint.RuleContext<string, readonly unknown[]>
 ): TypedRuleServices => {
@@ -38,6 +49,15 @@ export const getTypedRuleServices = (
     };
 };
 
+/**
+ * Determine whether one TypeScript type is assignable to another.
+ *
+ * @param checker - TypeScript type checker.
+ * @param sourceType - Candidate source type.
+ * @param targetType - Candidate target type.
+ *
+ * @returns `true` when assignable; otherwise `false`.
+ */
 export const isTypeAssignableTo = (
     checker: ts.TypeChecker,
     sourceType: ts.Type,
@@ -56,6 +76,16 @@ export const isTypeAssignableTo = (
     );
 };
 
+/**
+ * Resolve the type of a signature parameter by index.
+ *
+ * @param checker - TypeScript type checker.
+ * @param index - Parameter index in the signature.
+ * @param location - Source location used for contextual type lookup.
+ * @param signature - Candidate call signature.
+ *
+ * @returns Parameter type when available; otherwise `undefined`.
+ */
 export const getSignatureParameterTypeAt = ({
     checker,
     index,
@@ -75,6 +105,13 @@ export const getSignatureParameterTypeAt = ({
     return checker.getTypeOfSymbolAtLocation(symbol, location);
 };
 
+/**
+ * Check whether a file path looks like a test file path.
+ *
+ * @param filePath - Absolute or relative file path.
+ *
+ * @returns `true` when path matches common test-file conventions.
+ */
 export const isTestFilePath = (filePath: string): boolean => {
     const normalizedPath = filePath.replaceAll("\\", "/").toLowerCase();
 

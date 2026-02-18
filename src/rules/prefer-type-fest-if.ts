@@ -13,6 +13,12 @@ const ifAliasReplacements = {
     IfUnknown: "IsUnknown",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-if`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -68,4 +74,8 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-if",
     });
 
+/**
+ * Default export for the `prefer-type-fest-if` rule module.
+ */
 export default preferTypeFestIfRule;
+

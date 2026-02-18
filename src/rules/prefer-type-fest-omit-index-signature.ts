@@ -9,6 +9,12 @@ const omitIndexSignatureAliasReplacements = {
     RemoveIndexSignature: "OmitIndexSignature",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-omit-index-signature`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-omit-index-signature",
     });
 
+/**
+ * Default export for the `prefer-type-fest-omit-index-signature` rule module.
+ */
 export default preferTypeFestOmitIndexSignatureRule;
+

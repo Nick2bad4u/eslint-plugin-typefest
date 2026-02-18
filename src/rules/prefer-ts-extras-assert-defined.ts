@@ -42,6 +42,12 @@ const extractDefinedGuardExpression = (
     return null;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-assert-defined`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -87,4 +93,8 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-assert-defined",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-assert-defined` rule module.
+ */
 export default preferTsExtrasAssertDefinedRule;
+

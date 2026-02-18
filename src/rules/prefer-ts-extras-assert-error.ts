@@ -42,6 +42,12 @@ const extractAssertErrorTarget = (
         : test.argument.left;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-assert-error`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -87,4 +93,8 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-assert-error",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-assert-error` rule module.
+ */
 export default preferTsExtrasAssertErrorRule;
+

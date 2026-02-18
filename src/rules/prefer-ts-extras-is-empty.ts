@@ -22,6 +22,12 @@ const isLengthMemberExpression = (
     node.property.type === "Identifier" &&
     node.property.name === "length";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-empty`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -125,4 +131,8 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-empty",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-empty` rule module.
+ */
 export default preferTsExtrasIsEmptyRule;
+

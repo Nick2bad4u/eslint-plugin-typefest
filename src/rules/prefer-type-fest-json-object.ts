@@ -46,6 +46,12 @@ const isRecordJsonValueReference = (
     return isStringKeyType(keyType) && isJsonValueType(valueType);
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-json-object`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -84,4 +90,8 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-json-object",
     });
 
+/**
+ * Default export for the `prefer-type-fest-json-object` rule module.
+ */
 export default preferTypeFestJsonObjectRule;
+

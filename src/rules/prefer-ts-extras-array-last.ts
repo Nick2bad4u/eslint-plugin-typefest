@@ -67,6 +67,12 @@ const isLastIndexPattern = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-last`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -166,4 +172,8 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-last",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-last` rule module.
+ */
 export default preferTsExtrasArrayLastRule;
+

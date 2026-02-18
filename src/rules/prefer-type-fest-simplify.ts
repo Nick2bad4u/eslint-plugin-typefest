@@ -10,6 +10,12 @@ const simplifyAliasReplacements = {
     Prettify: "Simplify",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-simplify`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -65,4 +71,8 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-simplify",
     });
 
+/**
+ * Default export for the `prefer-type-fest-simplify` rule module.
+ */
 export default preferTypeFestSimplifyRule;
+

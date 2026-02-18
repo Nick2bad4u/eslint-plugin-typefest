@@ -4,6 +4,9 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
+/**
+ * Matched imported type alias that can be replaced with a canonical name.
+ */
 export type ImportedTypeAliasMatch = {
     importedName: string;
     replacementName: string;
@@ -13,6 +16,11 @@ export type ImportedTypeAliasMatch = {
 /**
  * Collects imported type alias local names that should be replaced by canonical
  * type-fest utility names.
+ *
+ * @param sourceCode - Source code object for the current file.
+ * @param replacementsByImportedName - Mapping from imported symbol names to preferred replacement names.
+ *
+ * @returns Map keyed by local alias name with replacement metadata.
  */
 export const collectImportedTypeAliasMatches = (
     sourceCode: Readonly<TSESLint.SourceCode>,

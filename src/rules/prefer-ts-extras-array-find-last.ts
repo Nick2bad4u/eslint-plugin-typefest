@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-find-last`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -98,4 +104,8 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-find-last",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-find-last` rule module.
+ */
 export default preferTsExtrasArrayFindLastRule;
+

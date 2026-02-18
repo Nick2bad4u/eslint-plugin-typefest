@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-set-has`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -85,4 +91,8 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-set-has",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-set-has` rule module.
+ */
 export default preferTsExtrasSetHasRule;
+

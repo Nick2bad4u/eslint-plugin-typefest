@@ -88,6 +88,9 @@ const DEFAULT_RULE_DOCS_URL_BASE =
 const ERROR_SEVERITY = "error" as const;
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
+/**
+ * Available preset keys exposed through plugin `configs`.
+ */
 export type TypefestConfigName =
     | "all"
     | "minimal"
@@ -95,6 +98,10 @@ export type TypefestConfigName =
     | "strict"
     | "ts-extras/type-guards"
     | "type-fest/types";
+
+/**
+ * Flat config preset shape produced by this plugin.
+ */
 export type TypefestPresetConfig = Linter.Config & {
     rules: NonNullable<Linter.Config["rules"]>;
 };
@@ -122,10 +129,22 @@ type TypeScriptParser = {
     parseForESLint?: (...parameters: readonly unknown[]) => unknown;
 };
 
+/**
+ * Resolve package version from package.json data.
+ *
+ * @param pkg - Parsed package manifest.
+ *
+ * @returns The package version, or `0.0.0` when unavailable.
+ */
 function getPackageVersion(pkg: PackageJson): string {
     return typeof pkg.version === "string" ? pkg.version : "0.0.0";
 }
 
+/**
+ * Load the TypeScript ESLint parser lazily to support optional dependency setups.
+ *
+ * @returns Parser module when available; otherwise `null`.
+ */
 function loadTypeScriptParser(): null | TypeScriptParser {
     try {
         return require("@typescript-eslint/parser") as TypeScriptParser;
@@ -138,6 +157,9 @@ const packageJson = require("../package.json") as PackageJson;
 
 const typeScriptParser = loadTypeScriptParser();
 
+/**
+ * Map of all rule modules exported by eslint-plugin-typefest.
+ */
 const typefestRules = {
     "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
     "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
@@ -212,7 +234,14 @@ const typefestRules = {
     "prefer-type-fest-writable": preferTypeFestWritableRule,
 } as const satisfies Record<string, RuleWithDocs>;
 
+/**
+ * Fully-qualified ESLint rule id used by this plugin.
+ */
 export type TypefestRuleId = `typefest/${keyof typeof typefestRules}`;
+
+/**
+ * Unqualified rule name.
+ */
 export type TypefestRuleName = keyof typeof typefestRules;
 
 const typefestEslintRules = typefestRules as unknown as NonNullable<
@@ -226,6 +255,13 @@ for (const [ruleName, rule] of Object.entries(typefestRules)) {
     }
 }
 
+/**
+ * Build an ESLint rules map that enables each provided rule at error level.
+ *
+ * @param ruleNames - Rule names to enable.
+ *
+ * @returns Rules config object compatible with flat config.
+ */
 function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
     const rules: RulesConfig = {};
 
@@ -236,6 +272,13 @@ function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
     return rules;
 }
 
+/**
+ * Remove duplicates while preserving first-seen ordering.
+ *
+ * @param ruleNames - Candidate rule list.
+ *
+ * @returns Deduplicated rule list.
+ */
 function uniqueRuleNames(
     ruleNames: readonly TypefestRuleName[]
 ): TypefestRuleName[] {
@@ -351,6 +394,14 @@ const allRuleNames = uniqueRuleNames([
     ...tsExtrasExperimentalRuleNames,
 ]);
 
+/**
+ * Apply parser and plugin metadata required by all plugin presets.
+ *
+ * @param config - Preset-specific config fragment.
+ * @param plugin - Plugin object registered under the `typefest` namespace.
+ *
+ * @returns Normalized preset config.
+ */
 function withTypefestPlugin(
     config: TypefestPresetConfig,
     plugin: ESLint.Plugin
@@ -381,6 +432,9 @@ const pluginForConfigs: ESLint.Plugin = {
     rules: typefestEslintRules,
 };
 
+/**
+ * Flat config presets distributed by eslint-plugin-typefest.
+ */
 const typefestConfigs = {
     all: withTypefestPlugin(
         {
@@ -426,8 +480,14 @@ const typefestConfigs = {
     ),
 } satisfies TypefestConfigsContract;
 
+/**
+ * Runtime type for {@link typefestConfigs}.
+ */
 export type TypefestConfigs = typeof typefestConfigs;
 
+/**
+ * Main plugin object exported for ESLint consumption.
+ */
 const typefestPlugin = {
     configs: typefestConfigs,
     meta: {
@@ -437,6 +497,12 @@ const typefestPlugin = {
     rules: typefestEslintRules,
 } satisfies TypefestPluginContract;
 
+/**
+ * Runtime type for the plugin default export.
+ */
 export type TypefestPlugin = typeof typefestPlugin;
 
+/**
+ * Default plugin export consumed by ESLint flat config.
+ */
 export default typefestPlugin;

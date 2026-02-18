@@ -9,6 +9,12 @@ const tupleOfAliasReplacements = {
     ReadonlyTuple: "Readonly<TupleOf<Length, Element>>",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-tuple-of`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-tuple-of",
     });
 
+/**
+ * Default export for the `prefer-type-fest-tuple-of` rule module.
+ */
 export default preferTypeFestTupleOfRule;
+

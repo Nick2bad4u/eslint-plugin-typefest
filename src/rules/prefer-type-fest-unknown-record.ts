@@ -22,6 +22,12 @@ const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-unknown-record`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -61,4 +67,8 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-unknown-record",
     });
 
+/**
+ * Default export for the `prefer-type-fest-unknown-record` rule module.
+ */
 export default preferTypeFestUnknownRecordRule;
+

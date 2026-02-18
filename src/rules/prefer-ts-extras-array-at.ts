@@ -11,6 +11,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-at`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -103,4 +109,8 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-at",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-at` rule module.
+ */
 export default preferTsExtrasArrayAtRule;
+

@@ -86,6 +86,12 @@ const extractNullishEqualityPart = (
     return null;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-assert-present`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -165,4 +171,8 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-assert-present",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-assert-present` rule module.
+ */
 export default preferTsExtrasAssertPresentRule;
+

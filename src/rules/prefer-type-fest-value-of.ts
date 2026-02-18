@@ -6,6 +6,12 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
+/**
+ * ESLint rule definition for `prefer-type-fest-value-of`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -61,4 +67,8 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-value-of",
     });
 
+/**
+ * Default export for the `prefer-type-fest-value-of` rule module.
+ */
 export default preferTypeFestValueOfRule;
+

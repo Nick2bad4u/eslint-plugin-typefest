@@ -100,6 +100,12 @@ const isNullishFilterGuardBody = (
     return hasNullComparison && hasUndefinedComparison;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-present-filter`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -176,4 +182,8 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-present-filter",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-present-filter` rule module.
+ */
 export default preferTsExtrasIsPresentFilterRule;
+

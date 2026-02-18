@@ -9,6 +9,12 @@ const setReadonlyAliasReplacements = {
     ReadonlyBy: "SetReadonly",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-set-readonly`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-set-readonly",
     });
 
+/**
+ * Default export for the `prefer-type-fest-set-readonly` rule module.
+ */
 export default preferTypeFestSetReadonlyRule;
+

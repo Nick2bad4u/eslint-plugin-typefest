@@ -9,6 +9,12 @@ const conditionalPickAliasReplacements = {
     PickByTypes: "ConditionalPick",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-conditional-pick`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-conditional-pick",
     });
 
+/**
+ * Default export for the `prefer-type-fest-conditional-pick` rule module.
+ */
 export default preferTypeFestConditionalPickRule;
+

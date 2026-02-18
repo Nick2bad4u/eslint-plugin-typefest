@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-object-keys`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -59,4 +65,8 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-object-keys",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-object-keys` rule module.
+ */
 export default preferTsExtrasObjectKeysRule;
+

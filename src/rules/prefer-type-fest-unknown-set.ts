@@ -29,6 +29,12 @@ const hasSingleUnknownTypeArgument = (
     return firstTypeArgument?.type === "TSUnknownKeyword";
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-unknown-set`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -74,4 +80,8 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-unknown-set",
     });
 
+/**
+ * Default export for the `prefer-type-fest-unknown-set` rule module.
+ */
 export default preferTypeFestUnknownSetRule;
+

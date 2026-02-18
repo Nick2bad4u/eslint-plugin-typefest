@@ -16,9 +16,21 @@ RuleTester.itOnly = it as unknown as typeof RuleTester.itOnly;
 
 type PluginRuleModule = Parameters<RuleTester["run"]>[1];
 
+/**
+ * Resolve an absolute repository path from optional relative segments.
+ *
+ * @param segments - Optional path segments under the repository root.
+ *
+ * @returns Absolute path rooted at the current workspace.
+ */
 export const repoPath = (...segments: string[]): string =>
     path.join(process.cwd(), ...segments);
 
+/**
+ * Create a RuleTester instance configured for TypeScript parser usage.
+ *
+ * @returns Configured RuleTester instance.
+ */
 export const createRuleTester = (): RuleTester =>
     new RuleTester({
         languageOptions: {
@@ -33,6 +45,13 @@ export const createRuleTester = (): RuleTester =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
 
+/**
+ * Check whether a dynamic value looks like an ESLint rule module.
+ *
+ * @param value - Dynamic value loaded from plugin rule map.
+ *
+ * @returns `true` when value has a callable `create` method.
+ */
 const isRuleModule = (value: unknown): value is PluginRuleModule => {
     if (!isRecord(value)) {
         return false;
@@ -43,6 +62,13 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
     return typeof maybeCreate === "function";
 };
 
+/**
+ * Lookup a rule module from the plugin by its unqualified rule id.
+ *
+ * @param ruleId - Rule id without the `typefest/` prefix.
+ *
+ * @returns Matching RuleTester-compatible rule module.
+ */
 export const getPluginRule = (ruleId: string): PluginRuleModule => {
     const { rules } = typefestPlugin;
     if (!rules) {

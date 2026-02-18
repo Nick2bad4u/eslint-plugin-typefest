@@ -34,6 +34,12 @@ const isZeroProperty = (
 ): boolean =>
     node.type === "Literal" && (node.value === 0 || node.value === "0");
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-first`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -122,4 +128,8 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-first",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-first` rule module.
+ */
 export default preferTsExtrasArrayFirstRule;
+

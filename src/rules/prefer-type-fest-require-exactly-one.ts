@@ -10,6 +10,12 @@ const requireExactlyOneAliasReplacements = {
     RequireOnlyOne: "RequireExactlyOne",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-require-exactly-one`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -65,4 +71,8 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-require-exactly-one",
     });
 
+/**
+ * Default export for the `prefer-type-fest-require-exactly-one` rule module.
+ */
 export default preferTypeFestRequireExactlyOneRule;
+

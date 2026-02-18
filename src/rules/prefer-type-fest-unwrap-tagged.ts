@@ -9,6 +9,12 @@ const unwrapTaggedAliasReplacements = {
     UnwrapOpaque: "UnwrapTagged",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-unwrap-tagged`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-unwrap-tagged",
     });
 
+/**
+ * Default export for the `prefer-type-fest-unwrap-tagged` rule module.
+ */
 export default preferTypeFestUnwrapTaggedRule;
+

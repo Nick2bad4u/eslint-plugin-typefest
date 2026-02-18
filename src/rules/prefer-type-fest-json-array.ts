@@ -98,6 +98,12 @@ const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
     return firstGenericPair || secondGenericPair;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-json-array`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -136,4 +142,8 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-json-array",
     });
 
+/**
+ * Default export for the `prefer-type-fest-json-array` rule module.
+ */
 export default preferTypeFestJsonArrayRule;
+

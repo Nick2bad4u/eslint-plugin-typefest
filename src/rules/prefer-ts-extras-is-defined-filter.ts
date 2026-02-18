@@ -42,6 +42,12 @@ const isUndefinedFilterGuardBody = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-defined-filter`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -113,4 +119,8 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-defined-filter",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-defined-filter` rule module.
+ */
 export default preferTsExtrasIsDefinedFilterRule;
+

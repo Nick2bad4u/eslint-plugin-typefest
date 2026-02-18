@@ -19,6 +19,12 @@ const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-object-has-in`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -61,4 +67,8 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-object-has-in",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-object-has-in` rule module.
+ */
 export default preferTsExtrasObjectHasInRule;
+

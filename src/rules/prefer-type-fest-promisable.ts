@@ -31,6 +31,12 @@ const getPromiseInnerType = (
     return node.typeArguments?.params[0] ?? null;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-promisable`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -148,4 +154,8 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-promisable",
     });
 
+/**
+ * Default export for the `prefer-type-fest-promisable` rule module.
+ */
 export default preferTypeFestPromisableRule;
+

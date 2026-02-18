@@ -61,6 +61,12 @@ const typeContainsTaggedReference = (typeNode: TSESTree.TypeNode): boolean => {
     return false;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-tagged-brands`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -134,4 +140,8 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-tagged-brands",
     });
 
+/**
+ * Default export for the `prefer-type-fest-tagged-brands` rule module.
+ */
 export default preferTypeFestTaggedBrandsRule;
+

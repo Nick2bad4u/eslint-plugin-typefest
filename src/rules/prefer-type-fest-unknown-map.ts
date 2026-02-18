@@ -33,6 +33,12 @@ const hasUnknownMapTypeArguments = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-unknown-map`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -78,4 +84,8 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-unknown-map",
     });
 
+/**
+ * Default export for the `prefer-type-fest-unknown-map` rule module.
+ */
 export default preferTypeFestUnknownMapRule;
+

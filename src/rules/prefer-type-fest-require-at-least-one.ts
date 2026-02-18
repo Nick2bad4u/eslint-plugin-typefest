@@ -9,6 +9,12 @@ const requireAtLeastOneAliasReplacements = {
     AtLeastOne: "RequireAtLeastOne",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-require-at-least-one`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-require-at-least-one",
     });
 
+/**
+ * Default export for the `prefer-type-fest-require-at-least-one` rule module.
+ */
 export default preferTypeFestRequireAtLeastOneRule;
+

@@ -9,6 +9,12 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const IS_EQUAL_TYPE_NAME = "IsEqual";
 const TYPE_FEST_PACKAGE_NAME = "type-fest";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-equal-type`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -154,4 +160,8 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-equal-type",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-equal-type` rule module.
+ */
 export default preferTsExtrasIsEqualTypeRule;
+

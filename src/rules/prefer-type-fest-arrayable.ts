@@ -86,6 +86,12 @@ const hasArrayableShape = (
     return false;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-arrayable`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -126,4 +132,8 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-arrayable",
     });
 
+/**
+ * Default export for the `prefer-type-fest-arrayable` rule module.
+ */
 export default preferTypeFestArrayableRule;
+

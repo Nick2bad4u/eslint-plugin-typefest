@@ -79,6 +79,12 @@ const hasWritableMappedTypeShape = (
     return indexType.typeName.name === keyIdentifier.name;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-writable`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -147,4 +153,8 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-writable",
     });
 
+/**
+ * Default export for the `prefer-type-fest-writable` rule module.
+ */
 export default preferTypeFestWritableRule;
+

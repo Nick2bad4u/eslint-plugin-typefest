@@ -9,6 +9,12 @@ const setRequiredAliasReplacements = {
     RequiredBy: "SetRequired",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-set-required`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-set-required",
     });
 
+/**
+ * Default export for the `prefer-type-fest-set-required` rule module.
+ */
 export default preferTypeFestSetRequiredRule;
+

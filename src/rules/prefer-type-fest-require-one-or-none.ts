@@ -9,6 +9,12 @@ const requireOneOrNoneAliasReplacements = {
     AtMostOne: "RequireOneOrNone",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-require-one-or-none`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-require-one-or-none",
     });
 
+/**
+ * Default export for the `prefer-type-fest-require-one-or-none` rule module.
+ */
 export default preferTypeFestRequireOneOrNoneRule;
+

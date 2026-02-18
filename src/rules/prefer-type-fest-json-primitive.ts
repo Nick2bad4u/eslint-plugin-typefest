@@ -59,6 +59,12 @@ const hasJsonPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
     return hasBoolean && hasNull && hasNumber && hasString;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-json-primitive`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -97,4 +103,8 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-json-primitive",
     });
 
+/**
+ * Default export for the `prefer-type-fest-json-primitive` rule module.
+ */
 export default preferTypeFestJsonPrimitiveRule;
+

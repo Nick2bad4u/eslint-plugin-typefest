@@ -20,6 +20,12 @@ const isIdentifierTypeReference = (
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-except`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -90,4 +96,8 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-except",
     });
 
+/**
+ * Default export for the `prefer-type-fest-except` rule module.
+ */
 export default preferTypeFestExceptRule;
+

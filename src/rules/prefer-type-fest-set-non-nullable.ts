@@ -9,6 +9,12 @@ const setNonNullableAliasReplacements = {
     NonNullableBy: "SetNonNullable",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-set-non-nullable`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -64,4 +70,8 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-set-non-nullable",
     });
 
+/**
+ * Default export for the `prefer-type-fest-set-non-nullable` rule module.
+ */
 export default preferTypeFestSetNonNullableRule;
+

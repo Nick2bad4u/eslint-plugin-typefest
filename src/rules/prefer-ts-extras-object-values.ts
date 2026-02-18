@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-object-values`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -59,4 +65,8 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-object-values",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-object-values` rule module.
+ */
 export default preferTsExtrasObjectValuesRule;
+

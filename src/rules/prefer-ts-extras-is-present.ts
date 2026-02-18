@@ -254,6 +254,12 @@ const isStrictAbsentCheck = ({
     });
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-present`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -346,4 +352,8 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-present",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-present` rule module.
+ */
 export default preferTsExtrasIsPresentRule;
+

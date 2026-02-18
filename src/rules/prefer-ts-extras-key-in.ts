@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-key-in`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -42,4 +48,8 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-key-in",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-key-in` rule module.
+ */
 export default preferTsExtrasKeyInRule;
+

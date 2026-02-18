@@ -21,6 +21,12 @@ const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>
         typeAnnotation.typeName.type === "Identifier" &&
         typeAnnotation.typeName.name === "const");
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-safe-cast-to`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -108,4 +114,8 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-safe-cast-to",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-safe-cast-to` rule module.
+ */
 export default preferTsExtrasSafeCastToRule;
+

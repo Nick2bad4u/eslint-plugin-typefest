@@ -30,6 +30,12 @@ const getSingleTypeArgument = (
     return onlyTypeArgument ?? null;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-async-return-type`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -87,4 +93,8 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-async-return-type",
     });
 
+/**
+ * Default export for the `prefer-type-fest-async-return-type` rule module.
+ */
 export default preferTypeFestAsyncReturnTypeRule;
+

@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-find`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -98,4 +104,8 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-find",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-find` rule module.
+ */
 export default preferTsExtrasArrayFindRule;
+

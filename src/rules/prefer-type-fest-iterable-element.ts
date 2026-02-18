@@ -11,6 +11,12 @@ const iterableElementAliasReplacements = {
     SetValues: "IterableElement",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-iterable-element`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -66,4 +72,8 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-iterable-element",
     });
 
+/**
+ * Default export for the `prefer-type-fest-iterable-element` rule module.
+ */
 export default preferTypeFestIterableElementRule;
+

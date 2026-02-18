@@ -119,6 +119,12 @@ const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
     return false;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-defined`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -174,4 +180,8 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-defined",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-defined` rule module.
+ */
 export default preferTsExtrasIsDefinedRule;
+

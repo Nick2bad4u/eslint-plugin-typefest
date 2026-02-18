@@ -9,6 +9,12 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
 const WRITABLE_TYPE_NAME = "Writable" as const;
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-as-writable`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -113,4 +119,8 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-as-writable",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-as-writable` rule module.
+ */
 export default preferTsExtrasAsWritableRule;
+

@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-join`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -98,4 +104,8 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-join",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-join` rule module.
+ */
 export default preferTsExtrasArrayJoinRule;
+

@@ -24,6 +24,12 @@ const isRecordLikeUnknown = (typeNode: TSESTree.TSTypeReference): boolean => {
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-json-value`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -63,4 +69,8 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-json-value",
     });
 
+/**
+ * Default export for the `prefer-type-fest-json-value` rule module.
+ */
 export default preferTypeFestJsonValueRule;
+

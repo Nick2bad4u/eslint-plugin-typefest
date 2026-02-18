@@ -59,6 +59,12 @@ const getNegatedPredicateCall = (
         : null;
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-not`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -110,4 +116,8 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-not",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-not` rule module.
+ */
 export default preferTsExtrasNotRule;
+

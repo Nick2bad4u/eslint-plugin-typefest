@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-object-from-entries`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -59,4 +65,8 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-object-from-entries",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-object-from-entries` rule module.
+ */
 export default preferTsExtrasObjectFromEntriesRule;
+

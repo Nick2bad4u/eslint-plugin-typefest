@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-object-has-own`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -52,4 +58,8 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-object-has-own",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-object-has-own` rule module.
+ */
 export default preferTsExtrasObjectHasOwnRule;
+

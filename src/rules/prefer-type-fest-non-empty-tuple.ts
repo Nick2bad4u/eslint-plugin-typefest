@@ -54,6 +54,12 @@ const getRestArrayElementType = (
     return restType.elementType;
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-non-empty-tuple`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -131,4 +137,8 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-non-empty-tuple",
     });
 
+/**
+ * Default export for the `prefer-type-fest-non-empty-tuple` rule module.
+ */
 export default preferTypeFestNonEmptyTupleRule;
+

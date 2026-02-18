@@ -10,6 +10,12 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-array-concat`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -98,4 +104,8 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-array-concat",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-array-concat` rule module.
+ */
 export default preferTsExtrasArrayConcatRule;
+

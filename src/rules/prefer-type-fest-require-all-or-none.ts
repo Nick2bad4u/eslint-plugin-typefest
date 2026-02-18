@@ -10,6 +10,12 @@ const requireAllOrNoneAliasReplacements = {
     AllOrNothing: "RequireAllOrNone",
 } as const;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-require-all-or-none`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -65,4 +71,8 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-require-all-or-none",
     });
 
+/**
+ * Default export for the `prefer-type-fest-require-all-or-none` rule module.
+ */
 export default preferTypeFestRequireAllOrNoneRule;
+

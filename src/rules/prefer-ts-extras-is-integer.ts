@@ -4,6 +4,12 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-integer`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -59,4 +65,8 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-integer",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-integer` rule module.
+ */
 export default preferTsExtrasIsIntegerRule;
+

@@ -91,6 +91,12 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-primitive`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -129,4 +135,8 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-primitive",
     });
 
+/**
+ * Default export for the `prefer-type-fest-primitive` rule module.
+ */
 export default preferTypeFestPrimitiveRule;
+

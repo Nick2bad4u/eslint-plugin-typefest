@@ -17,12 +17,31 @@ RuleTester.itOnly = it as unknown as typeof RuleTester.itOnly;
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 
+/**
+ * Resolve a path inside `test/fixtures/typed`.
+ *
+ * @param segments - Optional nested fixture path segments.
+ *
+ * @returns Absolute fixture path.
+ */
 export const typedFixturePath = (...segments: string[]): string =>
     path.join(typedFixturesRoot, ...segments);
 
+/**
+ * Read a typed fixture file as UTF-8 text.
+ *
+ * @param segments - Fixture path segments under `test/fixtures/typed`.
+ *
+ * @returns Fixture source text.
+ */
 export const readTypedFixture = (...segments: string[]): string =>
     readFileSync(typedFixturePath(...segments), "utf8");
 
+/**
+ * Create a RuleTester configured for typed fixture tests.
+ *
+ * @returns Configured RuleTester instance.
+ */
 export const createTypedRuleTester = (): RuleTester =>
     new RuleTester({
         languageOptions: {
@@ -43,4 +62,7 @@ export const createTypedRuleTester = (): RuleTester =>
         },
     });
 
+/**
+ * Shared typed RuleTester singleton for test modules.
+ */
 export const typedRuleTester = createTypedRuleTester();

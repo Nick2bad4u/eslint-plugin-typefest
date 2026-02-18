@@ -22,6 +22,12 @@ const isInfinityReference = (node: TSESTree.Expression): boolean => {
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-ts-extras-is-infinite`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and suggestions/fixes for this rule.
+ */
 const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -67,4 +73,8 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
         name: "prefer-ts-extras-is-infinite",
     });
 
+/**
+ * Default export for the `prefer-ts-extras-is-infinite` rule module.
+ */
 export default preferTsExtrasIsInfiniteRule;
+
