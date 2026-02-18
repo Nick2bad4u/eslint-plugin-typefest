@@ -9,6 +9,15 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const JSON_VALUE_TYPE_NAME = "JsonValue";
 const RECORD_TYPE_NAME = "Record";
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string
@@ -17,14 +26,38 @@ const isIdentifierTypeReference = (
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
 
+/**
+ * Check whether is string key type.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is string key type; otherwise `false`.
+ */
+
 const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
     node.type === "TSStringKeyword" ||
     (node.type === "TSLiteralType" &&
         node.literal.type === "Literal" &&
         node.literal.value === "string");
 
+/**
+ * Check whether is json value type.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is json value type; otherwise `false`.
+ */
+
 const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
+
+/**
+ * Check whether is record json value reference.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is record json value reference; otherwise `false`.
+ */
 
 const isRecordJsonValueReference = (
     node: TSESTree.TSTypeReference

@@ -12,6 +12,15 @@ const exceptAliasReplacements = {
     HomomorphicOmit: "Except",
 } as const;
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string

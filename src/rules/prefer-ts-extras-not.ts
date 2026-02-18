@@ -8,6 +8,14 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const FILTER_METHOD_NAME = "filter";
 
+/**
+ * Check whether is filter call.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is filter call; otherwise `false`.
+ */
+
 const isFilterCall = (
     node: TSESTree.CallExpression
 ): node is TSESTree.CallExpression & {
@@ -21,10 +29,27 @@ const isFilterCall = (
     node.callee.property.type === "Identifier" &&
     node.callee.property.name === FILTER_METHOD_NAME;
 
+/**
+ * Check whether is target callback parameter.
+ *
+ * @param argument - Input value for argument.
+ * @param parameterName - Input value for parameterName.
+ *
+ * @returns `true` when is target callback parameter; otherwise `false`.
+ */
+
 const isTargetCallbackParameter = (
     argument: TSESTree.CallExpressionArgument,
     parameterName: string
 ): boolean => argument.type === "Identifier" && argument.name === parameterName;
+
+/**
+ * GetNegatedPredicateCall helper.
+ *
+ * @param callback - Input value for callback.
+ *
+ * @returns Computed result for `getNegatedPredicateCall`.
+ */
 
 const getNegatedPredicateCall = (
     callback: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression

@@ -6,6 +6,14 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is json primitive keyword node.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is json primitive keyword node; otherwise `false`.
+ */
+
 const isJsonPrimitiveKeywordNode = (
     node: TSESTree.TypeNode
 ): node is
@@ -17,6 +25,14 @@ const isJsonPrimitiveKeywordNode = (
     node.type === "TSNullKeyword" ||
     node.type === "TSNumberKeyword" ||
     node.type === "TSStringKeyword";
+
+/**
+ * Check whether has json primitive union shape.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when has json primitive union shape; otherwise `false`.
+ */
 
 const hasJsonPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
     if (node.types.length !== 4) {

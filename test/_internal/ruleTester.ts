@@ -42,6 +42,14 @@ export const createRuleTester = (): RuleTester =>
         },
     });
 
+/**
+ * Check whether is record.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when is record; otherwise `false`.
+ */
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
 

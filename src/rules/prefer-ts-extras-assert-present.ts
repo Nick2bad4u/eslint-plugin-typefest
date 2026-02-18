@@ -6,11 +6,35 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is null expression.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is null expression; otherwise `false`.
+ */
+
 const isNullExpression = (node: TSESTree.Expression): boolean =>
     node.type === "Literal" && node.value === null;
 
+/**
+ * Check whether is undefined expression.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is undefined expression; otherwise `false`.
+ */
+
 const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
     node.type === "Identifier" && node.name === "undefined";
+
+/**
+ * Check whether is throw only consequent.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is throw only consequent; otherwise `false`.
+ */
 
 const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
     if (node.type === "ThrowStatement") {
@@ -23,6 +47,14 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
         node.body[0]?.type === "ThrowStatement"
     );
 };
+
+/**
+ * ExtractEqNullGuardExpression helper.
+ *
+ * @param test - Input value for test.
+ *
+ * @returns Computed result for `extractEqNullGuardExpression`.
+ */
 
 const extractEqNullGuardExpression = (
     test: TSESTree.Expression
@@ -41,6 +73,14 @@ const extractEqNullGuardExpression = (
 
     return null;
 };
+
+/**
+ * ExtractNullishEqualityPart helper.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns Computed result for `extractNullishEqualityPart`.
+ */
 
 const extractNullishEqualityPart = (
     expression: TSESTree.Expression

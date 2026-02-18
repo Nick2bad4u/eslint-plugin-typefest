@@ -9,6 +9,15 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const AWAITED_TYPE_NAME = "Awaited";
 const RETURN_TYPE_NAME = "ReturnType";
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string
@@ -16,6 +25,14 @@ const isIdentifierTypeReference = (
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
+
+/**
+ * GetSingleTypeArgument helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getSingleTypeArgument`.
+ */
 
 const getSingleTypeArgument = (
     node: TSESTree.TSTypeReference

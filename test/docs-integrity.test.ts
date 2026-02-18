@@ -17,6 +17,14 @@ interface RuleWithMeta {
     };
 }
 
+/**
+ * Check whether is rule with meta.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when is rule with meta; otherwise `false`.
+ */
+
 function isRuleWithMeta(value: unknown): value is RuleWithMeta {
     return typeof value === "object" && value !== null;
 }

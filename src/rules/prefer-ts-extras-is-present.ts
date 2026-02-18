@@ -20,6 +20,14 @@ type NullishComparison = {
 
 type NullishKind = "null" | "undefined";
 
+/**
+ * FlattenLogicalTerms helper.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns Computed result for `flattenLogicalTerms`.
+ */
+
 const flattenLogicalTerms = ({
     expression,
     operator,
@@ -46,8 +54,24 @@ const flattenLogicalTerms = ({
     ];
 };
 
+/**
+ * Check whether is undefined identifier.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns `true` when is undefined identifier; otherwise `false`.
+ */
+
 const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
     expression.type === "Identifier" && expression.name === "undefined";
+
+/**
+ * GetNullishComparison helper.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns Computed result for `getNullishComparison`.
+ */
 
 const getNullishComparison = (
     expression: TSESTree.Expression
@@ -103,6 +127,14 @@ const getNullishComparison = (
     return null;
 };
 
+/**
+ * Check whether is filter call.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns `true` when is filter call; otherwise `false`.
+ */
+
 const isFilterCall = (
     expression: TSESTree.CallExpression
 ): expression is TSESTree.CallExpression & {
@@ -116,14 +148,38 @@ const isFilterCall = (
     expression.callee.property.type === "Identifier" &&
     expression.callee.property.name === FILTER_METHOD_NAME;
 
+/**
+ * Check whether is function callback node.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is function callback node; otherwise `false`.
+ */
+
 const isFunctionCallbackNode = (
     node: TSESTree.Node
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
     node.type === "ArrowFunctionExpression" ||
     node.type === "FunctionExpression";
 
+/**
+ * GetParentNode helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getParentNode`.
+ */
+
 const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
+
+/**
+ * Check whether is within filter callback.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when is within filter callback; otherwise `false`.
+ */
 
 const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
     let currentNode: TSESTree.Node | undefined = node;
@@ -147,6 +203,14 @@ const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
     return false;
 };
 
+/**
+ * Utility for have same compared expression.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when have same compared expression; otherwise `false`.
+ */
+
 const haveSameComparedExpression = ({
     first,
     second,
@@ -157,6 +221,14 @@ const haveSameComparedExpression = ({
     sourceCode: Readonly<TSESLint.SourceCode>;
 }): boolean =>
     sourceCode.getText(first).trim() === sourceCode.getText(second).trim();
+
+/**
+ * Check whether is strict present check.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when is strict present check; otherwise `false`.
+ */
 
 const isStrictPresentCheck = ({
     node,
@@ -205,6 +277,14 @@ const isStrictPresentCheck = ({
         sourceCode,
     });
 };
+
+/**
+ * Check whether is strict absent check.
+ *
+ * @param value - Input value for value.
+ *
+ * @returns `true` when is strict absent check; otherwise `false`.
+ */
 
 const isStrictAbsentCheck = ({
     node,

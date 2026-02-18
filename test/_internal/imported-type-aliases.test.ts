@@ -20,6 +20,14 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
     Opaque: "Tagged",
 };
 
+/**
+ * CreateSourceCode helper.
+ *
+ * @param body - Input value for body.
+ *
+ * @returns Computed result for `createSourceCode`.
+ */
+
 const createSourceCode = (
     body: unknown[]
 ): Parameters<typeof collectImportedTypeAliasMatches>[0] =>
@@ -28,6 +36,15 @@ const createSourceCode = (
             body,
         },
     }) as unknown as Parameters<typeof collectImportedTypeAliasMatches>[0];
+
+/**
+ * CreateIdentifierImportSpecifier helper.
+ *
+ * @param importedName - Input value for importedName.
+ * @param localName - Input value for localName.
+ *
+ * @returns Computed result for `createIdentifierImportSpecifier`.
+ */
 
 const createIdentifierImportSpecifier = (
     importedName: string,
@@ -43,6 +60,15 @@ const createIdentifierImportSpecifier = (
     type: "ImportSpecifier",
 });
 
+/**
+ * CreateLiteralImportSpecifier helper.
+ *
+ * @param importedName - Input value for importedName.
+ * @param localName - Input value for localName.
+ *
+ * @returns Computed result for `createLiteralImportSpecifier`.
+ */
+
 const createLiteralImportSpecifier = (
     importedName: string,
     localName: string
@@ -57,6 +83,14 @@ const createLiteralImportSpecifier = (
     type: "ImportSpecifier",
 });
 
+/**
+ * CreateImportDeclaration helper.
+ *
+ * @param specifiers - Input value for specifiers.
+ *
+ * @returns Computed result for `createImportDeclaration`.
+ */
+
 const createImportDeclaration = (specifiers: unknown[]): unknown => ({
     source: {
         value: "type-fest",
@@ -65,9 +99,25 @@ const createImportDeclaration = (specifiers: unknown[]): unknown => ({
     type: "ImportDeclaration",
 });
 
+/**
+ * MapToRecord helper.
+ *
+ * @param map - Input value for map.
+ *
+ * @returns Computed result for `mapToRecord`.
+ */
+
 const mapToRecord = <TValue>(
     map: ReadonlyMap<string, TValue>
 ): Readonly<Record<string, TValue>> => Object.fromEntries(map);
+
+/**
+ * BuildExpectedMatches helper.
+ *
+ * @param records - Input value for records.
+ *
+ * @returns Computed result for `buildExpectedMatches`.
+ */
 
 const buildExpectedMatches = (
     records: readonly ImportedAliasRecord[]
@@ -95,6 +145,14 @@ const buildExpectedMatches = (
     return expected;
 };
 
+/**
+ * CollectMatchesFromAliasRecords helper.
+ *
+ * @param records - Input value for records.
+ *
+ * @returns Computed result for `collectMatchesFromAliasRecords`.
+ */
+
 const collectMatchesFromAliasRecords = (
     records: readonly ImportedAliasRecord[]
 ): ReturnType<typeof collectImportedTypeAliasMatches> => {
@@ -110,6 +168,12 @@ const collectMatchesFromAliasRecords = (
         replacementsByImportedName
     );
 };
+
+/**
+ * Utility for assert representative alias combinations.
+ *
+ * @returns Computed result for `assertRepresentativeAliasCombinations`.
+ */
 
 const assertRepresentativeAliasCombinations = (): void => {
     const records: readonly ImportedAliasRecord[] = [
@@ -145,6 +209,12 @@ const assertRepresentativeAliasCombinations = (): void => {
     expect(mapToRecord(actual)).toStrictEqual(mapToRecord(expected));
 };
 
+/**
+ * Utility for assert collects matching named imports.
+ *
+ * @returns Computed result for `assertCollectsMatchingNamedImports`.
+ */
+
 const assertCollectsMatchingNamedImports = (): void => {
     const result = collectImportedTypeAliasMatches(
         createSourceCode([
@@ -169,6 +239,12 @@ const assertCollectsMatchingNamedImports = (): void => {
         },
     });
 };
+
+/**
+ * Utility for assert ignores unsupported declarations and specifiers.
+ *
+ * @returns Computed result for `assertIgnoresUnsupportedDeclarationsAndSpecifiers`.
+ */
 
 const assertIgnoresUnsupportedDeclarationsAndSpecifiers = (): void => {
     const result = collectImportedTypeAliasMatches(

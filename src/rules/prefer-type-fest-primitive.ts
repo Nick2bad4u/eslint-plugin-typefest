@@ -6,6 +6,14 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is primitive keyword node.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is primitive keyword node; otherwise `false`.
+ */
+
 const isPrimitiveKeywordNode = (
     node: TSESTree.TypeNode
 ): node is
@@ -23,6 +31,14 @@ const isPrimitiveKeywordNode = (
     node.type === "TSStringKeyword" ||
     node.type === "TSSymbolKeyword" ||
     node.type === "TSUndefinedKeyword";
+
+/**
+ * Check whether has primitive union shape.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when has primitive union shape; otherwise `false`.
+ */
 
 const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
     if (node.types.length !== 7) {

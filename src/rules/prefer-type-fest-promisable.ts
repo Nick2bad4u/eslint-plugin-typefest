@@ -13,6 +13,15 @@ const promisableAliasReplacements = {
     MaybePromise: "Promisable",
 } as const;
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string
@@ -20,6 +29,14 @@ const isIdentifierTypeReference = (
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
+
+/**
+ * GetPromiseInnerType helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getPromiseInnerType`.
+ */
 
 const getPromiseInnerType = (
     node: TSESTree.TypeNode

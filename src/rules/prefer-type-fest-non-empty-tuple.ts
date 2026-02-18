@@ -6,10 +6,26 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * NormalizeTypeText helper.
+ *
+ * @param text - Input value for text.
+ *
+ * @returns Computed result for `normalizeTypeText`.
+ */
+
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
 type RestAnnotation = TSESTree.TSRestType["typeAnnotation"];
 type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
+
+/**
+ * GetRequiredTupleElementType helper.
+ *
+ * @param element - Input value for element.
+ *
+ * @returns Computed result for `getRequiredTupleElementType`.
+ */
 
 const getRequiredTupleElementType = (
     element: TupleElement
@@ -29,6 +45,14 @@ const getRequiredTupleElementType = (
     return element;
 };
 
+/**
+ * UnwrapRestAnnotation helper.
+ *
+ * @param annotation - Input value for annotation.
+ *
+ * @returns Computed result for `unwrapRestAnnotation`.
+ */
+
 const unwrapRestAnnotation = (
     annotation: RestAnnotation
 ): null | TSESTree.TypeNode => {
@@ -38,6 +62,14 @@ const unwrapRestAnnotation = (
 
     return annotation;
 };
+
+/**
+ * GetRestArrayElementType helper.
+ *
+ * @param element - Input value for element.
+ *
+ * @returns Computed result for `getRestArrayElementType`.
+ */
 
 const getRestArrayElementType = (
     element: TupleElement

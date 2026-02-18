@@ -11,12 +11,38 @@ const writableAliasReplacements = {
     Mutable: "Writable",
 } as const;
 
+/**
+ * NormalizeTypeText helper.
+ *
+ * @param text - Input value for text.
+ *
+ * @returns Computed result for `normalizeTypeText`.
+ */
+
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
+
+/**
+ * NormalizeTypeNodeText helper.
+ *
+ * @param sourceCode - Input value for sourceCode.
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `normalizeTypeNodeText`.
+ */
 
 const normalizeTypeNodeText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     node: TSESTree.TypeNode
 ): string => normalizeTypeText(sourceCode.getText(node));
+
+/**
+ * Check whether has writable mapped type shape.
+ *
+ * @param sourceCode - Input value for sourceCode.
+ * @param node - Input value for node.
+ *
+ * @returns `true` when has writable mapped type shape; otherwise `false`.
+ */
 
 const hasWritableMappedTypeShape = (
     sourceCode: Readonly<TSESLint.SourceCode>,

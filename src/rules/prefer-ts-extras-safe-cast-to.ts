@@ -13,6 +13,14 @@ import {
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is ignored type annotation.
+ *
+ * @param typeAnnotation - Input value for typeAnnotation.
+ *
+ * @returns `true` when is ignored type annotation; otherwise `false`.
+ */
+
 const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>
     typeAnnotation.type === "TSAnyKeyword" ||
     typeAnnotation.type === "TSNeverKeyword" ||

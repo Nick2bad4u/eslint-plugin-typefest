@@ -6,6 +6,14 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * FlattenLogicalAndTerms helper.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns Computed result for `flattenLogicalAndTerms`.
+ */
+
 const flattenLogicalAndTerms = (
     expression: TSESTree.Expression
 ): readonly TSESTree.Expression[] => {
@@ -22,6 +30,15 @@ const flattenLogicalAndTerms = (
     ];
 };
 
+/**
+ * Check whether is null comparison.
+ *
+ * @param node - Input value for node.
+ * @param parameterName - Input value for parameterName.
+ *
+ * @returns `true` when is null comparison; otherwise `false`.
+ */
+
 const isNullComparison = (
     node: TSESTree.Expression,
     parameterName: string
@@ -36,6 +53,15 @@ const isNullComparison = (
             node.right.name === parameterName &&
             node.left.type === "Literal" &&
             node.left.value === null));
+
+/**
+ * Check whether is undefined comparison.
+ *
+ * @param node - Input value for node.
+ * @param parameterName - Input value for parameterName.
+ *
+ * @returns `true` when is undefined comparison; otherwise `false`.
+ */
 
 const isUndefinedComparison = (
     node: TSESTree.Expression,
@@ -71,6 +97,15 @@ const isUndefinedComparison = (
         node.right.value === "undefined"
     );
 };
+
+/**
+ * Check whether is nullish filter guard body.
+ *
+ * @param callback - Input value for callback.
+ * @param parameterName - Input value for parameterName.
+ *
+ * @returns `true` when is nullish filter guard body; otherwise `false`.
+ */
 
 const isNullishFilterGuardBody = (
     callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression },

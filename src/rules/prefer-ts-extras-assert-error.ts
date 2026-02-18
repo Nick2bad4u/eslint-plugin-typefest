@@ -6,6 +6,14 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is throw only consequent.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is throw only consequent; otherwise `false`.
+ */
+
 const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
@@ -18,6 +26,14 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
     );
 };
 
+/**
+ * Check whether is error instanceof expression.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is error instanceof expression; otherwise `false`.
+ */
+
 const isErrorInstanceofExpression = (
     node: TSESTree.Expression
 ): node is TSESTree.BinaryExpression =>
@@ -25,6 +41,14 @@ const isErrorInstanceofExpression = (
     node.operator === "instanceof" &&
     node.right.type === "Identifier" &&
     node.right.name === "Error";
+
+/**
+ * ExtractAssertErrorTarget helper.
+ *
+ * @param test - Input value for test.
+ *
+ * @returns Computed result for `extractAssertErrorTarget`.
+ */
 
 const extractAssertErrorTarget = (
     test: TSESTree.Expression

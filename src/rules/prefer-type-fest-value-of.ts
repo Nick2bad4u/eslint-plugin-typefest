@@ -4,6 +4,14 @@
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * NormalizeTypeText helper.
+ *
+ * @param text - Input value for text.
+ *
+ * @returns Computed result for `normalizeTypeText`.
+ */
+
 const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
 /**

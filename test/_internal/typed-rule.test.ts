@@ -29,6 +29,12 @@ const knownTestSuffixes = [
     ".test.tsx",
 ] as const;
 
+/**
+ * Utility for assert known suffixes property.
+ *
+ * @returns Computed result for `assertKnownSuffixesProperty`.
+ */
+
 const assertKnownSuffixesProperty = (): void => {
     fc.assert(
         fc.property(
@@ -45,6 +51,12 @@ const assertKnownSuffixesProperty = (): void => {
         )
     );
 };
+
+/**
+ * Utility for assert tests directory property.
+ *
+ * @returns Computed result for `assertTestsDirectoryProperty`.
+ */
 
 const assertTestsDirectoryProperty = (): void => {
     fc.assert(
@@ -72,6 +84,12 @@ const assertTestsDirectoryProperty = (): void => {
     );
 };
 
+/**
+ * Utility for assert non test paths.
+ *
+ * @returns Computed result for `assertNonTestPaths`.
+ */
+
 const assertNonTestPaths = (): void => {
     expect(
         isTestFilePath("src/rules/prefer-type-fest-json-value.ts")
@@ -89,6 +107,14 @@ interface ParserServicesLike {
     tsNodeToESTreeNodeMap: WeakMap<object, object>;
 }
 
+/**
+ * CreateTypedRuleContext helper.
+ *
+ * @param parserServices - Input value for parserServices.
+ *
+ * @returns Computed result for `createTypedRuleContext`.
+ */
+
 const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
     languageOptions: {
         parser: {
@@ -101,6 +127,14 @@ const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
         parserServices,
     },
 });
+
+/**
+ * CreateParserServices helper.
+ *
+ * @param program - Input value for program.
+ *
+ * @returns Computed result for `createParserServices`.
+ */
 
 const createParserServices = (
     program: null | ts.Program

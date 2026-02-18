@@ -8,6 +8,15 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string
@@ -15,6 +24,14 @@ const isIdentifierTypeReference = (
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
+
+/**
+ * Check whether has unknown map type arguments.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when has unknown map type arguments; otherwise `false`.
+ */
 
 const hasUnknownMapTypeArguments = (
     node: TSESTree.TSTypeReference

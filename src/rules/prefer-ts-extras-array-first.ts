@@ -11,6 +11,14 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is write target.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is write target; otherwise `false`.
+ */
+
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
     const { parent } = node;
 
@@ -28,6 +36,14 @@ const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
         parent.argument === node
     );
 };
+
+/**
+ * Check whether is zero property.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is zero property; otherwise `false`.
+ */
 
 const isZeroProperty = (
     node: TSESTree.Expression | TSESTree.PrivateIdentifier

@@ -11,6 +11,14 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is write target.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is write target; otherwise `false`.
+ */
+
 const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
     const { parent } = node;
 
@@ -28,6 +36,16 @@ const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
         parent.argument === node
     );
 };
+
+/**
+ * Check whether is last index pattern.
+ *
+ * @param sourceCode - Input value for sourceCode.
+ * @param objectExpression - Input value for objectExpression.
+ * @param propertyExpression - Input value for propertyExpression.
+ *
+ * @returns `true` when is last index pattern; otherwise `false`.
+ */
 
 const isLastIndexPattern = (
     sourceCode: Readonly<TSESLint.SourceCode>,

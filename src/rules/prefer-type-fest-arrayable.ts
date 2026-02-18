@@ -8,6 +8,15 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
 
+/**
+ * Check whether is identifier type reference.
+ *
+ * @param node - Input value for node.
+ * @param expectedTypeName - Input value for expectedTypeName.
+ *
+ * @returns `true` when is identifier type reference; otherwise `false`.
+ */
+
 const isIdentifierTypeReference = (
     node: TSESTree.TypeNode,
     expectedTypeName: string
@@ -15,6 +24,14 @@ const isIdentifierTypeReference = (
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === expectedTypeName;
+
+/**
+ * GetArrayTypeReferenceElementType helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getArrayTypeReferenceElementType`.
+ */
 
 const getArrayTypeReferenceElementType = (
     node: TSESTree.TypeNode
@@ -32,10 +49,28 @@ const getArrayTypeReferenceElementType = (
     return firstTypeArgument ?? null;
 };
 
+/**
+ * NormalizeTypeNodeText helper.
+ *
+ * @param sourceCode - Input value for sourceCode.
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `normalizeTypeNodeText`.
+ */
+
 const normalizeTypeNodeText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     node: TSESTree.TypeNode
 ): string => sourceCode.getText(node).replaceAll(/\s+/g, "");
+
+/**
+ * Check whether has arrayable shape.
+ *
+ * @param sourceCode - Input value for sourceCode.
+ * @param node - Input value for node.
+ *
+ * @returns `true` when has arrayable shape; otherwise `false`.
+ */
 
 const hasArrayableShape = (
     sourceCode: Readonly<TSESLint.SourceCode>,

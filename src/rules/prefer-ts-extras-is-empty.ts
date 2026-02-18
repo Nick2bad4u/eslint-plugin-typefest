@@ -11,8 +11,24 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Check whether is zero literal.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is zero literal; otherwise `false`.
+ */
+
 const isZeroLiteral = (node: TSESTree.Expression): boolean =>
     node.type === "Literal" && node.value === 0;
+
+/**
+ * Check whether is length member expression.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is length member expression; otherwise `false`.
+ */
 
 const isLengthMemberExpression = (
     node: TSESTree.Expression

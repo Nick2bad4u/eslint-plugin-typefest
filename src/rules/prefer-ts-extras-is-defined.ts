@@ -17,8 +17,24 @@ type UndefinedComparisonMatch = {
     readonly prefersNegatedHelper: boolean;
 };
 
+/**
+ * Check whether is undefined identifier.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns `true` when is undefined identifier; otherwise `false`.
+ */
+
 const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
     expression.type === "Identifier" && expression.name === "undefined";
+
+/**
+ * GetUndefinedComparisonMatch helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getUndefinedComparisonMatch`.
+ */
 
 const getUndefinedComparisonMatch = (
     node: TSESTree.BinaryExpression
@@ -75,6 +91,14 @@ const getUndefinedComparisonMatch = (
     return null;
 };
 
+/**
+ * Check whether is filter call.
+ *
+ * @param expression - Input value for expression.
+ *
+ * @returns `true` when is filter call; otherwise `false`.
+ */
+
 const isFilterCall = (
     expression: TSESTree.CallExpression
 ): expression is TSESTree.CallExpression & {
@@ -88,14 +112,38 @@ const isFilterCall = (
     expression.callee.property.type === "Identifier" &&
     expression.callee.property.name === FILTER_METHOD_NAME;
 
+/**
+ * Check whether is function callback node.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is function callback node; otherwise `false`.
+ */
+
 const isFunctionCallbackNode = (
     node: TSESTree.Node
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
     node.type === "ArrowFunctionExpression" ||
     node.type === "FunctionExpression";
 
+/**
+ * GetParentNode helper.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns Computed result for `getParentNode`.
+ */
+
 const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
+
+/**
+ * Check whether is within filter callback.
+ *
+ * @param node - Input value for node.
+ *
+ * @returns `true` when is within filter callback; otherwise `false`.
+ */
 
 const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
     let currentNode: TSESTree.Node | undefined = node;
