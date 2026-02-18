@@ -18,8 +18,8 @@ should still validate semantics if your old utility had custom behavior.
 ### Detection boundaries
 
 - ✅ Reports `import type { RecordDeep } ...` + `RecordDeep<...>` usage.
-- ✅ Reports locally renamed imports (`RecordDeep as LegacyRecordDeep`).
-- ❌ Does not report namespace-qualified usages such as `Legacy.RecordDeep<...>`.
+- ✅ Reports locally renamed imports (`RecordDeep as AliasRecordDeep`).
+- ❌ Does not report namespace-qualified usages such as `TypeUtils.RecordDeep<...>`.
 - ❌ Does not auto-fix.
 
 ## Why
@@ -61,9 +61,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { RecordDeep as LegacyRecordDeep } from "legacy-type-utils";
+import type { RecordDeep as AliasRecordDeep } from "custom-type-utils";
 
-type AuditMask = LegacyRecordDeep<UserProfile, "REDACTED">;
+type AuditMask = AliasRecordDeep<UserProfile, "REDACTED">;
 ```
 
 ### ✅ Correct (additional scenario)
@@ -86,16 +86,16 @@ type FeatureFlags = Schema<EnvironmentConfig, boolean>;
 - **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
 - **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Keep old aliases temporarily (if needed) behind deprecated exports while consumers migrate.
+3. Prefer direct canonical imports and avoid introducing compatibility aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
-- Migrate by domain module (API types, persistence types, UI view models) to reduce review noise.
+- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
 - Remove compatibility aliases once all consumers use canonical names.
 
@@ -104,14 +104,14 @@ type FeatureFlags = Schema<EnvironmentConfig, boolean>;
 - Reports imported `RecordDeep` alias usage in type references.
 - Does not provide autofix or suggestions.
 
-Migration is usually:
+Typical replacement is:
 
 ```ts
 type Before = RecordDeep<Config, string>;
 type After = Schema<Config, string>;
 ```
 
-Re-run type tests after migration, especially when old aliases came from utility
+Re-run type tests after adoption, especially when old aliases came from utility
 libraries with slightly different recursive behavior.
 
 ## ESLint flat config example
@@ -129,7 +129,7 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/type-fest"]`
+For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
 and then override this rule as needed.
 
 ## Frequently asked questions
@@ -152,3 +152,5 @@ You may disable this rule if your codebase intentionally standardizes on a diffe
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+
+

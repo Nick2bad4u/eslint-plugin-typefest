@@ -24,9 +24,9 @@ structural transform, not a safe one-token rename.
 ### Detection boundaries
 
 - ✅ Reports `import type { IfAny } ...` followed by `IfAny<...>` usage.
-- ✅ Reports locally renamed imports (`import type { IfAny as LegacyIfAny } ...`).
-- ❌ Does not report namespace-qualified references like `LegacyTypes.IfAny<...>` (the matcher targets identifier references).
-- ❌ Does not auto-fix because migration requires rebuilding type arguments.
+- ✅ Reports locally renamed imports (`import type { IfAny as AliasIfAny } ...`).
+- ❌ Does not report namespace-qualified references like `TypeUtils.IfAny<...>` (the matcher targets identifier references).
+- ❌ Does not auto-fix because replacement requires rebuilding type arguments.
 
 ## Why
 
@@ -67,9 +67,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { IfUnknown as LegacyIfUnknown } from "legacy-type-utils";
+import type { IfUnknown as AliasIfUnknown } from "custom-type-utils";
 
-type ParseMode<T> = LegacyIfUnknown<T, "strict", "lenient">;
+type ParseMode<T> = AliasIfUnknown<T, "strict", "lenient">;
 ```
 
 ### ✅ Correct (additional scenario)
@@ -94,16 +94,16 @@ type NullLabel<T> = If<IsNull<T>, "nullable", "non-nullable">;
 - **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
 - **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Keep old aliases temporarily (if needed) behind deprecated exports while consumers migrate.
+3. Prefer direct canonical imports and avoid introducing compatibility aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
-- Migrate by domain module (API types, persistence types, UI view models) to reduce review noise.
+- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
 - Remove compatibility aliases once all consumers use canonical names.
 
@@ -111,7 +111,7 @@ type NullLabel<T> = If<IsNull<T>, "nullable", "non-nullable">;
 
 - Reports deprecated imported aliases when they appear in type references.
 - Does not provide autofix or suggestions.
-- Recommended migration pattern per alias:
+- Recommended replacement pattern per alias:
   - `IfAny<T, A, B>` → `If<IsAny<T>, A, B>`
   - `IfNever<T, A, B>` → `If<IsNever<T>, A, B>`
   - `IfUnknown<T, A, B>` → `If<IsUnknown<T>, A, B>`
@@ -133,7 +133,7 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/type-fest"]`
+For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
 and then override this rule as needed.
 
 ## Frequently asked questions
@@ -157,3 +157,4 @@ You may disable this rule if your codebase intentionally standardizes on a diffe
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+

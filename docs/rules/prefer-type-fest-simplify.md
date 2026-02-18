@@ -47,7 +47,7 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Legacy pattern repeated inline across modules.
+// Non-canonical pattern repeated inline across modules.
 import type { Expand } from "utility-types";
 
 type UIModel = Expand<Base & Extra>;
@@ -75,16 +75,16 @@ type ApiModel = Simplify<ResponseBase & ResponseExtra>;
 - **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
 - **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Keep old aliases temporarily (if needed) behind deprecated exports while consumers migrate.
+3. Prefer direct canonical imports and avoid introducing compatibility aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
-- Migrate by domain module (API types, persistence types, UI view models) to reduce review noise.
+- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
 - Remove compatibility aliases once all consumers use canonical names.
 
@@ -93,7 +93,7 @@ type ApiModel = Simplify<ResponseBase & ResponseExtra>;
 - This rule reports non-canonical usage patterns and points you to the canonical helper/type.
 - Fix availability depends on the exact pattern matched by the rule implementation.
 - When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- For large rollouts, run ESLint with fixes enabled and then review the diff for edge cases.
 
 ## ESLint flat config example
 
@@ -110,7 +110,7 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/type-fest"]`
+For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
 and then override this rule as needed.
 
 ## Frequently asked questions
@@ -131,3 +131,4 @@ You may disable this rule if your codebase intentionally standardizes on a diffe
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+

@@ -37,7 +37,7 @@ Using one canonical helper across the codebase reduces custom one-off checks and
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-// Legacy pattern repeated inline across modules.
+// Non-canonical pattern repeated inline across modules.
 if (Number.isFinite(metric)) {
     consume(metric);
 }
@@ -65,16 +65,16 @@ const valid = isFinite(durationMs);
 - **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
 - **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Start with the most common call sites in hot paths and shared utilities.
 2. Replace repetitive inline predicates/checks with the canonical helper shown in this doc.
-3. Re-run tests after migration to confirm behavior and narrowing expectations.
-4. If your team has wrapper utilities, either migrate wrappers to call the canonical helper or deprecate them to avoid duplication.
+3. Re-run tests after adoption to confirm behavior and narrowing expectations.
+4. If your team has wrapper utilities, align wrappers to call the canonical helper or deprecate duplicates.
 
 ### Rollout strategy
 
-- Enable this rule in warning mode first to estimate migration size.
+- Enable this rule in warning mode first to estimate rollout size.
 - Apply fixes in small batches (per package or folder) to keep reviews readable.
 - Switch to error mode after the baseline is cleaned up.
 
@@ -83,7 +83,7 @@ const valid = isFinite(durationMs);
 - This rule reports non-canonical usage patterns and points you to the canonical helper/type.
 - Fix availability depends on the exact pattern matched by the rule implementation.
 - When a safe auto-fix is available, ESLint can apply it directly. Otherwise, the rule provides a deterministic manual replacement pattern in the examples above.
-- For large migrations, run ESLint with fixes enabled and then review the diff for edge cases.
+- For large rollouts, run ESLint with fixes enabled and then review the diff for edge cases.
 
 ## ESLint flat config example
 
@@ -100,8 +100,8 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/ts-extras"]`
-or `typefest.configs["flat/ts-extras-experimental"]` and then override this rule as needed.
+For broader adoption, you can also start from `typefest.configs.strict`
+or `typefest.configs.all` and then override this rule as needed.
 
 ## Frequently asked questions
 
@@ -121,3 +121,4 @@ You may disable this rule if your project intentionally avoids runtime helper de
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
 - [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+

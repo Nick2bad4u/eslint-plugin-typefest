@@ -64,9 +64,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { AtMostOne as LegacyAtMostOne } from "legacy-type-utils";
+import type { AtMostOne as AliasAtMostOne } from "custom-type-utils";
 
-type MonitorLookup = LegacyAtMostOne<
+type MonitorLookup = AliasAtMostOne<
     {
         monitorId?: string;
         slug?: string;
@@ -104,16 +104,16 @@ type SessionIdentity = RequireOneOrNone<
 - **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
 - **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Keep old aliases temporarily (if needed) behind deprecated exports while consumers migrate.
+3. Prefer direct canonical imports and avoid introducing compatibility aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
-- Migrate by domain module (API types, persistence types, UI view models) to reduce review noise.
+- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
 - Remove compatibility aliases once all consumers use canonical names.
 
@@ -121,7 +121,7 @@ type SessionIdentity = RequireOneOrNone<
 
 - Reports imported `AtMostOne` alias references.
 - Does not provide autofix or suggestions.
-- Typical migration: `AtMostOne<T, K>` → `RequireOneOrNone<T, K>`.
+- Typical replacement: `AtMostOne<T, K>` → `RequireOneOrNone<T, K>`.
 
 ## ESLint flat config example
 
@@ -138,7 +138,7 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/type-fest"]`
+For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
 and then override this rule as needed.
 
 ## Frequently asked questions

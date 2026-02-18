@@ -84,16 +84,16 @@ assertPresent(sessionId);
 - **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
 - **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Start with the most common call sites in hot paths and shared utilities.
 2. Replace repetitive inline predicates/checks with the canonical helper shown in this doc.
-3. Re-run tests after migration to confirm behavior and narrowing expectations.
-4. If your team has wrapper utilities, either migrate wrappers to call the canonical helper or deprecate them to avoid duplication.
+3. Re-run tests after adoption to confirm behavior and narrowing expectations.
+4. If your team has wrapper utilities, align wrappers to call the canonical helper or deprecate duplicates.
 
 ### Rollout strategy
 
-- Enable this rule in warning mode first to estimate migration size.
+- Enable this rule in warning mode first to estimate rollout size.
 - Apply fixes in small batches (per package or folder) to keep reviews readable.
 - Switch to error mode after the baseline is cleaned up.
 
@@ -102,7 +102,7 @@ assertPresent(sessionId);
 - Reports explicit nullish-guard throw blocks in `if` statements.
 - Does not provide autofix or suggestions.
 
-Migration pattern:
+Replacement pattern:
 
 ```ts
 if (payload == null) {
@@ -128,8 +128,8 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/ts-extras"]`
-or `typefest.configs["flat/ts-extras-experimental"]` and then override this rule as needed.
+For broader adoption, you can also start from `typefest.configs.strict`
+or `typefest.configs.all` and then override this rule as needed.
 
 ## Frequently asked questions
 
@@ -150,3 +150,5 @@ You may disable this rule if your project intentionally avoids runtime helper de
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
 - [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+
+

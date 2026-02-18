@@ -82,7 +82,7 @@ assertError(lastFailureReason);
 - **Better narrowing signals:** reviewers and maintainers can recognize established `ts-extras` guard semantics immediately.
 - **Lower maintenance risk:** replacing ad-hoc utility variants with canonical helpers reduces drift across services and packages.
 
-## Adoption and migration tips
+## Adoption tips
 
 1. Start in boundary layers (`catch`, message handlers, job workers).
 2. Replace repeated `instanceof Error` throw guards with `assertError(...)`.
@@ -91,7 +91,7 @@ assertError(lastFailureReason);
 ### Rollout strategy
 
 - Enable in warning mode first.
-- Migrate folder-by-folder to keep PRs readable.
+- Adopt folder-by-folder to keep PRs readable.
 - Promote to error once baseline cleanup is complete.
 
 ## Rule behavior and fixes
@@ -99,7 +99,7 @@ assertError(lastFailureReason);
 - Reports negative `instanceof Error` throw guards in `if` statements.
 - Does not provide autofix or suggestions.
 
-Manual migration pattern:
+Manual replacement pattern:
 
 ```ts
 if (!(errorLike instanceof Error)) {
@@ -125,8 +125,8 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["flat/ts-extras"]`
-or `typefest.configs["flat/ts-extras-experimental"]` and then override this
+For broader adoption, you can also start from `typefest.configs.strict`
+or `typefest.configs.all` and then override this
 rule as needed.
 
 ## Frequently asked questions
@@ -151,3 +151,4 @@ dependencies or enforces a different assertion utility layer.
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
 - [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+
