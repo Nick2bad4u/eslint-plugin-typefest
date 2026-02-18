@@ -80,7 +80,7 @@
         "docs:typedoc:local": "cd docs/docusaurus && typedoc --options typedoc.local.config.json",
         "lint": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache && echo \"Eslint done!\"",
         "lint:action": "npm run lint:actions",
-        "lint:actions": "actionlint -config-file ActionLintConfig.yaml -pyflakes \"\" -shellcheck \"\"",
+        "lint:actions": "node scripts/lint-actionlint.mjs",
         "lint:all:fix": "npm run lint:fix && npm run lint:prettier:fix && npm run lint:remark",
         "lint:all:fix:quiet": "npm run lint:fix:quiet && npm run lint:prettier:fix && npm run lint:remark",
         "lint:circular": "npm run madge:circular",

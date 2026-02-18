@@ -72,7 +72,7 @@ const useDefaultFiles =
 if (!hasFlag("-config-file")) {
     userArgs.push(
         "-config-file",
-        path.join("config", "linting", "ActionLintConfig.yaml")
+        path.join(repoRoot, "ActionLintConfig.yaml")
     );
 }
 
