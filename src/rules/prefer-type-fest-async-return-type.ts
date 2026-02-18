@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-type-fest-async-return-type`.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";

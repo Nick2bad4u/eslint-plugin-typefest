@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `prefer-ts-extras-set-has.test` behavior.
+ */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,

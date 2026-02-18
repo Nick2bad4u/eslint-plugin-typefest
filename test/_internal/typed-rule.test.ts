@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
+ */
 import type ts from "typescript";
 
 import fc from "fast-check";

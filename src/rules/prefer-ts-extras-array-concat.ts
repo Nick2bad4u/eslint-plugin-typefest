@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-array-concat`.
+ */
 import type ts from "typescript";
 
 import {

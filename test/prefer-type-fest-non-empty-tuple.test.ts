@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `prefer-type-fest-non-empty-tuple.test` behavior.
+ */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,

@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `prefer-type-fest-json-primitive.test` behavior.
+ */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,

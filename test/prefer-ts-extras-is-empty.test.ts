@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `prefer-ts-extras-is-empty.test` behavior.
+ */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,

@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
+ */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =

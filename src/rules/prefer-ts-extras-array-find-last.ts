@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-array-find-last`.
+ */
 import type ts from "typescript";
 
 import {

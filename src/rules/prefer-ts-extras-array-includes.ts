@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-array-includes`.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 

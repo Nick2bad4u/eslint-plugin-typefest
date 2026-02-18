@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Public plugin entrypoint for eslint-plugin-typefest exports and preset wiring.
+ */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { ESLint, Linter } from "eslint";
 import type { PackageJson } from "type-fest";

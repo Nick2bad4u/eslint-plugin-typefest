@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-object-keys`.
+ */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =

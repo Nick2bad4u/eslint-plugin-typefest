@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `configs.test` behavior.
+ */
 import { describe, expect, it } from "vitest";
 
 import plugin from "../plugin.mjs";

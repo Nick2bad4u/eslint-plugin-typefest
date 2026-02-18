@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-is-integer`.
+ */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =

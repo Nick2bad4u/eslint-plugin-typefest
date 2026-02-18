@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-type-fest-omit-index-signature`.
+ */
 import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 

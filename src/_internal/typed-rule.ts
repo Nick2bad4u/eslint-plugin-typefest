@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Internal shared utilities used by eslint-plugin-typefest rule modules and plugin wiring.
+ */
 import type ts from "typescript";
 
 import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";

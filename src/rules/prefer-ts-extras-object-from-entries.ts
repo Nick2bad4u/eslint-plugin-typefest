@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-object-from-entries`.
+ */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =

@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
+ */
 import { describe, expect, it } from "vitest";
 
 import { collectImportedTypeAliasMatches } from "../../src/_internal/imported-type-aliases";

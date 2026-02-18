@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
+ */
 import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import * as path from "node:path";

@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * Vitest coverage for `docs-integrity.test` behavior.
+ */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { describe, expect, expectTypeOf, it } from "vitest";

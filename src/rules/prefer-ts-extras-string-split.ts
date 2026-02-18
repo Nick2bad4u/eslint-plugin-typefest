@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-string-split`.
+ */
 import {
     createTypedRule,
     getTypedRuleServices,

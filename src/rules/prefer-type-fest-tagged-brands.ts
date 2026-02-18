@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-type-fest-tagged-brands`.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";

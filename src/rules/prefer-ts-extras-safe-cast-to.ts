@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-safe-cast-to`.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import ts from "typescript";
