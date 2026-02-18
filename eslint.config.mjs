@@ -415,6 +415,19 @@ export default defineConfig([
         },
         name: "Global Language Options **/**",
     },
+    {
+        files: ["**/*.d.{ts,mts,cts}"],
+        languageOptions: {
+            parser: tseslintParser,
+            parserOptions: {
+                ecmaVersion: "latest",
+                jsDocParsingMode: "all",
+                sourceType: "module",
+                warnOnUnsupportedTypeScriptVersion: true,
+            },
+        },
+        name: "Type Declarations - TypeScript Parser",
+    },
     // #endregion
     // #region ⚙️ Global Settings
     // ═══════════════════════════════════════════════════════════════════════════════

@@ -2,6 +2,10 @@
     "$schema": "https://www.schemastore.org/package.json",
     "name": "eslint-plugin-typefest",
     "version": "0.1.0",
+    "workspaces": [
+        "docs/docusaurus"
+    ],
+    "private": false,
     "description": "ESLint rules for adopting type-fest and ts-extras conventions.",
     "keywords": [
         "eslint",
@@ -40,6 +44,7 @@
         "bench:watch": "vitest bench",
         "build": "tsc -p tsconfig.build.json",
         "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+        "build:eslint-inspector": "node ./scripts/build-eslint-inspector.mjs",
         "build:eslint-inspector:local": "npx @eslint/config-inspector",
         "clean:cache": "rimraf dist coverage cache .cache .vite .turbo",
         "clean:cache:coverage": "rimraf coverage .coverage",
@@ -53,8 +58,8 @@
         "clean:cache:typescript": "rimraf .cache/**.tsbuildinfo .cache/builds",
         "clean:cache:vite": "rimraf .cache/vite .cache/vitest .cache/vitest-zero-coverage .cache/vite-zero-coverage",
         "clean:database": "rimraf %appdata%/uptime-watcher/uptime-watcher.sqlite",
-        "clean:docs": "rimraf docs/docusaurus/docs/** docs/docusaurus/build/** docs/docusaurus/static/eslint-inspector/** docs/docusaurus/static/storybook/** docs/docusaurus/.docusaurus/**",
-        "clean:docusaurus": "npm run clean:docs && cd docs/docusaurus && npx docusaurus clear",
+        "clean:docs": "rimraf docs/docusaurus/.docusaurus/** docs/docusaurus/build/** docs/docusaurus/site-docs/developer/api/**",
+        "clean:docusaurus": "npm run clean:docs && npm run --workspace docs/docusaurus clear",
         "cognitive-complexity": "cognitive-complexity-ts --threshold 10",
         "commit": "git-cz",
         "contrib": "all-contributors",
@@ -63,6 +68,16 @@
         "contrib:compare": "npm run contrib:check",
         "contrib:generate": "all-contributors generate",
         "coverage": "vitest run --coverage",
+        "docs:api": "npm run --workspace docs/docusaurus docs:api",
+        "docs:api:local": "npm run --workspace docs/docusaurus docs:api:local",
+        "docs:build": "npm run --workspace docs/docusaurus build",
+        "docs:build:local": "npm run --workspace docs/docusaurus build:local",
+        "docs:check-links": "node ./scripts/check-doc-links.mjs",
+        "docs:serve": "npm run --workspace docs/docusaurus serve",
+        "docs:start": "npm run --workspace docs/docusaurus start",
+        "docs:typecheck": "npm run --workspace docs/docusaurus typecheck",
+        "docs:typedoc": "cd docs/docusaurus && typedoc --options typedoc.config.json",
+        "docs:typedoc:local": "cd docs/docusaurus && typedoc --options typedoc.local.config.json",
         "lint": "cross-env NODE_OPTIONS=--max_old_space_size=16384 eslint --cache --cache-strategy content --cache-location .cache/.eslintcache && echo \"Eslint done!\"",
         "lint:action": "npm run lint:actions",
         "lint:actions": "actionlint -config-file ActionLintConfig.yaml -pyflakes \"\" -shellcheck \"\"",
@@ -107,13 +122,15 @@
         "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit",
         "typecheck:all": "npm run typecheck",
         "types:update": "typesync",
-        "update-deps": "npx ncu -i --install never && npm install --force"
+        "update-deps": "npx ncu -i --install never && npm install --force",
+        "verify:eslint-inspector": "node ./scripts/verify-eslint-inspector.mjs"
     },
     "dependencies": {
         "@typescript-eslint/parser": "^8.56.0",
         "@typescript-eslint/utils": "^8.56.0"
     },
     "devDependencies": {
+        "@docusaurus/eslint-plugin": "^3.9.2",
         "@double-great/remark-lint-alt-text": "^1.1.1",
         "@eslint-community/eslint-plugin-eslint-comments": "^4.6.0",
         "@eslint/compat": "^2.0.2",
@@ -126,6 +143,7 @@
         "@html-eslint/eslint-plugin": "^0.55.0",
         "@html-eslint/parser": "^0.55.0",
         "@microsoft/eslint-plugin-sdl": "^1.1.0",
+        "@microsoft/tsdoc-config": "^0.18.0",
         "@softonus/prettier-plugin-duplicate-remover": "^1.1.2",
         "@stylistic/eslint-plugin": "^5.8.0",
         "@types/eslint-plugin-jsx-a11y": "~6.10.1",
@@ -345,10 +363,13 @@
         "eslint": "^10.0.0",
         "typescript": ">=5.0.0"
     },
+    "packageManager": "npm@11.10.0",
     "engines": {
         "node": ">=20.19.0"
     },
+    "engineStrict": false,
     "publishConfig": {
         "provenance": true
-    }
+    },
+    "readme": "README.md"
 }

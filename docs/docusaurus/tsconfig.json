@@ -1,0 +1,22 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "extends": "../../node_modules/@docusaurus/tsconfig/tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "noEmit": true,
+        "strict": true
+    },
+    "include": [
+        "docusaurus.config.ts",
+        "sidebars.ts",
+        "sidebars.rules.ts",
+        "src/**/*"
+    ],
+    "exclude": [
+        ".docusaurus",
+        "build",
+        "node_modules"
+    ]
+}

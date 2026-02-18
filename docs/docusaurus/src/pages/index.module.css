@@ -1,0 +1,56 @@
+.heroBanner {
+    background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+    color: #fff;
+    padding: 5.5rem 0 4.25rem;
+}
+
+.heroTitle {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 0.75rem;
+}
+
+.heroSubtitle {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 52rem;
+}
+
+.heroActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.mainContent {
+    padding: 2.5rem 0 3rem;
+}
+
+.cardGrid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.card {
+    background: var(--ifm-card-background-color);
+    border: 1px solid var(--ifm-color-emphasis-200);
+    border-radius: 0.75rem;
+    box-shadow: var(--ifm-global-shadow-lw);
+    padding: 1rem;
+}
+
+.cardTitle {
+    font-size: 1.125rem;
+    margin-bottom: 0.4rem;
+}
+
+.cardDescription {
+    color: var(--ifm-color-emphasis-800);
+    margin-bottom: 0.75rem;
+}
+
+.cardLink {
+    font-weight: 600;
+}

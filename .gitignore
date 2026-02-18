@@ -857,3 +857,5 @@ temp/
 
 # VS Code
 !.vscode/mcp.json
+eslint.config.bundled_**
+site-docs/developer/api/
