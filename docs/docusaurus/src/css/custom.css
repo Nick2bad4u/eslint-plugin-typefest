@@ -1,3 +1,28 @@
+/** eslint-disable css/use-baseline */
+/* stylelint-disable declaration-no-important, keyframes-name-pattern, plugin/no-low-performance-animation-properties, declaration-block-no-redundant-longhand-properties, order/properties-order, no-duplicate-selectors, no-descending-specificity, selector-max-specificity, selector-not-notation, csstools/use-nesting, a11y/media-prefers-reduced-motion, defensive-css/require-named-grid-lines -- Docusaurus CSS breaks these features */
+
+/**
+ * Global CSS overrides for Docusaurus documentation site.
+ *
+ * Purpose:
+ *   - This file contains global styles that apply to all pages and components.
+ *   - It customizes and extends the default Infima CSS framework bundled with Docusaurus.
+ *   - Use this file to implement advanced design features, accessibility improvements,
+ *     and maintain consistent branding across the documentation.
+ *
+ * Scope:
+ *   - All CSS rules here are global and affect the entire documentation site.
+ *   - Overrides Infima variables, resets, and component styles as needed.
+ *   - Maintainers should review changes for compatibility with Docusaurus updates and
+ *     ensure that customizations do not break core functionality.
+ *
+ * Note:
+ *   - Prefer using CSS variables and utility classes for maintainability.
+ *   - Document any major changes or overrides for future maintainers.
+ */
+
+/* You can override the default Infima variables here. */
+
 :root {
     --ifm-color-primary: #4f46e5;
     --ifm-color-primary-dark: #4338ca;
@@ -52,7 +77,7 @@
 }
 
 .theme-doc-sidebar-menu .menu__link:hover {
-    background-color: rgb(79 70 229 / 10%);
+    background-color: rgba(39, 38, 63, 0.1);
     text-decoration: none;
 }
 
