@@ -81,6 +81,17 @@ applyTo: "**"
   - Use the todo list tooling (`manage_todo_list`) to track complex rule implementations.
   - Break down AST traversal logic into small, testable utility functions.
 - **Error Handling:** When parsing weird syntax, fail gracefully. Do not crash the linter process.
+- If you are getting truncated or large output from any command, you should redirect the command to a file and read it using proper tools. Put these files in the `temp/` directory and clean them up when done.
+- When finishing a task or request, review everything from the lens of code quality, maintainability, readability, and adherence to best practices. If you identify any issues or areas for improvement, address them before finalizing the task.
+- Always prioritize code quality, maintainability, readability, and adherence to best practices over speed or convenience. Never cut corners or take shortcuts that would compromise these principles.
+- Sometimes you may need to take other steps that aren't explicitly requests (running tests, checking for type errors, etc) in order to ensure the quality of your work. Always take these steps when needed, even if they aren't explicitly requested.
+- Prefer solutions that follow SOLID principles.
+- Follow current, supported patterns and best practices; propose migrations when older or deprecated approaches are encountered.
+- Deliver fixes that handle edge cases, include error handling, and won't break under future refactors.
+- Take the time needed for careful design, testing, and review rather than rushing to finish tasks.
+- Prioritize code quality, maintainability, readability.
+- Avoid `any` type; use `unknown` with type guards instead or use type-fest and ts-extras (preferred).
+- Avoid barrel exports (`index.ts` re-exports) except at module boundaries.
 
   </coding>
 

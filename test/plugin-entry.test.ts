@@ -4,23 +4,11 @@ import plugin from "../plugin.mjs";
 
 const expectedConfigRegistryShape = expect.objectContaining({
     all: expect.any(Object),
-    "flat/all": expect.any(Object),
-    "flat/minimal": expect.any(Object),
-    "flat/recommended": expect.any(Object),
-    "flat/safe": expect.any(Object),
-    "flat/strict": expect.any(Object),
-    "flat/ts-extras": expect.any(Object),
-    "flat/ts-extras-experimental": expect.any(Object),
-    "flat/ts-extras-safe": expect.any(Object),
-    "flat/type-fest": expect.any(Object),
     minimal: expect.any(Object),
     recommended: expect.any(Object),
-    safe: expect.any(Object),
     strict: expect.any(Object),
-    "ts-extras": expect.any(Object),
-    "ts-extras-experimental": expect.any(Object),
-    "ts-extras-safe": expect.any(Object),
-    "type-fest": expect.any(Object),
+    "ts-extras/type-guards": expect.any(Object),
+    "type-fest/types": expect.any(Object),
 });
 
 const expectedRuleRegistryShape = expect.objectContaining({
