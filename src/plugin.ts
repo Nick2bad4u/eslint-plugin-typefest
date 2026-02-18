@@ -84,16 +84,19 @@ const DEFAULT_RULE_DOCS_URL_BASE =
 const ERROR_SEVERITY = "error" as const;
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
-type ConfigName =
+export type TypefestConfigName =
     | "all"
     | "minimal"
     | "recommended"
     | "strict"
     | "ts-extras/type-guards"
     | "type-fest/types";
+export type TypefestPresetConfig = Linter.Config & {
+    rules: NonNullable<Linter.Config["rules"]>;
+};
 type FlatConfig = Linter.Config;
 type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
-type RulesConfig = NonNullable<FlatConfig["rules"]>;
+type RulesConfig = TypefestPresetConfig["rules"];
 type RuleWithDocs = TSESLint.RuleModule<string, readonly unknown[]> & {
     meta?: {
         docs?: {
@@ -101,13 +104,14 @@ type RuleWithDocs = TSESLint.RuleModule<string, readonly unknown[]> & {
         };
     };
 };
-type TypefestPlugin = {
-    configs?: Record<ConfigName, FlatConfig>;
+type TypefestConfigsContract = Record<TypefestConfigName, TypefestPresetConfig>;
+type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
+    configs: TypefestConfigsContract;
     meta: {
         name: string;
         version: string;
     };
-    rules: typeof typefestRules;
+    rules: NonNullable<ESLint.Plugin["rules"]> & typeof typefestRules;
 };
 type TypeScriptParser = {
     parse?: (...parameters: readonly unknown[]) => unknown;
@@ -204,7 +208,13 @@ const typefestRules = {
     "prefer-type-fest-writable": preferTypeFestWritableRule,
 } as const satisfies Record<string, RuleWithDocs>;
 
-type RuleName = keyof typeof typefestRules;
+export type TypefestRuleId = `typefest/${keyof typeof typefestRules}`;
+export type TypefestRuleName = keyof typeof typefestRules;
+
+const typefestEslintRules = typefestRules as unknown as NonNullable<
+    ESLint.Plugin["rules"]
+> &
+    typeof typefestRules;
 
 for (const [ruleName, rule] of Object.entries(typefestRules)) {
     if (rule.meta?.docs) {
@@ -212,7 +222,7 @@ for (const [ruleName, rule] of Object.entries(typefestRules)) {
     }
 }
 
-function errorRulesFor(ruleNames: readonly RuleName[]): RulesConfig {
+function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
     const rules: RulesConfig = {};
 
     for (const ruleName of ruleNames) {
@@ -222,7 +232,9 @@ function errorRulesFor(ruleNames: readonly RuleName[]): RulesConfig {
     return rules;
 }
 
-function uniqueRuleNames(ruleNames: readonly RuleName[]): RuleName[] {
+function uniqueRuleNames(
+    ruleNames: readonly TypefestRuleName[]
+): TypefestRuleName[] {
     return [...new Set(ruleNames)];
 }
 
@@ -261,7 +273,7 @@ const typeFestTypesRuleNames = [
     "prefer-type-fest-unwrap-tagged",
     "prefer-type-fest-value-of",
     "prefer-type-fest-writable",
-] as const satisfies readonly RuleName[];
+] as const satisfies readonly TypefestRuleName[];
 
 const tsExtrasTypeGuardRuleNames = [
     "prefer-ts-extras-array-includes",
@@ -283,7 +295,7 @@ const tsExtrasTypeGuardRuleNames = [
     "prefer-ts-extras-object-has-own",
     "prefer-ts-extras-safe-cast-to",
     "prefer-ts-extras-set-has",
-] as const satisfies readonly RuleName[];
+] as const satisfies readonly TypefestRuleName[];
 
 const tsExtrasUtilityRuleNames = [
     "prefer-ts-extras-array-at",
@@ -297,14 +309,14 @@ const tsExtrasUtilityRuleNames = [
     "prefer-ts-extras-object-keys",
     "prefer-ts-extras-object-values",
     "prefer-ts-extras-string-split",
-] as const satisfies readonly RuleName[];
+] as const satisfies readonly TypefestRuleName[];
 
 const tsExtrasExperimentalRuleNames = [
     "prefer-ts-extras-array-find",
     "prefer-ts-extras-array-find-last",
     "prefer-ts-extras-array-find-last-index",
     "prefer-ts-extras-is-equal-type",
-] as const satisfies readonly RuleName[];
+] as const satisfies readonly TypefestRuleName[];
 
 const minimalRuleNames = [
     "prefer-type-fest-arrayable",
@@ -318,7 +330,7 @@ const minimalRuleNames = [
     "prefer-type-fest-unknown-record",
     "prefer-ts-extras-is-defined-filter",
     "prefer-ts-extras-is-present-filter",
-] as const satisfies readonly RuleName[];
+] as const satisfies readonly TypefestRuleName[];
 
 const recommendedRuleNames = uniqueRuleNames([
     ...typeFestTypesRuleNames,
@@ -336,9 +348,9 @@ const allRuleNames = uniqueRuleNames([
 ]);
 
 function withTypefestPlugin(
-    config: FlatConfig,
+    config: TypefestPresetConfig,
     plugin: ESLint.Plugin
-): FlatConfig {
+): TypefestPresetConfig {
     const languageOptions: FlatLanguageOptions = config.languageOptions ?? {};
 
     if (typeScriptParser) {
@@ -361,15 +373,9 @@ function withTypefestPlugin(
     };
 }
 
-const typefestPlugin: TypefestPlugin = {
-    meta: {
-        name: "eslint-plugin-typefest",
-        version: getPackageVersion(packageJson),
-    },
-    rules: typefestRules,
+const pluginForConfigs: ESLint.Plugin = {
+    rules: typefestEslintRules,
 };
-
-const eslintPlugin = typefestPlugin as unknown as ESLint.Plugin;
 
 const typefestConfigs = {
     all: withTypefestPlugin(
@@ -377,45 +383,56 @@ const typefestConfigs = {
             name: "typefest:all",
             rules: errorRulesFor(allRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
     minimal: withTypefestPlugin(
         {
             name: "typefest:minimal",
             rules: errorRulesFor(minimalRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
     recommended: withTypefestPlugin(
         {
             name: "typefest:recommended",
             rules: errorRulesFor(recommendedRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
     strict: withTypefestPlugin(
         {
             name: "typefest:strict",
             rules: errorRulesFor(strictRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
     "ts-extras/type-guards": withTypefestPlugin(
         {
             name: "typefest:ts-extras/type-guards",
             rules: errorRulesFor(tsExtrasTypeGuardRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
     "type-fest/types": withTypefestPlugin(
         {
             name: "typefest:type-fest/types",
             rules: errorRulesFor(typeFestTypesRuleNames),
         },
-        eslintPlugin
+        pluginForConfigs
     ),
-} as const satisfies Record<ConfigName, FlatConfig>;
+} satisfies TypefestConfigsContract;
 
-typefestPlugin.configs = typefestConfigs;
+export type TypefestConfigs = typeof typefestConfigs;
 
-export default eslintPlugin;
+const typefestPlugin = {
+    configs: typefestConfigs,
+    meta: {
+        name: "eslint-plugin-typefest",
+        version: getPackageVersion(packageJson),
+    },
+    rules: typefestEslintRules,
+} satisfies TypefestPluginContract;
+
+export type TypefestPlugin = typeof typefestPlugin;
+
+export default typefestPlugin;
