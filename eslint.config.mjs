@@ -76,6 +76,8 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
+import pluginDocusaurus from "@docusaurus/eslint-plugin";
+import css from "@eslint/css";
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
@@ -427,6 +429,39 @@ export default defineConfig([
             },
         },
         name: "Type Declarations - TypeScript Parser",
+    },
+    {
+        files: ["docs/docusaurus/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"],
+        ignores: [
+            "docs/docusaurus/.docusaurus/**",
+            "docs/docusaurus/build/**",
+            "docs/docusaurus/static/eslint-inspector/**",
+        ],
+        languageOptions: {
+            parser: tseslintParser,
+            parserOptions: {
+                ecmaFeatures: {
+                    impliedStrict: true,
+                    jsx: true,
+                },
+                ecmaVersion: "latest",
+                jsDocParsingMode: "all",
+                sourceType: "module",
+                warnOnUnsupportedTypeScriptVersion: true,
+            },
+        },
+        name: "Docusaurus Workspace Files",
+        plugins: {
+            "@docusaurus": pluginDocusaurus,
+            css: css,
+        },
+        rules: {
+            ...css.configs.recommended.rules,
+            "@docusaurus/no-html-links": "warn",
+            "@docusaurus/no-untranslated-text": "off",
+            "@docusaurus/prefer-docusaurus-heading": "warn",
+            "@docusaurus/string-literal-i18n-messages": "off",
+        },
     },
     // #endregion
     // #region ⚙️ Global Settings

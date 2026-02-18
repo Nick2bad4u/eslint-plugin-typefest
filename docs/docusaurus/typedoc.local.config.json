@@ -524,7 +524,7 @@
         "includeFolders": true,
         "includeGroups": true
     },
-    "out": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/eslint-plugin-typefest/site-docs/developer/api",
+    "out": "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/eslint-plugin-typefest/docs/docusaurus/site-docs/developer/api",
     "placeInternalsInOwningModule": true,
     "plugin": [
         "./typedoc-plugins/hashToBangLinks.mjs",

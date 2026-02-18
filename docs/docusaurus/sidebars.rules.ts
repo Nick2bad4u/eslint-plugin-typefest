@@ -3,8 +3,13 @@ import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 const sidebars: SidebarsConfig = {
     rules: [
         {
+            className: "sb-cat-rules",
+            collapsed: true,
+            customProps: {
+                badge: "rules",
+            },
             type: "category",
-            label: "Rules",
+            label: "🧠 Rules",
             link: {
                 type: "generated-index",
                 title: "Rule Reference",

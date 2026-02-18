@@ -28,7 +28,7 @@
     ],
     "scripts": {
         "build": "node ../../scripts/build-eslint-inspector.mjs && npm run docs:api && docusaurus build",
-        "build:local": "node ../../scripts/build-eslint-inspector.mjs && npm run docs:api:local && docusaurus build",
+        "build:local": "node ../../scripts/build-eslint-inspector.mjs && npm run docs:api:local && cross-env NODE_OPTIONS=--no-deprecation docusaurus build",
         "clear": "docusaurus clear",
         "deploy": "docusaurus deploy",
         "docs:api": "typedoc --options typedoc.config.json",
