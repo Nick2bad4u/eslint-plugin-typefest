@@ -43,15 +43,15 @@ export default function Home() {
                     <div className={styles.heroActions}>
                         <Link
                             className="button button--primary button--lg"
-                            to="/docs/getting-started"
+                            to="/docs/intro"
                         >
-                            Read the docs
+                            Start with Overview
                         </Link>
                         <Link
                             className="button button--secondary button--lg"
-                            to="/docs/rules"
+                            to="/docs/developer/api"
                         >
-                            Browse rules
+                            Explore Developer API
                         </Link>
                     </div>
                 </div>

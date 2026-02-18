@@ -9,12 +9,6 @@ const sidebars: SidebarsConfig = {
             type: "doc",
         },
         {
-            className: "sb-doc-getting-started",
-            id: "getting-started",
-            label: "🚀 Getting Started",
-            type: "doc",
-        },
-        {
             className: "sb-cat-developer",
             collapsed: true,
             customProps: {
@@ -29,9 +23,9 @@ const sidebars: SidebarsConfig = {
             items: [
                 {
                     className: "sb-doc-api-overview",
-                    href: "/docs/developer/api",
+                    id: "developer/api/index",
                     label: "📘 API Overview",
-                    type: "link",
+                    type: "doc",
                 },
                 {
                     className: "sb-cat-api-types",

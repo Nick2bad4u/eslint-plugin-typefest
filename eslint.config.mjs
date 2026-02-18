@@ -6,9 +6,11 @@
 /* eslint-disable @eslint-community/eslint-comments/disable-enable-pair -- Eslint doesn't use default */
 /* eslint-disable import-x/no-named-as-default-member, n/no-unsupported-features/node-builtins -- Rule wants packages not in dev, doesn't apply, eslint doesnt use default import */
 
+import pluginDocusaurus from "@docusaurus/eslint-plugin";
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
+import css from "@eslint/css";
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
@@ -26,6 +28,7 @@ import arrayFunc from "eslint-plugin-array-func";
 import pluginCanonical from "eslint-plugin-canonical";
 import pluginCasePolice from "eslint-plugin-case-police";
 import eslintPluginCommentLength from "eslint-plugin-comment-length";
+import * as pluginCssModules from "eslint-plugin-css-modules";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import etcPlugin from "eslint-plugin-etc";
@@ -43,6 +46,7 @@ import noBarrelFiles from "eslint-plugin-no-barrel-files";
 import noConstructorBind from "eslint-plugin-no-constructor-bind";
 import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
+import pluginNoHardcoded from "eslint-plugin-no-hardcoded-strings";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
 import pluginNoOnly from "eslint-plugin-no-only-tests";
 import noSecrets from "eslint-plugin-no-secrets";
@@ -65,6 +69,7 @@ import eslintPluginToml from "eslint-plugin-toml";
 import pluginTotalFunctions from "eslint-plugin-total-functions";
 import pluginTsdoc from "eslint-plugin-tsdoc";
 import pluginTSDocRequire from "eslint-plugin-tsdoc-require";
+import pluginUndefinedCss from "eslint-plugin-undefined-css-classes";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 import pluginWriteGood from "eslint-plugin-write-good-comments";
@@ -76,8 +81,6 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
-import pluginDocusaurus from "@docusaurus/eslint-plugin";
-import css from "@eslint/css";
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
@@ -430,6 +433,55 @@ export default defineConfig([
         },
         name: "Type Declarations - TypeScript Parser",
     },
+    // #endregion
+    // #region 🎨 CSS files
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MARK: CSS (css/*)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    {
+        files: ["**/*.css"],
+        ignores: ["docs/**", "**/test/**"],
+        language: "css/css",
+        languageOptions: {
+            tolerant: true,
+        },
+        name: "CSS - **/*.CSS",
+        plugins: {
+            css: css,
+            "css-modules": pluginCssModules,
+            "no-hardcoded-strings": pluginNoHardcoded,
+            "undefined-css-classes": pluginUndefinedCss,
+        },
+        rules: {
+            ...css.configs.recommended.rules,
+            ...pluginUndefinedCss.configs.recommended.rules,
+            ...pluginCssModules.configs.recommended.rules,
+            // CSS Eslint Rules (css/*)
+            "css/no-empty-blocks": "error",
+            "css/no-invalid-at-rules": "off",
+            "css/no-invalid-properties": "off",
+            "css/prefer-logical-properties": "warn",
+            "css/relative-font-units": "warn",
+            "css/selector-complexity": "off",
+            "css/use-baseline": "off",
+            "css/use-layers": "off",
+            // CSS Classes Rules (undefined-css-classes/*)
+            "undefined-css-classes/no-undefined-css-classes": "warn",
+            // "no-hardcoded-strings/no-hardcoded-strings": [
+            //     "warn",
+            //     {
+            //         allowedFunctionNames: ["t", "translate", "i18n"],
+            //         ignoreStrings: ["OK", "Cancel"],
+            //         ignorePatterns: [/^[\s\d\-:]+$/u], // Ignore dates, times, numbers
+            //     },
+            // ],
+        },
+    },
+    // #endregion
+    // #region 🦖 Docusaurus files
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // MARK: Docusaurus (docusaurus/*)
+    // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["docs/docusaurus/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"],
         ignores: [
@@ -452,11 +504,9 @@ export default defineConfig([
         },
         name: "Docusaurus Workspace Files",
         plugins: {
-            "@docusaurus": pluginDocusaurus,
-            css: css,
+            "@docusaurus": pluginDocusaurus
         },
         rules: {
-            ...css.configs.recommended.rules,
             "@docusaurus/no-html-links": "warn",
             "@docusaurus/no-untranslated-text": "off",
             "@docusaurus/prefer-docusaurus-heading": "warn",
