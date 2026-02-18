@@ -11,6 +11,7 @@
     --sb-accent-started: #0ea5e9;
     --sb-accent-developer: #8b5cf6;
     --sb-accent-rules: #f97316;
+    --sb-accent-presets: #eab308;
     --sb-accent-api-overview: #6366f1;
     --sb-accent-api-types: #14b8a6;
     --sb-accent-api-runtime: #f43f5e;
@@ -30,6 +31,7 @@
     --sb-accent-started: #38bdf8;
     --sb-accent-developer: #c084fc;
     --sb-accent-rules: #fb923c;
+    --sb-accent-presets: #facc15;
     --sb-accent-api-overview: #a5b4fc;
     --sb-accent-api-types: #2dd4bf;
     --sb-accent-api-runtime: #fb7185;
@@ -61,6 +63,7 @@
 .sb-doc-overview > .menu__link,
 .sb-doc-getting-started > .menu__link,
 .sb-doc-api-overview > .menu__link,
+.sb-cat-presets > .menu__list-item-collapsible .menu__link,
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
@@ -85,6 +88,10 @@
     border-inline-start-color: var(--sb-accent-developer);
 }
 
+.sb-cat-presets > .menu__list-item-collapsible .menu__link {
+    border-inline-start-color: var(--sb-accent-presets);
+}
+
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link {
     border-inline-start-color: var(--sb-accent-api-types);
 }
@@ -98,6 +105,7 @@
 }
 
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
+.sb-cat-presets > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
 .sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link,
@@ -109,6 +117,7 @@
 }
 
 .sb-cat-developer > .menu__list-item-collapsible .menu__link::before,
+.sb-cat-presets > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link::before,
@@ -135,6 +144,13 @@
     background-color: rgb(249 115 22 / 12%);
     border: 1px solid rgb(249 115 22 / 40%);
     color: var(--sb-accent-rules);
+}
+
+.sb-cat-presets > .menu__list-item-collapsible .menu__link::before {
+    content: "presets";
+    background-color: rgb(234 179 8 / 14%);
+    border: 1px solid rgb(234 179 8 / 40%);
+    color: var(--sb-accent-presets);
 }
 
 .sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link {
@@ -183,6 +199,12 @@
     > .menu__list-item-collapsible
     .menu__link {
     box-shadow: inset 0 0 0 1px rgb(249 115 22 / 28%);
+}
+
+.sb-cat-presets:not(.menu__list-item--collapsed)
+    > .menu__list-item-collapsible
+    .menu__link {
+    box-shadow: inset 0 0 0 1px rgb(234 179 8 / 25%);
 }
 
 .sb-cat-rules-ts-extras:not(.menu__list-item--collapsed)

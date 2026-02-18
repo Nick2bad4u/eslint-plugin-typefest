@@ -3,19 +3,13 @@ import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 const sidebars: SidebarsConfig = {
     docs: [
         {
-            className: "sb-doc-overview",
-            id: "intro",
-            label: "🏁 Overview",
-            type: "doc",
-        },
-        {
             className: "sb-cat-developer",
             collapsed: true,
             customProps: {
                 badge: "api",
             },
             type: "category",
-            label: "🧰 Developer API",
+            label: "🛠 Dev",
             link: {
                 type: "doc",
                 id: "developer/index",

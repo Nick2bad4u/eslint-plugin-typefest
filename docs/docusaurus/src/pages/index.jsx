@@ -9,19 +9,19 @@ const homeCards = [
         title: "Get Started",
         description:
             "Install the plugin, enable a preset, and start enforcing type-safe ts-extras and type-fest patterns.",
-        to: "/docs/getting-started",
+        to: "/docs/rules/getting-started",
+    },
+    {
+        title: "Presets",
+        description:
+            "Choose the right preset for your team, from minimal baseline to full strict coverage.",
+        to: "/docs/rules/presets",
     },
     {
         title: "Rule Reference",
         description:
             "Browse every rule with concrete incorrect/correct examples and migration guidance.",
         to: "/docs/rules",
-    },
-    {
-        title: "Developer API",
-        description:
-            "Read TypeDoc-generated API docs for plugin exports and configuration types.",
-        to: "/docs/developer",
     },
 ];
 
@@ -43,15 +43,15 @@ export default function Home() {
                     <div className={styles.heroActions}>
                         <Link
                             className="button button--primary button--lg"
-                            to="/docs/intro"
+                            to="/docs/rules/overview"
                         >
                             Start with Overview
                         </Link>
                         <Link
                             className="button button--secondary button--lg"
-                            to="/docs/developer/api"
+                            to="/docs/rules/presets"
                         >
-                            Explore Developer API
+                            Compare Presets
                         </Link>
                     </div>
                 </div>

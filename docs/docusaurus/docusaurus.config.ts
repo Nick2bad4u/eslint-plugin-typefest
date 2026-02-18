@@ -159,6 +159,25 @@ const config: Config = {
                     sidebarCollapsible: true,
                     sidebarPath: "./sidebars.ts",
                 },
+                pages: {
+                    editUrl:
+                        "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues/new?template=custom-issue.md#",
+                    exclude: [
+                        // Declarations (often generated next to CSS modules)
+                        // must never become routable pages.
+                        "**/*.d.ts",
+                        "**/*.d.tsx",
+                        "**/__tests__/**",
+                        "**/*.test.{js,jsx,ts,tsx}",
+                        "**/*.spec.{js,jsx,ts,tsx}",
+                    ],
+                    include: ["**/*.{js,jsx,ts,tsx,md,mdx}"],
+                    mdxPageComponent: "@theme/MDXPage",
+                    path: "src/pages",
+                    routeBasePath: "/",
+                    showLastUpdateAuthor: true,
+                    showLastUpdateTime: true,
+                },
                 sitemap: {
                     changefreq: "weekly",
                     filename: "sitemap.xml",
@@ -206,8 +225,16 @@ const config: Config = {
                 {
                     items: [
                         {
+                            label: "🏁 Overview",
+                            to: "/docs/rules/overview",
+                        },
+                        {
                             label: "📖 Getting Started",
-                            to: "/docs/getting-started",
+                            to: "/docs/rules/getting-started",
+                        },
+                        {
+                            label: "🎛 Presets",
+                            to: "/docs/rules/presets",
                         },
                         {
                             label: "📏 Rule Reference",
@@ -232,6 +259,10 @@ const config: Config = {
                 {
                     items: [
                         {
+                            href: `${siteUrl}${baseUrl}eslint-inspector/`,
+                            label: "🔍 ESLint Inspector",
+                        },
+                        {
                             href: `https://www.npmjs.com/package/${projectName}`,
                             label: "🎁 NPM",
                         },
@@ -251,7 +282,7 @@ const config: Config = {
                 {
                     label: "Docs",
                     position: "left",
-                    to: "/docs/intro",
+                    to: "/docs/rules/overview",
                 },
                 {
                     label: "Rules",
@@ -259,8 +290,13 @@ const config: Config = {
                     to: "/docs/rules",
                 },
                 {
-                    label: "Developer API",
+                    label: "Presets",
                     position: "left",
+                    to: "/docs/rules/presets",
+                },
+                {
+                    label: "Dev",
+                    position: "right",
                     to: "/docs/developer",
                 },
                 {

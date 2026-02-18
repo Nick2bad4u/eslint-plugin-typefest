@@ -38,15 +38,60 @@ const sidebars: SidebarsConfig = {
     rules: [
         {
             className: "sb-doc-overview",
-            href: "/docs/intro",
+            id: "overview",
             label: "🏁 Overview",
-            type: "link",
+            type: "doc",
         },
         {
             className: "sb-doc-getting-started",
-            href: "/docs/getting-started",
+            id: "getting-started",
             label: "🚀 Getting Started",
-            type: "link",
+            type: "doc",
+        },
+        {
+            className: "sb-cat-presets",
+            collapsed: true,
+            customProps: {
+                badge: "presets",
+            },
+            type: "category",
+            label: "🎛 Presets",
+            link: {
+                type: "doc",
+                id: "presets/index",
+            },
+            items: [
+                {
+                    id: "presets/minimal",
+                    label: "🟢 Minimal",
+                    type: "doc",
+                },
+                {
+                    id: "presets/recommended",
+                    label: "🟡 Recommended",
+                    type: "doc",
+                },
+                {
+                    id: "presets/strict",
+                    label: "🔴 Strict",
+                    type: "doc",
+                },
+                {
+                    id: "presets/all",
+                    label: "🟣 All",
+                    type: "doc",
+                },
+                {
+                    id: "presets/type-fest-types",
+                    label: "💠 type-fest",
+                    type: "doc",
+                },
+                {
+                    id: "presets/ts-extras-type-guards",
+                    label: "✴️ type-guards",
+                    type: "doc",
+                },
+            ],
         },
         {
             className: "sb-cat-rules",
