@@ -15,6 +15,21 @@ const validFixtureName = "prefer-type-fest-required-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-required-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-required-deep.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { DeepRequired } from "type-aliases";',
+    'import type { RequiredDeep } from "type-fest";',
+    "",
+    "type User = {",
+    "    id?: string;",
+    "};",
+    "",
+    "type StrictUser = DeepRequired<User>;",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type StrictUser = DeepRequired<User>;",
+    "type StrictUser = RequiredDeep<User>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-required-deep",
@@ -25,6 +40,12 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferRequiredDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferRequiredDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

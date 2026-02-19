@@ -1,4 +1,4 @@
-import type { PartialBy } from "legacy-type-utils";
+import type { PartialBy } from "type-aliases";
 
 type MonitorDraft = PartialBy<MonitorRecord, "latencyMs">;
 type MonitorRecord = Record<"id" | "latencyMs", number | string>;

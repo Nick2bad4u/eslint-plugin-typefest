@@ -1,4 +1,4 @@
-import type { AllOrNone, AllOrNothing } from "legacy-type-utils";
+import type { AllOrNone, AllOrNothing } from "type-aliases";
 
 type AuthByAllOrNone = AllOrNone<AuthPairPayload>;
 type AuthByAllOrNothing = AllOrNothing<AuthPairPayload>;

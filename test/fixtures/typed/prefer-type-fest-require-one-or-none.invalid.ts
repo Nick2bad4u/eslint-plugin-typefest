@@ -1,4 +1,4 @@
-import type { AtMostOne } from "legacy-type-utils";
+import type { AtMostOne } from "type-aliases";
 
 type QueryScope = AtMostOne<QueryScopePayload>;
 type QueryScopePayload = Record<"monitorId" | "teamId", string>;

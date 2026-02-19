@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * Vitest coverage for `prefer-ts-extras-array-includes.test` behavior.
+ * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -9,31 +9,88 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-ts-extras-array-includes");
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-includes.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-includes.invalid.ts";
+const skipPathInvalidCode = [
+    "const values = [1, 2, 3];",
+    "const hasValue = values.includes(2);",
+    "String(hasValue);",
+].join("\n");
+const computedAccessValidCode = [
+    "const values = [1, 2, 3];",
+    'const hasValue = values["includes"](2);',
+    "String(hasValue);",
+].join("\n");
+const nonArrayReceiverValidCode = [
+    "const helper = {",
+    "    includes(value: number): boolean {",
+    "        return value === 1;",
+    "    },",
+    "};",
+    "const hasValue = helper.includes(1);",
+    "String(hasValue);",
+].join("\n");
+const readonlyArrayInvalidCode = [
+    "declare const values: readonly number[];",
+    "const hasValue = values.includes(2);",
+    "String(hasValue);",
+].join("\n");
+const unionWithNonArrayValidCode = [
+    "declare const values: number[] | number;",
+    "const hasValue = values.includes(2);",
+    "String(hasValue);",
+].join("\n");
 
-ruleTester.run("prefer-ts-extras-array-includes", rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
-                {
-                    messageId: "preferTsExtrasArrayIncludes",
-                },
-                {
-                    messageId: "preferTsExtrasArrayIncludes",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-        },
-    ],
-});
+ruleTester.run(
+    "prefer-ts-extras-array-includes",
+    getPluginRule("prefer-ts-extras-array-includes"),
+    {
+        invalid: [
+            {
+                code: readTypedFixture(invalidFixtureName),
+                errors: [
+                    {
+                        messageId: "preferTsExtrasArrayIncludes",
+                    },
+                    {
+                        messageId: "preferTsExtrasArrayIncludes",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: readonlyArrayInvalidCode,
+                errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: unionWithNonArrayValidCode,
+                errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: computedAccessValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: nonArrayReceiverValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: skipPathInvalidCode,
+                filename: typedFixturePath(
+                    "tests",
+                    "prefer-ts-extras-array-includes.skip.ts"
+                ),
+            },
+        ],
+    }
+);

@@ -14,6 +14,18 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-object-keys.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-object-keys.invalid.ts";
+const inlineInvalidCode = "const keys = Object.keys({ alpha: 1 });";
+const computedAccessValidCode = "const keys = Object['keys']({ alpha: 1 });";
+const nonObjectReceiverValidCode = [
+    "const helper = {",
+    "    keys(value: { alpha: number }): readonly string[] {",
+    "        return ['alpha'];",
+    "    },",
+    "};",
+    "const keys = helper.keys({ alpha: 1 });",
+].join("\n");
+const wrongPropertyValidCode = "const values = Object.values({ alpha: 1 });";
+const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-ts-extras-object-keys", rule, {
     invalid: [
@@ -29,11 +41,35 @@ ruleTester.run("prefer-ts-extras-object-keys", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
         },
+        {
+            code: inlineInvalidCode,
+            errors: [{ messageId: "preferTsExtrasObjectKeys" }],
+            filename: typedFixturePath(invalidFixtureName),
+        },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: computedAccessValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: nonObjectReceiverValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: wrongPropertyValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-ts-extras-object-keys.skip.ts"
+            ),
         },
     ],
 });

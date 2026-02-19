@@ -24,7 +24,7 @@ structural transform, not a safe one-token rename.
 ### Detection boundaries
 
 - ✅ Reports `import type { IfAny } ...` followed by `IfAny<...>` usage.
-- ✅ Reports locally renamed imports (`import type { IfAny as AliasIfAny } ...`).
+- ❌ Does not report locally renamed imports (`import type { IfAny as AliasIfAny } ...`).
 - ❌ Does not report namespace-qualified references like `TypeUtils.IfAny<...>` (the matcher targets identifier references).
 - ❌ Does not auto-fix because replacement requires rebuilding type arguments.
 
@@ -67,9 +67,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { IfUnknown as AliasIfUnknown } from "custom-type-utils";
+import type { IfUnknown } from "custom-type-utils";
 
-type ParseMode<T> = AliasIfUnknown<T, "strict", "lenient">;
+type ParseMode<T> = IfUnknown<T, "strict", "lenient">;
 ```
 
 ### ✅ Correct (additional scenario)
@@ -98,14 +98,14 @@ type NullLabel<T> = If<IsNull<T>, "nullable", "non-nullable">;
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing compatibility aliases.
+3. Prefer direct canonical imports and avoid introducing alternate aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
 - Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove compatibility aliases once all consumers use canonical names.
+- Remove alternate aliases once all consumers use canonical names.
 
 ## Rule behavior and fixes
 
@@ -150,11 +150,10 @@ No. `type-fest` utilities are compile-time only type constructs, so this rule im
 
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.
+You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
 
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
-

@@ -1,4 +1,4 @@
-import type { RequiredBy } from "legacy-type-utils";
+import type { RequiredBy } from "type-aliases";
 
 interface DeploymentPayload {
     environment: string;

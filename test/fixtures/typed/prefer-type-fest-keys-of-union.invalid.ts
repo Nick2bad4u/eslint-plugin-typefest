@@ -1,4 +1,4 @@
-import type { AllKeys } from "legacy-type-utils";
+import type { AllKeys } from "type-aliases";
 
 type MonitorKeyUnion = AllKeys<MonitorResponseUnion>;
 type MonitorResponseUnion =

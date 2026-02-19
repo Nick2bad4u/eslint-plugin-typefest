@@ -4,7 +4,11 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const PROMISABLE_TYPE_NAME = "Promisable";
@@ -57,7 +61,7 @@ const getPromiseInnerType = (
 const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
 
             if (isTestFilePath(filePath)) {
                 return {};
@@ -67,6 +71,10 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 sourceCode,
                 promisableAliasReplacements
+            );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                sourceCode,
+                "type-fest"
             );
 
             return {
@@ -82,7 +90,17 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferPromisable",
                         node,
                     });
@@ -93,9 +111,6 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const [firstMember, secondMember] = node.types;
-                    if (!firstMember || !secondMember) {
-                        return;
-                    }
 
                     if (
                         node.types.some((member) =>
@@ -161,6 +176,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-promisable.md",
             },
+            fixable: "code",
             messages: {
                 preferPromisable:
                     "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
@@ -175,4 +191,3 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-promisable` rule module.
  */
 export default preferTypeFestPromisableRule;
-

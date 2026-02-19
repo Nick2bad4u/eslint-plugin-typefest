@@ -17,6 +17,21 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-set-optional.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-optional.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { PartialBy } from "type-aliases";',
+    'import type { SetOptional } from "type-fest";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "};",
+    "",
+    'type MaybeUser = PartialBy<User, "id">;',
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    'type MaybeUser = PartialBy<User, "id">;',
+    'type MaybeUser = SetOptional<User, "id">;'
+);
 
 ruleTester.run(
     "prefer-type-fest-set-optional",
@@ -35,6 +50,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "PartialBy",
+                            replacement: "SetOptional",
+                        },
+                        messageId: "preferSetOptional",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

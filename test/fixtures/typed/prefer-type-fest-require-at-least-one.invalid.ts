@@ -1,4 +1,4 @@
-import type { AtLeastOne } from "legacy-type-utils";
+import type { AtLeastOne } from "type-aliases";
 
 type AlertDestination = AtLeastOne<AlertDestinationPayload>;
 type AlertDestinationPayload = Record<"email" | "pager" | "slack", string>;

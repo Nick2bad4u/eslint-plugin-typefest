@@ -16,7 +16,7 @@ provide two selectors at the same time.
 
 ### Detection boundaries
 
-- ✅ Reports imported aliases, including renamed imports.
+- ✅ Reports imported aliases with direct named imports.
 - ❌ Does not report namespace-qualified alias usage.
 - ❌ Does not auto-fix.
 
@@ -30,7 +30,7 @@ multiple selectors conflict.
 ## ❌ Incorrect
 
 ```ts
-import type { AtMostOne } from "utility-types";
+import type { AtMostOne } from "type-aliases";
 
 type OptionalAuth = AtMostOne<{
     token?: string;
@@ -64,9 +64,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { AtMostOne as AliasAtMostOne } from "custom-type-utils";
+import type { AtMostOne } from "custom-type-utils";
 
-type MonitorLookup = AliasAtMostOne<
+type MonitorLookup = AtMostOne<
     {
         monitorId?: string;
         slug?: string;
@@ -108,14 +108,14 @@ type SessionIdentity = RequireOneOrNone<
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing compatibility aliases.
+3. Prefer direct canonical imports and avoid introducing alternate aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
 - Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove compatibility aliases once all consumers use canonical names.
+- Remove alternate aliases once all consumers use canonical names.
 
 ## Rule behavior and fixes
 
@@ -154,7 +154,7 @@ No. `type-fest` utilities are compile-time only type constructs, so this rule im
 
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.
+You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
 
 ## Further reading
 

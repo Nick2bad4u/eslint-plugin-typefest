@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * Vitest coverage for `prefer-type-fest-writable.test` behavior.
+ * Vitest coverage for `prefer-type-fest-writable` behavior.
  */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -9,46 +9,124 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-type-fest-writable");
 const ruleTester = createTypedRuleTester();
 
-const validFixtureName = "prefer-type-fest-writable.valid.ts";
-const invalidFixtureName = "prefer-type-fest-writable.invalid.ts";
-const importedAliasFixtureName =
+const mappedInvalidFixtureName = "prefer-type-fest-writable.invalid.ts";
+const importedAliasInvalidFixtureName =
     "prefer-type-fest-writable-imported-alias.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { Mutable } from "type-aliases";',
+    'import type { Writable } from "type-fest";',
+    "",
+    "type User = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "type MutableUser = Mutable<User>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type MutableUser = Mutable<User>;",
+    "type MutableUser = Writable<User>;"
+);
+const mappedPKeyInvalidCode =
+    "type WritableLike<T> = { -readonly [P in keyof T]: T[P] };";
+const mappedNearMissReadonlyValidCode =
+    "type WritableLike<T> = { readonly [K in keyof T]: T[K] };";
+const mappedOptionalValidCode =
+    "type WritableLike<T> = { -readonly [K in keyof T]?: T[K] };";
+const mappedNameRemapValidCode =
+    "type WritableLike<T> = { -readonly [K in keyof T as K]-?: T[K] };";
+const mappedConstraintValidCode =
+    "type WritableLike<T> = { -readonly [K in T]-?: T[K] };";
+const mappedNearMissIndexMismatchValidCode =
+    "type WritableLike<T, P extends keyof T> = { -readonly [K in keyof T]: T[P] };";
+const mappedNearMissObjectMismatchValidCode =
+    "type WritableLike<T, U extends T> = { -readonly [K in keyof T]: U[K] };";
+const skipPathInvalidCode = "type WritableLike<T> = { -readonly [K in keyof T]: T[K] };";
+const validFixtureName = "prefer-type-fest-writable.valid.ts";
 
-ruleTester.run("prefer-type-fest-writable", rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
-                {
-                    messageId: "preferWritable",
-                },
-                {
-                    messageId: "preferWritable",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-        },
-        {
-            code: readTypedFixture(importedAliasFixtureName),
-            errors: [
-                {
-                    data: {
-                        alias: "Mutable",
-                        replacement: "Writable",
+ruleTester.run(
+    "prefer-type-fest-writable",
+    getPluginRule("prefer-type-fest-writable"),
+    {
+        invalid: [
+            {
+                code: readTypedFixture(importedAliasInvalidFixtureName),
+                errors: [
+                    {
+                        data: {
+                            alias: "Mutable",
+                            replacement: "Writable",
+                        },
+                        messageId: "preferWritableAlias",
                     },
-                    messageId: "preferWritableAlias",
-                },
-            ],
-            filename: typedFixturePath(importedAliasFixtureName),
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-        },
-    ],
-});
+                ],
+                filename: typedFixturePath(importedAliasInvalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Mutable",
+                            replacement: "Writable",
+                        },
+                        messageId: "preferWritableAlias",
+                    },
+                ],
+                filename: typedFixturePath(importedAliasInvalidFixtureName),
+                output: inlineFixableOutputCode,
+            },
+            {
+                code: readTypedFixture(mappedInvalidFixtureName),
+                errors: [
+                    { messageId: "preferWritable" },
+                    { messageId: "preferWritable" },
+                ],
+                filename: typedFixturePath(mappedInvalidFixtureName),
+            },
+            {
+                code: mappedPKeyInvalidCode,
+                errors: [{ messageId: "preferWritable" }],
+                filename: typedFixturePath(mappedInvalidFixtureName),
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedNearMissReadonlyValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedOptionalValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedNameRemapValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedConstraintValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedNearMissIndexMismatchValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedNearMissObjectMismatchValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: skipPathInvalidCode,
+                filename: typedFixturePath(
+                    "tests",
+                    "prefer-type-fest-writable.skip.ts"
+                ),
+            },
+        ],
+    }
+);

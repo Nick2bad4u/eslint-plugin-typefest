@@ -4,7 +4,7 @@ import type {
     IfNever,
     IfNull,
     IfUnknown,
-} from "legacy-type-utils";
+} from "type-aliases";
 
 type ShouldUseIfAny = IfAny<unknown, "yes", "no">;
 type ShouldUseIfEmptyObject = IfEmptyObject<Record<string, never>, "yes", "no">;

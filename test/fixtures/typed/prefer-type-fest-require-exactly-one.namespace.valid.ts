@@ -1,7 +1,7 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 type AuthPayload = Record<"apiKey" | "oauthToken" | "sessionToken", string>;
-type UsesNamespaceRequireExactlyOne = Legacy.OneOf<AuthPayload>;
+type UsesNamespaceRequireExactlyOne = Aliases.OneOf<AuthPayload>;
 
 declare const usesNamespaceRequireExactlyOne: UsesNamespaceRequireExactlyOne;
 

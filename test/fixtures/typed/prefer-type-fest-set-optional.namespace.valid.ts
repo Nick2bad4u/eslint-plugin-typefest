@@ -1,7 +1,7 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 type MonitorRecord = Record<"id" | "latencyMs", number | string>;
-type UsesNamespaceSetOptional = Legacy.PartialBy<MonitorRecord, "latencyMs">;
+type UsesNamespaceSetOptional = Aliases.PartialBy<MonitorRecord, "latencyMs">;
 
 declare const usesNamespaceSetOptional: UsesNamespaceSetOptional;
 

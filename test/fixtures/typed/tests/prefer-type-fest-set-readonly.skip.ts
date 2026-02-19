@@ -1,4 +1,4 @@
-import type { ReadonlyBy } from "legacy-type-utils";
+import type { ReadonlyBy } from "type-aliases";
 
 interface MonitorPayload {
     endpoint: string;

@@ -1,4 +1,4 @@
-import type { RemoveIndexSignature } from "legacy-type-utils";
+import type { RemoveIndexSignature } from "type-aliases";
 
 interface HeaderMapPayload {
     [headerName: string]: string;

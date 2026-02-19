@@ -1,4 +1,4 @@
-import type * as Legacy from "type-fest";
+import type * as Aliases from "type-fest";
 
 interface UserProfile {
     readonly id: string;
@@ -8,7 +8,7 @@ interface UserProfile {
     };
 }
 
-type UsesNamespaceSimplify = Legacy.Expand<UserProfile>;
+type UsesNamespaceSimplify = Aliases.Expand<UserProfile>;
 
 declare const usesNamespaceSimplify: UsesNamespaceSimplify;
 

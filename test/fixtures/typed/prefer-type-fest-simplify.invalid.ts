@@ -1,7 +1,7 @@
-import type { Expand, Prettify as Pretty } from "type-fest";
+import type { Expand, Prettify } from "type-fest";
 
 type ExpandedUserProfile = Expand<UserProfile>;
-type PrettyUserProfile = Pretty<UserProfile>;
+type PrettyUserProfile = Prettify<UserProfile>;
 
 interface UserProfile {
     readonly id: string;

@@ -6,11 +6,11 @@ interface TeamConfig {
 }
 
 type DeepMutable<T> = {
-    -readonly [Key in keyof T]: DeepMutable<T[Key]>;
+    -readonly [Key in keyof T]: T[Key];
 };
 
 type MutableDeep<T> = {
-    -readonly [Key in keyof T]: MutableDeep<T[Key]>;
+    -readonly [Key in keyof T]: T[Key];
 };
 
 type MutableTeamConfig = DeepMutable<TeamConfig>;

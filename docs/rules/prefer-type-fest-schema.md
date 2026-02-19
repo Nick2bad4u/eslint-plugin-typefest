@@ -18,7 +18,7 @@ should still validate semantics if your old utility had custom behavior.
 ### Detection boundaries
 
 - ✅ Reports `import type { RecordDeep } ...` + `RecordDeep<...>` usage.
-- ✅ Reports locally renamed imports (`RecordDeep as AliasRecordDeep`).
+- ❌ Does not report locally renamed imports (`RecordDeep as AliasRecordDeep`).
 - ❌ Does not report namespace-qualified usages such as `TypeUtils.RecordDeep<...>`.
 - ❌ Does not auto-fix.
 
@@ -33,7 +33,7 @@ code and upstream docs without translation.
 ## ❌ Incorrect
 
 ```ts
-import type { RecordDeep } from "utility-types";
+import type { RecordDeep } from "type-aliases";
 
 type Flags = RecordDeep<Config, boolean>;
 ```
@@ -61,9 +61,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { RecordDeep as AliasRecordDeep } from "custom-type-utils";
+import type { RecordDeep } from "custom-type-utils";
 
-type AuditMask = AliasRecordDeep<UserProfile, "REDACTED">;
+type AuditMask = RecordDeep<UserProfile, "REDACTED">;
 ```
 
 ### ✅ Correct (additional scenario)
@@ -90,14 +90,14 @@ type FeatureFlags = Schema<EnvironmentConfig, boolean>;
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing compatibility aliases.
+3. Prefer direct canonical imports and avoid introducing alternate aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
 - Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove compatibility aliases once all consumers use canonical names.
+- Remove alternate aliases once all consumers use canonical names.
 
 ## Rule behavior and fixes
 
@@ -145,12 +145,10 @@ No. `type-fest` utilities are compile-time only type constructs, so this rule im
 
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.
+You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
 
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
-
-

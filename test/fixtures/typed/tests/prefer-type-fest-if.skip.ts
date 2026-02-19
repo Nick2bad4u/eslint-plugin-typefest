@@ -1,4 +1,4 @@
-import type { IfAny } from "legacy-type-utils";
+import type { IfAny } from "type-aliases";
 
 type ShouldBeSkippedInTestFile = IfAny<unknown, "yes", "no">;
 

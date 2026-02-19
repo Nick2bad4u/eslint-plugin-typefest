@@ -17,6 +17,22 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-simplify.skip.ts";
 const invalidFixtureName = "prefer-type-fest-simplify.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { Expand, Simplify } from "type-fest";',
+    "",
+    "type Payload = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Flattened = Expand<Payload>;",
+    "",
+    "String({} as Flattened);",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Flattened = Expand<Payload>;",
+    "type Flattened = Simplify<Payload>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-simplify",
@@ -42,6 +58,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Expand",
+                            replacement: "Simplify",
+                        },
+                        messageId: "preferSimplify",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

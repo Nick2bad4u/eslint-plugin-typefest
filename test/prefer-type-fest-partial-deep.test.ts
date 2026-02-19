@@ -15,6 +15,21 @@ const validFixtureName = "prefer-type-fest-partial-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-partial-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-partial-deep.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { DeepPartial } from "type-aliases";',
+    'import type { PartialDeep } from "type-fest";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "};",
+    "",
+    "type PartialUser = DeepPartial<User>;",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type PartialUser = DeepPartial<User>;",
+    "type PartialUser = PartialDeep<User>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-partial-deep",
@@ -25,6 +40,12 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferPartialDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferPartialDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

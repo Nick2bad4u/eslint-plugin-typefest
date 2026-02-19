@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type MutableByLegacyNamespace = Legacy.Writable<ReadonlyRecord>;
+type MutableByAliasNamespace = Aliases.Writable<ReadonlyRecord>;
 
 type ReadonlyRecord = {
     readonly id: number;
@@ -9,7 +9,7 @@ type ReadonlyRecord = {
 
 declare const readonlyRecord: ReadonlyRecord;
 
-const mutableRecord = readonlyRecord as MutableByLegacyNamespace;
+const mutableRecord = readonlyRecord as MutableByAliasNamespace;
 
 String(mutableRecord);
 

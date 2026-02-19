@@ -1,4 +1,4 @@
-import type { RecordDeep } from "legacy-type-utils";
+import type { RecordDeep } from "type-aliases";
 
 type EnvironmentTemplate = Record<"api" | "dashboard", string>;
 type ShouldBeSkippedInTestFile = RecordDeep<EnvironmentTemplate, string>;

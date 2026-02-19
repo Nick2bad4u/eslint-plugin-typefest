@@ -2,6 +2,10 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-partial-deep`.
  */
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -19,6 +23,11 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -28,7 +37,17 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            "PartialDeep",
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferPartialDeep",
                         node,
                     });
@@ -42,6 +61,7 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest PartialDeep over `DeepPartial` aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-partial-deep.md",
             },
+            fixable: "code",
             messages: {
                 preferPartialDeep:
                     "Prefer `PartialDeep` from type-fest over `DeepPartial`.",

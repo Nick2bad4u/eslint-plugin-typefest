@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-exactly-one`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const requireExactlyOneAliasReplacements = {
@@ -29,6 +33,10 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 requireExactlyOneAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -43,11 +51,21 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferRequireExactlyOne",
                         node,
                     });
@@ -61,6 +79,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-exactly-one.md",
             },
+            fixable: "code",
             messages: {
                 preferRequireExactlyOne:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -75,4 +94,3 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-exactly-one` rule module.
  */
 export default preferTypeFestRequireExactlyOneRule;
-

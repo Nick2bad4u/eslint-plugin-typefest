@@ -95,7 +95,7 @@ const getRestArrayElementType = (
 const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
 
             if (isTestFilePath(filePath)) {
                 return {};
@@ -119,9 +119,6 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const [firstElement, restElement] = tupleType.elementTypes;
-                    if (!firstElement || !restElement) {
-                        return;
-                    }
 
                     const firstType = getRequiredTupleElementType(firstElement);
                     if (!firstType) {
@@ -173,4 +170,3 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-non-empty-tuple` rule module.
  */
 export default preferTypeFestNonEmptyTupleRule;
-

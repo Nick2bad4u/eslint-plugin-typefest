@@ -6,7 +6,7 @@ interface TeamConfig {
 }
 
 type DeepPartial<T> = {
-    [Key in keyof T]?: DeepPartial<T[Key]>;
+    [Key in keyof T]?: T[Key];
 };
 
 type TeamConfigPatch = DeepPartial<TeamConfig>;

@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * Vitest coverage for `prefer-ts-extras-array-find-last-index.test` behavior.
+ * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -9,31 +9,68 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-ts-extras-array-find-last-index");
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-find-last-index.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-find-last-index.invalid.ts";
+const skipPathInvalidCode = [
+    "const numbers = [1, 2, 3];",
+    "const index = numbers.findLastIndex((value) => value > 1);",
+    "String(index);",
+].join("\n");
+const computedAccessValidCode = [
+    "const numbers = [1, 2, 3];",
+    'const index = numbers["findLastIndex"]((value) => value > 1);',
+    "String(index);",
+].join("\n");
+const nonArrayReceiverValidCode = [
+    "const helper = {",
+    "    findLastIndex(predicate: (value: number) => boolean): number {",
+    "        return predicate(3) ? 0 : -1;",
+    "    },",
+    "};",
+    "const index = helper.findLastIndex((value) => value > 1);",
+    "String(index);",
+].join("\n");
 
-ruleTester.run("prefer-ts-extras-array-find-last-index", rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
-                {
-                    messageId: "preferTsExtrasArrayFindLastIndex",
-                },
-                {
-                    messageId: "preferTsExtrasArrayFindLastIndex",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-        },
-    ],
-});
+ruleTester.run(
+    "prefer-ts-extras-array-find-last-index",
+    getPluginRule("prefer-ts-extras-array-find-last-index"),
+    {
+        invalid: [
+            {
+                code: readTypedFixture(invalidFixtureName),
+                errors: [
+                    {
+                        messageId: "preferTsExtrasArrayFindLastIndex",
+                    },
+                    {
+                        messageId: "preferTsExtrasArrayFindLastIndex",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: computedAccessValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: nonArrayReceiverValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: skipPathInvalidCode,
+                filename: typedFixturePath(
+                    "tests",
+                    "prefer-ts-extras-array-find-last-index.skip.ts"
+                ),
+            },
+        ],
+    }
+);

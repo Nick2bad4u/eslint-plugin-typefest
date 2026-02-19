@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type DeploymentByNamespaceAlias = Legacy.RequiredBy<
+type DeploymentByNamespaceAlias = Aliases.RequiredBy<
     DeploymentPayload,
     "region"
 >;

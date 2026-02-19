@@ -15,6 +15,21 @@ const validFixtureName = "prefer-type-fest-writable-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-writable-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-writable-deep.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { DeepMutable } from "type-aliases";',
+    'import type { WritableDeep } from "type-fest";',
+    "",
+    "type User = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "type MutableUser = DeepMutable<User>;",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type MutableUser = DeepMutable<User>;",
+    "type MutableUser = WritableDeep<User>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-writable-deep",
@@ -28,6 +43,12 @@ ruleTester.run(
                     { messageId: "preferWritableDeep" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferWritableDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

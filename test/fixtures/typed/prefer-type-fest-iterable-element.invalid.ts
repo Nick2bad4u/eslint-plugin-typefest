@@ -1,11 +1,11 @@
 import type {
-    SetEntry as EntryAlias,
+    SetEntry,
     SetElement,
     SetValues,
-} from "legacy-type-utils";
+} from "type-aliases";
 
 type ElementViaAlias = SetElement<MonitorIdSet>;
-type EntryViaAlias = EntryAlias<MonitorIdSet>;
+type EntryViaAlias = SetEntry<MonitorIdSet>;
 type MonitorIdSet = Set<string>;
 type ValueViaAlias = SetValues<MonitorIdSet>;
 

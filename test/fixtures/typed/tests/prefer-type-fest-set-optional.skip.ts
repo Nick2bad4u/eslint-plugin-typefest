@@ -1,4 +1,4 @@
-import type { PartialBy } from "legacy-type-utils";
+import type { PartialBy } from "type-aliases";
 
 type MonitorRecord = Record<"id" | "latencyMs", number | string>;
 type ShouldBeSkippedInTestFile = PartialBy<MonitorRecord, "latencyMs">;

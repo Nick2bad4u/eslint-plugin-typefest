@@ -1,7 +1,7 @@
-import type { Branded as NominalBrand, Opaque } from "ts-essentials";
+import type { Branded, Opaque } from "ts-essentials";
 
 type AccountIdentifier = Opaque<string, "AccountIdentifier">;
-type SessionIdentifier = NominalBrand<string, "SessionIdentifier">;
+type SessionIdentifier = Branded<string, "SessionIdentifier">;
 
 declare const accountId: AccountIdentifier;
 declare const sessionId: SessionIdentifier;

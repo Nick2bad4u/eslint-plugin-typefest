@@ -1,7 +1,7 @@
 import { asWritable } from "ts-extras";
-import type { Writable as LegacyWritable } from "legacy-type-utils";
+import type { Writable as AliasWritable } from "type-aliases";
 
-type MutableByLegacy = LegacyWritable<ReadonlyRecord>;
+type MutableByAlias = AliasWritable<ReadonlyRecord>;
 
 type ReadonlyRecord = {
     readonly id: number;
@@ -10,11 +10,11 @@ type ReadonlyRecord = {
 
 declare const readonlyRecord: ReadonlyRecord;
 
-declare const mutableByLegacy: MutableByLegacy;
+declare const mutableByAlias: MutableByAlias;
 
 const mutableRecord = asWritable(readonlyRecord);
 
 String(mutableRecord);
-String(mutableByLegacy);
+String(mutableByAlias);
 
 export const __typedFixtureModule = "typed-fixture-module";

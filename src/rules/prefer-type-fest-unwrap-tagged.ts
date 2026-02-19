@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-unwrap-tagged`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const unwrapTaggedAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 unwrapTaggedAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferUnwrapTagged",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unwrap-tagged.md",
             },
+            fixable: "code",
             messages: {
                 preferUnwrapTagged:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unwrap-tagged` rule module.
  */
 export default preferTypeFestUnwrapTaggedRule;
-

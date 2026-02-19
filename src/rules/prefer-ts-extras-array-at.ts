@@ -20,7 +20,7 @@ import {
 const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
             if (isTestFilePath(filePath)) {
                 return {};
             }
@@ -61,6 +61,7 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
                     const expressionType = checker.getTypeAtLocation(tsNode);
                     return isArrayLikeType(expressionType);
                 } catch {
+                    /* c8 ignore next -- defensive parser-services mismatch */
                     return false;
                 }
             };
@@ -113,4 +114,3 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-at` rule module.
  */
 export default preferTsExtrasArrayAtRule;
-

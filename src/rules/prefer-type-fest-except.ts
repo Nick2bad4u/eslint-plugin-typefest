@@ -4,7 +4,11 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const OMIT_TYPE_NAME = "Omit";
@@ -48,6 +52,10 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 exceptAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -81,7 +89,17 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferExcept",
                         node,
                     });
@@ -95,6 +113,7 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Except over Omit when removing properties from object types.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-except.md",
             },
+            fixable: "code",
             messages: {
                 preferExcept:
                     "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
@@ -109,4 +128,3 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-except` rule module.
  */
 export default preferTypeFestExceptRule;
-

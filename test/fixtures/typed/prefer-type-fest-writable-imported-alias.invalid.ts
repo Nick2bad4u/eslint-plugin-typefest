@@ -1,4 +1,4 @@
-import type { Mutable } from "legacy-type-utils";
+import type { Mutable } from "type-aliases";
 
 interface ReadonlyMonitor {
     readonly endpoint: string;

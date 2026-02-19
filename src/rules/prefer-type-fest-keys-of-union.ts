@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-keys-of-union`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const keysOfUnionAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 keysOfUnionAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferKeysOfUnion",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-keys-of-union.md",
             },
+            fixable: "code",
             messages: {
                 preferKeysOfUnion:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-keys-of-union` rule module.
  */
 export default preferTypeFestKeysOfUnionRule;
-

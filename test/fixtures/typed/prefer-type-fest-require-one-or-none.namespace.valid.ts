@@ -1,7 +1,7 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 type QueryScopePayload = Record<"monitorId" | "teamId", string>;
-type UsesNamespaceRequireOneOrNone = Legacy.AtMostOne<QueryScopePayload>;
+type UsesNamespaceRequireOneOrNone = Aliases.AtMostOne<QueryScopePayload>;
 
 declare const usesNamespaceRequireOneOrNone: UsesNamespaceRequireOneOrNone;
 

@@ -1,4 +1,4 @@
-import type { ReadonlyTuple } from "legacy-type-utils";
+import type { ReadonlyTuple } from "type-aliases";
 
 type ShouldBeSkippedInTestFile = ReadonlyTuple<string, 3>;
 

@@ -1,4 +1,4 @@
-import type { NonNullableBy } from "legacy-type-utils";
+import type { NonNullableBy } from "type-aliases";
 
 interface AccountPayload {
     accountId: string;

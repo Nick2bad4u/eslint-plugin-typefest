@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-conditional-pick`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const conditionalPickAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 conditionalPickAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferConditionalPick",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest ConditionalPick over imported aliases such as PickByTypes.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md",
             },
+            fixable: "code",
             messages: {
                 preferConditionalPick:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-conditional-pick` rule module.
  */
 export default preferTypeFestConditionalPickRule;
-

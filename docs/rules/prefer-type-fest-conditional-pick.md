@@ -18,7 +18,7 @@ Using the canonical utility improves discoverability, reduces alias churn (`Muta
 ## ❌ Incorrect
 
 ```ts
-import type { PickByTypes } from "utility-types";
+import type { PickByTypes } from "type-aliases";
 
 type StringProps = PickByTypes<User, string>;
 ```
@@ -47,7 +47,7 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 
 ```ts
 // Non-canonical pattern repeated inline across modules.
-import type { PickByTypes } from "utility-types";
+import type { PickByTypes } from "type-aliases";
 
 type StringFields = PickByTypes<User, string>;
 ```
@@ -78,14 +78,14 @@ type DateFields = ConditionalPick<User, Date>;
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing compatibility aliases.
+3. Prefer direct canonical imports and avoid introducing alternate aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
 - Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove compatibility aliases once all consumers use canonical names.
+- Remove alternate aliases once all consumers use canonical names.
 
 ## Rule behavior and fixes
 
@@ -123,7 +123,7 @@ Canonical `type-fest` naming reduces type alias drift and makes intent discovera
 No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.
+You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
 
 ## Further reading
 

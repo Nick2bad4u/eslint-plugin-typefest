@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type AccountByNamespaceAlias = Legacy.NonNullableBy<AccountPayload, "token">;
+type AccountByNamespaceAlias = Aliases.NonNullableBy<AccountPayload, "token">;
 
 interface AccountPayload {
     accountId: string;

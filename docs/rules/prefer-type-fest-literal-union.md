@@ -6,7 +6,7 @@ Require TypeFest `LiteralUnion` over unions that mix primitive keywords with sam
 
 This rule targets patterns like `"foo" | "bar" | string` and `200 | 404 | number`.
 
-Those unions are usually better expressed with `LiteralUnion`, which preserves literal IntelliSense while retaining primitive compatibility.
+Those unions are usually better expressed with `LiteralUnion`, which preserves literal IntelliSense while retaining primitive assignability.
 
 ### What it checks
 

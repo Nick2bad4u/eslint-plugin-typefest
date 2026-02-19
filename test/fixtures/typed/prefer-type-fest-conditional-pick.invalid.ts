@@ -1,4 +1,4 @@
-import type { PickByTypes } from "legacy-type-utils";
+import type { PickByTypes } from "type-aliases";
 
 interface MonitorPayload {
     readonly errorCode: number;

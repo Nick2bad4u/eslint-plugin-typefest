@@ -17,6 +17,17 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-unwrap-tagged.skip.ts";
 const invalidFixtureName = "prefer-type-fest-unwrap-tagged.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { UnwrapOpaque } from "type-aliases";',
+    'import type { UnwrapTagged } from "type-fest";',
+    "",
+    'type UserId = UnwrapOpaque<{ readonly __brand: "UserId" } & string>;',
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    'type UserId = UnwrapOpaque<{ readonly __brand: "UserId" } & string>;',
+    'type UserId = UnwrapTagged<{ readonly __brand: "UserId" } & string>;'
+);
 
 ruleTester.run(
     "prefer-type-fest-unwrap-tagged",
@@ -35,6 +46,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "UnwrapOpaque",
+                            replacement: "UnwrapTagged",
+                        },
+                        messageId: "preferUnwrapTagged",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

@@ -1,9 +1,9 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 type MonitorResponseUnion =
     | { readonly id: string; readonly reason: string; readonly status: "down" }
     | { readonly id: string; readonly status: "up" };
-type UsesNamespaceAllKeys = Legacy.AllKeys<MonitorResponseUnion>;
+type UsesNamespaceAllKeys = Aliases.AllKeys<MonitorResponseUnion>;
 
 declare const usesNamespaceAllKeys: UsesNamespaceAllKeys;
 

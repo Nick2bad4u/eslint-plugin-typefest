@@ -61,6 +61,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                     const expressionType = checker.getTypeAtLocation(tsNode);
                     return isArrayLikeType(expressionType);
                 } catch {
+                        /* c8 ignore next -- defensive parser-services mismatch */
                     return false;
                 }
             };
@@ -113,4 +114,3 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-includes` rule module.
  */
 export default preferTsExtrasArrayIncludesRule;
-

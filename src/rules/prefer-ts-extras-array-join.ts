@@ -19,7 +19,7 @@ import {
 const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
             if (isTestFilePath(filePath)) {
                 return {};
             }
@@ -76,9 +76,12 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                         if (!isArrayLikeType(objectType)) {
                             return;
                         }
-                    } catch {
+                    }
+                    /* c8 ignore start -- defensive parser-services failure path */
+                    catch {
                         return;
                     }
+                    /* c8 ignore stop */
 
                     context.report({
                         messageId: "preferTsExtrasArrayJoin",
@@ -108,4 +111,3 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-join` rule module.
  */
 export default preferTsExtrasArrayJoinRule;
-

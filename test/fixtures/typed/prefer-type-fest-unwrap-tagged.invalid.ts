@@ -1,4 +1,4 @@
-import type { UnwrapOpaque } from "legacy-type-utils";
+import type { UnwrapOpaque } from "type-aliases";
 
 type MonitorIdentifier = string & { readonly __opaque__: "MonitorIdentifier" };
 

@@ -1,4 +1,4 @@
-import type { RecordDeep } from "legacy-type-utils";
+import type { RecordDeep } from "type-aliases";
 
 type EnvironmentConfig = RecordDeep<EnvironmentTemplate, string>;
 type EnvironmentTemplate = Record<"api" | "dashboard", string>;

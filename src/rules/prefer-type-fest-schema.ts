@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-schema`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const schemaAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 schemaAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferSchema",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Schema over imported aliases such as RecordDeep.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-schema.md",
             },
+            fixable: "code",
             messages: {
                 preferSchema:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-schema` rule module.
  */
 export default preferTypeFestSchemaRule;
-

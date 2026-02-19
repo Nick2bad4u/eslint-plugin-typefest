@@ -1,4 +1,4 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 interface MonitorPayload {
     readonly errorCode: number;
@@ -6,7 +6,7 @@ interface MonitorPayload {
     readonly region: string;
 }
 
-type UsesNamespaceConditionalPick = Legacy.PickByTypes<MonitorPayload, string>;
+type UsesNamespaceConditionalPick = Aliases.PickByTypes<MonitorPayload, string>;
 
 declare const usesNamespaceConditionalPick: UsesNamespaceConditionalPick;
 

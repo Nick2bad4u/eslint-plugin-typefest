@@ -6,7 +6,7 @@ interface TeamConfig {
 }
 
 type DeepReadonly<T> = {
-    readonly [Key in keyof T]: DeepReadonly<T[Key]>;
+    readonly [Key in keyof T]: T[Key];
 };
 
 type ImmutableTeamConfig = DeepReadonly<TeamConfig>;

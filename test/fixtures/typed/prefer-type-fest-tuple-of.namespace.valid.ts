@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type UsesNamespaceReadonlyTuple = Legacy.ReadonlyTuple<string, 3>;
+type UsesNamespaceReadonlyTuple = Aliases.ReadonlyTuple<string, 3>;
 
 declare const usesNamespaceReadonlyTuple: UsesNamespaceReadonlyTuple;
 

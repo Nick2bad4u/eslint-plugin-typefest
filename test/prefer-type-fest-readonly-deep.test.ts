@@ -15,6 +15,21 @@ const validFixtureName = "prefer-type-fest-readonly-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-readonly-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-readonly-deep.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { DeepReadonly } from "type-aliases";',
+    'import type { ReadonlyDeep } from "type-fest";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "};",
+    "",
+    "type FrozenUser = DeepReadonly<User>;",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type FrozenUser = DeepReadonly<User>;",
+    "type FrozenUser = ReadonlyDeep<User>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-readonly-deep",
@@ -27,6 +42,12 @@ ruleTester.run(
                     { messageId: "preferReadonlyDeep" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferReadonlyDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

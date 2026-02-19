@@ -1,4 +1,4 @@
-import type { SetElement } from "legacy-type-utils";
+import type { SetElement } from "type-aliases";
 
 type MonitorIdSet = Set<string>;
 type ShouldBeSkippedInTestFile = SetElement<MonitorIdSet>;

@@ -4,7 +4,11 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const BRAND_PROPERTY_NAMES = new Set([
@@ -95,6 +99,10 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 taggedAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeAliasDeclaration(node) {
@@ -126,11 +134,21 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferTaggedAlias",
                         node,
                     });
@@ -144,6 +162,7 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tagged-brands.md",
             },
+            fixable: "code",
             messages: {
                 preferTaggedAlias:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -160,4 +179,3 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-tagged-brands` rule module.
  */
 export default preferTypeFestTaggedBrandsRule;
-

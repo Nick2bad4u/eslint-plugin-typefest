@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-at-least-one`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const requireAtLeastOneAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 requireAtLeastOneAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferRequireAtLeastOne",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-at-least-one.md",
             },
+            fixable: "code",
             messages: {
                 preferRequireAtLeastOne:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-at-least-one` rule module.
  */
 export default preferTypeFestRequireAtLeastOneRule;
-

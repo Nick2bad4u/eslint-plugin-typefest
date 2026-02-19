@@ -4,7 +4,11 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const writableAliasReplacements = {
@@ -60,10 +64,6 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const keyIdentifier = node.key;
-    if (keyIdentifier.type !== "Identifier") {
-        return false;
-    }
 
     const { constraint } = node;
     if (constraint?.type !== "TSTypeOperator") {
@@ -102,7 +102,10 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    return indexType.typeName.name === keyIdentifier.name;
+    return (
+        node.key.type === "Identifier" &&
+        indexType.typeName.name === node.key.name
+    );
 };
 
 /**
@@ -114,7 +117,7 @@ const hasWritableMappedTypeShape = (
 const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
 
             if (isTestFilePath(filePath)) {
                 return {};
@@ -124,6 +127,10 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 sourceCode,
                 writableAliasReplacements
+            );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                sourceCode,
+                "type-fest"
             );
 
             return {
@@ -149,11 +156,21 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferWritableAlias",
                         node,
                     });
@@ -167,6 +184,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
             },
+            fixable: "code",
             messages: {
                 preferWritable:
                     "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
@@ -183,4 +201,3 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-writable` rule module.
  */
 export default preferTypeFestWritableRule;
-

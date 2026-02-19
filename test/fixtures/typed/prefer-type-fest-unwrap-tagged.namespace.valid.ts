@@ -1,8 +1,8 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
 type MonitorIdentifier = string & { readonly __opaque__: "MonitorIdentifier" };
 
-type UsesNamespaceUnwrapOpaque = Legacy.UnwrapOpaque<MonitorIdentifier>;
+type UsesNamespaceUnwrapOpaque = Aliases.UnwrapOpaque<MonitorIdentifier>;
 
 declare const usesNamespaceUnwrapOpaque: UsesNamespaceUnwrapOpaque;
 

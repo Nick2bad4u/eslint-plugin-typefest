@@ -6,7 +6,7 @@ interface TeamConfig {
 }
 
 type DeepRequired<T> = {
-    [Key in keyof T]-?: DeepRequired<T[Key]>;
+    [Key in keyof T]-?: T[Key];
 };
 
 type StrictTeamConfig = DeepRequired<TeamConfig>;

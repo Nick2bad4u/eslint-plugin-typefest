@@ -2,6 +2,10 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-required-deep`.
  */
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -19,6 +23,11 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -28,7 +37,17 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            "RequiredDeep",
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferRequiredDeep",
                         node,
                     });
@@ -42,6 +61,7 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest RequiredDeep over `DeepRequired` aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-required-deep.md",
             },
+            fixable: "code",
             messages: {
                 preferRequiredDeep:
                     "Prefer `RequiredDeep` from type-fest over `DeepRequired`.",

@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-simplify`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const simplifyAliasReplacements = {
@@ -29,6 +33,10 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 simplifyAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -43,11 +51,21 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferSimplify",
                         node,
                     });
@@ -61,6 +79,7 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Simplify over imported alias types like Prettify/Expand.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-simplify.md",
             },
+            fixable: "code",
             messages: {
                 preferSimplify:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -75,4 +94,3 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-simplify` rule module.
  */
 export default preferTypeFestSimplifyRule;
-

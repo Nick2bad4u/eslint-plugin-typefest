@@ -15,6 +15,17 @@ const validFixtureName = "prefer-type-fest-tagged-brands.valid.ts";
 const invalidFixtureName = "prefer-type-fest-tagged-brands.invalid.ts";
 const importedAliasFixtureName =
     "prefer-type-fest-tagged-brands-imported-alias.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { Opaque } from "type-aliases";',
+    'import type { Tagged } from "type-fest";',
+    "",
+    'type UserId = Opaque<string, "UserId">;',
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    'type UserId = Opaque<string, "UserId">;',
+    'type UserId = Tagged<string, "UserId">;'
+);
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -45,6 +56,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(importedAliasFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Opaque",
+                            replacement: "Tagged",
+                        },
+                        messageId: "preferTaggedAlias",
+                    },
+                ],
+                filename: typedFixturePath(importedAliasFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

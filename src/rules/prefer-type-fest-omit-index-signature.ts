@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-omit-index-signature`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const omitIndexSignatureAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 omitIndexSignatureAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferOmitIndexSignature",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
             },
+            fixable: "code",
             messages: {
                 preferOmitIndexSignature:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-omit-index-signature` rule module.
  */
 export default preferTypeFestOmitIndexSignatureRule;
-

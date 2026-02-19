@@ -1,4 +1,4 @@
-import type { AllKeys } from "legacy-type-utils";
+import type { AllKeys } from "type-aliases";
 
 type MonitorResponseUnion =
     | { readonly id: string; readonly reason: string; readonly status: "down" }

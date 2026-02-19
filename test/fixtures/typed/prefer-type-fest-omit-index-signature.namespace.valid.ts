@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type HeaderMapByNamespaceAlias = Legacy.RemoveIndexSignature<HeaderMapPayload>;
+type HeaderMapByNamespaceAlias = Aliases.RemoveIndexSignature<HeaderMapPayload>;
 interface HeaderMapPayload {
     [headerName: string]: string;
     authorization: string;

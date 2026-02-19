@@ -1,6 +1,6 @@
-import type * as Legacy from "legacy-type-utils";
+import type * as Aliases from "type-aliases";
 
-type UsesNamespaceIfAny = Legacy.IfAny<unknown, "yes", "no">;
+type UsesNamespaceIfAny = Aliases.IfAny<unknown, "yes", "no">;
 
 declare const usesNamespaceIfAny: UsesNamespaceIfAny;
 

@@ -2,6 +2,10 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-writable-deep`.
  */
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -19,6 +23,11 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -29,7 +38,17 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            "WritableDeep",
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferWritableDeep",
                         node,
                     });
@@ -43,6 +62,7 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest WritableDeep over `DeepMutable` and `MutableDeep` aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable-deep.md",
             },
+            fixable: "code",
             messages: {
                 preferWritableDeep:
                     "Prefer `WritableDeep` from type-fest over `DeepMutable`/`MutableDeep`.",

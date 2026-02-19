@@ -17,6 +17,21 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-set-required.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-required.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { RequiredBy } from "type-aliases";',
+    'import type { SetRequired } from "type-fest";',
+    "",
+    "type User = {",
+    "    id?: string;",
+    "};",
+    "",
+    'type StrictUser = RequiredBy<User, "id">;',
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    'type StrictUser = RequiredBy<User, "id">;',
+    'type StrictUser = SetRequired<User, "id">;'
+);
 
 ruleTester.run(
     "prefer-type-fest-set-required",
@@ -35,6 +50,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "RequiredBy",
+                            replacement: "SetRequired",
+                        },
+                        messageId: "preferSetRequired",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

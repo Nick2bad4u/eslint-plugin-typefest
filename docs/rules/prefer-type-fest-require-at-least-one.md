@@ -17,7 +17,7 @@ empty objects should be rejected at compile time.
 
 ### Detection boundaries
 
-- ✅ Reports imported aliases, including renamed imports.
+- ✅ Reports imported aliases with direct named imports.
 - ❌ Does not report namespace-qualified aliases.
 - ❌ Does not auto-fix.
 
@@ -33,7 +33,7 @@ where at least one filter field is required.
 ## ❌ Incorrect
 
 ```ts
-import type { AtLeastOne } from "utility-types";
+import type { AtLeastOne } from "type-aliases";
 
 type Update = AtLeastOne<User>;
 ```
@@ -61,9 +61,9 @@ Standardizing on canonical names lowers cognitive overhead and makes refactors a
 ### ❌ Incorrect (additional scenario)
 
 ```ts
-import type { AtLeastOne as AliasAtLeastOne } from "custom-type-utils";
+import type { AtLeastOne } from "custom-type-utils";
 
-type UserSearch = AliasAtLeastOne<
+type UserSearch = AtLeastOne<
     {
         email?: string;
         id?: string;
@@ -107,14 +107,14 @@ type ProfilePatch = RequireAtLeastOne<
 
 1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
 2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing compatibility aliases.
+3. Prefer direct canonical imports and avoid introducing alternate aliases.
 4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
 
 ### Rollout strategy
 
 - Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
 - Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove compatibility aliases once all consumers use canonical names.
+- Remove alternate aliases once all consumers use canonical names.
 
 ## Rule behavior and fixes
 
@@ -153,11 +153,10 @@ No. `type-fest` utilities are compile-time only type constructs, so this rule im
 
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for compatibility with another package.
+You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
 
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
-

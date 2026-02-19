@@ -60,7 +60,7 @@ const isUndefinedFilterGuardBody = (
 const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
+            const filePath = context.filename;
 
             if (isTestFilePath(filePath)) {
                 return {};
@@ -132,4 +132,3 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-defined-filter` rule module.
  */
 export default preferTsExtrasIsDefinedFilterRule;
-

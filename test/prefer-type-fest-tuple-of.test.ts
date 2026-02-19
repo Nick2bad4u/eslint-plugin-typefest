@@ -17,6 +17,17 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-tuple-of.skip.ts";
 const invalidFixtureName = "prefer-type-fest-tuple-of.invalid.ts";
+const inlineSuggestableInvalidCode = [
+    'import type { ReadonlyTuple } from "type-aliases";',
+    'import type { TupleOf } from "type-fest";',
+    "",
+    "type Values = ReadonlyTuple<string, 3>;",
+].join("\n");
+
+const inlineSuggestableOutputCode = inlineSuggestableInvalidCode.replace(
+    "type Values = ReadonlyTuple<string, 3>;",
+    "type Values = Readonly<TupleOf<3, string>>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-tuple-of",
@@ -32,6 +43,25 @@ ruleTester.run(
                             replacement: "Readonly<TupleOf<Length, Element>>",
                         },
                         messageId: "preferTupleOf",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineSuggestableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "ReadonlyTuple",
+                            replacement: "Readonly<TupleOf<Length, Element>>",
+                        },
+                        messageId: "preferTupleOf",
+                        suggestions: [
+                            {
+                                messageId: "suggestTupleOfReplacement",
+                                output: inlineSuggestableOutputCode,
+                            },
+                        ],
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),

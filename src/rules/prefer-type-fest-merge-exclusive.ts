@@ -2,6 +2,10 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-merge-exclusive`.
  */
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -19,6 +23,11 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -28,7 +37,17 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            "MergeExclusive",
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferMergeExclusive",
                         node,
                     });
@@ -42,6 +61,7 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest MergeExclusive over `XOR` aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-merge-exclusive.md",
             },
+            fixable: "code",
             messages: {
                 preferMergeExclusive:
                     "Prefer `MergeExclusive` from type-fest over `XOR`.",

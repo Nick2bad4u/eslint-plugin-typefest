@@ -144,7 +144,7 @@ This plugin favors `ts-extras` because it provides strongly-typed runtime helper
 
 ## When not to use it
 
-You may disable this rule if your project intentionally avoids runtime helper dependencies, or if you are writing compatibility code where the native built-in form is required for interop constraints.
+You may disable this rule if your project intentionally avoids runtime helper dependencies, or if you are writing interop code where the native built-in form is required.
 
 ## Further reading
 

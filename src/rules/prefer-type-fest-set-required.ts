@@ -2,7 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-set-required`.
  */
-import { collectImportedTypeAliasMatches } from "../_internal/imported-type-aliases.js";
+import {
+    collectDirectNamedImportsFromSource,
+    collectImportedTypeAliasMatches,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const setRequiredAliasReplacements = {
@@ -28,6 +32,10 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 setRequiredAliasReplacements
             );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeReference(node) {
@@ -42,11 +50,21 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            importedAliasMatch.replacementName,
+                            typeFestDirectImports
+                        );
+
                     context.report({
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferSetRequired",
                         node,
                     });
@@ -60,6 +78,7 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest SetRequired over imported aliases such as RequiredBy.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-set-required.md",
             },
+            fixable: "code",
             messages: {
                 preferSetRequired:
                     "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
@@ -74,4 +93,3 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-required` rule module.
  */
 export default preferTypeFestSetRequiredRule;
-

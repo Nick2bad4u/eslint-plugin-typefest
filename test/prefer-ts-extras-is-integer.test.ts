@@ -14,6 +14,18 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-integer.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-integer.invalid.ts";
+const inlineInvalidCode = "const result = Number.isInteger(42);";
+const computedAccessValidCode = "const result = Number['isInteger'](42);";
+const nonNumberReceiverValidCode = [
+    "const helper = {",
+    "    isInteger(value: number): boolean {",
+    "        return Number.isFinite(value);",
+    "    },",
+    "};",
+    "const result = helper.isInteger(42);",
+].join("\n");
+const wrongPropertyValidCode = "const result = Number.isFinite(42);";
+const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-ts-extras-is-integer", rule, {
     invalid: [
@@ -29,11 +41,35 @@ ruleTester.run("prefer-ts-extras-is-integer", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
         },
+        {
+            code: inlineInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsInteger" }],
+            filename: typedFixturePath(invalidFixtureName),
+        },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: computedAccessValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: nonNumberReceiverValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: wrongPropertyValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-ts-extras-is-integer.skip.ts"
+            ),
         },
     ],
 });

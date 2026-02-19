@@ -16,6 +16,21 @@ const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-schema.skip.ts";
 const invalidFixtureName = "prefer-type-fest-schema.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { RecordDeep } from "type-aliases";',
+    'import type { Schema } from "type-fest";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "};",
+    "",
+    "type UserSchema = RecordDeep<User, number>;",
+].join("\n");
+
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type UserSchema = RecordDeep<User, number>;",
+    "type UserSchema = Schema<User, number>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-schema",
@@ -34,6 +49,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "RecordDeep",
+                            replacement: "Schema",
+                        },
+                        messageId: "preferSchema",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

@@ -1,4 +1,4 @@
-import type { OneOf } from "legacy-type-utils";
+import type { OneOf } from "type-aliases";
 
 type AuthPayload = Record<"apiKey" | "oauthToken" | "sessionToken", string>;
 type ShouldBeSkippedInTestFile = OneOf<AuthPayload>;

@@ -2,6 +2,10 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-readonly-deep`.
  */
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeReferenceReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -19,6 +23,11 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -28,7 +37,17 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const aliasReplacementFix =
+                        createSafeTypeReferenceReplacementFix(
+                            node,
+                            "ReadonlyDeep",
+                            typeFestDirectImports
+                        );
+
                     context.report({
+                        ...(aliasReplacementFix
+                            ? { fix: aliasReplacementFix }
+                            : {}),
                         messageId: "preferReadonlyDeep",
                         node,
                     });
@@ -42,6 +61,7 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest ReadonlyDeep over `DeepReadonly` aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-readonly-deep.md",
             },
+            fixable: "code",
             messages: {
                 preferReadonlyDeep:
                     "Prefer `ReadonlyDeep` from type-fest over `DeepReadonly`.",
