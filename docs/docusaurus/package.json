@@ -22,6 +22,13 @@
     },
     "license": "MIT",
     "author": "Nick2bad4u",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://nick2bad4u.github.io/eslint-plugin-typefest"
+        }
+    ],
     "sideEffects": false,
     "files": [
         "site-docs"

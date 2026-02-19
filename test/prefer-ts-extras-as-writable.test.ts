@@ -17,6 +17,45 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-as-writable.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-as-writable.invalid.ts";
+const inlineInvalidTypeAssertionCode = [
+    'import type { Writable } from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const mutableRecord = <Writable<ReadonlyRecord>>readonlyRecord;",
+    "",
+    "String(mutableRecord);",
+].join("\n");
+const inlineValidTypeLiteralAssertionCode = [
+    'import type { Writable } from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const typedRecord = readonlyRecord as { readonly id: number };",
+    "",
+    "String(typedRecord);",
+].join("\n");
+const inlineValidNonTypeFestNamespaceCode = [
+    'import type * as Aliases from "type-aliases";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const typedRecord = readonlyRecord as Aliases.Writable<ReadonlyRecord>;",
+    "",
+    "String(typedRecord);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-as-writable",
@@ -32,6 +71,11 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
             },
+            {
+                code: inlineInvalidTypeAssertionCode,
+                errors: [{ messageId: "preferTsExtrasAsWritable" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
         ],
         valid: [
             {
@@ -41,6 +85,14 @@ ruleTester.run(
             {
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
+            },
+            {
+                code: inlineValidTypeLiteralAssertionCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: inlineValidNonTypeFestNamespaceCode,
+                filename: typedFixturePath(validFixtureName),
             },
             {
                 code: readTypedFixture(

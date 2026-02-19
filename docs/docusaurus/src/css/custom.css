@@ -76,12 +76,14 @@
         color 140ms ease-in-out;
 }
 
-.theme-doc-sidebar-menu .menu__link:hover {
-    background-color: rgba(39, 38, 63, 0.1);
+.theme-doc-sidebar-menu .menu__link:hover,
+.theme-doc-sidebar-menu .menu__link:focus {
+    background-color: rgb(39 38 63 / 0.1);
     text-decoration: none;
 }
 
-[data-theme="dark"] .theme-doc-sidebar-menu .menu__link:hover {
+[data-theme="dark"] .theme-doc-sidebar-menu .menu__link:hover,
+[data-theme="dark"] .theme-doc-sidebar-menu .menu__link:focus {
     background-color: rgb(129 140 248 / 20%);
 }
 
@@ -151,7 +153,7 @@
     margin-inline-start: auto;
     padding: 0.07rem 0.45rem;
     border-radius: 999px;
-    font-size: 0.68rem;
+    font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -355,5 +357,5 @@
 .markdown h1,
 .markdown h2,
 .markdown h3 {
-    scroll-margin-top: 6rem;
+    scroll-margin-block-start: 6rem;
 }

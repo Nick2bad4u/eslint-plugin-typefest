@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-all-or-none.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-all-or-none.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { AllOrNone } from "type-aliases";',
+    'import type { RequireAllOrNone } from "type-fest";',
+    "",
+    "type Input = AllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = AllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;",
+    "type Input = RequireAllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-all-or-none",
@@ -42,6 +52,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "AllOrNone",
+                            replacement: "RequireAllOrNone",
+                        },
+                        messageId: "preferRequireAllOrNone",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

@@ -15,6 +15,8 @@ const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-abstract-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
+const inlineInvalidNoFilenameCode =
+    "type AbstractCtor = abstract new (...args: readonly unknown[]) => object;";
 
 ruleTester.run(
     "prefer-type-fest-abstract-constructor",
@@ -29,6 +31,14 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineInvalidNoFilenameCode,
+                errors: [
+                    {
+                        messageId: "preferAbstractConstructorSignature",
+                    },
+                ],
             },
         ],
         valid: [

@@ -16,6 +16,16 @@ const namespaceValidFixtureName = "prefer-type-fest-if.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-if.skip.ts";
 const invalidFixtureName = "prefer-type-fest-if.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { IfAny } from "type-aliases";',
+    'import type { IsAny } from "type-fest";',
+    "",
+    "type Input = IfAny<string, true, false>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = IfAny<string, true, false>;",
+    "type Input = IsAny<string, true, false>;"
+);
 
 ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
     invalid: [
@@ -59,6 +69,20 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "IfAny",
+                        replacement: "IsAny",
+                    },
+                    messageId: "preferTypeFestIf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            output: inlineFixableOutputCode,
         },
     ],
     valid: [

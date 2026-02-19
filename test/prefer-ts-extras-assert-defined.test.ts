@@ -32,6 +32,14 @@ const looseEqualityInvalidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineInvalidDirectThrowConsequentCode = [
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined)",
+    "        throw new TypeError('Missing value');",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const nonUndefinedValidCode = [
     "function ensureValue(value: string | undefined): string | undefined {",
     "    if (value === null) {",
@@ -85,6 +93,11 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
         },
         {
             code: looseEqualityInvalidCode,
+            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            filename: typedFixturePath(invalidFixtureName),
+        },
+        {
+            code: inlineInvalidDirectThrowConsequentCode,
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
         },

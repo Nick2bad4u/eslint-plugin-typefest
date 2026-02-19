@@ -18,6 +18,11 @@ const inlineInvalidSetCode = "type Input = Set<unknown>;";
 const inlineInvalidReadonlySetCode = "type Input = ReadonlySet<unknown>;";
 const inlineValidSetCode = "type Input = Set<string>;";
 const inlineValidReadonlySetCode = "type Input = ReadonlySet<number>;";
+const inlineValidReadonlySetNoTypeArgumentsCode = "type Input = ReadonlySet;";
+const inlineValidReadonlySetWrongArityCode =
+    "type Input = ReadonlySet<unknown, unknown>;";
+const inlineValidGlobalReadonlySetCode =
+    "type Input = globalThis.ReadonlySet<unknown>;";
 const skipPathInvalidCode = inlineInvalidReadonlySetCode;
 
 ruleTester.run("prefer-type-fest-unknown-set", rule, {
@@ -55,6 +60,18 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
         },
         {
             code: inlineValidReadonlySetCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidReadonlySetNoTypeArgumentsCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidReadonlySetWrongArityCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidGlobalReadonlySetCode,
             filename: typedFixturePath(validFixtureName),
         },
         {

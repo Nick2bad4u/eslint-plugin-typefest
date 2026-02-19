@@ -36,12 +36,27 @@ const mappedOptionalValidCode =
     "type WritableLike<T> = { -readonly [K in keyof T]?: T[K] };";
 const mappedNameRemapValidCode =
     "type WritableLike<T> = { -readonly [K in keyof T as K]-?: T[K] };";
+const mappedNameRemapWithoutOptionalValidCode =
+    "type WritableLike<T> = { -readonly [K in keyof T as K]: T[K] };";
 const mappedConstraintValidCode =
     "type WritableLike<T> = { -readonly [K in T]-?: T[K] };";
+const mappedConstraintWithoutTypeOperatorValidCode =
+    "type WritableLike<T> = { -readonly [K in T]: T[K] };";
 const mappedNearMissIndexMismatchValidCode =
     "type WritableLike<T, P extends keyof T> = { -readonly [K in keyof T]: T[P] };";
+const mappedLiteralIndexTypeValidCode =
+    'type WritableLike<T extends { readonly id: string }> = { -readonly [K in keyof T]: T["id"] };';
 const mappedNearMissObjectMismatchValidCode =
     "type WritableLike<T, U extends T> = { -readonly [K in keyof T]: U[K] };";
+const mappedNamespaceAliasValidCode = [
+    'import type * as Aliases from "type-aliases";',
+    "",
+    "type User = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "type MutableUser = Aliases.Mutable<User>;",
+].join("\n");
 const skipPathInvalidCode =
     "type WritableLike<T> = { -readonly [K in keyof T]: T[K] };";
 const validFixtureName = "prefer-type-fest-writable.valid.ts";
@@ -110,7 +125,15 @@ ruleTester.run(
                 filename: typedFixturePath(validFixtureName),
             },
             {
+                code: mappedNameRemapWithoutOptionalValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
                 code: mappedConstraintValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedConstraintWithoutTypeOperatorValidCode,
                 filename: typedFixturePath(validFixtureName),
             },
             {
@@ -118,7 +141,15 @@ ruleTester.run(
                 filename: typedFixturePath(validFixtureName),
             },
             {
+                code: mappedLiteralIndexTypeValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
                 code: mappedNearMissObjectMismatchValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mappedNamespaceAliasValidCode,
                 filename: typedFixturePath(validFixtureName),
             },
             {

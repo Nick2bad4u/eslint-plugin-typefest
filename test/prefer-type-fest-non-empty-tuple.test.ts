@@ -30,6 +30,10 @@ const nonArrayRestAnnotationValidCode =
     "type Input = readonly [string, ...rest: ReadonlyArray<string>];";
 const mismatchedReadonlyValidCode =
     "type Input = readonly [string, ...number[]];";
+const nonReadonlyOperatorValidCode =
+    "type Input = keyof [string, ...string[]];";
+const readonlyNonTupleTypeValidCode = "type Input = readonly string[];";
+const readonlySingleElementTupleValidCode = "type Input = readonly [string];";
 const skipPathInvalidCode = inlineInvalidTupleCode;
 
 ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
@@ -92,6 +96,18 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
         },
         {
             code: mismatchedReadonlyValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: nonReadonlyOperatorValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: readonlyNonTupleTypeValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: readonlySingleElementTupleValidCode,
             filename: typedFixturePath(validFixtureName),
         },
         {

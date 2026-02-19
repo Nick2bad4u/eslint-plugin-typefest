@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-at-least-one.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-at-least-one.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { AtLeastOne } from "type-aliases";',
+    'import type { RequireAtLeastOne } from "type-fest";',
+    "",
+    "type Input = AtLeastOne<{ a?: string; b?: number }>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = AtLeastOne<{ a?: string; b?: number }>;",
+    "type Input = RequireAtLeastOne<{ a?: string; b?: number }>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-at-least-one",
@@ -35,6 +45,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "AtLeastOne",
+                            replacement: "RequireAtLeastOne",
+                        },
+                        messageId: "preferRequireAtLeastOne",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

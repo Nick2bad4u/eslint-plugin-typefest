@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-keys-of-union.skip.ts";
 const invalidFixtureName = "prefer-type-fest-keys-of-union.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { AllKeys } from "type-aliases";',
+    'import type { KeysOfUnion } from "type-fest";',
+    "",
+    "type Input = AllKeys<{ a: string } | { b: number }>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = AllKeys<{ a: string } | { b: number }>;",
+    "type Input = KeysOfUnion<{ a: string } | { b: number }>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-keys-of-union",
@@ -35,6 +45,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "AllKeys",
+                            replacement: "KeysOfUnion",
+                        },
+                        messageId: "preferKeysOfUnion",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

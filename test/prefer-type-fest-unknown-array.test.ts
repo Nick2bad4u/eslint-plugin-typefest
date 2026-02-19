@@ -18,6 +18,11 @@ const inlineInvalidReadonlyArrayCode = "type Input = readonly unknown[];";
 const inlineValidArrayCode = "type Input = unknown[];";
 const inlineValidAnyArrayCode = "type Input = readonly any[];";
 const inlineValidNoTypeArgumentCode = "type Input = ReadonlyArray<string>;";
+const inlineValidKeyofUnknownArrayCode = "type Input = keyof unknown[];";
+const inlineInvalidReadonlyNonArrayOperatorCode =
+    "type Input = readonly ReadonlyArray<unknown>;";
+const inlineValidMissingReadonlyArrayTypeArgumentCode =
+    "type Input = ReadonlyArray;";
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 
 ruleTester.run("prefer-type-fest-unknown-array", rule, {
@@ -39,6 +44,11 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
         },
+        {
+            code: inlineInvalidReadonlyNonArrayOperatorCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+        },
     ],
     valid: [
         {
@@ -55,6 +65,14 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
         },
         {
             code: inlineValidNoTypeArgumentCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidKeyofUnknownArrayCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidMissingReadonlyArrayTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
         },
         {

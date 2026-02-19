@@ -20,6 +20,13 @@ const awaitedWithoutTypeArgumentValidCode = "type Result = Awaited;";
 const awaitedNonReturnTypeValidCode = "type Result = Awaited<string>;";
 const awaitedReturnTypeWithoutArgValidCode =
     "type Result = Awaited<ReturnType>;";
+const awaitedPromiseTypeReferenceValidCode =
+    "type Result = Awaited<Promise<string>>;";
+const awaitedQualifiedReturnTypeValidCode = [
+    'import type * as TypeFest from "type-fest";',
+    "",
+    "type Result = Awaited<TypeFest.ReturnType<() => Promise<string>>>;",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {
@@ -57,6 +64,14 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
         },
         {
             code: awaitedReturnTypeWithoutArgValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: awaitedPromiseTypeReferenceValidCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: awaitedQualifiedReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
         },
         {

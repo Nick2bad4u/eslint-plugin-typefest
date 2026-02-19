@@ -15,6 +15,8 @@ const validFixtureName = "prefer-type-fest-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-constructor.invalid.ts";
+const inlineInvalidNoFilenameCode =
+    "type Ctor = new (...args: readonly unknown[]) => object;";
 
 ruleTester.run(
     "prefer-type-fest-constructor",
@@ -29,6 +31,14 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineInvalidNoFilenameCode,
+                errors: [
+                    {
+                        messageId: "preferConstructorSignature",
+                    },
+                ],
             },
         ],
         valid: [

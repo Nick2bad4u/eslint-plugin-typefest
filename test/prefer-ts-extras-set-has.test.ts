@@ -42,6 +42,11 @@ const mixedUnionInvalidCode = [
     "const hasValue = values.has(2);",
     "String(hasValue);",
 ].join("\n");
+const declaredUnionSetInvalidCode = [
+    "declare const values: Set<number> | ReadonlySet<number>;",
+    "const hasValue = values.has(2);",
+    "String(hasValue);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-set-has",
@@ -67,6 +72,11 @@ ruleTester.run(
             },
             {
                 code: mixedUnionInvalidCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: declaredUnionSetInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
             },

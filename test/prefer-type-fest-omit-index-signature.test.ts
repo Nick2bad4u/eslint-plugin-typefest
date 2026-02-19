@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-omit-index-signature.skip.ts";
 const invalidFixtureName = "prefer-type-fest-omit-index-signature.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { RemoveIndexSignature } from "type-aliases";',
+    'import type { OmitIndexSignature } from "type-fest";',
+    "",
+    "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
+    "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-omit-index-signature",
@@ -35,6 +45,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "RemoveIndexSignature",
+                            replacement: "OmitIndexSignature",
+                        },
+                        messageId: "preferOmitIndexSignature",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

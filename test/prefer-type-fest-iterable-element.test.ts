@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-iterable-element.skip.ts";
 const invalidFixtureName = "prefer-type-fest-iterable-element.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { SetElement } from "type-aliases";',
+    'import type { IterableElement } from "type-fest";',
+    "",
+    "type Input = SetElement<Set<string>>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = SetElement<Set<string>>;",
+    "type Input = IterableElement<Set<string>>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-iterable-element",
@@ -49,6 +59,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "SetElement",
+                            replacement: "IterableElement",
+                        },
+                        messageId: "preferIterableElement",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

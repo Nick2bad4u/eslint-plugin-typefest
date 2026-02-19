@@ -21,6 +21,12 @@ const inlineInvalidCode = [
     "    }",
     "}",
 ].join("\n");
+const inlineInvalidDirectThrowConsequentCode = [
+    "function ensureError(value: unknown): asserts value is Error {",
+    "    if (!(value instanceof Error))",
+    "        throw new TypeError('Expected Error');",
+    "}",
+].join("\n");
 const nonErrorInstanceofValidCode = [
     "function ensureError(value: unknown): void {",
     "    if (!(value instanceof TypeError)) {",
@@ -74,6 +80,11 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
         },
         {
             code: privateIdentifierValidCode,
+            errors: [{ messageId: "preferTsExtrasAssertError" }],
+            filename: typedFixturePath(invalidFixtureName),
+        },
+        {
+            code: inlineInvalidDirectThrowConsequentCode,
             errors: [{ messageId: "preferTsExtrasAssertError" }],
             filename: typedFixturePath(invalidFixtureName),
         },

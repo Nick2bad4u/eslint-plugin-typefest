@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-exactly-one.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-exactly-one.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { OneOf } from "type-aliases";',
+    'import type { RequireExactlyOne } from "type-fest";',
+    "",
+    "type Input = OneOf<{ a?: string; b?: number }>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = OneOf<{ a?: string; b?: number }>;",
+    "type Input = RequireExactlyOne<{ a?: string; b?: number }>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-exactly-one",
@@ -42,6 +52,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "OneOf",
+                            replacement: "RequireExactlyOne",
+                        },
+                        messageId: "preferRequireExactlyOne",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

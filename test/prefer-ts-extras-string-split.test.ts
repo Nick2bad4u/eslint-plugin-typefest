@@ -45,6 +45,11 @@ const mixedUnionInvalidCode = [
     "const parts = value.split(',');",
     "String(parts);",
 ].join("\n");
+const declaredStringUnionInvalidCode = [
+    "declare const value: string | String;",
+    "const parts = value.split(',');",
+    "String(parts);",
+].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
 
@@ -77,6 +82,11 @@ ruleTester.run(
             },
             {
                 code: mixedUnionInvalidCode,
+                errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: declaredStringUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
             },

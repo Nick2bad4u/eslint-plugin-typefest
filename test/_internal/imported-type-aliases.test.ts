@@ -46,6 +46,17 @@ const createIdentifierImportSpecifier = (
     type: "ImportSpecifier",
 });
 
+const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
+    imported: {
+        type: "Literal",
+        value: "Opaque",
+    },
+    local: {
+        name: localName,
+    },
+    type: "ImportSpecifier",
+});
+
 const createImportDeclaration = (specifiers: unknown[]): unknown => ({
     source: {
         value: "type-aliases",
@@ -68,6 +79,25 @@ const createTypeReferenceNode = (
     }) as unknown as Parameters<
         typeof createSafeTypeReferenceReplacementFix
     >[0];
+
+const createQualifiedTypeReferenceNode = (
+    leftName: string,
+    rightName: string
+): Parameters<typeof createSafeTypeReferenceReplacementFix>[0] =>
+    ({
+        type: "TSTypeReference",
+        typeName: {
+            left: {
+                name: leftName,
+                type: "Identifier",
+            },
+            right: {
+                name: rightName,
+                type: "Identifier",
+            },
+            type: "TSQualifiedName",
+        },
+    }) as unknown as Parameters<typeof createSafeTypeReferenceReplacementFix>[0];
 
 const collectDirectNamedImportsFromSourceFn: (
     sourceCode: Parameters<typeof collectImportedTypeAliasMatches>[0],
@@ -145,6 +175,34 @@ describe(collectImportedTypeAliasMatches, () => {
 
         expect(result.size).toBe(0);
     });
+
+    it("ignores non-identifier imported specifiers and supports non-string import source values", () => {
+        expect.hasAssertions();
+
+        const result = collectImportedTypeAliasMatches(
+            createSourceCode([
+                {
+                    source: {
+                        value: 42,
+                    },
+                    specifiers: [
+                        createNonIdentifierImportSpecifier("Opaque"),
+                        createIdentifierImportSpecifier("Opaque", "Opaque"),
+                    ],
+                    type: "ImportDeclaration",
+                },
+            ]),
+            replacementsByImportedName
+        );
+
+        expect(mapToRecord(result)).toStrictEqual({
+            Opaque: {
+                importedName: "Opaque",
+                replacementName: "Tagged",
+                sourceValue: "",
+            },
+        });
+    });
 });
 
 function collectDirectNamedImportsFromSourceGroup(): void {
@@ -180,6 +238,25 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
         );
 
         expect(namedImports.has("Simplify")).toBeTruthy();
+        expect(namedImports.size).toBe(1);
+    });
+
+    it("ignores non-Identifier import specifiers for the selected source", () => {
+        expect.hasAssertions();
+
+        const sourceCode = createSourceCode([
+            createImportDeclaration([
+                createNonIdentifierImportSpecifier("Tagged"),
+                createIdentifierImportSpecifier("Tagged", "Tagged"),
+            ]),
+        ]);
+
+        const namedImports = collectDirectNamedImportsFromSourceFn(
+            sourceCode,
+            "type-aliases"
+        );
+
+        expect(namedImports.has("Tagged")).toBeTruthy();
         expect(namedImports.size).toBe(1);
     });
 });
@@ -239,6 +316,19 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             node,
             "Simplify",
             new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeNull();
+    });
+
+    it("returns null for qualified type references", () => {
+        expect.hasAssertions();
+
+        const node = createQualifiedTypeReferenceNode("TypeFest", "Opaque");
+        const fixer = createSafeTypeReferenceReplacementFixFn(
+            node,
+            "Tagged",
+            new Set(["Tagged"])
         );
 
         expect(fixer).toBeNull();

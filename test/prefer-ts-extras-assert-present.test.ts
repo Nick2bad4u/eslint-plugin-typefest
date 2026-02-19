@@ -74,6 +74,53 @@ const sameKindLogicalValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const alternateBranchValidCode = [
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) {",
+    "        throw new TypeError('Missing value');",
+    "    } else {",
+    "        return value;",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const mismatchedLogicalExpressionValidCode = [
+    "function ensureValue(value: string | null | undefined, fallback: string | null | undefined): string {",
+    "    if (value === null || fallback === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value ?? fallback ?? 'fallback';",
+    "}",
+].join("\n");
+const nonNullishLogicalValidCode = [
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (value === '' || value === 'missing') {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value ?? 'fallback';",
+    "}",
+].join("\n");
+const nonEqualityTestValidCode = [
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (!value) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const invalidNullOnLeftEqGuardCode = [
+    "function ensureValue(value: string | null): string {",
+    "    if (null == value) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 const skipPathInvalidCode = inlineInvalidEqNullCode;
 
@@ -109,6 +156,11 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
             },
+            {
+                code: invalidNullOnLeftEqGuardCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
         ],
         valid: [
             {
@@ -125,6 +177,22 @@ ruleTester.run(
             },
             {
                 code: sameKindLogicalValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: alternateBranchValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: mismatchedLogicalExpressionValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: nonNullishLogicalValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: nonEqualityTestValidCode,
                 filename: typedFixturePath(validFixtureName),
             },
             {

@@ -18,9 +18,18 @@ const inlineInvalidCode = "type QueryValue = string | string[];";
 const inlineInvalidReversedCode = "type QueryValue = string[] | string;";
 const inlineInvalidReadonlyArrayCode =
     "type QueryValue = string | readonly string[];";
+const inlineInvalidGenericArrayCode =
+    "type QueryValue = string | Array<string>;";
+const inlineInvalidGenericArrayReversedCode =
+    "type QueryValue = Array<string> | string;";
 
 const nonMatchingUnionValidCode = "type QueryValue = string | number[];";
 const singleTypeValidCode = "type QueryValue = string;";
+const threeMemberUnionValidCode = "type QueryValue = string | string[] | null;";
+const genericArrayMissingTypeArgumentValidCode =
+    "type QueryValue = string | Array;";
+const genericArrayMismatchedElementValidCode =
+    "type QueryValue = string | Array<number>;";
 
 const skipPathInvalidCode = inlineInvalidCode;
 
@@ -47,6 +56,16 @@ ruleTester.run(
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
             },
+            {
+                code: inlineInvalidGenericArrayCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineInvalidGenericArrayReversedCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
         ],
         valid: [
             {
@@ -59,6 +78,18 @@ ruleTester.run(
             },
             {
                 code: singleTypeValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: threeMemberUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: genericArrayMissingTypeArgumentValidCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: genericArrayMismatchedElementValidCode,
                 filename: typedFixturePath(validFixtureName),
             },
             {

@@ -69,20 +69,6 @@ import defineConfig from "stylelint-define-config";
  * - Plugin definitions for enhanced functionality
  * - Comprehensive rule definitions with custom settings
  *
- * @example
- *
- // eslint-disable-next-line no-unsanitized/method -- Example code snippet for documentation, not executed
- * ```typescript
- * // Basic usage in a project
- * import config from "./stylelint.config.mjs";
- *
- * // The configuration handles multiple file types automatically:
- * // - .css, .scss files with full preprocessing
- * // - .html files with inline styles
- * // - .tsx, .jsx files with CSS-in-JS
- * // - .module.css files with CSS Modules scoping
- * ```
- *
  * @returns The complete Stylelint configuration object with all rules and
  *   plugins.
  *
@@ -811,8 +797,15 @@ const config = defineConfig({
          */
         "logical-css/require-logical-keywords": [
             true,
-            { "ignore": ["caption-side", "offset-anchor", "offset-position"], "severity": "error" },
-          ],
+            {
+                ignore: [
+                    "caption-side",
+                    "offset-anchor",
+                    "offset-position",
+                ],
+                severity: "error",
+            },
+        ],
         /**
          * Logical units enforcement.
          *
@@ -820,7 +813,7 @@ const config = defineConfig({
          * Promotes logical units (e.g., inline-size instead of width) for
          * improved internationalization and writing mode support.
          */
-        "logical-css/require-logical-properties": [true, { "severity": "error" }],
+        "logical-css/require-logical-properties": [true, { severity: "error" }],
         "logical-css/require-logical-units": [true, { severity: "warning" }],
         // Layout and structure
         "max-nesting-depth": 4,

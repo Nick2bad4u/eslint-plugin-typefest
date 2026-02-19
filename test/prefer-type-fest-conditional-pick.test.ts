@@ -17,6 +17,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-conditional-pick.skip.ts";
 const invalidFixtureName = "prefer-type-fest-conditional-pick.invalid.ts";
+const inlineFixableInvalidCode = [
+    'import type { PickByTypes } from "type-aliases";',
+    'import type { ConditionalPick } from "type-fest";',
+    "",
+    "type Input = PickByTypes<{ a: string; b: number }, string>;",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Input = PickByTypes<{ a: string; b: number }, string>;",
+    "type Input = ConditionalPick<{ a: string; b: number }, string>;"
+);
 
 ruleTester.run(
     "prefer-type-fest-conditional-pick",
@@ -35,6 +45,20 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "PickByTypes",
+                            replacement: "ConditionalPick",
+                        },
+                        messageId: "preferConditionalPick",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
             },
         ],
         valid: [

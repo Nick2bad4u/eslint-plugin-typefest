@@ -20,6 +20,11 @@ const inlineInvalidReadonlyMapCode =
 const inlineValidMixedMapCode = "type Input = Map<string, unknown>;";
 const inlineValidMixedReadonlyMapCode =
     "type Input = ReadonlyMap<unknown, string>;";
+const inlineValidReadonlyMapNoTypeArgumentsCode = "type Input = ReadonlyMap;";
+const inlineValidReadonlyMapWrongArityCode =
+    "type Input = ReadonlyMap<unknown, unknown, unknown>;";
+const inlineValidGlobalReadonlyMapCode =
+    "type Input = globalThis.ReadonlyMap<unknown, unknown>;";
 const skipPathInvalidCode = inlineInvalidReadonlyMapCode;
 
 ruleTester.run("prefer-type-fest-unknown-map", rule, {
@@ -57,6 +62,18 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
         },
         {
             code: inlineValidMixedReadonlyMapCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidReadonlyMapNoTypeArgumentsCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidReadonlyMapWrongArityCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidGlobalReadonlyMapCode,
             filename: typedFixturePath(validFixtureName),
         },
         {

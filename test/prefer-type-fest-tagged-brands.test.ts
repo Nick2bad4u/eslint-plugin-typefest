@@ -26,6 +26,17 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type UserId = Opaque<string, "UserId">;',
     'type UserId = Tagged<string, "UserId">;'
 );
+const inlineInvalidMixedTypeLiteralMembersCode = [
+    "type SessionIdentifier = string & {",
+    "    readonly __brand: \"SessionIdentifier\";",
+    "    (): void;",
+    "};",
+].join("\n");
+const inlineValidNamespaceTaggedReferenceCode = [
+    'import type * as TypeFest from "type-fest";',
+    "",
+    'type UserId = TypeFest.Tagged<string, "UserId">;',
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -71,11 +82,24 @@ ruleTester.run(
                 filename: typedFixturePath(importedAliasFixtureName),
                 output: inlineFixableOutputCode,
             },
+            {
+                code: inlineInvalidMixedTypeLiteralMembersCode,
+                errors: [{ messageId: "preferTaggedBrand" }],
+                filename: typedFixturePath(invalidFixtureName),
+            },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: inlineValidNamespaceTaggedReferenceCode,
+                filename: typedFixturePath(validFixtureName),
+            },
+            {
+                code: readTypedFixture(invalidFixtureName),
+                filename: typedFixturePath("tests", invalidFixtureName),
             },
         ],
     }

@@ -30,6 +30,34 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type UserWithoutId = HomomorphicOmit<User, "id">;',
     'type UserWithoutId = Except<User, "id">;'
 );
+const inlineNoFixWithoutExceptImportCode = [
+    'import type { HomomorphicOmit } from "type-aliases";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    'type UserWithoutId = HomomorphicOmit<User, "id">;',
+].join("\n");
+const inlineValidNamespaceAliasCode = [
+    'import type * as TypeAliases from "type-aliases";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    'type UserWithoutId = TypeAliases.HomomorphicOmit<User, "id">;',
+].join("\n");
+const inlineValidOmitWithoutTypeArgumentsCode = [
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    "type UserWithoutId = Omit<User>;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-except", rule, {
     invalid: [
@@ -51,11 +79,29 @@ ruleTester.run("prefer-type-fest-except", rule, {
             filename: typedFixturePath(invalidFixtureName),
             output: inlineFixableOutputCode,
         },
+        {
+            code: inlineNoFixWithoutExceptImportCode,
+            errors: [{ messageId: "preferExcept" }],
+            filename: typedFixturePath(invalidFixtureName),
+            output: null,
+        },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidNamespaceAliasCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: inlineValidOmitWithoutTypeArgumentsCode,
+            filename: typedFixturePath(validFixtureName),
+        },
+        {
+            code: readTypedFixture(invalidFixtureName),
+            filename: typedFixturePath("tests", invalidFixtureName),
         },
     ],
 });
