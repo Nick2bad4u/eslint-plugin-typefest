@@ -19,6 +19,7 @@
     "include": [
         ".remarkrc.mjs",
         "*.mjs",
+        "knip.config.ts",
         "src/**/*.ts",
         "test/**/*.ts",
         "vite.config.ts",

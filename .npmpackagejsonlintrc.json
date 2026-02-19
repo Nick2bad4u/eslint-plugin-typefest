@@ -7,7 +7,10 @@
         "config-type": "error",
         "cpu-type": "error",
         "dependencies-type": "error",
-        "description-format": ["error", {}],
+        "description-format": [
+            "error",
+            {}
+        ],
         "description-type": "error",
         "devDependencies-type": "error",
         "directories-type": "error",
@@ -26,19 +29,27 @@
         "no-caret-version-devDependencies": "off",
         "no-restricted-dependencies": [
             "error",
-            ["gulping-npm-package-json-lint"]
+            [
+                "gulping-npm-package-json-lint"
+            ]
         ],
         "no-restricted-devDependencies": [
             "error",
-            ["gulping-npm-package-json-lint"]
+            [
+                "gulping-npm-package-json-lint"
+            ]
         ],
         "no-restricted-pre-release-dependencies": [
             "error",
-            ["gulping-npm-package-json-lint"]
+            [
+                "gulping-npm-package-json-lint"
+            ]
         ],
         "no-restricted-pre-release-devDependencies": [
             "error",
-            ["gulping-npm-package-json-lint"]
+            [
+                "gulping-npm-package-json-lint"
+            ]
         ],
         "no-tilde-version-dependencies": "error",
         "no-tilde-version-devDependencies": "error",
@@ -58,10 +69,7 @@
             {
                 "exceptions": [
                     "vitest-environment-browser",
-                    "prettier-plugin-multiline-arrays",
-                    "eslint",
-                    "@eslint/js",
-                    "eslint-plugin-uptime-watcher"
+                    "prettier-plugin-multiline-arrays"
                 ]
             }
         ],
@@ -152,7 +160,7 @@
                 "Nick2bad4u",
                 "Typpi",
                 "Nick",
-                "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://nick2bad4u.github.io/Uptime-Watcher/)"
+                "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://nick2bad4u.github.io/eslint-plugin-typefest)"
             ]
         ],
         "valid-values-engines": "off",
@@ -166,7 +174,13 @@
             ]
         ],
         "valid-values-name-scope": "off",
-        "valid-values-private": ["error", [false, true]],
+        "valid-values-private": [
+            "error",
+            [
+                false,
+                true
+            ]
+        ],
         "valid-values-publishConfig": "off",
         "version-format": "error",
         "version-type": "error"

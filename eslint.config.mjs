@@ -75,7 +75,7 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 import pluginWriteGood from "eslint-plugin-write-good-comments";
 import eslintPluginYml from "eslint-plugin-yml";
 import globals from "globals";
-import jsoncEslintParser from "jsonc-eslint-parser";
+import * as jsoncEslintParser from "jsonc-eslint-parser";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
