@@ -52,33 +52,12 @@ const knipConfig: KnipConfig = {
         "@types.*",
         "eslint.*",
         "madge",
-        "markdownlint",
-        "node-abi",
-        "nyc",
-        "pkg-types",
         "postcss.*",
-        "putout",
-        "react-chartjs-2",
-        // False-positive: the project imports icons from deep entrypoints
-        // (e.g. `react-icons/fi`). Knip does not currently attribute those
-        // imports back to the top-level `react-icons` dependency.
-        "react-icons",
-        "react-refresh",
         "remark.*",
         "stylelint.*",
-        "tailwind.*",
-        "tidy-markdown",
         "ts.*",
-        "tw-animate-css",
         "type.*",
         "unified",
-        "vite.*",
-        "ws",
-        "zod-fast-check",
-        // False-positive: `@vitejs/plugin-react` accepts babel plugins by name
-        // (see `vite.config.ts`). Knip cannot attribute that string reference
-        // to this devDependency.
-        "babel-plugin-react-compiler",
 
         // Items flagged by knip report (ignored to suppress false-positives / repo-local tools)
         "clsx",
