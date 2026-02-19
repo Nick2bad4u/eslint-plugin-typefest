@@ -827,3 +827,6 @@ docs/Guides/STYLE_LAYOUT_GUIDE.md
 TODO.md
 docs/Guides/TODO.md
 **/TODO/**
+
+# Docusaurus API reference files (if auto-generated)
+**/site-docs/developer/api/

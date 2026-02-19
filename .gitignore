@@ -858,4 +858,6 @@ temp/
 # VS Code
 !.vscode/mcp.json
 eslint.config.bundled_**
-site-docs/developer/api/
+
+# Docusaurus API reference files (if auto-generated)
+**/site-docs/developer/api/
