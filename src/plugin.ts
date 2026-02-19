@@ -42,9 +42,11 @@ import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-valu
 import preferTsExtrasSafeCastToRule from "./rules/prefer-ts-extras-safe-cast-to.js";
 import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
+import preferTypeFestAbstractConstructorRule from "./rules/prefer-type-fest-abstract-constructor.js";
 import preferTypeFestArrayableRule from "./rules/prefer-type-fest-arrayable.js";
 import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestConditionalPickRule from "./rules/prefer-type-fest-conditional-pick.js";
+import preferTypeFestConstructorRule from "./rules/prefer-type-fest-constructor.js";
 import preferTypeFestExceptRule from "./rules/prefer-type-fest-except.js";
 import preferTypeFestIfRule from "./rules/prefer-type-fest-if.js";
 import preferTypeFestIterableElementRule from "./rules/prefer-type-fest-iterable-element.js";
@@ -53,14 +55,19 @@ import preferTypeFestJsonObjectRule from "./rules/prefer-type-fest-json-object.j
 import preferTypeFestJsonPrimitiveRule from "./rules/prefer-type-fest-json-primitive.js";
 import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
 import preferTypeFestKeysOfUnionRule from "./rules/prefer-type-fest-keys-of-union.js";
+import preferTypeFestLiteralUnionRule from "./rules/prefer-type-fest-literal-union.js";
+import preferTypeFestMergeExclusiveRule from "./rules/prefer-type-fest-merge-exclusive.js";
 import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
 import preferTypeFestOmitIndexSignatureRule from "./rules/prefer-type-fest-omit-index-signature.js";
+import preferTypeFestPartialDeepRule from "./rules/prefer-type-fest-partial-deep.js";
 import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
+import preferTypeFestReadonlyDeepRule from "./rules/prefer-type-fest-readonly-deep.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
 import preferTypeFestRequireAllOrNoneRule from "./rules/prefer-type-fest-require-all-or-none.js";
 import preferTypeFestRequireAtLeastOneRule from "./rules/prefer-type-fest-require-at-least-one.js";
 import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
 import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require-one-or-none.js";
+import preferTypeFestRequiredDeepRule from "./rules/prefer-type-fest-required-deep.js";
 import preferTypeFestSchemaRule from "./rules/prefer-type-fest-schema.js";
 import preferTypeFestSetNonNullableRule from "./rules/prefer-type-fest-set-non-nullable.js";
 import preferTypeFestSetOptionalRule from "./rules/prefer-type-fest-set-optional.js";
@@ -76,6 +83,7 @@ import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.j
 import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
 import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
 import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
+import preferTypeFestWritableDeepRule from "./rules/prefer-type-fest-writable-deep.js";
 
 /**
  * ESLint plugin for TypeFest and ts-extras utilities. Provides rules to
@@ -196,9 +204,12 @@ const typefestRules = {
     "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
     "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
     "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
+    "prefer-type-fest-abstract-constructor":
+        preferTypeFestAbstractConstructorRule,
     "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
     "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
     "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
+    "prefer-type-fest-constructor": preferTypeFestConstructorRule,
     "prefer-type-fest-except": preferTypeFestExceptRule,
     "prefer-type-fest-if": preferTypeFestIfRule,
     "prefer-type-fest-iterable-element": preferTypeFestIterableElementRule,
@@ -207,16 +218,21 @@ const typefestRules = {
     "prefer-type-fest-json-primitive": preferTypeFestJsonPrimitiveRule,
     "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
     "prefer-type-fest-keys-of-union": preferTypeFestKeysOfUnionRule,
+    "prefer-type-fest-literal-union": preferTypeFestLiteralUnionRule,
+    "prefer-type-fest-merge-exclusive": preferTypeFestMergeExclusiveRule,
     "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
     "prefer-type-fest-omit-index-signature":
         preferTypeFestOmitIndexSignatureRule,
+    "prefer-type-fest-partial-deep": preferTypeFestPartialDeepRule,
     "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
+    "prefer-type-fest-readonly-deep": preferTypeFestReadonlyDeepRule,
     "prefer-type-fest-promisable": preferTypeFestPromisableRule,
     "prefer-type-fest-require-all-or-none": preferTypeFestRequireAllOrNoneRule,
     "prefer-type-fest-require-at-least-one":
         preferTypeFestRequireAtLeastOneRule,
     "prefer-type-fest-require-exactly-one": preferTypeFestRequireExactlyOneRule,
     "prefer-type-fest-require-one-or-none": preferTypeFestRequireOneOrNoneRule,
+    "prefer-type-fest-required-deep": preferTypeFestRequiredDeepRule,
     "prefer-type-fest-schema": preferTypeFestSchemaRule,
     "prefer-type-fest-set-non-nullable": preferTypeFestSetNonNullableRule,
     "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
@@ -232,6 +248,7 @@ const typefestRules = {
     "prefer-type-fest-unwrap-tagged": preferTypeFestUnwrapTaggedRule,
     "prefer-type-fest-value-of": preferTypeFestValueOfRule,
     "prefer-type-fest-writable": preferTypeFestWritableRule,
+    "prefer-type-fest-writable-deep": preferTypeFestWritableDeepRule,
 } as const satisfies Record<string, RuleWithDocs>;
 
 /**
@@ -286,9 +303,11 @@ function uniqueRuleNames(
 }
 
 const typeFestTypesRuleNames = [
+    "prefer-type-fest-abstract-constructor",
     "prefer-type-fest-async-return-type",
     "prefer-type-fest-arrayable",
     "prefer-type-fest-conditional-pick",
+    "prefer-type-fest-constructor",
     "prefer-type-fest-except",
     "prefer-type-fest-if",
     "prefer-type-fest-iterable-element",
@@ -297,14 +316,19 @@ const typeFestTypesRuleNames = [
     "prefer-type-fest-json-primitive",
     "prefer-type-fest-json-value",
     "prefer-type-fest-keys-of-union",
+    "prefer-type-fest-literal-union",
+    "prefer-type-fest-merge-exclusive",
     "prefer-type-fest-non-empty-tuple",
     "prefer-type-fest-omit-index-signature",
+    "prefer-type-fest-partial-deep",
     "prefer-type-fest-primitive",
     "prefer-type-fest-promisable",
+    "prefer-type-fest-readonly-deep",
     "prefer-type-fest-require-all-or-none",
     "prefer-type-fest-require-at-least-one",
     "prefer-type-fest-require-exactly-one",
     "prefer-type-fest-require-one-or-none",
+    "prefer-type-fest-required-deep",
     "prefer-type-fest-schema",
     "prefer-type-fest-set-non-nullable",
     "prefer-type-fest-set-optional",
@@ -320,6 +344,7 @@ const typeFestTypesRuleNames = [
     "prefer-type-fest-unwrap-tagged",
     "prefer-type-fest-value-of",
     "prefer-type-fest-writable",
+    "prefer-type-fest-writable-deep",
 ] as const satisfies readonly TypefestRuleName[];
 
 const tsExtrasTypeGuardRuleNames = [
