@@ -31,7 +31,8 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is error instanceof expression; otherwise `false`.
+ * @returns `true` when the value is error instanceof expression; otherwise
+ *   `false`.
  */
 
 const isErrorInstanceofExpression = (
@@ -121,4 +122,3 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-assert-error` rule module.
  */
 export default preferTsExtrasAssertErrorRule;
-

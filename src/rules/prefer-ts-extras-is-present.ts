@@ -208,7 +208,8 @@ const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
  *
  * @param value - Value to inspect.
  *
- * @returns `true` when both sides have same compared expression; otherwise `false`.
+ * @returns `true` when both sides have same compared expression; otherwise
+ *   `false`.
  */
 
 const haveSameComparedExpression = ({
@@ -436,4 +437,3 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-present` rule module.
  */
 export default preferTsExtrasIsPresentRule;
-

@@ -23,7 +23,8 @@ const promisableAliasReplacements = {
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -111,6 +112,10 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const [firstMember, secondMember] = node.types;
+
+                    if (!firstMember || !secondMember) {
+                        return;
+                    }
 
                     if (
                         node.types.some((member) =>

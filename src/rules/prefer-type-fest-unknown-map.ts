@@ -14,7 +14,8 @@ const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -105,4 +106,3 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-map` rule module.
  */
 export default preferTypeFestUnknownMapRule;
-

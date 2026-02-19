@@ -22,7 +22,8 @@ const exceptAliasReplacements = {
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (

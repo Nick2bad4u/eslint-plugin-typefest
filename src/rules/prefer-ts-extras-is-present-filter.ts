@@ -104,7 +104,8 @@ const isUndefinedComparison = (
  * @param callback - Value to inspect.
  * @param parameterName - Value to inspect.
  *
- * @returns `true` when the value is nullish filter guard body; otherwise `false`.
+ * @returns `true` when the value is nullish filter guard body; otherwise
+ *   `false`.
  */
 
 const isNullishFilterGuardBody = (
@@ -221,4 +222,3 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-present-filter` rule module.
  */
 export default preferTsExtrasIsPresentFilterRule;
-

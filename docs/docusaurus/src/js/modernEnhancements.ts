@@ -51,8 +51,10 @@ function createScrollIndicator(): CleanupFunction {
     document.body.append(indicator);
 
     const update = (): void => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+        const docHeight =
+            document.documentElement.scrollHeight - window.innerHeight;
         const safeHeight = docHeight > 0 ? docHeight : 1;
         const scrollPercent = (scrollTop / safeHeight) * 100;
         indicator.style.width = `${Math.max(0, Math.min(100, scrollPercent))}%`;
@@ -73,7 +75,9 @@ function createScrollIndicator(): CleanupFunction {
  * @returns Cleanup callback that removes click listeners and pending timers.
  */
 function applyThemeToggleAnimation(): CleanupFunction {
-    const themeToggle = document.querySelector('[aria-label*="color mode"], [title*="Switch"]');
+    const themeToggle = document.querySelector(
+        '[aria-label*="color mode"], [title*="Switch"]'
+    );
 
     if (!isHTMLElement(themeToggle)) {
         return (): void => {
@@ -115,7 +119,9 @@ function applyThemeToggleAnimation(): CleanupFunction {
  * @returns Cleanup callback for all registered enhancement handlers.
  */
 function initializeAdvancedFeatures(): CleanupFunction {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    ).matches;
     const cleanupFunctions: CleanupFunction[] = [];
 
     cleanupFunctions.push(createScrollIndicator());
@@ -148,7 +154,10 @@ function initializeEnhancements(): CleanupFunction {
 
     const handleDOMContentLoaded = (): void => {
         setupEnhancements();
-        document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
+        document.removeEventListener(
+            "DOMContentLoaded",
+            handleDOMContentLoaded
+        );
     };
 
     if (document.readyState === "loading") {

@@ -76,12 +76,11 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                         if (!isArrayLikeType(objectType)) {
                             return;
                         }
-                    }
-                    /* c8 ignore start -- defensive parser-services failure path */
-                    catch {
+                    } catch {
+                        /* C8 ignore start -- defensive parser-services failure path */
                         return;
                     }
-                    /* c8 ignore stop */
+                    /* C8 ignore stop */
 
                     context.report({
                         messageId: "preferTsExtrasArrayFindLast",

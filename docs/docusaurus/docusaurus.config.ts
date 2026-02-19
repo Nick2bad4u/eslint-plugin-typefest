@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 
 const siteUrl =
     process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
-const baseUrl = process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
+const baseUrl =
+    process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
 const enableExperimentalFaster =
     process.env["DOCUSAURUS_ENABLE_EXPERIMENTAL"] === "true";
 
@@ -320,7 +321,12 @@ const config: Config = {
             title: "eslint-plugin-typefest",
         },
         prism: {
-            additionalLanguages: ["bash", "json", "yaml", "typescript"],
+            additionalLanguages: [
+                "bash",
+                "json",
+                "yaml",
+                "typescript",
+            ],
             darkTheme: prismThemes.dracula,
             defaultLanguage: "typescript",
             theme: prismThemes.github,

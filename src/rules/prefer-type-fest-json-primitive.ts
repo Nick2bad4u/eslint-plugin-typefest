@@ -11,7 +11,8 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is json primitive keyword node; otherwise `false`.
+ * @returns `true` when the value is json primitive keyword node; otherwise
+ *   `false`.
  */
 
 const isJsonPrimitiveKeywordNode = (
@@ -123,4 +124,3 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-primitive` rule module.
  */
 export default preferTypeFestJsonPrimitiveRule;
-

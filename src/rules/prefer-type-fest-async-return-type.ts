@@ -15,7 +15,8 @@ const RETURN_TYPE_NAME = "ReturnType";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -114,4 +115,3 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-async-return-type` rule module.
  */
 export default preferTypeFestAsyncReturnTypeRule;
-

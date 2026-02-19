@@ -14,7 +14,8 @@ const READONLY_SET_TYPE_NAME = "ReadonlySet";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -101,4 +102,3 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-set` rule module.
  */
 export default preferTypeFestUnknownSetRule;
-

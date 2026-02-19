@@ -63,9 +63,11 @@ const isLiteralMemberForFamily = (
             return true;
         }
 
-        return (
-            "bigint" in node.literal && typeof node.literal.bigint === "string"
-        );
+        const literalWithPotentialBigInt = node.literal as TSESTree.Literal & {
+            readonly bigint?: unknown;
+        };
+
+        return typeof literalWithPotentialBigInt.bigint === "string";
     }
 
     if (family === "boolean") {
@@ -107,7 +109,11 @@ const hasLiteralUnionShape = (node: TSESTree.TSUnionType): boolean => {
             break;
         }
 
-        if (allMembersAreFamilyMembers && hasKeywordMember && hasLiteralMember) {
+        if (
+            allMembersAreFamilyMembers &&
+            hasKeywordMember &&
+            hasLiteralMember
+        ) {
             return true;
         }
     }

@@ -19,8 +19,7 @@ const optionalFirstValidCode = "type Input = [first?: string, ...string[]];";
 const restOnlyValidCode = "type Input = [...string[]];";
 const mixedUnionValidCode =
     "type Input = [string, ...string[]] | [first?: string, ...string[]];";
-const threeElementValidCode =
-    "type Input = [string, number, ...string[]];";
+const threeElementValidCode = "type Input = [string, number, ...string[]];";
 const optionalReadonlyValidCode =
     "type Input = readonly [first?: string, ...string[]];";
 const optionalTypeReadonlyValidCode =

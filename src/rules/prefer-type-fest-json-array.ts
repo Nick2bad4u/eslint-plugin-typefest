@@ -16,7 +16,8 @@ const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -54,7 +55,8 @@ const isJsonValueArrayType = (node: TSESTree.TypeNode): boolean =>
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is readonly json value array type; otherwise `false`.
+ * @returns `true` when the value is readonly json value array type; otherwise
+ *   `false`.
  */
 
 const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
@@ -75,7 +77,8 @@ const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is generic json value array type; otherwise `false`.
+ * @returns `true` when the value is generic json value array type; otherwise
+ *   `false`.
  */
 
 const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
@@ -97,7 +100,8 @@ const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is generic readonly json value array type; otherwise `false`.
+ * @returns `true` when the value is generic readonly json value array type;
+ *   otherwise `false`.
  */
 
 const isGenericReadonlyJsonValueArrayType = (
@@ -203,4 +207,3 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-array` rule module.
  */
 export default preferTypeFestJsonArrayRule;
-

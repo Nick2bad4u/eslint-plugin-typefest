@@ -164,4 +164,3 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-equal-type` rule module.
  */
 export default preferTsExtrasIsEqualTypeRule;
-

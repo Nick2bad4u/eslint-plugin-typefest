@@ -14,7 +14,8 @@ const ARRAY_TYPE_NAME = "Array";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -171,4 +172,3 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-arrayable` rule module.
  */
 export default preferTypeFestArrayableRule;
-

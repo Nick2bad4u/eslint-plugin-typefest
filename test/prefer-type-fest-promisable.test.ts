@@ -22,12 +22,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type JobResult = MaybePromise<string>;",
     "type JobResult = Promisable<string>;"
 );
-const promiseFirstInvalidCode =
-    "type Result = Promise<string> | string;";
-const promiseSecondInvalidCode =
-    "type Result = string | Promise<string>;";
-const promiseLikeValidCode =
-    "type Result = PromiseLike<string> | string;";
+const promiseFirstInvalidCode = "type Result = Promise<string> | string;";
+const promiseSecondInvalidCode = "type Result = string | Promise<string>;";
+const promiseLikeValidCode = "type Result = PromiseLike<string> | string;";
 const promiseNoTypeArgumentsValidCode = "type Result = Promise | string;";
 const promiseNullValidCode = "type Result = Promise<string> | null;";
 const promiseUndefinedValidCode =

@@ -64,7 +64,6 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-
     const { constraint } = node;
     if (constraint?.type !== "TSTypeOperator") {
         return false;

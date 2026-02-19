@@ -167,9 +167,11 @@ const pathExists = async (pathToCheck) => {
 const getPathCandidates = (markdownPath, normalizedLink) => {
     const markdownDirectoryPath = dirname(markdownPath);
     const basePath = resolve(markdownDirectoryPath, normalizedLink);
-    const hasKnownExtension = [".md", ".mdx", ".html"].includes(
-        extname(basePath).toLowerCase()
-    );
+    const hasKnownExtension = [
+        ".md",
+        ".mdx",
+        ".html",
+    ].includes(extname(basePath).toLowerCase());
 
     if (hasKnownExtension) {
         return [basePath];
@@ -188,7 +190,7 @@ const getPathCandidates = (markdownPath, normalizedLink) => {
 /**
  * @param {string} markdownPath
  * @param {string} link
- * @param {Array<{ file: string; link: string; resolvedPath: string }>} issues
+ * @param {{ file: string; link: string; resolvedPath: string }[]} issues
  */
 async function validateLink(markdownPath, link, issues) {
     const normalized = normalizeLink(link);
@@ -224,7 +226,7 @@ async function validateLink(markdownPath, link, issues) {
 
 /**
  * @param {string} markdownPath
- * @param {Array<{ file: string; link: string; resolvedPath: string }>} issues
+ * @param {{ file: string; link: string; resolvedPath: string }[]} issues
  */
 async function checkFile(markdownPath, issues) {
     const content = await readFile(markdownPath, "utf8");
@@ -254,7 +256,7 @@ async function checkFile(markdownPath, issues) {
  */
 async function main() {
     /**
-     * @type {Array<{ file: string; link: string; resolvedPath: string }>}
+     * @type {{ file: string; link: string; resolvedPath: string }[]}
      */
     const issues = [];
 

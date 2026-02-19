@@ -15,7 +15,8 @@ const RECORD_TYPE_NAME = "Record";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -56,7 +57,8 @@ const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is record json value reference; otherwise `false`.
+ * @returns `true` when the value is record json value reference; otherwise
+ *   `false`.
  */
 
 const isRecordJsonValueReference = (
@@ -127,4 +129,3 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-object` rule module.
  */
 export default preferTypeFestJsonObjectRule;
-

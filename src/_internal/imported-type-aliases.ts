@@ -18,9 +18,11 @@ export type ImportedTypeAliasMatch = {
  * preferred type-fest utility names.
  *
  * @param sourceCode - Source code object for the current file.
- * @param replacementsByImportedName - Mapping from imported symbol names to preferred replacement names.
+ * @param replacementsByImportedName - Mapping from imported symbol names to
+ *   preferred replacement names.
  *
- * @returns Map keyed by canonical imported alias name with replacement metadata.
+ * @returns Map keyed by canonical imported alias name with replacement
+ *   metadata.
  */
 export const collectImportedTypeAliasMatches = (
     sourceCode: Readonly<TSESLint.SourceCode>,
@@ -129,8 +131,7 @@ const ancestorDefinesTypeParameterNamed = (
         typeParameters?: Readonly<TSESTree.TSTypeParameterDeclaration>;
     };
 
-    const typeParameterDeclaration =
-        ancestorWithTypeParameters.typeParameters;
+    const typeParameterDeclaration = ancestorWithTypeParameters.typeParameters;
     if (!typeParameterDeclaration) {
         return false;
     }
@@ -162,7 +163,8 @@ export const isTypeParameterNameShadowed = (
  *
  * @param node - Type reference node to potentially fix.
  * @param replacementName - Replacement identifier text.
- * @param availableReplacementNames - Available direct imported replacement names.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
  *
  * @returns Fix function when replacement is safe; otherwise `null`.
  */
@@ -170,7 +172,7 @@ export const createSafeTypeReferenceReplacementFix = (
     node: Readonly<TSESTree.TSTypeReference>,
     replacementName: string,
     availableReplacementNames: ReadonlySet<string>
-): TSESLint.ReportFixFunction | null => {
+): null | TSESLint.ReportFixFunction => {
     if (node.typeName.type !== "Identifier") {
         return null;
     }

@@ -504,7 +504,7 @@ export default defineConfig([
         },
         name: "Docusaurus Workspace Files",
         plugins: {
-            "@docusaurus": pluginDocusaurus
+            "@docusaurus": pluginDocusaurus,
         },
         rules: {
             "@docusaurus/no-html-links": "warn",
@@ -1720,6 +1720,13 @@ export default defineConfig([
             "package-json/valid-type": "warn",
             "package-json/valid-version": "warn",
             "package-json/valid-workspaces": "warn",
+        },
+    },
+    {
+        files: ["docs/docusaurus/package.json"],
+        name: "Package - docs docusaurus private override",
+        rules: {
+            "package-json/restrict-private-properties": "off",
         },
     },
     // #endregion

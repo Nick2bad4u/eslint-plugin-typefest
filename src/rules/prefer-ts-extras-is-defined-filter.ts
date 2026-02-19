@@ -12,7 +12,8 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @param body - Value to inspect.
  * @param parameterName - Value to inspect.
  *
- * @returns `true` when the value is undefined filter guard body; otherwise `false`.
+ * @returns `true` when the value is undefined filter guard body; otherwise
+ *   `false`.
  */
 
 const isUndefinedFilterGuardBody = (

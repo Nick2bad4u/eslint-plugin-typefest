@@ -69,4 +69,3 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-object-keys` rule module.
  */
 export default preferTsExtrasObjectKeysRule;
-

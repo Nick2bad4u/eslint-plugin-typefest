@@ -69,4 +69,3 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-integer` rule module.
  */
 export default preferTsExtrasIsIntegerRule;
-

@@ -14,7 +14,8 @@ const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
  * @param node - Value to inspect.
  * @param expectedTypeName - Value to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise `false`.
+ * @returns `true` when the value is identifier type reference; otherwise
+ *   `false`.
  */
 
 const isIdentifierTypeReference = (
@@ -51,7 +52,8 @@ const hasSingleUnknownTypeArgument = (
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is readonly unknown array type; otherwise `false`.
+ * @returns `true` when the value is readonly unknown array type; otherwise
+ *   `false`.
  */
 
 const isReadonlyUnknownArrayType = (node: TSESTree.TSTypeOperator): boolean => {
@@ -135,4 +137,3 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-array` rule module.
  */
 export default preferTypeFestUnknownArrayRule;
-

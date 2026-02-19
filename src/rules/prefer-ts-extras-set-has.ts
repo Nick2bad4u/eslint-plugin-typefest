@@ -95,4 +95,3 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-set-has` rule module.
  */
 export default preferTsExtrasSetHasRule;
-

@@ -27,7 +27,8 @@ const isZeroLiteral = (node: TSESTree.Expression): boolean =>
  *
  * @param node - Value to inspect.
  *
- * @returns `true` when the value is length member expression; otherwise `false`.
+ * @returns `true` when the value is length member expression; otherwise
+ *   `false`.
  */
 
 const isLengthMemberExpression = (
@@ -151,4 +152,3 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-empty` rule module.
  */
 export default preferTsExtrasIsEmptyRule;
-

@@ -61,8 +61,8 @@ import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-
 import preferTypeFestOmitIndexSignatureRule from "./rules/prefer-type-fest-omit-index-signature.js";
 import preferTypeFestPartialDeepRule from "./rules/prefer-type-fest-partial-deep.js";
 import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
-import preferTypeFestReadonlyDeepRule from "./rules/prefer-type-fest-readonly-deep.js";
 import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
+import preferTypeFestReadonlyDeepRule from "./rules/prefer-type-fest-readonly-deep.js";
 import preferTypeFestRequireAllOrNoneRule from "./rules/prefer-type-fest-require-all-or-none.js";
 import preferTypeFestRequireAtLeastOneRule from "./rules/prefer-type-fest-require-at-least-one.js";
 import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
@@ -82,8 +82,8 @@ import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-re
 import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.js";
 import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
 import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
-import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 import preferTypeFestWritableDeepRule from "./rules/prefer-type-fest-writable-deep.js";
+import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
 /**
  * ESLint plugin for TypeFest and ts-extras utilities. Provides rules to
@@ -149,7 +149,8 @@ function getPackageVersion(pkg: PackageJson): string {
 }
 
 /**
- * Load the TypeScript ESLint parser lazily to support optional dependency setups.
+ * Load the TypeScript ESLint parser lazily to support optional dependency
+ * setups.
  *
  * @returns Parser module when available; otherwise `null`.
  */
@@ -225,8 +226,8 @@ const typefestRules = {
         preferTypeFestOmitIndexSignatureRule,
     "prefer-type-fest-partial-deep": preferTypeFestPartialDeepRule,
     "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
-    "prefer-type-fest-readonly-deep": preferTypeFestReadonlyDeepRule,
     "prefer-type-fest-promisable": preferTypeFestPromisableRule,
+    "prefer-type-fest-readonly-deep": preferTypeFestReadonlyDeepRule,
     "prefer-type-fest-require-all-or-none": preferTypeFestRequireAllOrNoneRule,
     "prefer-type-fest-require-at-least-one":
         preferTypeFestRequireAtLeastOneRule,

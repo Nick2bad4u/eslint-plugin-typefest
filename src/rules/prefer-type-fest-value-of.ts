@@ -2,6 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-value-of`.
  */
+import type { TSESLint } from "@typescript-eslint/utils";
+
+import {
+    collectDirectNamedImportsFromSource,
+    isTypeParameterNameShadowed,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -30,6 +36,10 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
             }
 
             const { sourceCode } = context;
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSIndexedAccessType(node) {
@@ -51,7 +61,18 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const fix: null | TSESLint.ReportFixFunction =
+                        typeFestDirectImports.has("ValueOf") &&
+                        !isTypeParameterNameShadowed(node, "ValueOf")
+                            ? (fixer) =>
+                                  fixer.replaceText(
+                                      node,
+                                      `ValueOf<${sourceCode.getText(node.objectType)}>`
+                                  )
+                            : null;
+
                     context.report({
+                        ...(fix === null ? {} : { fix }),
                         messageId: "preferValueOf",
                         node,
                     });
@@ -65,6 +86,7 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-value-of.md",
             },
+            fixable: "code",
             messages: {
                 preferValueOf:
                     "Prefer `ValueOf<T>` from type-fest over `T[keyof T]` for object value unions.",
@@ -79,4 +101,3 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-value-of` rule module.
  */
 export default preferTypeFestValueOfRule;
-

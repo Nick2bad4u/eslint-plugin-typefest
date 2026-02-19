@@ -13,8 +13,7 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName =
-    "prefer-type-fest-abstract-constructor.skip.ts";
+const skipTestPathFixtureName = "prefer-type-fest-abstract-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
 
 ruleTester.run(

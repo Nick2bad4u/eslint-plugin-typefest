@@ -68,10 +68,7 @@ export default function Home() {
                                 <p className={styles.cardDescription}>
                                     {card.description}
                                 </p>
-                                <Link
-                                    className={styles.cardLink}
-                                    to={card.to}
-                                >
+                                <Link className={styles.cardLink} to={card.to}>
                                     Open section →
                                 </Link>
                             </article>

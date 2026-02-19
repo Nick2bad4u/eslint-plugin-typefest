@@ -215,4 +215,3 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-assert-present` rule module.
  */
 export default preferTsExtrasAssertPresentRule;
-

@@ -194,4 +194,3 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-last` rule module.
  */
 export default preferTsExtrasArrayLastRule;
-

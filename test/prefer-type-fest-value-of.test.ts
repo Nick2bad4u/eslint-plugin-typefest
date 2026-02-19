@@ -27,6 +27,22 @@ const inlineInvalidSpacedCode = [
     "};",
     "type Output = Input[keyof Input ];",
 ].join("\n");
+const inlineFixableInvalidCode = [
+    'import type { ValueOf } from "type-fest";',
+    "type Input = {",
+    "    alpha: string;",
+    "    beta: number;",
+    "};",
+    "type Output = Input[keyof Input];",
+].join("\n");
+const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
+    "type Output = Input[keyof Input];",
+    "type Output = ValueOf<Input>;"
+);
+const inlineNoFixShadowedValueOfInvalidCode = [
+    'import type { ValueOf } from "type-fest";',
+    "type Box<ValueOf extends object> = ValueOf[keyof ValueOf];",
+].join("\n");
 const inlineValidDifferentKeyCode = [
     "type Input = {",
     "    alpha: string;",
@@ -67,6 +83,18 @@ ruleTester.run(
                 code: inlineInvalidSpacedCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferValueOf" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedValueOfInvalidCode,
+                errors: [{ messageId: "preferValueOf" }],
+                filename: typedFixturePath(invalidFixtureName),
+                output: null,
             },
         ],
         valid: [

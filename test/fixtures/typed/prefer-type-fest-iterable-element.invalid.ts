@@ -1,8 +1,4 @@
-import type {
-    SetEntry,
-    SetElement,
-    SetValues,
-} from "type-aliases";
+import type { SetEntry, SetElement, SetValues } from "type-aliases";
 
 type ElementViaAlias = SetElement<MonitorIdSet>;
 type EntryViaAlias = SetEntry<MonitorIdSet>;

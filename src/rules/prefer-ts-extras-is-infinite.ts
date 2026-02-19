@@ -85,4 +85,3 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-infinite` rule module.
  */
 export default preferTsExtrasIsInfiniteRule;
-

@@ -148,4 +148,3 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-first` rule module.
  */
 export default preferTsExtrasArrayFirstRule;
-

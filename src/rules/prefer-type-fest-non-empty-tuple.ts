@@ -120,6 +120,10 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
 
                     const [firstElement, restElement] = tupleType.elementTypes;
 
+                    if (!firstElement || !restElement) {
+                        return;
+                    }
+
                     const firstType = getRequiredTupleElementType(firstElement);
                     if (!firstType) {
                         return;

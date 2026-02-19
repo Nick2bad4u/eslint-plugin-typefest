@@ -18,7 +18,8 @@ const inlineInvalidCode =
     "type Result = Awaited<ReturnType<() => Promise<string>>>;";
 const awaitedWithoutTypeArgumentValidCode = "type Result = Awaited;";
 const awaitedNonReturnTypeValidCode = "type Result = Awaited<string>;";
-const awaitedReturnTypeWithoutArgValidCode = "type Result = Awaited<ReturnType>;";
+const awaitedReturnTypeWithoutArgValidCode =
+    "type Result = Awaited<ReturnType>;";
 const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {

@@ -155,4 +155,3 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-primitive` rule module.
  */
 export default preferTypeFestPrimitiveRule;
-

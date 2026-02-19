@@ -7,7 +7,6 @@ type QueueClientAbstractConstructor = abstract new (
     retryCount: number
 ) => QueueClient;
 
-
 type QueueClientFromCtor = InstanceType<QueueClientAbstractConstructor>;
 
 String({} as QueueClientFromCtor);

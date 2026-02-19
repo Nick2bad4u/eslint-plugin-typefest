@@ -61,7 +61,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                     const expressionType = checker.getTypeAtLocation(tsNode);
                     return isArrayLikeType(expressionType);
                 } catch {
-                        /* c8 ignore next -- defensive parser-services mismatch */
+                    /* C8 ignore next -- defensive parser-services mismatch */
                     return false;
                 }
             };

@@ -16,6 +16,15 @@ const tupleOfAliasReplacements = {
     Tuple: "TupleOf<Length, Element>",
 } as const;
 
+const createTupleOfReplacementText = (
+    importedAliasName: string,
+    lengthTypeText: string,
+    elementTypeText: string
+): string =>
+    importedAliasName === "ReadonlyTuple"
+        ? `Readonly<TupleOf<${lengthTypeText}, ${elementTypeText}>>`
+        : `TupleOf<${lengthTypeText}, ${elementTypeText}>`;
+
 const preferTypeFestTupleOfRule = createTypedRule({
     create(context) {
         const filePath = context.filename;
@@ -47,12 +56,7 @@ const preferTypeFestTupleOfRule = createTypedRule({
                 }
 
                 const tupleTypeParameters = node.typeArguments?.params;
-                let tupleOfSuggestion:
-                    | null
-                    | readonly {
-                          readonly fix: TSESLint.ReportFixFunction;
-                          readonly messageId: "suggestTupleOfReplacement";
-                      }[] = null;
+                let fix: null | TSESLint.ReportFixFunction = null;
 
                 if (
                     tupleTypeParameters?.length === 2 &&
@@ -64,18 +68,22 @@ const preferTypeFestTupleOfRule = createTypedRule({
                         context.sourceCode.getText(elementType);
                     const lengthTypeText =
                         context.sourceCode.getText(lengthType);
+                    const usesReadonlyWrapper =
+                        importedAliasMatch.importedName === "ReadonlyTuple";
 
-                    tupleOfSuggestion = [
-                        {
-                            fix(fixer: TSESLint.RuleFixer) {
-                                return fixer.replaceText(
-                                    node,
-                                    `Readonly<TupleOf<${lengthTypeText}, ${elementTypeText}>>`
-                                );
-                            },
-                            messageId: "suggestTupleOfReplacement",
-                        },
-                    ];
+                    if (
+                        !usesReadonlyWrapper ||
+                        !isTypeParameterNameShadowed(node, "Readonly")
+                    ) {
+                        const replacementText = createTupleOfReplacementText(
+                            importedAliasMatch.importedName,
+                            lengthTypeText,
+                            elementTypeText
+                        );
+
+                        fix = (fixer: TSESLint.RuleFixer) =>
+                            fixer.replaceText(node, replacementText);
+                    }
                 }
 
                 context.report({
@@ -85,9 +93,7 @@ const preferTypeFestTupleOfRule = createTypedRule({
                     },
                     messageId: "preferTupleOf",
                     node,
-                    ...(tupleOfSuggestion === null
-                        ? {}
-                        : { suggest: tupleOfSuggestion }),
+                    ...(fix === null ? {} : { fix }),
                 });
             },
         };
@@ -99,12 +105,10 @@ const preferTypeFestTupleOfRule = createTypedRule({
                 "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tuple-of.md",
         },
-        hasSuggestions: true,
+        fixable: "code",
         messages: {
             preferTupleOf:
                 "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-            suggestTupleOfReplacement:
-                "Replace with `Readonly<TupleOf<...>>` using type-fest `TupleOf`.",
         },
         schema: [],
         type: "suggestion",

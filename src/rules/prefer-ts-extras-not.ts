@@ -35,7 +35,8 @@ const isFilterCall = (
  * @param argument - Value to inspect.
  * @param parameterName - Value to inspect.
  *
- * @returns `true` when the value is target callback parameter; otherwise `false`.
+ * @returns `true` when the value is target callback parameter; otherwise
+ *   `false`.
  */
 
 const isTargetCallbackParameter = (
@@ -145,4 +146,3 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-not` rule module.
  */
 export default preferTsExtrasNotRule;
-

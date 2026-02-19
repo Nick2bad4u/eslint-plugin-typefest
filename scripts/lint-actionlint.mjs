@@ -70,10 +70,7 @@ const useDefaultFiles =
     fileArgs.length === 0 && !hasAnyFlag(["-version", "-init-config"]);
 
 if (!hasFlag("-config-file")) {
-    userArgs.push(
-        "-config-file",
-        path.join(repoRoot, "ActionLintConfig.yaml")
-    );
+    userArgs.push("-config-file", path.join(repoRoot, "ActionLintConfig.yaml"));
 }
 
 if (!hasAnyFlag(["-color", "-no-color"])) {

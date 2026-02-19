@@ -12,7 +12,15 @@
  */
 
 import { execSync } from "node:child_process";
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import {
+    cp,
+    mkdir,
+    readdir,
+    readFile,
+    rm,
+    stat,
+    writeFile,
+} from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -73,7 +81,10 @@ const buildInspectorStaticSite = () => {
 
 const copyBuildOutputToDocusaurusStatic = async () => {
     await ensureDirectoryExists(inspectorBuildOutputDirectoryPath);
-    await rm(inspectorStaticTargetDirectoryPath, { force: true, recursive: true });
+    await rm(inspectorStaticTargetDirectoryPath, {
+        force: true,
+        recursive: true,
+    });
     await mkdir(inspectorStaticTargetDirectoryPath, { recursive: true });
 
     await cp(
@@ -110,7 +121,10 @@ const rewriteGeneratedHtmlFiles = async () => {
 };
 
 const cleanIntermediateBuildOutput = async () => {
-    await rm(inspectorBuildOutputDirectoryPath, { force: true, recursive: true });
+    await rm(inspectorBuildOutputDirectoryPath, {
+        force: true,
+        recursive: true,
+    });
 };
 
 const main = async () => {
@@ -126,7 +140,8 @@ const main = async () => {
 };
 
 await main().catch((error) => {
-    const message = error instanceof Error ? error.stack ?? error.message : String(error);
+    const message =
+        error instanceof Error ? (error.stack ?? error.message) : String(error);
 
     console.error("[eslint-inspector] Build failed.");
     console.error(message);

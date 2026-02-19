@@ -52,4 +52,3 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-key-in` rule module.
  */
 export default preferTsExtrasKeyInRule;
-

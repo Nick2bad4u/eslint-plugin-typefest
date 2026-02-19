@@ -69,4 +69,3 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-object-from-entries` rule module.
  */
 export default preferTsExtrasObjectFromEntriesRule;
-

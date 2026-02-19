@@ -26,7 +26,10 @@ const staticInspectorDirectoryPath = join(
     "static",
     "eslint-inspector"
 );
-const staticInspectorIndexPath = join(staticInspectorDirectoryPath, "index.html");
+const staticInspectorIndexPath = join(
+    staticInspectorDirectoryPath,
+    "index.html"
+);
 
 /**
  * @param {string} filePath
@@ -77,15 +80,26 @@ const verifyESLintInspectorDeployment = async () => {
 
     printSectionTitle("📁 Static output checks");
 
-    const staticDirectoryExists = await pathExists(staticInspectorDirectoryPath);
+    const staticDirectoryExists = await pathExists(
+        staticInspectorDirectoryPath
+    );
     if (!staticDirectoryExists) {
-        console.log(`❌ Missing static directory: ${staticInspectorDirectoryPath}`);
+        console.log(
+            `❌ Missing static directory: ${staticInspectorDirectoryPath}`
+        );
         hasFailure = true;
     } else {
-        console.log(`✅ Static directory exists: ${staticInspectorDirectoryPath}`);
+        console.log(
+            `✅ Static directory exists: ${staticInspectorDirectoryPath}`
+        );
     }
 
-    const requiredEntries = ["index.html", "200.html", "404.html", "_nuxt"];
+    const requiredEntries = [
+        "index.html",
+        "200.html",
+        "404.html",
+        "_nuxt",
+    ];
     const staticEntries = staticDirectoryExists
         ? new Set(await readdir(staticInspectorDirectoryPath))
         : new Set();
@@ -115,7 +129,9 @@ const verifyESLintInspectorDeployment = async () => {
             indexContent.includes("'/_nuxt/");
 
         if (!hasRelativeNuxtAssets) {
-            console.log("❌ index.html does not contain relative ./_nuxt asset paths");
+            console.log(
+                "❌ index.html does not contain relative ./_nuxt asset paths"
+            );
             hasFailure = true;
         } else {
             console.log("✅ index.html contains relative ./_nuxt asset paths");
@@ -125,14 +141,18 @@ const verifyESLintInspectorDeployment = async () => {
             console.log("❌ index.html still contains root /_nuxt asset paths");
             hasFailure = true;
         } else {
-            console.log("✅ index.html does not contain root /_nuxt asset paths");
+            console.log(
+                "✅ index.html does not contain root /_nuxt asset paths"
+            );
         }
     }
 
     printSectionTitle("⚙️ Script wiring checks");
 
     const rootScripts = await readScriptsFromPackage(rootPackagePath);
-    const docsWorkspaceScripts = await readScriptsFromPackage(docsWorkspacePackagePath);
+    const docsWorkspaceScripts = await readScriptsFromPackage(
+        docsWorkspacePackagePath
+    );
 
     if (rootScripts["build:eslint-inspector"]) {
         console.log("✅ Root package.json has build:eslint-inspector");
@@ -153,9 +173,13 @@ const verifyESLintInspectorDeployment = async () => {
         docsBuildScript.includes("build-eslint-inspector") ||
         docsBuildScript.includes("build:eslint-inspector")
     ) {
-        console.log("✅ docs/docusaurus build script triggers inspector static build");
+        console.log(
+            "✅ docs/docusaurus build script triggers inspector static build"
+        );
     } else {
-        console.log("❌ docs/docusaurus build script does not trigger inspector static build");
+        console.log(
+            "❌ docs/docusaurus build script does not trigger inspector static build"
+        );
         hasFailure = true;
     }
 
@@ -169,7 +193,8 @@ const verifyESLintInspectorDeployment = async () => {
 };
 
 await verifyESLintInspectorDeployment().catch((error) => {
-    const message = error instanceof Error ? error.stack ?? error.message : String(error);
+    const message =
+        error instanceof Error ? (error.stack ?? error.message) : String(error);
 
     console.error("❌ ESLint Inspector verification crashed.");
     console.error(message);

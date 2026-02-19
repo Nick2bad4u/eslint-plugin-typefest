@@ -98,4 +98,3 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-string-split` rule module.
  */
 export default preferTsExtrasStringSplitRule;
-

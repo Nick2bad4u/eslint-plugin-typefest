@@ -38,9 +38,7 @@ ruleTester.run(
         invalid: [
             {
                 code: readTypedFixture(invalidFixtureName),
-                errors: [
-                    { messageId: "preferReadonlyDeep" },
-                ],
+                errors: [{ messageId: "preferReadonlyDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
             },
             {

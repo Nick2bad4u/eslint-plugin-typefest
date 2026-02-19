@@ -42,7 +42,8 @@ const mappedNearMissIndexMismatchValidCode =
     "type WritableLike<T, P extends keyof T> = { -readonly [K in keyof T]: T[P] };";
 const mappedNearMissObjectMismatchValidCode =
     "type WritableLike<T, U extends T> = { -readonly [K in keyof T]: U[K] };";
-const skipPathInvalidCode = "type WritableLike<T> = { -readonly [K in keyof T]: T[K] };";
+const skipPathInvalidCode =
+    "type WritableLike<T> = { -readonly [K in keyof T]: T[K] };";
 const validFixtureName = "prefer-type-fest-writable.valid.ts";
 
 ruleTester.run(
