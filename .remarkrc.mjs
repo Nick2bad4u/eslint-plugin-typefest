@@ -21,7 +21,6 @@ import { ignoreStart, ignoreEnd } from "remark-ignore";
 // Type definitions for remark configuration
 /** @typedef {import("unified").Preset} Preset */
 /** @typedef {import("unified").Plugin} Plugin */
-/** @typedef {import("mdast").Root} Root */
 /** @typedef {import("vfile").VFile} VFile */
 
 /**
