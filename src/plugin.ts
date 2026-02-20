@@ -130,6 +130,7 @@ type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
         name: string;
         version: string;
     };
+    processors: NonNullable<ESLint.Plugin["processors"]>;
     rules: NonNullable<ESLint.Plugin["rules"]> & typeof typefestRules;
 };
 type TypeScriptParser = {
@@ -520,6 +521,7 @@ const typefestPlugin = {
         name: "eslint-plugin-typefest",
         version: getPackageVersion(packageJson),
     },
+    processors: {},
     rules: typefestEslintRules,
 } satisfies TypefestPluginContract;
 
