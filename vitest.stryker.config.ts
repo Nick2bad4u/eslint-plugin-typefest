@@ -2,13 +2,42 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
     test: {
+        css: false,
+        dangerouslyIgnoreUnhandledErrors: false,
+        env: {
+            NODE_ENV: "test",
+        },
         environment: "node",
         exclude: ["test/fixtures/**", "docs/**"],
+        expect: {
+            poll: { interval: 50, timeout: 15_000 },
+            requireAssertions: false,
+        },
+        fakeTimers: {
+            advanceTimeDelta: 20,
+            loopLimit: 10_000,
+            now: Date.now(),
+            shouldAdvanceTime: false,
+            shouldClearNativeTimers: true,
+        },
         fileParallelism: false,
+        globals: true,
         include: ["test/**/*.{test,spec}.ts"],
+        isolate: true,
         maxWorkers: 1,
-        minWorkers: 1,
+        name: {
+            color: "yellow",
+            label: "Stryker",
+        }, // Custom project name and color for Stryker test runs
         pool: "threads",
+        printConsoleTrace: false,
+        retry: 0,
+        sequence: {
+            concurrent: false,
+            groupOrder: 0,
+            setupFiles: "parallel",
+        },
+        slowTestThreshold: 300,
         testTimeout: 15_000,
     },
 });

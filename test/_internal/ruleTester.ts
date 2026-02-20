@@ -29,13 +29,15 @@ const deriveGeneratedCaseName = (
     caseFilename?: string
 ): string => {
     const caseLabel = [
-        pc.magentaBright("UNNAMED"),
-        caseKind === "invalid" ? pc.red("invalid") : pc.green("valid"),
-        pc.yellow(`#${String(caseIndex + 1)}`),
+        pc.bold(pc.magentaBright("UNNAMED")),
+        caseKind === "invalid"
+            ? pc.bold(pc.red("invalid"))
+            : pc.bold(pc.green("valid")),
+        pc.underline(pc.yellow(`#${String(caseIndex + 1)}`)),
     ].join(" ");
     const caseSource = caseFilename
-        ? pc.cyan(path.basename(caseFilename))
-        : pc.blue(ruleName);
+        ? pc.underline(pc.cyan(path.basename(caseFilename)))
+        : pc.underline(pc.blue(ruleName));
 
     return `${caseSource}${pc.dim(" - ")}${caseLabel}`;
 };
@@ -47,7 +49,10 @@ const withGeneratedRuleCaseNames = (
     const normalizedInvalidCases: RuleRunCases["invalid"] =
         runCases.invalid.map((entry: RuleRunInvalidCase, caseIndex) =>
             entry.name
-                ? entry
+                ? {
+                      ...entry,
+                      name: pc.bold(pc.cyanBright(entry.name)),
+                  }
                 : {
                       ...entry,
                       name: deriveGeneratedCaseName(
@@ -69,7 +74,10 @@ const withGeneratedRuleCaseNames = (
             }
 
             if (entry.name) {
-                return entry;
+                return {
+                    ...entry,
+                    name: pc.bold(pc.cyanBright(entry.name)),
+                };
             }
 
             return {

@@ -202,7 +202,7 @@ export default defineConfig({
         maxWorkers: maxWorkerCount,
         name: {
             color: "cyan",
-            label: "Frontend", // Simplified label to match vitest.config.ts
+            label: "Test", // Simplified label to match vitest.config.ts
         }, // Custom project name and color for Vitest
         outputFile: {
             json: "./coverage/test-results.json",
