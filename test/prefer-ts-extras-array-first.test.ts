@@ -36,6 +36,18 @@ const inlineValidDeleteWriteTargetCode = [
     "delete mutableStatuses[0];",
     "String(mutableStatuses);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayFirst } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const first = sample[0];",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayFirst } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const first = arrayFirst(sample);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-array-first", rule, {
     invalid: [
@@ -69,6 +81,13 @@ ruleTester.run("prefer-ts-extras-array-first", rule, {
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports unary-void index-zero read",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasArrayFirst" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes array[0] when arrayFirst import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

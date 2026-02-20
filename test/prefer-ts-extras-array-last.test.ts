@@ -31,6 +31,18 @@ const inlineValidDeleteWriteTargetCode = [
     "delete mutableStatuses[mutableStatuses.length - 1];",
     "String(mutableStatuses);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayLast } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const last = sample[sample.length - 1];",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayLast } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const last = arrayLast(sample);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-array-last", rule, {
     invalid: [
@@ -58,6 +70,13 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             errors: [{ messageId: "preferTsExtrasArrayLast" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports tuple last-index read via length arithmetic",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasArrayLast" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes array[array.length - 1] when arrayLast import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

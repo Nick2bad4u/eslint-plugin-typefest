@@ -50,6 +50,18 @@ const unionWithCustomValidCode = [
     "const found = numbers.findLast((value) => value > 1);",
     "String(found);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayFindLast } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const found = sample.findLast((value) => value > 1);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayFindLast } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const found = arrayFindLast(sample, (value) => value > 1);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-find-last",
@@ -80,6 +92,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom findLast receiver",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.findLast() when arrayFindLast import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

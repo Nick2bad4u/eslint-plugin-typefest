@@ -3,6 +3,10 @@
  * ESLint rule implementation for `prefer-ts-extras-object-values`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-values`.
@@ -13,6 +17,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -44,6 +53,13 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
                     context.report({
                         messageId: "preferTsExtrasObjectValues",
                         node,
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectValues",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                     });
                 },
             };
@@ -55,6 +71,7 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectValues over Object.values for stronger value inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-values.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectValues:
                     "Prefer `objectValues` from `ts-extras` over `Object.values(...)` for stronger value inference.",

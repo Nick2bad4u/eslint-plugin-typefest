@@ -50,6 +50,18 @@ const unionWithCustomValidCode = [
     "const found = numbers.find((value) => value === 2);",
     "String(found);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayFind } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const found = sample.find((value) => value === 2);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayFind } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const found = arrayFind(sample, (value) => value === 2);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-find",
@@ -80,6 +92,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayFind" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom find receiver",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayFind" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.find() when arrayFind import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

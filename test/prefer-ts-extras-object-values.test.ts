@@ -26,6 +26,18 @@ const nonObjectReceiverValidCode = [
     "const values = helper.values({ alpha: 1 });",
 ].join("\n");
 const wrongPropertyValidCode = "const keys = Object.keys({ alpha: 1 });";
+const inlineFixableCode = [
+    'import { objectValues } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const values = Object.values(sample);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { objectValues } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const values = objectValues(sample);",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-ts-extras-object-values", rule, {
@@ -48,6 +60,13 @@ ruleTester.run("prefer-ts-extras-object-values", rule, {
             errors: [{ messageId: "preferTsExtrasObjectValues" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.values call",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasObjectValues" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Object.values when objectValues import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

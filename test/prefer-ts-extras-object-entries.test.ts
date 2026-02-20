@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * Vitest coverage for `prefer-ts-extras-object-entries.test` behavior.
+ * Vitest coverage for `prefer-ts-extras-object-entries` behavior.
  */
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -15,8 +15,19 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-object-entries.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-object-entries.invalid.ts";
 const inlineInvalidCode = "const pairs = Object.entries({ alpha: 1 });";
-const computedAccessValidCode =
-    "const pairs = Object['entries']({ alpha: 1 });";
+const inlineFixableCode = [
+    'import { objectEntries } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const entries = Object.entries(sample);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { objectEntries } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const entries = objectEntries(sample);",
+].join("\n");
+const computedAccessValidCode = "const pairs = Object['entries']({ alpha: 1 });";
 const nonObjectReceiverValidCode = [
     "const helper = {",
     "    entries(value: { alpha: number }): readonly [string, number][] {",
@@ -33,12 +44,8 @@ ruleTester.run("prefer-ts-extras-object-entries", rule, {
         {
             code: readTypedFixture(invalidFixtureName),
             errors: [
-                {
-                    messageId: "preferTsExtrasObjectEntries",
-                },
-                {
-                    messageId: "preferTsExtrasObjectEntries",
-                },
+                { messageId: "preferTsExtrasObjectEntries" },
+                { messageId: "preferTsExtrasObjectEntries" },
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture Object.entries usage",
@@ -48,6 +55,13 @@ ruleTester.run("prefer-ts-extras-object-entries", rule, {
             errors: [{ messageId: "preferTsExtrasObjectEntries" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.entries call",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasObjectEntries" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Object.entries when objectEntries import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

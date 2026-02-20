@@ -47,6 +47,18 @@ const unionWithNonArrayValidCode = [
     "const value = values.at(0);",
     "String(value);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayAt } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const value = sample.at(0);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayAt } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const value = arrayAt(sample, 0);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-at",
@@ -71,6 +83,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports readonly array .at call",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayAt" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.at() when arrayAt import is in scope",
+                output: inlineFixableOutput,
             },
             {
                 code: unionWithNonArrayValidCode,

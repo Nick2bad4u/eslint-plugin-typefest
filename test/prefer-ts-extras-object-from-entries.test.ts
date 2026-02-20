@@ -16,6 +16,18 @@ const validFixtureName = "prefer-ts-extras-object-from-entries.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-object-from-entries.invalid.ts";
 const inlineInvalidCode =
     "const value = Object.fromEntries([['alpha', 1]] as const);";
+const inlineFixableCode = [
+    'import { objectFromEntries } from "ts-extras";',
+    "",
+    "const entries = [['alpha', 1]] as const;",
+    "const value = Object.fromEntries(entries);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { objectFromEntries } from "ts-extras";',
+    "",
+    "const entries = [['alpha', 1]] as const;",
+    "const value = objectFromEntries(entries);",
+].join("\n");
 const computedAccessValidCode =
     "const value = Object['fromEntries']([['alpha', 1]] as const);";
 const nonObjectReceiverValidCode = [
@@ -47,6 +59,13 @@ ruleTester.run("prefer-ts-extras-object-from-entries", rule, {
             errors: [{ messageId: "preferTsExtrasObjectFromEntries" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.fromEntries call",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasObjectFromEntries" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Object.fromEntries when objectFromEntries import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

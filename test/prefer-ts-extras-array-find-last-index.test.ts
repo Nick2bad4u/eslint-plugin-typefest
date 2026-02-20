@@ -32,6 +32,18 @@ const nonArrayReceiverValidCode = [
     "const index = helper.findLastIndex((value) => value > 1);",
     "String(index);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayFindLastIndex } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const index = sample.findLastIndex((value) => value > 1);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayFindLastIndex } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const index = arrayFindLastIndex(sample, (value) => value > 1);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-find-last-index",
@@ -50,6 +62,13 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture findLastIndex usage",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayFindLastIndex" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.findLastIndex() when arrayFindLastIndex import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

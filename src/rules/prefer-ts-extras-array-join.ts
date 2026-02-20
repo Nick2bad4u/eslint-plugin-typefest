@@ -9,6 +9,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-join`.
@@ -19,6 +23,11 @@ import {
 const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename;
             if (isTestFilePath(filePath)) {
                 return {};
@@ -83,6 +92,13 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                     /* C8 ignore stop */
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "arrayJoin",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayJoin",
                         node,
                     });
@@ -96,6 +112,7 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-join.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayJoin:
                     "Prefer `arrayJoin` from `ts-extras` over `array.join(...)` for stronger tuple-aware typing.",

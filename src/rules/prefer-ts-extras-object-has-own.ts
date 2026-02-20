@@ -3,6 +3,10 @@
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-has-own`.
@@ -13,6 +17,10 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -35,6 +43,13 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectHasOwn",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasObjectHasOwn",
                         node,
                     });
@@ -48,6 +63,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-own.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectHasOwn:
                     "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",

@@ -10,6 +10,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMemberToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * Check whether the input is write target.
@@ -59,6 +63,11 @@ const isZeroProperty = (
 const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -121,6 +130,13 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMemberToFunctionCallFix({
+                            context,
+                            importedName: "arrayFirst",
+                            imports: tsExtrasImports,
+                            memberNode: node,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayFirst",
                         node,
                     });
@@ -134,6 +150,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-first.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayFirst:
                     "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",

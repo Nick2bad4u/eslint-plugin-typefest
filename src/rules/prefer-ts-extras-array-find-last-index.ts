@@ -9,6 +9,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-find-last-index`.
@@ -19,6 +23,11 @@ import {
 const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -81,6 +90,13 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "arrayFindLastIndex",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayFindLastIndex",
                         node,
                     });
@@ -94,6 +110,7 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find-last-index.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayFindLastIndex:
                     "Prefer `arrayFindLastIndex` from `ts-extras` over `array.findLastIndex(...)` for stronger predicate inference.",

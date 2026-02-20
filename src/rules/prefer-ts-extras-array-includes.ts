@@ -10,6 +10,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-includes`.
@@ -20,6 +24,11 @@ import {
 const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -87,6 +96,13 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "arrayIncludes",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayIncludes",
                         node,
                     });
@@ -100,6 +116,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-includes.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayIncludes:
                     "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",

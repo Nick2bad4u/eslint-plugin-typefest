@@ -9,6 +9,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-find`.
@@ -19,6 +23,11 @@ import {
 const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename;
             if (isTestFilePath(filePath)) {
                 return {};
@@ -83,6 +92,13 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
                     /* C8 ignore stop */
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "arrayFind",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayFind",
                         node,
                     });
@@ -96,6 +112,7 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFind over Array#find for stronger predicate inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayFind:
                     "Prefer `arrayFind` from `ts-extras` over `array.find(...)` for stronger predicate inference.",

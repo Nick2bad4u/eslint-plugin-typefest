@@ -3,6 +3,10 @@
  * ESLint rule implementation for `prefer-ts-extras-object-keys`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-keys`.
@@ -13,6 +17,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -44,6 +53,13 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                     context.report({
                         messageId: "preferTsExtrasObjectKeys",
                         node,
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectKeys",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                     });
                 },
             };
@@ -55,6 +71,7 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectKeys over Object.keys for stronger key inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectKeys:
                     "Prefer `objectKeys` from `ts-extras` over `Object.keys(...)` for stronger key inference.",

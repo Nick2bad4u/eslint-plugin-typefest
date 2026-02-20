@@ -50,6 +50,18 @@ const unionWithCustomValidCode = [
     "const joined = values.join('-');",
     "String(joined);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayJoin } from "ts-extras";',
+    "",
+    "const sample = ['a', 'b'] as const;",
+    "const joined = sample.join('-');",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayJoin } from "ts-extras";',
+    "",
+    "const sample = ['a', 'b'] as const;",
+    "const joined = arrayJoin(sample, '-');",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-join",
@@ -80,6 +92,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayJoin" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom join receiver",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayJoin" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.join() when arrayJoin import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

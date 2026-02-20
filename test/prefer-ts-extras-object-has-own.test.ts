@@ -13,6 +13,18 @@ const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-ts-extras-object-has-own.invalid.ts";
 const validFixtureName = "prefer-ts-extras-object-has-own.valid.ts";
+const inlineFixableCode = [
+    'import { objectHasOwn } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const hasAlpha = Object.hasOwn(sample, 'alpha');",
+].join("\n");
+const inlineFixableOutput = [
+    'import { objectHasOwn } from "ts-extras";',
+    "",
+    "const sample = { alpha: 1 } as const;",
+    "const hasAlpha = objectHasOwn(sample, 'alpha');",
+].join("\n");
 const inlineValidComputedObjectHasOwnCode = [
     "declare const variants: { readonly success: string };",
     "",
@@ -42,6 +54,13 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Object.hasOwn checks",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasObjectHasOwn" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes Object.hasOwn when objectHasOwn import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

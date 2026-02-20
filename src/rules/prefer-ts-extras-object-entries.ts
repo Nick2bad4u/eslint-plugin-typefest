@@ -3,6 +3,10 @@
  * ESLint rule implementation for `prefer-ts-extras-object-entries`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-entries`.
@@ -13,6 +17,10 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -42,6 +50,13 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectEntries",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasObjectEntries",
                         node,
                     });
@@ -55,6 +70,7 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectEntries over Object.entries for stronger key/value inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-entries.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectEntries:
                     "Prefer `objectEntries` from `ts-extras` over `Object.entries(...)` for stronger key and value inference.",

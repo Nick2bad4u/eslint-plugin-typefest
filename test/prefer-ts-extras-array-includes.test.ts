@@ -47,6 +47,18 @@ const unionWithNonArrayValidCode = [
     "const hasValue = values.includes(2);",
     "String(hasValue);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayIncludes } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const hasValue = sample.includes(2);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayIncludes } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const hasValue = arrayIncludes(sample, 2);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-includes",
@@ -71,6 +83,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports readonly array includes call",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.includes() when arrayIncludes import is in scope",
+                output: inlineFixableOutput,
             },
             {
                 code: unionWithNonArrayValidCode,

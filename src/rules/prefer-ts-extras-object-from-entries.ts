@@ -3,6 +3,10 @@
  * ESLint rule implementation for `prefer-ts-extras-object-from-entries`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-from-entries`.
@@ -13,6 +17,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -42,6 +51,13 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectFromEntries",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasObjectFromEntries",
                         node,
                     });
@@ -55,6 +71,7 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectFromEntries over Object.fromEntries for stronger key/value inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-from-entries.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectFromEntries:
                     "Prefer `objectFromEntries` from `ts-extras` over `Object.fromEntries(...)` for stronger key and value inference.",

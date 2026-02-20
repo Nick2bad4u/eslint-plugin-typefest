@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -36,6 +40,11 @@ const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {
 const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -52,6 +61,13 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "objectHasIn",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasObjectHasIn",
                         node,
                     });
@@ -65,6 +81,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasObjectHasIn:
                     "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",

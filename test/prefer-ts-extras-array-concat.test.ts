@@ -50,6 +50,18 @@ const unionWithCustomValidCode = [
     "const merged = numbers.concat([4]);",
     "String(merged);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { arrayConcat } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const merged = sample.concat([4]);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { arrayConcat } from "ts-extras";',
+    "",
+    "const sample = [1, 2, 3] as const;",
+    "const merged = arrayConcat(sample, [4]);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-array-concat",
@@ -80,6 +92,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayConcat" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom concat receiver",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayConcat" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes array.concat() when arrayConcat import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

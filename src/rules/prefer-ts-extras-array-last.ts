@@ -10,6 +10,10 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMemberToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 
 /**
  * Check whether the input is write target.
@@ -94,6 +98,11 @@ const isLastIndexPattern = (
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -167,6 +176,13 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMemberToFunctionCallFix({
+                            context,
+                            importedName: "arrayLast",
+                            imports: tsExtrasImports,
+                            memberNode: node,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasArrayLast",
                         node,
                     });
@@ -180,6 +196,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasArrayLast:
                     "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
