@@ -97,7 +97,9 @@ const createQualifiedTypeReferenceNode = (
             },
             type: "TSQualifiedName",
         },
-    }) as unknown as Parameters<typeof createSafeTypeReferenceReplacementFix>[0];
+    }) as unknown as Parameters<
+        typeof createSafeTypeReferenceReplacementFix
+    >[0];
 
 const collectDirectNamedImportsFromSourceFn: (
     sourceCode: Parameters<typeof collectImportedTypeAliasMatches>[0],

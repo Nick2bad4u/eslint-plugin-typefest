@@ -22,6 +22,7 @@
         "knip.config.ts",
         "src/**/*.ts",
         "test/**/*.ts",
+        "vitest.stryker.config.ts",
         "vite.config.ts",
         "docs/**/*.ts",
         "docs/**/*.tsx"

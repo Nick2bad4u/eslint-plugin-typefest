@@ -28,7 +28,7 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 const inlineInvalidMixedTypeLiteralMembersCode = [
     "type SessionIdentifier = string & {",
-    "    readonly __brand: \"SessionIdentifier\";",
+    '    readonly __brand: "SessionIdentifier";',
     "    (): void;",
     "};",
 ].join("\n");

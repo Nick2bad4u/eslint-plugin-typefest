@@ -12,7 +12,19 @@
 ```bash
 npm ci
 npm run release:check
+npm run changelog:preview
 ```
+
+## Changelog and release notes flow
+
+This repository uses `git-cliff` for changelog generation and release notes.
+
+- `npm run changelog:generate` writes `CHANGELOG.md` locally.
+- `npm run changelog:preview` prints unreleased notes to stdout.
+- `npm run changelog:release-notes` prints the latest tagged release notes for CI usage.
+
+Important: CI does **not** commit or push changelog changes.
+Release notes are generated at workflow runtime and attached to the GitHub release body.
 
 ## Create a release
 
@@ -29,11 +41,13 @@ The release workflow will:
 
 - validate tag matches `package.json` version
 - run lint/typecheck/tests + pack dry-run
+- generate release notes with `git-cliff` using full git history and tags
 - publish with provenance (`npm publish --provenance`)
+- create the GitHub release using generated notes from `temp/release-notes.md`
 
 `workflow_dispatch` runs verification only; publish is tag-gated (`refs/tags/v*`).
 
 ## Notes
 
 - If tag and `package.json` version differ, release fails intentionally.
-- `npm view eslint-plugin-typefest` currently returns `E404` (name appears unclaimed at time of setup).
+- CI changelog generation is intentionally no-commit/no-push.
