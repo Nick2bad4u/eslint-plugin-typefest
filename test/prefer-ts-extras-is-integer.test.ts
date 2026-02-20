@@ -40,29 +40,35 @@ ruleTester.run("prefer-ts-extras-is-integer", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Number.isInteger calls",
         },
         {
             code: inlineInvalidCode,
             errors: [{ messageId: "preferTsExtrasIsInteger" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct Number.isInteger call",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: computedAccessValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores computed Number.isInteger access",
         },
         {
             code: nonNumberReceiverValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores custom non-Number isInteger method",
         },
         {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Number.isFinite call",
         },
         {
             code: skipPathInvalidCode,
@@ -70,6 +76,7 @@ ruleTester.run("prefer-ts-extras-is-integer", rule, {
                 "tests",
                 "prefer-ts-extras-is-integer.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

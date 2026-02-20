@@ -38,42 +38,51 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture readonly unknown array aliases",
         },
         {
             code: inlineInvalidReadonlyArrayCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly unknown array shorthand alias",
         },
         {
             code: inlineInvalidReadonlyNonArrayOperatorCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly operator over unknown[] type reference",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidArrayCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mutable unknown array shorthand",
         },
         {
             code: inlineValidAnyArrayCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly any array shorthand",
         },
         {
             code: inlineValidNoTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly array with concrete element type",
         },
         {
             code: inlineValidKeyofUnknownArrayCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores keyof unknown[] type query",
         },
         {
             code: inlineValidMissingReadonlyArrayTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray without explicit unknown element",
         },
         {
             code: skipPathInvalidCode,
@@ -81,6 +90,7 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
                 "tests",
                 "prefer-type-fest-unknown-array.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

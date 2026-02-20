@@ -35,6 +35,11 @@ const nonStringReceiverValidCode = [
     "const parts = helper.split(',');",
     "String(parts);",
 ].join("\n");
+const differentStringMethodValidCode = [
+    "const value = 'a,b';",
+    "const normalized = value.toUpperCase();",
+    "String(normalized);",
+].join("\n");
 const unionStringInvalidCode = [
     "const value: 'a,b' | 'c,d' = 'a,b';",
     "const parts = value.split(',');",
@@ -69,40 +74,53 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture string.split usage",
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports direct string.split call",
             },
             {
                 code: unionStringInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports literal string union split call",
             },
             {
                 code: mixedUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports mixed union split call",
             },
             {
                 code: declaredStringUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports declared string object union split call",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed split member access",
             },
             {
                 code: nonStringReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-string split method",
+            },
+            {
+                code: differentStringMethodValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-split string method call",
             },
             {
                 code: skipPathInvalidCode,
@@ -110,6 +128,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-string-split.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

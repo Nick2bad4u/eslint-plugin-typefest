@@ -45,56 +45,68 @@ ruleTester.run(
                     { messageId: "preferArrayable" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture string-or-array unions",
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports string | string[] union",
             },
             {
                 code: inlineInvalidReversedCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports reversed string[] | string union",
             },
             {
                 code: inlineInvalidGenericArrayCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports string | Array<string> union",
             },
             {
                 code: inlineInvalidGenericArrayReversedCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports reversed Array<string> | string union",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: nonMatchingUnionValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with mismatched array element types",
             },
             {
                 code: singleTypeValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores single non-union type alias",
             },
             {
                 code: threeMemberUnionValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with more than two members",
             },
             {
                 code: genericArrayMissingTypeArgumentValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores generic array without type arguments",
             },
             {
                 code: genericArrayMismatchedElementValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores generic array with mismatched element type",
             },
             {
                 code: inlineInvalidReadonlyArrayCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores readonly array unions already matching Arrayable semantics",
             },
             {
                 code: skipPathInvalidCode,
@@ -102,6 +114,7 @@ ruleTester.run(
                     "tests",
                     "prefer-type-fest-arrayable.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -31,37 +31,45 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferJsonValue" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture Record<string, any> aliases",
             },
             {
                 code: inlineInvalidAnyPayloadCode,
                 errors: [{ messageId: "preferJsonValue" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports inline Record<string, any> alias",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidGlobalRecordCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores globalThis.Record<string, unknown>",
             },
             {
                 code: inlineValidNonStringKeyCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Record with non-string key type",
             },
             {
                 code: inlineValidNonUnknownValueCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Record with concrete value type",
             },
             {
                 code: inlineValidMapCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-Record map type alias",
             },
             {
                 code: readTypedFixture(invalidFixtureName),
                 filename: typedFixturePath("tests", invalidFixtureName),
+                name: "skips file under tests fixture path",
             },
         ],
     }

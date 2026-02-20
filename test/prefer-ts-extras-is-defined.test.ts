@@ -31,12 +31,14 @@ ruleTester.run(
                     { messageId: "preferTsExtrasIsDefinedNegated" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture strict defined and undefined comparisons",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(
@@ -47,6 +49,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

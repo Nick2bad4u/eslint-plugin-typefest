@@ -73,27 +73,32 @@ ruleTester.run(
                     { messageId: "preferValueOf" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture indexed-access value unions",
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports direct T[keyof T] indexed-access alias",
             },
             {
                 code: inlineInvalidSpacedCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports indexed-access alias with spaced keyof token",
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes indexed-access alias with ValueOf import",
                 output: inlineFixableOutputCode,
             },
             {
                 code: inlineNoFixShadowedValueOfInvalidCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports indexed-access alias when ValueOf identifier is shadowed",
                 output: null,
             },
         ],
@@ -101,14 +106,17 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidDifferentKeyCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores indexed access with explicit literal key",
             },
             {
                 code: inlineValidMismatchedObjectTextCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores keyed access when object text and keyof target differ",
             },
             {
                 code: skipPathInvalidCode,
@@ -116,6 +124,7 @@ ruleTester.run(
                     "tests",
                     "prefer-type-fest-value-of.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

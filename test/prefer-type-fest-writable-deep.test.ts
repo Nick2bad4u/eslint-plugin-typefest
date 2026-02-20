@@ -43,11 +43,13 @@ ruleTester.run(
                     { messageId: "preferWritableDeep" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture DeepMutable aliases",
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferWritableDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline DeepMutable alias import",
                 output: inlineFixableOutputCode,
             },
         ],
@@ -55,6 +57,7 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(
@@ -65,6 +68,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -41,24 +41,29 @@ ruleTester.run(
                     { messageId: "preferTsExtrasObjectHasOwn" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture Object.hasOwn checks",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidComputedObjectHasOwnCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed Object.hasOwn member access",
             },
             {
                 code: inlineValidReflectHasOwnCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Reflect.has usage",
             },
             {
                 code: readTypedFixture(invalidFixtureName),
                 filename: typedFixturePath("tests", invalidFixtureName),
+                name: "skips file under tests fixture path",
             },
         ],
     }

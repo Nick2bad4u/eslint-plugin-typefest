@@ -40,41 +40,50 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture UnknownMap aliases",
         },
         {
             code: inlineInvalidReadonlyMapCode,
             errors: [{ messageId: "preferUnknownMap" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly unknown map shorthand",
         },
     ],
     valid: [
         {
             code: inlineInvalidMapCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mutable unknown map shorthand alias",
         },
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidMixedMapCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mutable unknown map alias",
         },
         {
             code: inlineValidMixedReadonlyMapCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly map with mismatched value type",
         },
         {
             code: inlineValidReadonlyMapNoTypeArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyMap without generic arguments",
         },
         {
             code: inlineValidReadonlyMapWrongArityCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyMap with wrong generic arity",
         },
         {
             code: inlineValidGlobalReadonlyMapCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.ReadonlyMap reference",
         },
         {
             code: skipPathInvalidCode,
@@ -82,6 +91,7 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
                 "tests",
                 "prefer-type-fest-unknown-map.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

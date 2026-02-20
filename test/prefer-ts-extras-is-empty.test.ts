@@ -34,6 +34,11 @@ const mutableTupleInvalidCode = [
     "const isEmpty = values.length === 0;",
     "String(isEmpty);",
 ].join("\n");
+const arrayUnionInvalidCode = [
+    "declare const values: readonly number[] | string[];",
+    "const isEmpty = values.length === 0;",
+    "String(isEmpty);",
+].join("\n");
 const nonLengthValidCode = [
     "const values = [1, 2, 3];",
     "const meta = { size: values.length };",
@@ -64,6 +69,7 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture length===0 checks",
         },
         {
             code: leftLiteralInvalidCode,
@@ -73,34 +79,47 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports 0===array.length comparison",
         },
         {
             code: unionTupleInvalidCode,
             errors: [{ messageId: "preferTsExtrasIsEmpty" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports union of non-empty tuples compared against zero length",
         },
         {
             code: mutableTupleInvalidCode,
             errors: [{ messageId: "preferTsExtrasIsEmpty" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports mutable non-empty tuple length check",
+        },
+        {
+            code: arrayUnionInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsEmpty" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports union of array-like values length check",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: nonLengthValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores non-length property comparison",
         },
         {
             code: nonEqualityValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores non-equality length comparison",
         },
         {
             code: mixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mixed string-or-array union length check",
         },
         {
             code: skipPathInvalidCode,
@@ -108,6 +127,7 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
                 "tests",
                 "prefer-ts-extras-is-empty.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

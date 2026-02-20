@@ -6,14 +6,12 @@ import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { afterAll, describe, it } from "vitest";
 
-import { repoPath } from "./ruleTester";
+import { applySharedRuleTesterRunBehavior, repoPath } from "./ruleTester";
 
-RuleTester.afterAll = afterAll;
-RuleTester.describe = describe as unknown as typeof RuleTester.describe;
-RuleTester.it = it as unknown as typeof RuleTester.it;
-RuleTester.itOnly = it as unknown as typeof RuleTester.itOnly;
+const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
+    tester: RuleTester
+) => RuleTester;
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 
@@ -43,24 +41,26 @@ export const readTypedFixture = (...segments: string[]): string =>
  * @returns Configured RuleTester instance.
  */
 export const createTypedRuleTester = (): RuleTester =>
-    new RuleTester({
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: "latest",
-                projectService: {
-                    allowDefaultProject: [
-                        "file.ts",
-                        "test/fixtures/typed/*.ts",
-                        "test/fixtures/typed/tests/*.ts",
-                    ],
-                    defaultProject: "tsconfig.eslint.json",
+    applyRuleTesterRunBehavior(
+        new RuleTester({
+            languageOptions: {
+                parser: tsParser,
+                parserOptions: {
+                    ecmaVersion: "latest",
+                    projectService: {
+                        allowDefaultProject: [
+                            "file.ts",
+                            "test/fixtures/typed/*.ts",
+                            "test/fixtures/typed/tests/*.ts",
+                        ],
+                        defaultProject: "tsconfig.eslint.json",
+                    },
+                    sourceType: "module",
+                    tsconfigRootDir: repoPath(),
                 },
-                sourceType: "module",
-                tsconfigRootDir: repoPath(),
             },
-        },
-    });
+        })
+    );
 
 /**
  * Shared typed RuleTester singleton for test modules.

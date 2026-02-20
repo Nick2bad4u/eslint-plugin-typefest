@@ -32,6 +32,11 @@ const nonSetReceiverValidCode = [
     "const hasValue = helper.has(1);",
     "String(hasValue);",
 ].join("\n");
+const setDifferentMethodValidCode = [
+    "const values = new Set([1, 2, 3]);",
+    "values.clear();",
+    "String(values.size);",
+].join("\n");
 const unionSetInvalidCode = [
     "const values: Set<number> | ReadonlySet<number> = new Set([1, 2]);",
     "const hasValue = values.has(2);",
@@ -64,35 +69,47 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture set.has usage",
             },
             {
                 code: unionSetInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of set and readonly set",
             },
             {
                 code: mixedUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of set and map when calling has",
             },
             {
                 code: declaredUnionSetInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports declared set-like union has call",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed has member access",
             },
             {
                 code: nonSetReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom object has method",
+            },
+            {
+                code: setDifferentMethodValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-has set method invocation",
             },
             {
                 code: skipPathInvalidCode,
@@ -100,6 +117,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-set-has.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

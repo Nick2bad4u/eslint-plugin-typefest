@@ -67,34 +67,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture findLast usage",
             },
             {
                 code: unionArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of mutable and readonly arrays",
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union including custom findLast receiver",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed findLast member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array findLast method",
             },
             {
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-findLast array method call",
             },
             {
                 code: skipPathInvalidCode,
@@ -102,6 +109,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-find-last.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -67,34 +67,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture array.concat usage",
             },
             {
                 code: unionArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayConcat" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of mutable and readonly arrays",
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayConcat" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union including custom concat receiver",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed concat member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array concat method",
             },
             {
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-concat array method call",
             },
             {
                 code: skipPathInvalidCode,
@@ -102,6 +109,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-concat.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

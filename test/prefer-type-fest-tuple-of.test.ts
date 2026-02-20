@@ -73,6 +73,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture ReadonlyTuple and Tuple aliases",
             },
             {
                 code: inlineFixableReadonlyTupleInvalidCode,
@@ -86,6 +87,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline ReadonlyTuple alias import",
                 output: inlineFixableReadonlyTupleOutputCode,
             },
             {
@@ -100,6 +102,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline Tuple alias import",
                 output: inlineFixableTupleOutputCode,
             },
             {
@@ -114,6 +117,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports ReadonlyTuple alias when TupleOf identifier is shadowed",
                 output: null,
             },
             {
@@ -128,6 +132,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports ReadonlyTuple alias when Readonly identifier is shadowed",
                 output: null,
             },
         ],
@@ -135,10 +140,12 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
+                name: "accepts namespace-qualified FixedLengthArray references",
             },
             {
                 code: readTypedFixture(
@@ -149,6 +156,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

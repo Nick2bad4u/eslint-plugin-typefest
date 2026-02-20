@@ -14,6 +14,7 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-literal-union.valid.ts";
 const invalidFixtureName = "prefer-type-fest-literal-union.invalid.ts";
 const skipFixtureName = "tests/prefer-type-fest-literal-union.skip.ts";
+const inlineInvalidBigIntLiteralUnionCode = "type SessionNonce = bigint | 1n;";
 
 ruleTester.run(
     "prefer-type-fest-literal-union",
@@ -31,16 +32,25 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture literal plus base type unions",
+            },
+            {
+                code: inlineInvalidBigIntLiteralUnionCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports bigint base plus bigint literal union",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(skipFixtureName),
                 filename: typedFixturePath(skipFixtureName),
+                name: "skips file under tests fixture path",
             },
         ],
     }

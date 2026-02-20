@@ -1,3 +1,18 @@
-/* eslint-disable no-barrel-files/no-barrel-files, canonical/no-re-export -- Package root entrypoint intentionally forwards to built plugin output. */
-export { default } from "./dist/plugin.js";
-/* eslint-enable no-barrel-files/no-barrel-files, canonical/no-re-export -- Keep suppressions scoped to the single intentional barrel export above. */
+import builtPlugin from "./dist/plugin.js";
+
+/** @type {{
+ *     meta?: Record<string, unknown>;
+ *     configs?: Record<string, unknown>;
+ *     rules?: Record<string, unknown>;
+ *     processors?: Record<string, unknown>;
+ * }} */
+const normalizedBuiltPlugin = builtPlugin;
+
+const plugin = {
+    configs: normalizedBuiltPlugin.configs ?? {},
+    meta: normalizedBuiltPlugin.meta ?? {},
+    processors: normalizedBuiltPlugin.processors ?? {},
+    rules: normalizedBuiltPlugin.rules ?? {},
+};
+
+export default plugin;

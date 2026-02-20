@@ -49,20 +49,24 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture findLastIndex usage",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed findLastIndex member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array findLastIndex method",
             },
             {
                 code: skipPathInvalidCode,
@@ -70,6 +74,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-find-last-index.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

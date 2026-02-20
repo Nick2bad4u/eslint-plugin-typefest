@@ -72,6 +72,7 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture in-operator checks",
         },
         {
             code: inlineInvalidInOperatorCode,
@@ -81,6 +82,7 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct in-operator membership check",
         },
         {
             code: inlineInvalidNoFilenameCode,
@@ -89,24 +91,29 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
                     messageId: "preferTsExtrasKeyIn",
                 },
             ],
+            name: "reports in-operator check without explicit filename",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidNonInOperatorCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores non-in-operator object property checks",
         },
         {
             code: inlineValidForInLoopCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores for-in loop iteration",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

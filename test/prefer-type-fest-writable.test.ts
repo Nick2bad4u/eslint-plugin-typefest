@@ -48,6 +48,8 @@ const mappedLiteralIndexTypeValidCode =
     'type WritableLike<T extends { readonly id: string }> = { -readonly [K in keyof T]: T["id"] };';
 const mappedNearMissObjectMismatchValidCode =
     "type WritableLike<T, U extends T> = { -readonly [K in keyof T]: U[K] };";
+const mappedNonIndexedAccessValueValidCode =
+    "type WritableLike<T> = { -readonly [K in keyof T]: K };";
 const mappedNamespaceAliasValidCode = [
     'import type * as Aliases from "type-aliases";',
     "",
@@ -78,6 +80,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(importedAliasInvalidFixtureName),
+                name: "reports fixture imported Mutable alias usage",
             },
             {
                 code: inlineFixableInvalidCode,
@@ -91,6 +94,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(importedAliasInvalidFixtureName),
+                name: "reports and autofixes inline Mutable alias import",
                 output: inlineFixableOutputCode,
             },
             {
@@ -100,57 +104,75 @@ ruleTester.run(
                     { messageId: "preferWritable" },
                 ],
                 filename: typedFixturePath(mappedInvalidFixtureName),
+                name: "reports fixture readonly mapped type aliases",
             },
             {
                 code: mappedPKeyInvalidCode,
                 errors: [{ messageId: "preferWritable" }],
                 filename: typedFixturePath(mappedInvalidFixtureName),
+                name: "reports mapped type using P key identifier",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: mappedNearMissReadonlyValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type that retains readonly modifier",
             },
             {
                 code: mappedOptionalValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type that preserves optional modifier",
             },
             {
                 code: mappedNameRemapValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with key remapping and optional removal",
             },
             {
                 code: mappedNameRemapWithoutOptionalValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with key remapping only",
             },
             {
                 code: mappedConstraintValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with custom key constraint and optional removal",
             },
             {
                 code: mappedConstraintWithoutTypeOperatorValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with custom key constraint",
             },
             {
                 code: mappedNearMissIndexMismatchValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with mismatched indexed access key",
             },
             {
                 code: mappedLiteralIndexTypeValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with literal indexed access value",
             },
             {
                 code: mappedNearMissObjectMismatchValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type using alternate object source",
+            },
+            {
+                code: mappedNonIndexedAccessValueValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores mapped type with non-indexed value expression",
             },
             {
                 code: mappedNamespaceAliasValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores namespace-qualified Mutable alias reference",
             },
             {
                 code: skipPathInvalidCode,
@@ -158,6 +180,7 @@ ruleTester.run(
                     "tests",
                     "prefer-type-fest-writable.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

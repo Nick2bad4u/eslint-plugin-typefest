@@ -72,35 +72,42 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture assert-error guard patterns",
         },
         {
             code: inlineInvalidCode,
             errors: [{ messageId: "preferTsExtrasAssertError" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports negated instanceof Error guard",
         },
         {
             code: privateIdentifierValidCode,
             errors: [{ messageId: "preferTsExtrasAssertError" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports private field instanceof Error guard",
         },
         {
             code: inlineInvalidDirectThrowConsequentCode,
             errors: [{ messageId: "preferTsExtrasAssertError" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct-throw instanceof Error guard",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: nonErrorInstanceofValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores instanceof TypeError guard",
         },
         {
             code: nonThrowOnlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores guard block with extra side effect",
         },
         {
             code: skipPathInvalidCode,
@@ -108,6 +115,7 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
                 "tests",
                 "prefer-ts-extras-assert-error.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

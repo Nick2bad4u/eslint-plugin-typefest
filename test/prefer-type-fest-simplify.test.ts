@@ -58,6 +58,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture Id and Prettify aliases",
             },
             {
                 code: inlineFixableInvalidCode,
@@ -71,6 +72,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline Id alias import",
                 output: inlineFixableOutputCode,
             },
         ],
@@ -78,10 +80,12 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
+                name: "accepts namespace-qualified Simplify references",
             },
             {
                 code: readTypedFixture(
@@ -92,6 +96,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

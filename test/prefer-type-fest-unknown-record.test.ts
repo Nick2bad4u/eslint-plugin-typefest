@@ -31,33 +31,40 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferUnknownRecord" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture unknown record aliases",
             },
             {
                 code: inlineInvalidRecordStringUnknownCode,
                 errors: [{ messageId: "preferUnknownRecord" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports inline Record<string, unknown> alias",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidGlobalRecordCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores globalThis.Record<string, unknown>",
             },
             {
                 code: inlineValidNonUnknownValueCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Record with non-unknown value type",
             },
             {
                 code: inlineValidNonStringKeyCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Record with non-string key type",
             },
             {
                 code: readTypedFixture(invalidFixtureName),
                 filename: typedFixturePath("tests", invalidFixtureName),
+                name: "skips file under tests fixture path",
             },
         ],
     }

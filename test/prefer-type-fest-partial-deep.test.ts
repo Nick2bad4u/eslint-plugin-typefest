@@ -40,11 +40,13 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferPartialDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture DeepPartial alias usage",
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferPartialDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline DeepPartial alias import",
                 output: inlineFixableOutputCode,
             },
         ],
@@ -52,6 +54,7 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(
@@ -62,6 +65,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

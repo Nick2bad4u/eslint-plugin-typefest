@@ -39,11 +39,13 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferMergeExclusive" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture XOR alias usage",
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferMergeExclusive" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline XOR alias import",
                 output: inlineFixableOutputCode,
             },
         ],
@@ -51,6 +53,7 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(
@@ -61,6 +64,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

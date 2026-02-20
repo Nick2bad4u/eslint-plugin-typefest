@@ -92,6 +92,8 @@ applyTo: "**"
 - Prioritize code quality, maintainability, readability.
 - Avoid `any` type; use `unknown` with type guards instead or use type-fest and ts-extras (preferred).
 - Avoid barrel exports (`index.ts` re-exports) except at module boundaries.
+- NEVER CHEAT or take shortcuts that would compromise code quality, maintainability, readability, or best practices. Always do the hard work of designing robust solutions, even if it takes more time. Never deliver a quick-and-dirty fix. Always prioritize long-term maintainability and correctness over short-term speed. Research best practices and patterns when in doubt, and follow them closely. Always write tests that cover edge cases and ensure your code won't break under future refactors. Always review your work from the lens of code quality, maintainability, readability, and adherence to best practices before finalizing any task. If you identify any issues or areas for improvement during your review, address them before considering the task complete. Always take the time needed for careful design, testing, and review rather than rushing to finish tasks.
+- If you can't finish a task in a single request, thats fine. Just do as much as you can, then we can continue in a follow-up request. Always prioritize quality and correctness over speed. It's better to take multiple requests to get something right than to rush and deliver a subpar solution.
 
   </coding>
 

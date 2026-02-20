@@ -38,41 +38,50 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture UnknownSet aliases",
         },
         {
             code: inlineInvalidReadonlySetCode,
             errors: [{ messageId: "preferUnknownSet" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports inline ReadonlySet<unknown> alias",
         },
     ],
     valid: [
         {
             code: inlineInvalidSetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mutable Set<unknown> alias",
         },
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidSetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mutable Set with concrete element type",
         },
         {
             code: inlineValidReadonlySetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlySet with concrete element type",
         },
         {
             code: inlineValidReadonlySetNoTypeArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlySet without type arguments",
         },
         {
             code: inlineValidReadonlySetWrongArityCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlySet with invalid generic arity",
         },
         {
             code: inlineValidGlobalReadonlySetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.ReadonlySet reference",
         },
         {
             code: skipPathInvalidCode,
@@ -80,6 +89,7 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
                 "tests",
                 "prefer-type-fest-unknown-set.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

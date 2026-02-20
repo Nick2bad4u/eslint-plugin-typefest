@@ -37,6 +37,11 @@ const inlineValidNamespaceTaggedReferenceCode = [
     "",
     'type UserId = TypeFest.Tagged<string, "UserId">;',
 ].join("\n");
+const inlineValidMethodSignatureBrandLikeCode = [
+    "type SessionIdentifier = string & {",
+    "    __brand(): void;",
+    "};",
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -47,6 +52,7 @@ ruleTester.run(
                 code: readTypedFixture(invalidFixtureName),
                 errors: [{ messageId: "preferTaggedBrand" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture ad-hoc brand intersections",
             },
             {
                 code: readTypedFixture(importedAliasFixtureName),
@@ -67,6 +73,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(importedAliasFixtureName),
+                name: "reports imported opaque and branded aliases",
             },
             {
                 code: inlineFixableInvalidCode,
@@ -80,26 +87,36 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(importedAliasFixtureName),
+                name: "reports and autofixes imported Opaque alias",
                 output: inlineFixableOutputCode,
             },
             {
                 code: inlineInvalidMixedTypeLiteralMembersCode,
                 errors: [{ messageId: "preferTaggedBrand" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports mixed type-literal members in brand intersection",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidNamespaceTaggedReferenceCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores namespace-qualified Tagged usage",
+            },
+            {
+                code: inlineValidMethodSignatureBrandLikeCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores method-signature-only brand-like type",
             },
             {
                 code: readTypedFixture(invalidFixtureName),
                 filename: typedFixturePath("tests", invalidFixtureName),
+                name: "skips file under tests fixture path",
             },
         ],
     }

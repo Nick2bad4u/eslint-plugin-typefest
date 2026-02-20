@@ -42,37 +42,45 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Awaited<ReturnType<...>> compositions",
         },
         {
             code: inlineInvalidCode,
             errors: [{ messageId: "preferAsyncReturnType" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports inline Awaited<ReturnType<...>> composition",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: awaitedWithoutTypeArgumentValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores bare Awaited reference",
         },
         {
             code: awaitedNonReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited over direct non-ReturnType operand",
         },
         {
             code: awaitedReturnTypeWithoutArgValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited<ReturnType> without type arguments",
         },
         {
             code: awaitedPromiseTypeReferenceValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited over Promise<T>",
         },
         {
             code: awaitedQualifiedReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited over namespace-qualified ReturnType",
         },
         {
             code: skipPathInvalidCode,
@@ -80,6 +88,7 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
                 "tests",
                 "prefer-type-fest-async-return-type.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

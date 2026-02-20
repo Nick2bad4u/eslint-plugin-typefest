@@ -49,66 +49,81 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture readonly non-empty tuple aliases",
         },
         {
             code: inlineInvalidTupleCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly tuple with required head element",
         },
         {
             code: namedRestInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly tuple with named rest element",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: optionalFirstValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores tuple with optional first element",
         },
         {
             code: restOnlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores tuple containing only rest elements",
         },
         {
             code: mixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mixed union with optional tuple variant",
         },
         {
             code: threeElementValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores tuple with multiple required leading elements",
         },
         {
             code: optionalReadonlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuple with optional named head",
         },
         {
             code: optionalTypeReadonlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuple with optional shorthand head",
         },
         {
             code: nonArrayRestAnnotationValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores tuple rest annotated as ReadonlyArray",
         },
         {
             code: mismatchedReadonlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuple with mismatched rest type",
         },
         {
             code: nonReadonlyOperatorValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores tuple in non-readonly type operator context",
         },
         {
             code: readonlyNonTupleTypeValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly array type alias",
         },
         {
             code: readonlySingleElementTupleValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuple with single element",
         },
         {
             code: skipPathInvalidCode,
@@ -116,6 +131,7 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
                 "tests",
                 "prefer-type-fest-non-empty-tuple.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

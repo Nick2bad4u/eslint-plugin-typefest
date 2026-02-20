@@ -70,6 +70,15 @@ const alternateValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const nonBinaryGuardValidCode = [
+    "function ensureValue(value: string | undefined): string {",
+    "    if (!value) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const skipPathInvalidCode = undefinedOnLeftInvalidCode;
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
@@ -85,39 +94,52 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture guards against undefined",
         },
         {
             code: undefinedOnLeftInvalidCode,
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict undefined guard with literal on left",
         },
         {
             code: looseEqualityInvalidCode,
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports loose equality undefined guard",
         },
         {
             code: inlineInvalidDirectThrowConsequentCode,
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct-throw consequent guard",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: nonUndefinedValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores null-only comparison",
         },
         {
             code: nonThrowOnlyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores guard with extra side-effect statement",
         },
         {
             code: alternateValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores guard that includes else branch",
+        },
+        {
+            code: nonBinaryGuardValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-binary guard expression",
         },
         {
             code: skipPathInvalidCode,
@@ -125,6 +147,7 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
                 "tests",
                 "prefer-ts-extras-assert-defined.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

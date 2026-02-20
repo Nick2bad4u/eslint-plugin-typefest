@@ -40,29 +40,35 @@ ruleTester.run("prefer-ts-extras-object-keys", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Object.keys usage",
         },
         {
             code: inlineInvalidCode,
             errors: [{ messageId: "preferTsExtrasObjectKeys" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct Object.keys call",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: computedAccessValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores computed Object.keys member access",
         },
         {
             code: nonObjectReceiverValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores custom non-Object keys method",
         },
         {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Object.values usage",
         },
         {
             code: skipPathInvalidCode,
@@ -70,6 +76,7 @@ ruleTester.run("prefer-ts-extras-object-keys", rule, {
                 "tests",
                 "prefer-ts-extras-object-keys.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

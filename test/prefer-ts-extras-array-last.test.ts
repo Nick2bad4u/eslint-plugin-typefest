@@ -45,34 +45,41 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture last-index array reads",
         },
         {
             code: inlineInvalidUnionArrayCode,
             errors: [{ messageId: "preferTsExtrasArrayLast" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports last-index read on readonly array union",
         },
         {
             code: inlineInvalidTupleCode,
             errors: [{ messageId: "preferTsExtrasArrayLast" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports tuple last-index read via length arithmetic",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: readTypedFixture(patternValidFixtureName),
             filename: typedFixturePath(patternValidFixtureName),
+            name: "accepts fixture pattern-safe variants",
         },
         {
             code: inlineValidDeleteWriteTargetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores delete write-target last index usage",
         },
         {
             code: readTypedFixture(skipFixtureName),
             filename: typedFixturePath(skipFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

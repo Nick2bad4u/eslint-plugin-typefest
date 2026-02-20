@@ -48,6 +48,8 @@ describe("plugin entry module", () => {
         expect(plugin).toEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
+                meta: expect.any(Object),
+                processors: expect.any(Object),
                 rules: expect.any(Object),
             })
         );

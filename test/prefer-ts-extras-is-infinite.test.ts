@@ -71,42 +71,51 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture infinity comparisons",
         },
         {
             code: inlineInvalidPositiveInfinityCode,
             errors: [{ messageId: "preferTsExtrasIsInfinite" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports loose equality against Number.POSITIVE_INFINITY",
         },
         {
             code: inlineInvalidLeftInfinityCode,
             errors: [{ messageId: "preferTsExtrasIsInfinite" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict equality with Infinity literal on left",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidNonEqualityOperatorCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores non-equality infinity comparison",
         },
         {
             code: inlineValidWithoutInfinityReferenceCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores comparison without infinity reference",
         },
         {
             code: inlineValidComputedInfinityMemberCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores computed Number infinity member access",
         },
         {
             code: inlineValidOtherObjectInfinityMemberCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores infinity member access on non-Number object",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

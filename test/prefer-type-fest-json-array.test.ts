@@ -76,58 +76,71 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture JsonArray-like unions",
         },
         {
             code: inlineInvalidReversedNativeUnionCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed native array union",
         },
         {
             code: inlineInvalidReversedGenericUnionCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed generic array union",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidMismatchedNativeAndGenericCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores mixed native and generic array forms",
         },
         {
             code: inlineValidNonJsonElementCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores non-JsonValue element array union",
         },
         {
             code: inlineValidThreeMemberUnionCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores unions with more than two members",
         },
         {
             code: inlineValidReadonlyArrayTypeMismatchCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly array element type mismatch",
         },
         {
             code: inlineValidMissingGenericArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Array without generic arguments",
         },
         {
             code: inlineValidMissingReadonlyGenericArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray without generic arguments",
         },
         {
             code: inlineValidQualifiedArrayTypeCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.Array qualified union",
         },
         {
             code: inlineValidReadonlyOperatorNonArrayTypeCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly operator applied to non-array reference",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

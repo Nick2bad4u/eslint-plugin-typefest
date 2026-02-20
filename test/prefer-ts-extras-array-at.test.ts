@@ -32,6 +32,11 @@ const nonArrayReceiverValidCode = [
     "const value = helper.at(0);",
     "String(value);",
 ].join("\n");
+const wrongPropertyValidCode = [
+    "const values = [1, 2, 3];",
+    "const value = values.find((item) => item === 2);",
+    "String(value);",
+].join("\n");
 const readonlyArrayInvalidCode = [
     "declare const values: readonly number[];",
     "const value = values.at(0);",
@@ -59,30 +64,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture-based .at usages",
             },
             {
                 code: readonlyArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports readonly array .at call",
             },
             {
                 code: unionWithNonArrayValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union containing array when calling .at",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed .at member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array at method",
+            },
+            {
+                code: wrongPropertyValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-at array method calls",
             },
             {
                 code: skipPathInvalidCode,
@@ -90,6 +106,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-at.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

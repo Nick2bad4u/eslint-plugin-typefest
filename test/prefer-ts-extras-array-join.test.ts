@@ -67,34 +67,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture array.join usage",
             },
             {
                 code: unionArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayJoin" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of mutable and readonly arrays",
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayJoin" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union including custom join receiver",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed join member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array join method",
             },
             {
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-join array method call",
             },
             {
                 code: skipPathInvalidCode,
@@ -102,6 +109,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-join.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -32,6 +32,11 @@ const nonArrayReceiverValidCode = [
     "const hasValue = helper.includes(1);",
     "String(hasValue);",
 ].join("\n");
+const wrongPropertyValidCode = [
+    "const values = [1, 2, 3];",
+    "const hasValue = values.some((value) => value === 2);",
+    "String(hasValue);",
+].join("\n");
 const readonlyArrayInvalidCode = [
     "declare const values: readonly number[];",
     "const hasValue = values.includes(2);",
@@ -59,30 +64,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture-based includes usages",
             },
             {
                 code: readonlyArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports readonly array includes call",
             },
             {
                 code: unionWithNonArrayValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union containing array when calling includes",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed includes member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array includes method",
+            },
+            {
+                code: wrongPropertyValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-includes array method calls",
             },
             {
                 code: skipPathInvalidCode,
@@ -90,6 +106,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-includes.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

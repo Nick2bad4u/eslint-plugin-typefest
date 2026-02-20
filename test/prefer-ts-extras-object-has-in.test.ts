@@ -56,33 +56,40 @@ ruleTester.run("prefer-ts-extras-object-has-in", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Reflect.has checks",
         },
         {
             code: inlineInvalidThreeArgumentReflectHasCode,
             errors: [{ messageId: "preferTsExtrasObjectHasIn" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports Reflect.has call with extra argument",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidComputedReflectHasCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores computed Reflect.has member access",
         },
         {
             code: inlineValidReflectHasOneArgumentCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Reflect.has call with too few arguments",
         },
         {
             code: inlineValidObjectHasOwnCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Object.hasOwn usage",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

@@ -52,45 +52,55 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture JsonObject-like Record aliases",
         },
         {
             code: inlineInvalidLiteralStringKeyCode,
             errors: [{ messageId: "preferJsonObject" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports Record with literal string key and JsonValue value",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidGlobalRecordCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.Record usage",
         },
         {
             code: inlineValidNonJsonValueCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with non-JsonValue values",
         },
         {
             code: inlineValidNumberKeyCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with non-string key type",
         },
         {
             code: inlineValidMissingRecordTypeArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores bare Record reference",
         },
         {
             code: inlineValidRecordSingleTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with a single type argument",
         },
         {
             code: inlineValidRecordUnknownValueCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Record<string, unknown>",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

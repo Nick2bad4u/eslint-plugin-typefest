@@ -69,6 +69,7 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture If* alias usage",
         },
         {
             code: inlineFixableInvalidCode,
@@ -82,6 +83,7 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline IfAny alias import",
             output: inlineFixableOutputCode,
         },
     ],
@@ -89,10 +91,12 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified Is* references",
         },
         {
             code: readTypedFixture(
@@ -103,6 +107,7 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
                 skipTestPathFixtureDirectory,
                 skipTestPathFixtureName
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

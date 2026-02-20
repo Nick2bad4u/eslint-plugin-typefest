@@ -67,34 +67,41 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture find usage",
             },
             {
                 code: unionArrayInvalidCode,
                 errors: [{ messageId: "preferTsExtrasArrayFind" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of mutable and readonly arrays",
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayFind" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports union including custom find receiver",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: computedAccessValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores computed find member access",
             },
             {
                 code: nonArrayReceiverValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores custom non-array find method",
             },
             {
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-find array method call",
             },
             {
                 code: skipPathInvalidCode,
@@ -102,6 +109,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-array-find.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -120,61 +120,75 @@ ruleTester.run("prefer-ts-extras-not", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture negated predicate filter callbacks",
         },
         {
             code: inlineInvalidArrowNegatedPredicateCode,
             errors: [{ messageId: "preferTsExtrasNot" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports inline negated predicate in filter callback",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: inlineValidFilterWithoutArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores filter invocation without callback",
         },
         {
             code: inlineValidMapNegatedPredicateCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores negated predicate inside non-filter map callback",
         },
         {
             code: inlineValidFunctionExpressionCallbackCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores function-expression filter callback",
         },
         {
             code: inlineValidTwoParamsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores filter callback with additional index parameter",
         },
         {
             code: inlineValidNonIdentifierParameterCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores callback with non-identifier parameter pattern",
         },
         {
             code: inlineValidNotUnaryExpressionCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores callback that does not use unary not",
         },
         {
             code: inlineValidUnaryNotCallExpressionCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores unary not expression not wrapping call expression",
         },
         {
             code: inlineValidPredicateWithTwoArgumentsCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores predicate call with extra arguments",
         },
         {
             code: inlineValidMismatchedArgumentNameCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores predicate call with mismatched callback argument",
         },
         {
             code: inlineValidIdentifierCallbackCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores filter callback provided as identifier",
         },
         {
             code: readTypedFixture(invalidFixtureName),
             filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

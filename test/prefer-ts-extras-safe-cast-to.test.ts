@@ -15,6 +15,16 @@ const validFixtureName = "prefer-ts-extras-safe-cast-to.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-safe-cast-to.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-safe-cast-to.invalid.ts";
+const nonAssignableAsExpressionValidCode = [
+    "declare const rawValue: unknown;",
+    "const parsed = rawValue as string;",
+    "String(parsed);",
+].join("\n");
+const nonAssignableTypeAssertionValidCode = [
+    "declare const rawValue: unknown;",
+    "const parsed = <string>rawValue;",
+    "String(parsed);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-safe-cast-to",
@@ -29,12 +39,24 @@ ruleTester.run(
                     { messageId: "preferTsExtrasSafeCastTo" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture unsafe cast assertions",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
+            },
+            {
+                code: nonAssignableAsExpressionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-assignable as-expression assertion",
+            },
+            {
+                code: nonAssignableTypeAssertionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-assignable angle-bracket assertion",
             },
             {
                 code: readTypedFixture(
@@ -45,6 +67,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

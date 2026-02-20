@@ -50,39 +50,47 @@ ruleTester.run("prefer-ts-extras-array-first", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture index-zero array reads",
         },
         {
             code: inlineInvalidUnionArrayCode,
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports index-zero read on readonly array union",
         },
         {
             code: inlineInvalidStringZeroCode,
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports string-literal zero index access",
         },
         {
             code: inlineInvalidUnaryVoidCode,
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports unary-void index-zero read",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: readTypedFixture(writeTargetValidFixtureName),
             filename: typedFixturePath(writeTargetValidFixtureName),
+            name: "accepts fixture write-target index operations",
         },
         {
             code: inlineValidDeleteWriteTargetCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores delete write-target index usage",
         },
         {
             code: readTypedFixture(skipFixtureName),
             filename: typedFixturePath(skipFixtureName),
+            name: "skips file under tests fixture path",
         },
     ],
 });

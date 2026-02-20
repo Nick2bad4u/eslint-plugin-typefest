@@ -70,29 +70,35 @@ ruleTester.run(
                     { messageId: "preferTsExtrasAsWritable" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture type-fest Writable assertions",
             },
             {
                 code: inlineInvalidTypeAssertionCode,
                 errors: [{ messageId: "preferTsExtrasAsWritable" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports angle-bracket Writable assertion",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
+                name: "accepts namespace-specific safe fixture patterns",
             },
             {
                 code: inlineValidTypeLiteralAssertionCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores assertion to plain type literal",
             },
             {
                 code: inlineValidNonTypeFestNamespaceCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores Writable from non-type-fest namespace",
             },
             {
                 code: readTypedFixture(
@@ -103,6 +109,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

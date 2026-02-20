@@ -63,6 +63,20 @@ const inlineValidStrictAbsentWithNonBinaryTermCode = [
     "",
     "String(isMissingValue);",
 ].join("\n");
+const inlineValidStrictAbsentOperatorMismatchCode = [
+    "declare const maybeValue: null | string | undefined;",
+    "",
+    "const isMissingValue = maybeValue === null || maybeValue !== undefined;",
+    "",
+    "String(isMissingValue);",
+].join("\n");
+const inlineValidStrictAbsentSameKindCode = [
+    "declare const maybeValue: null | string | undefined;",
+    "",
+    "const isMissingValue = maybeValue === null || maybeValue === null;",
+    "",
+    "String(isMissingValue);",
+].join("\n");
 const inlineValidUndefinedOnLeftComparisonCode = [
     "declare const maybeValue: null | string | undefined;",
     "",
@@ -92,6 +106,22 @@ const inlineInvalidStrictAbsentComparisonCode = [
     "    String(maybeValue);",
     "}",
 ].join("\n");
+const inlineInvalidMapCallbackStrictPresentCode = [
+    "const values: readonly (null | string | undefined)[] = ['alpha', null, undefined];",
+    "const mapped = values.map((value) => value !== null && value !== undefined);",
+    "String(mapped.length);",
+].join("\n");
+const inlineInvalidMapCallbackStrictAbsentCode = [
+    "const values: readonly (null | string | undefined)[] = ['alpha', null, undefined];",
+    "const mapped = values.map((value) => value === null || value === undefined);",
+    "String(mapped.length);",
+].join("\n");
+const inlineValidFilterCallbackLogicalComparisonCode = [
+    "const values: readonly (null | string | undefined)[] = ['alpha', null, undefined];",
+    "const presentValues = values.filter((value) => value !== null && value !== undefined);",
+    "const missingValues = values.filter((value) => value === null || value === undefined);",
+    "String(presentValues.length + missingValues.length);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-is-present",
@@ -109,54 +139,93 @@ ruleTester.run(
                     { messageId: "preferTsExtrasIsPresentNegated" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture strict present and absent checks",
             },
             {
                 code: inlineInvalidStrictPresentComparisonCode,
                 errors: [{ messageId: "preferTsExtrasIsPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict present conjunction check",
             },
             {
                 code: inlineInvalidStrictAbsentComparisonCode,
                 errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict absent disjunction check",
+            },
+            {
+                code: inlineInvalidMapCallbackStrictPresentCode,
+                errors: [{ messageId: "preferTsExtrasIsPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict present check inside map callback",
+            },
+            {
+                code: inlineInvalidMapCallbackStrictAbsentCode,
+                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict absent check inside map callback",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidThreeTermStrictPresentCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores three-term strict present conjunction",
             },
             {
                 code: inlineValidStrictPresentWithNonBinaryTermCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores strict present conjunction with non-binary term",
             },
             {
                 code: inlineValidStrictPresentOperatorMismatchCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores strict present check with operator mismatch",
             },
             {
                 code: inlineValidStrictPresentSameKindCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores strict present check using repeated null branch",
             },
             {
                 code: inlineValidThreeTermStrictAbsentCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores three-term strict absent disjunction",
             },
             {
                 code: inlineValidStrictAbsentWithNonBinaryTermCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores strict absent disjunction with non-binary term",
+            },
+            {
+                code: inlineValidStrictAbsentOperatorMismatchCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores strict absent check with operator mismatch",
+            },
+            {
+                code: inlineValidStrictAbsentSameKindCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores strict absent check using repeated null branch",
             },
             {
                 code: inlineValidUndefinedOnLeftComparisonCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined comparison with literal on left",
             },
             {
                 code: inlineValidNonNullishBinaryComparisonCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-nullish binary comparison",
+            },
+            {
+                code: inlineValidFilterCallbackLogicalComparisonCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores strict checks inside filter callbacks",
             },
             {
                 code: readTypedFixture(
@@ -167,6 +236,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

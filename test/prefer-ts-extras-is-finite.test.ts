@@ -40,29 +40,35 @@ ruleTester.run("prefer-ts-extras-is-finite", rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Number.isFinite calls",
         },
         {
             code: inlineInvalidCode,
             errors: [{ messageId: "preferTsExtrasIsFinite" }],
             filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct Number.isFinite call",
         },
     ],
     valid: [
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
         },
         {
             code: computedAccessValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores computed Number.isFinite access",
         },
         {
             code: nonNumberReceiverValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores custom non-Number isFinite method",
         },
         {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
+            name: "ignores Number.isInteger call",
         },
         {
             code: skipPathInvalidCode,
@@ -70,6 +76,7 @@ ruleTester.run("prefer-ts-extras-is-finite", rule, {
                 "tests",
                 "prefer-ts-extras-is-finite.skip.ts"
             ),
+            name: "skips file under tests fixture path",
         },
     ],
 });

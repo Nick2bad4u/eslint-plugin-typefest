@@ -45,6 +45,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture AllKeys alias usage",
             },
             {
                 code: inlineFixableInvalidCode,
@@ -58,6 +59,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline AllKeys alias import",
                 output: inlineFixableOutputCode,
             },
         ],
@@ -65,10 +67,12 @@ ruleTester.run(
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
+                name: "accepts namespace-qualified KeysOfUnion references",
             },
             {
                 code: readTypedFixture(
@@ -79,6 +83,7 @@ ruleTester.run(
                     skipTestPathFixtureDirectory,
                     skipTestPathFixtureName
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -125,6 +125,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture IsEqual variable initializers",
             },
             {
                 code: inlineInvalidAliasedImportCode,
@@ -140,6 +141,7 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports aliased IsEqual import in variable initializer",
             },
             {
                 code: inlineInvalidWithoutTypeArgumentsCode,
@@ -149,36 +151,44 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports IsEqual usage without explicit type arguments",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: inlineValidTypeAliasReferenceCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores IsEqual used through type alias reference",
             },
             {
                 code: inlineValidNonBooleanInitializerCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores IsEqual initializer that is not plain boolean literal",
             },
             {
                 code: inlineValidObjectPatternDeclaratorCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores IsEqual inside object-pattern declarator",
             },
             {
                 code: inlineValidNamespaceNonIsEqualCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores namespace usage of non-IsEqual type-fest type",
             },
             {
                 code: inlineValidUnionBooleanTypeCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores plain boolean union type",
             },
             {
                 code: inlineValidNamespaceBooleanNonIsEqualCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores namespace Promisable boolean value",
             },
         ],
     }

@@ -121,6 +121,31 @@ const invalidNullOnLeftEqGuardCode = [
     "    return value;",
     "}",
 ].join("\n");
+const invalidDirectThrowConsequentCode = [
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) throw new TypeError('Missing value');",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const binaryEqWithoutNullValidCode = [
+    "function ensureValue(value: string | null, fallback: string): string {",
+    "    if (value == fallback) {",
+    "        throw new TypeError('Unexpected equality');",
+    "    }",
+    "",
+    "    return value ?? fallback;",
+    "}",
+].join("\n");
+const logicalWithNonBinaryTermValidCode = [
+    "function ensureValue(value: string | null): string {",
+    "    if (value === null || !value) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 const skipPathInvalidCode = inlineInvalidEqNullCode;
 
@@ -140,60 +165,89 @@ ruleTester.run(
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture nullish guard patterns",
             },
             {
                 code: inlineInvalidEqNullCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports loose null comparison guard",
             },
             {
                 code: inlineInvalidLogicalCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict null-or-undefined logical guard",
             },
             {
                 code: inlineInvalidLogicalReversedCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports strict logical guard with reversed operands",
             },
             {
                 code: invalidNullOnLeftEqGuardCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
+                name: "reports loose null guard with literal on left",
+            },
+            {
+                code: invalidDirectThrowConsequentCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports direct-throw loose null guard",
             },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
             },
             {
                 code: nonThrowConsequentValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores guard with non-throw consequent",
             },
             {
                 code: multiStatementThrowBlockValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores throw block with additional statement",
             },
             {
                 code: sameKindLogicalValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores repeated null comparison kind",
             },
             {
                 code: alternateBranchValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores guard with explicit else branch",
             },
             {
                 code: mismatchedLogicalExpressionValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores mismatched logical nullish subjects",
             },
             {
                 code: nonNullishLogicalValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-nullish logical comparisons",
             },
             {
                 code: nonEqualityTestValidCode,
                 filename: typedFixturePath(validFixtureName),
+                name: "ignores non-equality guard expression",
+            },
+            {
+                code: binaryEqWithoutNullValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores equality check that omits nullish literals",
+            },
+            {
+                code: logicalWithNonBinaryTermValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores logical guard containing non-binary term",
             },
             {
                 code: skipPathInvalidCode,
@@ -201,6 +255,7 @@ ruleTester.run(
                     "tests",
                     "prefer-ts-extras-assert-present.skip.ts"
                 ),
+                name: "skips file under tests fixture path",
             },
         ],
     }
