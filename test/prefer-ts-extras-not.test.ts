@@ -106,6 +106,26 @@ const inlineValidIdentifierCallbackCode = [
     "",
     "String(missingEntries.length);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { not } from "ts-extras";',
+    "",
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "declare const nullableEntries: readonly (null | string)[];",
+    "",
+    "const missingEntries = nullableEntries.filter((value) => !isPresent(value));",
+    "",
+    "String(missingEntries.length);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { not } from "ts-extras";',
+    "",
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "declare const nullableEntries: readonly (null | string)[];",
+    "",
+    "const missingEntries = nullableEntries.filter(not(isPresent));",
+    "",
+    "String(missingEntries.length);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-not", rule, {
     invalid: [
@@ -127,6 +147,13 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             errors: [{ messageId: "preferTsExtrasNot" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports inline negated predicate in filter callback",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasNot" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes negated filter callback when not import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

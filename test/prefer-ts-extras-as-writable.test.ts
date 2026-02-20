@@ -56,6 +56,34 @@ const inlineValidNonTypeFestNamespaceCode = [
     "",
     "String(typedRecord);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { asWritable } from "ts-extras";',
+    'import type { Writable } from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const mutableRecord = readonlyRecord as Writable<ReadonlyRecord>;",
+    "",
+    "String(mutableRecord);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { asWritable } from "ts-extras";',
+    'import type { Writable } from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const mutableRecord = asWritable(readonlyRecord);",
+    "",
+    "String(mutableRecord);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-as-writable",
@@ -77,6 +105,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasAsWritable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports angle-bracket Writable assertion",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasAsWritable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes Writable assertion when asWritable import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

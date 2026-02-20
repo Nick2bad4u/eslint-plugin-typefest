@@ -148,6 +148,48 @@ const logicalWithNonBinaryTermValidCode = [
 ].join("\n");
 
 const skipPathInvalidCode = inlineInvalidEqNullCode;
+const inlineSuggestableCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (value === null || value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableCanonicalCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (value === null || value === undefined) {",
+    "        throw new TypeError(`Expected a present value, got " +
+        "$" +
+        "{value}`);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableCanonicalOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-assert-present",
@@ -196,6 +238,29 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports direct-throw loose null guard",
+            },
+            {
+                code: inlineSuggestableCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineSuggestableOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests assertPresent() replacement when import is in scope",
+            },
+            {
+                code: inlineAutofixableCanonicalCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes canonical nullish guard throw when assertPresent import is in scope",
+                output: inlineAutofixableCanonicalOutput,
             },
         ],
         valid: [

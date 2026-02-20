@@ -1,3 +1,7 @@
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-safe-integer`.
@@ -13,6 +17,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -42,6 +51,13 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "isSafeInteger",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasIsSafeInteger",
                         node,
                     });
@@ -55,6 +71,7 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-safe-integer.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsSafeInteger:
                     "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",

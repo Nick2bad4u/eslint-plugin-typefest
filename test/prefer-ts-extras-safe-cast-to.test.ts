@@ -25,6 +25,20 @@ const nonAssignableTypeAssertionValidCode = [
     "const parsed = <string>rawValue;",
     "String(parsed);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { safeCastTo } from "ts-extras";',
+    "",
+    "const fallback = {} as Partial<{ value: number }>;",
+    "",
+    "String(fallback.value);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { safeCastTo } from "ts-extras";',
+    "",
+    "const fallback = safeCastTo<Partial<{ value: number }>>({});",
+    "",
+    "String(fallback.value);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-safe-cast-to",
@@ -40,6 +54,13 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture unsafe cast assertions",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasSafeCastTo" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes safe cast assertion when safeCastTo import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

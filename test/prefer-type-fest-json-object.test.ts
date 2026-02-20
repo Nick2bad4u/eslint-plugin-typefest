@@ -38,6 +38,16 @@ const inlineValidRecordSingleTypeArgumentCode =
     "type MonitorJsonShape = Record<string>;";
 const inlineValidRecordUnknownValueCode =
     "type MonitorJsonShape = Record<string, unknown>;";
+const inlineFixableCode = [
+    'import type { JsonObject, JsonValue } from "type-fest";',
+    "",
+    "type MonitorJsonShape = Record<string, JsonValue>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { JsonObject, JsonValue } from "type-fest";',
+    "",
+    "type MonitorJsonShape = JsonObject;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-json-object", rule, {
     invalid: [
@@ -59,6 +69,13 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
             errors: [{ messageId: "preferJsonObject" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Record with literal string key and JsonValue value",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferJsonObject" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Record<string, JsonValue> when JsonObject import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

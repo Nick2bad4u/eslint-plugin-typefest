@@ -57,6 +57,18 @@ const declaredStringUnionInvalidCode = [
 ].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineFixableCode = [
+    'import { stringSplit } from "ts-extras";',
+    "",
+    "const value = 'a,b';",
+    "const parts = value.split(',');",
+].join("\n");
+const inlineFixableOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "",
+    "const value = 'a,b';",
+    "const parts = stringSplit(value, ',');",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-string-split",
@@ -99,6 +111,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports declared string object union split call",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes string.split() when stringSplit import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

@@ -24,6 +24,16 @@ const inlineValidReadonlySetWrongArityCode =
 const inlineValidGlobalReadonlySetCode =
     "type Input = globalThis.ReadonlySet<unknown>;";
 const skipPathInvalidCode = inlineInvalidReadonlySetCode;
+const inlineFixableCode = [
+    'import type { UnknownSet } from "type-fest";',
+    "",
+    "type Input = ReadonlySet<unknown>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { UnknownSet } from "type-fest";',
+    "",
+    "type Input = UnknownSet;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-unknown-set", rule, {
     invalid: [
@@ -45,6 +55,13 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             errors: [{ messageId: "preferUnknownSet" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports inline ReadonlySet<unknown> alias",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferUnknownSet" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes ReadonlySet<unknown> when UnknownSet import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

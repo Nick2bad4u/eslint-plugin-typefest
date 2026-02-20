@@ -26,6 +26,16 @@ const inlineValidReadonlyMapWrongArityCode =
 const inlineValidGlobalReadonlyMapCode =
     "type Input = globalThis.ReadonlyMap<unknown, unknown>;";
 const skipPathInvalidCode = inlineInvalidReadonlyMapCode;
+const inlineFixableCode = [
+    'import type { UnknownMap } from "type-fest";',
+    "",
+    "type Input = ReadonlyMap<unknown, unknown>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { UnknownMap } from "type-fest";',
+    "",
+    "type Input = UnknownMap;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-unknown-map", rule, {
     invalid: [
@@ -47,6 +57,13 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             errors: [{ messageId: "preferUnknownMap" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly unknown map shorthand",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferUnknownMap" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes ReadonlyMap<unknown, unknown> when UnknownMap import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

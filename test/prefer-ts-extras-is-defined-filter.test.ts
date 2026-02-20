@@ -93,6 +93,20 @@ const computedFilterValidCode = [
 ].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineFixableCode = [
+    'import { isDefined } from "ts-extras";',
+    "",
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter((value) => value !== undefined);",
+    "String(definedValues);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { isDefined } from "ts-extras";',
+    "",
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
+    "String(definedValues);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-is-defined-filter",
@@ -126,6 +140,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports typeof undefined predicate",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes filter callback to isDefined when import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

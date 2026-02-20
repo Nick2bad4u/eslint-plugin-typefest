@@ -58,6 +58,22 @@ const privateIdentifierValidCode = [
     "}",
 ].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineSuggestableCode = [
+    'import { assertError } from "ts-extras";',
+    "",
+    "function ensureError(value: unknown): asserts value is Error {",
+    "    if (!(value instanceof Error)) {",
+    "        throw new TypeError('Expected Error');",
+    "    }",
+    "}",
+].join("\n");
+const inlineSuggestableOutput = [
+    'import { assertError } from "ts-extras";',
+    "",
+    "function ensureError(value: unknown): asserts value is Error {",
+    "    assertError(value);",
+    "}",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-assert-error", rule, {
     invalid: [
@@ -91,6 +107,22 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
             errors: [{ messageId: "preferTsExtrasAssertError" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct-throw instanceof Error guard",
+        },
+        {
+            code: inlineSuggestableCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertError",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertError",
+                            output: inlineSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests assertError() replacement when import is in scope",
         },
     ],
     valid: [

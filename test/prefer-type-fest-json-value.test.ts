@@ -14,6 +14,16 @@ const ruleTester = createTypedRuleTester();
 const invalidFixtureName = "prefer-type-fest-json-value.invalid.ts";
 const validFixtureName = "prefer-type-fest-json-value.valid.ts";
 const inlineInvalidAnyPayloadCode = "type IpcPayload = Record<string, any>;";
+const inlineSuggestableCode = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    "type IpcPayload = Record<string, unknown>;",
+].join("\n");
+const inlineSuggestableOutput = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    "type IpcPayload = JsonObject;",
+].join("\n");
 const inlineValidGlobalRecordCode =
     "type IpcPayload = globalThis.Record<string, unknown>;";
 const inlineValidNonStringKeyCode =
@@ -29,15 +39,39 @@ ruleTester.run(
         invalid: [
             {
                 code: readTypedFixture(invalidFixtureName),
-                errors: [{ messageId: "preferJsonValue" }],
+                errors: [
+                    {
+                        messageId: "preferJsonValue",
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Record<string, any> aliases",
             },
             {
                 code: inlineInvalidAnyPayloadCode,
-                errors: [{ messageId: "preferJsonValue" }],
+                errors: [
+                    {
+                        messageId: "preferJsonValue",
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports inline Record<string, any> alias",
+            },
+            {
+                code: inlineSuggestableCode,
+                errors: [
+                    {
+                        messageId: "preferJsonValue",
+                        suggestions: [
+                            {
+                                messageId: "suggestJsonObject",
+                                output: inlineSuggestableOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests JsonObject when import is in scope",
             },
         ],
         valid: [

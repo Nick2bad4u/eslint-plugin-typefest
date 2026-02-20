@@ -4,6 +4,10 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeTextReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
@@ -73,53 +77,55 @@ const normalizeTypeNodeText = (
  * @returns `true` when has arrayable shape; otherwise `false`.
  */
 
-const hasArrayableShape = (
+const getArrayableElementType = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     node: TSESTree.TSUnionType
-): boolean => {
+): null | TSESTree.TypeNode => {
     const unionTypes = node.types;
     if (unionTypes.length !== 2) {
-        return false;
+        return null;
     }
 
     const [firstUnionType, secondUnionType] = unionTypes;
     if (!firstUnionType || !secondUnionType) {
-        return false;
+        return null;
     }
 
     if (firstUnionType.type === "TSArrayType") {
-        return (
-            normalizeTypeNodeText(sourceCode, firstUnionType.elementType) ===
+        return normalizeTypeNodeText(sourceCode, firstUnionType.elementType) ===
             normalizeTypeNodeText(sourceCode, secondUnionType)
-        );
+            ? secondUnionType
+            : null;
     }
 
     if (secondUnionType.type === "TSArrayType") {
-        return (
-            normalizeTypeNodeText(sourceCode, secondUnionType.elementType) ===
-            normalizeTypeNodeText(sourceCode, firstUnionType)
-        );
+        return normalizeTypeNodeText(
+            sourceCode,
+            secondUnionType.elementType
+        ) === normalizeTypeNodeText(sourceCode, firstUnionType)
+            ? firstUnionType
+            : null;
     }
 
     const firstArrayElementType =
         getArrayTypeReferenceElementType(firstUnionType);
     if (firstArrayElementType) {
-        return (
-            normalizeTypeNodeText(sourceCode, firstArrayElementType) ===
+        return normalizeTypeNodeText(sourceCode, firstArrayElementType) ===
             normalizeTypeNodeText(sourceCode, secondUnionType)
-        );
+            ? secondUnionType
+            : null;
     }
 
     const secondArrayElementType =
         getArrayTypeReferenceElementType(secondUnionType);
     if (secondArrayElementType) {
-        return (
-            normalizeTypeNodeText(sourceCode, secondArrayElementType) ===
+        return normalizeTypeNodeText(sourceCode, secondArrayElementType) ===
             normalizeTypeNodeText(sourceCode, firstUnionType)
-        );
+            ? firstUnionType
+            : null;
     }
 
-    return false;
+    return null;
 };
 
 /**
@@ -137,14 +143,31 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
             }
 
             const { sourceCode } = context;
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSUnionType(node) {
-                    if (!hasArrayableShape(sourceCode, node)) {
+                    const arrayableElementType = getArrayableElementType(
+                        sourceCode,
+                        node
+                    );
+
+                    if (!arrayableElementType) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeTextReplacementFix(
+                        node,
+                        "Arrayable",
+                        `Arrayable<${sourceCode.getText(arrayableElementType)}>`,
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferArrayable",
                         node,
                     });
@@ -158,6 +181,7 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
             },
+            fixable: "code",
             messages: {
                 preferArrayable:
                     "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",

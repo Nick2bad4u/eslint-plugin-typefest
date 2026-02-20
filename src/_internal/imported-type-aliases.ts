@@ -187,3 +187,58 @@ export const createSafeTypeReferenceReplacementFix = (
 
     return (fixer) => fixer.replaceText(node.typeName, replacementName);
 };
+
+/**
+ * Build a safe whole-type-node replacement fixer.
+ *
+ * @param node - Type node to potentially replace.
+ * @param replacementName - Replacement identifier text.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
+ *
+ * @returns Fix function when replacement is safe; otherwise `null`.
+ */
+export const createSafeTypeNodeReplacementFix = (
+    node: Readonly<TSESTree.Node>,
+    replacementName: string,
+    availableReplacementNames: ReadonlySet<string>
+): null | TSESLint.ReportFixFunction => {
+    if (!availableReplacementNames.has(replacementName)) {
+        return null;
+    }
+
+    if (isTypeParameterNameShadowed(node, replacementName)) {
+        return null;
+    }
+
+    return (fixer) => fixer.replaceText(node, replacementName);
+};
+
+/**
+ * Build a safe whole-type-node replacement fixer with custom replacement text.
+ *
+ * @param node - Type node to potentially replace.
+ * @param replacementName - Replacement symbol name used for import/scope safety
+ *   checks.
+ * @param replacementText - Final replacement text to emit.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
+ *
+ * @returns Fix function when replacement is safe; otherwise `null`.
+ */
+export const createSafeTypeNodeTextReplacementFix = (
+    node: Readonly<TSESTree.Node>,
+    replacementName: string,
+    replacementText: string,
+    availableReplacementNames: ReadonlySet<string>
+): null | TSESLint.ReportFixFunction => {
+    if (!availableReplacementNames.has(replacementName)) {
+        return null;
+    }
+
+    if (isTypeParameterNameShadowed(node, replacementName)) {
+        return null;
+    }
+
+    return (fixer) => fixer.replaceText(node, replacementText);
+};

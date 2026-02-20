@@ -2,8 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-as-writable`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
@@ -18,6 +22,11 @@ const WRITABLE_TYPE_NAME = "Writable" as const;
 const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -81,13 +90,31 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
 
             const reportIfWritableAssertion = (
                 node: TSESTree.Node,
+                expression: TSESTree.Expression,
                 typeAnnotation: TSESTree.TypeNode
             ): void => {
                 if (!isWritableTypeReference(typeAnnotation)) {
                     return;
                 }
 
+                const replacementName = getSafeLocalNameForImportedValue({
+                    context,
+                    importedName: "asWritable",
+                    imports: tsExtrasImports,
+                    referenceNode: node,
+                    sourceModuleName: "ts-extras",
+                });
+
+                const fix = replacementName
+                    ? (fixer: TSESLint.RuleFixer) =>
+                          fixer.replaceText(
+                              node,
+                              `${replacementName}(${context.sourceCode.getText(expression)})`
+                          )
+                    : null;
+
                 context.report({
+                    fix,
                     messageId: "preferTsExtrasAsWritable",
                     node,
                 });
@@ -95,10 +122,18 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSAsExpression(node) {
-                    reportIfWritableAssertion(node, node.typeAnnotation);
+                    reportIfWritableAssertion(
+                        node,
+                        node.expression,
+                        node.typeAnnotation
+                    );
                 },
                 TSTypeAssertion(node) {
-                    reportIfWritableAssertion(node, node.typeAnnotation);
+                    reportIfWritableAssertion(
+                        node,
+                        node.expression,
+                        node.typeAnnotation
+                    );
                 },
             };
         },
@@ -109,6 +144,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-as-writable.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasAsWritable:
                     "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",

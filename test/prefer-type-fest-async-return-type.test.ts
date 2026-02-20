@@ -28,6 +28,16 @@ const awaitedQualifiedReturnTypeValidCode = [
     "type Result = Awaited<TypeFest.ReturnType<() => Promise<string>>>;",
 ].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineFixableCode = [
+    'import type { AsyncReturnType } from "type-fest";',
+    "",
+    "type Result = Awaited<ReturnType<() => Promise<string>>>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { AsyncReturnType } from "type-fest";',
+    "",
+    "type Result = AsyncReturnType<() => Promise<string>>;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {
     invalid: [
@@ -49,6 +59,13 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             errors: [{ messageId: "preferAsyncReturnType" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports inline Awaited<ReturnType<...>> composition",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferAsyncReturnType" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Awaited<ReturnType<...>> when AsyncReturnType import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

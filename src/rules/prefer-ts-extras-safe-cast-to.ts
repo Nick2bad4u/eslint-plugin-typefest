@@ -2,10 +2,14 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-safe-cast-to`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import ts from "typescript";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -38,6 +42,11 @@ const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>
 const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -79,7 +88,24 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const replacementName = getSafeLocalNameForImportedValue({
+                        context,
+                        importedName: "safeCastTo",
+                        imports: tsExtrasImports,
+                        referenceNode: node,
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    const fix = replacementName
+                        ? (fixer: TSESLint.RuleFixer) =>
+                              fixer.replaceText(
+                                  node,
+                                  `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`
+                              )
+                        : null;
+
                     context.report({
+                        fix,
                         messageId: "preferTsExtrasSafeCastTo",
                         node,
                     });
@@ -112,6 +138,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-safe-cast-to.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasSafeCastTo:
                     "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",

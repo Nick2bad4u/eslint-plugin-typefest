@@ -21,6 +21,16 @@ const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";
 const duplicatePrimitiveUnionValidCode =
     "type Payload = string | number | boolean | number;";
+const inlineFixableCode = [
+    'import type { JsonPrimitive } from "type-fest";',
+    "",
+    "type Payload = boolean | null | number | string;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { JsonPrimitive } from "type-fest";',
+    "",
+    "type Payload = JsonPrimitive;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-json-primitive", rule, {
     invalid: [
@@ -36,6 +46,13 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonPrimitive-like unions",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferJsonPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes JSON primitive keyword union when JsonPrimitive import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

@@ -1,3 +1,7 @@
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-finite`.
@@ -13,6 +17,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -42,6 +51,13 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "isFinite",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node.callee,
+                        }),
                         messageId: "preferTsExtrasIsFinite",
                         node,
                     });
@@ -55,6 +71,7 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isFinite over Number.isFinite for consistent predicate helper usage.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-finite.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsFinite:
                     "Prefer `isFinite` from `ts-extras` over `Number.isFinite(...)`.",

@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
@@ -66,6 +70,11 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -78,7 +87,14 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "UnknownMap",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferUnknownMap",
                         node,
                     });
@@ -92,6 +108,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-map.md",
             },
+            fixable: "code",
             messages: {
                 preferUnknownMap:
                     "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",

@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -61,6 +65,11 @@ const isUndefinedFilterGuardBody = (
 const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename;
 
             if (isTestFilePath(filePath)) {
@@ -106,6 +115,13 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueReferenceReplacementFix({
+                            context,
+                            importedName: "isDefined",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: callback,
+                        }),
                         messageId: "preferTsExtrasIsDefinedFilter",
                         node: callback,
                     });
@@ -119,6 +135,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsDefinedFilter:
                     "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.",

@@ -2,8 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-present`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -45,6 +49,74 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
         node.type === "BlockStatement" &&
         node.body.length === 1 &&
         node.body[0]?.type === "ThrowStatement"
+    );
+};
+
+const getThrowStatementFromConsequent = (
+    node: TSESTree.Statement
+): null | TSESTree.ThrowStatement => {
+    if (node.type === "ThrowStatement") {
+        return node;
+    }
+
+    if (
+        node.type === "BlockStatement" &&
+        node.body.length === 1 &&
+        node.body[0]?.type === "ThrowStatement"
+    ) {
+        return node.body[0];
+    }
+
+    return null;
+};
+
+const isCanonicalAssertPresentThrow = ({
+    guardExpression,
+    sourceCode,
+    throwStatement,
+}: {
+    guardExpression: TSESTree.Expression;
+    sourceCode: Readonly<TSESLint.SourceCode>;
+    throwStatement: TSESTree.ThrowStatement;
+}): boolean => {
+    if (
+        throwStatement.argument.type !== "NewExpression" ||
+        throwStatement.argument.callee.type !== "Identifier" ||
+        throwStatement.argument.callee.name !== "TypeError" ||
+        throwStatement.argument.arguments.length !== 1
+    ) {
+        return false;
+    }
+
+    const [firstArgument] = throwStatement.argument.arguments;
+    if (
+        !firstArgument ||
+        firstArgument.type === "SpreadElement" ||
+        firstArgument.type !== "TemplateLiteral"
+    ) {
+        return false;
+    }
+
+    const [prefixQuasi, suffixQuasi] = firstArgument.quasis;
+    if (
+        !prefixQuasi ||
+        !suffixQuasi ||
+        firstArgument.expressions.length !== 1
+    ) {
+        return false;
+    }
+
+    const [templateExpression] = firstArgument.expressions;
+    if (!templateExpression) {
+        return false;
+    }
+
+    return (
+        (prefixQuasi.value.cooked === "Expected a present value, got `" ||
+            prefixQuasi.value.cooked === "Expected a present value, got ") &&
+        (suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === "") &&
+        sourceCode.getText(templateExpression) ===
+            sourceCode.getText(guardExpression)
     );
 };
 
@@ -135,6 +207,11 @@ const extractNullishEqualityPart = (
 const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -183,13 +260,65 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (!extractPresentGuardExpression(node.test)) {
+                    const guardExpression = extractPresentGuardExpression(
+                        node.test
+                    );
+
+                    if (!guardExpression) {
+                        return;
+                    }
+
+                    const replacementName = getSafeLocalNameForImportedValue({
+                        context,
+                        importedName: "assertPresent",
+                        imports: tsExtrasImports,
+                        referenceNode: node,
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    if (!replacementName) {
+                        context.report({
+                            messageId: "preferTsExtrasAssertPresent",
+                            node,
+                        });
+
+                        return;
+                    }
+
+                    const replacementText = `${replacementName}(${context.sourceCode.getText(guardExpression)});`;
+
+                    const throwStatement = getThrowStatementFromConsequent(
+                        node.consequent
+                    );
+                    const canAutofix =
+                        throwStatement !== null &&
+                        isCanonicalAssertPresentThrow({
+                            guardExpression,
+                            sourceCode,
+                            throwStatement,
+                        });
+
+                    if (canAutofix) {
+                        context.report({
+                            fix: (fixer) =>
+                                fixer.replaceText(node, replacementText),
+                            messageId: "preferTsExtrasAssertPresent",
+                            node,
+                        });
+
                         return;
                     }
 
                     context.report({
                         messageId: "preferTsExtrasAssertPresent",
                         node,
+                        suggest: [
+                            {
+                                fix: (fixer) =>
+                                    fixer.replaceText(node, replacementText),
+                                messageId: "suggestTsExtrasAssertPresent",
+                            },
+                        ],
                     });
                 },
             };
@@ -201,9 +330,13 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras assertPresent over manual nullish-guard throw blocks.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
             },
+            fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasAssertPresent:
                     "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
+                suggestTsExtrasAssertPresent:
+                    "Replace this manual guard with `assertPresent(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

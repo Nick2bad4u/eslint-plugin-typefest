@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -90,13 +94,25 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSUnionType(node) {
                     if (!hasJsonPrimitiveUnionShape(node)) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "JsonPrimitive",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferJsonPrimitive",
                         node,
                     });
@@ -110,6 +126,7 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-primitive.md",
             },
+            fixable: "code",
             messages: {
                 preferJsonPrimitive:
                     "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",

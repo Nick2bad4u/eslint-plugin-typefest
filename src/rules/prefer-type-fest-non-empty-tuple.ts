@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeTextReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -102,6 +106,10 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
             }
 
             const { sourceCode } = context;
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
             return {
                 TSTypeOperator(node) {
@@ -146,7 +154,15 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeTextReplacementFix(
+                        node,
+                        "NonEmptyTuple",
+                        `NonEmptyTuple<${sourceCode.getText(firstType)}>`,
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferNonEmptyTuple",
                         node,
                     });
@@ -160,6 +176,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-non-empty-tuple.md",
             },
+            fixable: "code",
             messages: {
                 preferNonEmptyTuple:
                     "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",

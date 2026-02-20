@@ -58,6 +58,34 @@ const inlineValidForInLoopCode = [
     "    String(key);",
     "}",
 ].join("\n");
+const inlineFixableCode = [
+    'import { keyIn } from "ts-extras";',
+    "",
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const payload: MonitorPayload;",
+    "",
+    "const hasDynamicKey = dynamicKey in payload;",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { keyIn } from "ts-extras";',
+    "",
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const payload: MonitorPayload;",
+    "",
+    "const hasDynamicKey = keyIn(payload, dynamicKey);",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-key-in", rule, {
     invalid: [
@@ -92,6 +120,17 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
                 },
             ],
             name: "reports in-operator check without explicit filename",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes identifier in-operator check when keyIn import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

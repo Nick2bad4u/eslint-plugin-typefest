@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -121,13 +125,25 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSUnionType(node) {
                     if (!hasPrimitiveUnionShape(node)) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "Primitive",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferPrimitive",
                         node,
                     });
@@ -141,6 +157,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Primitive over explicit primitive keyword unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
             },
+            fixable: "code",
             messages: {
                 preferPrimitive:
                     "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",

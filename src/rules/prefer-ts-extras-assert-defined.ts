@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -34,6 +38,47 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
         node.type === "BlockStatement" &&
         node.body.length === 1 &&
         node.body[0]?.type === "ThrowStatement"
+    );
+};
+
+const getThrowStatementFromConsequent = (
+    node: TSESTree.Statement
+): null | TSESTree.ThrowStatement => {
+    if (node.type === "ThrowStatement") {
+        return node;
+    }
+
+    if (
+        node.type === "BlockStatement" &&
+        node.body.length === 1 &&
+        node.body[0]?.type === "ThrowStatement"
+    ) {
+        return node.body[0];
+    }
+
+    return null;
+};
+
+const isCanonicalAssertDefinedThrow = (
+    throwStatement: TSESTree.ThrowStatement
+): boolean => {
+    if (
+        throwStatement.argument.type !== "NewExpression" ||
+        throwStatement.argument.callee.type !== "Identifier" ||
+        throwStatement.argument.callee.name !== "TypeError" ||
+        throwStatement.argument.arguments.length !== 1
+    ) {
+        return false;
+    }
+
+    const [firstArgument] = throwStatement.argument.arguments;
+    if (!firstArgument || firstArgument.type === "SpreadElement") {
+        return false;
+    }
+
+    return (
+        firstArgument.type === "Literal" &&
+        firstArgument.value === "Expected a defined value, got `undefined`"
     );
 };
 
@@ -75,6 +120,11 @@ const extractDefinedGuardExpression = (
 const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -89,13 +139,61 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (!extractDefinedGuardExpression(node.test)) {
+                    const guardExpression = extractDefinedGuardExpression(
+                        node.test
+                    );
+
+                    if (!guardExpression) {
+                        return;
+                    }
+
+                    const replacementName = getSafeLocalNameForImportedValue({
+                        context,
+                        importedName: "assertDefined",
+                        imports: tsExtrasImports,
+                        referenceNode: node,
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    if (!replacementName) {
+                        context.report({
+                            messageId: "preferTsExtrasAssertDefined",
+                            node,
+                        });
+
+                        return;
+                    }
+
+                    const replacementText = `${replacementName}(${context.sourceCode.getText(guardExpression)});`;
+
+                    const throwStatement = getThrowStatementFromConsequent(
+                        node.consequent
+                    );
+                    const canAutofix =
+                        throwStatement !== null &&
+                        isCanonicalAssertDefinedThrow(throwStatement);
+
+                    if (canAutofix) {
+                        context.report({
+                            fix: (fixer) =>
+                                fixer.replaceText(node, replacementText),
+                            messageId: "preferTsExtrasAssertDefined",
+                            node,
+                        });
+
                         return;
                     }
 
                     context.report({
                         messageId: "preferTsExtrasAssertDefined",
                         node,
+                        suggest: [
+                            {
+                                fix: (fixer) =>
+                                    fixer.replaceText(node, replacementText),
+                                messageId: "suggestTsExtrasAssertDefined",
+                            },
+                        ],
                     });
                 },
             };
@@ -107,9 +205,13 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras assertDefined over manual undefined-guard throw blocks.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
             },
+            fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasAssertDefined:
                     "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
+                suggestTsExtrasAssertDefined:
+                    "Replace this manual guard with `assertDefined(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

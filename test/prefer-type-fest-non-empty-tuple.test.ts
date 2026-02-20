@@ -35,6 +35,16 @@ const nonReadonlyOperatorValidCode =
 const readonlyNonTupleTypeValidCode = "type Input = readonly string[];";
 const readonlySingleElementTupleValidCode = "type Input = readonly [string];";
 const skipPathInvalidCode = inlineInvalidTupleCode;
+const inlineFixableCode = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "",
+    "type Input = readonly [string, ...string[]];",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "",
+    "type Input = NonEmptyTuple<string>;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
     invalid: [
@@ -62,6 +72,13 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named rest element",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferNonEmptyTuple" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes readonly [T, ...T[]] when NonEmptyTuple import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

@@ -24,7 +24,7 @@ const inlineInvalidAliasedImportCode = [
 const inlineInvalidAliasedImportSuggestionOutput =
     inlineInvalidAliasedImportCode.replace(
         "const aliasedEqualCheck: IsEqualAlias<string, string> = true;",
-        "const aliasedEqualCheck = isEqualType<string, string>();"
+        "const aliasedEqualCheck = isEqualType<string, string>() || true;"
     );
 const inlineValidTypeAliasReferenceCode = [
     'import type { IsEqual } from "type-fest";',
@@ -94,7 +94,7 @@ ruleTester.run(
                                 messageId: "suggestTsExtrasIsEqualType",
                                 output: invalidFixtureCode.replace(
                                     "const directEqualCheck: IsEqual<string, string> = true;",
-                                    "const directEqualCheck = isEqualType<string, string>();"
+                                    "const directEqualCheck = isEqualType<string, string>() || true;"
                                 ),
                             },
                         ],
@@ -106,7 +106,7 @@ ruleTester.run(
                                 messageId: "suggestTsExtrasIsEqualType",
                                 output: invalidFixtureCode.replace(
                                     "const directUnequalCheck: IsEqual<number, string> = false;",
-                                    "const directUnequalCheck = isEqualType<number, string>();"
+                                    "const directUnequalCheck = isEqualType<number, string>() && false;"
                                 ),
                             },
                         ],
@@ -118,7 +118,7 @@ ruleTester.run(
                                 messageId: "suggestTsExtrasIsEqualType",
                                 output: invalidFixtureCode.replace(
                                     'const namespaceEqualCheck: TypeFest.IsEqual<"a", "a"> = true;',
-                                    'const namespaceEqualCheck = isEqualType<"a", "a">();'
+                                    'const namespaceEqualCheck = isEqualType<"a", "a">() || true;'
                                 ),
                             },
                         ],

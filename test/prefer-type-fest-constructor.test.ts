@@ -17,6 +17,16 @@ const skipTestPathFixtureName = "prefer-type-fest-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-constructor.invalid.ts";
 const inlineInvalidNoFilenameCode =
     "type Ctor = new (...args: readonly unknown[]) => object;";
+const inlineFixableCode = [
+    'import type { Constructor } from "type-fest";',
+    "",
+    "type Ctor = new (name: string, retryCount: number) => object;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { Constructor } from "type-fest";',
+    "",
+    "type Ctor = Constructor<object, [name: string, retryCount: number]>;",
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-constructor",
@@ -41,6 +51,17 @@ ruleTester.run(
                     },
                 ],
                 name: "reports inline constructor signature without filename",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [
+                    {
+                        messageId: "preferConstructorSignature",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes constructor signature when Constructor import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

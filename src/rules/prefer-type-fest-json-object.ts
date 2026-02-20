@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const JSON_VALUE_TYPE_NAME = "JsonValue";
@@ -95,13 +99,25 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (!isRecordJsonValueReference(node)) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "JsonObject",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferJsonObject",
                         node,
                     });
@@ -115,6 +131,7 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-object.md",
             },
+            fixable: "code",
             messages: {
                 preferJsonObject:
                     "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.",

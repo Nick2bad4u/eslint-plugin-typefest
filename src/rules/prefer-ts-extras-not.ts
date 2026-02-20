@@ -2,8 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-not`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const FILTER_METHOD_NAME = "filter";
@@ -94,10 +98,58 @@ const getNegatedPredicateCall = (
 const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const createNotFilterCallbackFix = ({
+                callbackNode,
+                predicateCall,
+            }: {
+                callbackNode:
+                    | TSESTree.ArrowFunctionExpression
+                    | TSESTree.FunctionExpression;
+                predicateCall: TSESTree.CallExpression;
+            }): null | TSESLint.ReportFixFunction => {
+                const replacementName = getSafeLocalNameForImportedValue({
+                    context,
+                    importedName: "not",
+                    imports: tsExtrasImports,
+                    referenceNode: callbackNode,
+                    sourceModuleName: "ts-extras",
+                });
+
+                if (!replacementName) {
+                    return null;
+                }
+
+                if (
+                    predicateCall.optional ||
+                    predicateCall.callee.type !== "Identifier"
+                ) {
+                    return null;
+                }
+
+                const predicateText = context.sourceCode
+                    .getText(predicateCall.callee)
+                    .trim();
+
+                if (predicateText.length === 0) {
+                    return null;
+                }
+
+                return (fixer) =>
+                    fixer.replaceText(
+                        callbackNode,
+                        `${replacementName}(${predicateText})`
+                    );
+            };
 
             return {
                 CallExpression(node) {
@@ -114,11 +166,18 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (!getNegatedPredicateCall(firstArgument)) {
+                    const negatedPredicateCall =
+                        getNegatedPredicateCall(firstArgument);
+
+                    if (!negatedPredicateCall) {
                         return;
                     }
 
                     context.report({
+                        fix: createNotFilterCallbackFix({
+                            callbackNode: firstArgument,
+                            predicateCall: negatedPredicateCall,
+                        }),
                         messageId: "preferTsExtrasNot",
                         node: firstArgument,
                     });
@@ -132,6 +191,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-not.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasNot:
                     "Prefer `not(<predicate>)` from `ts-extras` over inline `value => !predicate(value)` callbacks.",

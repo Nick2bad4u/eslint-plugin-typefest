@@ -57,6 +57,24 @@ const inlineValidOtherObjectInfinityMemberCode = [
     "",
     "String(isInfiniteMetric);",
 ].join("\n");
+const inlineFixableDualSignCode = [
+    'import { isInfinite } from "ts-extras";',
+    "",
+    "declare const metric: number;",
+    "",
+    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY || metric === Number.NEGATIVE_INFINITY;",
+    "",
+    "String(isInfiniteMetric);",
+].join("\n");
+const inlineFixableDualSignOutput = [
+    'import { isInfinite } from "ts-extras";',
+    "",
+    "declare const metric: number;",
+    "",
+    "const isInfiniteMetric = isInfinite(metric);",
+    "",
+    "String(isInfiniteMetric);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-is-infinite", rule, {
     invalid: [
@@ -84,6 +102,13 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             errors: [{ messageId: "preferTsExtrasIsInfinite" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports strict equality with Infinity literal on left",
+        },
+        {
+            code: inlineFixableDualSignCode,
+            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes strict dual-sign infinity disjunction when isInfinite import is in scope",
+            output: inlineFixableDualSignOutput,
         },
     ],
     valid: [

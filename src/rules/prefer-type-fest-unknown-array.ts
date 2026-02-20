@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
@@ -84,13 +88,25 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeOperator(node) {
                     if (!isReadonlyUnknownArrayType(node)) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "UnknownArray",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferUnknownArray",
                         node,
                     });
@@ -109,7 +125,14 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "UnknownArray",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferUnknownArray",
                         node,
                     });
@@ -123,6 +146,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
             },
+            fixable: "code",
             messages: {
                 preferUnknownArray:
                     "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",

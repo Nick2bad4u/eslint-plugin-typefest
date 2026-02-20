@@ -101,6 +101,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     const typeArguments =
                         isEqualTypeReference.typeArguments?.params ?? [];
                     const identifierName = node.id.name;
+                    const initializerValue = node.init.value;
 
                     context.report({
                         messageId: "preferTsExtrasIsEqualType",
@@ -126,9 +127,15 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                                                       rightType
                                                   );
 
+                                              const callText = `isEqualType<${leftTypeText}, ${rightTypeText}>()`;
+                                              const runtimePreservingExpression =
+                                                  initializerValue
+                                                      ? `${callText} || true`
+                                                      : `${callText} && false`;
+
                                               return fixer.replaceText(
                                                   node,
-                                                  `${identifierName} = isEqualType<${leftTypeText}, ${rightTypeText}>()`
+                                                  `${identifierName} = ${runtimePreservingExpression}`
                                               );
                                           },
                                           messageId:

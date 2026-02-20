@@ -18,6 +18,16 @@ const invalidFixtureName = "prefer-type-fest-primitive.invalid.ts";
 const skipFixtureName = "tests/prefer-type-fest-primitive.skip.ts";
 const nonPrimitiveKeywordUnionValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | object;";
+const inlineFixableCode = [
+    'import type { Primitive } from "type-fest";',
+    "",
+    "type PrimitiveLike = bigint | boolean | null | number | string | symbol | undefined;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { Primitive } from "type-fest";',
+    "",
+    "type PrimitiveLike = Primitive;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-primitive", rule, {
     invalid: [
@@ -33,6 +43,13 @@ ruleTester.run("prefer-type-fest-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture primitive alias unions",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes primitive keyword union when Primitive import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

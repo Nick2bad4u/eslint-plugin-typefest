@@ -26,6 +26,16 @@ const nonNumberReceiverValidCode = [
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isInteger(42);";
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineFixableCode = [
+    'import { isFinite } from "ts-extras";',
+    "",
+    "const result = Number.isFinite(42);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { isFinite } from "ts-extras";',
+    "",
+    "const result = isFinite(42);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-is-finite", rule, {
     invalid: [
@@ -47,6 +57,13 @@ ruleTester.run("prefer-ts-extras-is-finite", rule, {
             errors: [{ messageId: "preferTsExtrasIsFinite" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Number.isFinite call",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasIsFinite" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Number.isFinite() when isFinite import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

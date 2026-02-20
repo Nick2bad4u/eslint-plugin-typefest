@@ -62,6 +62,16 @@ const inlineValidReadonlyOperatorNonArrayTypeCode = [
     "",
     "type NotJsonArray = readonly ReadonlyArray<JsonValue> | JsonValue[];",
 ].join("\n");
+const inlineFixableCode = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonValue[] | readonly JsonValue[];",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonArray;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-json-array", rule, {
     invalid: [
@@ -89,6 +99,13 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports reversed generic array union",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes JsonValue array union when JsonArray import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

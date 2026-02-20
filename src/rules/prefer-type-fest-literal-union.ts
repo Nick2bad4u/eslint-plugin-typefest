@@ -2,8 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-literal-union`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeTextReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
@@ -121,6 +125,64 @@ const hasLiteralUnionShape = (node: TSESTree.TSUnionType): boolean => {
     return false;
 };
 
+const getLiteralUnionFamily = (
+    node: TSESTree.TSUnionType
+): LiteralUnionFamily | null => {
+    for (const family of literalUnionFamilies) {
+        let allMembersAreFamilyMembers = true;
+        let hasKeywordMember = false;
+        let hasLiteralMember = false;
+
+        for (const unionMember of node.types) {
+            if (isKeywordMemberForFamily(unionMember, family)) {
+                hasKeywordMember = true;
+                continue;
+            }
+
+            if (isLiteralMemberForFamily(unionMember, family)) {
+                hasLiteralMember = true;
+                continue;
+            }
+
+            allMembersAreFamilyMembers = false;
+            break;
+        }
+
+        if (
+            allMembersAreFamilyMembers &&
+            hasKeywordMember &&
+            hasLiteralMember
+        ) {
+            return family;
+        }
+    }
+
+    return null;
+};
+
+const getLiteralUnionReplacementText = (
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    node: TSESTree.TSUnionType,
+    family: LiteralUnionFamily
+): null | string => {
+    const literalMembers = node.types.filter((member) =>
+        isLiteralMemberForFamily(member, family)
+    );
+
+    if (literalMembers.length === 0) {
+        return null;
+    }
+
+    const literalText =
+        literalMembers.length === 1
+            ? sourceCode.getText(literalMembers[0])
+            : literalMembers
+                  .map((member) => sourceCode.getText(member))
+                  .join(" | ");
+
+    return `LiteralUnion<${literalText}, ${family}>`;
+};
+
 /**
  * ESLint rule definition for `prefer-type-fest-literal-union`.
  *
@@ -136,13 +198,42 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSUnionType(node) {
                     if (!hasLiteralUnionShape(node)) {
                         return;
                     }
 
+                    const family = getLiteralUnionFamily(node);
+
+                    if (!family) {
+                        return;
+                    }
+
+                    const replacementText = getLiteralUnionReplacementText(
+                        context.sourceCode,
+                        node,
+                        family
+                    );
+
+                    if (!replacementText) {
+                        return;
+                    }
+
+                    const replacementFix = createSafeTypeNodeTextReplacementFix(
+                        node,
+                        "LiteralUnion",
+                        replacementText,
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferLiteralUnion",
                         node,
                     });
@@ -156,6 +247,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-literal-union.md",
             },
+            fixable: "code",
             messages: {
                 preferLiteralUnion:
                     "Prefer `LiteralUnion<...>` from type-fest over unions that mix primitive keywords and same-family literal members.",

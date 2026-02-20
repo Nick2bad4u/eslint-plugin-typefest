@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    getSafeLocalNameForImportedValue,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -76,6 +80,11 @@ const extractAssertErrorTarget = (
 const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -90,13 +99,42 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (!extractAssertErrorTarget(node.test)) {
+                    const guardExpression = extractAssertErrorTarget(node.test);
+
+                    if (!guardExpression) {
+                        return;
+                    }
+
+                    const replacementName = getSafeLocalNameForImportedValue({
+                        context,
+                        importedName: "assertError",
+                        imports: tsExtrasImports,
+                        referenceNode: node,
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    if (!replacementName) {
+                        context.report({
+                            messageId: "preferTsExtrasAssertError",
+                            node,
+                        });
+
                         return;
                     }
 
                     context.report({
                         messageId: "preferTsExtrasAssertError",
                         node,
+                        suggest: [
+                            {
+                                fix: (fixer) =>
+                                    fixer.replaceText(
+                                        node,
+                                        `${replacementName}(${context.sourceCode.getText(guardExpression)});`
+                                    ),
+                                messageId: "suggestTsExtrasAssertError",
+                            },
+                        ],
                     });
                 },
             };
@@ -108,9 +146,12 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras assertError over manual instanceof Error throw guards.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-error.md",
             },
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasAssertError:
                     "Prefer `assertError` from `ts-extras` over manual `instanceof Error` throw guards.",
+                suggestTsExtrasAssertError:
+                    "Replace this manual guard with `assertError(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

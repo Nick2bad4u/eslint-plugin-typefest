@@ -15,6 +15,16 @@ const validFixtureName = "prefer-type-fest-literal-union.valid.ts";
 const invalidFixtureName = "prefer-type-fest-literal-union.invalid.ts";
 const skipFixtureName = "tests/prefer-type-fest-literal-union.skip.ts";
 const inlineInvalidBigIntLiteralUnionCode = "type SessionNonce = bigint | 1n;";
+const inlineFixableCode = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type EnvironmentName = 'dev' | 'prod' | string;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type EnvironmentName = LiteralUnion<'dev' | 'prod', string>;",
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-literal-union",
@@ -39,6 +49,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferLiteralUnion" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports bigint base plus bigint literal union",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes primitive+literal union when LiteralUnion import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

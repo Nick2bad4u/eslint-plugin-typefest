@@ -21,6 +21,16 @@ const inlineValidNonStringKeyCode =
     "type SharedContext = Record<number, unknown>;";
 const inlineInvalidRecordStringUnknownCode =
     "type SharedContext = Record<string, unknown>;";
+const inlineFixableCode = [
+    'import type { UnknownRecord } from "type-fest";',
+    "",
+    "type SharedContext = Record<string, unknown>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { UnknownRecord } from "type-fest";',
+    "",
+    "type SharedContext = UnknownRecord;",
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-unknown-record",
@@ -38,6 +48,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferUnknownRecord" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports inline Record<string, unknown> alias",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferUnknownRecord" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes Record<string, unknown> when UnknownRecord import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

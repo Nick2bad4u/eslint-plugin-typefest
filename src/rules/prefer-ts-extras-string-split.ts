@@ -1,3 +1,7 @@
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-string-split`.
@@ -17,6 +21,11 @@ import {
 const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -71,6 +80,13 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "stringSplit",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasStringSplit",
                         node,
                     });
@@ -84,6 +100,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras stringSplit over String#split for stronger tuple inference.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-string-split.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasStringSplit:
                     "Prefer `stringSplit` from `ts-extras` over `string.split(...)` for stronger tuple inference.",

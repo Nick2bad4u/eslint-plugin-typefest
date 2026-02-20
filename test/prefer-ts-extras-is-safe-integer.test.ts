@@ -26,6 +26,16 @@ const nonNumberReceiverValidCode = [
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isInteger(42);";
 const skipPathInvalidCode = inlineInvalidCode;
+const inlineFixableCode = [
+    'import { isSafeInteger } from "ts-extras";',
+    "",
+    "const result = Number.isSafeInteger(42);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { isSafeInteger } from "ts-extras";',
+    "",
+    "const result = isSafeInteger(42);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
     invalid: [
@@ -47,6 +57,13 @@ ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
             errors: [{ messageId: "preferTsExtrasIsSafeInteger" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Number.isSafeInteger call",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasIsSafeInteger" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Number.isSafeInteger() when isSafeInteger import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

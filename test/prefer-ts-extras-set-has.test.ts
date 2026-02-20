@@ -52,6 +52,18 @@ const declaredUnionSetInvalidCode = [
     "const hasValue = values.has(2);",
     "String(hasValue);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { setHas } from "ts-extras";',
+    "",
+    "const values = new Set([1, 2, 3]);",
+    "const hasValue = values.has(2);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { setHas } from "ts-extras";',
+    "",
+    "const values = new Set([1, 2, 3]);",
+    "const hasValue = setHas(values, 2);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-set-has",
@@ -88,6 +100,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports declared set-like union has call",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes set.has() when setHas import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

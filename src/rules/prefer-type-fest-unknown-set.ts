@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_SET_TYPE_NAME = "ReadonlySet";
@@ -62,6 +66,11 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
                     if (
@@ -74,7 +83,14 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "UnknownSet",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferUnknownSet",
                         node,
                     });
@@ -88,6 +104,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-set.md",
             },
+            fixable: "code",
             messages: {
                 preferUnknownSet:
                     "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",

@@ -4,17 +4,21 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-/**
- * Check whether the input is record like unknown.
- *
- * @param typeNode - Value to inspect.
- *
- * @returns `true` when the value is record like unknown; otherwise `false`.
- */
+const isStringLikeKeyType = (node: TSESTree.TypeNode): boolean =>
+    node.type === "TSStringKeyword" ||
+    (node.type === "TSLiteralType" &&
+        node.literal.type === "Literal" &&
+        node.literal.value === "string");
 
-const isRecordLikeUnknown = (typeNode: TSESTree.TSTypeReference): boolean => {
+const isRecordLikeUnknownOrAny = (
+    typeNode: TSESTree.TSTypeReference
+): boolean => {
     if (
         typeNode.typeName.type !== "Identifier" ||
         typeNode.typeName.name !== "Record" ||
@@ -26,9 +30,11 @@ const isRecordLikeUnknown = (typeNode: TSESTree.TSTypeReference): boolean => {
     const [keyType, valueType] = typeNode.typeArguments.params;
 
     return (
-        keyType?.type === "TSStringKeyword" &&
-        (valueType?.type === "TSUnknownKeyword" ||
-            valueType?.type === "TSAnyKeyword")
+        keyType !== undefined &&
+        valueType !== undefined &&
+        isStringLikeKeyType(keyType) &&
+        (valueType.type === "TSUnknownKeyword" ||
+            valueType.type === "TSAnyKeyword")
     );
 };
 
@@ -47,15 +53,42 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSTypeReference(node) {
-                    if (!isRecordLikeUnknown(node)) {
+                    if (!isRecordLikeUnknownOrAny(node)) {
+                        return;
+                    }
+
+                    const jsonObjectSuggestionFix =
+                        createSafeTypeNodeReplacementFix(
+                            node,
+                            "JsonObject",
+                            typeFestDirectImports
+                        );
+
+                    if (!jsonObjectSuggestionFix) {
+                        context.report({
+                            messageId: "preferJsonValue",
+                            node,
+                        });
+
                         return;
                     }
 
                     context.report({
                         messageId: "preferJsonValue",
                         node,
+                        suggest: [
+                            {
+                                fix: jsonObjectSuggestionFix,
+                                messageId: "suggestJsonObject",
+                            },
+                        ],
                     });
                 },
             };
@@ -67,9 +100,12 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-value.md",
             },
+            hasSuggestions: true,
             messages: {
                 preferJsonValue:
                     "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
+                suggestJsonObject:
+                    "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).",
             },
             schema: [],
             type: "suggestion",

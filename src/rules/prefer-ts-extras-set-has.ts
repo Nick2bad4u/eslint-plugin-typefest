@@ -5,6 +5,10 @@
 import type ts from "typescript";
 
 import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
+import {
     createTypedRule,
     getTypedRuleServices,
     isTestFilePath,
@@ -19,6 +23,11 @@ import {
 const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -68,6 +77,13 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createMethodToFunctionCallFix({
+                            callNode: node,
+                            context,
+                            importedName: "setHas",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                        }),
                         messageId: "preferTsExtrasSetHas",
                         node,
                     });
@@ -81,6 +97,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras setHas over Set#has for stronger element narrowing.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-set-has.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasSetHas:
                     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.",

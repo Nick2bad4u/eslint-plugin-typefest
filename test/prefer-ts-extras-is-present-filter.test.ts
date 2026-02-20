@@ -112,6 +112,24 @@ const inlineValidMapCallbackCode = [
     "",
     "String(mapped.length);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter((value) => value != null);",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineFixableOutput = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(isPresent);",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-is-present-filter",
@@ -151,6 +169,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reverse undefined loose inequality predicate",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes filter callback to isPresent when import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

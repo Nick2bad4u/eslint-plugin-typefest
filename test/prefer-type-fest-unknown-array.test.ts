@@ -24,6 +24,16 @@ const inlineInvalidReadonlyNonArrayOperatorCode =
 const inlineValidMissingReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray;";
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
+const inlineFixableCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = ReadonlyArray<unknown>;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = UnknownArray;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-unknown-array", rule, {
     invalid: [
@@ -51,6 +61,13 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly operator over unknown[] type reference",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes ReadonlyArray<unknown> when UnknownArray import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

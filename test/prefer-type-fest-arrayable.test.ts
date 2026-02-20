@@ -30,6 +30,16 @@ const genericArrayMissingTypeArgumentValidCode =
     "type QueryValue = string | Array;";
 const genericArrayMismatchedElementValidCode =
     "type QueryValue = string | Array<number>;";
+const inlineFixableCode = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = string | string[];",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
 
@@ -70,6 +80,13 @@ ruleTester.run(
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reversed Array<string> | string union",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes T | T[] union when Arrayable import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

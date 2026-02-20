@@ -80,6 +80,46 @@ const nonBinaryGuardValidCode = [
     "}",
 ].join("\n");
 const skipPathInvalidCode = undefinedOnLeftInvalidCode;
+const inlineSuggestableCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableOutput = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    assertDefined(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableCanonicalCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Expected a defined value, got `undefined`');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableCanonicalOutput = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    assertDefined(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     invalid: [
@@ -113,6 +153,29 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct-throw consequent guard",
+        },
+        {
+            code: inlineSuggestableCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests assertDefined() replacement when import is in scope",
+        },
+        {
+            code: inlineAutofixableCanonicalCode,
+            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes canonical undefined guard throw when assertDefined import is in scope",
+            output: inlineAutofixableCanonicalOutput,
         },
     ],
     valid: [

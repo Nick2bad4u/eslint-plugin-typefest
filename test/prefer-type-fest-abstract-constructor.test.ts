@@ -17,6 +17,16 @@ const skipTestPathFixtureName = "prefer-type-fest-abstract-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
 const inlineInvalidNoFilenameCode =
     "type AbstractCtor = abstract new (...args: readonly unknown[]) => object;";
+const inlineFixableCode = [
+    'import type { AbstractConstructor } from "type-fest";',
+    "",
+    "type AbstractCtor = abstract new (name: string, retryCount: number) => object;",
+].join("\n");
+const inlineFixableOutput = [
+    'import type { AbstractConstructor } from "type-fest";',
+    "",
+    "type AbstractCtor = AbstractConstructor<object, [name: string, retryCount: number]>;",
+].join("\n");
 
 ruleTester.run(
     "prefer-type-fest-abstract-constructor",
@@ -41,6 +51,17 @@ ruleTester.run(
                     },
                 ],
                 name: "reports inline abstract constructor signature without filename",
+            },
+            {
+                code: inlineFixableCode,
+                errors: [
+                    {
+                        messageId: "preferAbstractConstructorSignature",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes abstract constructor signature when AbstractConstructor import is in scope",
+                output: inlineFixableOutput,
             },
         ],
         valid: [

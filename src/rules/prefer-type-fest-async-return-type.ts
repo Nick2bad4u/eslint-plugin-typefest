@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeTextReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const AWAITED_TYPE_NAME = "Awaited";
@@ -63,6 +67,12 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+            const { sourceCode } = context;
+
             return {
                 TSTypeReference(node) {
                     if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {
@@ -87,7 +97,22 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const returnTypeArgument =
+                        getSingleTypeArgument(awaitedInnerType);
+
+                    if (!returnTypeArgument) {
+                        return;
+                    }
+
+                    const replacementFix = createSafeTypeNodeTextReplacementFix(
+                        node,
+                        "AsyncReturnType",
+                        `AsyncReturnType<${sourceCode.getText(returnTypeArgument)}>`,
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferAsyncReturnType",
                         node,
                     });
@@ -101,6 +126,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-async-return-type.md",
             },
+            fixable: "code",
             messages: {
                 preferAsyncReturnType:
                     "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",

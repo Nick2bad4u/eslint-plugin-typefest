@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedImportsFromSource,
+    createSafeTypeNodeReplacementFix,
+} from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
@@ -173,13 +177,25 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                 return {};
             }
 
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
+
             return {
                 TSUnionType(node) {
                     if (!hasJsonArrayUnionShape(node)) {
                         return;
                     }
 
+                    const replacementFix = createSafeTypeNodeReplacementFix(
+                        node,
+                        "JsonArray",
+                        typeFestDirectImports
+                    );
+
                     context.report({
+                        ...(replacementFix ? { fix: replacementFix } : {}),
                         messageId: "preferJsonArray",
                         node,
                     });
@@ -193,6 +209,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
             },
+            fixable: "code",
             messages: {
                 preferJsonArray:
                     "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
