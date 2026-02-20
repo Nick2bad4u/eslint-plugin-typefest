@@ -511,6 +511,9 @@
         "eslint": "^10.0.1",
         "typescript": ">=5.9.3"
     },
+    "overrides": {
+        "jsonc-eslint-parser": "^3.1.0"
+    },
     "packageManager": "npm@11.10.1",
     "engines": {
         "node": ">=20.19.0"
