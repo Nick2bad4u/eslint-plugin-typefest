@@ -1,12 +1,12 @@
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueReferenceReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-keys`.
  */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-keys`.
@@ -51,8 +51,6 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
-                        messageId: "preferTsExtrasObjectKeys",
-                        node,
                         fix: createSafeValueReferenceReplacementFix({
                             context,
                             importedName: "objectKeys",
@@ -60,6 +58,8 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                             sourceModuleName: "ts-extras",
                             targetNode: node.callee,
                         }),
+                        messageId: "preferTsExtrasObjectKeys",
+                        node,
                     });
                 },
             };

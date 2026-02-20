@@ -55,6 +55,18 @@ const mixedUnionValidCode = [
     "const isEmpty = values.length === 0;",
     "String(isEmpty);",
 ].join("\n");
+const inlineFixableCode = [
+    'import { isEmpty } from "ts-extras";',
+    "",
+    "const values = [1, 2, 3] as const;",
+    "const empty = values.length === 0;",
+].join("\n");
+const inlineFixableOutput = [
+    'import { isEmpty } from "ts-extras";',
+    "",
+    "const values = [1, 2, 3] as const;",
+    "const empty = isEmpty(values);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-is-empty", rule, {
     invalid: [
@@ -98,6 +110,13 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
             errors: [{ messageId: "preferTsExtrasIsEmpty" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports union of array-like values length check",
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasIsEmpty" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes array length equality when isEmpty import is in scope",
+            output: inlineFixableOutput,
         },
     ],
     valid: [

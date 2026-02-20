@@ -4,6 +4,10 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueArgumentFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const FILTER_METHOD_NAME = "filter";
@@ -344,6 +348,11 @@ const isStrictAbsentCheck = ({
 const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -366,6 +375,14 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (comparison.operator === "!=") {
                         context.report({
+                            fix: createSafeValueArgumentFunctionCallFix({
+                                argumentNode: comparison.comparedExpression,
+                                context,
+                                importedName: "isPresent",
+                                imports: tsExtrasImports,
+                                sourceModuleName: "ts-extras",
+                                targetNode: node,
+                            }),
                             messageId: "preferTsExtrasIsPresent",
                             node,
                         });
@@ -373,6 +390,15 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (comparison.operator === "==") {
                         context.report({
+                            fix: createSafeValueArgumentFunctionCallFix({
+                                argumentNode: comparison.comparedExpression,
+                                context,
+                                importedName: "isPresent",
+                                imports: tsExtrasImports,
+                                negated: true,
+                                sourceModuleName: "ts-extras",
+                                targetNode: node,
+                            }),
                             messageId: "preferTsExtrasIsPresentNegated",
                             node,
                         });
@@ -421,6 +447,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isPresent over inline nullish comparisons outside filter callbacks.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsPresent:
                     "Prefer `isPresent(value)` from `ts-extras` over inline nullish comparisons.",

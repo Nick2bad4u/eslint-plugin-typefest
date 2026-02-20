@@ -4,6 +4,10 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueArgumentFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const FILTER_METHOD_NAME = "filter";
@@ -176,6 +180,11 @@ const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -201,6 +210,15 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueArgumentFunctionCallFix({
+                            argumentNode: match.comparedExpression,
+                            context,
+                            importedName: "isDefined",
+                            imports: tsExtrasImports,
+                            negated: match.prefersNegatedHelper,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        }),
                         messageId: match.prefersNegatedHelper
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined",
@@ -216,6 +234,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsDefined:
                     "Prefer `isDefined(value)` from `ts-extras` over inline undefined comparisons.",

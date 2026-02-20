@@ -6,6 +6,10 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueArgumentFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
+import {
     createTypedRule,
     getTypedRuleServices,
     isTestFilePath,
@@ -48,6 +52,11 @@ const isLengthMemberExpression = (
 const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
+
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -125,6 +134,14 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                     }
 
                     context.report({
+                        fix: createSafeValueArgumentFunctionCallFix({
+                            argumentNode: lengthNode.object,
+                            context,
+                            importedName: "isEmpty",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        }),
                         messageId: "preferTsExtrasIsEmpty",
                         node,
                     });
@@ -138,6 +155,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-empty.md",
             },
+            fixable: "code",
             messages: {
                 preferTsExtrasIsEmpty:
                     "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",

@@ -122,6 +122,30 @@ const inlineValidFilterCallbackLogicalComparisonCode = [
     "const missingValues = values.filter((value) => value === null || value === undefined);",
     "String(presentValues.length + missingValues.length);",
 ].join("\n");
+const inlineFixablePresentCode = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const maybeValue: null | string | undefined;",
+    "const hasValue = maybeValue != null;",
+].join("\n");
+const inlineFixablePresentOutput = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const maybeValue: null | string | undefined;",
+    "const hasValue = isPresent(maybeValue);",
+].join("\n");
+const inlineFixableAbsentCode = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const maybeValue: null | string | undefined;",
+    "const isMissing = maybeValue == null;",
+].join("\n");
+const inlineFixableAbsentOutput = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const maybeValue: null | string | undefined;",
+    "const isMissing = !isPresent(maybeValue);",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-is-present",
@@ -164,6 +188,20 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports strict absent check inside map callback",
+            },
+            {
+                code: inlineFixablePresentCode,
+                errors: [{ messageId: "preferTsExtrasIsPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes loose null inequality when isPresent import is in scope",
+                output: inlineFixablePresentOutput,
+            },
+            {
+                code: inlineFixableAbsentCode,
+                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes loose null equality when isPresent import is in scope",
+                output: inlineFixableAbsentOutput,
             },
         ],
         valid: [

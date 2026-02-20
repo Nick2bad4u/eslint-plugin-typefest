@@ -6,14 +6,14 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
+import {
     createTypedRule,
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-at`.

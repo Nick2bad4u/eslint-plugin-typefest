@@ -27,7 +27,8 @@ const inlineFixableOutput = [
     "const sample = { alpha: 1 } as const;",
     "const entries = objectEntries(sample);",
 ].join("\n");
-const computedAccessValidCode = "const pairs = Object['entries']({ alpha: 1 });";
+const computedAccessValidCode =
+    "const pairs = Object['entries']({ alpha: 1 });";
 const nonObjectReceiverValidCode = [
     "const helper = {",
     "    entries(value: { alpha: number }): readonly [string, number][] {",

@@ -6,14 +6,14 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import {
+    collectDirectNamedValueImportsFromSource,
+    createMemberToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
+import {
     createTypedRule,
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMemberToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
 
 /**
  * Check whether the input is write target.
