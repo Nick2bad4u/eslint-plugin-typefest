@@ -1,6 +1,6 @@
-[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
+[CmdletBinding(SupportsShouldProcess = $true,ConfirmImpact = "High")]
 param(
-    [ValidateRange(1, 100)]
+    [ValidateRange(1,100)]
     [int]$KeepLast = 5,
 
     [switch]$DeleteTags,
@@ -74,7 +74,7 @@ if ($releasesToDelete.Count -eq 0) {
 }
 
 Write-Host "Releases selected for deletion:"
-$releasesToDelete | Select-Object tagName, publishedAt | Format-Table -AutoSize
+$releasesToDelete | Select-Object tagName,publishedAt | Format-Table -AutoSize
 
 if (-not $Force) {
     $confirmation = Read-Host "Delete $($releasesToDelete.Count) release(s)? Type 'yes' to continue"
@@ -86,7 +86,7 @@ if (-not $Force) {
 
 foreach ($release in $releasesToDelete) {
     $tagName = $release.tagName
-    if (-not $PSCmdlet.ShouldProcess("release '$tagName'", "Delete")) {
+    if (-not $PSCmdlet.ShouldProcess("release '$tagName'","Delete")) {
         continue
     }
 
@@ -97,7 +97,7 @@ foreach ($release in $releasesToDelete) {
         continue
     }
 
-    if (-not $PSCmdlet.ShouldProcess("git tag '$tagName'", "Delete local and remote tags")) {
+    if (-not $PSCmdlet.ShouldProcess("git tag '$tagName'","Delete local and remote tags")) {
         continue
     }
 
