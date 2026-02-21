@@ -14,7 +14,7 @@ const config = {
     },
     // Fast default: static mutants are disproportionately expensive in this repository.
     // Use `npm run test:stryker:full` (or `test:stryker:full:ci`) for periodic full audits.
-    ignoreStatic: true,
+    ignoreStatic: false,
     incremental: true,
     incrementalFile: ".cache/stryker/incremental.json",
     jsonReporter: {
