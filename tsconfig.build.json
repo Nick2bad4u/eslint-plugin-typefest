@@ -5,7 +5,7 @@
         "declaration": true,
         "declarationMap": true,
         "emitDeclarationOnly": false,
-        "isolatedDeclarations": false,
+        "isolatedDeclarations": true,
         "isolatedModules": false,
         "module": "NodeNext",
         "moduleResolution": "NodeNext",

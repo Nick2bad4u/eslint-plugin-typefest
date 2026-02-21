@@ -65,4 +65,4 @@ export const createTypedRuleTester = (): RuleTester =>
 /**
  * Shared typed RuleTester singleton for test modules.
  */
-export const typedRuleTester = createTypedRuleTester();
+export const typedRuleTester: RuleTester = createTypedRuleTester();

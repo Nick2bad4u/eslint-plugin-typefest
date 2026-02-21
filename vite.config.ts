@@ -27,7 +27,7 @@ const testFilePatterns = ["test/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}"];
 /**
  * Vitest configuration for eslint-plugin-typefest.
  */
-export default defineConfig({
+const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
     cacheDir: "./.cache/vitest",
     test: {
         // Directory for storing Vitest test attachments (screenshots, logs, etc.) in a hidden cache folder.
@@ -248,3 +248,5 @@ export default defineConfig({
         },
     },
 });
+
+export default vitestConfig;

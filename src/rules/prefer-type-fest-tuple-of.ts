@@ -25,95 +25,97 @@ const createTupleOfReplacementText = (
         ? `Readonly<TupleOf<${lengthTypeText}, ${elementTypeText}>>`
         : `TupleOf<${lengthTypeText}, ${elementTypeText}>`;
 
-const preferTypeFestTupleOfRule = createTypedRule({
-    create(context) {
-        const filePath = context.filename;
+const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
+    createTypedRule({
+        create(context) {
+            const filePath = context.filename;
 
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
+            if (isTestFilePath(filePath)) {
+                return {};
+            }
 
-        const importedAliasMatches = collectImportedTypeAliasMatches(
-            context.sourceCode,
-            tupleOfAliasReplacements
-        );
-        const typeFestDirectImports = collectDirectNamedImportsFromSource(
-            context.sourceCode,
-            "type-fest"
-        );
+            const importedAliasMatches = collectImportedTypeAliasMatches(
+                context.sourceCode,
+                tupleOfAliasReplacements
+            );
+            const typeFestDirectImports = collectDirectNamedImportsFromSource(
+                context.sourceCode,
+                "type-fest"
+            );
 
-        return {
-            TSTypeReference(node) {
-                if (node.typeName.type !== "Identifier") {
-                    return;
-                }
+            return {
+                TSTypeReference(node) {
+                    if (node.typeName.type !== "Identifier") {
+                        return;
+                    }
 
-                const importedAliasMatch = importedAliasMatches.get(
-                    node.typeName.name
-                );
-                if (!importedAliasMatch) {
-                    return;
-                }
+                    const importedAliasMatch = importedAliasMatches.get(
+                        node.typeName.name
+                    );
+                    if (!importedAliasMatch) {
+                        return;
+                    }
 
-                const tupleTypeParameters = node.typeArguments?.params;
-                let fix: null | TSESLint.ReportFixFunction = null;
-
-                if (
-                    tupleTypeParameters?.length === 2 &&
-                    typeFestDirectImports.has("TupleOf") &&
-                    !isTypeParameterNameShadowed(node, "TupleOf")
-                ) {
-                    const [elementType, lengthType] = tupleTypeParameters;
-                    const elementTypeText =
-                        context.sourceCode.getText(elementType);
-                    const lengthTypeText =
-                        context.sourceCode.getText(lengthType);
-                    const usesReadonlyWrapper =
-                        importedAliasMatch.importedName === "ReadonlyTuple";
+                    const tupleTypeParameters = node.typeArguments?.params;
+                    let fix: null | TSESLint.ReportFixFunction = null;
 
                     if (
-                        !usesReadonlyWrapper ||
-                        !isTypeParameterNameShadowed(node, "Readonly")
+                        tupleTypeParameters?.length === 2 &&
+                        typeFestDirectImports.has("TupleOf") &&
+                        !isTypeParameterNameShadowed(node, "TupleOf")
                     ) {
-                        const replacementText = createTupleOfReplacementText(
-                            importedAliasMatch.importedName,
-                            lengthTypeText,
-                            elementTypeText
-                        );
+                        const [elementType, lengthType] = tupleTypeParameters;
+                        const elementTypeText =
+                            context.sourceCode.getText(elementType);
+                        const lengthTypeText =
+                            context.sourceCode.getText(lengthType);
+                        const usesReadonlyWrapper =
+                            importedAliasMatch.importedName === "ReadonlyTuple";
 
-                        fix = (fixer: TSESLint.RuleFixer) =>
-                            fixer.replaceText(node, replacementText);
+                        if (
+                            !usesReadonlyWrapper ||
+                            !isTypeParameterNameShadowed(node, "Readonly")
+                        ) {
+                            const replacementText =
+                                createTupleOfReplacementText(
+                                    importedAliasMatch.importedName,
+                                    lengthTypeText,
+                                    elementTypeText
+                                );
+
+                            fix = (fixer: TSESLint.RuleFixer) =>
+                                fixer.replaceText(node, replacementText);
+                        }
                     }
-                }
 
-                context.report({
-                    data: {
-                        alias: importedAliasMatch.importedName,
-                        replacement: importedAliasMatch.replacementName,
-                    },
-                    messageId: "preferTupleOf",
-                    node,
-                    ...(fix === null ? {} : { fix }),
-                });
+                    context.report({
+                        data: {
+                            alias: importedAliasMatch.importedName,
+                            replacement: importedAliasMatch.replacementName,
+                        },
+                        messageId: "preferTupleOf",
+                        node,
+                        ...(fix === null ? {} : { fix }),
+                    });
+                },
+            };
+        },
+        defaultOptions: [],
+        meta: {
+            docs: {
+                description:
+                    "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
+                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tuple-of.md",
             },
-        };
-    },
-    defaultOptions: [],
-    meta: {
-        docs: {
-            description:
-                "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
-            url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tuple-of.md",
+            fixable: "code",
+            messages: {
+                preferTupleOf:
+                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            },
+            schema: [],
+            type: "suggestion",
         },
-        fixable: "code",
-        messages: {
-            preferTupleOf:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
-        },
-        schema: [],
-        type: "suggestion",
-    },
-    name: "prefer-type-fest-tuple-of",
-});
+        name: "prefer-type-fest-tuple-of",
+    });
 
 export default preferTypeFestTupleOfRule;

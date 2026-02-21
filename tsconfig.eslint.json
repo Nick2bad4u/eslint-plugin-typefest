@@ -5,6 +5,7 @@
         "checkJs": false,
         "erasableSyntaxOnly": false,
         "incremental": true,
+        "isolatedDeclarations": false,
         "noCheck": true,
         "noEmit": true,
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.eslint.tsbuildinfo"

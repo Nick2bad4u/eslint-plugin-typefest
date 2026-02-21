@@ -129,6 +129,55 @@ export const collectDirectNamedValueImportsFromSource = (
     );
 };
 
+function getVariableInScopeChain(
+    scope: null | Readonly<TSESLint.Scope.Scope>,
+    variableName: string
+): null | TSESLint.Scope.Variable {
+    let currentScope = scope;
+
+    while (currentScope !== null) {
+        const variable = currentScope.set.get(variableName);
+        if (variable !== undefined) {
+            return variable;
+        }
+
+        currentScope = currentScope.upper;
+    }
+
+    return null;
+}
+
+function isLocalNameBoundToExpectedImport(
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    referenceNode: TSESTree.Node,
+    localName: string,
+    sourceModuleName: string
+): boolean {
+    const initialScope = sourceCode.getScope(referenceNode);
+    const variable = getVariableInScopeChain(initialScope, localName);
+
+    if (!variable) {
+        return false;
+    }
+
+    return variable.defs.some((definition) => {
+        if (definition.type !== "ImportBinding") {
+            return false;
+        }
+
+        const definitionNode = definition.node;
+        if (definitionNode.type !== "ImportSpecifier") {
+            return false;
+        }
+
+        const parent = definitionNode.parent;
+        return (
+            parent.type === "ImportDeclaration" &&
+            parent.source.value === sourceModuleName
+        );
+    });
+}
+
 /**
  * Resolve a local alias that is safely bound to the expected import at a
  * reference node.
@@ -306,53 +355,4 @@ export const createSafeValueArgumentFunctionCallFix = ({
     const replacementText = negated === true ? `!${callText}` : callText;
 
     return (fixer) => fixer.replaceText(targetNode, replacementText);
-};
-
-const isLocalNameBoundToExpectedImport = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
-    referenceNode: TSESTree.Node,
-    localName: string,
-    sourceModuleName: string
-): boolean => {
-    const initialScope = sourceCode.getScope(referenceNode);
-    const variable = resolveVariableInScopeChain(initialScope, localName);
-
-    if (!variable) {
-        return false;
-    }
-
-    return variable.defs.some((definition) => {
-        if (definition.type !== "ImportBinding") {
-            return false;
-        }
-
-        const definitionNode = definition.node;
-        if (definitionNode.type !== "ImportSpecifier") {
-            return false;
-        }
-
-        const parent = definitionNode.parent;
-        return (
-            parent.type === "ImportDeclaration" &&
-            parent.source.value === sourceModuleName
-        );
-    });
-};
-
-const resolveVariableInScopeChain = (
-    scope: null | Readonly<TSESLint.Scope.Scope>,
-    variableName: string
-): null | TSESLint.Scope.Variable => {
-    let currentScope = scope;
-
-    while (currentScope !== null) {
-        const variable = currentScope.set.get(variableName);
-        if (variable !== undefined) {
-            return variable;
-        }
-
-        currentScope = currentScope.upper;
-    }
-
-    return null;
 };

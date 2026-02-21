@@ -84,9 +84,9 @@ import * as yamlEslintParser from "yaml-eslint-parser";
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
-// Keep it opt-in via UW_ENABLE_JSON_SCHEMA_VALIDATION=1.
+// Keep it opt-in via ENABLE_JSON_SCHEMA_VALIDATION=1.
 const enableJsonSchemaValidation =
-    globalThis.process.env["UW_ENABLE_JSON_SCHEMA_VALIDATION"] === "1";
+    globalThis.process.env["ENABLE_JSON_SCHEMA_VALIDATION"] === "1";
 
 const jsonSchemaValidatorPackageName = "eslint-plugin-json-schema-validator";
 
@@ -152,16 +152,16 @@ const processEnvironment = globalThis.process.env;
  * - "nofile": enable progress but hide file names
  * - "off" / "0" / "false": disable progress
  */
-const UW_ESLINT_PROGRESS_MODE = (
-    processEnvironment["UW_ESLINT_PROGRESS"] ?? "on"
+const ESLINT_PROGRESS_MODE = (
+    processEnvironment["ESLINT_PROGRESS"] ?? "on"
 ).toLowerCase();
 
 const IS_CI = (processEnvironment["CI"] ?? "").toLowerCase() === "true";
 const DISABLE_PROGRESS =
-    UW_ESLINT_PROGRESS_MODE === "off" ||
-    UW_ESLINT_PROGRESS_MODE === "0" ||
-    UW_ESLINT_PROGRESS_MODE === "false";
-const HIDE_PROGRESS_FILENAMES = UW_ESLINT_PROGRESS_MODE === "nofile";
+    ESLINT_PROGRESS_MODE === "off" ||
+    ESLINT_PROGRESS_MODE === "0" ||
+    ESLINT_PROGRESS_MODE === "false";
+const HIDE_PROGRESS_FILENAMES = ESLINT_PROGRESS_MODE === "nofile";
 
 /** @type {import("eslint").Linter.Config} */
 const fileProgressOverridesConfig = {

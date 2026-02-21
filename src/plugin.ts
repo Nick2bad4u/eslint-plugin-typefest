@@ -170,7 +170,118 @@ const typeScriptParser = loadTypeScriptParser();
 /**
  * Map of all rule modules exported by eslint-plugin-typefest.
  */
-const typefestRules = {
+const typeFestTypesRuleNames = [
+    "prefer-type-fest-abstract-constructor",
+    "prefer-type-fest-async-return-type",
+    "prefer-type-fest-arrayable",
+    "prefer-type-fest-conditional-pick",
+    "prefer-type-fest-constructor",
+    "prefer-type-fest-except",
+    "prefer-type-fest-if",
+    "prefer-type-fest-iterable-element",
+    "prefer-type-fest-json-array",
+    "prefer-type-fest-json-object",
+    "prefer-type-fest-json-primitive",
+    "prefer-type-fest-json-value",
+    "prefer-type-fest-keys-of-union",
+    "prefer-type-fest-literal-union",
+    "prefer-type-fest-merge-exclusive",
+    "prefer-type-fest-non-empty-tuple",
+    "prefer-type-fest-omit-index-signature",
+    "prefer-type-fest-partial-deep",
+    "prefer-type-fest-primitive",
+    "prefer-type-fest-promisable",
+    "prefer-type-fest-readonly-deep",
+    "prefer-type-fest-require-all-or-none",
+    "prefer-type-fest-require-at-least-one",
+    "prefer-type-fest-require-exactly-one",
+    "prefer-type-fest-require-one-or-none",
+    "prefer-type-fest-required-deep",
+    "prefer-type-fest-schema",
+    "prefer-type-fest-set-non-nullable",
+    "prefer-type-fest-set-optional",
+    "prefer-type-fest-set-readonly",
+    "prefer-type-fest-set-required",
+    "prefer-type-fest-simplify",
+    "prefer-type-fest-tagged-brands",
+    "prefer-type-fest-tuple-of",
+    "prefer-type-fest-unknown-array",
+    "prefer-type-fest-unknown-map",
+    "prefer-type-fest-unknown-record",
+    "prefer-type-fest-unknown-set",
+    "prefer-type-fest-unwrap-tagged",
+    "prefer-type-fest-value-of",
+    "prefer-type-fest-writable",
+    "prefer-type-fest-writable-deep",
+] as const;
+
+const tsExtrasTypeGuardRuleNames = [
+    "prefer-ts-extras-array-includes",
+    "prefer-ts-extras-assert-defined",
+    "prefer-ts-extras-assert-error",
+    "prefer-ts-extras-assert-present",
+    "prefer-ts-extras-is-defined",
+    "prefer-ts-extras-is-defined-filter",
+    "prefer-ts-extras-is-empty",
+    "prefer-ts-extras-is-finite",
+    "prefer-ts-extras-is-infinite",
+    "prefer-ts-extras-is-integer",
+    "prefer-ts-extras-is-present",
+    "prefer-ts-extras-is-present-filter",
+    "prefer-ts-extras-is-safe-integer",
+    "prefer-ts-extras-key-in",
+    "prefer-ts-extras-not",
+    "prefer-ts-extras-object-has-in",
+    "prefer-ts-extras-object-has-own",
+    "prefer-ts-extras-safe-cast-to",
+    "prefer-ts-extras-set-has",
+] as const;
+
+const tsExtrasUtilityRuleNames = [
+    "prefer-ts-extras-array-at",
+    "prefer-ts-extras-array-concat",
+    "prefer-ts-extras-array-first",
+    "prefer-ts-extras-array-join",
+    "prefer-ts-extras-array-last",
+    "prefer-ts-extras-as-writable",
+    "prefer-ts-extras-object-entries",
+    "prefer-ts-extras-object-from-entries",
+    "prefer-ts-extras-object-keys",
+    "prefer-ts-extras-object-values",
+    "prefer-ts-extras-string-split",
+] as const;
+
+const tsExtrasExperimentalRuleNames = [
+    "prefer-ts-extras-array-find",
+    "prefer-ts-extras-array-find-last",
+    "prefer-ts-extras-array-find-last-index",
+    "prefer-ts-extras-is-equal-type",
+] as const;
+
+const minimalRuleNames = [
+    "prefer-type-fest-arrayable",
+    "prefer-type-fest-except",
+    "prefer-type-fest-json-array",
+    "prefer-type-fest-json-object",
+    "prefer-type-fest-json-primitive",
+    "prefer-type-fest-json-value",
+    "prefer-type-fest-primitive",
+    "prefer-type-fest-promisable",
+    "prefer-type-fest-unknown-record",
+    "prefer-ts-extras-is-defined-filter",
+    "prefer-ts-extras-is-present-filter",
+] as const;
+
+/**
+ * Unqualified rule name.
+ */
+export type TypefestRuleName =
+    | (typeof tsExtrasExperimentalRuleNames)[number]
+    | (typeof tsExtrasTypeGuardRuleNames)[number]
+    | (typeof tsExtrasUtilityRuleNames)[number]
+    | (typeof typeFestTypesRuleNames)[number];
+
+const typefestRules: Readonly<Record<TypefestRuleName, RuleWithDocs>> = {
     "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
     "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
     "prefer-ts-extras-array-find": preferTsExtrasArrayFindRule,
@@ -251,17 +362,12 @@ const typefestRules = {
     "prefer-type-fest-value-of": preferTypeFestValueOfRule,
     "prefer-type-fest-writable": preferTypeFestWritableRule,
     "prefer-type-fest-writable-deep": preferTypeFestWritableDeepRule,
-} as const satisfies Record<string, RuleWithDocs>;
+};
 
 /**
  * Fully-qualified ESLint rule id used by this plugin.
  */
-export type TypefestRuleId = `typefest/${keyof typeof typefestRules}`;
-
-/**
- * Unqualified rule name.
- */
-export type TypefestRuleName = keyof typeof typefestRules;
+export type TypefestRuleId = `typefest/${TypefestRuleName}`;
 
 const typefestEslintRules = typefestRules as unknown as NonNullable<
     ESLint.Plugin["rules"]
@@ -303,108 +409,6 @@ function uniqueRuleNames(
 ): TypefestRuleName[] {
     return [...new Set(ruleNames)];
 }
-
-const typeFestTypesRuleNames = [
-    "prefer-type-fest-abstract-constructor",
-    "prefer-type-fest-async-return-type",
-    "prefer-type-fest-arrayable",
-    "prefer-type-fest-conditional-pick",
-    "prefer-type-fest-constructor",
-    "prefer-type-fest-except",
-    "prefer-type-fest-if",
-    "prefer-type-fest-iterable-element",
-    "prefer-type-fest-json-array",
-    "prefer-type-fest-json-object",
-    "prefer-type-fest-json-primitive",
-    "prefer-type-fest-json-value",
-    "prefer-type-fest-keys-of-union",
-    "prefer-type-fest-literal-union",
-    "prefer-type-fest-merge-exclusive",
-    "prefer-type-fest-non-empty-tuple",
-    "prefer-type-fest-omit-index-signature",
-    "prefer-type-fest-partial-deep",
-    "prefer-type-fest-primitive",
-    "prefer-type-fest-promisable",
-    "prefer-type-fest-readonly-deep",
-    "prefer-type-fest-require-all-or-none",
-    "prefer-type-fest-require-at-least-one",
-    "prefer-type-fest-require-exactly-one",
-    "prefer-type-fest-require-one-or-none",
-    "prefer-type-fest-required-deep",
-    "prefer-type-fest-schema",
-    "prefer-type-fest-set-non-nullable",
-    "prefer-type-fest-set-optional",
-    "prefer-type-fest-set-readonly",
-    "prefer-type-fest-set-required",
-    "prefer-type-fest-simplify",
-    "prefer-type-fest-tagged-brands",
-    "prefer-type-fest-tuple-of",
-    "prefer-type-fest-unknown-array",
-    "prefer-type-fest-unknown-map",
-    "prefer-type-fest-unknown-record",
-    "prefer-type-fest-unknown-set",
-    "prefer-type-fest-unwrap-tagged",
-    "prefer-type-fest-value-of",
-    "prefer-type-fest-writable",
-    "prefer-type-fest-writable-deep",
-] as const satisfies readonly TypefestRuleName[];
-
-const tsExtrasTypeGuardRuleNames = [
-    "prefer-ts-extras-array-includes",
-    "prefer-ts-extras-assert-defined",
-    "prefer-ts-extras-assert-error",
-    "prefer-ts-extras-assert-present",
-    "prefer-ts-extras-is-defined",
-    "prefer-ts-extras-is-defined-filter",
-    "prefer-ts-extras-is-empty",
-    "prefer-ts-extras-is-finite",
-    "prefer-ts-extras-is-infinite",
-    "prefer-ts-extras-is-integer",
-    "prefer-ts-extras-is-present",
-    "prefer-ts-extras-is-present-filter",
-    "prefer-ts-extras-is-safe-integer",
-    "prefer-ts-extras-key-in",
-    "prefer-ts-extras-not",
-    "prefer-ts-extras-object-has-in",
-    "prefer-ts-extras-object-has-own",
-    "prefer-ts-extras-safe-cast-to",
-    "prefer-ts-extras-set-has",
-] as const satisfies readonly TypefestRuleName[];
-
-const tsExtrasUtilityRuleNames = [
-    "prefer-ts-extras-array-at",
-    "prefer-ts-extras-array-concat",
-    "prefer-ts-extras-array-first",
-    "prefer-ts-extras-array-join",
-    "prefer-ts-extras-array-last",
-    "prefer-ts-extras-as-writable",
-    "prefer-ts-extras-object-entries",
-    "prefer-ts-extras-object-from-entries",
-    "prefer-ts-extras-object-keys",
-    "prefer-ts-extras-object-values",
-    "prefer-ts-extras-string-split",
-] as const satisfies readonly TypefestRuleName[];
-
-const tsExtrasExperimentalRuleNames = [
-    "prefer-ts-extras-array-find",
-    "prefer-ts-extras-array-find-last",
-    "prefer-ts-extras-array-find-last-index",
-    "prefer-ts-extras-is-equal-type",
-] as const satisfies readonly TypefestRuleName[];
-
-const minimalRuleNames = [
-    "prefer-type-fest-arrayable",
-    "prefer-type-fest-except",
-    "prefer-type-fest-json-array",
-    "prefer-type-fest-json-object",
-    "prefer-type-fest-json-primitive",
-    "prefer-type-fest-json-value",
-    "prefer-type-fest-primitive",
-    "prefer-type-fest-promisable",
-    "prefer-type-fest-unknown-record",
-    "prefer-ts-extras-is-defined-filter",
-    "prefer-ts-extras-is-present-filter",
-] as const satisfies readonly TypefestRuleName[];
 
 const recommendedRuleNames = uniqueRuleNames([
     ...typeFestTypesRuleNames,
@@ -462,7 +466,7 @@ const pluginForConfigs: ESLint.Plugin = {
 /**
  * Flat config presets distributed by eslint-plugin-typefest.
  */
-const typefestConfigs = {
+const typefestConfigsDefinition = {
     all: withTypefestPlugin(
         {
             name: "typefest:all",
@@ -507,6 +511,8 @@ const typefestConfigs = {
     ),
 } satisfies TypefestConfigsContract;
 
+const typefestConfigs: TypefestConfigsContract = typefestConfigsDefinition;
+
 /**
  * Runtime type for {@link typefestConfigs}.
  */
@@ -515,7 +521,7 @@ export type TypefestConfigs = typeof typefestConfigs;
 /**
  * Main plugin object exported for ESLint consumption.
  */
-const typefestPlugin = {
+const typefestPlugin: TypefestPluginContract = {
     configs: typefestConfigs,
     meta: {
         name: "eslint-plugin-typefest",
@@ -523,7 +529,7 @@ const typefestPlugin = {
     },
     processors: {},
     rules: typefestEslintRules,
-} satisfies TypefestPluginContract;
+};
 
 /**
  * Runtime type for the plugin default export.
