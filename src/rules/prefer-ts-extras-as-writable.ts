@@ -22,15 +22,15 @@ const WRITABLE_TYPE_NAME = "Writable" as const;
 const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
-                context.sourceCode,
-                "ts-extras"
-            );
-
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
 
             const writableLocalNames = new Set<string>();
             const typeFestNamespaceImportNames = new Set<string>();
@@ -105,13 +105,14 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     sourceModuleName: "ts-extras",
                 });
 
-                const fix = replacementName
-                    ? (fixer: TSESLint.RuleFixer) =>
-                          fixer.replaceText(
-                              node,
-                              `${replacementName}(${context.sourceCode.getText(expression)})`
-                          )
-                    : null;
+                const fix =
+                    replacementName === null
+                        ? null
+                        : (fixer: TSESLint.RuleFixer) =>
+                              fixer.replaceText(
+                                  node,
+                                  `${replacementName}(${context.sourceCode.getText(expression)})`
+                              );
 
                 context.report({
                     fix,

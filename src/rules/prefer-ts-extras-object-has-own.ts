@@ -17,15 +17,16 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
-                context.sourceCode,
-                "ts-extras"
-            );
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
 
             return {
                 CallExpression(node) {

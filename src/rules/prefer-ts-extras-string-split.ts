@@ -21,15 +21,15 @@ import {
 const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
-                context.sourceCode,
-                "ts-extras"
-            );
-
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
 
             const { checker, parserServices } = getTypedRuleServices(context);
 

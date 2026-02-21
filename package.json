@@ -168,6 +168,9 @@
         "update-deps": "npx ncu -i --install never && npm install --force",
         "verify:eslint-inspector": "node ./scripts/verify-eslint-inspector.mjs"
     },
+    "overrides": {
+        "jsonc-eslint-parser": "^3.1.0"
+    },
     "dependencies": {
         "@typescript-eslint/parser": "^8.56.0",
         "@typescript-eslint/utils": "^8.56.0"
@@ -510,9 +513,6 @@
     "peerDependencies": {
         "eslint": "^10.0.1",
         "typescript": ">=5.9.3"
-    },
-    "overrides": {
-        "jsonc-eslint-parser": "^3.1.0"
     },
     "packageManager": "npm@11.10.1",
     "engines": {

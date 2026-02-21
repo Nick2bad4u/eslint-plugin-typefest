@@ -120,15 +120,15 @@ const extractDefinedGuardExpression = (
 const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
-                context.sourceCode,
-                "ts-extras"
-            );
-
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
 
             return {
                 IfStatement(node) {

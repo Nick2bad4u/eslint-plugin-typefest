@@ -80,15 +80,15 @@ const extractAssertErrorTarget = (
 const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
-                context.sourceCode,
-                "ts-extras"
-            );
-
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
             }
+
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                "ts-extras"
+            );
 
             return {
                 IfStatement(node) {
@@ -113,7 +113,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         sourceModuleName: "ts-extras",
                     });
 
-                    if (!replacementName) {
+                    if (replacementName === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertError",
                             node,
