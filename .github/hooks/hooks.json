@@ -2,42 +2,41 @@
     "hooks": {
         "SessionStart": [
             {
-                "command": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force",
+                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": "rm -rf ./temp",
-                "osx": "rm -rf ./temp",
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force"
+                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
             }
         ],
         "Stop": [
             {
-                "command": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force",
+                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": "rm -rf ./temp",
-                "osx": "rm -rf ./temp",
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force"
+                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
             }
         ],
         "UserPromptSubmit": [
             {
-                "command": ".github/hooks/scripts/log-prompt.ps1",
-                "cwd": ".github/hooks",
+                "command": "\".github/hooks/scripts/log-prompt.ps1\"",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": "./scripts/log-prompt.sh",
-                "osx": "./scripts/log-prompt.sh",
+                "linux": ".github/hooks/scripts/log-prompt.sh",
+                "osx": ".github/hooks/scripts/log-prompt.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "./scripts/log-prompt.ps1"
+                "windows": "\".github/hooks/scripts/log-prompt.ps1\""
             }
         ]
     },
