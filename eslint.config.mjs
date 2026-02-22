@@ -81,6 +81,8 @@ import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 
+import localTypefestPlugin from "./plugin.mjs";
+
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
 // Keep it opt-in via ENABLE_JSON_SCHEMA_VALIDATION=1.
@@ -137,6 +139,29 @@ const eslintMajorVersion = Number.parseInt(
 );
 const isEslintV10OrNewer = eslintMajorVersion >= 10;
 const processEnvironment = globalThis.process.env;
+
+/**
+ * Manually selected local plugin dogfooding rules for this repository.
+ *
+ * NOTE:
+ * Keep this list explicit instead of deriving from `configs.recommended`.
+ * That avoids accidental drift when preset composition changes and keeps
+ * self-hosting noise under control while still exercising local rules.
+ */
+const localTypefestDogfoodRules = {
+    "typefest/prefer-type-fest-arrayable": "warn",
+    "typefest/prefer-type-fest-async-return-type": "warn",
+    "typefest/prefer-type-fest-json-array": "warn",
+    "typefest/prefer-type-fest-json-object": "warn",
+    "typefest/prefer-type-fest-json-primitive": "warn",
+    "typefest/prefer-type-fest-json-value": "warn",
+    "typefest/prefer-type-fest-literal-union": "warn",
+    "typefest/prefer-type-fest-non-empty-tuple": "warn",
+    "typefest/prefer-type-fest-primitive": "warn",
+    "typefest/prefer-type-fest-promisable": "warn",
+    "typefest/prefer-type-fest-unknown-array": "warn",
+    "typefest/prefer-type-fest-unknown-map": "warn",
+};
 
 /**
  * Controls eslint-plugin-file-progress behavior.
@@ -198,7 +223,7 @@ if (!processEnvironment["RECHECK_JAR"]) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // #region 🌍 Global Configs and Rules
-// MARK: Global Configs and Rules
+// SECTION: Global Configs and Rules
 // ═══════════════════════════════════════════════════════════════════════════════
 export default defineConfig([
     globalIgnores([
@@ -231,7 +256,7 @@ export default defineConfig([
         // NOTE: In ESLint flat config, ignore-only entries are safest when
         // placed near the start of the config array.
         // ═══════════════════════════════════════════════════════════════════════════════
-        // MARK: Global Ignore Patterns
+        // SECTION: Global Ignore Patterns
         // Add patterns here to ignore files and directories globally
         // ═══════════════════════════════════════════════════════════════════════════════
         ignores: [
@@ -285,7 +310,7 @@ export default defineConfig([
     // #endregion
     // #region 🧱 Base Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK:  Base Flat Configs
+    // SECTION:  Base Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         ...importX.flatConfigs.typescript,
@@ -338,7 +363,7 @@ export default defineConfig([
     // #endregion
     // #region 🧩 Custom Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK:  Github Config Rules
+    // SECTION:  Github Config Rules
     // ═══════════════════════════════════════════════════════════════════════════════
     // NOTE:
     // `eslint-plugin-github` rules are written for JS/TS and assume the ESLint
@@ -374,7 +399,7 @@ export default defineConfig([
     // #endregion
     // #region 🧭 Custom Global Rules
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Custom Global Rules
+    // SECTION: Custom Global Rules
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         name: "Array conversion: prefer spread",
@@ -389,7 +414,7 @@ export default defineConfig([
     // #endregion
     // #region 🗣️ Global Language Options
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK:  Global Language Options
+    // SECTION:  Global Language Options
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         languageOptions: {
@@ -435,7 +460,7 @@ export default defineConfig([
     // #endregion
     // #region 🎨 CSS files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: CSS (css/*)
+    // SECTION: CSS (css/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.css"],
@@ -470,7 +495,7 @@ export default defineConfig([
     // #endregion
     // #region 🦖 Docusaurus files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Docusaurus (docusaurus/*)
+    // SECTION: Docusaurus (docusaurus/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["docs/docusaurus/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"],
@@ -506,7 +531,7 @@ export default defineConfig([
     // #endregion
     // #region ⚙️ Global Settings
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK:  Global Settings
+    // SECTION:  Global Settings
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         name: "Global Settings Options **/**",
@@ -534,7 +559,7 @@ export default defineConfig([
     // #endregion
     // #region 🔌 ESLint Plugin config
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: ESLint Plugin config
+    // SECTION: ESLint Plugin config
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: [
@@ -1227,6 +1252,26 @@ export default defineConfig([
             "unicorn/prevent-abbreviations": "off",
         },
     },
+    // #endregion
+    // #region 🐶 Dogfooding
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SECTION: 🐶 Dogfooding
+    // ═══════════════════════════════════════════════════════════════════════════════
+    {
+        files: ["src/**/*.{ts,tsx,mts,cts}", "test/**/*.{ts,tsx,mts,cts}"],
+        name: "Local typefest plugin manual dogfooding rules",
+        plugins: {
+            typefest: localTypefestPlugin,
+        },
+        rules: {
+            ...localTypefestDogfoodRules,
+        },
+    },
+    // #endregion
+    // #region 🧪 Internal Tooling
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SECTION: 🧪 Internal Tooling
+    // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["test/**/*.{test,spec}.{ts,tsx}", "test/**/*.{ts,tsx}"],
         name: "ESLint Plugin Tests - internal tooling",
@@ -1269,7 +1314,7 @@ export default defineConfig([
     // #endregion
     // #region 🧪 Tests
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: 🧪 Tests
+    // SECTION: 🧪 Tests
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}"],
@@ -1572,7 +1617,7 @@ export default defineConfig([
     // #endregion
     // #region 📦 Package.json Linting
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Package.json Linting
+    // SECTION: Package.json Linting
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/package.json"],
@@ -1722,7 +1767,7 @@ export default defineConfig([
     // #endregion
     // #region 📝 Markdown files (with Remark linting)
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Markdown (md/*, markdown/*, markup/*, atom/*, rss/*)
+    // SECTION: Markdown (md/*, markdown/*, markup/*, atom/*, rss/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.{md,markup,atom,rss,markdown}"],
@@ -1763,7 +1808,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 YAML/YML files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: YAML/YML files
+    // SECTION: YAML/YML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.{yaml,yml}"],
@@ -1818,7 +1863,7 @@ export default defineConfig([
     // #endregion
     // #region 🌐 HTML files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: HTML files
+    // SECTION: HTML files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.{html,htm,xhtml}"],
@@ -1887,7 +1932,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 JSONC/JSON files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: JSONC (jsonc/*)
+    // SECTION: JSONC (jsonc/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.jsonc", ".vscode/*.json"],
@@ -2003,7 +2048,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 JSON files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: JSON (json/*)
+    // SECTION: JSON (json/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.json"],
@@ -2034,7 +2079,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 JSON5 files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: JSON5 (json5/*)
+    // SECTION: JSON5 (json5/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.json5"],
@@ -2060,7 +2105,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 TOML files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: TOML (toml/*)
+    // SECTION: TOML (toml/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.toml"],
@@ -2099,7 +2144,7 @@ export default defineConfig([
     // #endregion
     // #region 📚 JS JsDoc
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: JS JsDoc
+    // SECTION: JS JsDoc
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["scripts/**/*.{js,cjs,mjs}"],
@@ -2219,7 +2264,7 @@ export default defineConfig([
     // #endregion
     // #region 🧾 JS/MJS Configuration files
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: JS/MJS Configuration files
+    // SECTION: JS/MJS Configuration files
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: [
@@ -2439,7 +2484,7 @@ export default defineConfig([
     // #endregion
     // #region 🤖 GitHub Workflows YAML/YML
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Github Workflows YAML/YML
+    // SECTION: Github Workflows YAML/YML
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: [
@@ -2460,7 +2505,7 @@ export default defineConfig([
     // #endregion
     // #region 📴 Disables
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Disables
+    // SECTION: Disables
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/package.json", "**/package-lock.json"],
@@ -2479,7 +2524,7 @@ export default defineConfig([
     // #endregion
     // #region 📐 @Stylistic Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: @Stylistic Overrides
+    // SECTION: @Stylistic Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
     // NOTE: uptime-watcher drift-guard and utility-type convention rules are
     // enabled (and scoped) by the internal repo presets:
@@ -2516,7 +2561,7 @@ export default defineConfig([
     // #endregion
     // #region 🛠️ Global Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
-    // MARK: Global Overrides
+    // SECTION: Global Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
     {
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
