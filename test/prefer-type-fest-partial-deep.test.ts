@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-partial-deep.valid.ts";
@@ -30,6 +32,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type PartialUser = DeepPartial<User>;",
     "type PartialUser = PartialDeep<User>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-partial-deep");
 
 ruleTester.run(
     "prefer-type-fest-partial-deep",

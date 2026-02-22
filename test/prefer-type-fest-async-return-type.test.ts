@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-async-return-type");
 const ruleTester = createTypedRuleTester();
 
@@ -38,6 +40,8 @@ const inlineFixableOutput = [
     "",
     "type Result = AsyncReturnType<() => Promise<string>>;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-async-return-type");
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {
     invalid: [

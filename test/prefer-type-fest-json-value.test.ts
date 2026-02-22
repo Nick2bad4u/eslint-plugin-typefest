@@ -8,8 +8,12 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
+import { describe, expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const ruleTester = createTypedRuleTester();
+const rule = getPluginRule("prefer-type-fest-json-value");
 
 const invalidFixtureName = "prefer-type-fest-json-value.invalid.ts";
 const validFixtureName = "prefer-type-fest-json-value.valid.ts";
@@ -24,17 +28,62 @@ const inlineSuggestableOutput = [
     "",
     "type IpcPayload = JsonObject;",
 ].join("\n");
+const inlineSuggestableLiteralStringKeyCode = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    'type IpcPayload = Record<"string", unknown>;',
+].join("\n");
+const inlineSuggestableLiteralStringKeyOutput = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    "type IpcPayload = JsonObject;",
+].join("\n");
+const inlineSuggestableAnyPayloadCode = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    "type IpcPayload = Record<string, any>;",
+].join("\n");
+const inlineSuggestableAnyPayloadOutput = [
+    'import type { JsonObject } from "type-fest";',
+    "",
+    "type IpcPayload = JsonObject;",
+].join("\n");
 const inlineValidGlobalRecordCode =
     "type IpcPayload = globalThis.Record<string, unknown>;";
 const inlineValidNonStringKeyCode =
     "type IpcPayload = Record<number, unknown>;";
+const inlineValidLiteralNonStringKeyCode =
+    'type IpcPayload = Record<"payload", unknown>;';
 const inlineValidNonUnknownValueCode =
     "type IpcPayload = Record<string, string>;";
 const inlineValidMapCode = "type IpcPayload = Map<string, unknown>;";
 
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-value", {
+    docsDescription:
+        "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
+    messages: {
+        preferJsonValue:
+            "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
+        suggestJsonObject:
+            "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).",
+    },
+});
+
+describe("prefer-type-fest-json-value metadata", () => {
+    it("declares suggestion metadata", () => {
+        expect(
+            (
+                rule as unknown as {
+                    readonly meta?: { readonly hasSuggestions?: boolean };
+                }
+            ).meta?.hasSuggestions
+        ).toBe(true);
+    });
+});
+
 ruleTester.run(
     "prefer-type-fest-json-value",
-    getPluginRule("prefer-type-fest-json-value"),
+    rule,
     {
         invalid: [
             {
@@ -73,6 +122,38 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "suggests JsonObject when import is in scope",
             },
+            {
+                code: inlineSuggestableLiteralStringKeyCode,
+                errors: [
+                    {
+                        messageId: "preferJsonValue",
+                        suggestions: [
+                            {
+                                messageId: "suggestJsonObject",
+                                output: inlineSuggestableLiteralStringKeyOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests JsonObject for Record<\"string\", unknown> when import is in scope",
+            },
+            {
+                code: inlineSuggestableAnyPayloadCode,
+                errors: [
+                    {
+                        messageId: "preferJsonValue",
+                        suggestions: [
+                            {
+                                messageId: "suggestJsonObject",
+                                output: inlineSuggestableAnyPayloadOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests JsonObject for Record<string, any> when import is in scope",
+            },
         ],
         valid: [
             {
@@ -89,6 +170,11 @@ ruleTester.run(
                 code: inlineValidNonStringKeyCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Record with non-string key type",
+            },
+            {
+                code: inlineValidLiteralNonStringKeyCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores Record with literal key that is not \"string\"",
             },
             {
                 code: inlineValidNonUnknownValueCode,

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-require-one-or-none.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AtMostOne<{ a?: string; b?: number }>;",
     "type Input = RequireOneOrNone<{ a?: string; b?: number }>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-require-one-or-none");
 
 ruleTester.run(
     "prefer-type-fest-require-one-or-none",

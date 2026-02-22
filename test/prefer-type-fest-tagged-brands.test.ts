@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-tagged-brands.valid.ts";
@@ -42,6 +44,30 @@ const inlineValidMethodSignatureBrandLikeCode = [
     "    __brand(): void;",
     "};",
 ].join("\n");
+const inlineValidNonBrandPropertyIntersectionCode = [
+    "type SessionIdentifier = string & {",
+    '    readonly label: "SessionIdentifier";',
+    "};",
+].join("\n");
+const inlineValidTaggedAndBrandIntersectionCode = [
+    'import type { Tagged } from "type-fest";',
+    "",
+    'type SessionIdentifier = Tagged<string, "SessionIdentifier"> & {',
+    '    readonly __brand: "SessionIdentifier";',
+    "};",
+].join("\n");
+const inlineValidNestedTaggedReferenceCode = [
+    'import type { Tagged } from "type-fest";',
+    "",
+    "type SessionIdentifier = (",
+    '    | Tagged<string, "SessionIdentifier">',
+    "    | number",
+    ") & {",
+    '    readonly __brand: "SessionIdentifier";',
+    "};",
+].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-tagged-brands");
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -112,6 +138,21 @@ ruleTester.run(
                 code: inlineValidMethodSignatureBrandLikeCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores method-signature-only brand-like type",
+            },
+            {
+                code: inlineValidNonBrandPropertyIntersectionCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores intersection property that is not a branding key",
+            },
+            {
+                code: inlineValidTaggedAndBrandIntersectionCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores ad-hoc brand literal when Tagged already exists",
+            },
+            {
+                code: inlineValidNestedTaggedReferenceCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores nested Tagged references inside union and intersection",
             },
             {
                 code: readTypedFixture(invalidFixtureName),

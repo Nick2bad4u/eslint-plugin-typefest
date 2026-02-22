@@ -2,6 +2,8 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-if.test` behavior.
  */
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -26,6 +28,109 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = IfAny<string, true, false>;",
     "type Input = IsAny<string, true, false>;"
 );
+
+interface IfRuleMetadataSnapshot {
+    create: (context: unknown) => unknown;
+    defaultOptions?: readonly unknown[];
+    meta?: {
+        docs?: {
+            description?: string;
+            url?: string;
+        };
+        messages?: Record<string, string>;
+    };
+    name?: string;
+}
+
+const loadIfRuleMetadata = async (): Promise<IfRuleMetadataSnapshot> => {
+    vi.resetModules();
+
+    const moduleUnderTest = await import("../src/rules/prefer-type-fest-if.ts");
+
+    return moduleUnderTest.default as IfRuleMetadataSnapshot;
+};
+
+describe("prefer-type-fest-if metadata", () => {
+    it("exports expected metadata", async () => {
+        const metadataRule = await loadIfRuleMetadata();
+        const metadataDefaultOptions =
+            "defaultOptions" in metadataRule
+                ? (metadataRule as { defaultOptions?: unknown }).defaultOptions
+                : undefined;
+
+        expect(metadataRule.name).toBe("prefer-type-fest-if");
+        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataRule.meta?.docs?.description).toBe(
+            "require TypeFest If + Is* utilities over deprecated If* aliases."
+        );
+        expect(metadataRule.meta?.docs?.url).toBe(
+            "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md"
+        );
+        expect(metadataRule.meta?.messages?.["preferTypeFestIf"]).toBe(
+            "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`."
+        );
+    });
+
+    it("declares authored docs url literal before RuleCreator decoration", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            const undecoratedModule =
+                (await import("../src/rules/prefer-type-fest-if.ts")) as {
+                    default: IfRuleMetadataSnapshot;
+                };
+
+            expect(undecoratedModule.default.meta?.docs?.url).toBe(
+                "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-if.md"
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("falls back to an empty filename before the test-file guard", async () => {
+        const capturedPaths: string[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                collectImportedTypeAliasMatches: () =>
+                    new Map<string, { importedName: string; replacementName: string }>(),
+                createSafeTypeReferenceReplacementFix: () => undefined,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (filePath: string): boolean => {
+                    capturedPaths.push(filePath);
+
+                    return true;
+                },
+            }));
+
+            const undecoratedModule =
+                (await import("../src/rules/prefer-type-fest-if.ts")) as {
+                    default: IfRuleMetadataSnapshot;
+                };
+
+            undecoratedModule.default.create({});
+
+            expect(capturedPaths).toStrictEqual([""]);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
     invalid: [

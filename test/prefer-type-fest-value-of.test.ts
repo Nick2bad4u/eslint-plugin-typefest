@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-type-fest-value-of.invalid.ts";
@@ -59,6 +61,8 @@ const inlineValidMismatchedObjectTextCode = [
     "type Output = Input[keyof Alias];",
 ].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-value-of");
 
 ruleTester.run(
     "prefer-type-fest-value-of",

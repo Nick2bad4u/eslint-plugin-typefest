@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-merge-exclusive.valid.ts";
@@ -29,6 +31,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type AB = XOR<A, B>;",
     "type AB = MergeExclusive<A, B>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-merge-exclusive");
 
 ruleTester.run(
     "prefer-type-fest-merge-exclusive",

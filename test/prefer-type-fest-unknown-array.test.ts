@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-unknown-array");
 const ruleTester = createTypedRuleTester();
 
@@ -18,12 +20,28 @@ const inlineInvalidReadonlyArrayCode = "type Input = readonly unknown[];";
 const inlineValidArrayCode = "type Input = unknown[];";
 const inlineValidAnyArrayCode = "type Input = readonly any[];";
 const inlineValidNoTypeArgumentCode = "type Input = ReadonlyArray<string>;";
+const inlineValidAnyTypeArgumentCode = "type Input = ReadonlyArray<any>;";
+const inlineValidUnknownUnionTypeArgumentCode =
+    "type Input = ReadonlyArray<unknown | string>;";
+const inlineValidQualifiedReadonlyArrayCode =
+    "type Input = globalThis.ReadonlyArray<unknown>;";
 const inlineValidKeyofUnknownArrayCode = "type Input = keyof unknown[];";
 const inlineInvalidReadonlyNonArrayOperatorCode =
     "type Input = readonly ReadonlyArray<unknown>;";
 const inlineValidMissingReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray;";
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
+const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
+const inlineReadonlyShorthandFixableCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = readonly unknown[];",
+].join("\n");
+const inlineReadonlyShorthandFixableOutput = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = UnknownArray;",
+].join("\n");
 const inlineFixableCode = [
     'import type { UnknownArray } from "type-fest";',
     "",
@@ -34,6 +52,19 @@ const inlineFixableOutput = [
     "",
     "type Input = UnknownArray;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-unknown-array",
+    {
+        docsDescription:
+            "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferUnknownArray:
+                "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
+        },
+    }
+);
 
 ruleTester.run("prefer-type-fest-unknown-array", rule, {
     invalid: [
@@ -63,6 +94,20 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             name: "reports readonly operator over unknown[] type reference",
         },
         {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlyArray<unknown> even when UnknownArray import is missing",
+            output: null,
+        },
+        {
+            code: inlineReadonlyShorthandFixableCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes readonly unknown[] when UnknownArray import is in scope",
+            output: inlineReadonlyShorthandFixableOutput,
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -90,6 +135,21 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             code: inlineValidNoTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly array with concrete element type",
+        },
+        {
+            code: inlineValidAnyTypeArgumentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray<any>",
+        },
+        {
+            code: inlineValidUnknownUnionTypeArgumentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray where type argument is not exactly unknown",
+        },
+        {
+            code: inlineValidQualifiedReadonlyArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.ReadonlyArray qualified type reference",
         },
         {
             code: inlineValidKeyofUnknownArrayCode,

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-primitive");
 const ruleTester = createTypedRuleTester();
 
@@ -18,6 +20,22 @@ const invalidFixtureName = "prefer-type-fest-primitive.invalid.ts";
 const skipFixtureName = "tests/prefer-type-fest-primitive.skip.ts";
 const nonPrimitiveKeywordUnionValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | object;";
+const duplicatePrimitiveMemberValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | symbol | undefined | string;";
+const missingBigIntValidCode =
+    "type PrimitiveLike = boolean | null | number | string | symbol | undefined;";
+const missingBooleanValidCode =
+    "type PrimitiveLike = bigint | null | number | string | symbol | undefined;";
+const missingNullValidCode =
+    "type PrimitiveLike = bigint | boolean | number | string | symbol | undefined;";
+const missingNumberValidCode =
+    "type PrimitiveLike = bigint | boolean | null | string | symbol | undefined;";
+const missingStringValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | symbol | undefined;";
+const missingSymbolValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | undefined;";
+const missingUndefinedValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | symbol;";
 const inlineFixableCode = [
     'import type { Primitive } from "type-fest";',
     "",
@@ -28,6 +46,16 @@ const inlineFixableOutput = [
     "",
     "type PrimitiveLike = Primitive;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-primitive", {
+    docsDescription:
+        "require TypeFest Primitive over explicit primitive keyword unions.",
+    enforceRuleShape: true,
+    messages: {
+        preferPrimitive:
+            "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
+    },
+});
 
 ruleTester.run("prefer-type-fest-primitive", rule, {
     invalid: [
@@ -67,6 +95,46 @@ ruleTester.run("prefer-type-fest-primitive", rule, {
             code: nonPrimitiveKeywordUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores union containing non-primitive object keyword",
+        },
+        {
+            code: duplicatePrimitiveMemberValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union with duplicate members",
+        },
+        {
+            code: missingBigIntValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing bigint",
+        },
+        {
+            code: missingBooleanValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing boolean",
+        },
+        {
+            code: missingNullValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing null",
+        },
+        {
+            code: missingNumberValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing number",
+        },
+        {
+            code: missingStringValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing string",
+        },
+        {
+            code: missingSymbolValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing symbol",
+        },
+        {
+            code: missingUndefinedValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores primitive union missing undefined",
         },
         {
             code: readTypedFixture(skipFixtureName),

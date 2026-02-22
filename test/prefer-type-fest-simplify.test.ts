@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-simplify.valid.ts";
@@ -28,11 +30,43 @@ const inlineFixableInvalidCode = [
     "",
     "String({} as Flattened);",
 ].join("\n");
+const inlineInvalidWithoutFixCode = [
+    'import type { Expand } from "type-fest";',
+    "",
+    "type Payload = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Flattened = Expand<Payload>;",
+].join("\n");
+const inlineFixablePrettifyCode = [
+    'import type { Prettify, Simplify } from "type-fest";',
+    "",
+    "type Payload = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Flattened = Prettify<Payload>;",
+].join("\n");
+const inlineFixablePrettifyOutput = inlineFixablePrettifyCode.replace(
+    "type Flattened = Prettify<Payload>;",
+    "type Flattened = Simplify<Payload>;"
+);
 
 const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Flattened = Expand<Payload>;",
     "type Flattened = Simplify<Payload>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
+    docsDescription:
+        "require TypeFest Simplify over imported alias types like Prettify/Expand.",
+    enforceRuleShape: true,
+    messages: {
+        preferSimplify:
+            "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+    },
+});
 
 ruleTester.run(
     "prefer-type-fest-simplify",
@@ -74,6 +108,36 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline Id alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineInvalidWithoutFixCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Expand",
+                            replacement: "Simplify",
+                        },
+                        messageId: "preferSimplify",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports Expand alias without fix when Simplify import is missing",
+                output: null,
+            },
+            {
+                code: inlineFixablePrettifyCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Prettify",
+                            replacement: "Simplify",
+                        },
+                        messageId: "preferSimplify",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports and autofixes inline Prettify alias import",
+                output: inlineFixablePrettifyOutput,
             },
         ],
         valid: [

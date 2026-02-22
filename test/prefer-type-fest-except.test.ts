@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-except");
 const ruleTester = createTypedRuleTester();
 
@@ -59,6 +61,8 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
     "type UserWithoutId = Omit<User>;",
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except");
 
 ruleTester.run("prefer-type-fest-except", rule, {
     invalid: [

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-iterable-element.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = SetElement<Set<string>>;",
     "type Input = IterableElement<Set<string>>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-iterable-element");
 
 ruleTester.run(
     "prefer-type-fest-iterable-element",

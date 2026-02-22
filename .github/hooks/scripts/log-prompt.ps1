@@ -24,6 +24,10 @@ $logEntry = @{
   timestampMs = $timestampMs
   cwd         = $cwd
   prompt      = $redactedPrompt
+  hostname    = $env:COMPUTERNAME
+  username    = $env:USERNAME
+  powershellVersion = $PSVersionTable.PSVersion.ToString()
+  timestamp   = (Get-Date -Format "o")
 } | ConvertTo-Json -Compress
 
 Add-Content -Path (Join-Path $logDir "audit.jsonl") -Value $logEntry

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-tuple-of.valid.ts";
@@ -49,12 +51,42 @@ const inlineNoFixShadowedTupleOfInvalidCode = [
     "type Box<TupleOf> = ReadonlyTuple<string, 3>;",
 ].join("\n");
 
+const inlineNoFixTupleAliasShadowedTupleOfInvalidCode = [
+    'import type { Tuple } from "type-aliases";',
+    'import type { TupleOf } from "type-fest";',
+    "",
+    "type Box<TupleOf> = Tuple<string, 3>;",
+].join("\n");
+
 const inlineNoFixShadowedReadonlyInvalidCode = [
     'import type { ReadonlyTuple } from "type-aliases";',
     'import type { TupleOf } from "type-fest";',
     "",
     "type Box<Readonly> = ReadonlyTuple<string, 3>;",
 ].join("\n");
+
+const inlineFixTupleWhenReadonlyShadowedInvalidCode = [
+    'import type { Tuple } from "type-aliases";',
+    'import type { TupleOf } from "type-fest";',
+    "",
+    "type Box<Readonly> = Tuple<string, 3>;",
+].join("\n");
+
+const inlineFixTupleWhenReadonlyShadowedOutputCode =
+    inlineFixTupleWhenReadonlyShadowedInvalidCode.replace(
+        "type Box<Readonly> = Tuple<string, 3>;",
+        "type Box<Readonly> = TupleOf<3, string>;"
+    );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-tuple-of", {
+    docsDescription:
+        "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
+    enforceRuleShape: true,
+    messages: {
+        preferTupleOf:
+            "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+    },
+});
 
 ruleTester.run(
     "prefer-type-fest-tuple-of",
@@ -121,6 +153,21 @@ ruleTester.run(
                 output: null,
             },
             {
+                code: inlineNoFixTupleAliasShadowedTupleOfInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Tuple",
+                            replacement: "TupleOf<Length, Element>",
+                        },
+                        messageId: "preferTupleOf",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports Tuple alias when TupleOf identifier is shadowed",
+                output: null,
+            },
+            {
                 code: inlineNoFixShadowedReadonlyInvalidCode,
                 errors: [
                     {
@@ -134,6 +181,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports ReadonlyTuple alias when Readonly identifier is shadowed",
                 output: null,
+            },
+            {
+                code: inlineFixTupleWhenReadonlyShadowedInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Tuple",
+                            replacement: "TupleOf<Length, Element>",
+                        },
+                        messageId: "preferTupleOf",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes Tuple alias even when Readonly identifier is shadowed",
+                output: inlineFixTupleWhenReadonlyShadowedOutputCode,
             },
         ],
         valid: [

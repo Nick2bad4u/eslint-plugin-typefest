@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-required-deep.valid.ts";
@@ -30,6 +32,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type StrictUser = DeepRequired<User>;",
     "type StrictUser = RequiredDeep<User>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-required-deep");
 
 ruleTester.run(
     "prefer-type-fest-required-deep",

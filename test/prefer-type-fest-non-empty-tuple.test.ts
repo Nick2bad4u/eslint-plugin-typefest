@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-non-empty-tuple");
 const ruleTester = createTypedRuleTester();
 
@@ -26,6 +28,10 @@ const optionalTypeReadonlyValidCode =
     "type Input = readonly [string?, ...string[]];";
 const namedRestInvalidCode =
     "type Input = readonly [string, ...rest: string[]];";
+const namedHeadInvalidCode =
+    "type Input = readonly [head: string, ...string[]];";
+const whitespaceNormalizedInvalidCode =
+    "type Input = readonly [Map < string , number >, ...Map<string, number>[]];";
 const nonArrayRestAnnotationValidCode =
     "type Input = readonly [string, ...rest: ReadonlyArray<string>];";
 const mismatchedReadonlyValidCode =
@@ -45,6 +51,19 @@ const inlineFixableOutput = [
     "",
     "type Input = NonEmptyTuple<string>;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-non-empty-tuple",
+    {
+        docsDescription:
+            "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
+        enforceRuleShape: true,
+        messages: {
+            preferNonEmptyTuple:
+                "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",
+        },
+    }
+);
 
 ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
     invalid: [
@@ -72,6 +91,18 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named rest element",
+        },
+        {
+            code: namedHeadInvalidCode,
+            errors: [{ messageId: "preferNonEmptyTuple" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly tuple with named required head element",
+        },
+        {
+            code: whitespaceNormalizedInvalidCode,
+            errors: [{ messageId: "preferNonEmptyTuple" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly tuple when first and rest element text only differ by whitespace",
         },
         {
             code: inlineFixableCode,

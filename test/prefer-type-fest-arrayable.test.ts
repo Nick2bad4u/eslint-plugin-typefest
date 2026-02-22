@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-arrayable.valid.ts";
@@ -22,6 +24,8 @@ const inlineInvalidGenericArrayCode =
     "type QueryValue = string | Array<string>;";
 const inlineInvalidGenericArrayReversedCode =
     "type QueryValue = Array<string> | string;";
+const inlineInvalidWhitespaceNormalizedGenericArrayCode =
+    "type QueryValue = Map < string , number > | Array<Map<string, number>>;";
 
 const nonMatchingUnionValidCode = "type QueryValue = string | number[];";
 const singleTypeValidCode = "type QueryValue = string;";
@@ -30,6 +34,8 @@ const genericArrayMissingTypeArgumentValidCode =
     "type QueryValue = string | Array;";
 const genericArrayMismatchedElementValidCode =
     "type QueryValue = string | Array<number>;";
+const qualifiedGenericArrayValidCode =
+    "type QueryValue = string | globalThis.Array<string>;";
 const inlineFixableCode = [
     'import type { Arrayable } from "type-fest";',
     "",
@@ -42,6 +48,16 @@ const inlineFixableOutput = [
 ].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-arrayable", {
+    docsDescription:
+        "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
+    enforceRuleShape: true,
+    messages: {
+        preferArrayable:
+            "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
+    },
+});
 
 ruleTester.run(
     "prefer-type-fest-arrayable",
@@ -82,6 +98,12 @@ ruleTester.run(
                 name: "reports reversed Array<string> | string union",
             },
             {
+                code: inlineInvalidWhitespaceNormalizedGenericArrayCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports generic unions when element text only differs by whitespace",
+            },
+            {
                 code: inlineFixableCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
@@ -119,6 +141,11 @@ ruleTester.run(
                 code: genericArrayMismatchedElementValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores generic array with mismatched element type",
+            },
+            {
+                code: qualifiedGenericArrayValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores globalThis.Array qualified generic unions",
             },
             {
                 code: inlineInvalidReadonlyArrayCode,

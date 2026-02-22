@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const inlineFixableInvalidCode = [
@@ -32,15 +34,31 @@ const promiseSecondInvalidCode = "type Result = string | Promise<string>;";
 const promiseLikeValidCode = "type Result = PromiseLike<string> | string;";
 const promiseNoTypeArgumentsValidCode = "type Result = Promise | string;";
 const promiseNullValidCode = "type Result = Promise<string> | null;";
+const promiseUndefinedUnionValidCode =
+    "type Result = Promise<string> | undefined;";
 const promiseUndefinedValidCode =
     "type Result = PromiseLike<string> | undefined;";
 const promiseNeverValidCode = "type Result = Promise<string> | never;";
+const doublePromiseUnionValidCode =
+    "type Result = Promise<string> | Promise<string>;";
 const promiseMismatchValidCode = "type Result = Promise<string> | number;";
 const promiseThreeMemberUnionValidCode =
     "type Result = Promise<string> | number | string;";
+const promiseThreeMemberLeadingPairValidCode =
+    "type Result = Promise<string> | string | boolean;";
+const nullFirstPromiseSecondValidCode =
+    "type Result = null | Promise<string>;";
+const undefinedFirstPromiseSecondValidCode =
+    "type Result = undefined | Promise<string>;";
+const neverFirstPromiseSecondValidCode =
+    "type Result = never | Promise<string>;";
 const alreadyPromisableUnionValidCode = [
     'import type { Promisable } from "type-fest";',
     "type Result = Promise<string> | Promisable<string>;",
+].join("\n");
+const nestedPromisableUnionValidCode = [
+    'import type { Promisable } from "type-fest";',
+    "type Result = Promise<Promisable<string>> | Promisable<string>;",
 ].join("\n");
 const skipPathInvalidCode = promiseFirstInvalidCode;
 const qualifiedPromiseValidCode =
@@ -49,6 +67,19 @@ const customWrapperValidCode = [
     "type MaybePromise<T> = Promise<T>;",
     "type Result = MaybePromise<string> | string;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-promisable",
+    {
+        docsDescription:
+            "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+        enforceRuleShape: true,
+        messages: {
+            preferPromisable:
+                "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
+        },
+    }
+);
 
 ruleTester.run(
     "prefer-type-fest-promisable",
@@ -154,11 +185,25 @@ ruleTester.run(
                 name: "ignores PromiseLike union with undefined",
             },
             {
+                code: promiseUndefinedUnionValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores Promise union with undefined",
+            },
+            {
                 code: promiseNeverValidCode,
                 filename: typedFixturePath(
                     "prefer-type-fest-promisable.valid.ts"
                 ),
                 name: "ignores Promise union with never",
+            },
+            {
+                code: doublePromiseUnionValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores union containing only Promise members",
             },
             {
                 code: promiseMismatchValidCode,
@@ -175,11 +220,46 @@ ruleTester.run(
                 name: "ignores union containing more than Promise and base pair",
             },
             {
+                code: promiseThreeMemberLeadingPairValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores three-member union even when first two members form a Promise pair",
+            },
+            {
+                code: nullFirstPromiseSecondValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores null-first union with Promise second",
+            },
+            {
+                code: undefinedFirstPromiseSecondValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores undefined-first union with Promise second",
+            },
+            {
+                code: neverFirstPromiseSecondValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores never-first union with Promise second",
+            },
+            {
                 code: alreadyPromisableUnionValidCode,
                 filename: typedFixturePath(
                     "prefer-type-fest-promisable.valid.ts"
                 ),
                 name: "ignores union already using Promisable",
+            },
+            {
+                code: nestedPromisableUnionValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores union where Promise inner type is already Promisable",
             },
             {
                 code: skipPathInvalidCode,

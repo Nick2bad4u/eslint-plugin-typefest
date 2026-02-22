@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-json-primitive");
 const ruleTester = createTypedRuleTester();
 
@@ -21,6 +23,16 @@ const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";
 const duplicatePrimitiveUnionValidCode =
     "type Payload = string | number | boolean | number;";
+const duplicateBooleanPrimitiveUnionValidCode =
+    "type Payload = null | number | string | string;";
+const duplicateNullPrimitiveUnionValidCode =
+    "type Payload = boolean | number | string | string;";
+const duplicateNumberPrimitiveUnionValidCode =
+    "type Payload = boolean | null | string | string;";
+const duplicateStringPrimitiveUnionValidCode =
+    "type Payload = boolean | null | number | number;";
+const inlineInvalidWithoutFixCode =
+    "type Payload = boolean | null | number | string;";
 const inlineFixableCode = [
     'import type { JsonPrimitive } from "type-fest";',
     "",
@@ -31,6 +43,19 @@ const inlineFixableOutput = [
     "",
     "type Payload = JsonPrimitive;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-json-primitive",
+    {
+        docsDescription:
+            "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
+        enforceRuleShape: true,
+        messages: {
+            preferJsonPrimitive:
+                "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
+        },
+    }
+);
 
 ruleTester.run("prefer-type-fest-json-primitive", rule, {
     invalid: [
@@ -46,6 +71,13 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonPrimitive-like unions",
+        },
+        {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferJsonPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports JSON primitive keyword union without offering a fix when import is missing",
+            output: null,
         },
         {
             code: inlineFixableCode,
@@ -75,6 +107,26 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             code: duplicatePrimitiveUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores duplicate member primitive union",
+        },
+        {
+            code: duplicateBooleanPrimitiveUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union missing boolean even when it has four primitive members",
+        },
+        {
+            code: duplicateNullPrimitiveUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union missing null even when it has four primitive members",
+        },
+        {
+            code: duplicateNumberPrimitiveUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union missing number even when it has four primitive members",
+        },
+        {
+            code: duplicateStringPrimitiveUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union missing string even when it has four primitive members",
         },
         {
             code: readTypedFixture(skipFixtureName),

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-json-array");
 const ruleTester = createTypedRuleTester();
 
@@ -23,6 +25,11 @@ const inlineInvalidReversedGenericUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type ReversedGeneric = ReadonlyArray<JsonValue> | Array<JsonValue>;",
+].join("\n");
+const inlineInvalidGenericUnionCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type GenericPair = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
 const inlineValidMismatchedNativeAndGenericCode = [
     'import type { JsonValue } from "type-fest";',
@@ -72,6 +79,27 @@ const inlineFixableOutput = [
     "",
     "type Payload = JsonArray;",
 ].join("\n");
+const inlineGenericFixableCode = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
+
+const inlineGenericFixableOutput = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonArray;",
+].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-array", {
+    docsDescription:
+        "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
+    enforceRuleShape: true,
+    messages: {
+        preferJsonArray:
+            "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
+    },
+});
 
 ruleTester.run("prefer-type-fest-json-array", rule, {
     invalid: [
@@ -101,11 +129,24 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             name: "reports reversed generic array union",
         },
         {
+            code: inlineInvalidGenericUnionCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports generic array union",
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes JsonValue array union when JsonArray import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineGenericFixableCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes generic JsonValue array union when JsonArray import is in scope",
+            output: inlineGenericFixableOutput,
         },
     ],
     valid: [

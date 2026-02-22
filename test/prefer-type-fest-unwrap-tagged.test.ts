@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-unwrap-tagged.valid.ts";
@@ -28,6 +30,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type UserId = UnwrapOpaque<{ readonly __brand: "UserId" } & string>;',
     'type UserId = UnwrapTagged<{ readonly __brand: "UserId" } & string>;'
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unwrap-tagged");
 
 ruleTester.run(
     "prefer-type-fest-unwrap-tagged",

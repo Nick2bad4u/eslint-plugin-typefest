@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-set-non-nullable.valid.ts";
@@ -32,6 +34,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type Normalized = NonNullableBy<User, "id">;',
     'type Normalized = SetNonNullable<User, "id">;'
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-set-non-nullable");
 
 ruleTester.run(
     "prefer-type-fest-set-non-nullable",

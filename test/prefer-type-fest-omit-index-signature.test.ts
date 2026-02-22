@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-omit-index-signature.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
     "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-omit-index-signature");
 
 ruleTester.run(
     "prefer-type-fest-omit-index-signature",

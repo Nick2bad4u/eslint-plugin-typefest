@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-type-fest-unknown-record.invalid.ts";
@@ -31,6 +33,8 @@ const inlineFixableOutput = [
     "",
     "type SharedContext = UnknownRecord;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-record");
 
 ruleTester.run(
     "prefer-type-fest-unknown-record",

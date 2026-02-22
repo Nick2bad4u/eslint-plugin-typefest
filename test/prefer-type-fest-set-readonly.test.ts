@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-set-readonly.valid.ts";
@@ -32,6 +34,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type FrozenUser = ReadonlyBy<User, "id">;',
     'type FrozenUser = SetReadonly<User, "id">;'
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-set-readonly");
 
 ruleTester.run(
     "prefer-type-fest-set-readonly",

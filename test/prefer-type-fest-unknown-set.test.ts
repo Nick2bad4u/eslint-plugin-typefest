@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-unknown-set");
 const ruleTester = createTypedRuleTester();
 
@@ -34,6 +36,8 @@ const inlineFixableOutput = [
     "",
     "type Input = UnknownSet;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set");
 
 ruleTester.run("prefer-type-fest-unknown-set", rule, {
     invalid: [

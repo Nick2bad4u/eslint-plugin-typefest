@@ -28,7 +28,7 @@ const createTupleOfReplacementText = (
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename;
+            const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
                 return {};

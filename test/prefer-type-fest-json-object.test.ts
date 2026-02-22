@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const rule = getPluginRule("prefer-type-fest-json-object");
 const ruleTester = createTypedRuleTester();
 
@@ -24,6 +26,11 @@ const inlineValidGlobalRecordCode = [
     "",
     "type MonitorJsonShape = globalThis.Record<string, JsonValue>;",
 ].join("\n");
+const inlineValidLiteralNonStringKeyCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    'type MonitorJsonShape = Record<"number", JsonValue>;',
+].join("\n");
 const inlineValidNonJsonValueCode = [
     "type MonitorJsonShape = Record<string, number>;",
 ].join("\n");
@@ -38,6 +45,11 @@ const inlineValidRecordSingleTypeArgumentCode =
     "type MonitorJsonShape = Record<string>;";
 const inlineValidRecordUnknownValueCode =
     "type MonitorJsonShape = Record<string, unknown>;";
+const inlineInvalidWithoutFixCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type MonitorJsonShape = Record<string, JsonValue>;",
+].join("\n");
 const inlineFixableCode = [
     'import type { JsonObject, JsonValue } from "type-fest";',
     "",
@@ -48,6 +60,19 @@ const inlineFixableOutput = [
     "",
     "type MonitorJsonShape = JsonObject;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-json-object",
+    {
+        docsDescription:
+            "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferJsonObject:
+                "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.",
+        },
+    }
+);
 
 ruleTester.run("prefer-type-fest-json-object", rule, {
     invalid: [
@@ -71,6 +96,13 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
             name: "reports Record with literal string key and JsonValue value",
         },
         {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferJsonObject" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports Record<string, JsonValue> without fix when JsonObject import is missing",
+            output: null,
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferJsonObject" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -88,6 +120,11 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
             code: inlineValidGlobalRecordCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Record usage",
+        },
+        {
+            code: inlineValidLiteralNonStringKeyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with literal key other than \"string\"",
         },
         {
             code: inlineValidNonJsonValueCode,

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-keys-of-union.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AllKeys<{ a: string } | { b: number }>;",
     "type Input = KeysOfUnion<{ a: string } | { b: number }>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-keys-of-union");
 
 ruleTester.run(
     "prefer-type-fest-keys-of-union",

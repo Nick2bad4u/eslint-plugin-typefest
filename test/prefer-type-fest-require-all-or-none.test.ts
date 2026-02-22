@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-require-all-or-none.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;",
     "type Input = RequireAllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-require-all-or-none");
 
 ruleTester.run(
     "prefer-type-fest-require-all-or-none",

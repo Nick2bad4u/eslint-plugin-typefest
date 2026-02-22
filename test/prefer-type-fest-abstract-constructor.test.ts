@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
@@ -27,6 +29,8 @@ const inlineFixableOutput = [
     "",
     "type AbstractCtor = AbstractConstructor<object, [name: string, retryCount: number]>;",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-abstract-constructor");
 
 ruleTester.run(
     "prefer-type-fest-abstract-constructor",

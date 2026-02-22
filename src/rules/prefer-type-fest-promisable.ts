@@ -62,7 +62,7 @@ const getPromiseInnerType = (
 const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename;
+            const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
                 return {};

@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-readonly-deep.valid.ts";
@@ -30,6 +32,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type FrozenUser = DeepReadonly<User>;",
     "type FrozenUser = ReadonlyDeep<User>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-readonly-deep");
 
 ruleTester.run(
     "prefer-type-fest-readonly-deep",

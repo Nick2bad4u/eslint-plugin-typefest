@@ -9,6 +9,8 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-schema.valid.ts";
@@ -31,6 +33,8 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type UserSchema = RecordDeep<User, number>;",
     "type UserSchema = Schema<User, number>;"
 );
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-schema");
 
 ruleTester.run(
     "prefer-type-fest-schema",
