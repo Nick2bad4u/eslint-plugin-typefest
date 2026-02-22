@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-non-empty-tuple.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const rule = getPluginRule("prefer-type-fest-non-empty-tuple");
 const ruleTester = createTypedRuleTester();
@@ -22,6 +21,8 @@ const restOnlyValidCode = "type Input = [...string[]];";
 const mixedUnionValidCode =
     "type Input = [string, ...string[]] | [first?: string, ...string[]];";
 const threeElementValidCode = "type Input = [string, number, ...string[]];";
+const readonlyTrailingElementAfterRestValidCode =
+    "type Input = readonly [string, ...string[], number];";
 const optionalReadonlyValidCode =
     "type Input = readonly [first?: string, ...string[]];";
 const optionalTypeReadonlyValidCode =
@@ -40,6 +41,7 @@ const nonReadonlyOperatorValidCode =
     "type Input = keyof [string, ...string[]];";
 const readonlyNonTupleTypeValidCode = "type Input = readonly string[];";
 const readonlySingleElementTupleValidCode = "type Input = readonly [string];";
+const readonlyEmptyTupleValidCode = "type Input = readonly [];";
 const skipPathInvalidCode = inlineInvalidTupleCode;
 const inlineFixableCode = [
     'import type { NonEmptyTuple } from "type-fest";',
@@ -85,24 +87,28 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with required head element",
+            output: null,
         },
         {
             code: namedRestInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named rest element",
+            output: null,
         },
         {
             code: namedHeadInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named required head element",
+            output: null,
         },
         {
             code: whitespaceNormalizedInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple when first and rest element text only differ by whitespace",
+            output: null,
         },
         {
             code: inlineFixableCode,
@@ -139,6 +145,11 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             name: "ignores tuple with multiple required leading elements",
         },
         {
+            code: readonlyTrailingElementAfterRestValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuple with trailing element after rest",
+        },
+        {
             code: optionalReadonlyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly tuple with optional named head",
@@ -172,6 +183,11 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             code: readonlySingleElementTupleValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly tuple with single element",
+        },
+        {
+            code: readonlyEmptyTupleValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly empty tuple",
         },
         {
             code: skipPathInvalidCode,

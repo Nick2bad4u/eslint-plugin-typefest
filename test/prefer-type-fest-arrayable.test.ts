@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const ruleTester = createTypedRuleTester();
 
@@ -26,22 +25,47 @@ const inlineInvalidGenericArrayReversedCode =
     "type QueryValue = Array<string> | string;";
 const inlineInvalidWhitespaceNormalizedGenericArrayCode =
     "type QueryValue = Map < string , number > | Array<Map<string, number>>;";
+const inlineInvalidWhitespaceNormalizedGenericArrayReversedCode =
+    "type QueryValue = Array<Map < string , number >> | Map<string, number>;";
 
 const nonMatchingUnionValidCode = "type QueryValue = string | number[];";
 const singleTypeValidCode = "type QueryValue = string;";
 const threeMemberUnionValidCode = "type QueryValue = string | string[] | null;";
 const genericArrayMissingTypeArgumentValidCode =
     "type QueryValue = string | Array;";
+const genericArrayExtraTypeArgumentValidCode =
+    "type QueryValue = string | Array<string, number>;";
 const genericArrayMismatchedElementValidCode =
     "type QueryValue = string | Array<number>;";
 const qualifiedGenericArrayValidCode =
     "type QueryValue = string | globalThis.Array<string>;";
+const bothMembersAreNativeArraysValidCode = "type QueryValue = string[] | string[];";
 const inlineFixableCode = [
     'import type { Arrayable } from "type-fest";',
     "",
     "type QueryValue = string | string[];",
 ].join("\n");
 const inlineFixableOutput = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineGenericFixableCode = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = string | Array<string>;",
+].join("\n");
+const inlineGenericFixableOutput = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineGenericFixableReversedCode = [
+    'import type { Arrayable } from "type-fest";',
+    "",
+    "type QueryValue = Array<string> | string;",
+].join("\n");
+const inlineGenericFixableReversedOutput = [
     'import type { Arrayable } from "type-fest";',
     "",
     "type QueryValue = Arrayable<string>;",
@@ -104,11 +128,31 @@ ruleTester.run(
                 name: "reports generic unions when element text only differs by whitespace",
             },
             {
+                code: inlineInvalidWhitespaceNormalizedGenericArrayReversedCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports reversed generic unions when element text only differs by whitespace",
+            },
+            {
                 code: inlineFixableCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "autofixes T | T[] union when Arrayable import is in scope",
                 output: inlineFixableOutput,
+            },
+            {
+                code: inlineGenericFixableCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes T | Array<T> union when Arrayable import is in scope",
+                output: inlineGenericFixableOutput,
+            },
+            {
+                code: inlineGenericFixableReversedCode,
+                errors: [{ messageId: "preferArrayable" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes reversed Array<T> | T union when Arrayable import is in scope",
+                output: inlineGenericFixableReversedOutput,
             },
         ],
         valid: [
@@ -138,9 +182,19 @@ ruleTester.run(
                 name: "ignores generic array without type arguments",
             },
             {
+                code: genericArrayExtraTypeArgumentValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores generic array with extra type arguments",
+            },
+            {
                 code: genericArrayMismatchedElementValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores generic array with mismatched element type",
+            },
+            {
+                code: bothMembersAreNativeArraysValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions where both members are native arrays",
             },
             {
                 code: qualifiedGenericArrayValidCode,

@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-array.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const rule = getPluginRule("prefer-type-fest-json-array");
 const ruleTester = createTypedRuleTester();
@@ -69,6 +68,31 @@ const inlineValidReadonlyOperatorNonArrayTypeCode = [
     "",
     "type NotJsonArray = readonly ReadonlyArray<JsonValue> | JsonValue[];",
 ].join("\n");
+const inlineValidNonReadonlyTypeOperatorArrayCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type NotJsonArray = JsonValue[] | keyof JsonValue[];",
+].join("\n");
+const inlineInvalidWithoutFixCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonValue[] | readonly JsonValue[];",
+].join("\n");
+const inlineInvalidGenericWithoutFixCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Payload = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
+const inlineFixableReversedNativeCode = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = readonly JsonValue[] | JsonValue[];",
+].join("\n");
+const inlineFixableReversedNativeOutput = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonArray;",
+].join("\n");
 const inlineFixableCode = [
     'import type { JsonArray, JsonValue } from "type-fest";',
     "",
@@ -84,11 +108,29 @@ const inlineGenericFixableCode = [
     "",
     "type Payload = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
+const inlineFixableReversedGenericCode = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = ReadonlyArray<JsonValue> | Array<JsonValue>;",
+].join("\n");
 
 const inlineGenericFixableOutput = [
     'import type { JsonArray, JsonValue } from "type-fest";',
     "",
     "type Payload = JsonArray;",
+].join("\n");
+const inlineFixableReversedGenericOutput = [
+    'import type { JsonArray, JsonValue } from "type-fest";',
+    "",
+    "type Payload = JsonArray;",
+].join("\n");
+const inlineValidNativeNonJsonElementCode = [
+    "type NotJsonArray = string[] | readonly string[];",
+].join("\n");
+const inlineValidQualifiedJsonValueTypeReferenceCode = [
+    'import type * as TypeFest from "type-fest";',
+    "",
+    "type NotJsonArray = Array<TypeFest.JsonValue> | ReadonlyArray<TypeFest.JsonValue>;",
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-array", {
@@ -135,6 +177,20 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             name: "reports generic array union",
         },
         {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports JsonValue array union without fix when JsonArray import is missing",
+            output: null,
+        },
+        {
+            code: inlineInvalidGenericWithoutFixCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports generic JsonValue array union without fix when JsonArray import is missing",
+            output: null,
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -142,11 +198,25 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             output: inlineFixableOutput,
         },
         {
+            code: inlineFixableReversedNativeCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes reversed JsonValue array union when JsonArray import is in scope",
+            output: inlineFixableReversedNativeOutput,
+        },
+        {
             code: inlineGenericFixableCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes generic JsonValue array union when JsonArray import is in scope",
             output: inlineGenericFixableOutput,
+        },
+        {
+            code: inlineFixableReversedGenericCode,
+            errors: [{ messageId: "preferJsonArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes reversed generic JsonValue array union when JsonArray import is in scope",
+            output: inlineFixableReversedGenericOutput,
         },
     ],
     valid: [
@@ -164,6 +234,11 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             code: inlineValidNonJsonElementCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-JsonValue element array union",
+        },
+        {
+            code: inlineValidNativeNonJsonElementCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores native arrays with non-JsonValue element type",
         },
         {
             code: inlineValidThreeMemberUnionCode,
@@ -191,9 +266,19 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             name: "ignores globalThis.Array qualified union",
         },
         {
+            code: inlineValidQualifiedJsonValueTypeReferenceCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores arrays using namespace-qualified JsonValue type references",
+        },
+        {
             code: inlineValidReadonlyOperatorNonArrayTypeCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly operator applied to non-array reference",
+        },
+        {
+            code: inlineValidNonReadonlyTypeOperatorArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-readonly type-operator array member",
         },
         {
             code: readTypedFixture(invalidFixtureName),

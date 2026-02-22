@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-primitive.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const rule = getPluginRule("prefer-type-fest-primitive");
 const ruleTester = createTypedRuleTester();
@@ -36,6 +35,22 @@ const missingSymbolValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | undefined;";
 const missingUndefinedValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol;";
+const missingBigIntWithDuplicateBooleanValidCode =
+    "type PrimitiveLike = boolean | null | number | string | symbol | undefined | boolean;";
+const missingBooleanWithDuplicateBigIntValidCode =
+    "type PrimitiveLike = bigint | null | number | string | symbol | undefined | bigint;";
+const missingNullWithDuplicateNumberValidCode =
+    "type PrimitiveLike = bigint | boolean | number | string | symbol | undefined | number;";
+const missingNumberWithDuplicateStringValidCode =
+    "type PrimitiveLike = bigint | boolean | null | string | symbol | undefined | string;";
+const missingStringWithDuplicateSymbolValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | symbol | undefined | symbol;";
+const missingSymbolWithDuplicateUndefinedValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | undefined | undefined;";
+const missingUndefinedWithDuplicateNullValidCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | symbol | null;";
+const inlineInvalidWithoutFixCode =
+    "type PrimitiveLike = bigint | boolean | null | number | string | symbol | undefined;";
 const inlineFixableCode = [
     'import type { Primitive } from "type-fest";',
     "",
@@ -71,6 +86,13 @@ ruleTester.run("prefer-type-fest-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture primitive alias unions",
+        },
+        {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports primitive keyword union without fix when Primitive import is missing",
+            output: null,
         },
         {
             code: inlineFixableCode,
@@ -135,6 +157,41 @@ ruleTester.run("prefer-type-fest-primitive", rule, {
             code: missingUndefinedValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores primitive union missing undefined",
+        },
+        {
+            code: missingBigIntWithDuplicateBooleanValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing bigint with duplicate boolean",
+        },
+        {
+            code: missingBooleanWithDuplicateBigIntValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing boolean with duplicate bigint",
+        },
+        {
+            code: missingNullWithDuplicateNumberValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing null with duplicate number",
+        },
+        {
+            code: missingNumberWithDuplicateStringValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing number with duplicate string",
+        },
+        {
+            code: missingStringWithDuplicateSymbolValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing string with duplicate symbol",
+        },
+        {
+            code: missingSymbolWithDuplicateUndefinedValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing symbol with duplicate undefined",
+        },
+        {
+            code: missingUndefinedWithDuplicateNullValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores 7-member primitive union missing undefined with duplicate null",
         },
         {
             code: readTypedFixture(skipFixtureName),

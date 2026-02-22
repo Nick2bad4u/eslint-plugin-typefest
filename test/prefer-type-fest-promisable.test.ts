@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-promisable.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const ruleTester = createTypedRuleTester();
 
@@ -46,6 +45,12 @@ const promiseThreeMemberUnionValidCode =
     "type Result = Promise<string> | number | string;";
 const promiseThreeMemberLeadingPairValidCode =
     "type Result = Promise<string> | string | boolean;";
+const promiseThreeMemberLeadingReversePairValidCode =
+    "type Result = string | Promise<string> | boolean;";
+const promiseFourMemberLeadingPairValidCode =
+    "type Result = Promise<string> | string | boolean | number;";
+const promiseFourMemberLeadingReversePairValidCode =
+    "type Result = string | Promise<string> | boolean | number;";
 const nullFirstPromiseSecondValidCode =
     "type Result = null | Promise<string>;";
 const undefinedFirstPromiseSecondValidCode =
@@ -59,6 +64,14 @@ const alreadyPromisableUnionValidCode = [
 const nestedPromisableUnionValidCode = [
     'import type { Promisable } from "type-fest";',
     "type Result = Promise<Promisable<string>> | Promisable<string>;",
+].join("\n");
+const reverseNestedPromisableUnionValidCode = [
+    'import type { Promisable } from "type-fest";',
+    "type Result = Promisable<string> | Promise<Promisable<string>>;",
+].join("\n");
+const threeMemberPromisableUnionValidCode = [
+    'import type { Promisable } from "type-fest";',
+    "type Result = Promise<Promisable<string>> | Promisable<string> | boolean;",
 ].join("\n");
 const skipPathInvalidCode = promiseFirstInvalidCode;
 const qualifiedPromiseValidCode =
@@ -132,6 +145,7 @@ ruleTester.run(
                     "prefer-type-fest-promisable.invalid.ts"
                 ),
                 name: "reports alias usage when Promisable import is missing",
+                output: null,
             },
         ],
         valid: [
@@ -227,6 +241,27 @@ ruleTester.run(
                 name: "ignores three-member union even when first two members form a Promise pair",
             },
             {
+                code: promiseThreeMemberLeadingReversePairValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores three-member union even when first two members form a reverse Promise pair",
+            },
+            {
+                code: promiseFourMemberLeadingPairValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores four-member union even when first two members form a Promise pair",
+            },
+            {
+                code: promiseFourMemberLeadingReversePairValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores four-member union even when first two members form a reverse Promise pair",
+            },
+            {
                 code: nullFirstPromiseSecondValidCode,
                 filename: typedFixturePath(
                     "prefer-type-fest-promisable.valid.ts"
@@ -260,6 +295,20 @@ ruleTester.run(
                     "prefer-type-fest-promisable.valid.ts"
                 ),
                 name: "ignores union where Promise inner type is already Promisable",
+            },
+            {
+                code: reverseNestedPromisableUnionValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores reverse-order union where Promise inner type is already Promisable",
+            },
+            {
+                code: threeMemberPromisableUnionValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores multi-member union that already contains Promisable",
             },
             {
                 code: skipPathInvalidCode,

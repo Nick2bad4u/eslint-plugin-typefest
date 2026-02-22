@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-literal-union.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const ruleTester = createTypedRuleTester();
 
@@ -72,16 +71,42 @@ const inlineFixableBigIntOutput = [
     "",
     "type SessionNonce = LiteralUnion<1n, bigint>;",
 ].join("\n");
+const inlineFixableSingleLiteralBooleanCode = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type FeatureFlag = true | boolean;",
+].join("\n");
+const inlineFixableSingleLiteralBooleanOutput = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type FeatureFlag = LiteralUnion<true, boolean>;",
+].join("\n");
+const inlineFixableSingleLiteralNumberCode = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type HttpCode = 200 | number;",
+].join("\n");
+const inlineFixableSingleLiteralNumberOutput = [
+    'import type { LiteralUnion } from "type-fest";',
+    "",
+    "type HttpCode = LiteralUnion<200, number>;",
+].join("\n");
 const mixedFamilyUnionValidCode =
     "type EnvironmentName = 'dev' | number | string;";
 const literalOnlyUnionValidCode = "type EnvironmentName = 'dev' | 'prod';";
+const literalOnlyBooleanUnionValidCode = "type FeatureFlag = true | false;";
+const literalOnlyBigIntUnionValidCode = "type SessionNonce = 1n | 2n;";
 const mixedLiteralFamiliesValidCode = "type Marker = true | 'dev' | string;";
 const keywordOnlyStringUnionValidCode = "type EnvironmentName = string | string;";
 const keywordOnlyNumberUnionValidCode = "type HttpCode = number | number;";
+const keywordOnlyBooleanUnionValidCode = "type FeatureFlag = boolean | boolean;";
+const keywordOnlyBigIntUnionValidCode = "type SessionNonce = bigint | bigint;";
 const literalAndTypeReferenceUnionValidCode =
     "type EnvironmentName = 'dev' | CustomAlias | string;";
 const mismatchedBigIntLiteralFamilyValidCode =
     "type SessionNonce = bigint | 1 | 2;";
+const templateLiteralAndStringKeywordValidCode =
+    "type EnvironmentName = `dev` | string;";
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-literal-union",
@@ -177,6 +202,20 @@ ruleTester.run(
                 name: "autofixes bigint literal unions when LiteralUnion import is in scope",
                 output: inlineFixableBigIntOutput,
             },
+            {
+                code: inlineFixableSingleLiteralBooleanCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes single-literal boolean unions when LiteralUnion import is in scope",
+                output: inlineFixableSingleLiteralBooleanOutput,
+            },
+            {
+                code: inlineFixableSingleLiteralNumberCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes single-literal number unions when LiteralUnion import is in scope",
+                output: inlineFixableSingleLiteralNumberOutput,
+            },
         ],
         valid: [
             {
@@ -195,6 +234,16 @@ ruleTester.run(
                 name: "ignores unions that contain only literal members",
             },
             {
+                code: literalOnlyBooleanUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with only boolean literal members",
+            },
+            {
+                code: literalOnlyBigIntUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with only bigint literal members",
+            },
+            {
                 code: mixedLiteralFamiliesValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores unions that include literals from different families",
@@ -210,6 +259,16 @@ ruleTester.run(
                 name: "ignores unions with only number keyword members",
             },
             {
+                code: keywordOnlyBooleanUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with only boolean keyword members",
+            },
+            {
+                code: keywordOnlyBigIntUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions with only bigint keyword members",
+            },
+            {
                 code: literalAndTypeReferenceUnionValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores unions that include non-literal type references",
@@ -218,6 +277,11 @@ ruleTester.run(
                 code: mismatchedBigIntLiteralFamilyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores bigint unions with numeric (non-bigint) literals",
+            },
+            {
+                code: templateLiteralAndStringKeywordValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions that include template literal types",
             },
             {
                 code: readTypedFixture(skipFixtureName),

@@ -1,3 +1,6 @@
+import { describe, expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-value.test` behavior.
@@ -8,9 +11,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-import { describe, expect, it } from "vitest";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const ruleTester = createTypedRuleTester();
 const rule = getPluginRule("prefer-type-fest-json-value");
@@ -77,7 +77,7 @@ describe("prefer-type-fest-json-value metadata", () => {
                     readonly meta?: { readonly hasSuggestions?: boolean };
                 }
             ).meta?.hasSuggestions
-        ).toBe(true);
+        ).toBeTruthy();
     });
 });
 

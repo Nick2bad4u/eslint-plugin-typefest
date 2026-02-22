@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-array.test` behavior.
@@ -8,8 +9,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 
 const rule = getPluginRule("prefer-type-fest-unknown-array");
 const ruleTester = createTypedRuleTester();
@@ -30,8 +29,22 @@ const inlineInvalidReadonlyNonArrayOperatorCode =
     "type Input = readonly ReadonlyArray<unknown>;";
 const inlineValidMissingReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray;";
+const inlineValidExtraReadonlyArrayTypeArgumentCode =
+    "type Input = ReadonlyArray<unknown, string>;";
+const inlineValidNestedUnknownArrayTypeArgumentCode =
+    "type Input = ReadonlyArray<unknown[]>;";
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
+const inlineReadonlyNonArrayOperatorFixableCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = readonly ReadonlyArray<unknown>;",
+].join("\n");
+const inlineReadonlyNonArrayOperatorFixableOutput = [
+    'import type { UnknownArray } from "type-fest";',
+    "",
+    "type Input = readonly UnknownArray;",
+].join("\n");
 const inlineReadonlyShorthandFixableCode = [
     'import type { UnknownArray } from "type-fest";',
     "",
@@ -86,12 +99,14 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly unknown array shorthand alias",
+            output: null,
         },
         {
             code: inlineInvalidReadonlyNonArrayOperatorCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly operator over unknown[] type reference",
+            output: null,
         },
         {
             code: inlineInvalidWithoutFixCode,
@@ -113,6 +128,13 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes ReadonlyArray<unknown> when UnknownArray import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineReadonlyNonArrayOperatorFixableCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes nested ReadonlyArray<unknown> inside readonly type operator when UnknownArray import is in scope",
+            output: inlineReadonlyNonArrayOperatorFixableOutput,
         },
     ],
     valid: [
@@ -160,6 +182,16 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             code: inlineValidMissingReadonlyArrayTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores ReadonlyArray without explicit unknown element",
+        },
+        {
+            code: inlineValidExtraReadonlyArrayTypeArgumentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray with extra type arguments",
+        },
+        {
+            code: inlineValidNestedUnknownArrayTypeArgumentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores ReadonlyArray with nested unknown[] element type",
         },
         {
             code: skipPathInvalidCode,

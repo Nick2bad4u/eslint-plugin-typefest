@@ -1,3 +1,4 @@
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
@@ -9,8 +10,6 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-
 const rule = getPluginRule("prefer-type-fest-async-return-type");
 const ruleTester = createTypedRuleTester();
 
@@ -18,10 +17,16 @@ const validFixtureName = "prefer-type-fest-async-return-type.valid.ts";
 const invalidFixtureName = "prefer-type-fest-async-return-type.invalid.ts";
 const inlineInvalidCode =
     "type Result = Awaited<ReturnType<() => Promise<string>>>;";
+const inlineInvalidWithoutFixCode =
+    "type Result = Awaited<ReturnType<() => Promise<string>>>;";
 const awaitedWithoutTypeArgumentValidCode = "type Result = Awaited;";
 const awaitedNonReturnTypeValidCode = "type Result = Awaited<string>;";
+const awaitedExtraTypeArgumentValidCode =
+    "type Result = Awaited<ReturnType<() => Promise<string>>, string>;";
 const awaitedReturnTypeWithoutArgValidCode =
     "type Result = Awaited<ReturnType>;";
+const awaitedReturnTypeWithExtraTypeArgumentValidCode =
+    "type Result = Awaited<ReturnType<() => Promise<string>, string>>;";
 const awaitedPromiseTypeReferenceValidCode =
     "type Result = Awaited<Promise<string>>;";
 const awaitedQualifiedReturnTypeValidCode = [
@@ -65,6 +70,13 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             name: "reports inline Awaited<ReturnType<...>> composition",
         },
         {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferAsyncReturnType" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports Awaited<ReturnType<...>> without fix when AsyncReturnType import is missing",
+            output: null,
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferAsyncReturnType" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -89,9 +101,19 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             name: "ignores Awaited over direct non-ReturnType operand",
         },
         {
+            code: awaitedExtraTypeArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited references with extra type arguments",
+        },
+        {
             code: awaitedReturnTypeWithoutArgValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Awaited<ReturnType> without type arguments",
+        },
+        {
+            code: awaitedReturnTypeWithExtraTypeArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Awaited<ReturnType<...>> when ReturnType has extra type arguments",
         },
         {
             code: awaitedPromiseTypeReferenceValidCode,
