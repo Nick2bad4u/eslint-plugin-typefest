@@ -21,6 +21,11 @@ concurrency:
     cancel-in-progress: false
     group: stryker-${{ github.ref }}
 
+env:
+    NODE_ENV: test
+    STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY || '' }}
+    GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+
 jobs:
     stryker:
         runs-on: ubuntu-latest
@@ -46,14 +51,10 @@ jobs:
 
             - if: github.event_name == 'workflow_dispatch' && inputs.mode == 'fast'
               name: Run Stryker (fast)
-              env:
-                  STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
               run: npm run test:stryker:ci
 
             - if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'full')
               name: Run Stryker (full)
-              env:
-                  STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
               run: npm run test:stryker:full:ci
 
             - if: always()

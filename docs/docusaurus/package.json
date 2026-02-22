@@ -88,7 +88,7 @@
         "typedoc": "^0.28.17",
         "typedoc-docusaurus-theme": "^1.4.2",
         "typedoc-plugin-coverage": "^4.0.2",
-        "typedoc-plugin-dt-links": "^2.0.42",
+        "typedoc-plugin-dt-links": "^2.0.43",
         "typedoc-plugin-external-package-links": "^0.2.0",
         "typedoc-plugin-markdown": "^4.10.0",
         "typedoc-plugin-mdn-links": "^5.1.1",

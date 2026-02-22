@@ -46,7 +46,6 @@ import noBarrelFiles from "eslint-plugin-no-barrel-files";
 import noConstructorBind from "eslint-plugin-no-constructor-bind";
 import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
-import pluginNoHardcoded from "eslint-plugin-no-hardcoded-strings";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
 import pluginNoOnly from "eslint-plugin-no-only-tests";
 import noSecrets from "eslint-plugin-no-secrets";
@@ -449,7 +448,6 @@ export default defineConfig([
         plugins: {
             css: css,
             "css-modules": pluginCssModules,
-            "no-hardcoded-strings": pluginNoHardcoded,
             "undefined-css-classes": pluginUndefinedCss,
         },
         rules: {
@@ -467,14 +465,6 @@ export default defineConfig([
             "css/use-layers": "off",
             // CSS Classes Rules (undefined-css-classes/*)
             "undefined-css-classes/no-undefined-css-classes": "warn",
-            // "no-hardcoded-strings/no-hardcoded-strings": [
-            //     "warn",
-            //     {
-            //         allowedFunctionNames: ["t", "translate", "i18n"],
-            //         ignoreStrings: ["OK", "Cancel"],
-            //         ignorePatterns: [/^[\s\d\-:]+$/u], // Ignore dates, times, numbers
-            //     },
-            // ],
         },
     },
     // #endregion
@@ -2642,6 +2632,17 @@ export default defineConfig([
             // Scripts commonly use void/Promise-returning callbacks where the
             // return value is intentionally ignored.
             "@typescript-eslint/strict-void-return": "off",
+        },
+    },
+    {
+        files: ["plugin.mjs", "src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}"],
+        name: "Source runtime logging policy",
+        rules: {
+            // Runtime/library code should not emit console output.
+            "no-console": "error",
+            // Keep explicit in source scope even though this is also configured
+            // globally for defense-in-depth.
+            "no-debugger": "error",
         },
     },
     // #endregion

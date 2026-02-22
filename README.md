@@ -3,6 +3,7 @@
 [![npm version.](https://img.shields.io/npm/v/eslint-plugin-typefest)](https://www.npmjs.com/package/eslint-plugin-typefest)
 [![npm downloads.](https://img.shields.io/npm/dm/eslint-plugin-typefest)](https://www.npmjs.com/package/eslint-plugin-typefest)
 [![license.](https://img.shields.io/npm/l/eslint-plugin-typefest)](./LICENSE)
+[![Mutation testing badge.](https://img.shields.io/endpoint?style=flat\&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FNick2bad4u%2Feslint-plugin-typefest%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/Nick2bad4u/eslint-plugin-typefest/main)
 
 ESLint plugin for teams that want consistent TypeScript-first conventions based on:
 

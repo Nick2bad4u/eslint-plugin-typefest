@@ -76,4 +76,25 @@ describe("plugin runtime edge branches", () => {
             resetRuntimeMocks();
         }
     });
+
+    it("does not crash when a rule omits meta docs entirely", async () => {
+        try {
+            vi.doMock("../src/rules/prefer-ts-extras-array-at.js", () => ({
+                default: {
+                    create: () => ({}),
+                    defaultOptions: [],
+                },
+            }));
+
+            const pluginModule = await import("../src/plugin");
+            const plugin = pluginModule.default;
+
+            expect(plugin.rules["prefer-ts-extras-array-at"]).toBeDefined();
+            expect(
+                plugin.rules["prefer-ts-extras-array-at"].meta
+            ).toBeUndefined();
+        } finally {
+            resetRuntimeMocks();
+        }
+    });
 });

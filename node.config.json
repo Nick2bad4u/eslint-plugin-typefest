@@ -3,7 +3,7 @@
     "nodeOptions": {
         "allow-fs-read": [
             "./src",
-            "./test",
+            "./tests",
             "./dist",
             "./node_modules",
             "./coverage",
@@ -11,9 +11,16 @@
             "./docs",
             "./.github",
             "./package.json",
+            "./package-lock.json",
             "./tsconfig.json",
+            "./tsconfig.build.json",
+            "./eslint.config.js",
             "./eslint.config.mjs",
-            "./cliff.toml"
+            "./vitest.config.ts",
+            "./cliff.toml",
+            "./README.md",
+            "./CHANGELOG.md",
+            "./LICENSE"
         ],
         "allow-fs-write": [
             "./dist",
@@ -27,26 +34,29 @@
         ],
         "diagnostic-dir": "./temp",
         "enable-source-maps": true,
+        "extra-info-on-fatal-exception": true,
         "max-old-space-size-percentage": "80",
         "trace-deprecation": false,
         "trace-warnings": false,
         "warnings": true
     },
-    "testRunner": {
+    "test": {
         "experimental-test-coverage": true,
         "test-concurrency": 4,
         "test-coverage-branches": 80,
         "test-coverage-exclude": [
-            "**/test/**",
-            "**/*.test.{ts,tsx}",
-            "**/*.spec.{ts,tsx}",
+            "**/tests/**",
+            "**/*.test.{ts,mts}",
+            "**/*.spec.{ts,mts}",
             "**/node_modules/**",
             "**/dist/**",
             "**/coverage/**"
         ],
         "test-coverage-functions": 80,
         "test-coverage-include": [
-            "src/**/*.ts"
+            "src/**/*.ts",
+            "src/**/*.mjs",
+            "src/**/*.mts"
         ],
         "test-coverage-lines": 80,
         "test-force-exit": false,

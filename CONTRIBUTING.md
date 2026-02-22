@@ -37,6 +37,24 @@ This repository contains an ESLint plugin focused on `type-fest` and
 4. Update relevant documentation in `docs/` and root docs when needed.
 5. Run validation commands before opening a pull request.
 
+## Debugging and logging policy
+
+To keep runtime plugin behavior predictable, this repository enforces strict
+rules for logging and debugger usage in source code.
+
+- `src/**` and `plugin.mjs`: do **not** commit `console.*` or `debugger`
+  statements.
+- `scripts/**`: `console.log`/`console.warn`/`console.error` are allowed for
+  CLI progress and diagnostics.
+- `test/**`: avoid noisy logging by default; only keep it when a test is
+  explicitly validating logging behavior.
+
+When adding script output, prefer this severity split:
+
+- `console.log`: normal progress
+- `console.warn`: recoverable issue or fallback behavior
+- `console.error`: failure path (typically followed by a non-zero exit code)
+
 ## Project layout
 
 ```text

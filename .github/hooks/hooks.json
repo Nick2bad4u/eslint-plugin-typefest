@@ -1,0 +1,45 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "command": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": "rm -rf ./temp",
+                "osx": "rm -rf ./temp",
+                "timeout": 10,
+                "type": "command",
+                "windows": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force"
+            }
+        ],
+        "Stop": [
+            {
+                "command": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": "rm -rf ./temp",
+                "osx": "rm -rf ./temp",
+                "timeout": 10,
+                "type": "command",
+                "windows": "Get-ChildItem -LiteralPath .\\temp -Force | Remove-Item -Recurse -Force"
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "command": ".github/hooks/scripts/log-prompt.ps1",
+                "cwd": ".github/hooks",
+                "env": {
+                    "SUPPRESS_PWSH_DECORATIONS": "1"
+                },
+                "linux": "./scripts/log-prompt.sh",
+                "osx": "./scripts/log-prompt.sh",
+                "timeout": 10,
+                "type": "command",
+                "windows": "./scripts/log-prompt.ps1"
+            }
+        ]
+    },
+    "version": 1
+}

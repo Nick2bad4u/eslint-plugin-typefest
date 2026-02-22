@@ -7,6 +7,8 @@ import { describe, expect, it } from "vitest";
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
+    createSafeTypeNodeReplacementFix,
+    createSafeTypeNodeTextReplacementFix,
     createSafeTypeReferenceReplacementFix,
 } from "../../src/_internal/imported-type-aliases";
 
@@ -112,6 +114,47 @@ const createSafeTypeReferenceReplacementFixFn: (
     availableReplacementNames: ReadonlySet<string>
 ) => ReturnType<typeof createSafeTypeReferenceReplacementFix> =
     createSafeTypeReferenceReplacementFix;
+
+const createSafeTypeNodeReplacementFixFn: (
+    node: Parameters<typeof createSafeTypeNodeReplacementFix>[0],
+    replacementName: string,
+    availableReplacementNames: ReadonlySet<string>
+) => ReturnType<typeof createSafeTypeNodeReplacementFix> =
+    createSafeTypeNodeReplacementFix;
+
+const createSafeTypeNodeTextReplacementFixFn: (
+    node: Parameters<typeof createSafeTypeNodeTextReplacementFix>[0],
+    replacementName: string,
+    replacementText: string,
+    availableReplacementNames: ReadonlySet<string>
+) => ReturnType<typeof createSafeTypeNodeTextReplacementFix> =
+    createSafeTypeNodeTextReplacementFix;
+
+const createTypeParameterDeclarationWithNames = (
+    ...parameterNames: string[]
+): {
+    params: {
+        name: {
+            name: string;
+        };
+    }[];
+    type: "TSTypeParameterDeclaration";
+} => ({
+    params: parameterNames.map((parameterName) => ({
+        name: {
+            name: parameterName,
+        },
+    })),
+    type: "TSTypeParameterDeclaration",
+});
+
+const createTypeNode = (
+    parent?: unknown
+): Parameters<typeof createSafeTypeNodeReplacementFix>[0] =>
+    ({
+        type: "TSStringKeyword",
+        ...(parent ? { parent } : {}),
+    }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
 
 describe(collectImportedTypeAliasMatches, () => {
     it("collects canonical named imports that are not renamed", () => {
@@ -278,7 +321,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             new Set(["Simplify"])
         );
 
-        expect(fixer).toBeDefined();
+        expect(fixer).toBeTypeOf("function");
     });
 
     it("returns null when replacement name is not imported", () => {
@@ -297,16 +340,8 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
     it("returns null when replacement is shadowed by a type parameter", () => {
         expect.hasAssertions();
 
-        const parameterDeclaration = {
-            params: [
-                {
-                    name: {
-                        name: "Simplify",
-                    },
-                },
-            ],
-            type: "TSTypeParameterDeclaration",
-        };
+        const parameterDeclaration =
+            createTypeParameterDeclarationWithNames("Simplify");
 
         const parent = {
             type: "TSTypeAliasDeclaration",
@@ -323,6 +358,53 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         expect(fixer).toBeNull();
     });
 
+    it("returns null when replacement is shadowed by one of multiple type parameters", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration = createTypeParameterDeclarationWithNames(
+            "Other",
+            "Simplify",
+            "Tail"
+        );
+
+        const parent = {
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        };
+
+        const node = createTypeReferenceNode("Expand", parent);
+        const fixer = createSafeTypeReferenceReplacementFixFn(
+            node,
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeNull();
+    });
+
+    it("returns fixer when type parameters exist but replacement name is not shadowed", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration = createTypeParameterDeclarationWithNames(
+            "Other",
+            "Tail"
+        );
+
+        const parent = {
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        };
+
+        const node = createTypeReferenceNode("Expand", parent);
+        const fixer = createSafeTypeReferenceReplacementFixFn(
+            node,
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+    });
+
     it("returns null for qualified type references", () => {
         expect.hasAssertions();
 
@@ -334,5 +416,99 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         );
 
         expect(fixer).toBeNull();
+    });
+});
+
+function createSafeTypeNodeReplacementFixGroup(): void {
+    // no-op
+}
+
+describe(createSafeTypeNodeReplacementFixGroup, () => {
+    it("returns null when replacement is shadowed for whole-node replacement", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration =
+            createTypeParameterDeclarationWithNames("Simplify");
+        const node = createTypeNode({
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        });
+
+        const fixer = createSafeTypeNodeReplacementFixFn(
+            node,
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeNull();
+    });
+
+    it("returns fixer when replacement is available and not shadowed for whole-node replacement", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration = createTypeParameterDeclarationWithNames(
+            "Other",
+            "Tail"
+        );
+        const node = createTypeNode({
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        });
+
+        const fixer = createSafeTypeNodeReplacementFixFn(
+            node,
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+    });
+});
+
+function createSafeTypeNodeTextReplacementFixGroup(): void {
+    // no-op
+}
+
+describe(createSafeTypeNodeTextReplacementFixGroup, () => {
+    it("returns null when replacement is shadowed for custom text replacement", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration =
+            createTypeParameterDeclarationWithNames("Simplify");
+        const node = createTypeNode({
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        });
+
+        const fixer = createSafeTypeNodeTextReplacementFixFn(
+            node,
+            "Simplify",
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeNull();
+    });
+
+    it("returns fixer when replacement is available and not shadowed for custom text replacement", () => {
+        expect.hasAssertions();
+
+        const parameterDeclaration = createTypeParameterDeclarationWithNames(
+            "Head",
+            "Tail"
+        );
+        const node = createTypeNode({
+            type: "TSTypeAliasDeclaration",
+            typeParameters: parameterDeclaration,
+        });
+
+        const fixer = createSafeTypeNodeTextReplacementFixFn(
+            node,
+            "Simplify",
+            "Simplify<Head>",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
     });
 });
