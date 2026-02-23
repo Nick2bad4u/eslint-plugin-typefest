@@ -14,6 +14,26 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-is-equal-type.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-equal-type.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const invalidFixtureCodeWithTsExtrasImport =
+    invalidFixtureCode.replace(
+        'import type { IsEqual } from "type-fest";\r\n',
+        'import type { IsEqual } from "type-fest";\nimport { isEqualType } from "ts-extras";\r\n'
+    );
+const invalidFixtureDirectEqualSuggestionOutput =
+    invalidFixtureCodeWithTsExtrasImport.replace(
+        "const directEqualCheck: IsEqual<string, string> = true;",
+        "const directEqualCheck = isEqualType<string, string>() || true;"
+    );
+const invalidFixtureDirectUnequalSuggestionOutput =
+    invalidFixtureCodeWithTsExtrasImport.replace(
+        "const directUnequalCheck: IsEqual<number, string> = false;",
+        "const directUnequalCheck = isEqualType<number, string>() && false;"
+    );
+const invalidFixtureNamespaceSuggestionOutput =
+    invalidFixtureCodeWithTsExtrasImport.replace(
+        'const namespaceEqualCheck: TypeFest.IsEqual<"a", "a"> = true;',
+        'const namespaceEqualCheck = isEqualType<"a", "a">() || true;'
+    );
 const inlineInvalidAliasedImportCode = [
     'import type { IsEqual as IsEqualAlias } from "type-fest";',
     "",
@@ -22,9 +42,27 @@ const inlineInvalidAliasedImportCode = [
     "Boolean(aliasedEqualCheck);",
 ].join("\n");
 const inlineInvalidAliasedImportSuggestionOutput =
-    inlineInvalidAliasedImportCode.replace(
-        "const aliasedEqualCheck: IsEqualAlias<string, string> = true;",
-        "const aliasedEqualCheck = isEqualType<string, string>() || true;"
+    inlineInvalidAliasedImportCode
+        .replace(
+            'import type { IsEqual as IsEqualAlias } from "type-fest";',
+            'import type { IsEqual as IsEqualAlias } from "type-fest";\nimport { isEqualType } from "ts-extras";'
+        )
+        .replace(
+            "const aliasedEqualCheck: IsEqualAlias<string, string> = true;",
+            "const aliasedEqualCheck = isEqualType<string, string>() || true;"
+        );
+const inlineInvalidAliasedTsExtrasImportCode = [
+    'import { isEqualType as isEqualTypeAlias } from "ts-extras";',
+    'import type { IsEqual } from "type-fest";',
+    "",
+    "const aliasedRuntimeHelperCheck: IsEqual<string, string> = true;",
+    "",
+    "Boolean(aliasedRuntimeHelperCheck);",
+].join("\n");
+const inlineInvalidAliasedTsExtrasImportSuggestionOutput =
+    inlineInvalidAliasedTsExtrasImportCode.replace(
+        "const aliasedRuntimeHelperCheck: IsEqual<string, string> = true;",
+        "const aliasedRuntimeHelperCheck = isEqualTypeAlias<string, string>() || true;"
     );
 const inlineValidTypeAliasReferenceCode = [
     'import type { IsEqual } from "type-fest";',
@@ -92,10 +130,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasIsEqualType",
-                                output: invalidFixtureCode.replace(
-                                    "const directEqualCheck: IsEqual<string, string> = true;",
-                                    "const directEqualCheck = isEqualType<string, string>() || true;"
-                                ),
+                                output: invalidFixtureDirectEqualSuggestionOutput,
                             },
                         ],
                     },
@@ -104,10 +139,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasIsEqualType",
-                                output: invalidFixtureCode.replace(
-                                    "const directUnequalCheck: IsEqual<number, string> = false;",
-                                    "const directUnequalCheck = isEqualType<number, string>() && false;"
-                                ),
+                                output: invalidFixtureDirectUnequalSuggestionOutput,
                             },
                         ],
                     },
@@ -116,10 +148,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasIsEqualType",
-                                output: invalidFixtureCode.replace(
-                                    'const namespaceEqualCheck: TypeFest.IsEqual<"a", "a"> = true;',
-                                    'const namespaceEqualCheck = isEqualType<"a", "a">() || true;'
-                                ),
+                                output: invalidFixtureNamespaceSuggestionOutput,
                             },
                         ],
                     },
@@ -142,6 +171,23 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports aliased IsEqual import in variable initializer",
+            },
+            {
+                code: inlineInvalidAliasedTsExtrasImportCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasIsEqualType",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasIsEqualType",
+                                output:
+                                    inlineInvalidAliasedTsExtrasImportSuggestionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reuses aliased ts-extras isEqualType import when present",
             },
             {
                 code: inlineInvalidWithoutTypeArgumentsCode,

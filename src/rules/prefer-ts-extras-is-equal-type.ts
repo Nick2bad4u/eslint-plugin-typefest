@@ -4,9 +4,15 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    collectDirectNamedValueImportsFromSource,
+    createSafeValueNodeTextReplacementFix,
+} from "../_internal/imported-value-symbols.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const IS_EQUAL_TYPE_NAME = "IsEqual";
+const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";
+const TS_EXTRAS_PACKAGE_NAME = "ts-extras";
 const TYPE_FEST_PACKAGE_NAME = "type-fest";
 
 /**
@@ -20,6 +26,10 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const isEqualLocalNames = new Set<string>();
             const typeFestNamespaceImportNames = new Set<string>();
+            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+                context.sourceCode,
+                TS_EXTRAS_PACKAGE_NAME
+            );
 
             for (const statement of context.sourceCode.ast.body) {
                 if (statement.type !== "ImportDeclaration") {
@@ -102,42 +112,46 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                         isEqualTypeReference.typeArguments?.params ?? [];
                     const identifierName = node.id.name;
                     const initializerValue = node.init.value;
+                    const [leftType, rightType] = typeArguments;
+
+                    if (!leftType || !rightType) {
+                        context.report({
+                            messageId: "preferTsExtrasIsEqualType",
+                            node,
+                        });
+
+                        return;
+                    }
+
+                    const leftTypeText = context.sourceCode.getText(leftType);
+                    const rightTypeText = context.sourceCode.getText(rightType);
+                    const isEqualTypeSuggestionFix =
+                        createSafeValueNodeTextReplacementFix({
+                            context,
+                            importedName: IS_EQUAL_TYPE_FUNCTION_NAME,
+                            imports: tsExtrasImports,
+                            replacementTextFactory: (replacementName) => {
+                                const callText = `${replacementName}<${leftTypeText}, ${rightTypeText}>()`;
+                                const runtimePreservingExpression =
+                                    initializerValue
+                                        ? `${callText} || true`
+                                        : `${callText} && false`;
+
+                                return `${identifierName} = ${runtimePreservingExpression}`;
+                            },
+                            sourceModuleName: TS_EXTRAS_PACKAGE_NAME,
+                            targetNode: node,
+                        });
 
                     context.report({
                         messageId: "preferTsExtrasIsEqualType",
                         node,
                         suggest:
-                            typeArguments.length === 2
+                            typeArguments.length === 2 &&
+                            isEqualTypeSuggestionFix !== null
                                 ? [
                                       {
-                                          fix(fixer) {
-                                              const [leftType, rightType] =
-                                                  typeArguments;
-
-                                              if (!leftType || !rightType) {
-                                                  return null;
-                                              }
-
-                                              const leftTypeText =
-                                                  context.sourceCode.getText(
-                                                      leftType
-                                                  );
-                                              const rightTypeText =
-                                                  context.sourceCode.getText(
-                                                      rightType
-                                                  );
-
-                                              const callText = `isEqualType<${leftTypeText}, ${rightTypeText}>()`;
-                                              const runtimePreservingExpression =
-                                                  initializerValue
-                                                      ? `${callText} || true`
-                                                      : `${callText} && false`;
-
-                                              return fixer.replaceText(
-                                                  node,
-                                                  `${identifierName} = ${runtimePreservingExpression}`
-                                              );
-                                          },
+                                          fix: isEqualTypeSuggestionFix,
                                           messageId:
                                               "suggestTsExtrasIsEqualType",
                                       },

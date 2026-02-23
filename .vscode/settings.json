@@ -167,5 +167,6 @@
         "**/dist/**",
         "**/coverage/**"
     ],
+    "strykerMutator.enable": false,
     "vitest.rootConfig": "vite.config.ts"
 }
