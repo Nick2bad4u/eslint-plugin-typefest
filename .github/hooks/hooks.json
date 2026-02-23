@@ -6,8 +6,8 @@
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": ".github/hooks/scripts/log-prompt.sh",
-                "osx": ".github/hooks/scripts/log-prompt.sh",
+                "linux": ".github/hooks/scripts/remove-temp.sh",
+                "osx": ".github/hooks/scripts/remove-temp.sh",
                 "timeout": 10,
                 "type": "command",
                 "windows": "\".github/hooks/scripts/remove-temp.ps1\""
@@ -19,8 +19,8 @@
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": ".github/hooks/scripts/log-prompt.sh",
-                "osx": ".github/hooks/scripts/log-prompt.sh",
+                "linux": ".github/hooks/scripts/remove-temp.sh",
+                "osx": ".github/hooks/scripts/remove-temp.sh",
                 "timeout": 10,
                 "type": "command",
                 "windows": "\".github/hooks/scripts/remove-temp.ps1\""
