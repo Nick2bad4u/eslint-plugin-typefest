@@ -1,10 +1,10 @@
+import { describe, expect, it } from "vitest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-key-in.test` behavior.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,

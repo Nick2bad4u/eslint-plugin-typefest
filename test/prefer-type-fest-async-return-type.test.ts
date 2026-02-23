@@ -1,12 +1,12 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it } from "vitest";
+import { expect, test } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -83,7 +83,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-it("keeps async-return-type helper constants and guard clauses in source", () => {
+test("keeps async-return-type helper constants and guard clauses in source", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),

@@ -1,10 +1,10 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import { describe, expect, it, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -135,10 +135,10 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
         const replacementFixCalls: unknown[][] = [];
-        const reportCalls: Array<{
+        const reportCalls: {
             messageId?: string;
             node?: unknown;
-        }> = [];
+        }[] = [];
 
         const createIdentifierNode = (name: string) => ({
             name,
@@ -215,6 +215,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             });
 
             const unionTypeListener = listeners.TSUnionType;
+
             expect(unionTypeListener).toBeTypeOf("function");
 
             const stringKeywordNode = createKeywordTypeNode(

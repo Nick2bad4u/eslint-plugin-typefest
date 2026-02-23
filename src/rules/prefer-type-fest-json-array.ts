@@ -91,7 +91,7 @@ const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (!typeArguments || typeArguments.length !== 1) {
+    if (typeArguments?.length !== 1) {
         return false;
     }
 
@@ -117,7 +117,7 @@ const isGenericReadonlyJsonValueArrayType = (
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (!typeArguments || typeArguments.length !== 1) {
+    if (typeArguments?.length !== 1) {
         return false;
     }
 

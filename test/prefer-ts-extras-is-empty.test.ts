@@ -5,7 +5,7 @@
 import parser from "@typescript-eslint/parser";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -111,7 +111,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
     name: "prefer-ts-extras-is-empty",
 });
 
-it("keeps is-empty helper guards and literals in source", () => {
+test("keeps is-empty helper guards and literals in source", () => {
     const ruleSource = readFileSync(
         path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-empty.ts"),
         "utf8"
@@ -148,7 +148,7 @@ it("keeps is-empty helper guards and literals in source", () => {
     );
 });
 
-it("skips reports when parser services fail during type lookup", async () => {
+test("skips reports when parser services fail during type lookup", async () => {
     try {
         vi.resetModules();
 
@@ -194,19 +194,18 @@ it("skips reports when parser services fail during type lookup", async () => {
         );
 
         const declarationStatement = parsedResult.ast.body[1];
+
         expect(declarationStatement?.type).toBe("VariableDeclaration");
 
         if (
-            !declarationStatement ||
-            declarationStatement.type !== "VariableDeclaration"
+            declarationStatement?.type !== "VariableDeclaration"
         ) {
             throw new Error("Expected variable declaration for length check");
         }
 
         const firstDeclarator = declarationStatement.declarations[0];
         if (
-            !firstDeclarator?.init ||
-            firstDeclarator.init.type !== "BinaryExpression"
+            firstDeclarator?.init?.type !== "BinaryExpression"
         ) {
             throw new Error("Expected binary expression initializer");
         }
@@ -222,7 +221,7 @@ it("skips reports when parser services fail during type lookup", async () => {
 
         expect(() => {
             listenerMap.BinaryExpression?.(firstDeclarator.init);
-        }).not.toThrow();
+        }).not.toThrowError();
 
         expect(report).not.toHaveBeenCalled();
     } finally {

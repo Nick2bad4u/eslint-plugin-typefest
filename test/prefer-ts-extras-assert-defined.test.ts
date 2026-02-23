@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-defined.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, test } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -59,6 +64,25 @@ const nonThrowOnlyValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const nonThrowSingleStatementBlockValidCode = [
+    "function ensureValue(value: string | undefined): string | undefined {",
+    "    if (value === undefined) {",
+    "        String(value);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const throwThenSideEffectValidCode = [
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "        String(value);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const alternateValidCode = [
     "function ensureValue(value: string | undefined): string {",
     "    if (value === undefined) {",
@@ -87,6 +111,37 @@ const inlineSuggestableCode = [
     "    if (value === undefined) {",
     "        throw new TypeError('Missing value');",
     "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableWrongConstructorCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new Error('Expected a defined value, got `undefined`');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableTooManyArgsCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Expected a defined value, got `undefined`', value);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableDirectThrowCanonicalCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) throw new TypeError('Expected a defined value, got `undefined`');",
     "",
     "    return value;",
     "}",
@@ -128,6 +183,49 @@ const inlineInvalidSuggestionOutputCode = [
     "    return value;",
     "}",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-assert-defined",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasAssertDefined:
+                "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
+            suggestTsExtrasAssertDefined:
+                "Replace this manual guard with `assertDefined(...)` from `ts-extras`.",
+        },
+        name: "prefer-ts-extras-assert-defined",
+    }
+);
+
+test("retains hasSuggestions metadata for assert-defined", () => {
+    expect(rule.meta?.hasSuggestions).toBeTruthy();
+});
+
+test("keeps assert-defined guard and canonical-throw checks in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-assert-defined.ts"),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('const filePath = context.filename ?? "";');
+    expect(ruleSource).toContain("node.body.length === 1 &&");
+    expect(ruleSource).toContain('node.body[0]?.type === "ThrowStatement"');
+    expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
+    expect(ruleSource).toContain(
+        'throwStatement.argument.callee.name !== "TypeError" ||'
+    );
+    expect(ruleSource).toContain(
+        "throwStatement.argument.arguments.length !== 1"
+    );
+    expect(ruleSource).toContain(
+        "if (!firstArgument || firstArgument.type === \"SpreadElement\") {"
+    );
+    expect(ruleSource).toContain("hasSuggestions: true,");
+});
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     invalid: [
@@ -193,6 +291,38 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             name: "reports direct-throw consequent guard",
         },
         {
+            code: inlineSuggestableWrongConstructorCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests replacement when canonical message uses non-TypeError constructor",
+        },
+        {
+            code: inlineSuggestableTooManyArgsCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests replacement when TypeError call has multiple arguments",
+        },
+        {
             code: inlineSuggestableCode,
             errors: [
                 {
@@ -215,6 +345,13 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             name: "autofixes canonical undefined guard throw when assertDefined import is in scope",
             output: inlineAutofixableCanonicalOutput,
         },
+        {
+            code: inlineAutofixableDirectThrowCanonicalCode,
+            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes direct-throw canonical undefined guard",
+            output: inlineAutofixableCanonicalOutput,
+        },
     ],
     valid: [
         {
@@ -231,6 +368,16 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             code: nonThrowOnlyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores guard with extra side-effect statement",
+        },
+        {
+            code: nonThrowSingleStatementBlockValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores single-statement block consequents that are not throws",
+        },
+        {
+            code: throwThenSideEffectValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores multi-statement blocks even when the first statement throws",
         },
         {
             code: alternateValidCode,

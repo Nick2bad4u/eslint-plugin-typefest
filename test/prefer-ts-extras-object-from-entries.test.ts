@@ -1,10 +1,10 @@
+import { describe, expect, it, vi } from "vitest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-from-entries.test` behavior.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it, vi } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -76,7 +76,7 @@ describe("prefer-ts-extras-object-from-entries metadata literals", () => {
 
 describe("prefer-ts-extras-object-from-entries internal listener guards", () => {
     it("ignores non-Identifier Object property access", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -114,6 +114,7 @@ describe("prefer-ts-extras-object-from-entries internal listener guards", () => 
             });
 
             const callExpressionListener = listeners.CallExpression;
+
             expect(callExpressionListener).toBeTypeOf("function");
 
             const privatePropertyFromEntriesCallNode = {

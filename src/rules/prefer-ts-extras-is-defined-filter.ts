@@ -45,23 +45,19 @@ const getUndefinedInequalityMatch = (
         return null;
     }
 
-    if (isIdentifierWithName(body.left, parameterName)) {
-        if (isIdentifierWithName(body.right, "undefined")) {
+    if (isIdentifierWithName(body.left, parameterName) && isIdentifierWithName(body.right, "undefined")) {
             return {
                 comparedExpression: body.left,
                 operator: body.operator,
             };
         }
-    }
 
-    if (isIdentifierWithName(body.right, parameterName)) {
-        if (isIdentifierWithName(body.left, "undefined")) {
+    if (isIdentifierWithName(body.right, parameterName) && isIdentifierWithName(body.left, "undefined")) {
             return {
                 comparedExpression: body.right,
                 operator: body.operator,
             };
         }
-    }
 
     if (
         isTypeofParameter(body.left, parameterName) &&

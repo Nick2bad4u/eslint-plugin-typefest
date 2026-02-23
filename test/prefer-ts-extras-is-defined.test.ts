@@ -1,10 +1,10 @@
+import { describe, expect, it, vi } from "vitest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-defined.test` behavior.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it, vi } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -143,7 +143,7 @@ describe("prefer-ts-extras-is-defined metadata literals", () => {
 
 describe("prefer-ts-extras-is-defined internal create guards", () => {
     it("uses empty filename fallback when context filename is undefined", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -179,6 +179,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             });
 
             const binaryExpressionListener = listeners.BinaryExpression;
+
             expect(binaryExpressionListener).toBeTypeOf("function");
 
             binaryExpressionListener?.({

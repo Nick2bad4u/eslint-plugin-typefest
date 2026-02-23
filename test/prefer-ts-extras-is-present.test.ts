@@ -1,10 +1,10 @@
+import { describe, expect, it, vi } from "vitest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present.test` behavior.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it, vi } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -327,7 +327,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     };
 
     it("reports strict checks for non-function filter arguments", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -363,6 +363,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             });
 
             const logicalExpressionListener = listeners.LogicalExpression;
+
             expect(logicalExpressionListener).toBeTypeOf("function");
 
             const comparedIdentifier = {
@@ -431,7 +432,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     });
 
     it("does not treat private filter-like call as filter callback", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -467,6 +468,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             });
 
             const logicalExpressionListener = listeners.LogicalExpression;
+
             expect(logicalExpressionListener).toBeTypeOf("function");
 
             const comparedIdentifier = {

@@ -50,8 +50,9 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
 
                 break;
             }
-            default:
+            default: {
                 return false;
+            }
         }
     }
 

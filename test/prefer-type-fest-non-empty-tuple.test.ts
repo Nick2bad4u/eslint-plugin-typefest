@@ -1,4 +1,3 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-non-empty-tuple.test` behavior.
@@ -6,8 +5,9 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
 import parser from "@typescript-eslint/parser";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -99,7 +99,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-it("keeps whitespace-run normalization in normalizeTypeText", () => {
+test("keeps whitespace-run normalization in normalizeTypeText", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),
@@ -108,10 +108,10 @@ it("keeps whitespace-run normalization in normalizeTypeText", () => {
         "utf8"
     );
 
-    expect(ruleSource).toContain('replaceAll(/\\s+/g, "")');
+    expect(ruleSource).toContain(String.raw`replaceAll(/\s+/g, "")`);
 });
 
-it("returns early before text extraction for optional/rest tuple heads", async () => {
+test("returns early before text extraction for optional/rest tuple heads", async () => {
     try {
         vi.resetModules();
 
@@ -141,8 +141,7 @@ it("returns early before text extraction for optional/rest tuple heads", async (
 
         const [optionalStatement] = optionalParsed.ast.body;
         if (
-            !optionalStatement ||
-            optionalStatement.type !== "TSTypeAliasDeclaration" ||
+            optionalStatement?.type !== "TSTypeAliasDeclaration" ||
             optionalStatement.typeAnnotation.type !== "TSTypeOperator"
         ) {
             throw new Error("Expected optional-head tuple alias AST shape");

@@ -1,11 +1,11 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-map.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -66,7 +66,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-map", 
     },
 });
 
-it("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {
+test("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {
     try {
         vi.resetModules();
 
@@ -101,10 +101,8 @@ it("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async ()
         const [reportedAlias, ignoredAlias] = parsedResult.ast.body;
 
         if (
-            !reportedAlias ||
-            reportedAlias.type !== "TSTypeAliasDeclaration" ||
-            !ignoredAlias ||
-            ignoredAlias.type !== "TSTypeAliasDeclaration"
+            reportedAlias?.type !== "TSTypeAliasDeclaration" ||
+            ignoredAlias?.type !== "TSTypeAliasDeclaration"
         ) {
             throw new Error("Expected two type alias declarations in AST");
         }

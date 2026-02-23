@@ -73,7 +73,7 @@ const isRecordJsonValueReference = (
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (!typeArguments || typeArguments.length !== 2) {
+    if (typeArguments?.length !== 2) {
         return false;
     }
 

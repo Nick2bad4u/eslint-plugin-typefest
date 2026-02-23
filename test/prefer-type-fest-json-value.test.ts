@@ -97,7 +97,7 @@ describe("prefer-type-fest-json-value metadata", () => {
             };
         };
 
-        expect(authoredRuleModule.default.meta?.hasSuggestions).toBe(true);
+        expect(authoredRuleModule.default.meta?.hasSuggestions).toBeTruthy();
     });
 });
 

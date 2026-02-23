@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it } from "vitest";
+import { expect, test } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -329,7 +329,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-it("keeps assert-present guard and canonical-template checks in source", () => {
+test("keeps assert-present guard and canonical-template checks in source", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),

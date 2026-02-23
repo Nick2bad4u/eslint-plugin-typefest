@@ -1,11 +1,11 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-promisable.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -107,7 +107,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
     name: "prefer-type-fest-promisable",
 });
 
-it("TSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
+test("tSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
     const code = [
         'import type { Promisable } from "type-fest";',
         "type ShouldReportPromiseFirst = Promise<string> | string;",

@@ -1,10 +1,10 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-array.test` behavior.
  */
 import { describe, expect, it, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -198,10 +198,10 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
     it("reports only native/generic JsonValue array union pairs", async () => {
         const replacementFixCalls: unknown[][] = [];
-        const reportCalls: Array<{
+        const reportCalls: {
             messageId?: string;
             node?: unknown;
-        }> = [];
+        }[] = [];
 
         const createIdentifierNode = (name: string) => ({
             name,
@@ -276,6 +276,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             });
 
             const unionTypeListener = listeners.TSUnionType;
+
             expect(unionTypeListener).toBeTypeOf("function");
 
             const validNativePairNode = createUnionNode(

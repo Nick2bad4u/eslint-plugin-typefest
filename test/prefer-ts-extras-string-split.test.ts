@@ -5,7 +5,7 @@
 import parser from "@typescript-eslint/parser";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -126,7 +126,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-it("keeps string-split string-like and member guards in source", () => {
+test("keeps string-split string-like and member guards in source", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),
@@ -144,7 +144,7 @@ it("keeps string-split string-like and member guards in source", () => {
     expect(ruleSource).toContain("return;");
 });
 
-it("handles parser-service lookup failures without reporting", async () => {
+test("handles parser-service lookup failures without reporting", async () => {
     try {
         vi.resetModules();
 
@@ -192,14 +192,15 @@ it("handles parser-service lookup failures without reporting", async () => {
         );
 
         const secondStatement = parsedResult.ast.body[1];
+
         expect(secondStatement?.type).toBe("VariableDeclaration");
 
-        if (!secondStatement || secondStatement.type !== "VariableDeclaration") {
+        if (secondStatement?.type !== "VariableDeclaration") {
             throw new Error("Expected variable declaration for split call");
         }
 
         const firstDeclarator = secondStatement.declarations[0];
-        if (!firstDeclarator?.init || firstDeclarator.init.type !== "CallExpression") {
+        if (firstDeclarator?.init?.type !== "CallExpression") {
             throw new Error("Expected call expression initializer for split call");
         }
 
@@ -216,7 +217,7 @@ it("handles parser-service lookup failures without reporting", async () => {
 
         expect(() => {
             listenerMap.CallExpression?.(splitCallExpression);
-        }).not.toThrow();
+        }).not.toThrowError();
 
         expect(report).not.toHaveBeenCalled();
     } finally {

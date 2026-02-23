@@ -1,11 +1,11 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-except.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -86,7 +86,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except", {
     name: "prefer-type-fest-except",
 });
 
-it("reports builtin Omit type references in undecorated visitor", async () => {
+test("reports builtin Omit type references in undecorated visitor", async () => {
     try {
         vi.resetModules();
 
@@ -116,16 +116,17 @@ it("reports builtin Omit type references in undecorated visitor", async () => {
         );
 
         const [firstStatement] = parsedResult.ast.body;
+
         expect(firstStatement?.type).toBe("TSTypeAliasDeclaration");
 
         if (
-            !firstStatement ||
-            firstStatement.type !== "TSTypeAliasDeclaration"
+            firstStatement?.type !== "TSTypeAliasDeclaration"
         ) {
             throw new Error("Expected a type alias declaration statement");
         }
 
         const typeAnnotation = firstStatement.typeAnnotation;
+
         expect(typeAnnotation.type).toBe("TSTypeReference");
 
         if (typeAnnotation.type !== "TSTypeReference") {

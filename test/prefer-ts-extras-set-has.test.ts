@@ -1,10 +1,10 @@
+import { describe, expect, it, vi } from "vitest";
+
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it, vi } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -134,7 +134,7 @@ describe("prefer-ts-extras-set-has metadata literals", () => {
 
 describe("prefer-ts-extras-set-has internal listener guards", () => {
     it("ignores non-Identifier member property even when object type is Set-like", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         const fakeSetType = {
             isUnion: () => false,
@@ -187,6 +187,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             });
 
             const callExpressionListener = listeners.CallExpression;
+
             expect(callExpressionListener).toBeTypeOf("function");
 
             const privatePropertyHasCallNode = {
@@ -215,7 +216,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("swallows parser-service failures without reporting", async () => {
-        const reportCalls: Array<{ messageId?: string }> = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -266,6 +267,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             });
 
             const callExpressionListener = listeners.CallExpression;
+
             expect(callExpressionListener).toBeTypeOf("function");
 
             const identifierHasCallNode = {

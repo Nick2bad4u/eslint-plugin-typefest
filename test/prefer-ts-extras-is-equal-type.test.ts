@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, test, vi } from "vitest";
 
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -215,7 +215,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         expect(metadataRule.meta?.docs?.url).toBe(
             "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
         );
-        expect(metadataRule.meta?.hasSuggestions).toBe(true);
+        expect(metadataRule.meta?.hasSuggestions).toBeTruthy();
         expect(metadataRule.meta?.messages?.["preferTsExtrasIsEqualType"]).toBe(
             "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
         );
@@ -252,7 +252,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             expect(undecoratedRule.default.meta?.docs?.url).toBe(
                 "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
             );
-            expect(undecoratedRule.default.meta?.hasSuggestions).toBe(true);
+            expect(undecoratedRule.default.meta?.hasSuggestions).toBeTruthy();
             expect(
                 undecoratedRule.default.meta?.messages?.[
                     "preferTsExtrasIsEqualType"
@@ -274,7 +274,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
     });
 });
 
-it("keeps is-equal-type source constants and guard clauses", () => {
+test("keeps is-equal-type source constants and guard clauses", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),

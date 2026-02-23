@@ -145,10 +145,12 @@ const isFunctionCallbackNode = (
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => {
     switch (node.type) {
         case "ArrowFunctionExpression":
-        case "FunctionExpression":
+        case "FunctionExpression": {
             return true;
-        default:
+        }
+        default: {
             return false;
+        }
     }
 };
 

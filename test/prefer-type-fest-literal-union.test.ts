@@ -1,4 +1,3 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-literal-union.test` behavior.
@@ -6,8 +5,9 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
 import parser from "@typescript-eslint/parser";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -156,7 +156,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-it("keeps critical literal-union guard expressions in source", () => {
+test("keeps critical literal-union guard expressions in source", () => {
     const ruleSource = readFileSync(
         path.resolve(
             process.cwd(),
@@ -178,21 +178,21 @@ it("keeps critical literal-union guard expressions in source", () => {
     expect(ruleSource).toContain('if (literalMembers.length === 0) {');
     expect(ruleSource).toContain('literalMembers.length === 1');
 
-    expect(matchCount(/let hasKeywordMember = false;/g)).toBe(2);
-    expect(matchCount(/let hasLiteralMember = false;/g)).toBe(2);
+    expect(matchCount(/let hasKeywordMember = false;/gv)).toBe(2);
+    expect(matchCount(/let hasLiteralMember = false;/gv)).toBe(2);
     expect(
-        matchCount(/if \(isLiteralMemberForFamily\(unionMember, family\)\)/g)
+        matchCount(/if \(isLiteralMemberForFamily\(unionMember, family\)\)/gv)
     ).toBe(2);
-    expect(matchCount(/allMembersAreFamilyMembers = false;/g)).toBe(2);
+    expect(matchCount(/allMembersAreFamilyMembers = false;/gv)).toBe(2);
 
     expect(
         matchCount(
-            /allMembersAreFamilyMembers\s*&&\s*hasKeywordMember\s*&&\s*hasLiteralMember/g
+            /allMembersAreFamilyMembers\s*&&\s*hasKeywordMember\s*&&\s*hasLiteralMember/gv
         )
     ).toBe(2);
 });
 
-it("TSUnionType visitor handles bigint-literal variants and rejects cross-family unions", async () => {
+test("tSUnionType visitor handles bigint-literal variants and rejects cross-family unions", async () => {
     const code = [
         "type BigIntValue = bigint | 1n;",
         "type BigIntText = bigint | 2n;",
@@ -262,23 +262,19 @@ it("TSUnionType visitor handles bigint-literal variants and rejects cross-family
             literal?: { bigint?: unknown };
             type?: string;
         };
-        if (secondBigIntValueMember.type === "TSLiteralType") {
-            if (secondBigIntValueMember.literal) {
+        if (secondBigIntValueMember.type === "TSLiteralType" && secondBigIntValueMember.literal) {
                 Reflect.deleteProperty(secondBigIntValueMember.literal, "bigint");
                 secondBigIntValueMember.literal.bigint = undefined;
             }
-        }
 
         const secondBigIntTextMember = bigIntTextUnion.types[1] as {
             literal?: { bigint?: unknown; value?: unknown };
             type?: string;
         };
-        if (secondBigIntTextMember.type === "TSLiteralType") {
-            if (secondBigIntTextMember.literal) {
+        if (secondBigIntTextMember.type === "TSLiteralType" && secondBigIntTextMember.literal) {
                 secondBigIntTextMember.literal.value = null;
                 secondBigIntTextMember.literal.bigint = "2";
             }
-        }
 
         const sourceCode = {
             ast: parsed.ast,

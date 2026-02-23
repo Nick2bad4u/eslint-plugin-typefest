@@ -1,10 +1,10 @@
+import { describe, expect, it } from "vitest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-error.test` behavior.
  */
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { describe, expect, it } from "vitest";
-
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -150,7 +150,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 describe("prefer-ts-extras-assert-error metadata literals", () => {
     it("declares authored docs URL and hasSuggestions literals", () => {
         expect(rule.meta.docs.url).toBe(docsUrl);
-        expect(rule.meta.hasSuggestions).toBe(true);
+        expect(rule.meta.hasSuggestions).toBeTruthy();
     });
 });
 

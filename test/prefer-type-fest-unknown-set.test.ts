@@ -1,11 +1,11 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-set.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, it, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -62,7 +62,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set", 
     },
 });
 
-it("matches ReadonlySet<unknown> in undecorated visitor", async () => {
+test("matches ReadonlySet<unknown> in undecorated visitor", async () => {
     try {
         vi.resetModules();
 
@@ -92,16 +92,17 @@ it("matches ReadonlySet<unknown> in undecorated visitor", async () => {
         );
 
         const [firstStatement] = parsedResult.ast.body;
+
         expect(firstStatement?.type).toBe("TSTypeAliasDeclaration");
 
         if (
-            !firstStatement ||
-            firstStatement.type !== "TSTypeAliasDeclaration"
+            firstStatement?.type !== "TSTypeAliasDeclaration"
         ) {
             throw new Error("Expected a type alias declaration statement");
         }
 
         const typeAnnotation = firstStatement.typeAnnotation;
+
         expect(typeAnnotation.type).toBe("TSTypeReference");
 
         if (typeAnnotation.type !== "TSTypeReference") {

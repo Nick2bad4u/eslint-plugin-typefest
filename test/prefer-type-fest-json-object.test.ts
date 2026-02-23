@@ -1,10 +1,10 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-object.test` behavior.
  */
 import { describe, expect, it, vi } from "vitest";
 
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -108,10 +108,10 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
     it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
         const replacementFixCalls: unknown[][] = [];
-        const reportCalls: Array<{
+        const reportCalls: {
             messageId?: string;
             node?: unknown;
-        }> = [];
+        }[] = [];
 
         try {
             vi.resetModules();
@@ -153,6 +153,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             });
 
             const typeReferenceListener = listeners.TSTypeReference;
+
             expect(typeReferenceListener).toBeTypeOf("function");
 
             const matchingRecordNode = {
