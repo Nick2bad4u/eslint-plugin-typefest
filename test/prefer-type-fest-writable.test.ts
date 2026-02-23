@@ -111,11 +111,11 @@ const createWritableMappedTypeNode = ({
     constraint,
     key,
     valueTypeAnnotation,
-}: {
+}: Readonly<{
     constraint: WritableMappedTypeNode["constraint"];
     key: WritableMappedTypeNode["key"];
     valueTypeAnnotation: WritableMappedTypeNode["typeAnnotation"];
-}): WritableMappedTypeNode =>
+}>): WritableMappedTypeNode =>
     ({
         constraint,
         key,
@@ -128,10 +128,10 @@ const createWritableMappedTypeNode = ({
 
 const createWritableMappedTypeListenerHarness = ({
     getText,
-}: {
+}: Readonly<{
     getText: (node: unknown) => string;
-}): {
-    mappedTypeListener: (node: WritableMappedTypeNode) => void;
+}>): {
+    mappedTypeListener: (node: Readonly<WritableMappedTypeNode>) => void;
     report: ReturnType<typeof vi.fn>;
 } => {
     const report = vi.fn();
@@ -147,7 +147,7 @@ const createWritableMappedTypeListenerHarness = ({
         sourceCode,
     } as unknown as WritableRuleCreateContext;
     const listeners = rule.create(context) as Partial<
-        Record<"TSMappedType", (node: WritableMappedTypeNode) => void>
+        Record<"TSMappedType", (node: Readonly<WritableMappedTypeNode>) => void>
     >;
 
     const mappedTypeListener = listeners.TSMappedType;
@@ -164,10 +164,10 @@ const createWritableMappedTypeListenerHarness = ({
 const createWritableIndexedAccessType = ({
     indexIdentifierName,
     objectType,
-}: {
+}: Readonly<{
     indexIdentifierName: string;
     objectType: TSESTree.TypeNode;
-}): TSESTree.TSIndexedAccessType =>
+}>): TSESTree.TSIndexedAccessType =>
     ({
         indexType: {
             type: "TSTypeReference",

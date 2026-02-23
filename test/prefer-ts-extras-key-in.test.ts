@@ -159,7 +159,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-ts-extras-key-in metadata literals", () => {
     it("declares the authored docs URL literal", () => {
-        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 

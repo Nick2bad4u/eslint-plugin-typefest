@@ -25,7 +25,7 @@ import {
  * @returns `true` when the value is ignored type annotation; otherwise `false`.
  */
 
-const isIgnoredTypeAnnotation = (typeAnnotation: TSESTree.TypeNode): boolean =>
+const isIgnoredTypeAnnotation = (typeAnnotation: Readonly<TSESTree.TypeNode>): boolean =>
     typeAnnotation.type === "TSAnyKeyword" ||
     typeAnnotation.type === "TSNeverKeyword" ||
     typeAnnotation.type === "TSUnknownKeyword" ||
@@ -58,11 +58,11 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                 expression,
                 node,
                 typeAnnotation,
-            }: {
+            }: Readonly<{
                 expression: TSESTree.Expression;
                 node: TSESTree.Node;
                 typeAnnotation: TSESTree.TypeNode;
-            }): void => {
+            }>): void => {
                 if (isIgnoredTypeAnnotation(typeAnnotation)) {
                     return;
                 }

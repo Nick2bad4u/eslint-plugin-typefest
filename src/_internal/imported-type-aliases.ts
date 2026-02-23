@@ -160,12 +160,12 @@ const getInsertionFixForMissingNamedTypeImport = ({
     node,
     replacementName,
     sourceModuleName,
-}: {
+}: Readonly<{
     fixer: TSESLint.RuleFixer;
     node: Readonly<TSESTree.Node>;
     replacementName: string;
     sourceModuleName: string;
-}): null | TSESLint.RuleFix => {
+}>): null | TSESLint.RuleFix => {
     const programNode = getProgramNode(node);
     if (!programNode) {
         return null;
@@ -208,7 +208,7 @@ const ancestorDefinesTypeParameterNamed = (
     );
 };
 
-export function isTypeParameterNameShadowed(
+export function isTypeParameterNameShadowed (
     node: Readonly<TSESTree.Node>,
     parameterName: string
 ): boolean {
@@ -231,13 +231,14 @@ const createTypeReplacementFix = ({
     node,
     replacementName,
     sourceModuleName,
-}: {
-    applyReplacement: (fixer: TSESLint.RuleFixer) => TSESLint.RuleFix;
+}: Readonly<{
+    applyReplacement: (fixer: Readonly<TSESLint.RuleFixer>) => TSESLint.RuleFix;
     availableReplacementNames: ReadonlySet<string>;
     node: Readonly<TSESTree.Node>;
     replacementName: string;
     sourceModuleName: string;
-}): null | TSESLint.ReportFixFunction => {
+}>
+): null | TSESLint.ReportFixFunction => {
     if (isTypeParameterNameShadowed(node, replacementName)) {
         return null;
     }
@@ -273,7 +274,7 @@ const createTypeReplacementFix = ({
 export const createSafeTypeReferenceReplacementFix = (
     node: Readonly<TSESTree.TSTypeReference>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
     sourceModuleName: string = TYPE_FEST_MODULE_NAME
 ): null | TSESLint.ReportFixFunction => {
     if (node.typeName.type !== "Identifier") {
@@ -303,7 +304,7 @@ export const createSafeTypeReferenceReplacementFix = (
 export const createSafeTypeNodeReplacementFix = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
     sourceModuleName: string = TYPE_FEST_MODULE_NAME
 ): null | TSESLint.ReportFixFunction =>
     createTypeReplacementFix({
@@ -330,7 +331,7 @@ export const createSafeTypeNodeTextReplacementFix = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
     replacementText: string,
-    availableReplacementNames: ReadonlySet<string>,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
     sourceModuleName: string = TYPE_FEST_MODULE_NAME
 ): null | TSESLint.ReportFixFunction =>
     createTypeReplacementFix({

@@ -190,7 +190,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-ts-extras-is-defined-filter metadata literals", () => {
     it("declares the authored docs URL literal", () => {
-        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
@@ -223,7 +223,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; }) {
+                report (descriptor: Readonly<{ messageId?: string; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

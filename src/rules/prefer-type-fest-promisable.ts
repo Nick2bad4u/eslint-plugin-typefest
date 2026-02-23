@@ -28,7 +28,7 @@ const promisableAliasReplacements = {
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -44,7 +44,7 @@ const isIdentifierTypeReference = (
  */
 
 const getPromiseInnerType = (
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {
     if (!isIdentifierTypeReference(node, PROMISE_TYPE_NAME)) {
         return null;

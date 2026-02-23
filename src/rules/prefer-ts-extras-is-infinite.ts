@@ -26,7 +26,7 @@ type InfinityKind = "negative" | "positive";
  * @returns `true` when the value is infinity reference; otherwise `false`.
  */
 
-const isInfinityReference = (node: TSESTree.Expression): boolean => {
+const isInfinityReference = (node: Readonly<TSESTree.Expression>): boolean => {
     if (node.type === "Identifier" && node.name === "Infinity") {
         return true;
     }
@@ -50,7 +50,7 @@ const isInfinityReference = (node: TSESTree.Expression): boolean => {
  * @returns ExtractInfinityKind helper result.
  */
 const extractInfinityKind = (
-    node: TSESTree.Expression
+    node: Readonly<TSESTree.Expression>
 ): InfinityKind | null => {
     if (node.type === "Identifier" && node.name === "Infinity") {
         return "positive";
@@ -85,7 +85,7 @@ const extractInfinityKind = (
  * @returns ExtractInfinityComparison helper result.
  */
 const extractInfinityComparison = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): InfinityComparison | null => {
     if (
         expression.type !== "BinaryExpression" ||
@@ -125,7 +125,7 @@ const extractInfinityComparison = (
  * @returns ExtractSafeInfinityDisjunctionTarget helper result.
  */
 const extractSafeInfinityDisjunctionTarget = (
-    node: TSESTree.LogicalExpression,
+    node: Readonly<TSESTree.LogicalExpression>,
     sourceCode: Readonly<TSESLint.SourceCode>
 ): null | TSESTree.Expression => {
     if (node.operator !== "||") {

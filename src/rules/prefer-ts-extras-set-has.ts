@@ -35,7 +35,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
             const { checker, parserServices } = getTypedRuleServices(context);
 
-            const isSetType = (type: ts.Type): boolean => {
+            const isSetType = (type: Readonly<ts.Type>): boolean => {
                 if (type.isUnion()) {
                     return type.types.some((partType) => isSetType(partType));
                 }

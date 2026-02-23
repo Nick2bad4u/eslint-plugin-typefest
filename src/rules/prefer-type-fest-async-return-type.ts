@@ -24,7 +24,7 @@ const RETURN_TYPE_NAME = "ReturnType";
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -40,7 +40,7 @@ const isIdentifierTypeReference = (
  */
 
 const getSingleTypeArgument = (
-    node: TSESTree.TSTypeReference
+    node: Readonly<TSESTree.TSTypeReference>
 ): null | TSESTree.TypeNode => {
     const typeArguments = node.typeArguments?.params ?? [];
 

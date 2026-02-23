@@ -29,7 +29,7 @@ const taggedAliasReplacements = {
  * @returns `true` when has ad hoc brand literal; otherwise `false`.
  */
 
-const hasAdHocBrandLiteral = (typeNode: TSESTree.TypeNode): boolean => {
+const hasAdHocBrandLiteral = (typeNode: Readonly<TSESTree.TypeNode>): boolean => {
     if (typeNode.type !== "TSIntersectionType") {
         return false;
     }
@@ -60,7 +60,7 @@ const hasAdHocBrandLiteral = (typeNode: TSESTree.TypeNode): boolean => {
  * @returns `true` when type contains tagged reference; otherwise `false`.
  */
 
-const typeContainsTaggedReference = (typeNode: TSESTree.TypeNode): boolean => {
+const typeContainsTaggedReference = (typeNode: Readonly<TSESTree.TypeNode>): boolean => {
     if (
         typeNode.type === "TSTypeReference" &&
         typeNode.typeName.type === "Identifier" &&

@@ -103,7 +103,7 @@ describe("prefer-ts-extras-object-from-entries internal listener guards", () => 
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; }) {
+                report (descriptor: Readonly<{ messageId?: string; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

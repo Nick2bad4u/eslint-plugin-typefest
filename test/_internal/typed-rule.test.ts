@@ -115,7 +115,7 @@ interface ParserServicesLike {
  * @returns CreateTypedRuleContext helper result.
  */
 
-const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
+const createTypedRuleContext = (parserServices: Readonly<ParserServicesLike>) => ({
     languageOptions: {
         parser: {
             meta: {
@@ -137,7 +137,7 @@ const createTypedRuleContext = (parserServices: ParserServicesLike) => ({
  */
 
 const createParserServices = (
-    program: null | ts.Program
+    program: Readonly<null | ts.Program>
 ): ParserServicesLike => ({
     esTreeNodeToTSNodeMap: new WeakMap<object, object>(),
     program,
@@ -170,7 +170,7 @@ describe(isTypeAssignableTo, () => {
 
     it("uses checker.isTypeAssignableTo when available", () => {
         const isTypeAssignableToMock = vi
-            .fn<(source: ts.Type, target: ts.Type) => boolean>()
+            .fn<(source: Readonly<ts.Type>, target: Readonly<ts.Type>) => boolean>()
             .mockReturnValue(true);
 
         const checker = {
@@ -188,7 +188,7 @@ describe(isTypeAssignableTo, () => {
 
     it("falls back to typeToString equality when native assignability API is unavailable", () => {
         const stringifyTypeMock = vi
-            .fn<(type: ts.Type) => string>()
+            .fn<(type: Readonly<ts.Type>) => string>()
             .mockReturnValue("shared");
 
         const checker = {
@@ -204,7 +204,7 @@ describe(isTypeAssignableTo, () => {
 
     it("returns false when typeToString fallback values differ", () => {
         const stringifyTypeMock = vi
-            .fn<(type: ts.Type) => string>()
+            .fn<(type: Readonly<ts.Type>) => string>()
             .mockImplementation((type) =>
                 type === sourceType ? "source" : "target"
             );

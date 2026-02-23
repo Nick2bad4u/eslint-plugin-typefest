@@ -23,7 +23,7 @@ const ARRAY_TYPE_NAME = "Array";
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -39,7 +39,7 @@ const isIdentifierTypeReference = (
  */
 
 const getArrayTypeReferenceElementType = (
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {
     if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
         return null;
@@ -65,7 +65,7 @@ const getArrayTypeReferenceElementType = (
 
 const normalizeTypeNodeText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): string => sourceCode.getText(node).replaceAll(/\s/gu, "");
 
 /**
@@ -79,7 +79,7 @@ const normalizeTypeNodeText = (
 
 const getArrayableElementType = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    node: TSESTree.TSUnionType
+    node: Readonly<TSESTree.TSUnionType>
 ): null | TSESTree.TypeNode => {
     const unionTypes = node.types;
     if (unionTypes.length !== 2) {

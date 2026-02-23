@@ -145,7 +145,7 @@ type TypeScriptParser = {
  *
  * @returns The package version, or `0.0.0` when unavailable.
  */
-function getPackageVersion(pkg: PackageJson): string {
+function getPackageVersion(pkg: Readonly<PackageJson>): string {
     return typeof pkg.version === "string" ? pkg.version : "0.0.0";
 }
 
@@ -434,8 +434,8 @@ const allRuleNames = uniqueRuleNames([
  * @returns Normalized preset config.
  */
 function withTypefestPlugin(
-    config: TypefestPresetConfig,
-    plugin: ESLint.Plugin
+    config: Readonly<TypefestPresetConfig>,
+    plugin: Readonly<ESLint.Plugin>
 ): TypefestPresetConfig {
     const languageOptions: FlatLanguageOptions = config.languageOptions ?? {};
 

@@ -21,7 +21,7 @@ const FILTER_METHOD_NAME = "filter";
  */
 
 const isFilterCall = (
-    node: TSESTree.CallExpression
+    node: Readonly<TSESTree.CallExpression>
 ): node is TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
         computed: false;
@@ -44,7 +44,7 @@ const isFilterCall = (
  */
 
 const isTargetCallbackParameter = (
-    argument: TSESTree.CallExpressionArgument,
+    argument: Readonly<TSESTree.CallExpressionArgument>,
     parameterName: string
 ): boolean => argument.type === "Identifier" && argument.name === parameterName;
 
@@ -57,7 +57,7 @@ const isTargetCallbackParameter = (
  */
 
 const getNegatedPredicateCall = (
-    callback: TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    callback: Readonly<TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression>
 ): null | TSESTree.CallExpression => {
     if (callback.params.length !== 1) {
         return null;
@@ -111,12 +111,12 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             const createNotFilterCallbackFix = ({
                 callbackNode,
                 predicateCall,
-            }: {
+            }: Readonly<{
                 callbackNode:
                     | TSESTree.ArrowFunctionExpression
                     | TSESTree.FunctionExpression;
                 predicateCall: TSESTree.CallExpression;
-            }): null | TSESLint.ReportFixFunction => {
+            }>): null | TSESLint.ReportFixFunction => {
                 if (
                     predicateCall.optional ||
                     predicateCall.callee.type !== "Identifier"

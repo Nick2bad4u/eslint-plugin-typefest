@@ -19,7 +19,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  */
 
 const flattenLogicalAndTerms = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): readonly TSESTree.Expression[] => {
     if (expression.type !== "LogicalExpression") {
         return [expression];
@@ -42,22 +42,22 @@ type NullishInequalityPart = {
 };
 
 const isIdentifierWithName = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier,
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
 ): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
 
 const isNullLiteral = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: null; } =>
     node.type === "Literal" && node.value === null;
 
 const isUndefinedStringLiteral = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: "undefined"; } =>
     node.type === "Literal" && node.value === "undefined";
 
 const isTypeofParameter = (
-    node: TSESTree.Expression,
+    node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier; } =>
     node.type === "UnaryExpression" &&
@@ -73,7 +73,7 @@ const isTypeofParameter = (
  * @returns ExtractNullishInequalityPart helper result.
  */
 const extractNullishInequalityPart = (
-    expression: TSESTree.Expression,
+    expression: Readonly<TSESTree.Expression>,
     parameterName: string
 ): null | NullishInequalityPart => {
     if (expression.type !== "BinaryExpression") {
@@ -155,7 +155,7 @@ const extractNullishInequalityPart = (
  */
 
 const isNullComparison = (
-    node: TSESTree.Expression,
+    node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.BinaryExpression => {
     const comparison = extractNullishInequalityPart(node, parameterName);
@@ -173,7 +173,7 @@ const isNullComparison = (
  */
 
 const isUndefinedComparison = (
-    node: TSESTree.Expression,
+    node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.BinaryExpression => {
     const comparison = extractNullishInequalityPart(node, parameterName);
@@ -192,7 +192,7 @@ const isUndefinedComparison = (
  */
 
 const isNullishFilterGuardBody = (
-    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; },
+    callback: Readonly<TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; }>,
     parameterName: string
 ): boolean => {
     const { body } = callback;
@@ -232,11 +232,11 @@ const isSafePresentFilterAutoFixableCallback = ({
     callback,
     parameterName,
     sourceCode,
-}: {
+}: Readonly<{
     callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; };
     parameterName: string;
     sourceCode: Readonly<TSESLint.SourceCode>;
-}): boolean => {
+}>): boolean => {
     const { body } = callback;
 
     const singlePart = extractNullishInequalityPart(body, parameterName);

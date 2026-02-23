@@ -34,7 +34,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             const { checker, parserServices } = getTypedRuleServices(context);
 
             const isStringLikeType = (
-                type: ReturnType<typeof checker.getTypeAtLocation>
+                type: Readonly<ReturnType<typeof checker.getTypeAtLocation>>
             ): boolean => {
                 if (type.isUnion()) {
                     return type.types.some((partType) =>

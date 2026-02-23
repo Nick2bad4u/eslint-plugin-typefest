@@ -36,7 +36,7 @@ const isPrimitiveKeywordType = (
  * @returns `true` when has primitive union shape; otherwise `false`.
  */
 
-const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
+const hasPrimitiveUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
     if (node.types.length !== primitiveKeywordTypes.length) {
         return false;
     }

@@ -134,7 +134,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
-        const replacementFixCalls: unknown[][] = [];
+        const replacementFixCalls: Array<readonly unknown[]> = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -153,7 +153,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
         });
         const createTypeReferenceNode = (
             referenceName: string,
-            genericArguments: unknown[] = [],
+            genericArguments: Readonly<unknown[]> = [],
             text = referenceName
         ) => ({
             text,
@@ -166,7 +166,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                     },
             typeName: createIdentifierNode(referenceName),
         });
-        const createUnionNode = (...types: unknown[]) => ({
+        const createUnionNode = (...types: Readonly<unknown[]>) => ({
             type: "TSUnionType",
             types,
         });
@@ -182,7 +182,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeTextReplacementFix: (
-                    ...parameters: unknown[]
+                    ...parameters: Readonly<unknown[]>
                 ) => {
                     replacementFixCalls.push(parameters);
 
@@ -202,11 +202,11 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; node?: unknown; }) {
+                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
-                    getText (node: { text?: string; }) {
+                    getText (node: Readonly<{ text?: string; }>) {
                         return node.text ?? "";
                     },
                 },

@@ -144,7 +144,7 @@ export const collectDirectNamedValueImportsFromSource = (
 };
 
 function getVariableInScopeChain(
-    scope: null | Readonly<TSESLint.Scope.Scope>,
+    scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
 ): null | TSESLint.Scope.Variable {
     let currentScope = scope;
@@ -189,7 +189,7 @@ const getProgramNode = (
 
 function isLocalNameBoundToExpectedImport(
     sourceCode: Readonly<TSESLint.SourceCode>,
-    referenceNode: TSESTree.Node,
+    referenceNode: Readonly<TSESTree.Node>,
     localName: string,
     sourceModuleName: string
 ): boolean {
@@ -223,12 +223,12 @@ const canUseDirectImportedNameSafely = ({
     importedName,
     referenceNode,
     sourceModuleName,
-}: {
+}: Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     referenceNode: TSESTree.Node;
     sourceModuleName: string;
-}): boolean => {
+}>): boolean => {
     const initialScope = context.sourceCode.getScope(referenceNode);
     const variable = getVariableInScopeChain(initialScope, importedName);
 
@@ -266,12 +266,12 @@ const createInsertNamedValueImportFix = ({
     importedName,
     referenceNode,
     sourceModuleName,
-}: {
+}: Readonly<{
     fixer: TSESLint.RuleFixer;
     importedName: string;
     referenceNode: TSESTree.Node;
     sourceModuleName: string;
-}): null | TSESLint.RuleFix => {
+}>): null | TSESLint.RuleFix => {
     const programNode = getProgramNode(referenceNode);
     if (!programNode) {
         return null;
@@ -313,7 +313,7 @@ export const getSafeLocalNameForImportedValue = ({
     imports,
     referenceNode,
     sourceModuleName,
-}: SafeImportedValueNameParams): null | string => {
+}: Readonly<SafeImportedValueNameParams>): null | string => {
     const candidateNames = imports.get(importedName);
     if (!candidateNames || candidateNames.size === 0) {
         return null;
@@ -341,8 +341,8 @@ const getSafeReplacementNameAndImportFixFactory = ({
     imports,
     referenceNode,
     sourceModuleName,
-}: SafeImportedValueNameParams): null | {
-    createImportFix: (fixer: TSESLint.RuleFixer) => null | TSESLint.RuleFix;
+}: Readonly<SafeImportedValueNameParams>): null | {
+    createImportFix: (fixer: Readonly<TSESLint.RuleFixer>) => null | TSESLint.RuleFix;
     replacementName: string;
 } => {
     const existingReplacementName = getSafeLocalNameForImportedValue({
@@ -395,7 +395,7 @@ export const createSafeValueReferenceReplacementFix = ({
     imports,
     sourceModuleName,
     targetNode,
-}: SafeValueReplacementFixParams): null | TSESLint.ReportFixFunction => {
+}: Readonly<SafeValueReplacementFixParams>): null | TSESLint.ReportFixFunction => {
     const replacementNameAndImportFixFactory =
         getSafeReplacementNameAndImportFixFactory({
             context,
@@ -434,7 +434,7 @@ export const createSafeValueNodeTextReplacementFix = ({
     replacementTextFactory,
     sourceModuleName,
     targetNode,
-}: SafeValueNodeTextReplacementFixParams): null | TSESLint.ReportFixFunction => {
+}: Readonly<SafeValueNodeTextReplacementFixParams>): null | TSESLint.ReportFixFunction => {
     const replacementNameAndImportFixFactory =
         getSafeReplacementNameAndImportFixFactory({
             context,
@@ -472,7 +472,7 @@ export const createMethodToFunctionCallFix = ({
     importedName,
     imports,
     sourceModuleName,
-}: MethodToFunctionCallFixParams): null | TSESLint.ReportFixFunction => {
+}: Readonly<MethodToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     if (callNode.optional || callNode.callee.type !== "MemberExpression") {
         return null;
     }
@@ -525,7 +525,7 @@ export const createMemberToFunctionCallFix = ({
     imports,
     memberNode,
     sourceModuleName,
-}: MemberToFunctionCallFixParams): null | TSESLint.ReportFixFunction => {
+}: Readonly<MemberToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     if (memberNode.optional) {
         return null;
     }
@@ -568,7 +568,7 @@ export const createSafeValueArgumentFunctionCallFix = ({
     negated,
     sourceModuleName,
     targetNode,
-}: ValueArgumentFunctionCallFixParams): null | TSESLint.ReportFixFunction => {
+}: Readonly<ValueArgumentFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     const replacementNameAndImportFixFactory =
         getSafeReplacementNameAndImportFixFactory({
             context,

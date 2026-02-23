@@ -23,7 +23,7 @@ const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -39,7 +39,7 @@ const isIdentifierTypeReference = (
  */
 
 const hasSingleUnknownTypeArgument = (
-    node: TSESTree.TSTypeReference
+    node: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     const typeArguments = node.typeArguments?.params ?? [];
 
@@ -60,7 +60,7 @@ const hasSingleUnknownTypeArgument = (
  *   `false`.
  */
 
-const isReadonlyUnknownArrayType = (node: TSESTree.TSTypeOperator): boolean => {
+const isReadonlyUnknownArrayType = (node: Readonly<TSESTree.TSTypeOperator>): boolean => {
     if (node.operator !== "readonly") {
         return false;
     }

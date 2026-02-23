@@ -32,7 +32,7 @@ type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
  */
 
 const getRequiredTupleElementType = (
-    element: TupleElement
+    element: Readonly<TupleElement>
 ): null | TSESTree.TypeNode => {
     if (element.type === "TSNamedTupleMember") {
         if (element.optional) {
@@ -58,7 +58,7 @@ const getRequiredTupleElementType = (
  */
 
 const unwrapRestAnnotation = (
-    annotation: RestAnnotation
+    annotation: Readonly<RestAnnotation>
 ): null | TSESTree.TypeNode => {
     if (annotation.type === "TSNamedTupleMember") {
         return annotation.elementType;
@@ -76,7 +76,7 @@ const unwrapRestAnnotation = (
  */
 
 const getRestArrayElementType = (
-    element: TupleElement
+    element: Readonly<TupleElement>
 ): null | TSESTree.TypeNode => {
     if (element.type !== "TSRestType") {
         return null;

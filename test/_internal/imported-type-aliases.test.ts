@@ -22,7 +22,7 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
 };
 
 const createSourceCode = (
-    body: unknown[]
+    body: Readonly<unknown[]>
 ): Parameters<typeof collectImportedTypeAliasMatches>[0] =>
     ({
         ast: {
@@ -31,7 +31,7 @@ const createSourceCode = (
     }) as unknown as Parameters<typeof collectImportedTypeAliasMatches>[0];
 
 const mapToRecord = <TValue>(
-    map: ReadonlyMap<string, TValue>
+    map: Readonly<ReadonlyMap<string, TValue>>
 ): Readonly<Record<string, TValue>> => Object.fromEntries(map);
 
 const createIdentifierImportSpecifier = (
@@ -59,7 +59,7 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     type: "ImportSpecifier",
 });
 
-const createImportDeclaration = (specifiers: unknown[]): unknown => ({
+const createImportDeclaration = (specifiers: Readonly<unknown[]>): unknown => ({
     source: {
         value: "type-aliases",
     },
@@ -104,34 +104,34 @@ const createQualifiedTypeReferenceNode = (
     >[0];
 
 const collectDirectNamedImportsFromSourceFn: (
-    sourceCode: Parameters<typeof collectImportedTypeAliasMatches>[0],
+    sourceCode: Readonly<Parameters<typeof collectImportedTypeAliasMatches>[0]>,
     expectedSourceValue: string
 ) => ReadonlySet<string> = collectDirectNamedImportsFromSource;
 
 const createSafeTypeReferenceReplacementFixFn: (
-    node: Parameters<typeof createSafeTypeReferenceReplacementFix>[0],
+    node: Readonly<Parameters<typeof createSafeTypeReferenceReplacementFix>[0]>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>
+    availableReplacementNames: Readonly<ReadonlySet<string>>
 ) => ReturnType<typeof createSafeTypeReferenceReplacementFix> =
     createSafeTypeReferenceReplacementFix;
 
 const createSafeTypeNodeReplacementFixFn: (
-    node: Parameters<typeof createSafeTypeNodeReplacementFix>[0],
+    node: Readonly<Parameters<typeof createSafeTypeNodeReplacementFix>[0]>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>
+    availableReplacementNames: Readonly<ReadonlySet<string>>
 ) => ReturnType<typeof createSafeTypeNodeReplacementFix> =
     createSafeTypeNodeReplacementFix;
 
 const createSafeTypeNodeTextReplacementFixFn: (
-    node: Parameters<typeof createSafeTypeNodeTextReplacementFix>[0],
+    node: Readonly<Parameters<typeof createSafeTypeNodeTextReplacementFix>[0]>,
     replacementName: string,
     replacementText: string,
-    availableReplacementNames: ReadonlySet<string>
+    availableReplacementNames: Readonly<ReadonlySet<string>>
 ) => ReturnType<typeof createSafeTypeNodeTextReplacementFix> =
     createSafeTypeNodeTextReplacementFix;
 
 const createTypeParameterDeclarationWithNames = (
-    ...parameterNames: string[]
+    ...parameterNames: Readonly<string[]>
 ): {
     params: {
         name: {

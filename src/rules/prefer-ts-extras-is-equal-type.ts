@@ -61,7 +61,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
             }
 
             const getIsEqualTypeReference = (
-                node: TSESTree.TypeNode
+                node: Readonly<TSESTree.TypeNode>
             ): null | TSESTree.TSTypeReference => {
                 if (node.type !== "TSTypeReference") {
                     return null;

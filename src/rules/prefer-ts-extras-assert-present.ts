@@ -18,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is null expression; otherwise `false`.
  */
 
-const isNullExpression = (node: TSESTree.Expression): boolean =>
+const isNullExpression = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Literal" && node.value === null;
 
 /**
@@ -29,7 +29,7 @@ const isNullExpression = (node: TSESTree.Expression): boolean =>
  * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
-const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
+const isUndefinedExpression = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Identifier" && node.name === "undefined";
 
 /**
@@ -40,7 +40,7 @@ const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
  * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
-const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
+const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
     }
@@ -53,7 +53,7 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 };
 
 const getThrowStatementFromConsequent = (
-    node: TSESTree.Statement
+    node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
     if (node.type === "ThrowStatement") {
         return node;
@@ -74,11 +74,11 @@ const isCanonicalAssertPresentThrow = ({
     guardExpression,
     sourceCode,
     throwStatement,
-}: {
+}: Readonly<{
     guardExpression: TSESTree.Expression;
     sourceCode: Readonly<TSESLint.SourceCode>;
     throwStatement: TSESTree.ThrowStatement;
-}): boolean => {
+}>): boolean => {
     if (
         throwStatement.argument.type !== "NewExpression" ||
         throwStatement.argument.callee.type !== "Identifier" ||
@@ -129,7 +129,7 @@ const isCanonicalAssertPresentThrow = ({
  */
 
 const extractEqNullGuardExpression = (
-    test: TSESTree.Expression
+    test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
     if (test.type !== "BinaryExpression" || test.operator !== "==") {
         return null;
@@ -155,7 +155,7 @@ const extractEqNullGuardExpression = (
  */
 
 const extractNullishEqualityPart = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): null | {
     expression: TSESTree.Expression;
     kind: "null" | "undefined";
@@ -220,7 +220,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
             const { sourceCode } = context;
 
             const extractPresentGuardExpression = (
-                test: TSESTree.Expression
+                test: Readonly<TSESTree.Expression>
             ): null | TSESTree.Expression => {
                 const eqNullExpression = extractEqNullGuardExpression(test);
                 if (eqNullExpression) {

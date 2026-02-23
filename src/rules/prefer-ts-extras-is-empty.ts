@@ -23,7 +23,7 @@ import {
  * @returns `true` when the value is zero literal; otherwise `false`.
  */
 
-const isZeroLiteral = (node: TSESTree.Expression): boolean =>
+const isZeroLiteral = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Literal" && node.value === 0;
 
 /**
@@ -36,7 +36,7 @@ const isZeroLiteral = (node: TSESTree.Expression): boolean =>
  */
 
 const isLengthMemberExpression = (
-    node: TSESTree.Expression
+    node: Readonly<TSESTree.Expression>
 ): node is TSESTree.MemberExpression & { property: TSESTree.Identifier } =>
     node.type === "MemberExpression" &&
     !node.computed &&
@@ -64,10 +64,10 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
 
             const { checker, parserServices } = getTypedRuleServices(context);
 
-            const isArrayLikeType = (type: ts.Type): boolean => {
+            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
                 const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: ts.Type) => boolean;
-                    isTupleType?: (candidateType: ts.Type) => boolean;
+                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
+                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
                 };
 
                 if (
@@ -92,7 +92,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
             };
 
             const isArrayLikeExpression = (
-                expression: TSESTree.Expression
+                expression: Readonly<TSESTree.Expression>
             ): boolean => {
                 try {
                     const tsNode =

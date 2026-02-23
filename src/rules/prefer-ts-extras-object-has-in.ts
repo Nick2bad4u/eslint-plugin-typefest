@@ -18,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is reflect has call; otherwise `false`.
  */
 
-const isReflectHasCall = (node: TSESTree.CallExpression): boolean => {
+const isReflectHasCall = (node: Readonly<TSESTree.CallExpression>): boolean => {
     if (node.callee.type !== "MemberExpression" || node.callee.computed) {
         return false;
     }

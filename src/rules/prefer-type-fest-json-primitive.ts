@@ -20,7 +20,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  */
 
 const isJsonPrimitiveKeywordNode = (
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): node is
     | TSESTree.TSBooleanKeyword
     | TSESTree.TSNullKeyword
@@ -39,7 +39,7 @@ const isJsonPrimitiveKeywordNode = (
  * @returns `true` when has json primitive union shape; otherwise `false`.
  */
 
-const hasJsonPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
+const hasJsonPrimitiveUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
     if (node.types.length !== 4) {
         return false;
     }

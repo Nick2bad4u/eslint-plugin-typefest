@@ -9,7 +9,7 @@ const loadSourcePlugin = async () => {
 type PluginConfig = PluginType["configs"][keyof PluginType["configs"]];
 type PluginType = Awaited<ReturnType<typeof loadSourcePlugin>>;
 
-const getRuleEntries = (config: PluginConfig): (readonly [string, unknown])[] =>
+const getRuleEntries = (config: Readonly<PluginConfig>): (readonly [string, unknown])[] =>
     Object.entries(config.rules ?? {});
 
 describe("source plugin config wiring", () => {

@@ -197,7 +197,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
     it("reports only native/generic JsonValue array union pairs", async () => {
-        const replacementFixCalls: unknown[][] = [];
+        const replacementFixCalls: Array<readonly unknown[]> = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -209,7 +209,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
         });
         const createTypeReferenceNode = (
             referenceName: string,
-            genericArguments: unknown[] = []
+            genericArguments: Readonly<unknown[]> = []
         ) => ({
             type: "TSTypeReference",
             ...(genericArguments.length === 0
@@ -231,7 +231,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             type: "TSTypeOperator",
             typeAnnotation: createNativeArrayNode(elementType),
         });
-        const createUnionNode = (...types: unknown[]) => ({
+        const createUnionNode = (...types: Readonly<unknown[]>) => ({
             type: "TSUnionType",
             types,
         });
@@ -246,7 +246,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: unknown[]) => {
+                createSafeTypeNodeReplacementFix: (...parameters: Readonly<unknown[]>) => {
                     replacementFixCalls.push(parameters);
 
                     return null;
@@ -265,7 +265,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; node?: unknown; }) {
+                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

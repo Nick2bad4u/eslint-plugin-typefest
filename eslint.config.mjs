@@ -870,8 +870,48 @@ export default defineConfig([
             // "write-good-comments/write-good-comments": "warn",
             // Backend-specific type safety
             "@typescript-eslint/prefer-readonly": "warn", // Prefer readonly for service class properties
-            // Readonly parameters are often impractical and TypeScript already provides strong typing.
-            "@typescript-eslint/prefer-readonly-parameter-types": "warn",
+            // Keep signal strong on explicitly typed APIs while avoiding noisy
+            // churn for inferred callback/test parameters.
+            "@typescript-eslint/prefer-readonly-parameter-types": [
+                "warn",
+                {
+                    allow: [
+                        {
+                            from: "lib",
+                            name: ["Readonly"],
+                        },
+                        {
+                            from: "package",
+                            name: ["RuleContext", "SourceCode"],
+                            package: "@typescript-eslint/utils",
+                        },
+                        {
+                            from: "package",
+                            name: [
+                                "BinaryExpression",
+                                "CallExpression",
+                                "Expression",
+                                "MemberExpression",
+                                "Node",
+                                "Program",
+                                "Statement",
+                                "ThrowStatement",
+                                "TSTypeReference",
+                                "TSUnionType",
+                                "TypeNode",
+                            ],
+                            package: "@typescript-eslint/types",
+                        },
+                        {
+                            from: "package",
+                            name: ["Signature", "Type", "TypeChecker"],
+                            package: "typescript",
+                        },
+                    ],
+                    ignoreInferredTypes: true,
+                    treatMethodsAsReadonly: true,
+                },
+            ],
             "@typescript-eslint/prefer-reduce-type-parameter": "warn",
             "@typescript-eslint/prefer-regexp-exec": "warn",
             "@typescript-eslint/prefer-return-this-type": "warn",
@@ -2651,6 +2691,7 @@ export default defineConfig([
             "prettier/prettier": "off", // Using in Prettier directly for less noise for AI
             "require-await": "off",
             "require-unicode-regexp": "off",
+            "sonarjs/different-types-comparison": "off",
             "write-good-comments/write-good-comments": "off", // Too strict,
         },
     },

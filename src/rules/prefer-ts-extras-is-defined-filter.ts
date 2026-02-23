@@ -16,17 +16,17 @@ type UndefinedInequalityMatch = {
 };
 
 const isIdentifierWithName = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier,
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
 ): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
 
 const isUndefinedStringLiteral = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: "undefined" } =>
     node.type === "Literal" && node.value === "undefined";
 
 const isTypeofParameter = (
-    node: TSESTree.Expression,
+    node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
     node.type === "UnaryExpression" &&
@@ -34,7 +34,7 @@ const isTypeofParameter = (
     isIdentifierWithName(node.argument, parameterName);
 
 const getUndefinedInequalityMatch = (
-    body: TSESTree.Expression,
+    body: Readonly<TSESTree.Expression>,
     parameterName: string
 ): null | UndefinedInequalityMatch => {
     if (body.type !== "BinaryExpression") {
@@ -83,7 +83,7 @@ const getUndefinedInequalityMatch = (
  */
 
 const isUndefinedFilterGuardBody = (
-    body: TSESTree.Expression,
+    body: Readonly<TSESTree.Expression>,
     parameterName: string
 ): boolean => getUndefinedInequalityMatch(body, parameterName) !== null;
 

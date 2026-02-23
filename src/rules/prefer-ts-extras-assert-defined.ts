@@ -18,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
-const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
+const isUndefinedExpression = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Identifier" && node.name === "undefined";
 
 /**
@@ -29,7 +29,7 @@ const isUndefinedExpression = (node: TSESTree.Expression): boolean =>
  * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
-const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
+const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
     }
@@ -42,7 +42,7 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 };
 
 const getThrowStatementFromConsequent = (
-    node: TSESTree.Statement
+    node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
     if (node.type === "ThrowStatement") {
         return node;
@@ -60,7 +60,7 @@ const getThrowStatementFromConsequent = (
 };
 
 const isCanonicalAssertDefinedThrow = (
-    throwStatement: TSESTree.ThrowStatement
+    throwStatement: Readonly<TSESTree.ThrowStatement>
 ): boolean => {
     if (
         throwStatement.argument.type !== "NewExpression" ||
@@ -91,7 +91,7 @@ const isCanonicalAssertDefinedThrow = (
  */
 
 const extractDefinedGuardExpression = (
-    test: TSESTree.Expression
+    test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
     if (
         test.type !== "BinaryExpression" ||

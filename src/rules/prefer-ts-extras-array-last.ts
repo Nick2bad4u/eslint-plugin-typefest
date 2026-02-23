@@ -23,7 +23,7 @@ import {
  * @returns `true` when the value is write target; otherwise `false`.
  */
 
-const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
+const isWriteTarget = (node: Readonly<TSESTree.MemberExpression>): boolean => {
     const { parent } = node;
 
     if (parent.type === "AssignmentExpression" && parent.left === node) {
@@ -53,8 +53,8 @@ const isWriteTarget = (node: TSESTree.MemberExpression): boolean => {
 
 const isLastIndexPattern = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    objectExpression: TSESTree.Expression,
-    propertyExpression: TSESTree.Expression | TSESTree.PrivateIdentifier
+    objectExpression: Readonly<TSESTree.Expression>,
+    propertyExpression: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): boolean => {
     if (propertyExpression.type === "PrivateIdentifier") {
         return false;
@@ -111,10 +111,10 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             const { sourceCode } = context;
             const { checker, parserServices } = getTypedRuleServices(context);
 
-            const isArrayLikeType = (type: ts.Type): boolean => {
+            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
                 const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: ts.Type) => boolean;
-                    isTupleType?: (candidateType: ts.Type) => boolean;
+                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
+                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
                 };
 
                 if (
@@ -139,7 +139,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             };
 
             const isArrayLikeExpression = (
-                expression: TSESTree.Expression
+                expression: Readonly<TSESTree.Expression>
             ): boolean => {
                 try {
                     const tsNode =

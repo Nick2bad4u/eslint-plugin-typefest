@@ -22,18 +22,18 @@ type UndefinedComparisonMatch = {
 };
 
 const isIdentifierWithName = (
-    expression: TSESTree.Expression,
+    expression: Readonly<TSESTree.Expression>,
     name: string
 ): expression is TSESTree.Identifier =>
     expression.type === "Identifier" && expression.name === name;
 
 const isTypeofExpression = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression; } =>
     expression.type === "UnaryExpression" && expression.operator === "typeof";
 
 const isUndefinedStringLiteral = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined"; } =>
     expression.type === "Literal" && expression.value === "undefined";
 
@@ -45,7 +45,7 @@ const isUndefinedStringLiteral = (
  * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
-const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
+const isUndefinedIdentifier = (expression: Readonly<TSESTree.Expression>): boolean =>
     isIdentifierWithName(expression, "undefined");
 
 /**
@@ -57,7 +57,7 @@ const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
  */
 
 const getUndefinedComparisonMatch = (
-    node: TSESTree.BinaryExpression
+    node: Readonly<TSESTree.BinaryExpression>
 ): null | UndefinedComparisonMatch => {
     const isPositiveComparison =
         node.operator === "!=" || node.operator === "!==";
@@ -110,7 +110,7 @@ const getUndefinedComparisonMatch = (
  */
 
 const isFilterCall = (
-    expression: TSESTree.CallExpression
+    expression: Readonly<TSESTree.CallExpression>
 ): expression is TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
         computed: false;
@@ -141,7 +141,7 @@ const isFilterCall = (
  */
 
 const isFunctionCallbackNode = (
-    node: TSESTree.Node
+    node: Readonly<TSESTree.Node>
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => (
     node.type === "ArrowFunctionExpression" ||
     node.type === "FunctionExpression"
@@ -155,7 +155,7 @@ const isFunctionCallbackNode = (
  * @returns GetParentNode helper result.
  */
 
-const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
+const getParentNode = (node: Readonly<TSESTree.Node>): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
 
 /**
@@ -166,7 +166,7 @@ const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
  * @returns `true` when the value is within filter callback; otherwise `false`.
  */
 
-const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
+const isWithinFilterCallback = (node: Readonly<TSESTree.Node>): boolean => {
     let currentNode: TSESTree.Node | undefined = node;
 
     while (currentNode) {

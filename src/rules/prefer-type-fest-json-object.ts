@@ -24,7 +24,7 @@ const RECORD_TYPE_NAME = "Record";
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -39,7 +39,7 @@ const isIdentifierTypeReference = (
  * @returns `true` when the value is string key type; otherwise `false`.
  */
 
-const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
+const isStringKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === "TSStringKeyword" ||
     (node.type === "TSLiteralType" &&
         node.literal.type === "Literal" &&
@@ -53,7 +53,7 @@ const isStringKeyType = (node: TSESTree.TypeNode): boolean =>
  * @returns `true` when the value is json value type; otherwise `false`.
  */
 
-const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
+const isJsonValueType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
@@ -66,7 +66,7 @@ const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
  */
 
 const isRecordJsonValueReference = (
-    node: TSESTree.TSTypeReference
+    node: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (!isIdentifierTypeReference(node, RECORD_TYPE_NAME)) {
         return false;

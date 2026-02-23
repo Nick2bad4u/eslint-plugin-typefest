@@ -25,7 +25,7 @@ const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
  */
 
 const isIdentifierTypeReference = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     expectedTypeName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
     node.type === "TSTypeReference" &&
@@ -40,7 +40,7 @@ const isIdentifierTypeReference = (
  * @returns `true` when the value is json value type; otherwise `false`.
  */
 
-const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
+const isJsonValueType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
@@ -51,7 +51,7 @@ const isJsonValueType = (node: TSESTree.TypeNode): boolean =>
  * @returns `true` when the value is json value array type; otherwise `false`.
  */
 
-const isJsonValueArrayType = (node: TSESTree.TypeNode): boolean =>
+const isJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === "TSArrayType" && isJsonValueType(node.elementType);
 
 /**
@@ -63,7 +63,7 @@ const isJsonValueArrayType = (node: TSESTree.TypeNode): boolean =>
  *   `false`.
  */
 
-const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
+const isReadonlyJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean => {
     if (node.type !== "TSTypeOperator" || node.operator !== "readonly") {
         return false;
     }
@@ -85,7 +85,7 @@ const isReadonlyJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
  *   `false`.
  */
 
-const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
+const isGenericJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean => {
     if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
         return false;
     }
@@ -110,7 +110,7 @@ const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
  */
 
 const isGenericReadonlyJsonValueArrayType = (
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): boolean => {
     if (!isIdentifierTypeReference(node, READONLY_ARRAY_TYPE_NAME)) {
         return false;
@@ -134,7 +134,7 @@ const isGenericReadonlyJsonValueArrayType = (
  * @returns `true` when has json array union shape; otherwise `false`.
  */
 
-const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
+const hasJsonArrayUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
     if (node.types.length !== 2) {
         return false;
     }
@@ -145,14 +145,14 @@ const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
     ];
 
     const isNativePair = (
-        leftType: TSESTree.TypeNode,
-        rightType: TSESTree.TypeNode
+        leftType: Readonly<TSESTree.TypeNode>,
+        rightType: Readonly<TSESTree.TypeNode>
     ): boolean =>
         isJsonValueArrayType(leftType) &&
         isReadonlyJsonValueArrayType(rightType);
     const isGenericPair = (
-        leftType: TSESTree.TypeNode,
-        rightType: TSESTree.TypeNode
+        leftType: Readonly<TSESTree.TypeNode>,
+        rightType: Readonly<TSESTree.TypeNode>
     ): boolean =>
         isGenericJsonValueArrayType(leftType) &&
         isGenericReadonlyJsonValueArrayType(rightType);

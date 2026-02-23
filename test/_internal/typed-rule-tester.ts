@@ -10,7 +10,7 @@ import * as path from "node:path";
 import { applySharedRuleTesterRunBehavior, repoPath } from "./ruleTester";
 
 const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
-    tester: RuleTester
+    tester: Readonly<RuleTester>
 ) => RuleTester;
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
@@ -22,7 +22,7 @@ const typedFixturesRoot = repoPath("test", "fixtures", "typed");
  *
  * @returns Absolute fixture path.
  */
-export const typedFixturePath = (...segments: string[]): string =>
+export const typedFixturePath = (...segments: Readonly<string[]>): string =>
     path.join(typedFixturesRoot, ...segments);
 
 /**
@@ -32,7 +32,7 @@ export const typedFixturePath = (...segments: string[]): string =>
  *
  * @returns Fixture source text.
  */
-export const readTypedFixture = (...segments: string[]): string =>
+export const readTypedFixture = (...segments: Readonly<string[]>): string =>
     readFileSync(typedFixturePath(...segments), "utf8");
 
 /**

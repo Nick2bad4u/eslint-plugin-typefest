@@ -64,7 +64,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             }
 
             const isWritableTypeReference = (
-                typeAnnotation: TSESTree.TypeNode
+                typeAnnotation: Readonly<TSESTree.TypeNode>
             ): boolean => {
                 if (typeAnnotation.type !== "TSTypeReference") {
                     return false;
@@ -89,9 +89,9 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             };
 
             const reportIfWritableAssertion = (
-                node: TSESTree.Node,
-                expression: TSESTree.Expression,
-                typeAnnotation: TSESTree.TypeNode
+                node: Readonly<TSESTree.Node>,
+                expression: Readonly<TSESTree.Expression>,
+                typeAnnotation: Readonly<TSESTree.TypeNode>
             ): void => {
                 if (!isWritableTypeReference(typeAnnotation)) {
                     return;

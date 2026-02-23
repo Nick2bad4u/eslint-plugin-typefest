@@ -35,10 +35,10 @@ type NullishKind = "null" | "undefined";
 const flattenLogicalTerms = ({
     expression,
     operator,
-}: {
+}: Readonly<{
     expression: TSESTree.Expression;
     operator: "&&" | "||";
-}): readonly TSESTree.Expression[] => {
+}>): readonly TSESTree.Expression[] => {
     if (expression.type !== "LogicalExpression") {
         return [expression];
     }
@@ -67,7 +67,7 @@ const flattenLogicalTerms = ({
  * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
-const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
+const isUndefinedIdentifier = (expression: Readonly<TSESTree.Expression>): boolean =>
     expression.type === "Identifier" && expression.name === "undefined";
 
 /**
@@ -79,7 +79,7 @@ const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
  */
 
 const getNullishComparison = (
-    expression: TSESTree.Expression
+    expression: Readonly<TSESTree.Expression>
 ): null | NullishComparison => {
     if (expression.type !== "BinaryExpression") {
         return null;
@@ -141,7 +141,7 @@ const getNullishComparison = (
  */
 
 const isFilterCall = (
-    expression: TSESTree.CallExpression
+    expression: Readonly<TSESTree.CallExpression>
 ): expression is TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
         computed: false;
@@ -162,7 +162,7 @@ const isFilterCall = (
  */
 
 const isFunctionCallbackNode = (
-    node: TSESTree.Node
+    node: Readonly<TSESTree.Node>
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
     node.type === "ArrowFunctionExpression" ||
     node.type === "FunctionExpression";
@@ -175,7 +175,7 @@ const isFunctionCallbackNode = (
  * @returns GetParentNode helper result.
  */
 
-const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
+const getParentNode = (node: Readonly<TSESTree.Node>): TSESTree.Node | undefined =>
     (node as NodeWithParent).parent;
 
 /**
@@ -186,7 +186,7 @@ const getParentNode = (node: TSESTree.Node): TSESTree.Node | undefined =>
  * @returns `true` when the value is within filter callback; otherwise `false`.
  */
 
-const isWithinFilterCallback = ({ node }: { node: TSESTree.Node }): boolean => {
+const isWithinFilterCallback = ({ node }: Readonly<{ node: TSESTree.Node }>): boolean => {
     let currentNode: TSESTree.Node | undefined = node;
 
     while (currentNode) {
@@ -221,11 +221,11 @@ const haveSameComparedExpression = ({
     first,
     second,
     sourceCode,
-}: {
+}: Readonly<{
     first: TSESTree.Expression;
     second: TSESTree.Expression;
     sourceCode: Readonly<TSESLint.SourceCode>;
-}): boolean => {
+}>): boolean => {
     const normalizedFirstText = sourceCode
         .getText(first)
         .replaceAll(/\s/gu, "");
@@ -247,10 +247,10 @@ const haveSameComparedExpression = ({
 const isStrictPresentCheck = ({
     node,
     sourceCode,
-}: {
+}: Readonly<{
     node: TSESTree.LogicalExpression;
     sourceCode: Readonly<TSESLint.SourceCode>;
-}): boolean => {
+}>): boolean => {
     if (node.operator !== "&&") {
         return false;
     }
@@ -302,10 +302,10 @@ const isStrictPresentCheck = ({
 const isStrictAbsentCheck = ({
     node,
     sourceCode,
-}: {
+}: Readonly<{
     node: TSESTree.LogicalExpression;
     sourceCode: Readonly<TSESLint.SourceCode>;
-}): boolean => {
+}>): boolean => {
     if (node.operator !== "||") {
         return false;
     }

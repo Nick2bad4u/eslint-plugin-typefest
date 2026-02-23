@@ -296,17 +296,17 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-ts-extras-is-present metadata literals", () => {
     it("declares the authored docs URL literal", () => {
-        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-is-present internal filter guards", () => {
-    const getNodeText = (node: {
+    const getNodeText = (node: Readonly<{
         name?: string;
         raw?: string;
         text?: string;
         value?: unknown;
-    }): string => {
+    }>): string => {
         if (typeof node.text === "string") {
             return node.text;
         }
@@ -354,7 +354,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; }) {
+                report (descriptor: Readonly<{ messageId?: string; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -414,9 +414,9 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 type: "CallExpression",
             };
 
-            leftBinaryNode.parent = logicalNode;
-            rightBinaryNode.parent = logicalNode;
-            logicalNode.parent = filterCallNode;
+            (leftBinaryNode as { parent?: unknown; }).parent = logicalNode;
+            (rightBinaryNode as { parent?: unknown; }).parent = logicalNode;
+            (logicalNode as { parent?: unknown; }).parent = filterCallNode;
 
             logicalExpressionListener?.(logicalNode);
 
@@ -459,7 +459,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; }) {
+                report (descriptor: Readonly<{ messageId?: string; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -536,11 +536,12 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 type: "CallExpression",
             };
 
-            leftBinaryNode.parent = logicalNode;
-            rightBinaryNode.parent = logicalNode;
-            logicalNode.parent = returnNode;
-            returnNode.parent = functionCallbackNode;
-            functionCallbackNode.parent = privateFilterCallNode;
+            (leftBinaryNode as { parent?: unknown; }).parent = logicalNode;
+            (rightBinaryNode as { parent?: unknown; }).parent = logicalNode;
+            (logicalNode as { parent?: unknown; }).parent = returnNode;
+            (returnNode as { parent?: unknown; }).parent = functionCallbackNode;
+            (functionCallbackNode as { parent?: unknown; }).parent =
+                privateFilterCallNode;
 
             logicalExpressionListener?.(logicalNode);
 

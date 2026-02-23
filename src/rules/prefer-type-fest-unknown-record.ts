@@ -18,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is record string unknown; otherwise `false`.
  */
 
-const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {
+const isRecordStringUnknown = (node: Readonly<TSESTree.TSTypeReference>): boolean => {
     if (
         node.typeName.type !== "Identifier" ||
         node.typeName.name !== "Record" ||

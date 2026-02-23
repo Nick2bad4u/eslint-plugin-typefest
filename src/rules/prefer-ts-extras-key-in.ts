@@ -11,7 +11,7 @@ import {
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const isIdentifierOperand = (
-    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Identifier => node.type === "Identifier";
 
 /**
@@ -34,7 +34,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
             );
 
             const createKeyInFix = (
-                node: TSESTree.BinaryExpression
+                node: Readonly<TSESTree.BinaryExpression>
             ): null | TSESLint.ReportFixFunction => {
                 if (
                     !isIdentifierOperand(node.left) ||

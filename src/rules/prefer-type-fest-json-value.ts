@@ -10,14 +10,14 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-const isStringLikeKeyType = (node: TSESTree.TypeNode): boolean =>
+const isStringLikeKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === "TSStringKeyword" ||
     (node.type === "TSLiteralType" &&
         node.literal.type === "Literal" &&
         node.literal.value === "string");
 
 const isRecordLikeUnknownOrAny = (
-    typeNode: TSESTree.TSTypeReference
+    typeNode: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (
         typeNode.typeName.type !== "Identifier" ||

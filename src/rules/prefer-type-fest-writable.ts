@@ -36,7 +36,7 @@ const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
 const normalizeTypeNodeText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    node: TSESTree.TypeNode
+    node: Readonly<TSESTree.TypeNode>
 ): string => normalizeTypeText(sourceCode.getText(node));
 
 /**
@@ -50,7 +50,7 @@ const normalizeTypeNodeText = (
 
 const hasWritableMappedTypeShape = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    node: TSESTree.TSMappedType
+    node: Readonly<TSESTree.TSMappedType>
 ): boolean => {
     if (node.readonly !== "-") {
         return false;

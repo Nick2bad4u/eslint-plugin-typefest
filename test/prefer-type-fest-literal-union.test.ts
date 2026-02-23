@@ -167,7 +167,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             "utf8"
         );
 
-        const matchCount = (pattern: RegExp): number =>
+        const matchCount = (pattern: Readonly<RegExp>): number =>
             [...ruleSource.matchAll(pattern)].length;
 
         expect(ruleSource).toContain('if (typeof node.literal.value === "bigint")');

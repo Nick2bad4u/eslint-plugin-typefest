@@ -107,7 +107,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 
 describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
     it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
-        const replacementFixCalls: unknown[][] = [];
+        const replacementFixCalls: Array<readonly unknown[]> = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -123,7 +123,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: unknown[]) => {
+                createSafeTypeNodeReplacementFix: (...parameters: Readonly<unknown[]>) => {
                     replacementFixCalls.push(parameters);
 
                     return null;
@@ -142,7 +142,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: { messageId?: string; node?: unknown; }) {
+                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

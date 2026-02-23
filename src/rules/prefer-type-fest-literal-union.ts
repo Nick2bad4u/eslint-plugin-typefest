@@ -28,7 +28,7 @@ const literalUnionFamilies = [
  * @returns `true` when the value is matching keyword member.
  */
 const isKeywordMemberForFamily = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     family: LiteralUnionFamily
 ): boolean => {
     if (family === "bigint") {
@@ -55,7 +55,7 @@ const isKeywordMemberForFamily = (
  * @returns `true` when the value is matching literal member.
  */
 const isLiteralMemberForFamily = (
-    node: TSESTree.TypeNode,
+    node: Readonly<TSESTree.TypeNode>,
     family: LiteralUnionFamily
 ): boolean => {
     if (node.type !== "TSLiteralType" || node.literal.type !== "Literal") {
@@ -92,7 +92,7 @@ const isLiteralMemberForFamily = (
  *
  * @returns `true` when has literal union shape; otherwise `false`.
  */
-const hasLiteralUnionShape = (node: TSESTree.TSUnionType): boolean => {
+const hasLiteralUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
     for (const family of literalUnionFamilies) {
         let allMembersAreFamilyMembers = true;
         let hasKeywordMember = false;
@@ -126,7 +126,7 @@ const hasLiteralUnionShape = (node: TSESTree.TSUnionType): boolean => {
 };
 
 const getLiteralUnionFamily = (
-    node: TSESTree.TSUnionType
+    node: Readonly<TSESTree.TSUnionType>
 ): LiteralUnionFamily | null => {
     for (const family of literalUnionFamilies) {
         let allMembersAreFamilyMembers = true;
@@ -162,7 +162,7 @@ const getLiteralUnionFamily = (
 
 const getLiteralUnionReplacementText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
-    node: TSESTree.TSUnionType,
+    node: Readonly<TSESTree.TSUnionType>,
     family: LiteralUnionFamily
 ): null | string => {
     const literalMembers = node.types.filter((member) =>

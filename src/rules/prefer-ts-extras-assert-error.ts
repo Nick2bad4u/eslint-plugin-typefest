@@ -18,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
 
-const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
+const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
     }
@@ -44,7 +44,7 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
  */
 
 const isErrorInstanceofExpression = (
-    node: TSESTree.Expression
+    node: Readonly<TSESTree.Expression>
 ): node is TSESTree.BinaryExpression => {
     if (node.type !== "BinaryExpression") {
         return false;
@@ -70,7 +70,7 @@ const isErrorInstanceofExpression = (
  */
 
 const extractAssertErrorTarget = (
-    test: TSESTree.Expression
+    test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
     if (test.type !== "UnaryExpression") {
         return null;

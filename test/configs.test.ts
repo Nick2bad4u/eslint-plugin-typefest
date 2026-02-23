@@ -24,7 +24,7 @@ interface FlatConfigLike {
  */
 
 function getConfigRules(
-    configs: null | Record<string, unknown>,
+    configs: Readonly<null | Record<string, unknown>>,
     configName: string
 ): null | Record<string, unknown> {
     const config = configs?.[configName];

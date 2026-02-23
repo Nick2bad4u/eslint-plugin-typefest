@@ -35,10 +35,10 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
 
             const { checker, parserServices } = getTypedRuleServices(context);
 
-            const isArrayLikeType = (type: ts.Type): boolean => {
+            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
                 const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: ts.Type) => boolean;
-                    isTupleType?: (candidateType: ts.Type) => boolean;
+                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
+                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
                 };
 
                 if (

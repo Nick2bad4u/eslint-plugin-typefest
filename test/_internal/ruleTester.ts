@@ -46,28 +46,28 @@ const deriveGeneratedCaseName = (
 
 const withGeneratedRuleCaseNames = (
     ruleName: string,
-    runCases: RuleRunCases
+    runCases: Readonly<RuleRunCases>
 ): RuleRunCases => {
     const normalizedInvalidCases: RuleRunCases["invalid"] =
-        runCases.invalid.map((entry: RuleRunInvalidCase, caseIndex) =>
+        runCases.invalid.map((entry: Readonly<RuleRunInvalidCase>, caseIndex) =>
             entry.name
                 ? {
-                      ...entry,
-                      name: pc.bold(pc.cyanBright(entry.name)),
-                  }
+                    ...entry,
+                    name: pc.bold(pc.cyanBright(entry.name)),
+                }
                 : {
-                      ...entry,
-                      name: deriveGeneratedCaseName(
-                          ruleName,
-                          "invalid",
-                          caseIndex,
-                          entry.filename
-                      ),
-                  }
+                    ...entry,
+                    name: deriveGeneratedCaseName(
+                        ruleName,
+                        "invalid",
+                        caseIndex,
+                        entry.filename
+                    ),
+                }
         );
 
     const normalizedValidCases: RuleRunCases["valid"] = runCases.valid.map(
-        (entry: RuleRunValidCase, caseIndex) => {
+        (entry: Readonly<RuleRunValidCase>, caseIndex) => {
             if (typeof entry === "string") {
                 return {
                     code: entry,
@@ -101,17 +101,18 @@ const withGeneratedRuleCaseNames = (
 };
 
 const patchRuleTesterRunWithGeneratedCaseNames = (
-    tester: RuleTester
+    tester: Readonly<RuleTester>
 ): RuleTester => {
-    const originalRun = tester.run.bind(tester);
-    tester.run = ((ruleName, ruleModule, runCases) => {
-        (originalRun as (...args: unknown[]) => void)(
+    const writableTester = tester as RuleTester;
+    const originalRun = writableTester.run.bind(writableTester);
+    writableTester.run = ((ruleName, ruleModule, runCases) => {
+        (originalRun as (...args: Readonly<unknown[]>) => void)(
             ruleName,
             ruleModule,
             withGeneratedRuleCaseNames(ruleName, runCases)
         );
     }) as RuleTester["run"];
-    return tester;
+    return writableTester;
 };
 
 /**
@@ -123,7 +124,7 @@ const patchRuleTesterRunWithGeneratedCaseNames = (
  * @returns Patched tester instance.
  */
 export const applySharedRuleTesterRunBehavior = (
-    tester: RuleTester
+    tester: Readonly<RuleTester>
 ): RuleTester => patchRuleTesterRunWithGeneratedCaseNames(tester);
 
 /**
@@ -133,7 +134,7 @@ export const applySharedRuleTesterRunBehavior = (
  *
  * @returns Absolute path rooted at the current workspace.
  */
-export const repoPath = (...segments: string[]): string =>
+export const repoPath = (...segments: Readonly<string[]>): string =>
     path.join(process.cwd(), ...segments);
 
 /**
@@ -177,7 +178,7 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
         return false;
     }
 
-    const maybeCreate = (value as { create?: unknown }).create;
+    const maybeCreate = (value as { create?: unknown; }).create;
 
     return typeof maybeCreate === "function";
 };

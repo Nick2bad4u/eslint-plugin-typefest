@@ -34,7 +34,7 @@ export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> =
  * @returns Parser services and type checker references.
  */
 export const getTypedRuleServices = (
-    context: TSESLint.RuleContext<string, UnknownArray>
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>
 ): TypedRuleServices => {
     const parserServices = ESLintUtils.getParserServices(context, true);
 
@@ -60,12 +60,12 @@ export const getTypedRuleServices = (
  * @returns `true` when assignable; otherwise `false`.
  */
 export const isTypeAssignableTo = (
-    checker: ts.TypeChecker,
-    sourceType: ts.Type,
-    targetType: ts.Type
+    checker: Readonly<ts.TypeChecker>,
+    sourceType: Readonly<ts.Type>,
+    targetType: Readonly<ts.Type>
 ): boolean => {
     const checkerWithAssignable = checker as ts.TypeChecker & {
-        isTypeAssignableTo?: (source: ts.Type, target: ts.Type) => boolean;
+        isTypeAssignableTo?: (source: Readonly<ts.Type>, target: Readonly<ts.Type>) => boolean;
     };
 
     if (typeof checkerWithAssignable.isTypeAssignableTo === "function") {
@@ -92,12 +92,12 @@ export const getSignatureParameterTypeAt = ({
     index,
     location,
     signature,
-}: {
+}: Readonly<{
     checker: ts.TypeChecker;
     index: number;
     location: ts.Node;
     signature: null | ts.Signature | undefined;
-}): ts.Type | undefined => {
+}>): ts.Type | undefined => {
     const symbol = signature?.parameters[index];
     if (!symbol) {
         return undefined;
