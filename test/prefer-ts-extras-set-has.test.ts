@@ -128,13 +128,13 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-ts-extras-set-has metadata literals", () => {
     it("declares the authored docs URL literal", () => {
-        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-set-has internal listener guards", () => {
     it("ignores non-Identifier member property even when object type is Set-like", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         const fakeSetType = {
             isUnion: () => false,
@@ -165,7 +165,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-set-has.ts"
+                "../src/rules/prefer-ts-extras-set-has"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -176,7 +176,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -216,7 +216,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("swallows parser-service failures without reporting", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -245,7 +245,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-set-has.ts"
+                "../src/rules/prefer-ts-extras-set-has"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -256,7 +256,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

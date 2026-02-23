@@ -3,8 +3,8 @@
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -207,7 +207,7 @@ const inlineSuggestableTemplateWrongPrefixCode = [
     "",
     "function ensureValue(value: string | null): string {",
     "    if (value == null) {",
-    "        throw new TypeError(`Unexpected value: ${value}`);",
+    "        throw new TypeError(`Unexpected value: \\u0024{value}`);",
     "    }",
     "",
     "    return value;",
@@ -218,7 +218,7 @@ const inlineSuggestableTemplateWrongSuffixCode = [
     "",
     "function ensureValue(value: string | null): string {",
     "    if (value == null) {",
-    "        throw new TypeError(`Expected a present value, got ${value}!`);",
+    "        throw new TypeError(`Expected a present value, got \\u0024{value}!`);",
     "    }",
     "",
     "    return value;",
@@ -229,7 +229,7 @@ const inlineSuggestableTemplateWrongExpressionCode = [
     "",
     "function ensureValue(value: string | null, fallback: string): string {",
     "    if (value == null) {",
-    "        throw new TypeError(`Expected a present value, got ${fallback}`);",
+    "        throw new TypeError(`Expected a present value, got \\u0024{fallback}`);",
     "    }",
     "",
     "    return value ?? fallback;",
@@ -241,8 +241,8 @@ const inlineAutofixableCanonicalCode = [
     "function ensureValue(value: string | null | undefined): string {",
     "    if (value === null || value === undefined) {",
     "        throw new TypeError(`Expected a present value, got " +
-        "$" +
-        "{value}`);",
+    "$" +
+    "{value}`);",
     "    }",
     "",
     "    return value;",
@@ -253,7 +253,7 @@ const inlineAutofixableCanonicalBacktickEnvelopeCode = [
     "",
     "function ensureValue(value: string | null): string {",
     "    if (value == null) {",
-    "        throw new TypeError(`Expected a present value, got \\`${value}\\``);",
+    "        throw new TypeError(`Expected a present value, got \\`\\u0024{value}\\``);",
     "    }",
     "",
     "    return value;",
@@ -263,7 +263,7 @@ const inlineAutofixableDirectThrowCanonicalCode = [
     'import { assertPresent } from "ts-extras";',
     "",
     "function ensureValue(value: string | null): string {",
-    "    if (value == null) throw new TypeError(`Expected a present value, got ${value}`);",
+    "    if (value == null) throw new TypeError(`Expected a present value, got \\u0024{value}`);",
     "",
     "    return value;",
     "}",
@@ -329,50 +329,50 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps assert-present guard and canonical-template checks in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-ts-extras-assert-present.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-ts-extras-assert-present source assertions", () => {
+    it("keeps assert-present guard and canonical-template checks in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-assert-present.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain(
-        'node.type === "Literal" && node.value === null;'
-    );
-    expect(ruleSource).toContain("node.body.length === 1 &&");
-    expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
-    expect(ruleSource).toContain(
-        'throwStatement.argument.callee.name !== "TypeError" ||'
-    );
-    expect(ruleSource).toContain(
-        "throwStatement.argument.arguments.length !== 1"
-    );
-    expect(ruleSource).toContain(
-        'firstArgument.type === "SpreadElement" ||'
-    );
-    expect(ruleSource).toContain(
-        "firstArgument.expressions.length !== 1"
-    );
-    expect(ruleSource).toContain("if (!templateExpression) {");
-    expect(ruleSource).toContain(
-        'prefixQuasi.value.cooked === "Expected a present value, got `" ||'
-    );
-    expect(ruleSource).toContain(
-        'suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === ""'
-    );
-    expect(ruleSource).toContain(
-        "sourceCode.getText(templateExpression) ==="
-    );
-    expect(ruleSource).toContain(
-        '(expression.operator !== "==" && expression.operator !== "===")'
-    );
-    expect(ruleSource).toContain(
-        "if (isUndefinedExpression(expression.right)) {"
-    );
-    expect(ruleSource).toContain('test.operator !== "||"');
-    expect(ruleSource).toContain("hasSuggestions: true,");
+        expect(ruleSource).toContain(
+            'node.type === "Literal" && node.value === null;'
+        );
+        expect(ruleSource).toContain("node.body.length === 1 &&");
+        expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
+        expect(ruleSource).toContain(
+            'throwStatement.argument.callee.name !== "TypeError" ||'
+        );
+        expect(ruleSource).toContain(
+            "throwStatement.argument.arguments.length !== 1"
+        );
+        expect(ruleSource).toContain(
+            'firstArgument.type === "SpreadElement" ||'
+        );
+        expect(ruleSource).toContain("firstArgument.expressions.length !== 1");
+        expect(ruleSource).toContain("if (!templateExpression) {");
+        expect(ruleSource).toContain(
+            'prefixQuasi.value.cooked === "Expected a present value, got `" ||'
+        );
+        expect(ruleSource).toContain(
+            'suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === ""'
+        );
+        expect(ruleSource).toContain(
+            "sourceCode.getText(templateExpression) ==="
+        );
+        expect(ruleSource).toContain(
+            '(expression.operator !== "==" && expression.operator !== "===")'
+        );
+        expect(ruleSource).toContain(
+            "if (isUndefinedExpression(expression.right)) {"
+        );
+        expect(ruleSource).toContain('test.operator !== "||"');
+        expect(ruleSource).toContain("hasSuggestions: true,");
+    });
 });
 
 ruleTester.run(
@@ -565,17 +565,37 @@ ruleTester.run(
             },
             {
                 code: inlineAutofixableCanonicalBacktickEnvelopeCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output:
+                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes canonical throw with backtick-wrapped placeholder text",
-                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                name: "suggests canonical throw with backtick-wrapped placeholder text",
             },
             {
                 code: inlineAutofixableDirectThrowCanonicalCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output:
+                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes direct canonical throw guard",
-                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                name: "suggests direct canonical throw guard",
             },
         ],
         valid: [

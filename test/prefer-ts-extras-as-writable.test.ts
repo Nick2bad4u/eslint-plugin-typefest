@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-as-writable.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -193,36 +193,64 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps as-writable import and qualified-name guards in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-as-writable.ts"),
-        "utf8"
-    );
+describe("prefer-ts-extras-as-writable source assertions", () => {
+    it("keeps as-writable import and qualified-name guards in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-as-writable.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('const filePath = context.filename ?? "";');
-    expect(ruleSource).toContain(
-        'typeof statement.source.value === "string"'
-    );
-    expect(ruleSource).toContain(': "";');
-    expect(ruleSource).toContain('specifier.type === "ImportSpecifier" &&');
-    expect(ruleSource).toContain(
-        'specifier.imported.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain(
-        'specifier.imported.name === WRITABLE_TYPE_NAME'
-    );
-    expect(ruleSource).toContain(
-        'if (specifier.type === "ImportNamespaceSpecifier") {'
-    );
-    expect(ruleSource).toContain(
-        'if (typeAnnotation.typeName.type !== "TSQualifiedName") {'
-    );
-    expect(ruleSource).toContain(
-        'typeAnnotation.typeName.right.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain(
-        'typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME'
-    );
+        expect(ruleSource).toContain('const filePath = context.filename ?? "";');
+        expect(ruleSource).toContain(
+            'typeof statement.source.value === "string"'
+        );
+        expect(ruleSource).toContain(': "";');
+        expect(ruleSource).toContain('specifier.type === "ImportSpecifier" &&');
+        expect(ruleSource).toContain(
+            'specifier.imported.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain(
+            'specifier.imported.name === WRITABLE_TYPE_NAME'
+        );
+        expect(ruleSource).toContain(
+            'if (specifier.type === "ImportNamespaceSpecifier") {'
+        );
+        expect(ruleSource).toContain(
+            'if (typeAnnotation.typeName.type !== "TSQualifiedName") {'
+        );
+        expect(ruleSource).toContain(
+            'typeAnnotation.typeName.right.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain(
+            'typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME'
+        );
+    });
+
+    it("preserves authored rule metadata and source-level branching", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-as-writable.ts"
+            ),
+            "utf8"
+        );
+
+        expect(ruleSource).toContain('name: "prefer-ts-extras-as-writable"');
+        expect(ruleSource).toContain("defaultOptions: []");
+        expect(ruleSource).toContain("meta: {");
+        expect(ruleSource).toContain(
+            "const isWritableTypeReference = ("
+        );
+        expect(ruleSource).toContain(
+            'if (typeAnnotation.type !== "TSTypeReference") {'
+        );
+        expect(ruleSource).toContain(
+            "require ts-extras asWritable over Writable<T> style assertions from type-fest."
+        );
+    });
 });
 
 ruleTester.run(

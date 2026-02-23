@@ -3,9 +3,10 @@
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test, vi } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -126,104 +127,106 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps string-split string-like and member guards in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-ts-extras-string-split.ts"
-        ),
-        "utf8"
-    );
-
-    expect(ruleSource).toContain('typeText === "String" ||');
-    expect(ruleSource).toContain('typeText.startsWith(\'"\')');
-    expect(ruleSource).toContain(
-        'node.callee.property.type !== "Identifier" ||'
-    );
-    expect(ruleSource).toContain("} catch {");
-    expect(ruleSource).toContain("return;");
-});
-
-test("handles parser-service lookup failures without reporting", async () => {
-    try {
-        vi.resetModules();
-
-        vi.doMock("../src/_internal/typed-rule.js", () => ({
-            createTypedRule: (definition: unknown): unknown => definition,
-            getTypedRuleServices: () => ({
-                checker: {
-                    getTypeAtLocation: () => ({
-                        isUnion: () => false,
-                    }),
-                    typeToString: () => "string",
-                },
-                parserServices: {
-                    esTreeNodeToTSNodeMap: {
-                        get: (): never => {
-                            throw new Error("lookup failed");
-                        },
-                    },
-                },
-            }),
-            isTestFilePath: (): boolean => false,
-        }));
-
-        const undecoratedRuleModule = (await import(
-            "../src/rules/prefer-ts-extras-string-split.ts"
-        )) as {
-            default: {
-                create: (context: unknown) => {
-                    CallExpression?: (node: unknown) => void;
-                };
-            };
-        };
-
-        const parsedResult = parser.parseForESLint(
-            [
-                "const value = 'a,b';",
-                "const parts = value.split(',');",
-            ].join("\n"),
-            {
-                ecmaVersion: "latest",
-                loc: true,
-                range: true,
-                sourceType: "module",
-            }
+describe("prefer-ts-extras-string-split source assertions", () => {
+    it("keeps string-split string-like and member guards in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-string-split.ts"
+            ),
+            "utf8"
         );
 
-        const secondStatement = parsedResult.ast.body[1];
+        expect(ruleSource).toContain('typeText === "String" ||');
+        expect(ruleSource).toContain('typeText.startsWith(\'"\')');
+        expect(ruleSource).toContain(
+            'node.callee.property.type !== "Identifier" ||'
+        );
+        expect(ruleSource).toContain("} catch {");
+        expect(ruleSource).toContain("return;");
+    });
 
-        expect(secondStatement?.type).toBe("VariableDeclaration");
+    it("handles parser-service lookup failures without reporting", async () => {
+        try {
+            vi.resetModules();
 
-        if (secondStatement?.type !== "VariableDeclaration") {
-            throw new Error("Expected variable declaration for split call");
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation: () => ({
+                            isUnion: () => false,
+                        }),
+                        typeToString: () => "string",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): never => {
+                                throw new Error("lookup failed");
+                            },
+                        },
+                    },
+                }),
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-ts-extras-string-split"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        CallExpression?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const parsedResult = parser.parseForESLint(
+                [
+                    "const value = 'a,b';",
+                    "const parts = value.split(',');",
+                ].join("\n"),
+                {
+                    ecmaVersion: "latest",
+                    loc: true,
+                    range: true,
+                    sourceType: "module",
+                }
+            );
+
+            const secondStatement = parsedResult.ast.body[1];
+
+            expect(secondStatement?.type).toBe("VariableDeclaration");
+
+            if (secondStatement?.type !== AST_NODE_TYPES.VariableDeclaration) {
+                throw new Error("Expected variable declaration for split call");
+            }
+
+            const firstDeclarator = secondStatement.declarations[0];
+            if (firstDeclarator?.init?.type !== AST_NODE_TYPES.CallExpression) {
+                throw new Error("Expected call expression initializer for split call");
+            }
+
+            const splitCallExpression = firstDeclarator.init;
+            const report = vi.fn();
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            expect(() => {
+                listenerMap.CallExpression?.(splitCallExpression);
+            }).not.toThrowError();
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
         }
-
-        const firstDeclarator = secondStatement.declarations[0];
-        if (firstDeclarator?.init?.type !== "CallExpression") {
-            throw new Error("Expected call expression initializer for split call");
-        }
-
-        const splitCallExpression = firstDeclarator.init;
-        const report = vi.fn();
-
-        const listenerMap = undecoratedRuleModule.default.create({
-            filename: "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
-            report,
-            sourceCode: {
-                ast: parsedResult.ast,
-            },
-        });
-
-        expect(() => {
-            listenerMap.CallExpression?.(splitCallExpression);
-        }).not.toThrowError();
-
-        expect(report).not.toHaveBeenCalled();
-    } finally {
-        vi.doUnmock("../src/_internal/typed-rule.js");
-        vi.resetModules();
-    }
+    });
 });
 
 ruleTester.run(

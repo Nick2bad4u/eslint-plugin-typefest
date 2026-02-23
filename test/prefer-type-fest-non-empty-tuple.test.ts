@@ -3,9 +3,10 @@
  * Vitest coverage for `prefer-type-fest-non-empty-tuple.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test, vi } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -99,117 +100,119 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps whitespace-run normalization in normalizeTypeText", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-type-fest-non-empty-tuple.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-type-fest-non-empty-tuple source assertions", () => {
+    it("keeps whitespace-run normalization in normalizeTypeText", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-type-fest-non-empty-tuple.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain(String.raw`replaceAll(/\s+/g, "")`);
-});
+        expect(ruleSource).toContain(String.raw`replaceAll(/\s+/g, "")`);
+    });
 
-test("returns early before text extraction for optional/rest tuple heads", async () => {
-    try {
-        vi.resetModules();
+    it("returns early before text extraction for optional/rest tuple heads", async () => {
+        try {
+            vi.resetModules();
 
-        vi.doMock("../src/_internal/typed-rule.js", () => ({
-            createTypedRule: (definition: unknown): unknown => definition,
-            isTestFilePath: (): boolean => false,
-        }));
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
 
-        const undecoratedRuleModule = (await import(
-            "../src/rules/prefer-type-fest-non-empty-tuple.ts"
-        )) as {
-            default: {
-                create: (context: unknown) => {
-                    TSTypeOperator?: (node: unknown) => void;
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-type-fest-non-empty-tuple"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSTypeOperator?: (node: unknown) => void;
+                    };
                 };
             };
-        };
 
-        const optionalHeadCode =
-            "type Input = readonly [string?, ...string[]];";
-        const optionalParsed = parser.parseForESLint(optionalHeadCode, {
-            ecmaVersion: "latest",
-            loc: true,
-            range: true,
-            sourceType: "module",
-        });
+            const optionalHeadCode =
+                "type Input = readonly [string?, ...string[]];";
+            const optionalParsed = parser.parseForESLint(optionalHeadCode, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
 
-        const [optionalStatement] = optionalParsed.ast.body;
-        if (
-            optionalStatement?.type !== "TSTypeAliasDeclaration" ||
-            optionalStatement.typeAnnotation.type !== "TSTypeOperator"
-        ) {
-            throw new Error("Expected optional-head tuple alias AST shape");
-        }
-
-        const optionalTupleNode = optionalStatement.typeAnnotation;
-
-        const restFirstTupleNode = {
-            operator: "readonly",
-            type: "TSTypeOperator",
-            typeAnnotation: {
-                elementTypes: [
-                    {
-                        type: "TSRestType",
-                        typeAnnotation: {
-                            elementType: { type: "TSStringKeyword" },
-                            type: "TSArrayType",
-                        },
-                    },
-                    {
-                        type: "TSRestType",
-                        typeAnnotation: {
-                            elementType: { type: "TSStringKeyword" },
-                            type: "TSArrayType",
-                        },
-                    },
-                ],
-                type: "TSTupleType",
-            },
-        };
-
-        const report = vi.fn();
-        const getText = vi.fn((node: unknown): string => {
-            const nodeType =
-                typeof node === "object" && node !== null && "type" in node
-                    ? (node as { type?: string }).type
-                    : undefined;
-
+            const [optionalStatement] = optionalParsed.ast.body;
             if (
-                nodeType === "TSOptionalType" ||
-                nodeType === "TSRestType"
+                optionalStatement?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                optionalStatement.typeAnnotation.type !== AST_NODE_TYPES.TSTypeOperator
             ) {
-                throw new Error(
-                    "Optional/rest tuple heads should return before text extraction"
-                );
+                throw new Error("Expected optional-head tuple alias AST shape");
             }
 
-            return "string";
-        });
+            const optionalTupleNode = optionalStatement.typeAnnotation;
 
-        const listenerMap = undecoratedRuleModule.default.create({
-            filename: "fixtures/typed/prefer-type-fest-non-empty-tuple.valid.ts",
-            report,
-            sourceCode: {
-                ast: optionalParsed.ast,
-                getText,
-            },
-        });
+            const restFirstTupleNode = {
+                operator: "readonly",
+                type: "TSTypeOperator",
+                typeAnnotation: {
+                    elementTypes: [
+                        {
+                            type: "TSRestType",
+                            typeAnnotation: {
+                                elementType: { type: "TSStringKeyword" },
+                                type: "TSArrayType",
+                            },
+                        },
+                        {
+                            type: "TSRestType",
+                            typeAnnotation: {
+                                elementType: { type: "TSStringKeyword" },
+                                type: "TSArrayType",
+                            },
+                        },
+                    ],
+                    type: "TSTupleType",
+                },
+            };
 
-        listenerMap.TSTypeOperator?.(optionalTupleNode);
-        listenerMap.TSTypeOperator?.(restFirstTupleNode);
+            const report = vi.fn();
+            const getText = vi.fn((node: unknown): string => {
+                const nodeType =
+                    typeof node === "object" && node !== null && "type" in node
+                        ? (node as { type?: string; }).type
+                        : undefined;
 
-        expect(report).not.toHaveBeenCalled();
-        expect(getText).not.toHaveBeenCalled();
-    } finally {
-        vi.doUnmock("../src/_internal/typed-rule.js");
-        vi.resetModules();
-    }
+                if (
+                    nodeType === "TSOptionalType" ||
+                    nodeType === "TSRestType"
+                ) {
+                    throw new Error(
+                        "Optional/rest tuple heads should return before text extraction"
+                    );
+                }
+
+                return "string";
+            });
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "fixtures/typed/prefer-type-fest-non-empty-tuple.valid.ts",
+                report,
+                sourceCode: {
+                    ast: optionalParsed.ast,
+                    getText,
+                },
+            });
+
+            listenerMap.TSTypeOperator?.(optionalTupleNode);
+            listenerMap.TSTypeOperator?.(restFirstTupleNode);
+
+            expect(report).not.toHaveBeenCalled();
+            expect(getText).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {

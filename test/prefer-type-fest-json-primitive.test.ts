@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-type-fest-json-primitive.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -77,26 +77,28 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps json-primitive helper guard clauses in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-type-fest-json-primitive.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-type-fest-json-primitive source assertions", () => {
+    it("keeps json-primitive helper guard clauses in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-type-fest-json-primitive.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('node.type === "TSBooleanKeyword" ||');
-    expect(ruleSource).toContain('node.type === "TSNullKeyword" ||');
-    expect(ruleSource).toContain('node.type === "TSNumberKeyword" ||');
-    expect(ruleSource).toContain('node.type === "TSStringKeyword";');
+        expect(ruleSource).toContain('node.type === "TSBooleanKeyword" ||');
+        expect(ruleSource).toContain('node.type === "TSNullKeyword" ||');
+        expect(ruleSource).toContain('node.type === "TSNumberKeyword" ||');
+        expect(ruleSource).toContain('node.type === "TSStringKeyword";');
 
-    expect(ruleSource).toContain("if (node.types.length !== 4) {");
-    expect(ruleSource).toContain(
-        "if (!isJsonPrimitiveKeywordNode(typeNode)) {"
-    );
-    expect(ruleSource).toContain('if (typeNode.type === "TSStringKeyword") {');
-    expect(ruleSource).toContain("return false;");
+        expect(ruleSource).toContain("if (node.types.length !== 4) {");
+        expect(ruleSource).toContain(
+            "if (!isJsonPrimitiveKeywordNode(typeNode)) {"
+        );
+        expect(ruleSource).toContain('if (typeNode.type === "TSStringKeyword") {');
+        expect(ruleSource).toContain("return false;");
+    });
 });
 
 ruleTester.run("prefer-type-fest-json-primitive", rule, {

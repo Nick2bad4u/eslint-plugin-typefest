@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-primitive`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -11,16 +11,22 @@ import {
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const primitiveKeywordTypes = [
-    "TSBigIntKeyword",
-    "TSBooleanKeyword",
-    "TSNullKeyword",
-    "TSNumberKeyword",
-    "TSStringKeyword",
-    "TSSymbolKeyword",
-    "TSUndefinedKeyword",
+    AST_NODE_TYPES.TSBigIntKeyword,
+    AST_NODE_TYPES.TSBooleanKeyword,
+    AST_NODE_TYPES.TSNullKeyword,
+    AST_NODE_TYPES.TSNumberKeyword,
+    AST_NODE_TYPES.TSStringKeyword,
+    AST_NODE_TYPES.TSSymbolKeyword,
+    AST_NODE_TYPES.TSUndefinedKeyword,
 ] as const;
 
 type PrimitiveKeywordType = (typeof primitiveKeywordTypes)[number];
+
+const primitiveKeywordTypeSet = new Set<string>(primitiveKeywordTypes);
+
+const isPrimitiveKeywordType = (
+    candidate: string
+): candidate is PrimitiveKeywordType => primitiveKeywordTypeSet.has(candidate);
 
 /**
  * Check whether has primitive union shape.
@@ -38,22 +44,11 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
     const presentPrimitiveTypes = new Set<PrimitiveKeywordType>();
 
     for (const typeNode of node.types) {
-        switch (typeNode.type) {
-            case "TSBigIntKeyword":
-            case "TSBooleanKeyword":
-            case "TSNullKeyword":
-            case "TSNumberKeyword":
-            case "TSStringKeyword":
-            case "TSSymbolKeyword":
-            case "TSUndefinedKeyword": {
-                presentPrimitiveTypes.add(typeNode.type);
-
-                break;
-            }
-            default: {
-                return false;
-            }
+        if (!isPrimitiveKeywordType(typeNode.type)) {
+            return false;
         }
+
+        presentPrimitiveTypes.add(typeNode.type);
     }
 
     return presentPrimitiveTypes.size === primitiveKeywordTypes.length;
@@ -67,7 +62,7 @@ const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
  */
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -79,7 +74,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSUnionType(node) {
+                TSUnionType (node) {
                     if (!hasPrimitiveUnionShape(node)) {
                         return;
                     }

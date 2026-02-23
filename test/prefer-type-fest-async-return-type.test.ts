@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -83,24 +83,26 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps async-return-type helper constants and guard clauses in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-type-fest-async-return-type.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-type-fest-async-return-type source assertions", () => {
+    it("keeps async-return-type helper constants and guard clauses in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-type-fest-async-return-type.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('const AWAITED_TYPE_NAME = "Awaited";');
-    expect(ruleSource).toContain('const RETURN_TYPE_NAME = "ReturnType";');
-    expect(ruleSource).toContain(
-        "if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {"
-    );
-    expect(ruleSource).toContain(
-        "if (getSingleTypeArgument(awaitedInnerType) === null) {"
-    );
-    expect(ruleSource).toContain("return;");
+        expect(ruleSource).toContain('const AWAITED_TYPE_NAME = "Awaited";');
+        expect(ruleSource).toContain('const RETURN_TYPE_NAME = "ReturnType";');
+        expect(ruleSource).toContain(
+            "if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {"
+        );
+        expect(ruleSource).toContain(
+            "if (getSingleTypeArgument(awaitedInnerType) === null) {"
+        );
+        expect(ruleSource).toContain("return;");
+    });
 });
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {

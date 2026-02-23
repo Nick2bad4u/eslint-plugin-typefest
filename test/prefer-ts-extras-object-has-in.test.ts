@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-object-has-in.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -108,25 +108,27 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps object-has-in callee predicate guard clauses in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-ts-extras-object-has-in.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-ts-extras-object-has-in source assertions", () => {
+    it("keeps object-has-in callee predicate guard clauses in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-object-has-in.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain(
-        'node.callee.object.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain(
-        'node.callee.object.name === "Reflect" &&'
-    );
-    expect(ruleSource).toContain(
-        'node.callee.property.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain('node.callee.property.name === "has"');
+        expect(ruleSource).toContain(
+            'node.callee.object.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain(
+            'node.callee.object.name === "Reflect" &&'
+        );
+        expect(ruleSource).toContain(
+            'node.callee.property.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain('node.callee.property.name === "has"');
+    });
 });
 
 ruleTester.run("prefer-ts-extras-object-has-in", rule, {

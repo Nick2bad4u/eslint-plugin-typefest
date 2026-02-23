@@ -3,9 +3,10 @@
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
 import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test, vi } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -111,123 +112,125 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
     name: "prefer-ts-extras-is-empty",
 });
 
-test("keeps is-empty helper guards and literals in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-empty.ts"),
-        "utf8"
-    );
-
-    expect(ruleSource).toContain(
-        'node.type === "Literal" && node.value === 0;'
-    );
-    expect(ruleSource).toContain('node.type === "MemberExpression" &&');
-    expect(ruleSource).toContain(
-        'node.property.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain('node.property.name === "length";');
-    expect(ruleSource).toContain("typedChecker.isArrayType?.(type) ||");
-    expect(ruleSource).toContain("typedChecker.isTupleType?.(type)");
-    expect(ruleSource).toContain("return true;");
-    expect(ruleSource).toContain("if (type.isUnion()) {");
-    expect(ruleSource).toContain("type.types.every((partType) =>");
-    expect(ruleSource).toContain('typeText.endsWith("[]") ||');
-    expect(ruleSource).toContain('typeText.startsWith("readonly [") ||');
-    expect(ruleSource).toContain('typeText.startsWith("[")');
-    expect(ruleSource).toContain("return false;");
-    expect(ruleSource).toContain(
-        'if (node.operator !== "==" && node.operator !== "===") {'
-    );
-    expect(ruleSource).toContain(
-        "isLengthMemberExpression(node.left) &&\n                        isZeroLiteral(node.right);"
-    );
-    expect(ruleSource).toContain(
-        "isLengthMemberExpression(node.right) &&\n                        isZeroLiteral(node.left);"
-    );
-    expect(ruleSource).toContain(
-        "if (!isLeftLengthCheck && !isRightLengthCheck) {"
-    );
-});
-
-test("skips reports when parser services fail during type lookup", async () => {
-    try {
-        vi.resetModules();
-
-        vi.doMock("../src/_internal/typed-rule.js", () => ({
-            createTypedRule: (definition: unknown): unknown => definition,
-            getTypedRuleServices: () => ({
-                checker: {
-                    getTypeAtLocation: (): unknown => ({}),
-                    typeToString: (): string => "never",
-                },
-                parserServices: {
-                    esTreeNodeToTSNodeMap: {
-                        get: (): never => {
-                            throw new Error("type lookup failed");
-                        },
-                    },
-                },
-            }),
-            isTestFilePath: (): boolean => false,
-        }));
-
-        const undecoratedRuleModule = (await import(
-            "../src/rules/prefer-ts-extras-is-empty.ts"
-        )) as {
-            default: {
-                create: (context: unknown) => {
-                    BinaryExpression?: (node: unknown) => void;
-                };
-            };
-        };
-
-        const parsedResult = parser.parseForESLint(
-            [
-                "const values = [1, 2, 3];",
-                "const isEmpty = values.length === 0;",
-            ].join("\n"),
-            {
-                ecmaVersion: "latest",
-                loc: true,
-                range: true,
-                sourceType: "module",
-            }
+describe("prefer-ts-extras-is-empty source assertions", () => {
+    it("keeps is-empty helper guards and literals in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-empty.ts"),
+            "utf8"
         );
 
-        const declarationStatement = parsedResult.ast.body[1];
+        expect(ruleSource).toContain(
+            'node.type === "Literal" && node.value === 0;'
+        );
+        expect(ruleSource).toContain('node.type === "MemberExpression" &&');
+        expect(ruleSource).toContain(
+            'node.property.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain('node.property.name === "length";');
+        expect(ruleSource).toContain("typedChecker.isArrayType?.(type) ||");
+        expect(ruleSource).toContain("typedChecker.isTupleType?.(type)");
+        expect(ruleSource).toContain("return true;");
+        expect(ruleSource).toContain("if (type.isUnion()) {");
+        expect(ruleSource).toContain("type.types.every((partType) =>");
+        expect(ruleSource).toContain('typeText.endsWith("[]") ||');
+        expect(ruleSource).toContain('typeText.startsWith("readonly [") ||');
+        expect(ruleSource).toContain('typeText.startsWith("[")');
+        expect(ruleSource).toContain("return false;");
+        expect(ruleSource).toContain(
+            'if (node.operator !== "==" && node.operator !== "===") {'
+        );
+        expect(ruleSource).toContain(
+            "isLengthMemberExpression(node.left) &&\n                        isZeroLiteral(node.right);"
+        );
+        expect(ruleSource).toContain(
+            "isLengthMemberExpression(node.right) &&\n                        isZeroLiteral(node.left);"
+        );
+        expect(ruleSource).toContain(
+            "if (!isLeftLengthCheck && !isRightLengthCheck) {"
+        );
+    });
 
-        expect(declarationStatement?.type).toBe("VariableDeclaration");
+    it("skips reports when parser services fail during type lookup", async () => {
+        try {
+            vi.resetModules();
 
-        if (
-            declarationStatement?.type !== "VariableDeclaration"
-        ) {
-            throw new Error("Expected variable declaration for length check");
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation: (): unknown => ({}),
+                        typeToString: (): string => "never",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): never => {
+                                throw new Error("type lookup failed");
+                            },
+                        },
+                    },
+                }),
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-ts-extras-is-empty"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        BinaryExpression?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const parsedResult = parser.parseForESLint(
+                [
+                    "const values = [1, 2, 3];",
+                    "const isEmpty = values.length === 0;",
+                ].join("\n"),
+                {
+                    ecmaVersion: "latest",
+                    loc: true,
+                    range: true,
+                    sourceType: "module",
+                }
+            );
+
+            const declarationStatement = parsedResult.ast.body[1];
+
+            expect(declarationStatement?.type).toBe("VariableDeclaration");
+
+            if (
+                declarationStatement?.type !== AST_NODE_TYPES.VariableDeclaration
+            ) {
+                throw new Error("Expected variable declaration for length check");
+            }
+
+            const firstDeclarator = declarationStatement.declarations[0];
+            if (
+                firstDeclarator?.init?.type !== AST_NODE_TYPES.BinaryExpression
+            ) {
+                throw new Error("Expected binary expression initializer");
+            }
+
+            const report = vi.fn();
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "fixtures/typed/prefer-ts-extras-is-empty.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            expect(() => {
+                listenerMap.BinaryExpression?.(firstDeclarator.init);
+            }).not.toThrowError();
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
         }
-
-        const firstDeclarator = declarationStatement.declarations[0];
-        if (
-            firstDeclarator?.init?.type !== "BinaryExpression"
-        ) {
-            throw new Error("Expected binary expression initializer");
-        }
-
-        const report = vi.fn();
-        const listenerMap = undecoratedRuleModule.default.create({
-            filename: "fixtures/typed/prefer-ts-extras-is-empty.invalid.ts",
-            report,
-            sourceCode: {
-                ast: parsedResult.ast,
-            },
-        });
-
-        expect(() => {
-            listenerMap.BinaryExpression?.(firstDeclarator.init);
-        }).not.toThrowError();
-
-        expect(report).not.toHaveBeenCalled();
-    } finally {
-        vi.doUnmock("../src/_internal/typed-rule.js");
-        vi.resetModules();
-    }
+    });
 });
 
 ruleTester.run("prefer-ts-extras-is-empty", rule, {

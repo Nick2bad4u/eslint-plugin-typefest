@@ -42,7 +42,7 @@ const isRecordStringUnknown = (node: TSESTree.TSTypeReference): boolean => {
  */
 const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -55,7 +55,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                TSTypeReference (node) {
                     if (!isRecordStringUnknown(node)) {
                         return;
                     }

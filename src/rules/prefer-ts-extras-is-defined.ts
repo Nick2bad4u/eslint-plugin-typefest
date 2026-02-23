@@ -29,12 +29,12 @@ const isIdentifierWithName = (
 
 const isTypeofExpression = (
     expression: TSESTree.Expression
-): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
+): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression; } =>
     expression.type === "UnaryExpression" && expression.operator === "typeof";
 
 const isUndefinedStringLiteral = (
     expression: TSESTree.Expression
-): expression is TSESTree.Literal & { value: "undefined" } =>
+): expression is TSESTree.Literal & { value: "undefined"; } =>
     expression.type === "Literal" && expression.value === "undefined";
 
 /**
@@ -142,17 +142,10 @@ const isFilterCall = (
 
 const isFunctionCallbackNode = (
     node: TSESTree.Node
-): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => {
-    switch (node.type) {
-        case "ArrowFunctionExpression":
-        case "FunctionExpression": {
-            return true;
-        }
-        default: {
-            return false;
-        }
-    }
-};
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => (
+    node.type === "ArrowFunctionExpression" ||
+    node.type === "FunctionExpression"
+);
 
 /**
  * GetParentNode helper.
@@ -209,7 +202,7 @@ const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
  */
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -221,7 +214,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                BinaryExpression(node) {
+                BinaryExpression (node) {
                     if (isWithinFilterCallback(node)) {
                         return;
                     }

@@ -88,7 +88,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 describe("prefer-type-fest-json-value metadata", () => {
     it("declares authored hasSuggestions metadata literal", async () => {
         const authoredRuleModule = (await import(
-            "../src/rules/prefer-type-fest-json-value.ts"
+            "../src/rules/prefer-type-fest-json-value"
         )) as {
             default: {
                 readonly meta?: {

@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-is-equal-type.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { describe, expect, it, test, vi } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -203,8 +203,8 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         const metadataRule = await loadIsEqualTypeRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
-                ? (metadataRule as { defaultOptions?: unknown })
-                      .defaultOptions
+                ? (metadataRule as { defaultOptions?: unknown; })
+                    .defaultOptions
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-ts-extras-is-equal-type");
@@ -237,7 +237,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             }));
 
             const undecoratedRule = (await import(
-                "../src/rules/prefer-ts-extras-is-equal-type.ts"
+                "../src/rules/prefer-ts-extras-is-equal-type"
             )) as {
                 default: IsEqualTypeRuleMetadataSnapshot;
             };
@@ -255,14 +255,14 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             expect(undecoratedRule.default.meta?.hasSuggestions).toBeTruthy();
             expect(
                 undecoratedRule.default.meta?.messages?.[
-                    "preferTsExtrasIsEqualType"
+                "preferTsExtrasIsEqualType"
                 ]
             ).toBe(
                 "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
             );
             expect(
                 undecoratedRule.default.meta?.messages?.[
-                    "suggestTsExtrasIsEqualType"
+                "suggestTsExtrasIsEqualType"
                 ]
             ).toBe(
                 "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`."
@@ -274,45 +274,49 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
     });
 });
 
-test("keeps is-equal-type source constants and guard clauses", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-ts-extras-is-equal-type.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-ts-extras-is-equal-type source assertions", () => {
+    it("keeps is-equal-type source constants and guard clauses", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-is-equal-type.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('const IS_EQUAL_TYPE_NAME = "IsEqual";');
-    expect(ruleSource).toContain(
-        'const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";'
-    );
-    expect(ruleSource).toContain(
-        'const TS_EXTRAS_PACKAGE_NAME = "ts-extras";'
-    );
-    expect(ruleSource).toContain(
-        'const TYPE_FEST_PACKAGE_NAME = "type-fest";'
-    );
-    expect(ruleSource).toContain(
-        'typeof statement.source.value === "string"'
-    );
-    expect(ruleSource).toContain('if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {');
-    expect(ruleSource).toContain(
-        'if (specifier.type === "ImportNamespaceSpecifier") {'
-    );
-    expect(ruleSource).toContain(
-        "node.typeName.left.type === \"Identifier\" &&"
-    );
-    expect(ruleSource).toContain(
-        "typeFestNamespaceImportNames.has(node.typeName.left.name) &&"
-    );
-    expect(ruleSource).toContain(
-        "node.typeName.right.type === \"Identifier\" &&"
-    );
-    expect(ruleSource).toContain('typeof node.init.value !== "boolean"');
-    expect(ruleSource).toContain("if (!leftType || !rightType) {");
-    expect(ruleSource).toContain("typeArguments.length === 2 &&");
-    expect(ruleSource).toContain("hasSuggestions: true,");
+        expect(ruleSource).toContain('const IS_EQUAL_TYPE_NAME = "IsEqual";');
+        expect(ruleSource).toContain(
+            'const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";'
+        );
+        expect(ruleSource).toContain(
+            'const TS_EXTRAS_PACKAGE_NAME = "ts-extras";'
+        );
+        expect(ruleSource).toContain(
+            'const TYPE_FEST_PACKAGE_NAME = "type-fest";'
+        );
+        expect(ruleSource).toContain(
+            'typeof statement.source.value === "string"'
+        );
+        expect(ruleSource).toContain(
+            'if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {'
+        );
+        expect(ruleSource).toContain(
+            'if (specifier.type === "ImportNamespaceSpecifier") {'
+        );
+        expect(ruleSource).toContain(
+            "node.typeName.left.type === \"Identifier\" &&"
+        );
+        expect(ruleSource).toContain(
+            "typeFestNamespaceImportNames.has(node.typeName.left.name) &&"
+        );
+        expect(ruleSource).toContain(
+            "node.typeName.right.type === \"Identifier\" &&"
+        );
+        expect(ruleSource).toContain('typeof node.init.value !== "boolean"');
+        expect(ruleSource).toContain("if (!leftType || !rightType) {");
+        expect(ruleSource).toContain("typeArguments.length === 2 &&");
+        expect(ruleSource).toContain("hasSuggestions: true,");
+    });
 });
 
 ruleTester.run(

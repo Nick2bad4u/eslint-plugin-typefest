@@ -480,12 +480,12 @@ export default defineConfig([
             ...pluginCssModules.configs.recommended.rules,
             // CSS Eslint Rules (css/*)
             "css/no-empty-blocks": "error",
-            "css/no-invalid-at-rules": "off",
-            "css/no-invalid-properties": "off",
+            "css/no-invalid-at-rules": "warn",
+            "css/no-invalid-properties": "warn",
             "css/prefer-logical-properties": "warn",
             "css/relative-font-units": "warn",
-            "css/selector-complexity": "off",
-            "css/use-baseline": "off",
+            "css/selector-complexity": "warn",
+            "css/use-baseline": "warn",
             "css/use-layers": "off",
             // CSS Classes Rules (undefined-css-classes/*)
             "undefined-css-classes/no-undefined-css-classes": "warn",
@@ -687,7 +687,7 @@ export default defineConfig([
             "@typescript-eslint/ban-ts-comment": "warn",
             "@typescript-eslint/ban-tslint-comment": "warn",
             "@typescript-eslint/class-literal-property-style": "warn",
-            "@typescript-eslint/class-methods-use-this": "off",
+            "@typescript-eslint/class-methods-use-this": "warn",
             "@typescript-eslint/consistent-generic-constructors": "warn",
             "@typescript-eslint/consistent-indexed-object-style": "warn",
             "@typescript-eslint/consistent-return": "warn",
@@ -727,7 +727,7 @@ export default defineConfig([
                     max: 20,
                 },
             ],
-            "@typescript-eslint/member-ordering": "off",
+            "@typescript-eslint/member-ordering": "warn",
             "@typescript-eslint/method-signature-style": "warn",
             "@typescript-eslint/naming-convention": "off",
             "@typescript-eslint/no-array-constructor": "warn",
@@ -764,7 +764,7 @@ export default defineConfig([
             // Keep enabled: Helps with bundle optimization and makes type vs runtime imports clearer.
             // Can be resolved incrementally as warnings.
             "@typescript-eslint/no-import-type-side-effects": "warn",
-            "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for React components
+            "@typescript-eslint/no-inferrable-types": "warn", // Allow explicit types for React components
             "@typescript-eslint/no-invalid-this": "warn",
             "@typescript-eslint/no-invalid-void-type": "warn",
             "@typescript-eslint/no-loop-func": "warn",
@@ -870,9 +870,8 @@ export default defineConfig([
             // "write-good-comments/write-good-comments": "warn",
             // Backend-specific type safety
             "@typescript-eslint/prefer-readonly": "warn", // Prefer readonly for service class properties
-            // Disabled: Too noisy for Electron projects with React/Zustand stores.
             // Readonly parameters are often impractical and TypeScript already provides strong typing.
-            "@typescript-eslint/prefer-readonly-parameter-types": "off",
+            "@typescript-eslint/prefer-readonly-parameter-types": "warn",
             "@typescript-eslint/prefer-reduce-type-parameter": "warn",
             "@typescript-eslint/prefer-regexp-exec": "warn",
             "@typescript-eslint/prefer-return-this-type": "warn",
@@ -893,12 +892,13 @@ export default defineConfig([
             "@typescript-eslint/restrict-plus-operands": "warn",
             "@typescript-eslint/restrict-template-expressions": "warn",
             "@typescript-eslint/return-await": ["error", "in-try-catch"], // Proper await handling in try-catch
-            "@typescript-eslint/strict-boolean-expressions": "off",
+            "@typescript-eslint/strict-boolean-expressions": "warn",
             "@typescript-eslint/switch-exhaustiveness-check": "error", // Ensure switch statements are exhaustive
             "@typescript-eslint/triple-slash-reference": "warn",
             "@typescript-eslint/unbound-method": "warn",
             "@typescript-eslint/unified-signatures": "warn",
             "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
+            "canonical/filename-match-exported": "off",
             "canonical/filename-match-regex": "off", // Taken care of by unicorn rules
             "canonical/filename-no-index": "error",
             "canonical/import-specifier-newline": "off",
@@ -997,7 +997,7 @@ export default defineConfig([
             "eslint-plugin/report-message-format": "warn",
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
-            "eslint-plugin/require-meta-docs-recommended": "off",
+            "eslint-plugin/require-meta-docs-recommended": "warn",
             "eslint-plugin/require-meta-docs-url": "error",
             "eslint-plugin/require-meta-fixable": "error",
             "eslint-plugin/require-meta-has-suggestions": "error",
@@ -1374,7 +1374,7 @@ export default defineConfig([
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/no-empty-function": "off", // Empty mocks/stubs are common
             "@typescript-eslint/no-explicit-any": "off",
-            "@typescript-eslint/no-inferrable-types": "off", // Allow explicit types for React components
+            "@typescript-eslint/no-inferrable-types": "warn", // Allow explicit types for React components
             "@typescript-eslint/no-non-null-assertion": "off",
             "@typescript-eslint/no-restricted-types": "off", // Tests may need generic Function types
             "@typescript-eslint/no-shadow": "off",
@@ -1878,6 +1878,7 @@ export default defineConfig([
             ...html.configs.recommended.rules,
             "html/class-spacing": "warn",
             "html/css-no-empty-blocks": "warn",
+            "html/head-order": "warn",
             "html/id-naming-convention": "warn",
             "html/indent": "error",
             "html/lowercase": "warn",
@@ -2122,7 +2123,9 @@ export default defineConfig([
             "toml/array-element-newline": "warn",
             "toml/comma-style": "warn",
             "toml/indent": "off",
+            "toml/inline-table-curly-newline": "warn",
             "toml/inline-table-curly-spacing": "warn",
+            "toml/inline-table-key-value-newline": "warn",
             "toml/key-spacing": "off",
             "toml/keys-order": "warn",
             "toml/no-mixed-type-in-array": "warn",

@@ -196,7 +196,7 @@ describe("prefer-ts-extras-is-defined-filter metadata literals", () => {
 
 describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
     it("ignores non-Identifier filter property and non-callback first argument", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -212,7 +212,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-defined-filter.ts"
+                "../src/rules/prefer-ts-extras-is-defined-filter"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -223,7 +223,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

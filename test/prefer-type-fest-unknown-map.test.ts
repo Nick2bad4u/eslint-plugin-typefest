@@ -3,7 +3,8 @@
  * Vitest coverage for `prefer-type-fest-unknown-map.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, test, vi } from "vitest";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -66,81 +67,83 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-map", 
     },
 });
 
-test("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {
-    try {
-        vi.resetModules();
+describe("prefer-type-fest-unknown-map source assertions", () => {
+    it("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {
+        try {
+            vi.resetModules();
 
-        vi.doMock("../src/_internal/typed-rule.js", () => ({
-            createTypedRule: (definition: unknown): unknown => definition,
-            isTestFilePath: (): boolean => false,
-        }));
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
 
-        const undecoratedRuleModule = (await import(
-            "../src/rules/prefer-type-fest-unknown-map.ts"
-        )) as {
-            default: {
-                create: (context: unknown) => {
-                    TSTypeReference?: (node: unknown) => void;
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-type-fest-unknown-map"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSTypeReference?: (node: unknown) => void;
+                    };
                 };
             };
-        };
 
-        const parsedResult = parser.parseForESLint(
-            [
-                "type Reported = ReadonlyMap<unknown, unknown>;",
-                "type Ignored = ReadonlyMap<string, unknown>;",
-            ].join("\n"),
-            {
-                ecmaVersion: "latest",
-                loc: true,
-                range: true,
-                sourceType: "module",
+            const parsedResult = parser.parseForESLint(
+                [
+                    "type Reported = ReadonlyMap<unknown, unknown>;",
+                    "type Ignored = ReadonlyMap<string, unknown>;",
+                ].join("\n"),
+                {
+                    ecmaVersion: "latest",
+                    loc: true,
+                    range: true,
+                    sourceType: "module",
+                }
+            );
+
+            const [reportedAlias, ignoredAlias] = parsedResult.ast.body;
+
+            if (
+                reportedAlias?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                ignoredAlias?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration
+            ) {
+                throw new Error("Expected two type alias declarations in AST");
             }
-        );
 
-        const [reportedAlias, ignoredAlias] = parsedResult.ast.body;
+            const reportedTypeReference = reportedAlias.typeAnnotation;
+            const ignoredTypeReference = ignoredAlias.typeAnnotation;
 
-        if (
-            reportedAlias?.type !== "TSTypeAliasDeclaration" ||
-            ignoredAlias?.type !== "TSTypeAliasDeclaration"
-        ) {
-            throw new Error("Expected two type alias declarations in AST");
+            if (
+                reportedTypeReference.type !== AST_NODE_TYPES.TSTypeReference ||
+                ignoredTypeReference.type !== AST_NODE_TYPES.TSTypeReference
+            ) {
+                throw new Error("Expected type alias annotations to be type references");
+            }
+
+            const report = vi.fn();
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "fixtures/typed/prefer-type-fest-unknown-map.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            listenerMap.TSTypeReference?.(reportedTypeReference);
+            listenerMap.TSTypeReference?.(ignoredTypeReference);
+
+            expect(report).toHaveBeenCalledTimes(1);
+            expect(report).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    messageId: "preferUnknownMap",
+                    node: reportedTypeReference,
+                })
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
         }
-
-        const reportedTypeReference = reportedAlias.typeAnnotation;
-        const ignoredTypeReference = ignoredAlias.typeAnnotation;
-
-        if (
-            reportedTypeReference.type !== "TSTypeReference" ||
-            ignoredTypeReference.type !== "TSTypeReference"
-        ) {
-            throw new Error("Expected type alias annotations to be type references");
-        }
-
-        const report = vi.fn();
-
-        const listenerMap = undecoratedRuleModule.default.create({
-            filename: "fixtures/typed/prefer-type-fest-unknown-map.invalid.ts",
-            report,
-            sourceCode: {
-                ast: parsedResult.ast,
-            },
-        });
-
-        listenerMap.TSTypeReference?.(reportedTypeReference);
-        listenerMap.TSTypeReference?.(ignoredTypeReference);
-
-        expect(report).toHaveBeenCalledTimes(1);
-        expect(report).toHaveBeenCalledWith(
-            expect.objectContaining({
-                messageId: "preferUnknownMap",
-                node: reportedTypeReference,
-            })
-        );
-    } finally {
-        vi.doUnmock("../src/_internal/typed-rule.js");
-        vi.resetModules();
-    }
+    });
 });
 
 ruleTester.run("prefer-type-fest-unknown-map", rule, {

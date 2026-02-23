@@ -327,7 +327,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     };
 
     it("reports strict checks for non-function filter arguments", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -343,7 +343,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-present.ts"
+                "../src/rules/prefer-ts-extras-is-present"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -354,7 +354,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -432,7 +432,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     });
 
     it("does not treat private filter-like call as filter callback", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -448,7 +448,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-present.ts"
+                "../src/rules/prefer-ts-extras-is-present"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -459,7 +459,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

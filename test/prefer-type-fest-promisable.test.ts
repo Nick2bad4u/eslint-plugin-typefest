@@ -3,7 +3,8 @@
  * Vitest coverage for `prefer-type-fest-promisable.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { expect, test, vi } from "vitest";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -107,96 +108,97 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
     name: "prefer-type-fest-promisable",
 });
 
-test("tSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
-    const code = [
-        'import type { Promisable } from "type-fest";',
-        "type ShouldReportPromiseFirst = Promise<string> | string;",
-        "type ShouldReportPromiseSecond = string | Promise<string>;",
-        "type ShouldSkipPromisable = Promise<Promisable<string>> | Promisable<string>;",
-        "type ShouldSkipNull = Promise<null> | null;",
-        "type ShouldSkipUndefined = Promise<undefined> | undefined;",
-        "type ShouldSkipNever = Promise<never> | never;",
-    ].join("\n");
+describe("prefer-type-fest-promisable source assertions", () => {
+    it("tSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
+        const code = [
+            'import type { Promisable } from "type-fest";',
+            "type ShouldReportPromiseFirst = Promise<string> | string;",
+            "type ShouldReportPromiseSecond = string | Promise<string>;",
+            "type ShouldSkipPromisable = Promise<Promisable<string>> | Promisable<string>;",
+            "type ShouldSkipNull = Promise<null> | null;",
+            "type ShouldSkipUndefined = Promise<undefined> | undefined;",
+            "type ShouldSkipNever = Promise<never> | never;",
+        ].join("\n");
 
-    try {
-        vi.resetModules();
+        try {
+            vi.resetModules();
 
-        vi.doMock("../src/_internal/typed-rule.js", () => ({
-            createTypedRule: (definition: unknown): unknown => definition,
-            isTestFilePath: (): boolean => false,
-        }));
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
 
-        const undecoratedRuleModule = (await import(
-            "../src/rules/prefer-type-fest-promisable.ts"
-        )) as {
-            default: {
-                create: (context: unknown) => {
-                    TSUnionType?: (node: unknown) => void;
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-type-fest-promisable"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSUnionType?: (node: unknown) => void;
+                    };
                 };
             };
-        };
 
-        const parsedResult = parser.parseForESLint(code, {
-            ecmaVersion: "latest",
-            loc: true,
-            range: true,
-            sourceType: "module",
-        });
+            const parsedResult = parser.parseForESLint(code, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
 
-        const getNodeText = (node: unknown): string => {
-            if (
-                typeof node !== "object" ||
-                node === null ||
-                !("range" in node)
-            ) {
-                return "";
+            const getNodeText = (node: unknown): string => {
+                if (
+                    typeof node !== "object" ||
+                    node === null ||
+                    !("range" in node)
+                ) {
+                    return "";
+                }
+
+                const nodeRange = (node as { range?: readonly [number, number]; })
+                    .range;
+                if (!nodeRange) {
+                    return "";
+                }
+
+                const [start, end] = nodeRange;
+                return code.slice(start, end);
+            };
+
+            const report = vi.fn();
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "fixtures/typed/prefer-type-fest-promisable.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                    getText: getNodeText,
+                },
+            });
+
+            const unionTypeNodes: unknown[] = [];
+
+            for (const statement of parsedResult.ast.body) {
+                if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+                    const aliasAnnotation = statement.typeAnnotation;
+
+                    if (aliasAnnotation.type === AST_NODE_TYPES.TSUnionType) {
+                        unionTypeNodes.push(aliasAnnotation);
+                    }
+                }
             }
 
-            const nodeRange = (node as { range?: readonly [number, number] })
-                .range;
-            if (!nodeRange) {
-                return "";
+            expect(unionTypeNodes).toHaveLength(6);
+
+            for (const unionTypeNode of unionTypeNodes) {
+                listenerMap.TSUnionType?.(unionTypeNode);
             }
 
-            const [start, end] = nodeRange;
-            return code.slice(start, end);
-        };
-
-        const report = vi.fn();
-
-        const listenerMap = undecoratedRuleModule.default.create({
-            filename: "fixtures/typed/prefer-type-fest-promisable.invalid.ts",
-            report,
-            sourceCode: {
-                ast: parsedResult.ast,
-                getText: getNodeText,
-            },
-        });
-
-        const unionTypeNodes = parsedResult.ast.body
-            .filter(
-                (statement): statement is typeof statement & {
-                    type: "TSTypeAliasDeclaration";
-                } => statement.type === "TSTypeAliasDeclaration"
-            )
-            .map((alias) => alias.typeAnnotation)
-            .filter(
-                (typeAnnotation): typeAnnotation is typeof typeAnnotation & {
-                    type: "TSUnionType";
-                } => typeAnnotation.type === "TSUnionType"
-            );
-
-        expect(unionTypeNodes).toHaveLength(6);
-
-        for (const unionTypeNode of unionTypeNodes) {
-            listenerMap.TSUnionType?.(unionTypeNode);
+            expect(report).toHaveBeenCalledTimes(2);
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
         }
-
-        expect(report).toHaveBeenCalledTimes(2);
-    } finally {
-        vi.doUnmock("../src/_internal/typed-rule.js");
-        vi.resetModules();
-    }
+    });
 });
 
 ruleTester.run(

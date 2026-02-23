@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-is-infinite.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -157,42 +157,49 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps is-infinite helper guards and comparisons in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-infinite.ts"),
-        "utf8"
-    );
+describe("prefer-ts-extras-is-infinite source assertions", () => {
+    it("keeps is-infinite helper guards and comparisons in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-is-infinite.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain(
-        'node.property.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain(
-        '(node.property.name === "POSITIVE_INFINITY" ||\n            node.property.name === "NEGATIVE_INFINITY")'
-    );
-    expect(ruleSource).toContain(
-        'if (node.type === "Identifier" && node.name === "Infinity") {'
-    );
-    expect(ruleSource).toContain('node.object.name !== "Number" ||');
-    expect(ruleSource).toContain('node.property.type !== "Identifier"');
-    expect(ruleSource).toContain(
-        'if (node.property.name === "NEGATIVE_INFINITY") {'
-    );
-    expect(ruleSource).toContain(
-        '(expression.operator !== "==" && expression.operator !== "===")'
-    );
-    expect(ruleSource).toContain("if (leftKind && !rightKind) {");
-    expect(ruleSource).toContain('if (node.operator !== "||") {');
-    expect(ruleSource).toContain(
-        'if (left.operator !== "===" || right.operator !== "===") {'
-    );
-    expect(ruleSource).toContain("if (left.kind === right.kind) {");
-    expect(ruleSource).toContain(
-        "sourceCode.getText(left.comparedExpression).trim() ==="
-    );
-    expect(ruleSource).toContain(
-        "sourceCode.getText(right.comparedExpression).trim()"
-    );
-    expect(ruleSource).toContain("parent?.type === \"LogicalExpression\" &&");
+        expect(ruleSource).toContain(
+            'node.property.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain(
+            '(node.property.name === "POSITIVE_INFINITY" ||\n            node.property.name === "NEGATIVE_INFINITY")'
+        );
+        expect(ruleSource).toContain(
+            'if (node.type === "Identifier" && node.name === "Infinity") {'
+        );
+        expect(ruleSource).toContain('node.object.name !== "Number" ||');
+        expect(ruleSource).toContain('node.property.type !== "Identifier"');
+        expect(ruleSource).toContain(
+            'if (node.property.name === "NEGATIVE_INFINITY") {'
+        );
+        expect(ruleSource).toContain(
+            '(expression.operator !== "==" && expression.operator !== "===")'
+        );
+        expect(ruleSource).toContain("if (leftKind && !rightKind) {");
+        expect(ruleSource).toContain('if (node.operator !== "||") {');
+        expect(ruleSource).toContain(
+            'if (left.operator !== "===" || right.operator !== "===") {'
+        );
+        expect(ruleSource).toContain("if (left.kind === right.kind) {");
+        expect(ruleSource).toContain(
+            "sourceCode.getText(left.comparedExpression).trim() ==="
+        );
+        expect(ruleSource).toContain(
+            "sourceCode.getText(right.comparedExpression).trim()"
+        );
+        expect(ruleSource).toContain(
+            "parent?.type === \"LogicalExpression\" &&"
+        );
+    });
 });
 
 ruleTester.run("prefer-ts-extras-is-infinite", rule, {

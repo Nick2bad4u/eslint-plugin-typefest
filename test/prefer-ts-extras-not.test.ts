@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-not.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -185,28 +185,30 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-not", {
     name: "prefer-ts-extras-not",
 });
 
-test("keeps prefer-ts-extras-not helper guards in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-not.ts"),
-        "utf8"
-    );
+describe("prefer-ts-extras-not source assertions", () => {
+    it("keeps prefer-ts-extras-not helper guards in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-not.ts"),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('const FILTER_METHOD_NAME = "filter";');
-    expect(ruleSource).toContain(
-        'node.callee.property.type === "Identifier" &&'
-    );
-    expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
-    expect(ruleSource).toContain(
-        "predicateCall.optional ||\n                    predicateCall.callee.type !== \"Identifier\""
-    );
-    expect(ruleSource).toContain(".trim();");
-    expect(ruleSource).toContain("if (predicateText.length === 0) {");
-    expect(ruleSource).toContain(
-        "if (!isFilterCall(node) || node.arguments.length === 0) {"
-    );
-    expect(ruleSource).toContain(
-        "(firstArgument.type !== \"ArrowFunctionExpression\" &&\n                            firstArgument.type !== \"FunctionExpression\")"
-    );
+        expect(ruleSource).toContain('const FILTER_METHOD_NAME = "filter";');
+        expect(ruleSource).toContain(
+            'node.callee.property.type === "Identifier" &&'
+        );
+        expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
+        expect(ruleSource).toContain(
+            "predicateCall.optional ||\n                    predicateCall.callee.type !== \"Identifier\""
+        );
+        expect(ruleSource).toContain(".trim();");
+        expect(ruleSource).toContain("if (predicateText.length === 0) {");
+        expect(ruleSource).toContain(
+            "if (!isFilterCall(node) || node.arguments.length === 0) {"
+        );
+        expect(ruleSource).toContain(
+            "(firstArgument.type !== \"ArrowFunctionExpression\" &&\n                            firstArgument.type !== \"FunctionExpression\")"
+        );
+    });
 });
 
 ruleTester.run("prefer-ts-extras-not", rule, {

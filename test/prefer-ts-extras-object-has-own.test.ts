@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-object-has-own.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -94,20 +94,22 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("keeps object-has-own callee guard clauses in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(
-            process.cwd(),
-            "src/rules/prefer-ts-extras-object-has-own.ts"
-        ),
-        "utf8"
-    );
+describe("prefer-ts-extras-object-has-own source assertions", () => {
+    it("keeps object-has-own callee guard clauses in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-object-has-own.ts"
+            ),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('callee.object.name !== "Object" ||');
-    expect(ruleSource).toContain(
-        'callee.property.type !== "Identifier" ||'
-    );
-    expect(ruleSource).toContain('callee.property.name !== "hasOwn"');
+        expect(ruleSource).toContain('callee.object.name !== "Object" ||');
+        expect(ruleSource).toContain(
+            'callee.property.type !== "Identifier" ||'
+        );
+        expect(ruleSource).toContain('callee.property.name !== "hasOwn"');
+    });
 });
 
 ruleTester.run(

@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from "vitest";
+
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -9,7 +11,6 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-import { describe, expect, it, vi } from "vitest";
 
 const ruleId = "prefer-type-fest-unknown-array";
 const docsDescription =
@@ -110,10 +111,10 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-unknown-array internal readonly-array identifier guard", () => {
     it("reports ReadonlyArray<unknown> but ignores other generic identifiers", async () => {
-        const reportCalls: Array<{
+        const reportCalls: {
             messageId?: string;
             node?: unknown;
-        }> = [];
+        }[] = [];
         const replacementFixCalls: unknown[][] = [];
 
         try {
@@ -134,7 +135,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             }));
 
             const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-unknown-array.ts"
+                "../src/rules/prefer-type-fest-unknown-array"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -145,7 +146,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
 
             const listeners = undecoratedRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string; node?: unknown }) {
+                report (descriptor: { messageId?: string; node?: unknown; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -155,8 +156,9 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                 },
             });
 
-            const typeReferenceListener = listeners.TSTypeReference;
-            expect(typeReferenceListener).toBeTypeOf("function");
+            const referenceListener = listeners.TSTypeReference;
+
+            expect(referenceListener).toBeTypeOf("function");
 
             const readonlyArrayUnknownNode = {
                 type: "TSTypeReference",
@@ -179,8 +181,8 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                 },
             };
 
-            typeReferenceListener?.(readonlyArrayUnknownNode);
-            typeReferenceListener?.(customGenericUnknownNode);
+            referenceListener?.(readonlyArrayUnknownNode);
+            referenceListener?.(customGenericUnknownNode);
 
             expect(reportCalls).toHaveLength(1);
             expect(reportCalls[0]).toMatchObject({

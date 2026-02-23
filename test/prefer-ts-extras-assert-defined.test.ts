@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-assert-defined.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -201,30 +201,69 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
     }
 );
 
-test("retains hasSuggestions metadata for assert-defined", () => {
-    expect(rule.meta?.hasSuggestions).toBeTruthy();
+describe("prefer-ts-extras-assert-defined metadata assertions", () => {
+    it("retains hasSuggestions metadata for assert-defined", () => {
+        expect(rule.meta?.hasSuggestions).toBeTruthy();
+    });
 });
 
-test("keeps assert-defined guard and canonical-throw checks in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-assert-defined.ts"),
-        "utf8"
-    );
 
-    expect(ruleSource).toContain('const filePath = context.filename ?? "";');
-    expect(ruleSource).toContain("node.body.length === 1 &&");
-    expect(ruleSource).toContain('node.body[0]?.type === "ThrowStatement"');
-    expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
-    expect(ruleSource).toContain(
-        'throwStatement.argument.callee.name !== "TypeError" ||'
-    );
-    expect(ruleSource).toContain(
-        "throwStatement.argument.arguments.length !== 1"
-    );
-    expect(ruleSource).toContain(
-        "if (!firstArgument || firstArgument.type === \"SpreadElement\") {"
-    );
-    expect(ruleSource).toContain("hasSuggestions: true,");
+describe("prefer-ts-extras-assert-defined source assertions", () => {
+    it("keeps assert-defined source guard and message canonical checks", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-assert-defined.ts"
+            ),
+            "utf8"
+        );
+
+        expect(ruleSource).toContain(
+            'node.type === "Identifier" && node.name === "undefined"'
+        );
+        expect(ruleSource).toContain("node.body.length === 1 &&");
+        expect(ruleSource).toContain(
+            'node.body[0]?.type === "ThrowStatement"'
+        );
+        expect(ruleSource).toContain(
+            "throwStatement.argument.arguments.length !== 1"
+        );
+        expect(ruleSource).toContain(
+            'if (!firstArgument || firstArgument.type === "SpreadElement") {'
+        );
+        expect(ruleSource).toContain(
+            'context.sourceCode.getText(guardExpression)'
+        );
+        expect(ruleSource).toContain(
+            '(test.operator !== "==" && test.operator !== "===")'
+        );
+        expect(ruleSource).toContain(
+            "if (isUndefinedExpression(test.right)) {"
+        );
+    });
+
+    it("preserves authored metadata literals for assert-defined rule", () => {
+        const ruleSource = readFileSync(
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-assert-defined.ts"
+            ),
+            "utf8"
+        );
+
+        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-defined"');
+        expect(ruleSource).toContain("defaultOptions: []");
+        expect(ruleSource).toContain("hasSuggestions: true,");
+        expect(ruleSource).toContain(
+            "require ts-extras assertDefined over manual undefined-guard throw blocks."
+        );
+        expect(ruleSource).toContain(
+            "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks."
+        );
+        expect(ruleSource).toContain(
+            "Replace this manual guard with `assertDefined(...)` from `ts-extras`."
+        );
+    });
 });
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {

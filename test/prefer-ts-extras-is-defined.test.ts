@@ -143,7 +143,7 @@ describe("prefer-ts-extras-is-defined metadata literals", () => {
 
 describe("prefer-ts-extras-is-defined internal create guards", () => {
     it("uses empty filename fallback when context filename is undefined", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -159,7 +159,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-defined.ts"
+                "../src/rules/prefer-ts-extras-is-defined"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -170,7 +170,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: undefined,
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

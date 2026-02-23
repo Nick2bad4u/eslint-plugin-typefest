@@ -208,18 +208,18 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             type: "Identifier",
         });
         const createTypeReferenceNode = (
-            typeName: string,
-            typeArguments: unknown[] = []
+            referenceName: string,
+            genericArguments: unknown[] = []
         ) => ({
             type: "TSTypeReference",
-            ...(typeArguments.length === 0
+            ...(genericArguments.length === 0
                 ? {}
                 : {
-                      typeArguments: {
-                          params: typeArguments,
-                      },
-                  }),
-            typeName: createIdentifierNode(typeName),
+                    typeArguments: {
+                        params: genericArguments,
+                    },
+                }),
+            typeName: createIdentifierNode(referenceName),
         });
         const jsonValueTypeReferenceNode = createTypeReferenceNode("JsonValue");
         const createNativeArrayNode = (elementType: unknown) => ({
@@ -254,7 +254,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-json-array.ts"
+                "../src/rules/prefer-type-fest-json-array"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -265,7 +265,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string; node?: unknown }) {
+                report (descriptor: { messageId?: string; node?: unknown; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

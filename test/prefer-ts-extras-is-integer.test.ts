@@ -3,8 +3,8 @@
  * Vitest coverage for `prefer-ts-extras-is-integer.test` behavior.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
-import { expect, test } from "vitest";
+import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -58,14 +58,16 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-integer", {
     name: "prefer-ts-extras-is-integer",
 });
 
-test("keeps is-integer member guard clauses in source", () => {
-    const ruleSource = readFileSync(
-        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-integer.ts"),
-        "utf8"
-    );
+describe("prefer-ts-extras-is-integer source assertions", () => {
+    it("keeps is-integer member guard clauses in source", () => {
+        const ruleSource = readFileSync(
+            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-integer.ts"),
+            "utf8"
+        );
 
-    expect(ruleSource).toContain('node.callee.property.type !== "Identifier" ||');
-    expect(ruleSource).toContain('node.callee.property.name !== "isInteger"');
+        expect(ruleSource).toContain('node.callee.property.type !== "Identifier" ||');
+        expect(ruleSource).toContain('node.callee.property.name !== "isInteger"');
+    });
 });
 
 ruleTester.run("prefer-ts-extras-is-integer", rule, {

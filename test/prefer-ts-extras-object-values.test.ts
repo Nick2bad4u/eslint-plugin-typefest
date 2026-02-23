@@ -67,13 +67,13 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-ts-extras-object-values metadata literals", () => {
     it("declares the authored docs URL literal", () => {
-        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-object-values internal listener guards", () => {
     it("ignores non-Identifier Object property access", async () => {
-        const reportCalls: { messageId?: string }[] = [];
+        const reportCalls: { messageId?: string; }[] = [];
 
         try {
             vi.resetModules();
@@ -89,7 +89,7 @@ describe("prefer-ts-extras-object-values internal listener guards", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-object-values.ts"
+                "../src/rules/prefer-ts-extras-object-values"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -100,7 +100,7 @@ describe("prefer-ts-extras-object-values internal listener guards", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string }) {
+                report (descriptor: { messageId?: string; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

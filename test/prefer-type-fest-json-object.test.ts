@@ -131,7 +131,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-json-object.ts"
+                "../src/rules/prefer-type-fest-json-object"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -142,7 +142,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string; node?: unknown }) {
+                report (descriptor: { messageId?: string; node?: unknown; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -152,9 +152,9 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                 },
             });
 
-            const typeReferenceListener = listeners.TSTypeReference;
+            const referenceListener = listeners.TSTypeReference;
 
-            expect(typeReferenceListener).toBeTypeOf("function");
+            expect(referenceListener).toBeTypeOf("function");
 
             const matchingRecordNode = {
                 type: "TSTypeReference",
@@ -230,10 +230,10 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                 },
             };
 
-            typeReferenceListener?.(matchingRecordNode);
-            typeReferenceListener?.(nonRecordIdentifierNode);
-            typeReferenceListener?.(singleTypeArgumentNode);
-            typeReferenceListener?.(nonJsonValueRecordNode);
+            referenceListener?.(matchingRecordNode);
+            referenceListener?.(nonRecordIdentifierNode);
+            referenceListener?.(singleTypeArgumentNode);
+            referenceListener?.(nonJsonValueRecordNode);
 
             expect(reportCalls).toHaveLength(1);
             expect(reportCalls[0]).toMatchObject({

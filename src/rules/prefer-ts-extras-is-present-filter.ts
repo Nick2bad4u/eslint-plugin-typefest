@@ -35,42 +35,6 @@ const flattenLogicalAndTerms = (
     ];
 };
 
-/**
- * Check whether the input is null comparison.
- *
- * @param node - Value to inspect.
- * @param parameterName - Value to inspect.
- *
- * @returns `true` when the value is null comparison; otherwise `false`.
- */
-
-const isNullComparison = (
-    node: TSESTree.Expression,
-    parameterName: string
-): node is TSESTree.BinaryExpression => {
-    const comparison = extractNullishInequalityPart(node, parameterName);
-
-    return comparison?.kind === "null";
-};
-
-/**
- * Check whether the input is undefined comparison.
- *
- * @param node - Value to inspect.
- * @param parameterName - Value to inspect.
- *
- * @returns `true` when the value is undefined comparison; otherwise `false`.
- */
-
-const isUndefinedComparison = (
-    node: TSESTree.Expression,
-    parameterName: string
-): node is TSESTree.BinaryExpression => {
-    const comparison = extractNullishInequalityPart(node, parameterName);
-
-    return comparison?.kind === "undefined";
-};
-
 type NullishInequalityPart = {
     readonly expression: TSESTree.Expression;
     readonly kind: "null" | "undefined";
@@ -84,18 +48,18 @@ const isIdentifierWithName = (
 
 const isNullLiteral = (
     node: TSESTree.Expression | TSESTree.PrivateIdentifier
-): node is TSESTree.Literal & { value: null } =>
+): node is TSESTree.Literal & { value: null; } =>
     node.type === "Literal" && node.value === null;
 
 const isUndefinedStringLiteral = (
     node: TSESTree.Expression | TSESTree.PrivateIdentifier
-): node is TSESTree.Literal & { value: "undefined" } =>
+): node is TSESTree.Literal & { value: "undefined"; } =>
     node.type === "Literal" && node.value === "undefined";
 
 const isTypeofParameter = (
     node: TSESTree.Expression,
     parameterName: string
-): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
+): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier; } =>
     node.type === "UnaryExpression" &&
     node.operator === "typeof" &&
     isIdentifierWithName(node.argument, parameterName);
@@ -182,6 +146,42 @@ const extractNullishInequalityPart = (
 };
 
 /**
+ * Check whether the input is null comparison.
+ *
+ * @param node - Value to inspect.
+ * @param parameterName - Value to inspect.
+ *
+ * @returns `true` when the value is null comparison; otherwise `false`.
+ */
+
+const isNullComparison = (
+    node: TSESTree.Expression,
+    parameterName: string
+): node is TSESTree.BinaryExpression => {
+    const comparison = extractNullishInequalityPart(node, parameterName);
+
+    return comparison?.kind === "null";
+};
+
+/**
+ * Check whether the input is undefined comparison.
+ *
+ * @param node - Value to inspect.
+ * @param parameterName - Value to inspect.
+ *
+ * @returns `true` when the value is undefined comparison; otherwise `false`.
+ */
+
+const isUndefinedComparison = (
+    node: TSESTree.Expression,
+    parameterName: string
+): node is TSESTree.BinaryExpression => {
+    const comparison = extractNullishInequalityPart(node, parameterName);
+
+    return comparison?.kind === "undefined";
+};
+
+/**
  * Check whether the input is nullish filter guard body.
  *
  * @param callback - Value to inspect.
@@ -192,7 +192,7 @@ const extractNullishInequalityPart = (
  */
 
 const isNullishFilterGuardBody = (
-    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression },
+    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; },
     parameterName: string
 ): boolean => {
     const { body } = callback;
@@ -233,7 +233,7 @@ const isSafePresentFilterAutoFixableCallback = ({
     parameterName,
     sourceCode,
 }: {
-    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression };
+    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; };
     parameterName: string;
     sourceCode: Readonly<TSESLint.SourceCode>;
 }): boolean => {
@@ -287,7 +287,7 @@ const isSafePresentFilterAutoFixableCallback = ({
  */
 const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -300,7 +300,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                CallExpression (node) {
                     const { callee } = node;
 
                     if (callee.type !== "MemberExpression") {
@@ -362,12 +362,12 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     context.report({
                         fix: isAutoFixable
                             ? createSafeValueReferenceReplacementFix({
-                                  context,
-                                  importedName: "isPresent",
-                                  imports: tsExtrasImports,
-                                  sourceModuleName: "ts-extras",
-                                  targetNode: expressionCallback,
-                              })
+                                context,
+                                importedName: "isPresent",
+                                imports: tsExtrasImports,
+                                sourceModuleName: "ts-extras",
+                                targetNode: expressionCallback,
+                            })
                             : null,
                         messageId: "preferTsExtrasIsPresentFilter",
                         node: expressionCallback,

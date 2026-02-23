@@ -152,21 +152,19 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             type,
         });
         const createTypeReferenceNode = (
-            typeName: string,
-            typeArguments: unknown[] = [],
-            text = typeArguments.length === 0
-                ? typeName
-                : `${typeName}<${String(typeArguments[0] ?? "")}>`
+            referenceName: string,
+            genericArguments: unknown[] = [],
+            text = referenceName
         ) => ({
             text,
             type: "TSTypeReference",
             typeArguments:
-                typeArguments.length === 0
+                genericArguments.length === 0
                     ? undefined
                     : {
-                          params: typeArguments,
-                      },
-            typeName: createIdentifierNode(typeName),
+                        params: genericArguments,
+                    },
+            typeName: createIdentifierNode(referenceName),
         });
         const createUnionNode = (...types: unknown[]) => ({
             type: "TSUnionType",
@@ -193,7 +191,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             }));
 
             const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-arrayable.ts"
+                "../src/rules/prefer-type-fest-arrayable"
             )) as {
                 default: {
                     create: (context: unknown) => {
@@ -204,11 +202,11 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report(descriptor: { messageId?: string; node?: unknown }) {
+                report (descriptor: { messageId?: string; node?: unknown; }) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
-                    getText(node: { text?: string }) {
+                    getText (node: { text?: string; }) {
                         return node.text ?? "";
                     },
                 },

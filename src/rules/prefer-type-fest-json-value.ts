@@ -46,7 +46,7 @@ const isRecordLikeUnknownOrAny = (
  */
 const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -59,7 +59,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                TSTypeReference (node) {
                     if (!isRecordLikeUnknownOrAny(node)) {
                         return;
                     }
