@@ -1,17 +1,26 @@
 #!/usr/bin/env node
 
 /**
- * Documentation link checker.
- *
- * Scans Markdown content within the docs directory and verifies that relative
- * links resolve to existing files or directories. External links (http, https,
- * mailto, etc.) are ignored. Fails with a non-zero exit code when broken links
- * are detected so CI can block the offending changes early.
+ * Documentation link checker with improvements:
+ * - pathExists cache
+ * - concurrency limit for file checks
+ * - summary metrics and timing
+ * - deduplicated issues
+ * - --max-path-display and --concurrency CLI flags
  */
 
 import { readdir, readFile, stat } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import pc from "picocolors";
+
+const argv = process.argv.slice(2);
+const isVerbose = argv.includes("--verbose") || argv.includes("-v");
+const failFast = argv.includes("--fail-fast") || argv.includes("-f");
+const maxPathDisplayArg = argv.find(a => a.startsWith("--max-path="));
+const maxPathDisplay = maxPathDisplayArg ? Number(maxPathDisplayArg.split("=")[1]) : 50;
+const concurrencyArg = argv.find(a => a.startsWith("--concurrency="));
+const CONCURRENCY = concurrencyArg ? Math.max(1, Number(concurrencyArg.split("=")[1])) : 50;
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectoryPath = dirname(currentFilePath);
@@ -21,6 +30,7 @@ const DOCS_DIRECTORIES = [
     "docs/rules",
     "docs/docusaurus/site-docs",
     "docs/docusaurus/src/pages",
+    "./"
 ];
 
 const IGNORED_DIRECTORIES = new Set([
@@ -31,8 +41,11 @@ const IGNORED_DIRECTORIES = new Set([
     "dist",
     ".vite",
     "coverage",
+    ".stryker-tmp",
 ]);
 
+// Capture Markdown links like [text](url) and images ![alt](url)
+// NOTE: for more accuracy use a Markdown parser (remark) instead of regex.
 const LINK_PATTERN = /!?\[[^\]]*]\(([^)]+)\)/g;
 
 const EXTERNAL_PROTOCOLS = [
@@ -49,21 +62,24 @@ const EXTERNAL_PROTOCOLS = [
 const LEADING_BANG = /^!/;
 
 /**
- * @param {string} entryPath
- *
- * @returns {Promise<boolean>}
+ * Truncate safely keeping last `max` codepoints
+ * @param {any} str
+ * @param {number} max
  */
-async function isDirectory(entryPath) {
+function truncateEnd (str, max) {
+    const chars = [...str];
+    return chars.length > max ? '...' + chars.slice(-max).join('') : str;
+}
+
+/**
+ * @param {import("node:fs").PathLike} entryPath
+ */
+async function isDirectory (entryPath) {
     try {
         const entryStat = await stat(entryPath);
         return entryStat.isDirectory();
     } catch (error) {
-        if (
-            error &&
-            typeof error === "object" &&
-            "code" in error &&
-            error.code === "ENOENT"
-        ) {
+        if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
             return false;
         }
         throw error;
@@ -72,39 +88,24 @@ async function isDirectory(entryPath) {
 
 /**
  * @param {string} startDirectory
- *
- * @returns {Promise<string[]>}
  */
-async function collectMarkdownFiles(startDirectory) {
+async function collectMarkdownFiles (startDirectory) {
     const results = [];
     const stack = [startDirectory];
 
     while (stack.length > 0) {
         const current = stack.pop();
-        if (current === undefined) {
-            // This should not happen due to the loop condition, but added for safety in JS
-            continue;
-        }
+        if (current === undefined) continue;
         const entries = await readdir(current, { withFileTypes: true });
-
         for (const entry of entries) {
             const entryName = entry.name;
-
-            if (IGNORED_DIRECTORIES.has(entryName)) {
-                continue;
-            }
-
+            if (IGNORED_DIRECTORIES.has(entryName)) continue;
             const entryPath = join(current, entryName);
-
             if (entry.isDirectory()) {
                 stack.push(entryPath);
                 continue;
             }
-
-            if (
-                entry.isFile() &&
-                [".md", ".mdx"].includes(extname(entryName).toLowerCase())
-            ) {
+            if (entry.isFile() && [".md", ".mdx"].includes(extname(entryName).toLowerCase())) {
                 results.push(entryPath);
             }
         }
@@ -116,7 +117,7 @@ async function collectMarkdownFiles(startDirectory) {
 /**
  * @param {string} link
  */
-function isExternalLink(link) {
+function isExternalLink (link) {
     return EXTERNAL_PROTOCOLS.some((protocol) =>
         link.toLowerCase().startsWith(protocol)
     );
@@ -125,46 +126,41 @@ function isExternalLink(link) {
 /**
  * @param {string} link
  */
-function isAnchor(link) {
+function isAnchor (link) {
     return link.startsWith("#");
 }
 
 /**
  * @param {string} rawLink
- *
- * @returns {string}
  */
-function normalizeLink(rawLink) {
+function normalizeLink (rawLink) {
     const [pathPart] = rawLink.split("#");
     if (!pathPart) return "";
-
     const [cleanPath] = pathPart.split("?");
     if (!cleanPath) return "";
-
     return cleanPath.trim();
 }
 
 /**
- * @param {string} pathToCheck
- *
- * @returns {Promise<boolean>}
+ * Cache results of pathExists
  */
-const pathExists = async (pathToCheck) => {
+const pathExistsCache = new Map();
+
+const pathExists = async (/** @type {import("node:fs").PathLike} */ pathToCheck) => {
+    if (pathExistsCache.has(pathToCheck)) {
+        return pathExistsCache.get(pathToCheck);
+    }
     try {
         await stat(pathToCheck);
+        pathExistsCache.set(pathToCheck, true);
         return true;
     } catch {
+        pathExistsCache.set(pathToCheck, false);
         return false;
     }
 };
 
-/**
- * @param {string} markdownPath
- * @param {string} normalizedLink
- *
- * @returns {string[]}
- */
-const getPathCandidates = (markdownPath, normalizedLink) => {
+const getPathCandidates = (/** @type {string} */ markdownPath, /** @type {string} */ normalizedLink) => {
     const markdownDirectoryPath = dirname(markdownPath);
     const basePath = resolve(markdownDirectoryPath, normalizedLink);
     const hasKnownExtension = [
@@ -188,112 +184,233 @@ const getPathCandidates = (markdownPath, normalizedLink) => {
 };
 
 /**
- * @param {string} markdownPath
+ * Validate a single link and push to issues if broken.
+ * Returns true if broken (so caller can optionally fail-fast).
+ * @param {any} markdownPath
  * @param {string} link
- * @param {{ file: string; link: string; resolvedPath: string }[]} issues
+ * @param {{ file: any; link: any; resolvedPath: string; }[]} issues
+ * @param {{ has: (arg0: string) => any; add: (arg0: string) => void; }} issueSet
+ * @param {{ totalLinksChecked: number; emptyLinks: number; anchorsIgnored: number; externalLinksIgnored: number; appRouteLinksIgnored: number; brokenLinks: number; }} metrics
  */
-async function validateLink(markdownPath, link, issues) {
+async function validateLink (markdownPath, link, issues, issueSet, metrics) {
+    metrics.totalLinksChecked++;
     const normalized = normalizeLink(link);
-
     if (normalized.length === 0) {
-        return;
+        metrics.emptyLinks++;
+        return false;
     }
-
-    if (isAnchor(normalized) || isExternalLink(normalized)) {
-        return;
+    if (isAnchor(normalized)) {
+        metrics.anchorsIgnored++;
+        return false;
     }
-
-    // Docusaurus route links like /docs/getting-started are app routes, not
-    // file-system paths. We intentionally do not validate them here.
+    if (isExternalLink(normalized)) {
+        metrics.externalLinksIgnored++;
+        return false;
+    }
     if (normalized.startsWith("/")) {
-        return;
+        // App route, skip
+        metrics.appRouteLinksIgnored++;
+        return false;
     }
 
     const pathCandidates = getPathCandidates(markdownPath, normalized);
 
     for (const candidatePath of pathCandidates) {
         if (await pathExists(candidatePath)) {
-            return;
+            return false;
         }
     }
 
-    issues.push({
-        file: markdownPath,
-        link,
-        resolvedPath: pathCandidates[0] ?? normalized,
-    });
+    const key = `${markdownPath}|${link}`;
+    if (!issueSet.has(key)) {
+        issueSet.add(key);
+        issues.push({
+            file: markdownPath,
+            link,
+            resolvedPath: pathCandidates[0] ?? normalized,
+        });
+        metrics.brokenLinks++;
+    }
+    return true;
 }
 
 /**
- * @param {string} markdownPath
- * @param {{ file: string; link: string; resolvedPath: string }[]} issues
+ * @param {import("node:fs").PathLike | import("node:fs/promises").FileHandle} markdownPath
+ * @param {any[]} issues
+ * @param {Set<any>} issueSet
+ * @param {{ totalFilesChecked?: number; totalLinksChecked?: number; brokenLinks?: number; externalLinksIgnored?: number; anchorsIgnored?: number; appRouteLinksIgnored?: number; imageLinksIgnored: any; emptyLinks?: number; filesWithLinks: any; filesWithNoLinks: any; }} metrics
  */
-async function checkFile(markdownPath, issues) {
-    const content = await readFile(markdownPath, "utf8");
+async function checkFile (markdownPath, issues, issueSet, metrics) {
+    if (isVerbose) {
+        console.log(pc.cyan('Scanning: ') + pc.magenta(truncateEnd(markdownPath, maxPathDisplay)));
+    }
 
-    // Skip fenced code blocks so examples don't produce false positives.
+    const content = await readFile(markdownPath, "utf8");
+    // Skip fenced code blocks
     const contentWithoutCodeBlocks = content.replaceAll(/```[\s\S]*?```/g, "");
     const matches = Array.from(contentWithoutCodeBlocks.matchAll(LINK_PATTERN));
+
+    if (matches.length === 0) {
+        metrics.filesWithNoLinks++;
+    } else {
+        metrics.filesWithLinks++;
+    }
+
+    // Ensure metrics object has all required properties for validateLink
+    const validateMetrics = {
+        totalLinksChecked: metrics.totalLinksChecked || 0,
+        emptyLinks: metrics.emptyLinks || 0,
+        anchorsIgnored: metrics.anchorsIgnored || 0,
+        externalLinksIgnored: metrics.externalLinksIgnored || 0,
+        appRouteLinksIgnored: metrics.appRouteLinksIgnored || 0,
+        brokenLinks: metrics.brokenLinks || 0,
+    };
 
     for (const match of matches) {
         const fullMatch = match[0];
         const link = match[1];
-
         if (LEADING_BANG.test(fullMatch)) {
+            metrics.imageLinksIgnored++;
             continue;
         }
-
         if (link) {
-            await validateLink(markdownPath, link, issues);
+            // Pass validateMetrics to validateLink, then sync back to metrics
+            const broken = await validateLink(markdownPath, link, issues, issueSet, validateMetrics);
+            // Sync updated values back to metrics
+            metrics.totalLinksChecked = validateMetrics.totalLinksChecked;
+            metrics.emptyLinks = validateMetrics.emptyLinks;
+            metrics.anchorsIgnored = validateMetrics.anchorsIgnored;
+            metrics.externalLinksIgnored = validateMetrics.externalLinksIgnored;
+            metrics.appRouteLinksIgnored = validateMetrics.appRouteLinksIgnored;
+            metrics.brokenLinks = validateMetrics.brokenLinks;
+            if (broken && failFast) {
+                throw new Error("Fail-fast triggered due to broken link");
+            }
         }
     }
 }
 
 /**
- * Scan documentation markdown files for broken local links.
- *
- * @returns {Promise<void>} Resolves after reporting any link issues.
+ * Split array into batches
+ * @param {string | any[]} array
+ * @param {number} size
  */
-async function main() {
+function batches (array, size) {
+    const out = [];
+    for (let i = 0; i < array.length; i += size) {
+        out.push(array.slice(i, i + size));
+    }
+    return out;
+}
+
+/**
+ *
+ */
+async function main () {
     /**
-     * @type {{ file: string; link: string; resolvedPath: string }[]}
+     * @type {any[]}
      */
     const issues = [];
+    const issueSet = new Set();
+
+    // Metrics
+
+    /**
+     * All metrics properties must be initialized as numbers (not possibly undefined)
+     * to satisfy validateLink's type requirements.
+     */
+    /**
+     * @type {{
+     *   totalFilesChecked: number;
+     *   totalLinksChecked: number;
+     *   brokenLinks: number;
+     *   externalLinksIgnored: number;
+     *   anchorsIgnored: number;
+     *   appRouteLinksIgnored: number;
+     *   imageLinksIgnored: number;
+     *   emptyLinks: number;
+     *   filesWithLinks: number;
+     *   filesWithNoLinks: number;
+      }} */
+    const metrics = {
+        totalFilesChecked: 0,
+        totalLinksChecked: 0,
+        brokenLinks: 0,
+        externalLinksIgnored: 0,
+        anchorsIgnored: 0,
+        appRouteLinksIgnored: 0,
+        imageLinksIgnored: 0,
+        emptyLinks: 0,
+        filesWithLinks: 0,
+        filesWithNoLinks: 0,
+    };
+
+    const startTime = Date.now();
 
     for (const directory of DOCS_DIRECTORIES) {
         const absoluteDirectory = resolve(ROOT_DIRECTORY, directory);
 
         if (!(await isDirectory(absoluteDirectory))) {
+            if (isVerbose) {
+                console.log(pc.yellow(`Skipping non-existent directory: ${absoluteDirectory}`));
+            }
             continue;
         }
 
-        const markdownFiles = await collectMarkdownFiles(absoluteDirectory);
+        if (isVerbose) {
+            console.log(pc.cyan(`Collecting markdown files in: ${absoluteDirectory}`));
+        }
 
-        await Promise.all(markdownFiles.map((file) => checkFile(file, issues)));
+        const markdownFiles = await collectMarkdownFiles(absoluteDirectory);
+        metrics.totalFilesChecked += markdownFiles.length;
+
+        // Process files in batches to limit concurrency
+        for (const batch of batches(markdownFiles, CONCURRENCY)) {
+            if (Array.isArray(batch)) {
+                await Promise.all(batch.map((/** @type {any} */ file) => checkFile(file, issues, issueSet, metrics)));
+            } else {
+                // Defensive: if batch is not an array, skip or handle as needed
+                continue;
+            }
+        }
     }
 
+    const elapsedMs = Date.now() - startTime;
+
     if (issues.length > 0) {
-        console.error("Broken documentation links detected:\n");
+        console.error(pc.red("Broken documentation links detected:\n"));
         for (const issue of issues) {
             console.error(
-                `• ${issue.file} -> ${issue.link} (resolved path: ${issue.resolvedPath})`
+                pc.red(`• ${issue.file}`) +
+                pc.gray(" -> ") +
+                pc.yellow(issue.link) +
+                pc.gray(" (resolved path: ") +
+                pc.magenta(issue.resolvedPath) +
+                pc.gray(")")
             );
         }
-        console.error(
-            `\nTotal broken links: ${issues.length}. Please fix the links above.`
-        );
+        console.error(pc.red(`\nTotal broken links: ${metrics.brokenLinks}. Please fix the links above.`));
+        // Summary
+        console.error(pc.gray(`Files checked: ${metrics.totalFilesChecked}`));
+        console.error(pc.gray(`Links checked: ${metrics.totalLinksChecked}`));
+        console.error(pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`));
+        console.error(pc.gray(`Anchors ignored: ${metrics.anchorsIgnored}`));
+        console.error(pc.gray(`Elapsed: ${(elapsedMs / 1000).toFixed(2)}s`));
         process.exit(1);
     }
 
-    console.log("Documentation link check passed – no broken links found.");
+    console.log(pc.green("Documentation link check passed – no broken links found."));
+    console.log(pc.gray(`Files checked: ${metrics.totalFilesChecked}`));
+    console.log(pc.gray(`Links checked: ${metrics.totalLinksChecked}`));
+    console.log(pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`));
+    console.log(pc.gray(`Anchors ignored: ${metrics.anchorsIgnored}`));
+    console.log(pc.gray(`Elapsed: ${(elapsedMs / 1000).toFixed(2)}s`));
 }
 
 try {
     await main();
 } catch (error) {
-    console.error(
-        "Documentation link check failed due to an unexpected error."
-    );
+    console.error(pc.red("Documentation link check failed due to an unexpected error."));
     console.error(error);
     process.exit(1);
 }

@@ -20,7 +20,7 @@ const URL_LIKE_SCHEMES = new Set([
  * @param {string} moduleSource
  */
 function isUrlLike(moduleSource) {
-    // Cheap and safe heuristic: enough to avoid rewriting `https://...#...` anchors.
+    // Cheap and safe heuristic: enough to avoid rewriting `...#...` anchors.
     if (moduleSource.includes("://")) {
         return true;
     }
