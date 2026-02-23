@@ -41,7 +41,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-all-or-none"
+    "prefer-type-fest-require-all-or-none",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
+        enforceRuleShape: true,
+        messages: {
+            preferRequireAllOrNone:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+        name: "prefer-type-fest-require-all-or-none",
+    }
 );
 
 ruleTester.run(

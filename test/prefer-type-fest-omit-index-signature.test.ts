@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-omit-index-signature";
+const docsDescription =
+    "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.";
+const preferOmitIndexSignatureMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-omit-index-signature.valid.ts";
 const namespaceValidFixtureName =
@@ -36,13 +41,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-omit-index-signature"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferOmitIndexSignature: preferOmitIndexSignatureMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-omit-index-signature",
-    getPluginRule("prefer-type-fest-omit-index-signature"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

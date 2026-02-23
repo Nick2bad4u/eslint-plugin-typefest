@@ -41,7 +41,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-exactly-one"
+    "prefer-type-fest-require-exactly-one",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
+        enforceRuleShape: true,
+        messages: {
+            preferRequireExactlyOne:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+        name: "prefer-type-fest-require-exactly-one",
+    }
 );
 
 ruleTester.run(

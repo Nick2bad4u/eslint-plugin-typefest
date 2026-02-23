@@ -2,6 +2,9 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-error.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { describe, expect, it } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -9,7 +12,17 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-ts-extras-assert-error");
+const ruleId = "prefer-ts-extras-assert-error";
+const docsDescription =
+    "require ts-extras assertError over manual instanceof Error throw guards.";
+const docsUrl =
+    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-error.md";
+const preferTsExtrasAssertErrorMessage =
+    "Prefer `assertError` from `ts-extras` over manual `instanceof Error` throw guards.";
+const suggestTsExtrasAssertErrorMessage =
+    "Replace this manual guard with `assertError(...)` from `ts-extras`.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-assert-error.valid.ts";
@@ -39,6 +52,35 @@ const nonThrowOnlyValidCode = [
     "    if (!(value instanceof Error)) {",
     "        String(value);",
     "        throw new TypeError('Expected Error');",
+    "    }",
+    "}",
+].join("\n");
+const singleExpressionConsequentValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (!(value instanceof Error)) {",
+    "        String(value);",
+    "    }",
+    "}",
+].join("\n");
+const throwThenTrailingStatementValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (!(value instanceof Error)) {",
+    "        throw new TypeError('Expected Error');",
+    "        String(value);",
+    "    }",
+    "}",
+].join("\n");
+const nonNegatedInstanceofValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (value instanceof Error) {",
+    "        throw new TypeError('Unexpected Error');",
+    "    }",
+    "}",
+].join("\n");
+const nonInstanceofBinaryValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (!(value !== Error)) {",
+    "        throw new TypeError('Expected Error constructor mismatch');",
     "    }",
     "}",
 ].join("\n");
@@ -95,7 +137,24 @@ const privateIdentifierInvalidSuggestionOutputCode = [
     "}",
 ].join("\n");
 
-ruleTester.run("prefer-ts-extras-assert-error", rule, {
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    messages: {
+        preferTsExtrasAssertError: preferTsExtrasAssertErrorMessage,
+        suggestTsExtrasAssertError: suggestTsExtrasAssertErrorMessage,
+    },
+    name: ruleId,
+});
+
+describe("prefer-ts-extras-assert-error metadata literals", () => {
+    it("declares authored docs URL and hasSuggestions literals", () => {
+        expect(rule.meta.docs.url).toBe(docsUrl);
+        expect(rule.meta.hasSuggestions).toBe(true);
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: readTypedFixture(invalidFixtureName),
@@ -190,6 +249,26 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
             code: nonThrowOnlyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores guard block with extra side effect",
+        },
+        {
+            code: singleExpressionConsequentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores guard block without throw statement",
+        },
+        {
+            code: throwThenTrailingStatementValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores guard block with throw plus trailing statement",
+        },
+        {
+            code: nonNegatedInstanceofValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-negated instanceof Error guard",
+        },
+        {
+            code: nonInstanceofBinaryValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-instanceof binary guard",
         },
         {
             code: skipPathInvalidCode,

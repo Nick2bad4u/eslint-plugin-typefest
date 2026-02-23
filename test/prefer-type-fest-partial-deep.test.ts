@@ -38,7 +38,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-partial-deep"
+    "prefer-type-fest-partial-deep",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest PartialDeep over `DeepPartial` aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferPartialDeep:
+                "Prefer `PartialDeep` from type-fest over `DeepPartial`.",
+        },
+        name: "prefer-type-fest-partial-deep",
+    }
 );
 
 ruleTester.run(

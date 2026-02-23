@@ -3,6 +3,9 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-set.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -49,7 +52,86 @@ const inlineFixableOutput = [
     "type Input = UnknownSet;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set");
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set", {
+    docsDescription:
+        "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
+    enforceRuleShape: true,
+    messages: {
+        preferUnknownSet:
+            "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
+    },
+});
+
+it("matches ReadonlySet<unknown> in undecorated visitor", async () => {
+    try {
+        vi.resetModules();
+
+        vi.doMock("../src/_internal/typed-rule.js", () => ({
+            createTypedRule: (definition: unknown): unknown => definition,
+            isTestFilePath: (): boolean => false,
+        }));
+
+        const undecoratedRuleModule = (await import(
+            "../src/rules/prefer-type-fest-unknown-set.ts"
+        )) as {
+            default: {
+                create: (context: unknown) => {
+                    TSTypeReference?: (node: unknown) => void;
+                };
+            };
+        };
+
+        const parsedResult = parser.parseForESLint(
+            "type Input = ReadonlySet<unknown>;",
+            {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            }
+        );
+
+        const [firstStatement] = parsedResult.ast.body;
+        expect(firstStatement?.type).toBe("TSTypeAliasDeclaration");
+
+        if (
+            !firstStatement ||
+            firstStatement.type !== "TSTypeAliasDeclaration"
+        ) {
+            throw new Error("Expected a type alias declaration statement");
+        }
+
+        const typeAnnotation = firstStatement.typeAnnotation;
+        expect(typeAnnotation.type).toBe("TSTypeReference");
+
+        if (typeAnnotation.type !== "TSTypeReference") {
+            throw new Error("Expected a type reference in the type alias");
+        }
+
+        const report = vi.fn();
+
+        const listenerMap = undecoratedRuleModule.default.create({
+            filename: "fixtures/typed/prefer-type-fest-unknown-set.invalid.ts",
+            report,
+            sourceCode: {
+                ast: parsedResult.ast,
+            },
+        });
+
+        listenerMap.TSTypeReference?.(typeAnnotation);
+
+        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledWith(
+            expect.objectContaining({
+                messageId: "preferUnknownSet",
+                node: typeAnnotation,
+            })
+        );
+    } finally {
+        vi.doUnmock("../src/_internal/typed-rule.js");
+        vi.resetModules();
+    }
+});
 
 ruleTester.run("prefer-type-fest-unknown-set", rule, {
     invalid: [

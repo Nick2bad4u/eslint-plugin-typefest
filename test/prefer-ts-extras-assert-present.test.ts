@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -137,9 +142,27 @@ const binaryEqWithoutNullValidCode = [
     "    return value ?? fallback;",
     "}",
 ].join("\n");
+const binaryEqAgainstZeroValidCode = [
+    "function ensureValue(value: number | null): number | null {",
+    "    if (value == 0) {",
+    "        throw new TypeError('Unexpected zero');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const logicalWithNonBinaryTermValidCode = [
     "function ensureValue(value: string | null): string {",
     "    if (value === null || !value) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const logicalAndNullishValidCode = [
+    "function ensureValue(value: string | null | undefined): string | null | undefined {",
+    "    if (value === null && value === undefined) {",
     "        throw new TypeError('Missing value');",
     "    }",
     "",
@@ -159,6 +182,17 @@ const inlineSuggestableCode = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineSuggestableMixedEqStrictCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (value == null || value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineSuggestableOutput = [
     'import { assertPresent } from "ts-extras";',
     "",
@@ -166,6 +200,39 @@ const inlineSuggestableOutput = [
     "    assertPresent(value);",
     "",
     "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableTemplateWrongPrefixCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) {",
+    "        throw new TypeError(`Unexpected value: ${value}`);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableTemplateWrongSuffixCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) {",
+    "        throw new TypeError(`Expected a present value, got ${value}!`);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableTemplateWrongExpressionCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null, fallback: string): string {",
+    "    if (value == null) {",
+    "        throw new TypeError(`Expected a present value, got ${fallback}`);",
+    "    }",
+    "",
+    "    return value ?? fallback;",
     "}",
 ].join("\n");
 const inlineAutofixableCanonicalCode = [
@@ -181,6 +248,26 @@ const inlineAutofixableCanonicalCode = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineAutofixableCanonicalBacktickEnvelopeCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) {",
+    "        throw new TypeError(`Expected a present value, got \\`${value}\\``);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineAutofixableDirectThrowCanonicalCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) throw new TypeError(`Expected a present value, got ${value}`);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineAutofixableCanonicalOutput = [
     'import { assertPresent } from "ts-extras";',
     "",
@@ -190,8 +277,26 @@ const inlineAutofixableCanonicalOutput = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineSuggestableTemplateWrongExpressionOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | null, fallback: string): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value ?? fallback;",
+    "}",
+].join("\n");
 const inlineInvalidNullableSuggestionOutputCode = [
     'import { assertPresent } from "ts-extras";',
+    "function ensureValue(value: string | null): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineInvalidNullableSuggestionOutputWithImportGapCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
     "function ensureValue(value: string | null): string {",
     "    assertPresent(value);",
     "",
@@ -206,6 +311,69 @@ const inlineInvalidNullishSuggestionOutputCode = [
     "    return value;",
     "}",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-assert-present",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras assertPresent over manual nullish-guard throw blocks.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasAssertPresent:
+                "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
+            suggestTsExtrasAssertPresent:
+                "Replace this manual guard with `assertPresent(...)` from `ts-extras`.",
+        },
+        name: "prefer-ts-extras-assert-present",
+    }
+);
+
+it("keeps assert-present guard and canonical-template checks in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-ts-extras-assert-present.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain(
+        'node.type === "Literal" && node.value === null;'
+    );
+    expect(ruleSource).toContain("node.body.length === 1 &&");
+    expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
+    expect(ruleSource).toContain(
+        'throwStatement.argument.callee.name !== "TypeError" ||'
+    );
+    expect(ruleSource).toContain(
+        "throwStatement.argument.arguments.length !== 1"
+    );
+    expect(ruleSource).toContain(
+        'firstArgument.type === "SpreadElement" ||'
+    );
+    expect(ruleSource).toContain(
+        "firstArgument.expressions.length !== 1"
+    );
+    expect(ruleSource).toContain("if (!templateExpression) {");
+    expect(ruleSource).toContain(
+        'prefixQuasi.value.cooked === "Expected a present value, got `" ||'
+    );
+    expect(ruleSource).toContain(
+        'suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === ""'
+    );
+    expect(ruleSource).toContain(
+        "sourceCode.getText(templateExpression) ==="
+    );
+    expect(ruleSource).toContain(
+        '(expression.operator !== "==" && expression.operator !== "===")'
+    );
+    expect(ruleSource).toContain(
+        "if (isUndefinedExpression(expression.right)) {"
+    );
+    expect(ruleSource).toContain('test.operator !== "||"');
+    expect(ruleSource).toContain("hasSuggestions: true,");
+});
 
 ruleTester.run(
     "prefer-ts-extras-assert-present",
@@ -322,11 +490,92 @@ ruleTester.run(
                 name: "suggests assertPresent() replacement when import is in scope",
             },
             {
+                code: inlineSuggestableMixedEqStrictCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineSuggestableOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports mixed loose/strict nullish logical guards",
+            },
+            {
+                code: inlineSuggestableTemplateWrongPrefixCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output:
+                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests replacement for throw with non-canonical template prefix",
+            },
+            {
+                code: inlineSuggestableTemplateWrongSuffixCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output:
+                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests replacement for throw with non-canonical template suffix",
+            },
+            {
+                code: inlineSuggestableTemplateWrongExpressionCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output:
+                                    inlineSuggestableTemplateWrongExpressionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests replacement when template expression differs from guard subject",
+            },
+            {
                 code: inlineAutofixableCanonicalCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "autofixes canonical nullish guard throw when assertPresent import is in scope",
                 output: inlineAutofixableCanonicalOutput,
+            },
+            {
+                code: inlineAutofixableCanonicalBacktickEnvelopeCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes canonical throw with backtick-wrapped placeholder text",
+                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
+            },
+            {
+                code: inlineAutofixableDirectThrowCanonicalCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes direct canonical throw guard",
+                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
             },
         ],
         valid: [
@@ -376,9 +625,19 @@ ruleTester.run(
                 name: "ignores equality check that omits nullish literals",
             },
             {
+                code: binaryEqAgainstZeroValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores loose equality checks against non-null literals",
+            },
+            {
                 code: logicalWithNonBinaryTermValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores logical guard containing non-binary term",
+            },
+            {
+                code: logicalAndNullishValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores logical-and nullish guards",
             },
             {
                 code: skipPathInvalidCode,

@@ -3,6 +3,8 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-array.test` behavior.
  */
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -10,7 +12,13 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-type-fest-json-array");
+const ruleId = "prefer-type-fest-json-array";
+const docsDescription =
+    "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.";
+const preferJsonArrayMessage =
+    "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-json-array.valid.ts";
@@ -177,17 +185,181 @@ const inlineValidQualifiedJsonValueTypeReferenceCode = [
     "type NotJsonArray = Array<TypeFest.JsonValue> | ReadonlyArray<TypeFest.JsonValue>;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-array", {
-    docsDescription:
-        "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
     enforceRuleShape: true,
     messages: {
-        preferJsonArray:
-            "Prefer `JsonArray` from type-fest over explicit JsonValue array unions.",
+        preferJsonArray: preferJsonArrayMessage,
     },
+    name: ruleId,
 });
 
-ruleTester.run("prefer-type-fest-json-array", rule, {
+describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
+    it("reports only native/generic JsonValue array union pairs", async () => {
+        const replacementFixCalls: unknown[][] = [];
+        const reportCalls: Array<{
+            messageId?: string;
+            node?: unknown;
+        }> = [];
+
+        const createIdentifierNode = (name: string) => ({
+            name,
+            type: "Identifier",
+        });
+        const createTypeReferenceNode = (
+            typeName: string,
+            typeArguments: unknown[] = []
+        ) => ({
+            type: "TSTypeReference",
+            ...(typeArguments.length === 0
+                ? {}
+                : {
+                      typeArguments: {
+                          params: typeArguments,
+                      },
+                  }),
+            typeName: createIdentifierNode(typeName),
+        });
+        const jsonValueTypeReferenceNode = createTypeReferenceNode("JsonValue");
+        const createNativeArrayNode = (elementType: unknown) => ({
+            elementType,
+            type: "TSArrayType",
+        });
+        const createReadonlyNativeArrayNode = (elementType: unknown) => ({
+            operator: "readonly",
+            type: "TSTypeOperator",
+            typeAnnotation: createNativeArrayNode(elementType),
+        });
+        const createUnionNode = (...types: unknown[]) => ({
+            type: "TSUnionType",
+            types,
+        });
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: (...parameters: unknown[]) => {
+                    replacementFixCalls.push(parameters);
+
+                    return null;
+                },
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-type-fest-json-array.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSUnionType?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string; node?: unknown }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const unionTypeListener = listeners.TSUnionType;
+            expect(unionTypeListener).toBeTypeOf("function");
+
+            const validNativePairNode = createUnionNode(
+                createNativeArrayNode(jsonValueTypeReferenceNode),
+                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode)
+            );
+            const validGenericPairNode = createUnionNode(
+                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
+                createTypeReferenceNode("ReadonlyArray", [
+                    jsonValueTypeReferenceNode,
+                ])
+            );
+            const invalidNonTargetIdentifiersNode = createUnionNode(
+                createTypeReferenceNode("ArrayLike", [jsonValueTypeReferenceNode]),
+                createTypeReferenceNode("ReadonlyArrayLike", [
+                    jsonValueTypeReferenceNode,
+                ])
+            );
+            const invalidMissingArrayTypeArgumentNode = createUnionNode(
+                createTypeReferenceNode("Array"),
+                createTypeReferenceNode("ReadonlyArray", [
+                    jsonValueTypeReferenceNode,
+                ])
+            );
+            const invalidMissingReadonlyTypeArgumentNode = createUnionNode(
+                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
+                createTypeReferenceNode("ReadonlyArray")
+            );
+            const invalidOneSidedGenericMatchNode = createUnionNode(
+                createTypeReferenceNode("ReadonlyArray", [
+                    jsonValueTypeReferenceNode,
+                ]),
+                createTypeReferenceNode("Array", [
+                    createTypeReferenceNode("UnknownValue"),
+                ])
+            );
+            const invalidNonArrayLeftNativeNode = createUnionNode(
+                {
+                    operator: "keyof",
+                    type: "TSTypeOperator",
+                    typeAnnotation: createNativeArrayNode(
+                        jsonValueTypeReferenceNode
+                    ),
+                },
+                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode)
+            );
+            const invalidThreeMemberUnionNode = createUnionNode(
+                createNativeArrayNode(jsonValueTypeReferenceNode),
+                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode),
+                {
+                    type: "TSNullKeyword",
+                }
+            );
+
+            unionTypeListener?.(validNativePairNode);
+            unionTypeListener?.(validGenericPairNode);
+            unionTypeListener?.(invalidNonTargetIdentifiersNode);
+            unionTypeListener?.(invalidMissingArrayTypeArgumentNode);
+            unionTypeListener?.(invalidMissingReadonlyTypeArgumentNode);
+            unionTypeListener?.(invalidOneSidedGenericMatchNode);
+            unionTypeListener?.(invalidNonArrayLeftNativeNode);
+            unionTypeListener?.(invalidThreeMemberUnionNode);
+
+            expect(reportCalls).toHaveLength(2);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferJsonArray",
+                node: validNativePairNode,
+            });
+            expect(reportCalls[1]).toMatchObject({
+                messageId: "preferJsonArray",
+                node: validGenericPairNode,
+            });
+            expect(replacementFixCalls).toHaveLength(2);
+            expect(replacementFixCalls[0]?.[1]).toBe("JsonArray");
+            expect(replacementFixCalls[1]?.[1]).toBe("JsonArray");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: invalidFixtureCode,

@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-safe-integer.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -40,6 +45,34 @@ const inlineInvalidOutputCode = [
     'import { isSafeInteger } from "ts-extras";',
     "const result = isSafeInteger(42);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-is-safe-integer",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasIsSafeInteger:
+                "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",
+        },
+        name: "prefer-ts-extras-is-safe-integer",
+    }
+);
+
+it("keeps is-safe-integer member guard clauses in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-ts-extras-is-safe-integer.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('node.callee.property.type !== "Identifier" ||');
+    expect(ruleSource).toContain('node.callee.property.name !== "isSafeInteger"');
+});
 
 ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
     invalid: [

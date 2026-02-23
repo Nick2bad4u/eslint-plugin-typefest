@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-merge-exclusive";
+const docsDescription =
+    "require TypeFest MergeExclusive over `XOR` aliases.";
+const preferMergeExclusiveMessage =
+    "Prefer `MergeExclusive` from type-fest over `XOR`.";
 
 const validFixtureName = "prefer-type-fest-merge-exclusive.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
@@ -36,13 +41,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type AB = MergeExclusive<A, B>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-merge-exclusive"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferMergeExclusive: preferMergeExclusiveMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-merge-exclusive",
-    getPluginRule("prefer-type-fest-merge-exclusive"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

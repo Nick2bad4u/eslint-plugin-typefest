@@ -3,6 +3,10 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-primitive.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -39,6 +43,8 @@ const duplicateNumberPrimitiveUnionValidCode =
     "type Payload = boolean | null | string | string;";
 const duplicateStringPrimitiveUnionValidCode =
     "type Payload = boolean | null | number | number;";
+const fiveMemberPrimitiveUnionValidCode =
+    "type Payload = boolean | null | number | string | string;";
 const inlineInvalidWithoutFixCode =
     "type Payload = boolean | null | number | string;";
 const inlineInvalidWithoutFixOutputCode = [
@@ -59,6 +65,7 @@ const inlineFixableOutput = [
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-json-primitive",
     {
+        defaultOptions: [],
         docsDescription:
             "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
         enforceRuleShape: true,
@@ -66,8 +73,31 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
             preferJsonPrimitive:
                 "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
         },
+        name: "prefer-type-fest-json-primitive",
     }
 );
+
+it("keeps json-primitive helper guard clauses in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-type-fest-json-primitive.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('node.type === "TSBooleanKeyword" ||');
+    expect(ruleSource).toContain('node.type === "TSNullKeyword" ||');
+    expect(ruleSource).toContain('node.type === "TSNumberKeyword" ||');
+    expect(ruleSource).toContain('node.type === "TSStringKeyword";');
+
+    expect(ruleSource).toContain("if (node.types.length !== 4) {");
+    expect(ruleSource).toContain(
+        "if (!isJsonPrimitiveKeywordNode(typeNode)) {"
+    );
+    expect(ruleSource).toContain('if (typeNode.type === "TSStringKeyword") {');
+    expect(ruleSource).toContain("return false;");
+});
 
 ruleTester.run("prefer-type-fest-json-primitive", rule, {
     invalid: [
@@ -143,6 +173,11 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             code: duplicateStringPrimitiveUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores union missing string even when it has four primitive members",
+        },
+        {
+            code: fiveMemberPrimitiveUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores five-member primitive union even when it contains all json primitive families",
         },
         {
             code: readTypedFixture(skipFixtureName),

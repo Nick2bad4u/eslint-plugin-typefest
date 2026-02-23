@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-abstract-constructor";
+const docsDescription =
+    "require TypeFest AbstractConstructor over explicit `abstract new (...) => ...` signatures.";
+const preferAbstractConstructorSignatureMessage =
+    "Prefer `AbstractConstructor<...>` from type-fest over explicit `abstract new (...) => ...` signatures.";
 
 const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
@@ -37,14 +42,26 @@ const inlineFixableOutput = [
     "",
     "type AbstractCtor = AbstractConstructor<object, [name: string, retryCount: number]>;",
 ].join("\n");
+const inlineNoFixGenericAbstractCtorCode = [
+    'import type { AbstractConstructor } from "type-fest";',
+    "",
+    "type GenericAbstractCtor = abstract new <T>(value: T) => T;",
+].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-abstract-constructor"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferAbstractConstructorSignature:
+            preferAbstractConstructorSignatureMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-abstract-constructor",
-    getPluginRule("prefer-type-fest-abstract-constructor"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {
@@ -78,6 +95,17 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "autofixes abstract constructor signature when AbstractConstructor import is in scope",
                 output: inlineFixableOutput,
+            },
+            {
+                code: inlineNoFixGenericAbstractCtorCode,
+                errors: [
+                    {
+                        messageId: "preferAbstractConstructorSignature",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports generic abstract constructor signature without autofix",
+                output: null,
             },
         ],
         valid: [

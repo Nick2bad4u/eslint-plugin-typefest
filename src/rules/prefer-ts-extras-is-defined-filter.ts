@@ -10,6 +10,72 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+type UndefinedInequalityMatch = {
+    readonly comparedExpression: TSESTree.Expression;
+    readonly operator: "!=" | "!==";
+};
+
+const isIdentifierWithName = (
+    node: TSESTree.Expression | TSESTree.PrivateIdentifier,
+    name: string
+): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
+
+const isUndefinedStringLiteral = (
+    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+): node is TSESTree.Literal & { value: "undefined" } =>
+    node.type === "Literal" && node.value === "undefined";
+
+const isTypeofParameter = (
+    node: TSESTree.Expression,
+    parameterName: string
+): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
+    node.type === "UnaryExpression" &&
+    node.operator === "typeof" &&
+    isIdentifierWithName(node.argument, parameterName);
+
+const getUndefinedInequalityMatch = (
+    body: TSESTree.Expression,
+    parameterName: string
+): null | UndefinedInequalityMatch => {
+    if (body.type !== "BinaryExpression") {
+        return null;
+    }
+
+    if (body.operator !== "!==" && body.operator !== "!=") {
+        return null;
+    }
+
+    if (isIdentifierWithName(body.left, parameterName)) {
+        if (isIdentifierWithName(body.right, "undefined")) {
+            return {
+                comparedExpression: body.left,
+                operator: body.operator,
+            };
+        }
+    }
+
+    if (isIdentifierWithName(body.right, parameterName)) {
+        if (isIdentifierWithName(body.left, "undefined")) {
+            return {
+                comparedExpression: body.right,
+                operator: body.operator,
+            };
+        }
+    }
+
+    if (
+        isTypeofParameter(body.left, parameterName) &&
+        isUndefinedStringLiteral(body.right)
+    ) {
+        return {
+            comparedExpression: body.left.argument,
+            operator: body.operator,
+        };
+    }
+
+    return null;
+};
+
 /**
  * Check whether the input is undefined filter guard body.
  *
@@ -23,38 +89,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const isUndefinedFilterGuardBody = (
     body: TSESTree.Expression,
     parameterName: string
-): boolean => {
-    if (body.type !== "BinaryExpression") {
-        return false;
-    }
-
-    if (body.operator !== "!==" && body.operator !== "!=") {
-        return false;
-    }
-
-    const isDirectUndefinedComparison =
-        (body.left.type === "Identifier" &&
-            body.left.name === parameterName &&
-            body.right.type === "Identifier" &&
-            body.right.name === "undefined") ||
-        (body.right.type === "Identifier" &&
-            body.right.name === parameterName &&
-            body.left.type === "Identifier" &&
-            body.left.name === "undefined");
-
-    if (isDirectUndefinedComparison) {
-        return true;
-    }
-
-    return (
-        body.left.type === "UnaryExpression" &&
-        body.left.operator === "typeof" &&
-        body.left.argument.type === "Identifier" &&
-        body.left.argument.name === parameterName &&
-        body.right.type === "Literal" &&
-        body.right.value === "undefined"
-    );
-};
+): boolean => getUndefinedInequalityMatch(body, parameterName) !== null;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-defined-filter`.
@@ -65,7 +100,7 @@ const isUndefinedFilterGuardBody = (
 const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename;
+            const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
                 return {};
@@ -80,23 +115,33 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                 CallExpression(node) {
                     const { callee } = node;
 
-                    if (
-                        callee.type !== "MemberExpression" ||
-                        callee.computed ||
-                        callee.property.type !== "Identifier" ||
-                        callee.property.name !== "filter" ||
-                        node.arguments.length === 0
-                    ) {
+                    if (callee.type !== "MemberExpression") {
+                        return;
+                    }
+
+                    if (callee.computed) {
+                        return;
+                    }
+
+                    if (callee.property.type !== "Identifier") {
+                        return;
+                    }
+
+                    if (callee.property.name !== "filter") {
                         return;
                     }
 
                     const callback = node.arguments[0];
 
-                    if (
-                        callback?.type !== "ArrowFunctionExpression" ||
-                        callback.params.length !== 1 ||
-                        callback.body.type === "BlockStatement"
-                    ) {
+                    if (callback?.type !== "ArrowFunctionExpression") {
+                        return;
+                    }
+
+                    if (callback.params.length !== 1) {
+                        return;
+                    }
+
+                    if (callback.body.type === "BlockStatement") {
                         return;
                     }
 

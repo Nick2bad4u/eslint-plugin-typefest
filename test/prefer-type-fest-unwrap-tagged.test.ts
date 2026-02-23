@@ -38,7 +38,16 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unwrap-tagged"
+    "prefer-type-fest-unwrap-tagged",
+    {
+        docsDescription:
+            "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
+        enforceRuleShape: true,
+        messages: {
+            preferUnwrapTagged:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+    }
 );
 
 ruleTester.run(

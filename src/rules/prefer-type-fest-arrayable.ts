@@ -66,7 +66,7 @@ const getArrayTypeReferenceElementType = (
 const normalizeTypeNodeText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     node: TSESTree.TypeNode
-): string => sourceCode.getText(node).replaceAll(/\s+/g, "");
+): string => sourceCode.getText(node).replaceAll(/\s/gu, "");
 
 /**
  * Check whether has arrayable shape.

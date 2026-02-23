@@ -12,6 +12,12 @@ import {
 
 const ruleTester = createTypedRuleTester();
 
+const ruleId = "prefer-type-fest-value-of";
+const docsDescription =
+    "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.";
+const preferValueOfMessage =
+    "Prefer `ValueOf<T>` from type-fest over `T[keyof T]` for object value unions.";
+
 const invalidFixtureName = "prefer-type-fest-value-of.invalid.ts";
 const validFixtureName = "prefer-type-fest-value-of.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
@@ -62,6 +68,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Output = Input[keyof Input];",
     "type Output = ValueOf<Input>;"
 );
+const inlineInvalidWhitespaceFormattedLiteralCode = [
+    "type Output = { alpha: string; beta: number; }[",
+    "    keyof {",
+    "        alpha: string;",
+    "        beta: number;",
+    "    }",
+    "];",
+].join("\n");
+const inlineInvalidWhitespaceFormattedLiteralOutputCode = [
+    'import type { ValueOf } from "type-fest";',
+    "type Output = ValueOf<{ alpha: string; beta: number; }>;",
+].join("\n");
 const inlineNoFixShadowedValueOfInvalidCode = [
     'import type { ValueOf } from "type-fest";',
     "type Box<ValueOf extends object> = ValueOf[keyof ValueOf];",
@@ -81,13 +99,27 @@ const inlineValidMismatchedObjectTextCode = [
     "type Alias = Input;",
     "type Output = Input[keyof Alias];",
 ].join("\n");
+const inlineValidReadonlyTypeOperatorCode = [
+    "type Input = {",
+    "    alpha: string;",
+    "};",
+    "type Output = Input[readonly Input];",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-value-of");
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferValueOf: preferValueOfMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-value-of",
-    getPluginRule("prefer-type-fest-value-of"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {
@@ -126,6 +158,13 @@ ruleTester.run(
                 output: inlineFixableOutputCode,
             },
             {
+                code: inlineInvalidWhitespaceFormattedLiteralCode,
+                errors: [{ messageId: "preferValueOf" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports differently formatted inline type literals with equivalent structure",
+                output: inlineInvalidWhitespaceFormattedLiteralOutputCode,
+            },
+            {
                 code: inlineNoFixShadowedValueOfInvalidCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
@@ -148,6 +187,11 @@ ruleTester.run(
                 code: inlineValidMismatchedObjectTextCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores keyed access when object text and keyof target differ",
+            },
+            {
+                code: inlineValidReadonlyTypeOperatorCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores indexed access when type operator is not keyof",
             },
             {
                 code: skipPathInvalidCode,

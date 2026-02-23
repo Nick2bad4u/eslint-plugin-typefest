@@ -2,6 +2,12 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import parser from "@typescript-eslint/parser";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it, vi } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -50,9 +56,34 @@ const nonEqualityValidCode = [
     "const isEmpty = values.length !== 0;",
     "String(isEmpty);",
 ].join("\n");
+const nonZeroRightLiteralValidCode = [
+    "const values = [1, 2, 3];",
+    "const isEmpty = values.length === 1;",
+    "String(isEmpty);",
+].join("\n");
+const nonZeroLeftLiteralValidCode = [
+    "const values = [1, 2, 3];",
+    "const isEmpty = 1 === values.length;",
+    "String(isEmpty);",
+].join("\n");
+const nonLengthArrayLikeValidCode = [
+    "declare const values: readonly number[] & { readonly size: number };",
+    "const isEmpty = values.size === 0;",
+    "String(isEmpty);",
+].join("\n");
 const mixedUnionValidCode = [
     "const values: string | string[] = 'a';",
     "const isEmpty = values.length === 0;",
+    "String(isEmpty);",
+].join("\n");
+const unresolvedMixedUnionValidCode = [
+    "declare const values: string | string[];",
+    "const isEmpty = values.length === 0;",
+    "String(isEmpty);",
+].join("\n");
+const looseEqualityInvalidCode = [
+    "declare const values: readonly number[];",
+    "const isEmpty = values.length == 0;",
     "String(isEmpty);",
 ].join("\n");
 const inlineFixableCode = [
@@ -67,6 +98,138 @@ const inlineFixableOutput = [
     "const values = [1, 2, 3] as const;",
     "const empty = isEmpty(values);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasIsEmpty:
+            "Prefer `isEmpty` from `ts-extras` over direct `array.length === 0` checks.",
+    },
+    name: "prefer-ts-extras-is-empty",
+});
+
+it("keeps is-empty helper guards and literals in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-empty.ts"),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain(
+        'node.type === "Literal" && node.value === 0;'
+    );
+    expect(ruleSource).toContain('node.type === "MemberExpression" &&');
+    expect(ruleSource).toContain(
+        'node.property.type === "Identifier" &&'
+    );
+    expect(ruleSource).toContain('node.property.name === "length";');
+    expect(ruleSource).toContain("typedChecker.isArrayType?.(type) ||");
+    expect(ruleSource).toContain("typedChecker.isTupleType?.(type)");
+    expect(ruleSource).toContain("return true;");
+    expect(ruleSource).toContain("if (type.isUnion()) {");
+    expect(ruleSource).toContain("type.types.every((partType) =>");
+    expect(ruleSource).toContain('typeText.endsWith("[]") ||');
+    expect(ruleSource).toContain('typeText.startsWith("readonly [") ||');
+    expect(ruleSource).toContain('typeText.startsWith("[")');
+    expect(ruleSource).toContain("return false;");
+    expect(ruleSource).toContain(
+        'if (node.operator !== "==" && node.operator !== "===") {'
+    );
+    expect(ruleSource).toContain(
+        "isLengthMemberExpression(node.left) &&\n                        isZeroLiteral(node.right);"
+    );
+    expect(ruleSource).toContain(
+        "isLengthMemberExpression(node.right) &&\n                        isZeroLiteral(node.left);"
+    );
+    expect(ruleSource).toContain(
+        "if (!isLeftLengthCheck && !isRightLengthCheck) {"
+    );
+});
+
+it("skips reports when parser services fail during type lookup", async () => {
+    try {
+        vi.resetModules();
+
+        vi.doMock("../src/_internal/typed-rule.js", () => ({
+            createTypedRule: (definition: unknown): unknown => definition,
+            getTypedRuleServices: () => ({
+                checker: {
+                    getTypeAtLocation: (): unknown => ({}),
+                    typeToString: (): string => "never",
+                },
+                parserServices: {
+                    esTreeNodeToTSNodeMap: {
+                        get: (): never => {
+                            throw new Error("type lookup failed");
+                        },
+                    },
+                },
+            }),
+            isTestFilePath: (): boolean => false,
+        }));
+
+        const undecoratedRuleModule = (await import(
+            "../src/rules/prefer-ts-extras-is-empty.ts"
+        )) as {
+            default: {
+                create: (context: unknown) => {
+                    BinaryExpression?: (node: unknown) => void;
+                };
+            };
+        };
+
+        const parsedResult = parser.parseForESLint(
+            [
+                "const values = [1, 2, 3];",
+                "const isEmpty = values.length === 0;",
+            ].join("\n"),
+            {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            }
+        );
+
+        const declarationStatement = parsedResult.ast.body[1];
+        expect(declarationStatement?.type).toBe("VariableDeclaration");
+
+        if (
+            !declarationStatement ||
+            declarationStatement.type !== "VariableDeclaration"
+        ) {
+            throw new Error("Expected variable declaration for length check");
+        }
+
+        const firstDeclarator = declarationStatement.declarations[0];
+        if (
+            !firstDeclarator?.init ||
+            firstDeclarator.init.type !== "BinaryExpression"
+        ) {
+            throw new Error("Expected binary expression initializer");
+        }
+
+        const report = vi.fn();
+        const listenerMap = undecoratedRuleModule.default.create({
+            filename: "fixtures/typed/prefer-ts-extras-is-empty.invalid.ts",
+            report,
+            sourceCode: {
+                ast: parsedResult.ast,
+            },
+        });
+
+        expect(() => {
+            listenerMap.BinaryExpression?.(firstDeclarator.init);
+        }).not.toThrow();
+
+        expect(report).not.toHaveBeenCalled();
+    } finally {
+        vi.doUnmock("../src/_internal/typed-rule.js");
+        vi.resetModules();
+    }
+});
 
 ruleTester.run("prefer-ts-extras-is-empty", rule, {
     invalid: [
@@ -118,6 +281,12 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
             name: "autofixes array length equality when isEmpty import is in scope",
             output: inlineFixableOutput,
         },
+        {
+            code: looseEqualityInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsEmpty" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports loose equality array length checks",
+        },
     ],
     valid: [
         {
@@ -136,9 +305,29 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
             name: "ignores non-equality length comparison",
         },
         {
+            code: nonZeroRightLiteralValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores array length comparison against non-zero literal on right",
+        },
+        {
+            code: nonZeroLeftLiteralValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores array length comparison against non-zero literal on left",
+        },
+        {
+            code: nonLengthArrayLikeValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-length property comparisons even on array-like values",
+        },
+        {
             code: mixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores mixed string-or-array union length check",
+        },
+        {
+            code: unresolvedMixedUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unresolved mixed string-or-array unions when not all members are array-like",
         },
         {
             code: skipPathInvalidCode,

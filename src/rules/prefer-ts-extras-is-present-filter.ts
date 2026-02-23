@@ -21,10 +21,11 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const flattenLogicalAndTerms = (
     expression: TSESTree.Expression
 ): readonly TSESTree.Expression[] => {
-    if (
-        expression.type !== "LogicalExpression" ||
-        expression.operator !== "&&"
-    ) {
+    if (expression.type !== "LogicalExpression") {
+        return [expression];
+    }
+
+    if (expression.operator !== "&&") {
         return [expression];
     }
 
@@ -46,17 +47,11 @@ const flattenLogicalAndTerms = (
 const isNullComparison = (
     node: TSESTree.Expression,
     parameterName: string
-): node is TSESTree.BinaryExpression =>
-    node.type === "BinaryExpression" &&
-    (node.operator === "!=" || node.operator === "!==") &&
-    ((node.left.type === "Identifier" &&
-        node.left.name === parameterName &&
-        node.right.type === "Literal" &&
-        node.right.value === null) ||
-        (node.right.type === "Identifier" &&
-            node.right.name === parameterName &&
-            node.left.type === "Literal" &&
-            node.left.value === null));
+): node is TSESTree.BinaryExpression => {
+    const comparison = extractNullishInequalityPart(node, parameterName);
+
+    return comparison?.kind === "null";
+};
 
 /**
  * Check whether the input is undefined comparison.
@@ -71,35 +66,9 @@ const isUndefinedComparison = (
     node: TSESTree.Expression,
     parameterName: string
 ): node is TSESTree.BinaryExpression => {
-    if (
-        node.type !== "BinaryExpression" ||
-        (node.operator !== "!=" && node.operator !== "!==")
-    ) {
-        return false;
-    }
+    const comparison = extractNullishInequalityPart(node, parameterName);
 
-    const isDirectUndefinedComparison =
-        (node.left.type === "Identifier" &&
-            node.left.name === parameterName &&
-            node.right.type === "Identifier" &&
-            node.right.name === "undefined") ||
-        (node.right.type === "Identifier" &&
-            node.right.name === parameterName &&
-            node.left.type === "Identifier" &&
-            node.left.name === "undefined");
-
-    if (isDirectUndefinedComparison) {
-        return true;
-    }
-
-    return (
-        node.left.type === "UnaryExpression" &&
-        node.left.operator === "typeof" &&
-        node.left.argument.type === "Identifier" &&
-        node.left.argument.name === parameterName &&
-        node.right.type === "Literal" &&
-        node.right.value === "undefined"
-    );
+    return comparison?.kind === "undefined";
 };
 
 type NullishInequalityPart = {
@@ -107,6 +76,29 @@ type NullishInequalityPart = {
     readonly kind: "null" | "undefined";
     readonly operator: "!=" | "!==";
 };
+
+const isIdentifierWithName = (
+    node: TSESTree.Expression | TSESTree.PrivateIdentifier,
+    name: string
+): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
+
+const isNullLiteral = (
+    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+): node is TSESTree.Literal & { value: null } =>
+    node.type === "Literal" && node.value === null;
+
+const isUndefinedStringLiteral = (
+    node: TSESTree.Expression | TSESTree.PrivateIdentifier
+): node is TSESTree.Literal & { value: "undefined" } =>
+    node.type === "Literal" && node.value === "undefined";
+
+const isTypeofParameter = (
+    node: TSESTree.Expression,
+    parameterName: string
+): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
+    node.type === "UnaryExpression" &&
+    node.operator === "typeof" &&
+    isIdentifierWithName(node.argument, parameterName);
 
 /**
  * ExtractNullishInequalityPart helper.
@@ -128,68 +120,59 @@ const extractNullishInequalityPart = (
         return null;
     }
 
-    if (
-        expression.left.type === "Identifier" &&
-        expression.left.name === parameterName &&
-        expression.right.type === "Literal" &&
-        expression.right.value === null
-    ) {
-        return {
-            expression: expression.left,
-            kind: "null",
-            operator: expression.operator,
-        };
+    if (isIdentifierWithName(expression.left, parameterName)) {
+        if (isNullLiteral(expression.right)) {
+            return {
+                expression: expression.left,
+                kind: "null",
+                operator: expression.operator,
+            };
+        }
+
+        if (isIdentifierWithName(expression.right, "undefined")) {
+            return {
+                expression: expression.left,
+                kind: "undefined",
+                operator: expression.operator,
+            };
+        }
+    }
+
+    if (isIdentifierWithName(expression.right, parameterName)) {
+        if (isNullLiteral(expression.left)) {
+            return {
+                expression: expression.right,
+                kind: "null",
+                operator: expression.operator,
+            };
+        }
+
+        if (isIdentifierWithName(expression.left, "undefined")) {
+            return {
+                expression: expression.right,
+                kind: "undefined",
+                operator: expression.operator,
+            };
+        }
     }
 
     if (
-        expression.right.type === "Identifier" &&
-        expression.right.name === parameterName &&
-        expression.left.type === "Literal" &&
-        expression.left.value === null
-    ) {
-        return {
-            expression: expression.right,
-            kind: "null",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        expression.left.type === "Identifier" &&
-        expression.left.name === parameterName &&
-        expression.right.type === "Identifier" &&
-        expression.right.name === "undefined"
-    ) {
-        return {
-            expression: expression.left,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        expression.right.type === "Identifier" &&
-        expression.right.name === parameterName &&
-        expression.left.type === "Identifier" &&
-        expression.left.name === "undefined"
-    ) {
-        return {
-            expression: expression.right,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        expression.left.type === "UnaryExpression" &&
-        expression.left.operator === "typeof" &&
-        expression.left.argument.type === "Identifier" &&
-        expression.left.argument.name === parameterName &&
-        expression.right.type === "Literal" &&
-        expression.right.value === "undefined"
+        isTypeofParameter(expression.left, parameterName) &&
+        isUndefinedStringLiteral(expression.right)
     ) {
         return {
             expression: expression.left.argument,
+            kind: "undefined",
+            operator: expression.operator,
+        };
+    }
+
+    if (
+        isTypeofParameter(expression.right, parameterName) &&
+        isUndefinedStringLiteral(expression.left)
+    ) {
+        return {
+            expression: expression.right.argument,
             kind: "undefined",
             operator: expression.operator,
         };
@@ -261,7 +244,11 @@ const isSafePresentFilterAutoFixableCallback = ({
         return true;
     }
 
-    if (body.type !== "LogicalExpression" || body.operator !== "&&") {
+    if (body.type !== "LogicalExpression") {
+        return false;
+    }
+
+    if (body.operator !== "&&") {
         return false;
     }
 
@@ -270,30 +257,26 @@ const isSafePresentFilterAutoFixableCallback = ({
         return false;
     }
 
-    const [firstTerm, secondTerm] = andTerms;
-    if (!firstTerm || !secondTerm) {
-        return false;
-    }
+    const [firstTerm, secondTerm] = andTerms as readonly [
+        TSESTree.Expression,
+        TSESTree.Expression,
+    ];
 
     const first = extractNullishInequalityPart(firstTerm, parameterName);
     const second = extractNullishInequalityPart(secondTerm, parameterName);
 
-    if (!first || !second) {
+    if (first?.operator !== "!==" || second?.operator !== "!==") {
         return false;
     }
 
-    if (first.operator !== "!==" || second.operator !== "!==") {
-        return false;
-    }
+    const normalizedFirstText = sourceCode
+        .getText(first.expression)
+        .replaceAll(/\s/gu, "");
+    const normalizedSecondText = sourceCode
+        .getText(second.expression)
+        .replaceAll(/\s/gu, "");
 
-    if (first.kind === second.kind) {
-        return false;
-    }
-
-    return (
-        sourceCode.getText(first.expression).trim() ===
-        sourceCode.getText(second.expression).trim()
-    );
+    return normalizedFirstText === normalizedSecondText;
 };
 
 /**
@@ -320,23 +303,33 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                 CallExpression(node) {
                     const { callee } = node;
 
-                    if (
-                        callee.type !== "MemberExpression" ||
-                        callee.computed ||
-                        callee.property.type !== "Identifier" ||
-                        callee.property.name !== "filter" ||
-                        node.arguments.length === 0
-                    ) {
+                    if (callee.type !== "MemberExpression") {
+                        return;
+                    }
+
+                    if (callee.computed) {
+                        return;
+                    }
+
+                    if (callee.property.type !== "Identifier") {
+                        return;
+                    }
+
+                    if (callee.property.name !== "filter") {
                         return;
                     }
 
                     const callback = node.arguments[0];
 
-                    if (
-                        callback?.type !== "ArrowFunctionExpression" ||
-                        callback.params.length !== 1 ||
-                        callback.body.type === "BlockStatement"
-                    ) {
+                    if (callback?.type !== "ArrowFunctionExpression") {
+                        return;
+                    }
+
+                    if (callback.params.length !== 1) {
+                        return;
+                    }
+
+                    if (callback.body.type === "BlockStatement") {
                         return;
                     }
 

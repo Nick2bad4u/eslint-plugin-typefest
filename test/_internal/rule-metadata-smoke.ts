@@ -19,9 +19,11 @@ interface RuleMetadataSnapshot {
 }
 
 interface TypeFestRuleMetadataExpectations {
+    readonly defaultOptions?: UnknownArray;
     readonly docsDescription?: string;
     readonly enforceRuleShape?: boolean;
     readonly messages?: Readonly<Record<string, string>>;
+    readonly name?: string;
 }
 
 const docsBaseUrl =
@@ -47,7 +49,9 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     ruleId: string,
     expectations: TypeFestRuleMetadataExpectations = {}
 ): void => {
+    const expectedDefaultOptions = expectations.defaultOptions ?? [];
     const expectedDocsUrl = `${docsBaseUrl}/${ruleId}.md`;
+    const expectedRuleName = expectations.name ?? ruleId;
 
     describe(`${ruleId} metadata`, () => {
         it("exports expected metadata baseline", async () => {
@@ -75,8 +79,8 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                         : metadataRule.meta?.type,
             } as const;
 
-            expect(metadataRule.name).toBe(ruleId);
-            expect(metadataDefaultOptions).toStrictEqual([]);
+            expect(metadataRule.name).toBe(expectedRuleName);
+            expect(metadataDefaultOptions).toStrictEqual(expectedDefaultOptions);
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 
             expect(metadataRule.meta?.docs?.description).toBe(
@@ -98,7 +102,7 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
             expect(metadataRule.meta?.type).toBe(expectedRuleShape.type);
         });
 
-        it("declares authored docs url literal before RuleCreator decoration", async () => {
+        it("declares authored literals before RuleCreator decoration", async () => {
             try {
                 vi.resetModules();
 
@@ -111,7 +115,25 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                 const undecoratedRule = (await importRuleModule(ruleId))
                     .default;
 
+                expect(undecoratedRule.defaultOptions).toStrictEqual(
+                    expectedDefaultOptions
+                );
+                expect(undecoratedRule.name).toBe(expectedRuleName);
                 expect(undecoratedRule.meta?.docs?.url).toBe(expectedDocsUrl);
+
+                if (expectations.docsDescription !== undefined) {
+                    expect(undecoratedRule.meta?.docs?.description).toBe(
+                        expectations.docsDescription
+                    );
+                }
+
+                for (const [messageId, expectedMessage] of Object.entries(
+                    expectations.messages ?? {}
+                )) {
+                    expect(undecoratedRule.meta?.messages?.[messageId]).toBe(
+                        expectedMessage
+                    );
+                }
             } finally {
                 vi.doUnmock("../../src/_internal/typed-rule.js");
                 vi.resetModules();

@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-keys-of-union";
+const docsDescription =
+    "require TypeFest KeysOfUnion over imported aliases such as AllKeys.";
+const preferKeysOfUnionMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-keys-of-union.valid.ts";
 const namespaceValidFixtureName =
@@ -36,13 +41,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = KeysOfUnion<{ a: string } | { b: number }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-keys-of-union"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferKeysOfUnion: preferKeysOfUnionMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-keys-of-union",
-    getPluginRule("prefer-type-fest-keys-of-union"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

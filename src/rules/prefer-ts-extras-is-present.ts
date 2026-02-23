@@ -39,10 +39,11 @@ const flattenLogicalTerms = ({
     expression: TSESTree.Expression;
     operator: "&&" | "||";
 }): readonly TSESTree.Expression[] => {
-    if (
-        expression.type !== "LogicalExpression" ||
-        expression.operator !== operator
-    ) {
+    if (expression.type !== "LogicalExpression") {
+        return [expression];
+    }
+
+    if (expression.operator !== operator) {
         return [expression];
     }
 
@@ -224,8 +225,16 @@ const haveSameComparedExpression = ({
     first: TSESTree.Expression;
     second: TSESTree.Expression;
     sourceCode: Readonly<TSESLint.SourceCode>;
-}): boolean =>
-    sourceCode.getText(first).trim() === sourceCode.getText(second).trim();
+}): boolean => {
+    const normalizedFirstText = sourceCode
+        .getText(first)
+        .replaceAll(/\s/gu, "");
+    const normalizedSecondText = sourceCode
+        .getText(second)
+        .replaceAll(/\s/gu, "");
+
+    return normalizedFirstText === normalizedSecondText;
+};
 
 /**
  * Check whether the input is strict present check.
@@ -255,11 +264,10 @@ const isStrictPresentCheck = ({
         return false;
     }
 
-    const [firstTerm, secondTerm] = terms;
-
-    if (!firstTerm || !secondTerm) {
-        return false;
-    }
+    const [firstTerm, secondTerm] = terms as readonly [
+        TSESTree.Expression,
+        TSESTree.Expression,
+    ];
 
     const first = getNullishComparison(firstTerm);
     const second = getNullishComparison(secondTerm);
@@ -311,11 +319,10 @@ const isStrictAbsentCheck = ({
         return false;
     }
 
-    const [firstTerm, secondTerm] = terms;
-
-    if (!firstTerm || !secondTerm) {
-        return false;
-    }
+    const [firstTerm, secondTerm] = terms as readonly [
+        TSESTree.Expression,
+        TSESTree.Expression,
+    ];
 
     const first = getNullishComparison(firstTerm);
     const second = getNullishComparison(secondTerm);

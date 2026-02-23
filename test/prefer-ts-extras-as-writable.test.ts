@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-as-writable.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -71,6 +76,45 @@ const inlineValidNonTypeFestNamespaceCode = [
     "",
     "String(typedRecord);",
 ].join("\n");
+const inlineValidDefaultImportAliasCode = [
+    'import type WritableDefault from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const typedRecord = readonlyRecord as WritableDefault<ReadonlyRecord>;",
+    "",
+    "String(typedRecord);",
+].join("\n");
+const inlineValidNamedImportUsedAsQualifiedNamespaceCode = [
+    'import type { Writable as MutableAlias } from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const typedRecord = readonlyRecord as MutableAlias.Writable<ReadonlyRecord>;",
+    "",
+    "String(typedRecord);",
+].join("\n");
+const inlineValidTypeFestNamespaceNonWritableMemberCode = [
+    'import type * as TypeFest from "type-fest";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const typedRecord = readonlyRecord as TypeFest.ReadonlyDeep<ReadonlyRecord>;",
+    "",
+    "String(typedRecord);",
+].join("\n");
 const inlineFixableCode = [
     'import { asWritable } from "ts-extras";',
     'import type { Writable } from "type-fest";',
@@ -134,6 +178,53 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
             "const mutableByNamespace = asWritable(readonlyRecord);\r\n"
         );
 
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-as-writable",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasAsWritable:
+                "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
+        },
+        name: "prefer-ts-extras-as-writable",
+    }
+);
+
+it("keeps as-writable import and qualified-name guards in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-as-writable.ts"),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('const filePath = context.filename ?? "";');
+    expect(ruleSource).toContain(
+        'typeof statement.source.value === "string"'
+    );
+    expect(ruleSource).toContain(': "";');
+    expect(ruleSource).toContain('specifier.type === "ImportSpecifier" &&');
+    expect(ruleSource).toContain(
+        'specifier.imported.type === "Identifier" &&'
+    );
+    expect(ruleSource).toContain(
+        'specifier.imported.name === WRITABLE_TYPE_NAME'
+    );
+    expect(ruleSource).toContain(
+        'if (specifier.type === "ImportNamespaceSpecifier") {'
+    );
+    expect(ruleSource).toContain(
+        'if (typeAnnotation.typeName.type !== "TSQualifiedName") {'
+    );
+    expect(ruleSource).toContain(
+        'typeAnnotation.typeName.right.type === "Identifier" &&'
+    );
+    expect(ruleSource).toContain(
+        'typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME'
+    );
+});
+
 ruleTester.run(
     "prefer-ts-extras-as-writable",
     getPluginRule("prefer-ts-extras-as-writable"),
@@ -188,6 +279,21 @@ ruleTester.run(
                 code: inlineValidNonTypeFestNamespaceCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Writable from non-type-fest namespace",
+            },
+            {
+                code: inlineValidDefaultImportAliasCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores generic default import aliases from type-fest",
+            },
+            {
+                code: inlineValidNamedImportUsedAsQualifiedNamespaceCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores named Writable import used as a fake namespace qualifier",
+            },
+            {
+                code: inlineValidTypeFestNamespaceNonWritableMemberCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores type-fest namespace members that are not Writable",
             },
             {
                 code: readTypedFixture(

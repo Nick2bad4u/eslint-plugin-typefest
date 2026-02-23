@@ -21,6 +21,22 @@ type UndefinedComparisonMatch = {
     readonly prefersNegatedHelper: boolean;
 };
 
+const isIdentifierWithName = (
+    expression: TSESTree.Expression,
+    name: string
+): expression is TSESTree.Identifier =>
+    expression.type === "Identifier" && expression.name === name;
+
+const isTypeofExpression = (
+    expression: TSESTree.Expression
+): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
+    expression.type === "UnaryExpression" && expression.operator === "typeof";
+
+const isUndefinedStringLiteral = (
+    expression: TSESTree.Expression
+): expression is TSESTree.Literal & { value: "undefined" } =>
+    expression.type === "Literal" && expression.value === "undefined";
+
 /**
  * Check whether the input is undefined identifier.
  *
@@ -30,7 +46,7 @@ type UndefinedComparisonMatch = {
  */
 
 const isUndefinedIdentifier = (expression: TSESTree.Expression): boolean =>
-    expression.type === "Identifier" && expression.name === "undefined";
+    isIdentifierWithName(expression, "undefined");
 
 /**
  * GetUndefinedComparisonMatch helper.
@@ -68,24 +84,14 @@ const getUndefinedComparisonMatch = (
         };
     }
 
-    if (
-        node.left.type === "UnaryExpression" &&
-        node.left.operator === "typeof" &&
-        node.right.type === "Literal" &&
-        node.right.value === "undefined"
-    ) {
+    if (isTypeofExpression(node.left) && isUndefinedStringLiteral(node.right)) {
         return {
             comparedExpression: node.left.argument,
             prefersNegatedHelper,
         };
     }
 
-    if (
-        node.right.type === "UnaryExpression" &&
-        node.right.operator === "typeof" &&
-        node.left.type === "Literal" &&
-        node.left.value === "undefined"
-    ) {
+    if (isTypeofExpression(node.right) && isUndefinedStringLiteral(node.left)) {
         return {
             comparedExpression: node.right.argument,
             prefersNegatedHelper,
@@ -110,11 +116,21 @@ const isFilterCall = (
         computed: false;
         property: TSESTree.Identifier;
     };
-} =>
-    expression.callee.type === "MemberExpression" &&
-    !expression.callee.computed &&
-    expression.callee.property.type === "Identifier" &&
-    expression.callee.property.name === FILTER_METHOD_NAME;
+} => {
+    if (expression.callee.type !== "MemberExpression") {
+        return false;
+    }
+
+    if (expression.callee.computed) {
+        return false;
+    }
+
+    if (expression.callee.property.type !== "Identifier") {
+        return false;
+    }
+
+    return expression.callee.property.name === FILTER_METHOD_NAME;
+};
 
 /**
  * Check whether the input is function callback node.
@@ -126,9 +142,15 @@ const isFilterCall = (
 
 const isFunctionCallbackNode = (
     node: TSESTree.Node
-): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
-    node.type === "ArrowFunctionExpression" ||
-    node.type === "FunctionExpression";
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => {
+    switch (node.type) {
+        case "ArrowFunctionExpression":
+        case "FunctionExpression":
+            return true;
+        default:
+            return false;
+    }
+};
 
 /**
  * GetParentNode helper.
@@ -156,11 +178,17 @@ const isWithinFilterCallback = (node: TSESTree.Node): boolean => {
         if (isFunctionCallbackNode(currentNode)) {
             const callbackParent = getParentNode(currentNode);
 
-            if (
-                callbackParent?.type === "CallExpression" &&
-                callbackParent.arguments.includes(currentNode) &&
-                isFilterCall(callbackParent)
-            ) {
+            if (callbackParent?.type !== "CallExpression") {
+                currentNode = getParentNode(currentNode);
+                continue;
+            }
+
+            if (!callbackParent.arguments.includes(currentNode)) {
+                currentNode = getParentNode(currentNode);
+                continue;
+            }
+
+            if (isFilterCall(callbackParent)) {
                 return true;
             }
         }
@@ -198,14 +226,6 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
 
                     const match = getUndefinedComparisonMatch(node);
                     if (!match) {
-                        return;
-                    }
-
-                    const comparedExpressionText = context.sourceCode
-                        .getText(match.comparedExpression)
-                        .trim();
-
-                    if (comparedExpressionText.length === 0) {
                         return;
                     }
 

@@ -42,7 +42,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-optional"
+    "prefer-type-fest-set-optional",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest SetOptional over imported alias types like PartialBy.",
+        enforceRuleShape: true,
+        messages: {
+            preferSetOptional:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+        name: "prefer-type-fest-set-optional",
+    }
 );
 
 ruleTester.run(

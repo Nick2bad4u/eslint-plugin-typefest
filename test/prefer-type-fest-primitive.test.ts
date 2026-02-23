@@ -10,7 +10,13 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-type-fest-primitive");
+const ruleId = "prefer-type-fest-primitive";
+const docsDescription =
+    "require TypeFest Primitive over explicit primitive keyword unions.";
+const preferPrimitiveMessage =
+    "Prefer `Primitive` from type-fest over explicit primitive keyword unions.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-primitive.valid.ts";
@@ -75,17 +81,17 @@ const inlineFixableOutput = [
     "type PrimitiveLike = Primitive;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-primitive", {
-    docsDescription:
-        "require TypeFest Primitive over explicit primitive keyword unions.",
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
     enforceRuleShape: true,
     messages: {
-        preferPrimitive:
-            "Prefer `Primitive` from type-fest over explicit primitive keyword unions.",
+        preferPrimitive: preferPrimitiveMessage,
     },
+    name: ruleId,
 });
 
-ruleTester.run("prefer-type-fest-primitive", rule, {
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: invalidFixtureCode,

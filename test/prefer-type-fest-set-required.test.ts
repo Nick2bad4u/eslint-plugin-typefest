@@ -42,7 +42,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-required"
+    "prefer-type-fest-set-required",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest SetRequired over imported aliases such as RequiredBy.",
+        enforceRuleShape: true,
+        messages: {
+            preferSetRequired:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+        name: "prefer-type-fest-set-required",
+    }
 );
 
 ruleTester.run(

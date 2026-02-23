@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-constructor";
+const docsDescription =
+    "require TypeFest Constructor over explicit `new (...) => ...` constructor signatures.";
+const preferConstructorSignatureMessage =
+    "Prefer `Constructor<...>` from type-fest over explicit `new (...) => ...` constructor signatures.";
 
 const validFixtureName = "prefer-type-fest-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
@@ -37,12 +42,25 @@ const inlineFixableOutput = [
     "",
     "type Ctor = Constructor<object, [name: string, retryCount: number]>;",
 ].join("\n");
+const inlineNoFixGenericCtorCode = [
+    'import type { Constructor } from "type-fest";',
+    "",
+    "type GenericCtor = new <T>(value: T) => T;",
+].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-constructor");
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferConstructorSignature: preferConstructorSignatureMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-constructor",
-    getPluginRule("prefer-type-fest-constructor"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {
@@ -76,6 +94,17 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "autofixes constructor signature when Constructor import is in scope",
                 output: inlineFixableOutput,
+            },
+            {
+                code: inlineNoFixGenericCtorCode,
+                errors: [
+                    {
+                        messageId: "preferConstructorSignature",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports generic constructor signature without autofix",
+                output: null,
             },
         ],
         valid: [

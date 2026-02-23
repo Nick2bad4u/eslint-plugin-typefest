@@ -42,7 +42,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-non-nullable"
+    "prefer-type-fest-set-non-nullable",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
+        enforceRuleShape: true,
+        messages: {
+            preferSetNonNullable:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        },
+        name: "prefer-type-fest-set-non-nullable",
+    }
 );
 
 ruleTester.run(

@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-readonly-deep";
+const docsDescription =
+    "require TypeFest ReadonlyDeep over `DeepReadonly` aliases.";
+const preferReadonlyDeepMessage =
+    "Prefer `ReadonlyDeep` from type-fest over `DeepReadonly`.";
 
 const validFixtureName = "prefer-type-fest-readonly-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
@@ -37,13 +42,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type FrozenUser = ReadonlyDeep<User>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-readonly-deep"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferReadonlyDeep: preferReadonlyDeepMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-readonly-deep",
-    getPluginRule("prefer-type-fest-readonly-deep"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

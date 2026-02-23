@@ -23,11 +23,15 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
         return true;
     }
 
-    return (
-        node.type === "BlockStatement" &&
-        node.body.length === 1 &&
-        node.body[0]?.type === "ThrowStatement"
-    );
+    if (node.type !== "BlockStatement") {
+        return false;
+    }
+
+    if (node.body.length !== 1) {
+        return false;
+    }
+
+    return node.body[0]?.type === "ThrowStatement";
 };
 
 /**
@@ -41,11 +45,21 @@ const isThrowOnlyConsequent = (node: TSESTree.Statement): boolean => {
 
 const isErrorInstanceofExpression = (
     node: TSESTree.Expression
-): node is TSESTree.BinaryExpression =>
-    node.type === "BinaryExpression" &&
-    node.operator === "instanceof" &&
-    node.right.type === "Identifier" &&
-    node.right.name === "Error";
+): node is TSESTree.BinaryExpression => {
+    if (node.type !== "BinaryExpression") {
+        return false;
+    }
+
+    if (node.operator !== "instanceof") {
+        return false;
+    }
+
+    if (node.right.type !== "Identifier") {
+        return false;
+    }
+
+    return node.right.name === "Error";
+};
 
 /**
  * ExtractAssertErrorTarget helper.
@@ -58,11 +72,15 @@ const isErrorInstanceofExpression = (
 const extractAssertErrorTarget = (
     test: TSESTree.Expression
 ): null | TSESTree.Expression => {
-    if (
-        test.type !== "UnaryExpression" ||
-        test.operator !== "!" ||
-        !isErrorInstanceofExpression(test.argument)
-    ) {
+    if (test.type !== "UnaryExpression") {
+        return null;
+    }
+
+    if (test.operator !== "!") {
+        return null;
+    }
+
+    if (!isErrorInstanceofExpression(test.argument)) {
         return null;
     }
 

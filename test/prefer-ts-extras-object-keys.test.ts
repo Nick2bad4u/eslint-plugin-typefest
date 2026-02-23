@@ -2,6 +2,9 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-keys.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -9,7 +12,15 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-ts-extras-object-keys");
+const ruleId = "prefer-ts-extras-object-keys";
+const docsDescription =
+    "require ts-extras objectKeys over Object.keys for stronger key inference.";
+const docsUrl =
+    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md";
+const preferTsExtrasObjectKeysMessage =
+    "Prefer `objectKeys` from `ts-extras` over `Object.keys(...)` for stronger key inference.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-object-keys.valid.ts";
@@ -43,7 +54,92 @@ const inlineInvalidOutputCode = [
 ].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 
-ruleTester.run("prefer-ts-extras-object-keys", rule, {
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasObjectKeys: preferTsExtrasObjectKeysMessage,
+    },
+    name: ruleId,
+});
+
+describe("prefer-ts-extras-object-keys metadata literals", () => {
+    it("declares the authored docs URL literal", () => {
+        expect(rule.meta.docs.url).toBe(docsUrl);
+    });
+});
+
+describe("prefer-ts-extras-object-keys internal listener guards", () => {
+    it("ignores non-Identifier Object property access", async () => {
+        const reportCalls: Array<{ messageId?: string }> = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                createSafeValueReferenceReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-ts-extras-object-keys.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        CallExpression?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const callExpressionListener = listeners.CallExpression;
+            expect(callExpressionListener).toBeTypeOf("function");
+
+            const privatePropertyKeysCallNode = {
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "Object",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "keys",
+                        type: "PrivateIdentifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            callExpressionListener?.(privatePropertyKeysCallNode);
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: readTypedFixture(invalidFixtureName),

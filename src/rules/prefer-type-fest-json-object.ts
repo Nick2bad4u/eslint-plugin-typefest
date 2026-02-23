@@ -72,15 +72,15 @@ const isRecordJsonValueReference = (
         return false;
     }
 
-    const typeArguments = node.typeArguments?.params ?? [];
-    if (typeArguments.length !== 2) {
+    const typeArguments = node.typeArguments?.params;
+    if (!typeArguments || typeArguments.length !== 2) {
         return false;
     }
 
-    const [keyType, valueType] = typeArguments;
-    if (!keyType || !valueType) {
-        return false;
-    }
+    const [keyType, valueType] = typeArguments as [
+        TSESTree.TypeNode,
+        TSESTree.TypeNode,
+    ];
 
     return isStringKeyType(keyType) && isJsonValueType(valueType);
 };

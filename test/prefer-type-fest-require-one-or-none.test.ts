@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-require-one-or-none";
+const docsDescription =
+    "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.";
+const preferRequireOneOrNoneMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-require-one-or-none.valid.ts";
 const namespaceValidFixtureName =
@@ -36,13 +41,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RequireOneOrNone<{ a?: string; b?: number }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-one-or-none"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferRequireOneOrNone: preferRequireOneOrNoneMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-require-one-or-none",
-    getPluginRule("prefer-type-fest-require-one-or-none"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

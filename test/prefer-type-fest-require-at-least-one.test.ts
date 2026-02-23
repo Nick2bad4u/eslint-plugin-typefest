@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-require-at-least-one";
+const docsDescription =
+    "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.";
+const preferRequireAtLeastOneMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-require-at-least-one.valid.ts";
 const namespaceValidFixtureName =
@@ -36,13 +41,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RequireAtLeastOne<{ a?: string; b?: number }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-at-least-one"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferRequireAtLeastOne: preferRequireAtLeastOneMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-require-at-least-one",
-    getPluginRule("prefer-type-fest-require-at-least-one"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

@@ -2,6 +2,9 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-key-in.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { describe, expect, it } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -9,7 +12,15 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-ts-extras-key-in");
+const ruleId = "prefer-ts-extras-key-in";
+const docsDescription =
+    "require ts-extras keyIn over `in` key checks for stronger narrowing.";
+const docsUrl =
+    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-key-in.md";
+const preferTsExtrasKeyInMessage =
+    "Prefer `keyIn` from `ts-extras` over `key in object` checks for stronger narrowing.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-key-in.valid.ts";
@@ -112,8 +123,47 @@ const inlineFixableOutput = [
     "",
     "String(hasDynamicKey);",
 ].join("\n");
+const inlineInvalidLiteralLeftOperandCode = [
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const payload: MonitorPayload;",
+    "",
+    'const hasDynamicKey = "id" in payload;',
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidMemberRightOperandCode = [
+    "type MonitorState = {",
+    "    readonly payload: { id: string };",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const state: MonitorState;",
+    "",
+    "const hasDynamicKey = dynamicKey in state.payload;",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
 
-ruleTester.run("prefer-ts-extras-key-in", rule, {
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasKeyIn: preferTsExtrasKeyInMessage,
+    },
+    name: ruleId,
+});
+
+describe("prefer-ts-extras-key-in metadata literals", () => {
+    it("declares the authored docs URL literal", () => {
+        expect(rule.meta.docs.url).toBe(docsUrl);
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: readTypedFixture(invalidFixtureName),
@@ -159,6 +209,28 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes identifier in-operator check when keyIn import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineInvalidLiteralLeftOperandCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports literal-left in-operator check without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidMemberRightOperandCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports member-right in-operator check without autofix",
+            output: null,
         },
     ],
     valid: [

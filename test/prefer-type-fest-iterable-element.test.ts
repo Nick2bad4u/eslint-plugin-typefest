@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-iterable-element";
+const docsDescription =
+    "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.";
+const preferIterableElementMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-iterable-element.valid.ts";
 const namespaceValidFixtureName =
@@ -39,13 +44,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = IterableElement<Set<string>>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-iterable-element"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferIterableElement: preferIterableElementMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-iterable-element",
-    getPluginRule("prefer-type-fest-iterable-element"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-schema";
+const docsDescription =
+    "require TypeFest Schema over imported aliases such as RecordDeep.";
+const preferSchemaMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-schema.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
@@ -40,11 +45,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type UserSchema = Schema<User, number>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-schema");
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferSchema: preferSchemaMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-schema",
-    getPluginRule("prefer-type-fest-schema"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

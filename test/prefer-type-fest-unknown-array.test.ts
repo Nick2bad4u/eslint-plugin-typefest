@@ -9,8 +9,15 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
+import { describe, expect, it, vi } from "vitest";
 
-const rule = getPluginRule("prefer-type-fest-unknown-array");
+const ruleId = "prefer-type-fest-unknown-array";
+const docsDescription =
+    "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.";
+const preferUnknownArrayMessage =
+    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-array.valid.ts";
@@ -50,6 +57,10 @@ const inlineValidExtraReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray<unknown, string>;";
 const inlineValidNestedUnknownArrayTypeArgumentCode =
     "type Input = ReadonlyArray<unknown[]>;";
+const inlineValidCustomGenericUnknownCode = [
+    "type Box<T> = T;",
+    "type Input = Box<unknown>;",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
 const inlineInvalidWithoutFixOutputCode = [
@@ -87,20 +98,106 @@ const inlineFixableOutput = [
     "type Input = UnknownArray;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unknown-array",
-    {
-        docsDescription:
-            "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
-        enforceRuleShape: true,
-        messages: {
-            preferUnknownArray:
-                "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
-        },
-    }
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferUnknownArray: preferUnknownArrayMessage,
+    },
+    name: ruleId,
+});
 
-ruleTester.run("prefer-type-fest-unknown-array", rule, {
+describe("prefer-type-fest-unknown-array internal readonly-array identifier guard", () => {
+    it("reports ReadonlyArray<unknown> but ignores other generic identifiers", async () => {
+        const reportCalls: Array<{
+            messageId?: string;
+            node?: unknown;
+        }> = [];
+        const replacementFixCalls: unknown[][] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: (...parameters: unknown[]) => {
+                    replacementFixCalls.push(parameters);
+
+                    return null;
+                },
+            }));
+
+            const undecoratedRuleModule = (await import(
+                "../src/rules/prefer-type-fest-unknown-array.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSTypeReference?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = undecoratedRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string; node?: unknown }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const typeReferenceListener = listeners.TSTypeReference;
+            expect(typeReferenceListener).toBeTypeOf("function");
+
+            const readonlyArrayUnknownNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [{ type: "TSUnknownKeyword" }],
+                },
+                typeName: {
+                    name: "ReadonlyArray",
+                    type: "Identifier",
+                },
+            };
+            const customGenericUnknownNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [{ type: "TSUnknownKeyword" }],
+                },
+                typeName: {
+                    name: "Box",
+                    type: "Identifier",
+                },
+            };
+
+            typeReferenceListener?.(readonlyArrayUnknownNode);
+            typeReferenceListener?.(customGenericUnknownNode);
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferUnknownArray",
+                node: readonlyArrayUnknownNode,
+            });
+            expect(replacementFixCalls).toHaveLength(1);
+            expect(replacementFixCalls[0]?.[1]).toBe("UnknownArray");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: invalidFixtureCode,
@@ -217,6 +314,11 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             code: inlineValidNestedUnknownArrayTypeArgumentCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores ReadonlyArray with nested unknown[] element type",
+        },
+        {
+            code: inlineValidCustomGenericUnknownCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-ReadonlyArray generic with unknown type argument",
         },
         {
             code: skipPathInvalidCode,

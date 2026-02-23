@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-tuple-of";
+const docsDescription =
+    "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.";
+const preferTupleOfMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-tuple-of.valid.ts";
 const namespaceValidFixtureName =
@@ -87,19 +92,19 @@ const inlineFixTupleWhenReadonlyShadowedOutputCode =
         "type Box<Readonly> = TupleOf<3, string>;"
     );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-tuple-of", {
-    docsDescription:
-        "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
     enforceRuleShape: true,
     messages: {
-        preferTupleOf:
-            "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+        preferTupleOf: preferTupleOfMessage,
     },
+    name: ruleId,
 });
 
 ruleTester.run(
-    "prefer-type-fest-tuple-of",
-    getPluginRule("prefer-type-fest-tuple-of"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

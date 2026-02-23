@@ -2,6 +2,7 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-safe-cast-to.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -25,6 +26,21 @@ const nonAssignableTypeAssertionValidCode = [
     "declare const rawValue: unknown;",
     "const parsed = <string>rawValue;",
     "String(parsed);",
+].join("\n");
+const ignoredAnyAnnotationValidCode = [
+    'const rawValue = "alpha";',
+    "const castValue = rawValue as any;",
+    "String(castValue);",
+].join("\n");
+const ignoredNeverAnnotationValidCode = [
+    "declare const neverValue: never;",
+    "const castValue = neverValue as never;",
+    "String(castValue);",
+].join("\n");
+const ignoredUnknownAnnotationValidCode = [
+    'const rawValue = "alpha";',
+    "const castValue = rawValue as unknown;",
+    "String(castValue);",
 ].join("\n");
 const inlineFixableCode = [
     'import { safeCastTo } from "ts-extras";',
@@ -76,6 +92,21 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
             "const payloadValue = safeCastTo<Payload>(payloadLiteral);\r\n"
         );
 
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-safe-cast-to",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasSafeCastTo:
+                "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",
+        },
+        name: "prefer-ts-extras-safe-cast-to",
+    }
+);
+
 ruleTester.run(
     "prefer-ts-extras-safe-cast-to",
     getPluginRule("prefer-ts-extras-safe-cast-to"),
@@ -118,6 +149,21 @@ ruleTester.run(
                 code: nonAssignableTypeAssertionValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-assignable angle-bracket assertion",
+            },
+            {
+                code: ignoredAnyAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting any",
+            },
+            {
+                code: ignoredNeverAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting never",
+            },
+            {
+                code: ignoredUnknownAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting unknown",
             },
             {
                 code: readTypedFixture(

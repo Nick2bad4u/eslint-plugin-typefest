@@ -3,6 +3,8 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-object.test` behavior.
  */
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -10,7 +12,13 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const rule = getPluginRule("prefer-type-fest-json-object");
+const ruleId = "prefer-type-fest-json-object";
+const docsDescription =
+    "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.";
+const preferJsonObjectMessage =
+    "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-json-object.valid.ts";
@@ -85,19 +93,163 @@ const inlineFixableOutput = [
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-json-object",
+    ruleId,
     {
-        docsDescription:
-            "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
+        defaultOptions: [],
+        docsDescription,
         enforceRuleShape: true,
         messages: {
-            preferJsonObject:
-                "Prefer `JsonObject` from type-fest over equivalent explicit JSON-object type shapes.",
+            preferJsonObject: preferJsonObjectMessage,
         },
+        name: ruleId,
     }
 );
 
-ruleTester.run("prefer-type-fest-json-object", rule, {
+describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
+    it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
+        const replacementFixCalls: unknown[][] = [];
+        const reportCalls: Array<{
+            messageId?: string;
+            node?: unknown;
+        }> = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: (...parameters: unknown[]) => {
+                    replacementFixCalls.push(parameters);
+
+                    return null;
+                },
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-type-fest-json-object.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSTypeReference?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string; node?: unknown }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const typeReferenceListener = listeners.TSTypeReference;
+            expect(typeReferenceListener).toBeTypeOf("function");
+
+            const matchingRecordNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [
+                        {
+                            type: "TSStringKeyword",
+                        },
+                        {
+                            type: "TSTypeReference",
+                            typeName: {
+                                name: "JsonValue",
+                                type: "Identifier",
+                            },
+                        },
+                    ],
+                },
+                typeName: {
+                    name: "Record",
+                    type: "Identifier",
+                },
+            };
+            const nonRecordIdentifierNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [
+                        {
+                            type: "TSStringKeyword",
+                        },
+                        {
+                            type: "TSTypeReference",
+                            typeName: {
+                                name: "JsonValue",
+                                type: "Identifier",
+                            },
+                        },
+                    ],
+                },
+                typeName: {
+                    name: "Box",
+                    type: "Identifier",
+                },
+            };
+            const singleTypeArgumentNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [
+                        {
+                            type: "TSStringKeyword",
+                        },
+                    ],
+                },
+                typeName: {
+                    name: "Record",
+                    type: "Identifier",
+                },
+            };
+            const nonJsonValueRecordNode = {
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [
+                        {
+                            type: "TSStringKeyword",
+                        },
+                        {
+                            type: "TSUnknownKeyword",
+                        },
+                    ],
+                },
+                typeName: {
+                    name: "Record",
+                    type: "Identifier",
+                },
+            };
+
+            typeReferenceListener?.(matchingRecordNode);
+            typeReferenceListener?.(nonRecordIdentifierNode);
+            typeReferenceListener?.(singleTypeArgumentNode);
+            typeReferenceListener?.(nonJsonValueRecordNode);
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferJsonObject",
+                node: matchingRecordNode,
+            });
+            expect(replacementFixCalls).toHaveLength(1);
+            expect(replacementFixCalls[0]?.[1]).toBe("JsonObject");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: invalidFixtureCode,

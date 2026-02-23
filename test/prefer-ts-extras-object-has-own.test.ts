@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-has-own.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -58,6 +63,52 @@ const inlineValidReflectHasOwnCode = [
     "",
     "String(hasSuccess);",
 ].join("\n");
+const inlineValidCustomObjectHasOwnCode = [
+    "const helper = {",
+    "    hasOwn(value: object, key: PropertyKey): boolean {",
+    "        return Object.prototype.hasOwnProperty.call(value, key);",
+    "    },",
+    "};",
+    "const sample = { alpha: 1 } as const;",
+    'const hasAlpha = helper.hasOwn(sample, "alpha");',
+    "String(hasAlpha);",
+].join("\n");
+const inlineValidObjectKeysCode = [
+    "const sample = { alpha: 1 } as const;",
+    "const keys = Object.keys(sample);",
+    "String(keys.length);",
+].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-object-has-own",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasObjectHasOwn:
+                "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",
+        },
+        name: "prefer-ts-extras-object-has-own",
+    }
+);
+
+it("keeps object-has-own callee guard clauses in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-ts-extras-object-has-own.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('callee.object.name !== "Object" ||');
+    expect(ruleSource).toContain(
+        'callee.property.type !== "Identifier" ||'
+    );
+    expect(ruleSource).toContain('callee.property.name !== "hasOwn"');
+});
 
 ruleTester.run(
     "prefer-ts-extras-object-has-own",
@@ -101,6 +152,16 @@ ruleTester.run(
                 code: inlineValidReflectHasOwnCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Reflect.has usage",
+            },
+            {
+                code: inlineValidCustomObjectHasOwnCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-Object hasOwn helper calls",
+            },
+            {
+                code: inlineValidObjectKeysCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores Object member calls that are not hasOwn",
             },
             {
                 code: readTypedFixture(invalidFixtureName),

@@ -3,6 +3,9 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-except.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -71,7 +74,88 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except");
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest Except over Omit when removing properties from object types.",
+    enforceRuleShape: true,
+    messages: {
+        preferExcept:
+            "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
+    },
+    name: "prefer-type-fest-except",
+});
+
+it("reports builtin Omit type references in undecorated visitor", async () => {
+    try {
+        vi.resetModules();
+
+        vi.doMock("../src/_internal/typed-rule.js", () => ({
+            createTypedRule: (definition: unknown): unknown => definition,
+            isTestFilePath: (): boolean => false,
+        }));
+
+        const undecoratedRuleModule = (await import(
+            "../src/rules/prefer-type-fest-except.ts"
+        )) as {
+            default: {
+                create: (context: unknown) => {
+                    TSTypeReference?: (node: unknown) => void;
+                };
+            };
+        };
+
+        const parsedResult = parser.parseForESLint(
+            'type UserWithoutId = Omit<{ id: string; name: string }, "id">;',
+            {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            }
+        );
+
+        const [firstStatement] = parsedResult.ast.body;
+        expect(firstStatement?.type).toBe("TSTypeAliasDeclaration");
+
+        if (
+            !firstStatement ||
+            firstStatement.type !== "TSTypeAliasDeclaration"
+        ) {
+            throw new Error("Expected a type alias declaration statement");
+        }
+
+        const typeAnnotation = firstStatement.typeAnnotation;
+        expect(typeAnnotation.type).toBe("TSTypeReference");
+
+        if (typeAnnotation.type !== "TSTypeReference") {
+            throw new Error("Expected a type reference in the type alias");
+        }
+
+        const report = vi.fn();
+
+        const listenerMap = undecoratedRuleModule.default.create({
+            filename: "fixtures/typed/prefer-type-fest-except.invalid.ts",
+            report,
+            sourceCode: {
+                ast: parsedResult.ast,
+            },
+        });
+
+        listenerMap.TSTypeReference?.(typeAnnotation);
+
+        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledWith(
+            expect.objectContaining({
+                messageId: "preferExcept",
+                node: typeAnnotation,
+            })
+        );
+    } finally {
+        vi.doUnmock("../src/_internal/typed-rule.js");
+        vi.resetModules();
+    }
+});
 
 ruleTester.run("prefer-type-fest-except", rule, {
     invalid: [

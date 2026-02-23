@@ -2,6 +2,9 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present-filter.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -9,6 +12,15 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+const ruleId = "prefer-ts-extras-is-present-filter";
+const docsDescription =
+    "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.";
+const docsUrl =
+    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md";
+const preferTsExtrasIsPresentFilterMessage =
+    "Prefer `isPresent` from `ts-extras` in `filter(...)` callbacks over inline nullish comparisons.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-ts-extras-is-present-filter.invalid.ts";
@@ -93,6 +105,65 @@ const inlineValidAndWithoutUndefinedCheckCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineValidLogicalOrNullishGuardCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value !== null || value !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidAndThreeTermNullishGuardCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "declare const includeValue: boolean;",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string =>",
+    "        value !== null && value !== undefined && includeValue",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidAndNonParameterNullComparisonCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "declare const otherValue: null | string;",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => otherValue !== null && value !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidAndNonParameterUndefinedComparisonCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "declare const maybeValue: string | undefined;",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value !== null && maybeValue !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidAndNonNullLiteralComparisonCode = [
+    "declare const values: readonly (number | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is number => value !== 0 && value !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidAndUndefinedAliasComparisonCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "declare const undefinedAlias: undefined;",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value !== null && value !== undefinedAlias",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 const inlineValidFilterBlockBodyCode = [
     "declare const values: readonly (null | string)[];",
     "",
@@ -132,6 +203,13 @@ const inlineValidDestructuredParameterCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineValidSecondCallbackParameterCode = [
+    "declare const values: readonly (null | string)[];",
+    "",
+    "const presentValues = values.filter((value, _index) => value != null);",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 const inlineValidMapCallbackCode = [
     "declare const values: readonly (null | string)[];",
     "",
@@ -157,6 +235,151 @@ const inlineFixableOutput = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineInvalidMixedNullishOperatorCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value != null && value !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasIsPresentFilter: preferTsExtrasIsPresentFilterMessage,
+    },
+    name: ruleId,
+});
+
+describe("prefer-ts-extras-is-present-filter metadata literals", () => {
+    it("declares the authored docs URL literal", () => {
+        expect(rule.meta.docs.url).toBe(docsUrl);
+    });
+});
+
+describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
+    it("ignores non-Identifier filter property and non-callback first argument", async () => {
+        const reportCalls: Array<{ messageId?: string }> = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                createSafeValueReferenceReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-ts-extras-is-present-filter.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        CallExpression?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    getText: () => "value",
+                },
+            });
+
+            const callExpressionListener = listeners.CallExpression;
+            expect(callExpressionListener).toBeTypeOf("function");
+
+            const privateFilterMemberCallNode = {
+                arguments: [
+                    {
+                        body: {
+                            left: {
+                                name: "value",
+                                type: "Identifier",
+                            },
+                            operator: "!=",
+                            right: {
+                                type: "Literal",
+                                value: null,
+                            },
+                            type: "BinaryExpression",
+                        },
+                        params: [
+                            {
+                                name: "value",
+                                type: "Identifier",
+                            },
+                        ],
+                        type: "ArrowFunctionExpression",
+                    },
+                ],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "PrivateIdentifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+            const logicalExpressionFilterArgumentCallNode = {
+                arguments: [
+                    {
+                        left: {
+                            name: "value",
+                            type: "Identifier",
+                        },
+                        operator: "!=",
+                        right: {
+                            type: "Literal",
+                            value: null,
+                        },
+                        type: "BinaryExpression",
+                    },
+                ],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            callExpressionListener?.(privateFilterMemberCallNode);
+            callExpressionListener?.(logicalExpressionFilterArgumentCallNode);
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 const fixtureInvalidOutput = [
     "interface MonitorRecord {",
     "    readonly id: string;",
@@ -188,8 +411,8 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
     );
 
 ruleTester.run(
-    "prefer-ts-extras-is-present-filter",
-    getPluginRule("prefer-ts-extras-is-present-filter"),
+    ruleId,
+    rule,
     {
         invalid: [
             {
@@ -211,6 +434,7 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports predicate using strict undefined inequality",
+                output: null,
             },
             {
                 code: inlineInvalidTypeofUndefinedGuardCode,
@@ -240,6 +464,20 @@ ruleTester.run(
                 name: "autofixes filter callback to isPresent when import is in scope",
                 output: inlineFixableOutput,
             },
+            {
+                code: inlineInvalidMixedNullishOperatorCode,
+                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports mixed loose and strict nullish inequality predicate without autofix",
+                output: null,
+            },
+            {
+                code: inlineValidAndThreeTermNullishGuardCode,
+                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports three-term conjunction nullish guard callback without autofix",
+                output: null,
+            },
         ],
         valid: [
             {
@@ -261,6 +499,31 @@ ruleTester.run(
                 code: inlineValidAndWithoutUndefinedCheckCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores logical and callback lacking undefined check",
+            },
+            {
+                code: inlineValidLogicalOrNullishGuardCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores disjunction nullish guard callback",
+            },
+            {
+                code: inlineValidAndNonParameterNullComparisonCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores null comparison using non-parameter identifier",
+            },
+            {
+                code: inlineValidAndNonParameterUndefinedComparisonCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined comparison using non-parameter identifier",
+            },
+            {
+                code: inlineValidAndNonNullLiteralComparisonCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-null literal comparison in conjunction",
+            },
+            {
+                code: inlineValidAndUndefinedAliasComparisonCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined alias identifier comparison in conjunction",
             },
             {
                 code: inlineValidFilterBlockBodyCode,
@@ -286,6 +549,11 @@ ruleTester.run(
                 code: inlineValidDestructuredParameterCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores destructured callback parameter",
+            },
+            {
+                code: inlineValidSecondCallbackParameterCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores filter callback with second index parameter",
             },
             {
                 code: inlineValidMapCallbackCode,

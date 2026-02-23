@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-unknown-record";
+const docsDescription =
+    "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.";
+const preferUnknownRecordMessage =
+    "Prefer `UnknownRecord` from type-fest over `Record<string, unknown>` for clearer intent and stronger shared typing conventions.";
 
 const invalidFixtureName = "prefer-type-fest-unknown-record.invalid.ts";
 const validFixtureName = "prefer-type-fest-unknown-record.valid.ts";
@@ -25,6 +30,13 @@ const inlineValidNonUnknownValueCode =
     "type SharedContext = Record<string, string>;";
 const inlineValidNonStringKeyCode =
     "type SharedContext = Record<number, unknown>;";
+const inlineValidNonRecordIdentifierCode = [
+    "type Box<KeyType, ValueType> = {",
+    "    key: KeyType;",
+    "    value: ValueType;",
+    "};",
+    "type SharedContext = Box<string, unknown>;",
+].join("\n");
 const inlineInvalidRecordStringUnknownCode =
     "type SharedContext = Record<string, unknown>;";
 const inlineInvalidRecordStringUnknownOutput = [
@@ -42,13 +54,19 @@ const inlineFixableOutput = [
     "type SharedContext = UnknownRecord;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unknown-record"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferUnknownRecord: preferUnknownRecordMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-unknown-record",
-    getPluginRule("prefer-type-fest-unknown-record"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {
@@ -93,6 +111,11 @@ ruleTester.run(
                 code: inlineValidNonStringKeyCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Record with non-string key type",
+            },
+            {
+                code: inlineValidNonRecordIdentifierCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-Record generic with string unknown type arguments",
             },
             {
                 code: readTypedFixture(invalidFixtureName),

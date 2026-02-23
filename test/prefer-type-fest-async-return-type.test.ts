@@ -3,6 +3,10 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -48,6 +52,10 @@ const awaitedQualifiedReturnTypeValidCode = [
     "",
     "type Result = Awaited<TypeFest.ReturnType<() => Promise<string>>>;",
 ].join("\n");
+const nonAwaitedWrapperOfReturnTypeValidCode = [
+    "type Wrapper<T> = T;",
+    "type Result = Wrapper<ReturnType<() => Promise<string>>>;",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 const inlineFixableCode = [
     'import type { AsyncReturnType } from "type-fest";',
@@ -61,8 +69,39 @@ const inlineFixableOutput = [
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-async-return-type"
+    "prefer-type-fest-async-return-type",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
+        enforceRuleShape: true,
+        messages: {
+            preferAsyncReturnType:
+                "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
+        },
+        name: "prefer-type-fest-async-return-type",
+    }
 );
+
+it("keeps async-return-type helper constants and guard clauses in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-type-fest-async-return-type.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('const AWAITED_TYPE_NAME = "Awaited";');
+    expect(ruleSource).toContain('const RETURN_TYPE_NAME = "ReturnType";');
+    expect(ruleSource).toContain(
+        "if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {"
+    );
+    expect(ruleSource).toContain(
+        "if (getSingleTypeArgument(awaitedInnerType) === null) {"
+    );
+    expect(ruleSource).toContain("return;");
+});
 
 ruleTester.run("prefer-type-fest-async-return-type", rule, {
     invalid: [
@@ -145,6 +184,11 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             code: awaitedQualifiedReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Awaited over namespace-qualified ReturnType",
+        },
+        {
+            code: nonAwaitedWrapperOfReturnTypeValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-Awaited wrappers around ReturnType operands",
         },
         {
             code: skipPathInvalidCode,

@@ -60,10 +60,7 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                     const tupleTypeParameters = node.typeArguments?.params;
                     let fix: null | TSESLint.ReportFixFunction = null;
 
-                    if (
-                        tupleTypeParameters?.length === 2 &&
-                        !isTypeParameterNameShadowed(node, "TupleOf")
-                    ) {
+                    if (tupleTypeParameters?.length === 2) {
                         const [elementType, lengthType] = tupleTypeParameters;
                         const elementTypeText =
                             context.sourceCode.getText(elementType);
@@ -92,14 +89,26 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                         }
                     }
 
+                    const reportData = {
+                        alias: importedAliasMatch.importedName,
+                        replacement: importedAliasMatch.replacementName,
+                    };
+
+                    if (fix === null) {
+                        context.report({
+                            data: reportData,
+                            messageId: "preferTupleOf",
+                            node,
+                        });
+
+                        return;
+                    }
+
                     context.report({
-                        data: {
-                            alias: importedAliasMatch.importedName,
-                            replacement: importedAliasMatch.replacementName,
-                        },
+                        data: reportData,
+                        fix,
                         messageId: "preferTupleOf",
                         node,
-                        ...(fix === null ? {} : { fix }),
                     });
                 },
             };

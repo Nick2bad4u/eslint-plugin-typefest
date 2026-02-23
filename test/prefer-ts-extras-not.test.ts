@@ -2,6 +2,11 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-not.test` behavior.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, it } from "vitest";
+
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -45,6 +50,22 @@ const inlineValidMapNegatedPredicateCode = [
     "const mappedEntries = nullableEntries.map((value) => !isPresent(value));",
     "",
     "String(mappedEntries.length);",
+].join("\n");
+const inlineValidPrivateFilterMethodCode = [
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "",
+    "class Store {",
+    "    #filter(predicate: (value: null | string) => boolean): readonly (null | string)[] {",
+    "        return [null, \"ok\"].filter(predicate);",
+    "    }",
+    "",
+    "    run(): readonly (null | string)[] {",
+    "        return this.#filter((value) => !isPresent(value));",
+    "    }",
+    "}",
+    "",
+    "const instance = new Store();",
+    "String(instance.run().length);",
 ].join("\n");
 const inlineValidFunctionExpressionCallbackCode = [
     "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
@@ -115,6 +136,22 @@ const inlineValidIdentifierCallbackCode = [
     "",
     "String(missingEntries.length);",
 ].join("\n");
+const inlineValidUnaryPlusPredicateCallCode = [
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "declare const nullableEntries: readonly (null | string)[];",
+    "",
+    "const mapped = nullableEntries.filter((value) => +isPresent(value));",
+    "",
+    "String(mapped.length);",
+].join("\n");
+const inlineValidMemberCalleePredicateCode = [
+    "declare const predicates: { isPresent<TValue>(value: TValue): value is NonNullable<TValue> };",
+    "declare const nullableEntries: readonly (null | string)[];",
+    "",
+    "const missingEntries = nullableEntries.filter((value) => !predicates.isPresent(value));",
+    "",
+    "String(missingEntries.length);",
+].join("\n");
 const inlineFixableCode = [
     'import { not } from "ts-extras";',
     "",
@@ -135,6 +172,42 @@ const inlineFixableOutput = [
     "",
     "String(missingEntries.length);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-not", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasNot:
+            "Prefer `not(<predicate>)` from `ts-extras` over inline `value => !predicate(value)` callbacks.",
+    },
+    name: "prefer-ts-extras-not",
+});
+
+it("keeps prefer-ts-extras-not helper guards in source", () => {
+    const ruleSource = readFileSync(
+        path.resolve(process.cwd(), "src/rules/prefer-ts-extras-not.ts"),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('const FILTER_METHOD_NAME = "filter";');
+    expect(ruleSource).toContain(
+        'node.callee.property.type === "Identifier" &&'
+    );
+    expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
+    expect(ruleSource).toContain(
+        "predicateCall.optional ||\n                    predicateCall.callee.type !== \"Identifier\""
+    );
+    expect(ruleSource).toContain(".trim();");
+    expect(ruleSource).toContain("if (predicateText.length === 0) {");
+    expect(ruleSource).toContain(
+        "if (!isFilterCall(node) || node.arguments.length === 0) {"
+    );
+    expect(ruleSource).toContain(
+        "(firstArgument.type !== \"ArrowFunctionExpression\" &&\n                            firstArgument.type !== \"FunctionExpression\")"
+    );
+});
 
 ruleTester.run("prefer-ts-extras-not", rule, {
     invalid: [
@@ -165,6 +238,13 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             name: "autofixes negated filter callback when not import is in scope",
             output: inlineFixableOutput,
         },
+        {
+            code: inlineValidMemberCalleePredicateCode,
+            errors: [{ messageId: "preferTsExtrasNot" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports negated member-callee predicate callback without autofix",
+            output: null,
+        },
     ],
     valid: [
         {
@@ -181,6 +261,11 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             code: inlineValidMapNegatedPredicateCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores negated predicate inside non-filter map callback",
+        },
+        {
+            code: inlineValidPrivateFilterMethodCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores negated predicate inside private #filter method calls",
         },
         {
             code: inlineValidFunctionExpressionCallbackCode,
@@ -221,6 +306,11 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             code: inlineValidIdentifierCallbackCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores filter callback provided as identifier",
+        },
+        {
+            code: inlineValidUnaryPlusPredicateCallCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unary expressions over predicate calls when operator is not not",
         },
         {
             code: readTypedFixture(invalidFixtureName),

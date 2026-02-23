@@ -79,6 +79,7 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
+    defaultOptions: [],
     docsDescription:
         "require TypeFest Simplify over imported alias types like Prettify/Expand.",
     enforceRuleShape: true,
@@ -86,6 +87,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
         preferSimplify:
             "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
     },
+    name: "prefer-type-fest-simplify",
 });
 
 ruleTester.run(

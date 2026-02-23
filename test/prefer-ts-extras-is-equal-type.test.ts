@@ -2,7 +2,9 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-equal-type.test` behavior.
  */
-import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -81,6 +83,13 @@ const inlineValidNonBooleanInitializerCode = [
     "",
     "Boolean(equalityFlag);",
 ].join("\n");
+const inlineValidNonBooleanLiteralInitializerCode = [
+    'import type { IsEqual } from "type-fest";',
+    "",
+    "const nonBooleanLiteralCheck: IsEqual<string, string> = 1;",
+    "",
+    "Boolean(nonBooleanLiteralCheck);",
+].join("\n");
 const inlineValidObjectPatternDeclaratorCode = [
     'import type { IsEqual } from "type-fest";',
     "",
@@ -103,6 +112,20 @@ const inlineInvalidWithoutTypeArgumentsCode = [
     "const noTypeArgumentsCheck: IsEqual = true;",
     "",
     "Boolean(noTypeArgumentsCheck);",
+].join("\n");
+const inlineInvalidSingleTypeArgumentCode = [
+    'import type { IsEqual } from "type-fest";',
+    "",
+    "const oneTypeArgumentCheck: IsEqual<string> = true;",
+    "",
+    "Boolean(oneTypeArgumentCheck);",
+].join("\n");
+const inlineInvalidThreeTypeArgumentsCode = [
+    'import type { IsEqual } from "type-fest";',
+    "",
+    "const threeTypeArgumentsCheck: IsEqual<string, string, boolean> = true;",
+    "",
+    "Boolean(threeTypeArgumentsCheck);",
 ].join("\n");
 const inlineInvalidWithConflictingIsEqualTypeBindingCode = [
     'import type { IsEqual } from "type-fest";',
@@ -132,6 +155,22 @@ const inlineValidNamedImportBooleanNonIsEqualCode = [
     "const namedImportBoolean: Promisable<boolean> = true;",
     "",
     "Boolean(namedImportBoolean);",
+].join("\n");
+const inlineValidNonTypeFestIsEqualImportCode = [
+    'import type { IsEqual } from "ts-extras";',
+    "",
+    "const externalEqualCheck: IsEqual<string, string> = true;",
+    "",
+    "Boolean(externalEqualCheck);",
+].join("\n");
+const inlineValidLocalNamespaceIsEqualCode = [
+    "declare namespace LocalTypes {",
+    "    type IsEqual<Left, Right> = boolean;",
+    "}",
+    "",
+    "const localNamespaceCheck: LocalTypes.IsEqual<string, string> = true;",
+    "",
+    "Boolean(localNamespaceCheck);",
 ].join("\n");
 
 interface IsEqualTypeRuleMetadataSnapshot {
@@ -176,7 +215,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         expect(metadataRule.meta?.docs?.url).toBe(
             "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
         );
-        expect(metadataRule.meta?.hasSuggestions).toBeTruthy();
+        expect(metadataRule.meta?.hasSuggestions).toBe(true);
         expect(metadataRule.meta?.messages?.["preferTsExtrasIsEqualType"]).toBe(
             "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
         );
@@ -188,6 +227,92 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         expect(metadataRule.meta?.schema).toStrictEqual([]);
         expect(metadataRule.meta?.type).toBe("suggestion");
     });
+
+    it("declares authored literals before RuleCreator decoration", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+            }));
+
+            const undecoratedRule = (await import(
+                "../src/rules/prefer-ts-extras-is-equal-type.ts"
+            )) as {
+                default: IsEqualTypeRuleMetadataSnapshot;
+            };
+
+            expect(undecoratedRule.default.name).toBe(
+                "prefer-ts-extras-is-equal-type"
+            );
+            expect(undecoratedRule.default.defaultOptions).toStrictEqual([]);
+            expect(undecoratedRule.default.meta?.docs?.description).toBe(
+                "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables."
+            );
+            expect(undecoratedRule.default.meta?.docs?.url).toBe(
+                "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
+            );
+            expect(undecoratedRule.default.meta?.hasSuggestions).toBe(true);
+            expect(
+                undecoratedRule.default.meta?.messages?.[
+                    "preferTsExtrasIsEqualType"
+                ]
+            ).toBe(
+                "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
+            );
+            expect(
+                undecoratedRule.default.meta?.messages?.[
+                    "suggestTsExtrasIsEqualType"
+                ]
+            ).toBe(
+                "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`."
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+it("keeps is-equal-type source constants and guard clauses", () => {
+    const ruleSource = readFileSync(
+        path.resolve(
+            process.cwd(),
+            "src/rules/prefer-ts-extras-is-equal-type.ts"
+        ),
+        "utf8"
+    );
+
+    expect(ruleSource).toContain('const IS_EQUAL_TYPE_NAME = "IsEqual";');
+    expect(ruleSource).toContain(
+        'const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";'
+    );
+    expect(ruleSource).toContain(
+        'const TS_EXTRAS_PACKAGE_NAME = "ts-extras";'
+    );
+    expect(ruleSource).toContain(
+        'const TYPE_FEST_PACKAGE_NAME = "type-fest";'
+    );
+    expect(ruleSource).toContain(
+        'typeof statement.source.value === "string"'
+    );
+    expect(ruleSource).toContain('if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {');
+    expect(ruleSource).toContain(
+        'if (specifier.type === "ImportNamespaceSpecifier") {'
+    );
+    expect(ruleSource).toContain(
+        "node.typeName.left.type === \"Identifier\" &&"
+    );
+    expect(ruleSource).toContain(
+        "typeFestNamespaceImportNames.has(node.typeName.left.name) &&"
+    );
+    expect(ruleSource).toContain(
+        "node.typeName.right.type === \"Identifier\" &&"
+    );
+    expect(ruleSource).toContain('typeof node.init.value !== "boolean"');
+    expect(ruleSource).toContain("if (!leftType || !rightType) {");
+    expect(ruleSource).toContain("typeArguments.length === 2 &&");
+    expect(ruleSource).toContain("hasSuggestions: true,");
 });
 
 ruleTester.run(
@@ -274,6 +399,28 @@ ruleTester.run(
                 name: "reports IsEqual usage without explicit type arguments",
             },
             {
+                code: inlineInvalidSingleTypeArgumentCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasIsEqualType",
+                        suggestions: null,
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports IsEqual usage with a single type argument without suggestion",
+            },
+            {
+                code: inlineInvalidThreeTypeArgumentsCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasIsEqualType",
+                        suggestions: null,
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports IsEqual usage with three type arguments without suggestion",
+            },
+            {
                 code: inlineInvalidWithConflictingIsEqualTypeBindingCode,
                 errors: [
                     {
@@ -302,6 +449,11 @@ ruleTester.run(
                 name: "ignores IsEqual initializer that is not plain boolean literal",
             },
             {
+                code: inlineValidNonBooleanLiteralInitializerCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores IsEqual initializer when literal value is not boolean",
+            },
+            {
                 code: inlineValidObjectPatternDeclaratorCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores IsEqual inside object-pattern declarator",
@@ -325,6 +477,16 @@ ruleTester.run(
                 code: inlineValidNamedImportBooleanNonIsEqualCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores named-import Promisable boolean value",
+            },
+            {
+                code: inlineValidNonTypeFestIsEqualImportCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores IsEqual imports that do not originate from type-fest",
+            },
+            {
+                code: inlineValidLocalNamespaceIsEqualCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores local namespace IsEqual references that are not type-fest imports",
             },
         ],
     }

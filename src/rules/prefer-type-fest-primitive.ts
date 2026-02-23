@@ -10,31 +10,17 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
-/**
- * Check whether the input is primitive keyword node.
- *
- * @param node - Value to inspect.
- *
- * @returns `true` when the value is primitive keyword node; otherwise `false`.
- */
+const primitiveKeywordTypes = [
+    "TSBigIntKeyword",
+    "TSBooleanKeyword",
+    "TSNullKeyword",
+    "TSNumberKeyword",
+    "TSStringKeyword",
+    "TSSymbolKeyword",
+    "TSUndefinedKeyword",
+] as const;
 
-const isPrimitiveKeywordNode = (
-    node: TSESTree.TypeNode
-): node is
-    | TSESTree.TSBigIntKeyword
-    | TSESTree.TSBooleanKeyword
-    | TSESTree.TSNullKeyword
-    | TSESTree.TSNumberKeyword
-    | TSESTree.TSStringKeyword
-    | TSESTree.TSSymbolKeyword
-    | TSESTree.TSUndefinedKeyword =>
-    node.type === "TSBigIntKeyword" ||
-    node.type === "TSBooleanKeyword" ||
-    node.type === "TSNullKeyword" ||
-    node.type === "TSNumberKeyword" ||
-    node.type === "TSStringKeyword" ||
-    node.type === "TSSymbolKeyword" ||
-    node.type === "TSUndefinedKeyword";
+type PrimitiveKeywordType = (typeof primitiveKeywordTypes)[number];
 
 /**
  * Check whether has primitive union shape.
@@ -45,70 +31,31 @@ const isPrimitiveKeywordNode = (
  */
 
 const hasPrimitiveUnionShape = (node: TSESTree.TSUnionType): boolean => {
-    if (node.types.length !== 7) {
+    if (node.types.length !== primitiveKeywordTypes.length) {
         return false;
     }
 
-    let hasBigInt = false;
-    let hasBoolean = false;
-    let hasNull = false;
-    let hasNumber = false;
-    let hasString = false;
-    let hasSymbol = false;
-    let hasUndefined = false;
+    const presentPrimitiveTypes = new Set<PrimitiveKeywordType>();
 
     for (const typeNode of node.types) {
-        if (!isPrimitiveKeywordNode(typeNode)) {
-            return false;
-        }
+        switch (typeNode.type) {
+            case "TSBigIntKeyword":
+            case "TSBooleanKeyword":
+            case "TSNullKeyword":
+            case "TSNumberKeyword":
+            case "TSStringKeyword":
+            case "TSSymbolKeyword":
+            case "TSUndefinedKeyword": {
+                presentPrimitiveTypes.add(typeNode.type);
 
-        if (typeNode.type === "TSBigIntKeyword") {
-            hasBigInt = true;
-            continue;
+                break;
+            }
+            default:
+                return false;
         }
-
-        if (typeNode.type === "TSBooleanKeyword") {
-            hasBoolean = true;
-            continue;
-        }
-
-        if (typeNode.type === "TSNullKeyword") {
-            hasNull = true;
-            continue;
-        }
-
-        if (typeNode.type === "TSNumberKeyword") {
-            hasNumber = true;
-            continue;
-        }
-
-        if (typeNode.type === "TSStringKeyword") {
-            hasString = true;
-            continue;
-        }
-
-        if (typeNode.type === "TSSymbolKeyword") {
-            hasSymbol = true;
-            continue;
-        }
-
-        if (typeNode.type === "TSUndefinedKeyword") {
-            hasUndefined = true;
-            continue;
-        }
-
-        return false;
     }
 
-    return (
-        hasBigInt &&
-        hasBoolean &&
-        hasNull &&
-        hasNumber &&
-        hasString &&
-        hasSymbol &&
-        hasUndefined
-    );
+    return presentPrimitiveTypes.size === primitiveKeywordTypes.length;
 };
 
 /**

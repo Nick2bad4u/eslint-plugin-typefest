@@ -42,6 +42,23 @@ const inlineInvalidMixedTypeLiteralMembersCode = [
     "    (): void;",
     "};",
 ].join("\n");
+const inlineInvalidTagPropertyIntersectionCode = [
+    "type SessionIdentifier = string & {",
+    '    readonly __tag: "SessionIdentifier";',
+    "};",
+].join("\n");
+const inlineInvalidBrandPropertyIntersectionCode = [
+    "type SessionIdentifier = string & {",
+    '    readonly brand: "SessionIdentifier";',
+    "};",
+].join("\n");
+const inlineInvalidReferencedAliasIntersectionCode = [
+    "type SessionIdentifierToken = string;",
+    "",
+    "type SessionIdentifier = SessionIdentifierToken & {",
+    '    readonly __brand: "SessionIdentifier";',
+    "};",
+].join("\n");
 const inlineValidNamespaceTaggedReferenceCode = [
     'import type * as TypeFest from "type-fest";',
     "",
@@ -76,7 +93,18 @@ const inlineValidNestedTaggedReferenceCode = [
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-tagged-brands"
+    "prefer-type-fest-tagged-brands",
+    {
+        docsDescription:
+            "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
+        enforceRuleShape: true,
+        messages: {
+            preferTaggedAlias:
+                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            preferTaggedBrand:
+                "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
+        },
+    }
 );
 
 ruleTester.run(
@@ -135,6 +163,24 @@ ruleTester.run(
                 errors: [{ messageId: "preferTaggedBrand" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports mixed type-literal members in brand intersection",
+            },
+            {
+                code: inlineInvalidTagPropertyIntersectionCode,
+                errors: [{ messageId: "preferTaggedBrand" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports intersections branded with __tag property",
+            },
+            {
+                code: inlineInvalidBrandPropertyIntersectionCode,
+                errors: [{ messageId: "preferTaggedBrand" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports intersections branded with brand property",
+            },
+            {
+                code: inlineInvalidReferencedAliasIntersectionCode,
+                errors: [{ messageId: "preferTaggedBrand" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports ad-hoc branding when intersection uses non-Tagged type references",
             },
         ],
         valid: [

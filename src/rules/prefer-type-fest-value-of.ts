@@ -7,7 +7,6 @@ import type { TSESLint } from "@typescript-eslint/utils";
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
-    isTypeParameterNameShadowed,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -19,7 +18,7 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns NormalizeTypeText helper result.
  */
 
-const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
+const normalizeTypeText = (text: string): string => text.replaceAll(/\s/gu, "");
 
 /**
  * ESLint rule definition for `prefer-type-fest-value-of`.
@@ -63,17 +62,24 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const fix: null | TSESLint.ReportFixFunction =
-                        isTypeParameterNameShadowed(node, "ValueOf")
-                            ? null
-                            : createSafeTypeNodeTextReplacementFix(
-                                  node,
-                                  "ValueOf",
-                                  `ValueOf<${sourceCode.getText(node.objectType)}>`,
-                                  typeFestDirectImports
-                              );
+                        createSafeTypeNodeTextReplacementFix(
+                            node,
+                            "ValueOf",
+                            `ValueOf<${sourceCode.getText(node.objectType)}>`,
+                            typeFestDirectImports
+                        );
+
+                    if (fix === null) {
+                        context.report({
+                            messageId: "preferValueOf",
+                            node,
+                        });
+
+                        return;
+                    }
 
                     context.report({
-                        ...(fix === null ? {} : { fix }),
+                        fix,
                         messageId: "preferValueOf",
                         node,
                     });

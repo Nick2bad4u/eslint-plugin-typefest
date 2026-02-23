@@ -3,6 +3,9 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-promisable.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -46,6 +49,10 @@ const promiseUndefinedUnionValidCode =
 const promiseUndefinedValidCode =
     "type Result = PromiseLike<string> | undefined;";
 const promiseNeverValidCode = "type Result = Promise<string> | never;";
+const promiseNullInnerMatchValidCode = "type Result = Promise<null> | null;";
+const promiseUndefinedInnerMatchValidCode =
+    "type Result = Promise<undefined> | undefined;";
+const promiseNeverInnerMatchValidCode = "type Result = Promise<never> | never;";
 const doublePromiseUnionValidCode =
     "type Result = Promise<string> | Promise<string>;";
 const promiseMismatchValidCode = "type Result = Promise<string> | number;";
@@ -89,6 +96,7 @@ const customWrapperValidCode = [
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
+    defaultOptions: [],
     docsDescription:
         "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
     enforceRuleShape: true,
@@ -96,6 +104,99 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
         preferPromisable:
             "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
     },
+    name: "prefer-type-fest-promisable",
+});
+
+it("TSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
+    const code = [
+        'import type { Promisable } from "type-fest";',
+        "type ShouldReportPromiseFirst = Promise<string> | string;",
+        "type ShouldReportPromiseSecond = string | Promise<string>;",
+        "type ShouldSkipPromisable = Promise<Promisable<string>> | Promisable<string>;",
+        "type ShouldSkipNull = Promise<null> | null;",
+        "type ShouldSkipUndefined = Promise<undefined> | undefined;",
+        "type ShouldSkipNever = Promise<never> | never;",
+    ].join("\n");
+
+    try {
+        vi.resetModules();
+
+        vi.doMock("../src/_internal/typed-rule.js", () => ({
+            createTypedRule: (definition: unknown): unknown => definition,
+            isTestFilePath: (): boolean => false,
+        }));
+
+        const undecoratedRuleModule = (await import(
+            "../src/rules/prefer-type-fest-promisable.ts"
+        )) as {
+            default: {
+                create: (context: unknown) => {
+                    TSUnionType?: (node: unknown) => void;
+                };
+            };
+        };
+
+        const parsedResult = parser.parseForESLint(code, {
+            ecmaVersion: "latest",
+            loc: true,
+            range: true,
+            sourceType: "module",
+        });
+
+        const getNodeText = (node: unknown): string => {
+            if (
+                typeof node !== "object" ||
+                node === null ||
+                !("range" in node)
+            ) {
+                return "";
+            }
+
+            const nodeRange = (node as { range?: readonly [number, number] })
+                .range;
+            if (!nodeRange) {
+                return "";
+            }
+
+            const [start, end] = nodeRange;
+            return code.slice(start, end);
+        };
+
+        const report = vi.fn();
+
+        const listenerMap = undecoratedRuleModule.default.create({
+            filename: "fixtures/typed/prefer-type-fest-promisable.invalid.ts",
+            report,
+            sourceCode: {
+                ast: parsedResult.ast,
+                getText: getNodeText,
+            },
+        });
+
+        const unionTypeNodes = parsedResult.ast.body
+            .filter(
+                (statement): statement is typeof statement & {
+                    type: "TSTypeAliasDeclaration";
+                } => statement.type === "TSTypeAliasDeclaration"
+            )
+            .map((alias) => alias.typeAnnotation)
+            .filter(
+                (typeAnnotation): typeAnnotation is typeof typeAnnotation & {
+                    type: "TSUnionType";
+                } => typeAnnotation.type === "TSUnionType"
+            );
+
+        expect(unionTypeNodes).toHaveLength(6);
+
+        for (const unionTypeNode of unionTypeNodes) {
+            listenerMap.TSUnionType?.(unionTypeNode);
+        }
+
+        expect(report).toHaveBeenCalledTimes(2);
+    } finally {
+        vi.doUnmock("../src/_internal/typed-rule.js");
+        vi.resetModules();
+    }
 });
 
 ruleTester.run(
@@ -206,6 +307,27 @@ ruleTester.run(
                     "prefer-type-fest-promisable.valid.ts"
                 ),
                 name: "ignores Promise union with never",
+            },
+            {
+                code: promiseNullInnerMatchValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores Promise<null> union with matching null member",
+            },
+            {
+                code: promiseUndefinedInnerMatchValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores Promise<undefined> union with matching undefined member",
+            },
+            {
+                code: promiseNeverInnerMatchValidCode,
+                filename: typedFixturePath(
+                    "prefer-type-fest-promisable.valid.ts"
+                ),
+                name: "ignores Promise<never> union with matching never member",
             },
             {
                 code: doublePromiseUnionValidCode,

@@ -11,6 +11,11 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const ruleId = "prefer-type-fest-set-readonly";
+const docsDescription =
+    "require TypeFest SetReadonly over imported aliases such as ReadonlyBy.";
+const preferSetReadonlyMessage =
+    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-set-readonly.valid.ts";
 const namespaceValidFixtureName =
@@ -41,13 +46,19 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type FrozenUser = SetReadonly<User, "id">;'
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-readonly"
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferSetReadonly: preferSetReadonlyMessage,
+    },
+    name: ruleId,
+});
 
 ruleTester.run(
-    "prefer-type-fest-set-readonly",
-    getPluginRule("prefer-type-fest-set-readonly"),
+    ruleId,
+    getPluginRule(ruleId),
     {
         invalid: [
             {

@@ -90,13 +90,14 @@ const isGenericJsonValueArrayType = (node: TSESTree.TypeNode): boolean => {
         return false;
     }
 
-    const typeArguments = node.typeArguments?.params ?? [];
-    if (typeArguments.length !== 1) {
+    const typeArguments = node.typeArguments?.params;
+    if (!typeArguments || typeArguments.length !== 1) {
         return false;
     }
 
-    const [firstTypeArgument] = typeArguments;
-    return firstTypeArgument ? isJsonValueType(firstTypeArgument) : false;
+    const [firstTypeArgument] = typeArguments as [TSESTree.TypeNode];
+
+    return isJsonValueType(firstTypeArgument);
 };
 
 /**
@@ -115,13 +116,14 @@ const isGenericReadonlyJsonValueArrayType = (
         return false;
     }
 
-    const typeArguments = node.typeArguments?.params ?? [];
-    if (typeArguments.length !== 1) {
+    const typeArguments = node.typeArguments?.params;
+    if (!typeArguments || typeArguments.length !== 1) {
         return false;
     }
 
-    const [firstTypeArgument] = typeArguments;
-    return firstTypeArgument ? isJsonValueType(firstTypeArgument) : false;
+    const [firstTypeArgument] = typeArguments as [TSESTree.TypeNode];
+
+    return isJsonValueType(firstTypeArgument);
 };
 
 /**
@@ -137,30 +139,32 @@ const hasJsonArrayUnionShape = (node: TSESTree.TSUnionType): boolean => {
         return false;
     }
 
-    const [firstType, secondType] = node.types;
-    if (!firstType || !secondType) {
-        return false;
-    }
+    const [firstType, secondType] = node.types as [
+        TSESTree.TypeNode,
+        TSESTree.TypeNode,
+    ];
 
-    const firstNativePair =
-        isJsonValueArrayType(firstType) &&
-        isReadonlyJsonValueArrayType(secondType);
-    const secondNativePair =
-        isReadonlyJsonValueArrayType(firstType) &&
-        isJsonValueArrayType(secondType);
+    const isNativePair = (
+        leftType: TSESTree.TypeNode,
+        rightType: TSESTree.TypeNode
+    ): boolean =>
+        isJsonValueArrayType(leftType) &&
+        isReadonlyJsonValueArrayType(rightType);
+    const isGenericPair = (
+        leftType: TSESTree.TypeNode,
+        rightType: TSESTree.TypeNode
+    ): boolean =>
+        isGenericJsonValueArrayType(leftType) &&
+        isGenericReadonlyJsonValueArrayType(rightType);
 
-    if (firstNativePair || secondNativePair) {
+    if (isNativePair(firstType, secondType) || isNativePair(secondType, firstType)) {
         return true;
     }
 
-    const firstGenericPair =
-        isGenericJsonValueArrayType(firstType) &&
-        isGenericReadonlyJsonValueArrayType(secondType);
-    const secondGenericPair =
-        isGenericReadonlyJsonValueArrayType(firstType) &&
-        isGenericJsonValueArrayType(secondType);
-
-    return firstGenericPair || secondGenericPair;
+    return (
+        isGenericPair(firstType, secondType) ||
+        isGenericPair(secondType, firstType)
+    );
 };
 
 /**

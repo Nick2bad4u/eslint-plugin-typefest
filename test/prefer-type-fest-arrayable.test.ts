@@ -3,6 +3,8 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -10,6 +12,13 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+const ruleId = "prefer-type-fest-arrayable";
+const docsDescription =
+    "require TypeFest Arrayable over T | T[] and T | Array<T> unions.";
+const preferArrayableMessage =
+    "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-arrayable.valid.ts";
@@ -37,8 +46,14 @@ const genericArrayExtraTypeArgumentValidCode =
     "type QueryValue = string | Array<string, number>;";
 const genericArrayMismatchedElementValidCode =
     "type QueryValue = string | Array<number>;";
+const reversedGenericArrayMismatchedElementValidCode =
+    "type QueryValue = Array<number> | string;";
 const qualifiedGenericArrayValidCode =
     "type QueryValue = string | globalThis.Array<string>;";
+const nonArrayGenericMatchingElementValidCode = [
+    "type Box<T> = T;",
+    "type QueryValue = string | Box<string>;",
+].join("\n");
 const bothMembersAreNativeArraysValidCode =
     "type QueryValue = string[] | string[];";
 const inlineFixableCode = [
@@ -107,19 +122,169 @@ const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
 
 const skipPathInvalidCode = inlineInvalidCode;
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-arrayable", {
-    docsDescription:
-        "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
     enforceRuleShape: true,
     messages: {
-        preferArrayable:
-            "Prefer `Arrayable<T>` from type-fest over `T | T[]` or `T | Array<T>` unions.",
+        preferArrayable: preferArrayableMessage,
     },
+    name: ruleId,
+});
+
+describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
+    it("reports only matching Array<T> union shapes", async () => {
+        const replacementFixCalls: unknown[][] = [];
+        const reportCalls: Array<{
+            messageId?: string;
+            node?: unknown;
+        }> = [];
+
+        const createIdentifierNode = (name: string) => ({
+            name,
+            type: "Identifier",
+        });
+        const createKeywordTypeNode = (
+            type: "TSNumberKeyword" | "TSStringKeyword",
+            text: string
+        ) => ({
+            text,
+            type,
+        });
+        const createTypeReferenceNode = (
+            typeName: string,
+            typeArguments: unknown[] = [],
+            text = typeArguments.length === 0
+                ? typeName
+                : `${typeName}<${String(typeArguments[0] ?? "")}>`
+        ) => ({
+            text,
+            type: "TSTypeReference",
+            typeArguments:
+                typeArguments.length === 0
+                    ? undefined
+                    : {
+                          params: typeArguments,
+                      },
+            typeName: createIdentifierNode(typeName),
+        });
+        const createUnionNode = (...types: unknown[]) => ({
+            type: "TSUnionType",
+            types,
+        });
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix: (
+                    ...parameters: unknown[]
+                ) => {
+                    replacementFixCalls.push(parameters);
+
+                    return null;
+                },
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-type-fest-arrayable.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        TSUnionType?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string; node?: unknown }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    getText(node: { text?: string }) {
+                        return node.text ?? "";
+                    },
+                },
+            });
+
+            const unionTypeListener = listeners.TSUnionType;
+            expect(unionTypeListener).toBeTypeOf("function");
+
+            const stringKeywordNode = createKeywordTypeNode(
+                "TSStringKeyword",
+                "string"
+            );
+            const numberKeywordNode = createKeywordTypeNode(
+                "TSNumberKeyword",
+                "number"
+            );
+
+            const validRightGenericNode = createUnionNode(
+                stringKeywordNode,
+                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>")
+            );
+            const validLeftGenericNode = createUnionNode(
+                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>"),
+                stringKeywordNode
+            );
+            const invalidNonArrayGenericNode = createUnionNode(
+                stringKeywordNode,
+                createTypeReferenceNode("Box", [stringKeywordNode], "Box<string>")
+            );
+            const invalidMismatchedLeftGenericNode = createUnionNode(
+                createTypeReferenceNode("Array", [numberKeywordNode], "Array<number>"),
+                stringKeywordNode
+            );
+            const invalidMissingGenericArgumentNode = createUnionNode(
+                stringKeywordNode,
+                createTypeReferenceNode("Array", [], "Array")
+            );
+            const invalidThreeMemberUnionNode = createUnionNode(
+                stringKeywordNode,
+                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>"),
+                {
+                    text: "null",
+                    type: "TSNullKeyword",
+                }
+            );
+
+            unionTypeListener?.(validRightGenericNode);
+            unionTypeListener?.(validLeftGenericNode);
+            unionTypeListener?.(invalidNonArrayGenericNode);
+            unionTypeListener?.(invalidMismatchedLeftGenericNode);
+            unionTypeListener?.(invalidMissingGenericArgumentNode);
+            unionTypeListener?.(invalidThreeMemberUnionNode);
+
+            expect(reportCalls).toHaveLength(2);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferArrayable",
+                node: validRightGenericNode,
+            });
+            expect(reportCalls[1]).toMatchObject({
+                messageId: "preferArrayable",
+                node: validLeftGenericNode,
+            });
+            expect(replacementFixCalls).toHaveLength(2);
+            expect(replacementFixCalls[0]?.[1]).toBe("Arrayable");
+            expect(replacementFixCalls[1]?.[1]).toBe("Arrayable");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(
-    "prefer-type-fest-arrayable",
-    getPluginRule("prefer-type-fest-arrayable"),
+    ruleId,
+    rule,
     {
         invalid: [
             {
@@ -234,6 +399,16 @@ ruleTester.run(
                 code: genericArrayMismatchedElementValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores generic array with mismatched element type",
+            },
+            {
+                code: reversedGenericArrayMismatchedElementValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores reversed generic array with mismatched element type",
+            },
+            {
+                code: nonArrayGenericMatchingElementValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-Array generic with matching element type",
             },
             {
                 code: bothMembersAreNativeArraysValidCode,

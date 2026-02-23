@@ -2,6 +2,9 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { describe, expect, it, vi } from "vitest";
+
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -9,6 +12,15 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+const ruleId = "prefer-ts-extras-is-defined-filter";
+const docsDescription =
+    "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.";
+const docsUrl =
+    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md";
+const preferTsExtrasIsDefinedFilterMessage =
+    "Prefer `isDefined` from `ts-extras` in `filter(...)` callbacks over inline undefined comparisons.";
+
+const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-defined-filter.valid.ts";
@@ -30,6 +42,28 @@ const inlineInvalidOutput = [
 const inlineInvalidRightSideCode = [
     "const values: Array<number | undefined> = [1, undefined, 2];",
     "const definedValues = values.filter((value) => undefined !== value);",
+    "String(definedValues);",
+].join("\n");
+const inlineInvalidLooseCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter((value) => value != undefined);",
+    "String(definedValues);",
+].join("\n");
+const inlineInvalidLooseOutput = [
+    'import { isDefined } from "ts-extras";',
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
+    "String(definedValues);",
+].join("\n");
+const inlineInvalidLooseRightSideCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter((value) => undefined != value);",
+    "String(definedValues);",
+].join("\n");
+const inlineInvalidLooseRightSideOutput = [
+    'import { isDefined } from "ts-extras";',
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
     "String(definedValues);",
 ].join("\n");
 const inlineInvalidRightSideOutput = [
@@ -63,6 +97,23 @@ const nonUndefinedLooseComparisonValidCode = [
     "const values: Array<number | null> = [1, null, 2];",
     "const definedValues = values.filter((value) => value != null);",
     "String(definedValues);",
+].join("\n");
+const differentIdentifierComparisonValidCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "declare const otherValue: number | undefined;",
+    "const definedValues = values.filter((value) => otherValue !== undefined);",
+    "String(values.length + definedValues.length);",
+].join("\n");
+const undefinedAliasComparisonValidCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "declare const undefinedAlias: undefined;",
+    "const definedValues = values.filter((value) => value !== undefinedAlias);",
+    "String(values.length + definedValues.length);",
+].join("\n");
+const typeofNonUndefinedLiteralValidCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter((value) => typeof value !== 'void');",
+    "String(values.length + definedValues.length);",
 ].join("\n");
 const identifierBodyValidCode = [
     "const values: Array<number | undefined> = [1, undefined, 2];",
@@ -126,6 +177,113 @@ const inlineFixableOutput = [
     "const definedValues = values.filter(isDefined);",
     "String(definedValues);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasIsDefinedFilter: preferTsExtrasIsDefinedFilterMessage,
+    },
+    name: ruleId,
+});
+
+describe("prefer-ts-extras-is-defined-filter metadata literals", () => {
+    it("declares the authored docs URL literal", () => {
+        expect(rule.meta.docs.url).toBe(docsUrl);
+    });
+});
+
+describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
+    it("ignores non-Identifier filter property and non-callback first argument", async () => {
+        const reportCalls: Array<{ messageId?: string }> = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                createSafeValueReferenceReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule = (await import(
+                "../src/rules/prefer-ts-extras-is-defined-filter.ts"
+            )) as {
+                default: {
+                    create: (context: unknown) => {
+                        CallExpression?: (node: unknown) => void;
+                    };
+                };
+            };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: { messageId?: string }) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    getText: () => "value",
+                },
+            });
+
+            const callExpressionListener = listeners.CallExpression;
+            expect(callExpressionListener).toBeTypeOf("function");
+
+            const privateFilterPropertyCallNode = {
+                arguments: [],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "PrivateIdentifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            const nonCallbackFirstArgumentCallNode = {
+                arguments: [
+                    {
+                        name: "predicate",
+                        type: "Identifier",
+                    },
+                ],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            callExpressionListener?.(privateFilterPropertyCallNode);
+            callExpressionListener?.(nonCallbackFirstArgumentCallNode);
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 const fixtureInvalidOutput = [
     "interface MonitorRecord {",
     "    readonly id: string;",
@@ -163,8 +321,8 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
         );
 
 ruleTester.run(
-    "prefer-ts-extras-is-defined-filter",
-    getPluginRule("prefer-ts-extras-is-defined-filter"),
+    ruleId,
+    rule,
     {
         invalid: [
             {
@@ -194,6 +352,20 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports arrow predicate undefined !== value",
                 output: inlineInvalidRightSideOutput,
+            },
+            {
+                code: inlineInvalidLooseCode,
+                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports arrow predicate value != undefined",
+                output: inlineInvalidLooseOutput,
+            },
+            {
+                code: inlineInvalidLooseRightSideCode,
+                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports arrow predicate undefined != value",
+                output: inlineInvalidLooseRightSideOutput,
             },
             {
                 code: typeofInvalidCode,
@@ -260,6 +432,21 @@ ruleTester.run(
                 code: nonUndefinedLooseComparisonValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores loose comparison against null",
+            },
+            {
+                code: differentIdentifierComparisonValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined comparison using non-parameter identifier",
+            },
+            {
+                code: undefinedAliasComparisonValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined alias identifier comparison",
+            },
+            {
+                code: typeofNonUndefinedLiteralValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores typeof comparison against non-undefined literal",
             },
             {
                 code: identifierBodyValidCode,

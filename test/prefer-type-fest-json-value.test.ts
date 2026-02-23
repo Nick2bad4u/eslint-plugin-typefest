@@ -12,8 +12,16 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
+const ruleId = "prefer-type-fest-json-value";
+const docsDescription =
+    "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.";
+const preferJsonValueMessage =
+    "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.";
+const suggestJsonObjectMessage =
+    "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).";
+
 const ruleTester = createTypedRuleTester();
-const rule = getPluginRule("prefer-type-fest-json-value");
+const rule = getPluginRule(ruleId);
 
 const invalidFixtureName = "prefer-type-fest-json-value.invalid.ts";
 const validFixtureName = "prefer-type-fest-json-value.valid.ts";
@@ -67,30 +75,33 @@ const inlineValidNonUnknownValueCode =
     "type IpcPayload = Record<string, string>;";
 const inlineValidMapCode = "type IpcPayload = Map<string, unknown>;";
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-value", {
-    docsDescription:
-        "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
     messages: {
-        preferJsonValue:
-            "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
-        suggestJsonObject:
-            "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).",
+        preferJsonValue: preferJsonValueMessage,
+        suggestJsonObject: suggestJsonObjectMessage,
     },
+    name: ruleId,
 });
 
 describe("prefer-type-fest-json-value metadata", () => {
-    it("declares suggestion metadata", () => {
-        expect(
-            (
-                rule as unknown as {
-                    readonly meta?: { readonly hasSuggestions?: boolean };
-                }
-            ).meta?.hasSuggestions
-        ).toBeTruthy();
+    it("declares authored hasSuggestions metadata literal", async () => {
+        const authoredRuleModule = (await import(
+            "../src/rules/prefer-type-fest-json-value.ts"
+        )) as {
+            default: {
+                readonly meta?: {
+                    readonly hasSuggestions?: boolean;
+                };
+            };
+        };
+
+        expect(authoredRuleModule.default.meta?.hasSuggestions).toBe(true);
     });
 });
 
-ruleTester.run("prefer-type-fest-json-value", rule, {
+ruleTester.run(ruleId, rule, {
     invalid: [
         {
             code: invalidFixtureCode,

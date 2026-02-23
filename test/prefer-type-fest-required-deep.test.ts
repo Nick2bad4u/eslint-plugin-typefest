@@ -38,7 +38,18 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 );
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-required-deep"
+    "prefer-type-fest-required-deep",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require TypeFest RequiredDeep over `DeepRequired` aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferRequiredDeep:
+                "Prefer `RequiredDeep` from type-fest over `DeepRequired`.",
+        },
+        name: "prefer-type-fest-required-deep",
+    }
 );
 
 ruleTester.run(
