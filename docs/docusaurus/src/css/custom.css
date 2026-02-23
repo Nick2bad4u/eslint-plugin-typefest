@@ -40,6 +40,7 @@
     --sb-accent-api-overview: #6366f1;
     --sb-accent-api-types: #14b8a6;
     --sb-accent-api-runtime: #f43f5e;
+    --sb-accent-adr: #f59e0b;
     --sb-accent-rules-ts: #22c55e;
     --sb-accent-rules-type-fest: #a855f7;
 }
@@ -60,6 +61,7 @@
     --sb-accent-api-overview: #a5b4fc;
     --sb-accent-api-types: #2dd4bf;
     --sb-accent-api-runtime: #fb7185;
+    --sb-accent-adr: #fbbf24;
     --sb-accent-rules-ts: #4ade80;
     --sb-accent-rules-type-fest: #c084fc;
 }
@@ -92,6 +94,7 @@
 .sb-doc-api-overview > .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
+.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
 .sb-cat-rules > .menu__list-item-collapsible .menu__link {
@@ -115,6 +118,10 @@
     border-inline-start-color: var(--sb-accent-developer);
 }
 
+.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link {
+    border-inline-start-color: var(--sb-accent-adr);
+}
+
 .sb-cat-presets > .menu__list-item-collapsible .menu__link {
     border-inline-start-color: var(--sb-accent-presets);
 }
@@ -132,6 +139,7 @@
 }
 
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
+.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
@@ -144,6 +152,7 @@
 }
 
 .sb-cat-developer > .menu__list-item-collapsible .menu__link::before,
+.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link::before,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link::before,
@@ -164,6 +173,13 @@
     background-color: rgb(139 92 246 / 14%);
     border: 1px solid rgb(139 92 246 / 40%);
     color: var(--sb-accent-developer);
+}
+
+.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link::before {
+    content: "adr";
+    background-color: rgb(245 158 11 / 14%);
+    border: 1px solid rgb(245 158 11 / 40%);
+    color: var(--sb-accent-adr);
 }
 
 .sb-cat-rules > .menu__list-item-collapsible .menu__link::before {
@@ -222,6 +238,12 @@
     box-shadow: inset 0 0 0 1px rgb(139 92 246 / 25%);
 }
 
+.sb-cat-developer-adr:not(.menu__list-item--collapsed)
+    > .menu__list-item-collapsible
+    .menu__link {
+    box-shadow: inset 0 0 0 1px rgb(245 158 11 / 25%);
+}
+
 .sb-cat-rules:not(.menu__list-item--collapsed)
     > .menu__list-item-collapsible
     .menu__link {
@@ -260,6 +282,10 @@
 
 .sb-cat-developer .theme-doc-sidebar-item-link-level-2 > .menu__link {
     border-inline-start: 2px solid rgb(139 92 246 / 45%);
+}
+
+.sb-cat-developer-adr .theme-doc-sidebar-item-link-level-2 > .menu__link {
+    border-inline-start: 2px solid rgb(245 158 11 / 45%);
 }
 
 .sb-cat-rules .theme-doc-sidebar-item-link-level-2 > .menu__link {

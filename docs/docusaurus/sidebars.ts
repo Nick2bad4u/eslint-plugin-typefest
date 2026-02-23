@@ -22,6 +22,41 @@ const sidebars: SidebarsConfig = {
                     type: "doc",
                 },
                 {
+                    className: "sb-cat-developer-adr",
+                    collapsed: true,
+                    customProps: {
+                        badge: "adr",
+                    },
+                    items: [
+                        {
+                            id: "developer/adr/index",
+                            label: "📚 ADR Index",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/0001-eslint-plugin-kit-adoption",
+                            label: "ADR 0001 · plugin-kit",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/0002-eslint-config-helpers-scope",
+                            label: "ADR 0002 · config-helpers",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/0003-eslint-object-schema-adoption",
+                            label: "ADR 0003 · object-schema",
+                            type: "doc",
+                        },
+                    ],
+                    label: "🧭 Architecture Decisions",
+                    link: {
+                        id: "developer/adr/index",
+                        type: "doc",
+                    },
+                    type: "category",
+                },
+                {
                     className: "sb-cat-api-types",
                     collapsed: true,
                     customProps: {

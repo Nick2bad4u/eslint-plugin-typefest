@@ -34,8 +34,9 @@
         "site-docs"
     ],
     "scripts": {
-        "build": "node ../../scripts/build-eslint-inspector.mjs && npm run docs:api && docusaurus build",
-        "build:local": "node ../../scripts/build-eslint-inspector.mjs && npm run docs:api:local && cross-env NODE_OPTIONS=--no-deprecation docusaurus build",
+        "build": "npm run docs:api && cd ../../ && npm run build:eslint-inspector && cd docs/docusaurus && docusaurus build",
+        "build:fast": "cross-env DOCUSAURUS_ENABLE_EXPERIMENTAL=true docusaurus build",
+        "build:local": "npm run docs:api:local && npm run build:eslint-inspector:local && cross-env NODE_OPTIONS=--no-deprecation docusaurus build",
         "clear": "docusaurus clear",
         "deploy": "docusaurus deploy",
         "docs:api": "typedoc --options typedoc.config.json",

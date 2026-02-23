@@ -352,7 +352,14 @@ function batches(array, size) {
 }
 
 /**
+ * Main entry point for documentation link checking.
  *
+ * Collects markdown files, checks links, aggregates issues and metrics,
+ * and prints summary results.
+ *
+ * Handles concurrency, fail-fast, and verbose options.
+ *
+ * @returns {Promise<void>}
  */
 async function main() {
     /**
