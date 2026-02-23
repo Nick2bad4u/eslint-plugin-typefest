@@ -18,6 +18,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-omit-index-signature.skip.ts";
 const invalidFixtureName = "prefer-type-fest-omit-index-signature.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { RemoveIndexSignature } from "type-aliases";\r\n',
+        'import type { RemoveIndexSignature } from "type-aliases";\nimport type { OmitIndexSignature } from "type-fest";\r\n'
+    )
+    .replace("RemoveIndexSignature<", "OmitIndexSignature<");
 const inlineFixableInvalidCode = [
     'import type { RemoveIndexSignature } from "type-aliases";',
     'import type { OmitIndexSignature } from "type-fest";',
@@ -29,7 +36,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-omit-index-signature");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-omit-index-signature"
+);
 
 ruleTester.run(
     "prefer-type-fest-omit-index-signature",
@@ -37,7 +46,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -49,6 +58,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture RemoveIndexSignature alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

@@ -19,6 +19,15 @@ const validFixtureName = "prefer-type-fest-writable-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-writable-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-writable-deep.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { WritableDeep } from "type-fest";\n${invalidFixtureCode.replace(
+    "DeepMutable<TeamConfig>",
+    "WritableDeep<TeamConfig>"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "MutableDeep<TeamConfig>",
+    "WritableDeep<TeamConfig>"
+);
 const inlineFixableInvalidCode = [
     'import type { DeepMutable } from "type-aliases";',
     'import type { WritableDeep } from "type-fest";',
@@ -38,13 +47,17 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 ruleTester.run("prefer-type-fest-writable-deep", writableDeepRule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 { messageId: "preferWritableDeep" },
                 { messageId: "preferWritableDeep" },
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture DeepMutable aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineFixableInvalidCode,
@@ -86,16 +99,14 @@ interface WritableDeepRuleMetadataSnapshot {
     name?: string;
 }
 
-const loadWritableDeepRuleMetadata = async (): Promise<
-    WritableDeepRuleMetadataSnapshot
-> => {
-    vi.resetModules();
-    const moduleUnderTest = await import(
-        "../src/rules/prefer-type-fest-writable-deep.ts"
-    );
+const loadWritableDeepRuleMetadata =
+    async (): Promise<WritableDeepRuleMetadataSnapshot> => {
+        vi.resetModules();
+        const moduleUnderTest =
+            await import("../src/rules/prefer-type-fest-writable-deep");
 
-    return moduleUnderTest.default as WritableDeepRuleMetadataSnapshot;
-};
+        return moduleUnderTest.default as WritableDeepRuleMetadataSnapshot;
+    };
 
 describe("prefer-type-fest-writable-deep metadata", () => {
     it("declares stable metadata values", async () => {
@@ -140,7 +151,7 @@ describe("prefer-type-fest-writable-deep metadata", () => {
             }));
 
             const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-writable-deep.ts")) as {
+                (await import("../src/rules/prefer-type-fest-writable-deep")) as {
                     default: WritableDeepRuleMetadataSnapshot;
                 };
 
@@ -184,7 +195,7 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
             }));
 
             const moduleUnderTest =
-                (await import("../src/rules/prefer-type-fest-writable-deep.ts")) as unknown as {
+                (await import("../src/rules/prefer-type-fest-writable-deep")) as unknown as {
                     default: WritableDeepRuleModuleForCreate;
                 };
 

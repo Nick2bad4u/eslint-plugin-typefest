@@ -6,7 +6,7 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -117,18 +117,6 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     | TSESTree.FunctionExpression;
                 predicateCall: TSESTree.CallExpression;
             }): null | TSESLint.ReportFixFunction => {
-                const replacementName = getSafeLocalNameForImportedValue({
-                    context,
-                    importedName: "not",
-                    imports: tsExtrasImports,
-                    referenceNode: callbackNode,
-                    sourceModuleName: "ts-extras",
-                });
-
-                if (!replacementName) {
-                    return null;
-                }
-
                 if (
                     predicateCall.optional ||
                     predicateCall.callee.type !== "Identifier"
@@ -144,11 +132,15 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     return null;
                 }
 
-                return (fixer) =>
-                    fixer.replaceText(
-                        callbackNode,
-                        `${replacementName}(${predicateText})`
-                    );
+                return createSafeValueNodeTextReplacementFix({
+                    context,
+                    importedName: "not",
+                    imports: tsExtrasImports,
+                    replacementTextFactory: (replacementName) =>
+                        `${replacementName}(${predicateText})`,
+                    sourceModuleName: "ts-extras",
+                    targetNode: callbackNode,
+                });
             };
 
             return {

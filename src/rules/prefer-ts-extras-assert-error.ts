@@ -6,7 +6,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -105,15 +105,18 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementName = getSafeLocalNameForImportedValue({
-                        context,
-                        importedName: "assertError",
-                        imports: tsExtrasImports,
-                        referenceNode: node,
-                        sourceModuleName: "ts-extras",
-                    });
+                    const replacementFix =
+                        createSafeValueNodeTextReplacementFix({
+                            context,
+                            importedName: "assertError",
+                            imports: tsExtrasImports,
+                            replacementTextFactory: (replacementName) =>
+                                `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        });
 
-                    if (replacementName === null) {
+                    if (replacementFix === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertError",
                             node,
@@ -127,11 +130,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         node,
                         suggest: [
                             {
-                                fix: (fixer) =>
-                                    fixer.replaceText(
-                                        node,
-                                        `${replacementName}(${context.sourceCode.getText(guardExpression)});`
-                                    ),
+                                fix: replacementFix,
                                 messageId: "suggestTsExtrasAssertError",
                             },
                         ],

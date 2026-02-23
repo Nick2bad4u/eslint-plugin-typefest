@@ -22,14 +22,31 @@ const inlineInvalidUnionArrayCode = [
     "const firstStatus = monitorStatuses[0];",
     "String(firstStatus);",
 ].join("\n");
+const inlineInvalidUnionArrayOutput = [
+    'import { arrayFirst } from "ts-extras";',
+    "declare const monitorStatuses: readonly string[] | readonly number[];",
+    "const firstStatus = arrayFirst(monitorStatuses);",
+    "String(firstStatus);",
+].join("\n");
 const inlineInvalidStringZeroCode = [
     "declare const monitorStatuses: readonly string[];",
     'const firstStatus = monitorStatuses["0"];',
     "String(firstStatus);",
 ].join("\n");
+const inlineInvalidStringZeroOutput = [
+    'import { arrayFirst } from "ts-extras";',
+    "declare const monitorStatuses: readonly string[];",
+    "const firstStatus = arrayFirst(monitorStatuses);",
+    "String(firstStatus);",
+].join("\n");
 const inlineInvalidUnaryVoidCode = [
     "declare const monitorStatuses: readonly string[];",
     "void monitorStatuses[0];",
+].join("\n");
+const inlineInvalidUnaryVoidOutput = [
+    'import { arrayFirst } from "ts-extras";',
+    "declare const monitorStatuses: readonly string[];",
+    "void arrayFirst(monitorStatuses);",
 ].join("\n");
 const inlineValidDeleteWriteTargetCode = [
     "const mutableStatuses = ['down', 'up'];",
@@ -69,18 +86,21 @@ ruleTester.run("prefer-ts-extras-array-first", rule, {
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports index-zero read on readonly array union",
+            output: inlineInvalidUnionArrayOutput,
         },
         {
             code: inlineInvalidStringZeroCode,
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports string-literal zero index access",
+            output: inlineInvalidStringZeroOutput,
         },
         {
             code: inlineInvalidUnaryVoidCode,
             errors: [{ messageId: "preferTsExtrasArrayFirst" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports unary-void index-zero read",
+            output: inlineInvalidUnaryVoidOutput,
         },
         {
             code: inlineFixableCode,

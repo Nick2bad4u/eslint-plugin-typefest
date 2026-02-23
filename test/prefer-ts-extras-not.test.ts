@@ -22,6 +22,15 @@ const inlineInvalidArrowNegatedPredicateCode = [
     "",
     "String(missingEntries.length);",
 ].join("\n");
+const inlineInvalidArrowNegatedPredicateOutput = [
+    'import { not } from "ts-extras";',
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "declare const nullableEntries: readonly (null | string)[];",
+    "",
+    "const missingEntries = nullableEntries.filter(not(isPresent));",
+    "",
+    "String(missingEntries.length);",
+].join("\n");
 const inlineValidFilterWithoutArgumentsCode = [
     "declare const nullableEntries: readonly (null | string)[];",
     "",
@@ -147,6 +156,7 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             errors: [{ messageId: "preferTsExtrasNot" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports inline negated predicate in filter callback",
+            output: inlineInvalidArrowNegatedPredicateOutput,
         },
         {
             code: inlineFixableCode,

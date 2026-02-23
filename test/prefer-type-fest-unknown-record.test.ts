@@ -14,6 +14,11 @@ const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-type-fest-unknown-record.invalid.ts";
 const validFixtureName = "prefer-type-fest-unknown-record.valid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { UnknownRecord } from "type-fest";\n${invalidFixtureCode.replace(
+    "Record<string, unknown>",
+    "UnknownRecord"
+)}`;
 const inlineValidGlobalRecordCode =
     "type SharedContext = globalThis.Record<string, unknown>;";
 const inlineValidNonUnknownValueCode =
@@ -22,6 +27,10 @@ const inlineValidNonStringKeyCode =
     "type SharedContext = Record<number, unknown>;";
 const inlineInvalidRecordStringUnknownCode =
     "type SharedContext = Record<string, unknown>;";
+const inlineInvalidRecordStringUnknownOutput = [
+    'import type { UnknownRecord } from "type-fest";',
+    "type SharedContext = UnknownRecord;",
+].join("\n");
 const inlineFixableCode = [
     'import type { UnknownRecord } from "type-fest";',
     "",
@@ -33,7 +42,9 @@ const inlineFixableOutput = [
     "type SharedContext = UnknownRecord;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-record");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-unknown-record"
+);
 
 ruleTester.run(
     "prefer-type-fest-unknown-record",
@@ -41,16 +52,18 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [{ messageId: "preferUnknownRecord" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture unknown record aliases",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineInvalidRecordStringUnknownCode,
                 errors: [{ messageId: "preferUnknownRecord" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports inline Record<string, unknown> alias",
+                output: inlineInvalidRecordStringUnknownOutput,
             },
             {
                 code: inlineFixableCode,

@@ -17,7 +17,16 @@ const rule = getPluginRule("prefer-type-fest-json-value");
 
 const invalidFixtureName = "prefer-type-fest-json-value.invalid.ts";
 const validFixtureName = "prefer-type-fest-json-value.valid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const invalidFixtureSuggestionOutput = `import type { JsonObject } from "type-fest";\n${invalidFixtureCode.replace(
+    "Record<string, unknown>",
+    "JsonObject"
+)}`;
 const inlineInvalidAnyPayloadCode = "type IpcPayload = Record<string, any>;";
+const inlineInvalidAnyPayloadSuggestionOutput = [
+    'import type { JsonObject } from "type-fest";',
+    "type IpcPayload = JsonObject;",
+].join("\n");
 const inlineSuggestableCode = [
     'import type { JsonObject } from "type-fest";',
     "",
@@ -81,116 +90,124 @@ describe("prefer-type-fest-json-value metadata", () => {
     });
 });
 
-ruleTester.run(
-    "prefer-type-fest-json-value",
-    rule,
-    {
-        invalid: [
-            {
-                code: readTypedFixture(invalidFixtureName),
-                errors: [
-                    {
-                        messageId: "preferJsonValue",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture Record<string, any> aliases",
-            },
-            {
-                code: inlineInvalidAnyPayloadCode,
-                errors: [
-                    {
-                        messageId: "preferJsonValue",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports inline Record<string, any> alias",
-            },
-            {
-                code: inlineSuggestableCode,
-                errors: [
-                    {
-                        messageId: "preferJsonValue",
-                        suggestions: [
-                            {
-                                messageId: "suggestJsonObject",
-                                output: inlineSuggestableOutput,
-                            },
-                        ],
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "suggests JsonObject when import is in scope",
-            },
-            {
-                code: inlineSuggestableLiteralStringKeyCode,
-                errors: [
-                    {
-                        messageId: "preferJsonValue",
-                        suggestions: [
-                            {
-                                messageId: "suggestJsonObject",
-                                output: inlineSuggestableLiteralStringKeyOutput,
-                            },
-                        ],
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "suggests JsonObject for Record<\"string\", unknown> when import is in scope",
-            },
-            {
-                code: inlineSuggestableAnyPayloadCode,
-                errors: [
-                    {
-                        messageId: "preferJsonValue",
-                        suggestions: [
-                            {
-                                messageId: "suggestJsonObject",
-                                output: inlineSuggestableAnyPayloadOutput,
-                            },
-                        ],
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "suggests JsonObject for Record<string, any> when import is in scope",
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: inlineValidGlobalRecordCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores globalThis.Record<string, unknown>",
-            },
-            {
-                code: inlineValidNonStringKeyCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores Record with non-string key type",
-            },
-            {
-                code: inlineValidLiteralNonStringKeyCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores Record with literal key that is not \"string\"",
-            },
-            {
-                code: inlineValidNonUnknownValueCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores Record with concrete value type",
-            },
-            {
-                code: inlineValidMapCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-Record map type alias",
-            },
-            {
-                code: readTypedFixture(invalidFixtureName),
-                filename: typedFixturePath("tests", invalidFixtureName),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run("prefer-type-fest-json-value", rule, {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    messageId: "preferJsonValue",
+                    suggestions: [
+                        {
+                            messageId: "suggestJsonObject",
+                            output: invalidFixtureSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Record<string, any> aliases",
+        },
+        {
+            code: inlineInvalidAnyPayloadCode,
+            errors: [
+                {
+                    messageId: "preferJsonValue",
+                    suggestions: [
+                        {
+                            messageId: "suggestJsonObject",
+                            output: inlineInvalidAnyPayloadSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports inline Record<string, any> alias",
+        },
+        {
+            code: inlineSuggestableCode,
+            errors: [
+                {
+                    messageId: "preferJsonValue",
+                    suggestions: [
+                        {
+                            messageId: "suggestJsonObject",
+                            output: inlineSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests JsonObject when import is in scope",
+        },
+        {
+            code: inlineSuggestableLiteralStringKeyCode,
+            errors: [
+                {
+                    messageId: "preferJsonValue",
+                    suggestions: [
+                        {
+                            messageId: "suggestJsonObject",
+                            output: inlineSuggestableLiteralStringKeyOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: 'suggests JsonObject for Record<"string", unknown> when import is in scope',
+        },
+        {
+            code: inlineSuggestableAnyPayloadCode,
+            errors: [
+                {
+                    messageId: "preferJsonValue",
+                    suggestions: [
+                        {
+                            messageId: "suggestJsonObject",
+                            output: inlineSuggestableAnyPayloadOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests JsonObject for Record<string, any> when import is in scope",
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: inlineValidGlobalRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.Record<string, unknown>",
+        },
+        {
+            code: inlineValidNonStringKeyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with non-string key type",
+        },
+        {
+            code: inlineValidLiteralNonStringKeyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: 'ignores Record with literal key that is not "string"',
+        },
+        {
+            code: inlineValidNonUnknownValueCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with concrete value type",
+        },
+        {
+            code: inlineValidMapCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-Record map type alias",
+        },
+        {
+            code: readTypedFixture(invalidFixtureName),
+            filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

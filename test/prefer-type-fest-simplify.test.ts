@@ -18,6 +18,17 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-simplify.skip.ts";
 const invalidFixtureName = "prefer-type-fest-simplify.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { Expand, Prettify } from "type-fest";\r\n',
+        'import type { Expand, Prettify } from "type-fest";\nimport type { Simplify } from "type-fest";\r\n'
+    )
+    .replace("Expand<", "Simplify<");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "Prettify<",
+    "Simplify<"
+);
 const inlineFixableInvalidCode = [
     'import type { Expand, Simplify } from "type-fest";',
     "",
@@ -37,6 +48,16 @@ const inlineInvalidWithoutFixCode = [
     "};",
     "",
     "type Flattened = Expand<Payload>;",
+].join("\n");
+const inlineInvalidWithoutFixOutputCode = [
+    'import type { Expand } from "type-fest";',
+    'import type { Simplify } from "type-fest";',
+    "",
+    "type Payload = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Flattened = Simplify<Payload>;",
 ].join("\n");
 const inlineFixablePrettifyCode = [
     'import type { Prettify, Simplify } from "type-fest";',
@@ -73,7 +94,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -92,6 +113,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Id and Prettify aliases",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,
@@ -121,7 +146,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports Expand alias without fix when Simplify import is missing",
-                output: null,
+                output: inlineInvalidWithoutFixOutputCode,
             },
             {
                 code: inlineFixablePrettifyCode,

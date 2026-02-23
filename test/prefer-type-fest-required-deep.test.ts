@@ -16,6 +16,11 @@ const validFixtureName = "prefer-type-fest-required-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-required-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-required-deep.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { RequiredDeep } from "type-fest";\n${invalidFixtureCode.replace(
+    "DeepRequired<TeamConfig>",
+    "RequiredDeep<TeamConfig>"
+)}`;
 const inlineFixableInvalidCode = [
     'import type { DeepRequired } from "type-aliases";',
     'import type { RequiredDeep } from "type-fest";',
@@ -32,7 +37,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type StrictUser = RequiredDeep<User>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-required-deep");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-required-deep"
+);
 
 ruleTester.run(
     "prefer-type-fest-required-deep",
@@ -40,10 +47,11 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [{ messageId: "preferRequiredDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture DeepRequired alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

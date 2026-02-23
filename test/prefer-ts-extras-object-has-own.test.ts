@@ -13,6 +13,25 @@ const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-ts-extras-object-has-own.invalid.ts";
 const validFixtureName = "prefer-ts-extras-object-has-own.valid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        "declare const candidate: unknown;\r\n",
+        'import { objectHasOwn } from "ts-extras";\ndeclare const candidate: unknown;\r\n'
+    )
+    .replace(
+        'Object.hasOwn(candidate, "status")',
+        'objectHasOwn(candidate, "status")'
+    );
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "Object.hasOwn(variants, propertyName)",
+    "objectHasOwn(variants, propertyName)"
+);
+const fixtureFixableThirdPassOutputCode =
+    fixtureFixableSecondPassOutputCode.replace(
+        'Object.hasOwn(variants, "success")',
+        'objectHasOwn(variants, "success")'
+    );
 const inlineFixableCode = [
     'import { objectHasOwn } from "ts-extras";',
     "",
@@ -46,7 +65,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasObjectHasOwn" },
                     { messageId: "preferTsExtrasObjectHasOwn" },
@@ -54,6 +73,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Object.hasOwn checks",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableThirdPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableCode,

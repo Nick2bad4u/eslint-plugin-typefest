@@ -42,12 +42,27 @@ const unionArrayInvalidCode = [
     "const merged = numbers.concat([4]);",
     "String(merged);",
 ].join("\n");
+const unionArrayInvalidOutput = [
+    'import { arrayConcat } from "ts-extras";',
+    "declare const numbers: number[] | readonly number[];",
+    "const merged = arrayConcat(numbers, [4]);",
+    "String(merged);",
+].join("\n");
 const unionWithCustomValidCode = [
     "type Custom = {",
     "    concat(values: readonly number[]): readonly number[];",
     "};",
     "declare const numbers: number[] | Custom;",
     "const merged = numbers.concat([4]);",
+    "String(merged);",
+].join("\n");
+const unionWithCustomOutput = [
+    'import { arrayConcat } from "ts-extras";',
+    "type Custom = {",
+    "    concat(values: readonly number[]): readonly number[];",
+    "};",
+    "declare const numbers: number[] | Custom;",
+    "const merged = arrayConcat(numbers, [4]);",
     "String(merged);",
 ].join("\n");
 const inlineFixableCode = [
@@ -86,12 +101,14 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayConcat" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union of mutable and readonly arrays",
+                output: unionArrayInvalidOutput,
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayConcat" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom concat receiver",
+                output: unionWithCustomOutput,
             },
             {
                 code: inlineFixableCode,

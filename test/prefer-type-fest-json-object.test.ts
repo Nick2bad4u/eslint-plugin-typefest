@@ -15,11 +15,29 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-json-object.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-object.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { JsonValue } from "type-fest";\r\n',
+        'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";\r\n'
+    )
+    .replace("Record<string, JsonValue>", "JsonObject");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "Record<string, JsonValue>",
+    "JsonObject"
+);
 const inlineInvalidLiteralStringKeyCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     'type MonitorJsonShape = Record<"string", JsonValue>;',
 ].join("\n");
+const inlineInvalidLiteralStringKeyOutputCode =
+    inlineInvalidLiteralStringKeyCode
+        .replace(
+            'import type { JsonValue } from "type-fest";',
+            'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";'
+        )
+        .replace('Record<"string", JsonValue>', "JsonObject");
 const inlineValidGlobalRecordCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -49,6 +67,12 @@ const inlineInvalidWithoutFixCode = [
     "",
     "type MonitorJsonShape = Record<string, JsonValue>;",
 ].join("\n");
+const inlineInvalidWithoutFixOutputCode = inlineInvalidWithoutFixCode
+    .replace(
+        'import type { JsonValue } from "type-fest";',
+        'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";'
+    )
+    .replace("Record<string, JsonValue>", "JsonObject");
 const inlineFixableCode = [
     'import type { JsonObject, JsonValue } from "type-fest";',
     "",
@@ -76,7 +100,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 ruleTester.run("prefer-type-fest-json-object", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferJsonObject",
@@ -87,19 +111,24 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonObject-like Record aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidLiteralStringKeyCode,
             errors: [{ messageId: "preferJsonObject" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Record with literal string key and JsonValue value",
+            output: inlineInvalidLiteralStringKeyOutputCode,
         },
         {
             code: inlineInvalidWithoutFixCode,
             errors: [{ messageId: "preferJsonObject" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Record<string, JsonValue> without fix when JsonObject import is missing",
-            output: null,
+            output: inlineInvalidWithoutFixOutputCode,
         },
         {
             code: inlineFixableCode,
@@ -123,7 +152,7 @@ ruleTester.run("prefer-type-fest-json-object", rule, {
         {
             code: inlineValidLiteralNonStringKeyCode,
             filename: typedFixturePath(validFixtureName),
-            name: "ignores Record with literal key other than \"string\"",
+            name: 'ignores Record with literal key other than "string"',
         },
         {
             code: inlineValidNonJsonValueCode,

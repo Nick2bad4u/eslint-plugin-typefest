@@ -18,6 +18,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-set-required.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-required.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { RequiredBy } from "type-aliases";\r\n',
+        'import type { RequiredBy } from "type-aliases";\nimport type { SetRequired } from "type-fest";\r\n'
+    )
+    .replace("RequiredBy<", "SetRequired<");
 const inlineFixableInvalidCode = [
     'import type { RequiredBy } from "type-aliases";',
     'import type { SetRequired } from "type-fest";',
@@ -34,7 +41,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type StrictUser = SetRequired<User, "id">;'
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-set-required");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-set-required"
+);
 
 ruleTester.run(
     "prefer-type-fest-set-required",
@@ -42,7 +51,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -54,6 +63,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture MarkRequired and RequiredBy aliases",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

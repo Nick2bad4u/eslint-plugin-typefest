@@ -37,6 +37,10 @@ const inlineFixableOutput = [
     "const sample = { alpha: 1 } as const;",
     "const keys = objectKeys(sample);",
 ].join("\n");
+const inlineInvalidOutputCode = [
+    'import { objectKeys } from "ts-extras";',
+    "const keys = objectKeys({ alpha: 1 });",
+].join("\n");
 const skipPathInvalidCode = inlineInvalidCode;
 
 ruleTester.run("prefer-ts-extras-object-keys", rule, {
@@ -59,6 +63,7 @@ ruleTester.run("prefer-ts-extras-object-keys", rule, {
             errors: [{ messageId: "preferTsExtrasObjectKeys" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.keys call",
+            output: inlineInvalidOutputCode,
         },
         {
             code: inlineFixableCode,

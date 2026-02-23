@@ -15,8 +15,21 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-set.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-set.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { UnknownSet } from "type-fest";\n${invalidFixtureCode.replace(
+    "ReadonlySet<unknown>",
+    "UnknownSet"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "ReadonlySet<unknown>",
+    "UnknownSet"
+);
 const inlineInvalidSetCode = "type Input = Set<unknown>;";
 const inlineInvalidReadonlySetCode = "type Input = ReadonlySet<unknown>;";
+const inlineInvalidReadonlySetOutputCode = [
+    'import type { UnknownSet } from "type-fest";',
+    "type Input = UnknownSet;",
+].join("\n");
 const inlineValidSetCode = "type Input = Set<string>;";
 const inlineValidReadonlySetCode = "type Input = ReadonlySet<number>;";
 const inlineValidReadonlySetNoTypeArgumentsCode = "type Input = ReadonlySet;";
@@ -41,7 +54,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set");
 ruleTester.run("prefer-type-fest-unknown-set", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferUnknownSet",
@@ -52,12 +65,17 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture UnknownSet aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReadonlySetCode,
             errors: [{ messageId: "preferUnknownSet" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports inline ReadonlySet<unknown> alias",
+            output: inlineInvalidReadonlySetOutputCode,
         },
         {
             code: inlineFixableCode,

@@ -16,8 +16,17 @@ const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-abstract-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { AbstractConstructor } from "type-fest";\n${invalidFixtureCode.replace(
+    "abstract new (\r\n    queueName: string,\r\n    retryCount: number\r\n) => QueueClient",
+    "AbstractConstructor<QueueClient, [queueName: string, retryCount: number]>"
+)}`;
 const inlineInvalidNoFilenameCode =
     "type AbstractCtor = abstract new (...args: readonly unknown[]) => object;";
+const inlineInvalidNoFilenameOutput = [
+    'import type { AbstractConstructor } from "type-fest";',
+    "type AbstractCtor = AbstractConstructor<object, [...args: readonly unknown[]]>;",
+].join("\n");
 const inlineFixableCode = [
     'import type { AbstractConstructor } from "type-fest";',
     "",
@@ -29,7 +38,9 @@ const inlineFixableOutput = [
     "type AbstractCtor = AbstractConstructor<object, [name: string, retryCount: number]>;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-abstract-constructor");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-abstract-constructor"
+);
 
 ruleTester.run(
     "prefer-type-fest-abstract-constructor",
@@ -37,7 +48,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         messageId: "preferAbstractConstructorSignature",
@@ -45,6 +56,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture abstract constructor signatures",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineInvalidNoFilenameCode,
@@ -54,6 +66,7 @@ ruleTester.run(
                     },
                 ],
                 name: "reports inline abstract constructor signature without filename",
+                output: inlineInvalidNoFilenameOutput,
             },
             {
                 code: inlineFixableCode,

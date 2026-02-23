@@ -15,7 +15,20 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-non-empty-tuple.valid.ts";
 const invalidFixtureName = "prefer-type-fest-non-empty-tuple.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { NonEmptyTuple } from "type-fest";\n${invalidFixtureCode.replace(
+    "type NamedNonEmptyTuple = readonly [first: number, ...rest: number[]];",
+    "type NamedNonEmptyTuple = NonEmptyTuple<number>;"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "type VerboseNonEmptyTuple = readonly [string, ...string[]];",
+    "type VerboseNonEmptyTuple = NonEmptyTuple<string>;"
+);
 const inlineInvalidTupleCode = "type Input = readonly [string, ...string[]];";
+const inlineInvalidTupleOutputCode = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "type Input = NonEmptyTuple<string>;",
+].join("\n");
 const optionalFirstValidCode = "type Input = [first?: string, ...string[]];";
 const restOnlyValidCode = "type Input = [...string[]];";
 const mixedUnionValidCode =
@@ -29,10 +42,22 @@ const optionalTypeReadonlyValidCode =
     "type Input = readonly [string?, ...string[]];";
 const namedRestInvalidCode =
     "type Input = readonly [string, ...rest: string[]];";
+const namedRestInvalidOutputCode = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "type Input = NonEmptyTuple<string>;",
+].join("\n");
 const namedHeadInvalidCode =
     "type Input = readonly [head: string, ...string[]];";
+const namedHeadInvalidOutputCode = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "type Input = NonEmptyTuple<string>;",
+].join("\n");
 const whitespaceNormalizedInvalidCode =
     "type Input = readonly [Map < string , number >, ...Map<string, number>[]];";
+const whitespaceNormalizedInvalidOutputCode = [
+    'import type { NonEmptyTuple } from "type-fest";',
+    "type Input = NonEmptyTuple<Map < string , number >>;",
+].join("\n");
 const nonArrayRestAnnotationValidCode =
     "type Input = readonly [string, ...rest: ReadonlyArray<string>];";
 const mismatchedReadonlyValidCode =
@@ -70,7 +95,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferNonEmptyTuple",
@@ -81,34 +106,38 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture readonly non-empty tuple aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidTupleCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with required head element",
-            output: null,
+            output: inlineInvalidTupleOutputCode,
         },
         {
             code: namedRestInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named rest element",
-            output: null,
+            output: namedRestInvalidOutputCode,
         },
         {
             code: namedHeadInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with named required head element",
-            output: null,
+            output: namedHeadInvalidOutputCode,
         },
         {
             code: whitespaceNormalizedInvalidCode,
             errors: [{ messageId: "preferNonEmptyTuple" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple when first and rest element text only differ by whitespace",
-            output: null,
+            output: whitespaceNormalizedInvalidOutputCode,
         },
         {
             code: inlineFixableCode,

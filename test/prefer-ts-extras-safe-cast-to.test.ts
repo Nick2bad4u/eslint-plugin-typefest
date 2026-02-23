@@ -15,6 +15,7 @@ const validFixtureName = "prefer-ts-extras-safe-cast-to.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-safe-cast-to.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-safe-cast-to.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const nonAssignableAsExpressionValidCode = [
     "declare const rawValue: unknown;",
     "const parsed = rawValue as string;",
@@ -39,6 +40,41 @@ const inlineFixableOutput = [
     "",
     "String(fallback.value);",
 ].join("\n");
+const fixtureInvalidOutput = [
+    "type Payload = {",
+    "    id: number;",
+    "    name: string;",
+    "};",
+    "",
+    'const nameLiteral = "Alice";',
+    "const nameValue = safeCastTo<string>(nameLiteral);",
+    "",
+    "const numberLiteral = 42;",
+    "const numberValue = <number>numberLiteral;",
+    "",
+    "const payloadLiteral = {",
+    "    id: 1,",
+    '    name: "alpha",',
+    "};",
+    "const payloadValue = payloadLiteral as Payload;",
+    "",
+    "String(nameValue);",
+    "String(numberValue);",
+    "String(payloadValue);",
+    "",
+    'export const __typedFixtureModule = "typed-fixture-module";',
+].join("\r\n");
+const fixtureInvalidOutputWithMixedLineEndings = `import { safeCastTo } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
+const fixtureInvalidSecondPassOutputWithMixedLineEndings =
+    fixtureInvalidOutputWithMixedLineEndings
+        .replace(
+            "const numberValue = <number>numberLiteral;\r\n",
+            "const numberValue = safeCastTo<number>(numberLiteral);\r\n"
+        )
+        .replace(
+            "const payloadValue = payloadLiteral as Payload;\r\n",
+            "const payloadValue = safeCastTo<Payload>(payloadLiteral);\r\n"
+        );
 
 ruleTester.run(
     "prefer-ts-extras-safe-cast-to",
@@ -46,7 +82,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasSafeCastTo" },
                     { messageId: "preferTsExtrasSafeCastTo" },
@@ -54,6 +90,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture unsafe cast assertions",
+                output: [
+                    fixtureInvalidOutputWithMixedLineEndings,
+                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                ],
             },
             {
                 code: inlineFixableCode,

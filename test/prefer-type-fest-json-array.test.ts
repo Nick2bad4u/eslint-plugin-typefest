@@ -15,21 +15,52 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-json-array.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-array.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { JsonValue } from "type-fest";\r\n',
+        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";\r\n'
+    )
+    .replace("JsonValue[] | readonly JsonValue[]", "JsonArray");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "    | Array<JsonValue>\r\n    | ReadonlyArray<JsonValue>",
+    "    JsonArray"
+);
 const inlineInvalidReversedNativeUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type ReversedNative = readonly JsonValue[] | JsonValue[];",
 ].join("\n");
+const inlineInvalidReversedNativeUnionOutputCode =
+    inlineInvalidReversedNativeUnionCode
+        .replace(
+            'import type { JsonValue } from "type-fest";',
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
+        )
+        .replace("readonly JsonValue[] | JsonValue[]", "JsonArray");
 const inlineInvalidReversedGenericUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type ReversedGeneric = ReadonlyArray<JsonValue> | Array<JsonValue>;",
 ].join("\n");
+const inlineInvalidReversedGenericUnionOutputCode =
+    inlineInvalidReversedGenericUnionCode
+        .replace(
+            'import type { JsonValue } from "type-fest";',
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
+        )
+        .replace("ReadonlyArray<JsonValue> | Array<JsonValue>", "JsonArray");
 const inlineInvalidGenericUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type GenericPair = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
+const inlineInvalidGenericUnionOutputCode = inlineInvalidGenericUnionCode
+    .replace(
+        'import type { JsonValue } from "type-fest";',
+        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
+    )
+    .replace("Array<JsonValue> | ReadonlyArray<JsonValue>", "JsonArray");
 const inlineValidMismatchedNativeAndGenericCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -78,11 +109,24 @@ const inlineInvalidWithoutFixCode = [
     "",
     "type Payload = JsonValue[] | readonly JsonValue[];",
 ].join("\n");
+const inlineInvalidWithoutFixOutputCode = inlineInvalidWithoutFixCode
+    .replace(
+        'import type { JsonValue } from "type-fest";',
+        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
+    )
+    .replace("JsonValue[] | readonly JsonValue[]", "JsonArray");
 const inlineInvalidGenericWithoutFixCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type Payload = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
+const inlineInvalidGenericWithoutFixOutputCode =
+    inlineInvalidGenericWithoutFixCode
+        .replace(
+            'import type { JsonValue } from "type-fest";',
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
+        )
+        .replace("Array<JsonValue> | ReadonlyArray<JsonValue>", "JsonArray");
 const inlineFixableReversedNativeCode = [
     'import type { JsonArray, JsonValue } from "type-fest";',
     "",
@@ -146,7 +190,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-json-array", {
 ruleTester.run("prefer-type-fest-json-array", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferJsonArray",
@@ -157,38 +201,45 @@ ruleTester.run("prefer-type-fest-json-array", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonArray-like unions",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReversedNativeUnionCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports reversed native array union",
+            output: inlineInvalidReversedNativeUnionOutputCode,
         },
         {
             code: inlineInvalidReversedGenericUnionCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports reversed generic array union",
+            output: inlineInvalidReversedGenericUnionOutputCode,
         },
         {
             code: inlineInvalidGenericUnionCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports generic array union",
+            output: inlineInvalidGenericUnionOutputCode,
         },
         {
             code: inlineInvalidWithoutFixCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports JsonValue array union without fix when JsonArray import is missing",
-            output: null,
+            output: inlineInvalidWithoutFixOutputCode,
         },
         {
             code: inlineInvalidGenericWithoutFixCode,
             errors: [{ messageId: "preferJsonArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports generic JsonValue array union without fix when JsonArray import is missing",
-            output: null,
+            output: inlineInvalidGenericWithoutFixOutputCode,
         },
         {
             code: inlineFixableCode,

@@ -21,9 +21,21 @@ const inlineInvalidUnionArrayCode = [
     "const lastStatus = monitorStatuses[monitorStatuses.length - 1];",
     "String(lastStatus);",
 ].join("\n");
+const inlineInvalidUnionArrayOutput = [
+    'import { arrayLast } from "ts-extras";',
+    "declare const monitorStatuses: readonly string[] | readonly number[];",
+    "const lastStatus = arrayLast(monitorStatuses);",
+    "String(lastStatus);",
+].join("\n");
 const inlineInvalidTupleCode = [
     "const monitorStatuses: [string, string] = ['down', 'up'];",
     "const lastStatus = monitorStatuses[monitorStatuses.length - 1];",
+    "String(lastStatus);",
+].join("\n");
+const inlineInvalidTupleOutput = [
+    'import { arrayLast } from "ts-extras";',
+    "const monitorStatuses: [string, string] = ['down', 'up'];",
+    "const lastStatus = arrayLast(monitorStatuses);",
     "String(lastStatus);",
 ].join("\n");
 const inlineValidDeleteWriteTargetCode = [
@@ -64,12 +76,14 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             errors: [{ messageId: "preferTsExtrasArrayLast" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports last-index read on readonly array union",
+            output: inlineInvalidUnionArrayOutput,
         },
         {
             code: inlineInvalidTupleCode,
             errors: [{ messageId: "preferTsExtrasArrayLast" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports tuple last-index read via length arithmetic",
+            output: inlineInvalidTupleOutput,
         },
         {
             code: inlineFixableCode,

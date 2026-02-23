@@ -16,6 +16,15 @@ const validFixtureName = "prefer-type-fest-tagged-brands.valid.ts";
 const invalidFixtureName = "prefer-type-fest-tagged-brands.invalid.ts";
 const importedAliasFixtureName =
     "prefer-type-fest-tagged-brands-imported-alias.invalid.ts";
+const importedAliasFixtureCode = readTypedFixture(importedAliasFixtureName);
+const importedAliasFixtureOutputCode = importedAliasFixtureCode
+    .replace(
+        'from "ts-essentials";\r\n',
+        'from "ts-essentials";\nimport type { Tagged } from "type-fest";\r\n'
+    )
+    .replace("Opaque<", "Tagged<");
+const importedAliasFixtureSecondPassOutputCode =
+    importedAliasFixtureOutputCode.replace("Branded<", "Tagged<");
 const inlineFixableInvalidCode = [
     'import type { Opaque } from "type-aliases";',
     'import type { Tagged } from "type-fest";',
@@ -66,7 +75,9 @@ const inlineValidNestedTaggedReferenceCode = [
     "};",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-tagged-brands");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-tagged-brands"
+);
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -80,7 +91,7 @@ ruleTester.run(
                 name: "reports fixture ad-hoc brand intersections",
             },
             {
-                code: readTypedFixture(importedAliasFixtureName),
+                code: importedAliasFixtureCode,
                 errors: [
                     {
                         data: {
@@ -99,6 +110,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(importedAliasFixtureName),
                 name: "reports imported opaque and branded aliases",
+                output: [
+                    importedAliasFixtureOutputCode,
+                    importedAliasFixtureSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

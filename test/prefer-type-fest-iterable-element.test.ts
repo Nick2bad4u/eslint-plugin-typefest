@@ -18,6 +18,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-iterable-element.skip.ts";
 const invalidFixtureName = "prefer-type-fest-iterable-element.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'from "type-aliases";\r\n',
+        'from "type-aliases";\nimport type { IterableElement } from "type-fest";\r\n'
+    )
+    .replace("SetElement<", "IterableElement<");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode
+    .replace("SetEntry<", "IterableElement<")
+    .replace("SetValues<", "IterableElement<");
 const inlineFixableInvalidCode = [
     'import type { SetElement } from "type-aliases";',
     'import type { IterableElement } from "type-fest";',
@@ -29,7 +39,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = IterableElement<Set<string>>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-iterable-element");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-iterable-element"
+);
 
 ruleTester.run(
     "prefer-type-fest-iterable-element",
@@ -37,7 +49,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -63,6 +75,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Set* alias usage",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

@@ -28,6 +28,10 @@ const inlineFixableOutput = [
     "const entries = [['alpha', 1]] as const;",
     "const value = objectFromEntries(entries);",
 ].join("\n");
+const inlineInvalidOutputCode = [
+    'import { objectFromEntries } from "ts-extras";',
+    "const value = objectFromEntries([['alpha', 1]] as const);",
+].join("\n");
 const computedAccessValidCode =
     "const value = Object['fromEntries']([['alpha', 1]] as const);";
 const nonObjectReceiverValidCode = [
@@ -59,6 +63,7 @@ ruleTester.run("prefer-ts-extras-object-from-entries", rule, {
             errors: [{ messageId: "preferTsExtrasObjectFromEntries" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.fromEntries call",
+            output: inlineInvalidOutputCode,
         },
         {
             code: inlineFixableCode,

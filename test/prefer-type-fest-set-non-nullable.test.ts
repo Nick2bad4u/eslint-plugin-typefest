@@ -18,6 +18,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-set-non-nullable.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-non-nullable.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { NonNullableBy } from "type-aliases";\r\n',
+        'import type { NonNullableBy } from "type-aliases";\nimport type { SetNonNullable } from "type-fest";\r\n'
+    )
+    .replace("NonNullableBy<", "SetNonNullable<");
 const inlineFixableInvalidCode = [
     'import type { NonNullableBy } from "type-aliases";',
     'import type { SetNonNullable } from "type-fest";',
@@ -34,7 +41,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type Normalized = SetNonNullable<User, "id">;'
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-set-non-nullable");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-set-non-nullable"
+);
 
 ruleTester.run(
     "prefer-type-fest-set-non-nullable",
@@ -42,7 +51,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -54,6 +63,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture SetComplement and SetDifference aliases",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

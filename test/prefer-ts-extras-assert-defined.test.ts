@@ -120,6 +120,14 @@ const inlineAutofixableCanonicalOutput = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineInvalidSuggestionOutputCode = [
+    'import { assertDefined } from "ts-extras";',
+    "function ensureValue(value: string | undefined): string {",
+    "    assertDefined(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     invalid: [
@@ -138,19 +146,49 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
         },
         {
             code: undefinedOnLeftInvalidCode,
-            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports strict undefined guard with literal on left",
         },
         {
             code: looseEqualityInvalidCode,
-            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports loose equality undefined guard",
         },
         {
             code: inlineInvalidDirectThrowConsequentCode,
-            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct-throw consequent guard",
         },

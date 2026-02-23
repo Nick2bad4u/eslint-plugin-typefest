@@ -18,6 +18,17 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-all-or-none.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-all-or-none.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'from "type-aliases";\r\n',
+        'from "type-aliases";\nimport type { RequireAllOrNone } from "type-fest";\r\n'
+    )
+    .replace("AllOrNone<", "RequireAllOrNone<");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "AllOrNothing<",
+    "RequireAllOrNone<"
+);
 const inlineFixableInvalidCode = [
     'import type { AllOrNone } from "type-aliases";',
     'import type { RequireAllOrNone } from "type-fest";',
@@ -29,7 +40,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RequireAllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-require-all-or-none");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-require-all-or-none"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-all-or-none",
@@ -37,7 +50,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -56,6 +69,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture AllOrNone and AllOrNothing alias usage",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

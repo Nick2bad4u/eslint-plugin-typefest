@@ -74,6 +74,26 @@ const inlineSuggestableOutput = [
     "    assertError(value);",
     "}",
 ].join("\n");
+const inlineInvalidSuggestionOutputCode = [
+    'import { assertError } from "ts-extras";',
+    "function ensureError(value: unknown): asserts value is Error {",
+    "    assertError(value);",
+    "}",
+].join("\n");
+const privateIdentifierInvalidSuggestionOutputCode = [
+    'import { assertError } from "ts-extras";',
+    "class ErrorContainer {",
+    "    #value: unknown;",
+    "",
+    "    constructor(value: unknown) {",
+    "        this.#value = value;",
+    "    }",
+    "",
+    "    ensureError(): void {",
+    "        assertError(this.#value);",
+    "    }",
+    "}",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-assert-error", rule, {
     invalid: [
@@ -92,19 +112,49 @@ ruleTester.run("prefer-ts-extras-assert-error", rule, {
         },
         {
             code: inlineInvalidCode,
-            errors: [{ messageId: "preferTsExtrasAssertError" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertError",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertError",
+                            output: inlineInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports negated instanceof Error guard",
         },
         {
             code: privateIdentifierValidCode,
-            errors: [{ messageId: "preferTsExtrasAssertError" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertError",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertError",
+                            output: privateIdentifierInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports private field instanceof Error guard",
         },
         {
             code: inlineInvalidDirectThrowConsequentCode,
-            errors: [{ messageId: "preferTsExtrasAssertError" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertError",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertError",
+                            output: inlineInvalidSuggestionOutputCode,
+                        },
+                    ],
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct-throw instanceof Error guard",
         },

@@ -16,6 +16,15 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-primitive.valid.ts";
 const partialValidFixtureName = "prefer-type-fest-primitive.partial.valid.ts";
 const invalidFixtureName = "prefer-type-fest-primitive.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { Primitive } from "type-fest";\n${invalidFixtureCode.replace(
+    "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined",
+    "    Primitive"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined",
+    "    Primitive"
+);
 const skipFixtureName = "tests/prefer-type-fest-primitive.skip.ts";
 const nonPrimitiveKeywordUnionValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | object;";
@@ -51,6 +60,10 @@ const missingUndefinedWithDuplicateNullValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | null;";
 const inlineInvalidWithoutFixCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | undefined;";
+const inlineInvalidWithoutFixOutputCode = [
+    'import type { Primitive } from "type-fest";',
+    "type PrimitiveLike = Primitive;",
+].join("\n");
 const inlineFixableCode = [
     'import type { Primitive } from "type-fest";',
     "",
@@ -75,7 +88,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-primitive", {
 ruleTester.run("prefer-type-fest-primitive", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferPrimitive",
@@ -86,13 +99,17 @@ ruleTester.run("prefer-type-fest-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture primitive alias unions",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidWithoutFixCode,
             errors: [{ messageId: "preferPrimitive" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports primitive keyword union without fix when Primitive import is missing",
-            output: null,
+            output: inlineInvalidWithoutFixOutputCode,
         },
         {
             code: inlineFixableCode,

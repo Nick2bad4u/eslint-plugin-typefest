@@ -143,8 +143,7 @@ const processEnvironment = globalThis.process.env;
 /**
  * Manually selected local plugin dogfooding rules for this repository.
  *
- * NOTE:
- * Keep this list explicit instead of deriving from `configs.recommended`.
+ * NOTE: Keep this list explicit instead of deriving from `configs.recommended`.
  * That avoids accidental drift when preset composition changes and keeps
  * self-hosting noise under control while still exercising local rules.
  */

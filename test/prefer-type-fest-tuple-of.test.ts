@@ -18,6 +18,16 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-tuple-of.skip.ts";
 const invalidFixtureName = "prefer-type-fest-tuple-of.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { ReadonlyTuple } from "type-aliases";\r\n',
+        'import type { ReadonlyTuple } from "type-aliases";\nimport type { TupleOf } from "type-fest";\r\n'
+    )
+    .replace(
+        "type MonitorTuple = ReadonlyTuple<string, 3>;",
+        "type MonitorTuple = Readonly<TupleOf<3, string>>;"
+    );
 const inlineFixableReadonlyTupleInvalidCode = [
     'import type { ReadonlyTuple } from "type-aliases";',
     'import type { TupleOf } from "type-fest";',
@@ -93,7 +103,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -105,6 +115,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture ReadonlyTuple and Tuple aliases",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableReadonlyTupleInvalidCode,

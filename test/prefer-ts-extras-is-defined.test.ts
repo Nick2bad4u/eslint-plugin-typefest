@@ -15,6 +15,28 @@ const validFixtureName = "prefer-ts-extras-is-defined.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-is-defined.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-is-defined.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureInvalidOutput = `import { isDefined } from "ts-extras";\n${invalidFixtureCode.replace(
+    "if (maybeValue !== undefined) {\r\n",
+    "if (isDefined(maybeValue)) {\r\n"
+)}`;
+const fixtureInvalidSecondPassOutput = fixtureInvalidOutput
+    .replace(
+        "if (undefined !== maybeValue) {\r\n",
+        "if (isDefined(maybeValue)) {\r\n"
+    )
+    .replace(
+        'if (typeof maybeValue !== "undefined") {\r\n',
+        "if (isDefined(maybeValue)) {\r\n"
+    )
+    .replace(
+        "if (maybeValue === undefined) {\r\n",
+        "if (!isDefined(maybeValue)) {\r\n"
+    )
+    .replace(
+        'if ("undefined" === typeof maybeValue) {\r\n',
+        "if (!isDefined(maybeValue)) {\r\n"
+    );
 const inlineFixableDefinedCode = [
     'import { isDefined } from "ts-extras";',
     "",
@@ -46,7 +68,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasIsDefined" },
                     { messageId: "preferTsExtrasIsDefined" },
@@ -56,6 +78,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture strict defined and undefined comparisons",
+                output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
             },
             {
                 code: inlineFixableDefinedCode,

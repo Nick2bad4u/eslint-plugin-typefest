@@ -324,7 +324,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         expect(fixer).toBeTypeOf("function");
     });
 
-    it("returns null when replacement name is not imported", () => {
+    it("returns fixer when replacement name is not imported", () => {
         expect.hasAssertions();
 
         const node = createTypeReferenceNode("Expand");
@@ -334,7 +334,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             new Set<string>()
         );
 
-        expect(fixer).toBeNull();
+        expect(fixer).toBeTypeOf("function");
     });
 
     it("returns null when replacement is shadowed by a type parameter", () => {

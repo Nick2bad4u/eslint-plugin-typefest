@@ -19,6 +19,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-conditional-pick.skip.ts";
 const invalidFixtureName = "prefer-type-fest-conditional-pick.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { PickByTypes } from "type-aliases";\r\n',
+        'import type { PickByTypes } from "type-aliases";\nimport type { ConditionalPick } from "type-fest";\r\n'
+    )
+    .replace("PickByTypes<", "ConditionalPick<");
 const inlineFixableInvalidCode = [
     'import type { PickByTypes } from "type-aliases";',
     'import type { ConditionalPick } from "type-fest";',
@@ -43,17 +50,15 @@ interface ConditionalPickRuleMetadataSnapshot {
     name?: string;
 }
 
-const loadConditionalPickRuleMetadata = async (): Promise<
-    ConditionalPickRuleMetadataSnapshot
-> => {
-    vi.resetModules();
+const loadConditionalPickRuleMetadata =
+    async (): Promise<ConditionalPickRuleMetadataSnapshot> => {
+        vi.resetModules();
 
-    const moduleUnderTest = await import(
-        "../src/rules/prefer-type-fest-conditional-pick.ts"
-    );
+        const moduleUnderTest =
+            await import("../src/rules/prefer-type-fest-conditional-pick");
 
-    return moduleUnderTest.default as ConditionalPickRuleMetadataSnapshot;
-};
+        return moduleUnderTest.default as ConditionalPickRuleMetadataSnapshot;
+    };
 
 describe("prefer-type-fest-conditional-pick metadata", () => {
     it("exports expected metadata", async () => {
@@ -86,9 +91,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             }));
 
             const undecoratedModule =
-                (await import(
-                    "../src/rules/prefer-type-fest-conditional-pick.ts"
-                )) as {
+                (await import("../src/rules/prefer-type-fest-conditional-pick")) as {
                     default: ConditionalPickRuleMetadataSnapshot;
                 };
 
@@ -110,7 +113,10 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 collectImportedTypeAliasMatches: () =>
-                    new Map<string, { importedName: string; replacementName: string }>(),
+                    new Map<
+                        string,
+                        { importedName: string; replacementName: string }
+                    >(),
                 createSafeTypeReferenceReplacementFix: () => undefined,
             }));
 
@@ -124,9 +130,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             }));
 
             const undecoratedModule =
-                (await import(
-                    "../src/rules/prefer-type-fest-conditional-pick.ts"
-                )) as {
+                (await import("../src/rules/prefer-type-fest-conditional-pick")) as {
                     default: ConditionalPickRuleMetadataSnapshot;
                 };
 
@@ -147,7 +151,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -159,6 +163,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture PickByTypes alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

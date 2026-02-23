@@ -18,6 +18,17 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-exactly-one.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-exactly-one.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'from "type-aliases";\r\n',
+        'from "type-aliases";\nimport type { RequireExactlyOne } from "type-fest";\r\n'
+    )
+    .replace("OneOf<", "RequireExactlyOne<");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "RequireOnlyOne<",
+    "RequireExactlyOne<"
+);
 const inlineFixableInvalidCode = [
     'import type { OneOf } from "type-aliases";',
     'import type { RequireExactlyOne } from "type-fest";',
@@ -29,7 +40,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RequireExactlyOne<{ a?: string; b?: number }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-require-exactly-one");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-require-exactly-one"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-exactly-one",
@@ -37,7 +50,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -56,6 +69,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture OneOf and RequireOnlyOne alias usage",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

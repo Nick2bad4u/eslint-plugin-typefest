@@ -18,6 +18,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-require-one-or-none.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-one-or-none.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { AtMostOne } from "type-aliases";\r\n',
+        'import type { AtMostOne } from "type-aliases";\nimport type { RequireOneOrNone } from "type-fest";\r\n'
+    )
+    .replace("AtMostOne<", "RequireOneOrNone<");
 const inlineFixableInvalidCode = [
     'import type { AtMostOne } from "type-aliases";',
     'import type { RequireOneOrNone } from "type-fest";',
@@ -29,7 +36,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RequireOneOrNone<{ a?: string; b?: number }>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-require-one-or-none");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-require-one-or-none"
+);
 
 ruleTester.run(
     "prefer-type-fest-require-one-or-none",
@@ -37,7 +46,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -49,6 +58,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture AtMostOne alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

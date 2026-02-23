@@ -42,12 +42,27 @@ const unionArrayInvalidCode = [
     "const found = numbers.findLast((value) => value > 1);",
     "String(found);",
 ].join("\n");
+const unionArrayInvalidOutput = [
+    'import { arrayFindLast } from "ts-extras";',
+    "declare const numbers: number[] | readonly number[];",
+    "const found = arrayFindLast(numbers, (value) => value > 1);",
+    "String(found);",
+].join("\n");
 const unionWithCustomValidCode = [
     "type Custom = {",
     "    findLast(predicate: (value: number) => boolean): number | undefined;",
     "};",
     "declare const numbers: number[] | Custom;",
     "const found = numbers.findLast((value) => value > 1);",
+    "String(found);",
+].join("\n");
+const unionWithCustomOutput = [
+    'import { arrayFindLast } from "ts-extras";',
+    "type Custom = {",
+    "    findLast(predicate: (value: number) => boolean): number | undefined;",
+    "};",
+    "declare const numbers: number[] | Custom;",
+    "const found = arrayFindLast(numbers, (value) => value > 1);",
     "String(found);",
 ].join("\n");
 const inlineFixableCode = [
@@ -86,12 +101,14 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union of mutable and readonly arrays",
+                output: unionArrayInvalidOutput,
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayFindLast" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom findLast receiver",
+                output: unionWithCustomOutput,
             },
             {
                 code: inlineFixableCode,

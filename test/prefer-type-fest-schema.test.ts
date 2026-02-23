@@ -17,6 +17,13 @@ const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-schema.skip.ts";
 const invalidFixtureName = "prefer-type-fest-schema.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { RecordDeep } from "type-aliases";\r\n',
+        'import type { RecordDeep } from "type-aliases";\nimport type { Schema } from "type-fest";\r\n'
+    )
+    .replace("RecordDeep<", "Schema<");
 const inlineFixableInvalidCode = [
     'import type { RecordDeep } from "type-aliases";',
     'import type { Schema } from "type-fest";',
@@ -41,7 +48,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -53,6 +60,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Jsonify alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

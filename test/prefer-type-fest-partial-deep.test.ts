@@ -16,6 +16,11 @@ const validFixtureName = "prefer-type-fest-partial-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-partial-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-partial-deep.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { PartialDeep } from "type-fest";\n${invalidFixtureCode.replace(
+    "DeepPartial<TeamConfig>",
+    "PartialDeep<TeamConfig>"
+)}`;
 const inlineFixableInvalidCode = [
     'import type { DeepPartial } from "type-aliases";',
     'import type { PartialDeep } from "type-fest";',
@@ -32,7 +37,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type PartialUser = PartialDeep<User>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-partial-deep");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-partial-deep"
+);
 
 ruleTester.run(
     "prefer-type-fest-partial-deep",
@@ -40,10 +47,11 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [{ messageId: "preferPartialDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture DeepPartial alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

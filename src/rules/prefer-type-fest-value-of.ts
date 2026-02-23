@@ -6,6 +6,7 @@ import type { TSESLint } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
+    createSafeTypeNodeTextReplacementFix,
     isTypeParameterNameShadowed,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
@@ -62,14 +63,14 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const fix: null | TSESLint.ReportFixFunction =
-                        typeFestDirectImports.has("ValueOf") &&
-                        !isTypeParameterNameShadowed(node, "ValueOf")
-                            ? (fixer) =>
-                                  fixer.replaceText(
-                                      node,
-                                      `ValueOf<${sourceCode.getText(node.objectType)}>`
-                                  )
-                            : null;
+                        isTypeParameterNameShadowed(node, "ValueOf")
+                            ? null
+                            : createSafeTypeNodeTextReplacementFix(
+                                  node,
+                                  "ValueOf",
+                                  `ValueOf<${sourceCode.getText(node.objectType)}>`,
+                                  typeFestDirectImports
+                              );
 
                     context.report({
                         ...(fix === null ? {} : { fix }),

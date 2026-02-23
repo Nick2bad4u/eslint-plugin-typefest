@@ -14,12 +14,34 @@ const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-type-fest-value-of.invalid.ts";
 const validFixtureName = "prefer-type-fest-value-of.valid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { ValueOf } from "type-fest";\n${invalidFixtureCode.replace(
+    "T[keyof T]",
+    "ValueOf<T>"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "SiteEventPayloadMap[keyof SiteEventPayloadMap]",
+    "ValueOf<SiteEventPayloadMap>"
+);
+const fixtureFixableThirdPassOutputCode =
+    fixtureFixableSecondPassOutputCode.replace(
+        "TemplateVariableMap[keyof TemplateVariableMap]",
+        "ValueOf<TemplateVariableMap>"
+    );
 const inlineInvalidCode = [
     "type Input = {",
     "    alpha: string;",
     "    beta: number;",
     "};",
     "type Output = Input[keyof Input];",
+].join("\n");
+const inlineInvalidOutputCode = [
+    'import type { ValueOf } from "type-fest";',
+    "type Input = {",
+    "    alpha: string;",
+    "    beta: number;",
+    "};",
+    "type Output = ValueOf<Input>;",
 ].join("\n");
 const inlineInvalidSpacedCode = [
     "type Input = {",
@@ -69,7 +91,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferValueOf" },
                     { messageId: "preferValueOf" },
@@ -77,18 +99,24 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture indexed-access value unions",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableThirdPassOutputCode,
+                ],
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports direct T[keyof T] indexed-access alias",
+                output: inlineInvalidOutputCode,
             },
             {
                 code: inlineInvalidSpacedCode,
                 errors: [{ messageId: "preferValueOf" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports indexed-access alias with spaced keyof token",
+                output: inlineInvalidOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

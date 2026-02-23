@@ -42,9 +42,21 @@ const readonlyArrayInvalidCode = [
     "const value = values.at(0);",
     "String(value);",
 ].join("\n");
+const readonlyArrayInvalidOutput = [
+    'import { arrayAt } from "ts-extras";',
+    "declare const values: readonly number[];",
+    "const value = arrayAt(values, 0);",
+    "String(value);",
+].join("\n");
 const unionWithNonArrayValidCode = [
     "declare const values: number[] | number;",
     "const value = values.at(0);",
+    "String(value);",
+].join("\n");
+const unionWithNonArrayOutput = [
+    'import { arrayAt } from "ts-extras";',
+    "declare const values: number[] | number;",
+    "const value = arrayAt(values, 0);",
     "String(value);",
 ].join("\n");
 const inlineFixableCode = [
@@ -83,6 +95,7 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports readonly array .at call",
+                output: readonlyArrayInvalidOutput,
             },
             {
                 code: inlineFixableCode,
@@ -96,6 +109,7 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union containing array when calling .at",
+                output: unionWithNonArrayOutput,
             },
         ],
         valid: [

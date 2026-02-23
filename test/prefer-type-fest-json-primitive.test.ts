@@ -17,6 +17,15 @@ const validFixtureName = "prefer-type-fest-json-primitive.valid.ts";
 const partialValidFixtureName =
     "prefer-type-fest-json-primitive.partial.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-primitive.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { JsonPrimitive } from "type-fest";\n${invalidFixtureCode.replace(
+    "boolean | null | number | string",
+    "JsonPrimitive"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "boolean | null | number | string",
+    "JsonPrimitive"
+);
 const skipFixtureName = "tests/prefer-type-fest-json-primitive.skip.ts";
 const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";
@@ -32,6 +41,10 @@ const duplicateStringPrimitiveUnionValidCode =
     "type Payload = boolean | null | number | number;";
 const inlineInvalidWithoutFixCode =
     "type Payload = boolean | null | number | string;";
+const inlineInvalidWithoutFixOutputCode = [
+    'import type { JsonPrimitive } from "type-fest";',
+    "type Payload = JsonPrimitive;",
+].join("\n");
 const inlineFixableCode = [
     'import type { JsonPrimitive } from "type-fest";',
     "",
@@ -59,7 +72,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 ruleTester.run("prefer-type-fest-json-primitive", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferJsonPrimitive",
@@ -70,13 +83,17 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonPrimitive-like unions",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidWithoutFixCode,
             errors: [{ messageId: "preferJsonPrimitive" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports JSON primitive keyword union without offering a fix when import is missing",
-            output: null,
+            output: inlineInvalidWithoutFixOutputCode,
         },
         {
             code: inlineFixableCode,

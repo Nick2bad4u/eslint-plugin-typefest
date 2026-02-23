@@ -2,7 +2,7 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
@@ -43,26 +43,18 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                     return null;
                 }
 
-                const replacementName = getSafeLocalNameForImportedValue({
-                    context,
-                    importedName: "keyIn",
-                    imports: tsExtrasImports,
-                    referenceNode: node,
-                    sourceModuleName: "ts-extras",
-                });
-
-                if (!replacementName) {
-                    return null;
-                }
-
                 const keyText = context.sourceCode.getText(node.left);
                 const objectText = context.sourceCode.getText(node.right);
 
-                return (fixer) =>
-                    fixer.replaceText(
-                        node,
-                        `${replacementName}(${objectText}, ${keyText})`
-                    );
+                return createSafeValueNodeTextReplacementFix({
+                    context,
+                    importedName: "keyIn",
+                    imports: tsExtrasImports,
+                    replacementTextFactory: (replacementName) =>
+                        `${replacementName}(${objectText}, ${keyText})`,
+                    sourceModuleName: "ts-extras",
+                    targetNode: node,
+                });
             };
 
             return {

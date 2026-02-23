@@ -2,13 +2,13 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-safe-cast-to`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import ts from "typescript";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
@@ -88,21 +88,15 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementName = getSafeLocalNameForImportedValue({
+                    const fix = createSafeValueNodeTextReplacementFix({
                         context,
                         importedName: "safeCastTo",
                         imports: tsExtrasImports,
-                        referenceNode: node,
+                        replacementTextFactory: (replacementName) =>
+                            `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`,
                         sourceModuleName: "ts-extras",
+                        targetNode: node,
                     });
-
-                    const fix = replacementName
-                        ? (fixer: TSESLint.RuleFixer) =>
-                              fixer.replaceText(
-                                  node,
-                                  `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`
-                              )
-                        : null;
 
                     context.report({
                         fix,

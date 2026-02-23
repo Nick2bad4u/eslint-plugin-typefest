@@ -19,6 +19,12 @@ const inlineInvalidCode = [
     "const parts = value.split(',');",
     "String(parts);",
 ].join("\n");
+const inlineInvalidOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "const value = 'a,b';",
+    "const parts = stringSplit(value, ',');",
+    "String(parts);",
+].join("\n");
 
 const computedAccessValidCode = [
     "const value = 'a,b';",
@@ -45,14 +51,32 @@ const unionStringInvalidCode = [
     "const parts = value.split(',');",
     "String(parts);",
 ].join("\n");
+const unionStringInvalidOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "const value: 'a,b' | 'c,d' = 'a,b';",
+    "const parts = stringSplit(value, ',');",
+    "String(parts);",
+].join("\n");
 const mixedUnionInvalidCode = [
     "declare const value: string | { split(separator: string): readonly string[] };",
     "const parts = value.split(',');",
     "String(parts);",
 ].join("\n");
+const mixedUnionInvalidOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "declare const value: string | { split(separator: string): readonly string[] };",
+    "const parts = stringSplit(value, ',');",
+    "String(parts);",
+].join("\n");
 const declaredStringUnionInvalidCode = [
     "declare const value: string | String;",
     "const parts = value.split(',');",
+    "String(parts);",
+].join("\n");
+const declaredStringUnionInvalidOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "declare const value: string | String;",
+    "const parts = stringSplit(value, ',');",
     "String(parts);",
 ].join("\n");
 
@@ -93,24 +117,28 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports direct string.split call",
+                output: inlineInvalidOutput,
             },
             {
                 code: unionStringInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports literal string union split call",
+                output: unionStringInvalidOutput,
             },
             {
                 code: mixedUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports mixed union split call",
+                output: mixedUnionInvalidOutput,
             },
             {
                 code: declaredStringUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasStringSplit" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports declared string object union split call",
+                output: declaredStringUnionInvalidOutput,
             },
             {
                 code: inlineFixableCode,

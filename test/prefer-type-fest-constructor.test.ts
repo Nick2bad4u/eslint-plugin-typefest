@@ -16,8 +16,17 @@ const validFixtureName = "prefer-type-fest-constructor.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-constructor.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { Constructor } from "type-fest";\n${invalidFixtureCode.replace(
+    "new (\r\n    queueName: string,\r\n    retryCount: number\r\n) => QueueClient",
+    "Constructor<QueueClient, [queueName: string, retryCount: number]>"
+)}`;
 const inlineInvalidNoFilenameCode =
     "type Ctor = new (...args: readonly unknown[]) => object;";
+const inlineInvalidNoFilenameOutput = [
+    'import type { Constructor } from "type-fest";',
+    "type Ctor = Constructor<object, [...args: readonly unknown[]]>;",
+].join("\n");
 const inlineFixableCode = [
     'import type { Constructor } from "type-fest";',
     "",
@@ -37,7 +46,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         messageId: "preferConstructorSignature",
@@ -45,6 +54,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture constructor signatures",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineInvalidNoFilenameCode,
@@ -54,6 +64,7 @@ ruleTester.run(
                     },
                 ],
                 name: "reports inline constructor signature without filename",
+                output: inlineInvalidNoFilenameOutput,
             },
             {
                 code: inlineFixableCode,

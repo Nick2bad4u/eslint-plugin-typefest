@@ -2,11 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-as-writable`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -97,22 +97,15 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     return;
                 }
 
-                const replacementName = getSafeLocalNameForImportedValue({
+                const fix = createSafeValueNodeTextReplacementFix({
                     context,
                     importedName: "asWritable",
                     imports: tsExtrasImports,
-                    referenceNode: node,
+                    replacementTextFactory: (replacementName) =>
+                        `${replacementName}(${context.sourceCode.getText(expression)})`,
                     sourceModuleName: "ts-extras",
+                    targetNode: node,
                 });
-
-                const fix =
-                    replacementName === null
-                        ? null
-                        : (fixer: TSESLint.RuleFixer) =>
-                              fixer.replaceText(
-                                  node,
-                                  `${replacementName}(${context.sourceCode.getText(expression)})`
-                              );
 
                 context.report({
                     fix,

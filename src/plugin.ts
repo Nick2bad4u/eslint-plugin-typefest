@@ -4,7 +4,7 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { ESLint, Linter } from "eslint";
-import type { PackageJson } from "type-fest";
+import type { PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
 
@@ -116,7 +116,7 @@ export type TypefestPresetConfig = Linter.Config & {
 type FlatConfig = Linter.Config;
 type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
 type RulesConfig = TypefestPresetConfig["rules"];
-type RuleWithDocs = TSESLint.RuleModule<string, readonly unknown[]> & {
+type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
     meta?: {
         docs?: {
             url?: string;
@@ -134,8 +134,8 @@ type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
     rules: NonNullable<ESLint.Plugin["rules"]> & typeof typefestRules;
 };
 type TypeScriptParser = {
-    parse?: (...parameters: readonly unknown[]) => unknown;
-    parseForESLint?: (...parameters: readonly unknown[]) => unknown;
+    parse?: (...parameters: UnknownArray) => unknown;
+    parseForESLint?: (...parameters: UnknownArray) => unknown;
 };
 
 /**

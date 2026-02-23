@@ -6,7 +6,7 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
-    getSafeLocalNameForImportedValue,
+    createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -268,15 +268,18 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementName = getSafeLocalNameForImportedValue({
-                        context,
-                        importedName: "assertPresent",
-                        imports: tsExtrasImports,
-                        referenceNode: node,
-                        sourceModuleName: "ts-extras",
-                    });
+                    const replacementFix =
+                        createSafeValueNodeTextReplacementFix({
+                            context,
+                            importedName: "assertPresent",
+                            imports: tsExtrasImports,
+                            replacementTextFactory: (replacementName) =>
+                                `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        });
 
-                    if (!replacementName) {
+                    if (!replacementFix) {
                         context.report({
                             messageId: "preferTsExtrasAssertPresent",
                             node,
@@ -284,8 +287,6 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
 
                         return;
                     }
-
-                    const replacementText = `${replacementName}(${context.sourceCode.getText(guardExpression)});`;
 
                     const throwStatement = getThrowStatementFromConsequent(
                         node.consequent
@@ -300,8 +301,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (canAutofix) {
                         context.report({
-                            fix: (fixer) =>
-                                fixer.replaceText(node, replacementText),
+                            fix: replacementFix,
                             messageId: "preferTsExtrasAssertPresent",
                             node,
                         });
@@ -314,8 +314,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         node,
                         suggest: [
                             {
-                                fix: (fixer) =>
-                                    fixer.replaceText(node, replacementText),
+                                fix: replacementFix,
                                 messageId: "suggestTsExtrasAssertPresent",
                             },
                         ],

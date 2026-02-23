@@ -15,6 +15,10 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-object-entries.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-object-entries.invalid.ts";
 const inlineInvalidCode = "const pairs = Object.entries({ alpha: 1 });";
+const inlineInvalidOutput = [
+    'import { objectEntries } from "ts-extras";',
+    "const pairs = objectEntries({ alpha: 1 });",
+].join("\n");
 const inlineFixableCode = [
     'import { objectEntries } from "ts-extras";',
     "",
@@ -56,6 +60,7 @@ ruleTester.run("prefer-ts-extras-object-entries", rule, {
             errors: [{ messageId: "preferTsExtrasObjectEntries" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.entries call",
+            output: inlineInvalidOutput,
         },
         {
             code: inlineFixableCode,

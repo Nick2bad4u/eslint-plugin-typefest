@@ -17,6 +17,7 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-as-writable.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-as-writable.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const inlineInvalidTypeAssertionCode = [
     'import type { Writable } from "type-fest";',
     "",
@@ -27,6 +28,20 @@ const inlineInvalidTypeAssertionCode = [
     "declare const readonlyRecord: ReadonlyRecord;",
     "",
     "const mutableRecord = <Writable<ReadonlyRecord>>readonlyRecord;",
+    "",
+    "String(mutableRecord);",
+].join("\n");
+const inlineInvalidTypeAssertionOutput = [
+    'import type { Writable } from "type-fest";',
+    'import { asWritable } from "ts-extras";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const mutableRecord = asWritable(readonlyRecord);",
     "",
     "String(mutableRecord);",
 ].join("\n");
@@ -84,6 +99,40 @@ const inlineFixableOutput = [
     "",
     "String(mutableRecord);",
 ].join("\n");
+const fixtureInvalidOutput = [
+    'import { asWritable } from "ts-extras";',
+    "",
+    "type ReadonlyRecord = {",
+    "    readonly id: number;",
+    "    readonly name: string;",
+    "};",
+    "",
+    "declare const readonlyRecord: ReadonlyRecord;",
+    "",
+    "const mutableByNamedImport = asWritable(readonlyRecord);",
+    "const mutableByAliasedImport = readonlyRecord as MutableAlias<ReadonlyRecord>;",
+    "const mutableByNamespace = readonlyRecord as TypeFest.Writable<ReadonlyRecord>;",
+    "",
+    "String(mutableByNamedImport);",
+    "String(mutableByAliasedImport);",
+    "String(mutableByNamespace);",
+    "",
+    'export const __typedFixtureModule = "typed-fixture-module";',
+].join("\r\n");
+const fixtureInvalidOutputWithMixedLineEndings =
+    'import type { Writable, Writable as MutableAlias } from "type-fest";\r\n' +
+    'import type * as TypeFest from "type-fest";\n' +
+    `${fixtureInvalidOutput}\r\n`;
+const fixtureInvalidSecondPassOutputWithMixedLineEndings =
+    fixtureInvalidOutputWithMixedLineEndings
+        .replace(
+            "const mutableByAliasedImport = readonlyRecord as MutableAlias<ReadonlyRecord>;\r\n",
+            "const mutableByAliasedImport = asWritable(readonlyRecord);\r\n"
+        )
+        .replace(
+            "const mutableByNamespace = readonlyRecord as TypeFest.Writable<ReadonlyRecord>;\r\n",
+            "const mutableByNamespace = asWritable(readonlyRecord);\r\n"
+        );
 
 ruleTester.run(
     "prefer-ts-extras-as-writable",
@@ -91,7 +140,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasAsWritable" },
                     { messageId: "preferTsExtrasAsWritable" },
@@ -99,12 +148,17 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture type-fest Writable assertions",
+                output: [
+                    fixtureInvalidOutputWithMixedLineEndings,
+                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                ],
             },
             {
                 code: inlineInvalidTypeAssertionCode,
                 errors: [{ messageId: "preferTsExtrasAsWritable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports angle-bracket Writable assertion",
+                output: inlineInvalidTypeAssertionOutput,
             },
             {
                 code: inlineFixableCode,

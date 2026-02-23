@@ -15,7 +15,20 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-array.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-array.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { UnknownArray } from "type-fest";\n${invalidFixtureCode.replace(
+    "readonly unknown[]",
+    "UnknownArray"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "ReadonlyArray<unknown>",
+    "UnknownArray"
+);
 const inlineInvalidReadonlyArrayCode = "type Input = readonly unknown[];";
+const inlineInvalidReadonlyArrayOutputCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "type Input = UnknownArray;",
+].join("\n");
 const inlineValidArrayCode = "type Input = unknown[];";
 const inlineValidAnyArrayCode = "type Input = readonly any[];";
 const inlineValidNoTypeArgumentCode = "type Input = ReadonlyArray<string>;";
@@ -27,6 +40,10 @@ const inlineValidQualifiedReadonlyArrayCode =
 const inlineValidKeyofUnknownArrayCode = "type Input = keyof unknown[];";
 const inlineInvalidReadonlyNonArrayOperatorCode =
     "type Input = readonly ReadonlyArray<unknown>;";
+const inlineInvalidReadonlyNonArrayOperatorOutputCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "type Input = readonly UnknownArray;",
+].join("\n");
 const inlineValidMissingReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray;";
 const inlineValidExtraReadonlyArrayTypeArgumentCode =
@@ -35,6 +52,10 @@ const inlineValidNestedUnknownArrayTypeArgumentCode =
     "type Input = ReadonlyArray<unknown[]>;";
 const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
+const inlineInvalidWithoutFixOutputCode = [
+    'import type { UnknownArray } from "type-fest";',
+    "type Input = UnknownArray;",
+].join("\n");
 const inlineReadonlyNonArrayOperatorFixableCode = [
     'import type { UnknownArray } from "type-fest";',
     "",
@@ -82,7 +103,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 ruleTester.run("prefer-type-fest-unknown-array", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferUnknownArray",
@@ -93,27 +114,31 @@ ruleTester.run("prefer-type-fest-unknown-array", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture readonly unknown array aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReadonlyArrayCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly unknown array shorthand alias",
-            output: null,
+            output: inlineInvalidReadonlyArrayOutputCode,
         },
         {
             code: inlineInvalidReadonlyNonArrayOperatorCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly operator over unknown[] type reference",
-            output: null,
+            output: inlineInvalidReadonlyNonArrayOperatorOutputCode,
         },
         {
             code: inlineInvalidWithoutFixCode,
             errors: [{ messageId: "preferUnknownArray" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports ReadonlyArray<unknown> even when UnknownArray import is missing",
-            output: null,
+            output: inlineInvalidWithoutFixOutputCode,
         },
         {
             code: inlineReadonlyShorthandFixableCode,

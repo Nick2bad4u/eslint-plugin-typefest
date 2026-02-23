@@ -42,9 +42,21 @@ const readonlyArrayInvalidCode = [
     "const hasValue = values.includes(2);",
     "String(hasValue);",
 ].join("\n");
+const readonlyArrayInvalidOutput = [
+    'import { arrayIncludes } from "ts-extras";',
+    "declare const values: readonly number[];",
+    "const hasValue = arrayIncludes(values, 2);",
+    "String(hasValue);",
+].join("\n");
 const unionWithNonArrayValidCode = [
     "declare const values: number[] | number;",
     "const hasValue = values.includes(2);",
+    "String(hasValue);",
+].join("\n");
+const unionWithNonArrayOutput = [
+    'import { arrayIncludes } from "ts-extras";',
+    "declare const values: number[] | number;",
+    "const hasValue = arrayIncludes(values, 2);",
     "String(hasValue);",
 ].join("\n");
 const inlineFixableCode = [
@@ -83,6 +95,7 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports readonly array includes call",
+                output: readonlyArrayInvalidOutput,
             },
             {
                 code: inlineFixableCode,
@@ -96,6 +109,7 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayIncludes" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union containing array when calling includes",
+                output: unionWithNonArrayOutput,
             },
         ],
         valid: [

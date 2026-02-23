@@ -15,9 +15,22 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-map.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-map.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { UnknownMap } from "type-fest";\n${invalidFixtureCode.replace(
+    "ReadonlyMap<unknown, unknown>",
+    "UnknownMap"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "ReadonlyMap<unknown, unknown>",
+    "UnknownMap"
+);
 const inlineInvalidMapCode = "type Input = Map<unknown, unknown>;";
 const inlineInvalidReadonlyMapCode =
     "type Input = ReadonlyMap<unknown, unknown>;";
+const inlineInvalidReadonlyMapOutputCode = [
+    'import type { UnknownMap } from "type-fest";',
+    "type Input = UnknownMap;",
+].join("\n");
 const inlineValidMixedMapCode = "type Input = Map<string, unknown>;";
 const inlineValidMixedReadonlyMapCode =
     "type Input = ReadonlyMap<unknown, string>;";
@@ -43,7 +56,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-map");
 ruleTester.run("prefer-type-fest-unknown-map", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferUnknownMap",
@@ -54,12 +67,17 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture UnknownMap aliases",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReadonlyMapCode,
             errors: [{ messageId: "preferUnknownMap" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly unknown map shorthand",
+            output: inlineInvalidReadonlyMapOutputCode,
         },
         {
             code: inlineFixableCode,

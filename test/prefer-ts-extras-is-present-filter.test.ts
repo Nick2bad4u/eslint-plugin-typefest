@@ -13,6 +13,7 @@ const ruleTester = createTypedRuleTester();
 
 const invalidFixtureName = "prefer-ts-extras-is-present-filter.invalid.ts";
 const validFixtureName = "prefer-ts-extras-is-present-filter.valid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const inlineInvalidPredicateUndefinedStrictCode = [
     "declare const values: readonly (null | string | undefined)[];",
     "",
@@ -31,6 +32,16 @@ const inlineInvalidTypeofUndefinedGuardCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineInvalidTypeofUndefinedGuardOutput = [
+    'import { isPresent } from "ts-extras";',
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    isPresent",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 const inlineInvalidReverseNullLooseCode = [
     "declare const values: readonly (null | string | undefined)[];",
     "",
@@ -38,10 +49,26 @@ const inlineInvalidReverseNullLooseCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineInvalidReverseNullLooseOutput = [
+    'import { isPresent } from "ts-extras";',
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(isPresent);",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 const inlineInvalidReverseUndefinedLooseCode = [
     "declare const values: readonly (null | string | undefined)[];",
     "",
     "const presentValues = values.filter((value) => undefined != value);",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineInvalidReverseUndefinedLooseOutput = [
+    'import { isPresent } from "ts-extras";',
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(isPresent);",
     "",
     "String(presentValues.length);",
 ].join("\n");
@@ -130,6 +157,35 @@ const inlineFixableOutput = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const fixtureInvalidOutput = [
+    "interface MonitorRecord {",
+    "    readonly id: string;",
+    "}",
+    "",
+    "declare const nullableEntries: readonly (MonitorRecord | null)[];",
+    "declare const nullableMonitors: readonly (MonitorRecord | null | undefined)[];",
+    "declare const maybeNumbers: readonly (null | number | undefined)[];",
+    "",
+    "const entries = nullableEntries.filter(",
+    "    (entry): entry is MonitorRecord => entry !== null",
+    ");",
+    "const monitors = nullableMonitors.filter(",
+    "    isPresent",
+    ");",
+    "const numbers = maybeNumbers.filter((value) => value != undefined);",
+    "",
+    "if (entries.length + monitors.length + numbers.length < 0) {",
+    '    throw new TypeError("Unreachable total count");',
+    "}",
+    "",
+    'export const __typedFixtureModule = "typed-fixture-module";',
+].join("\r\n");
+const fixtureInvalidOutputWithMixedLineEndings = `import { isPresent } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
+const fixtureInvalidSecondPassOutputWithMixedLineEndings =
+    fixtureInvalidOutputWithMixedLineEndings.replace(
+        "const numbers = maybeNumbers.filter((value) => value != undefined);\r\n",
+        "const numbers = maybeNumbers.filter(isPresent);\r\n"
+    );
 
 ruleTester.run(
     "prefer-ts-extras-is-present-filter",
@@ -137,7 +193,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasIsPresentFilter" },
                     { messageId: "preferTsExtrasIsPresentFilter" },
@@ -145,6 +201,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture present-filter guards",
+                output: [
+                    fixtureInvalidOutputWithMixedLineEndings,
+                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                ],
             },
             {
                 code: inlineInvalidPredicateUndefinedStrictCode,
@@ -157,18 +217,21 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports predicate using typeof undefined check",
+                output: inlineInvalidTypeofUndefinedGuardOutput,
             },
             {
                 code: inlineInvalidReverseNullLooseCode,
                 errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reverse null loose inequality predicate",
+                output: inlineInvalidReverseNullLooseOutput,
             },
             {
                 code: inlineInvalidReverseUndefinedLooseCode,
                 errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reverse undefined loose inequality predicate",
+                output: inlineInvalidReverseUndefinedLooseOutput,
             },
             {
                 code: inlineFixableCode,
@@ -230,7 +293,7 @@ ruleTester.run(
                 name: "ignores non-filter map callback",
             },
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 filename: typedFixturePath("tests", invalidFixtureName),
                 name: "skips file under tests fixture path",
             },

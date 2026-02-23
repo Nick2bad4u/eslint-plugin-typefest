@@ -42,14 +42,32 @@ const unionSetInvalidCode = [
     "const hasValue = values.has(2);",
     "String(hasValue);",
 ].join("\n");
+const unionSetInvalidOutput = [
+    'import { setHas } from "ts-extras";',
+    "const values: Set<number> | ReadonlySet<number> = new Set([1, 2]);",
+    "const hasValue = setHas(values, 2);",
+    "String(hasValue);",
+].join("\n");
 const mixedUnionInvalidCode = [
     "declare const values: Set<number> | Map<number, number>;",
     "const hasValue = values.has(2);",
     "String(hasValue);",
 ].join("\n");
+const mixedUnionInvalidOutput = [
+    'import { setHas } from "ts-extras";',
+    "declare const values: Set<number> | Map<number, number>;",
+    "const hasValue = setHas(values, 2);",
+    "String(hasValue);",
+].join("\n");
 const declaredUnionSetInvalidCode = [
     "declare const values: Set<number> | ReadonlySet<number>;",
     "const hasValue = values.has(2);",
+    "String(hasValue);",
+].join("\n");
+const declaredUnionSetInvalidOutput = [
+    'import { setHas } from "ts-extras";',
+    "declare const values: Set<number> | ReadonlySet<number>;",
+    "const hasValue = setHas(values, 2);",
     "String(hasValue);",
 ].join("\n");
 const inlineFixableCode = [
@@ -88,18 +106,21 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union of set and readonly set",
+                output: unionSetInvalidOutput,
             },
             {
                 code: mixedUnionInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union of set and map when calling has",
+                output: mixedUnionInvalidOutput,
             },
             {
                 code: declaredUnionSetInvalidCode,
                 errors: [{ messageId: "preferTsExtrasSetHas" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports declared set-like union has call",
+                output: declaredUnionSetInvalidOutput,
             },
             {
                 code: inlineFixableCode,

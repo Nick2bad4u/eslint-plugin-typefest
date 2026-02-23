@@ -3,6 +3,7 @@
  * Utilities for collecting and safely resolving direct named value imports.
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 /**
  * Immutable mapping of imported symbol names to directly imported local
@@ -14,7 +15,7 @@ export type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
  * Parameters for creating a safe member-expression to function-call fixer.
  */
 type MemberToFunctionCallFixParams = Readonly<{
-    context: Readonly<TSESLint.RuleContext<string, readonly unknown[]>>;
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
     memberNode: TSESTree.MemberExpression;
@@ -26,7 +27,7 @@ type MemberToFunctionCallFixParams = Readonly<{
  */
 type MethodToFunctionCallFixParams = Readonly<{
     callNode: TSESTree.CallExpression;
-    context: Readonly<TSESLint.RuleContext<string, readonly unknown[]>>;
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
     sourceModuleName: string;
@@ -36,7 +37,7 @@ type MethodToFunctionCallFixParams = Readonly<{
  * Parameters for resolving a safe local alias for an imported value symbol.
  */
 type SafeImportedValueNameParams = Readonly<{
-    context: Readonly<TSESLint.RuleContext<string, readonly unknown[]>>;
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
     referenceNode: TSESTree.Node;
@@ -44,10 +45,23 @@ type SafeImportedValueNameParams = Readonly<{
 }>;
 
 /**
+ * Parameters for creating a safe replacement fixer with custom replacement text
+ * derived from the resolved helper local name.
+ */
+type SafeValueNodeTextReplacementFixParams = Readonly<{
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    importedName: string;
+    imports: ImportedValueAliasMap;
+    replacementTextFactory: (replacementName: string) => string;
+    sourceModuleName: string;
+    targetNode: TSESTree.Node;
+}>;
+
+/**
  * Parameters for creating a safe replacement fixer for a value reference.
  */
 type SafeValueReplacementFixParams = Readonly<{
-    context: Readonly<TSESLint.RuleContext<string, readonly unknown[]>>;
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
     sourceModuleName: string;
@@ -59,7 +73,7 @@ type SafeValueReplacementFixParams = Readonly<{
  */
 type ValueArgumentFunctionCallFixParams = Readonly<{
     argumentNode: TSESTree.Node;
-    context: Readonly<TSESLint.RuleContext<string, readonly unknown[]>>;
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
     negated?: boolean;
@@ -147,6 +161,32 @@ function getVariableInScopeChain(
     return null;
 }
 
+const getParentNode = (
+    node: Readonly<TSESTree.Node>
+): Readonly<TSESTree.Node> | undefined => {
+    const nodeWithParent = node as Readonly<TSESTree.Node> & {
+        parent?: Readonly<TSESTree.Node>;
+    };
+
+    return nodeWithParent.parent;
+};
+
+const getProgramNode = (
+    node: Readonly<TSESTree.Node>
+): null | Readonly<TSESTree.Program> => {
+    let currentNode: null | Readonly<TSESTree.Node> = node;
+
+    while (currentNode !== null) {
+        if (currentNode.type === "Program") {
+            return currentNode;
+        }
+
+        currentNode = getParentNode(currentNode) ?? null;
+    }
+
+    return null;
+};
+
 function isLocalNameBoundToExpectedImport(
     sourceCode: Readonly<TSESLint.SourceCode>,
     referenceNode: TSESTree.Node,
@@ -177,6 +217,89 @@ function isLocalNameBoundToExpectedImport(
         );
     });
 }
+
+const canUseDirectImportedNameSafely = ({
+    context,
+    importedName,
+    referenceNode,
+    sourceModuleName,
+}: {
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    importedName: string;
+    referenceNode: TSESTree.Node;
+    sourceModuleName: string;
+}): boolean => {
+    const initialScope = context.sourceCode.getScope(referenceNode);
+    const variable = getVariableInScopeChain(initialScope, importedName);
+
+    if (!variable) {
+        return true;
+    }
+
+    return variable.defs.some((definition) => {
+        if (definition.type !== "ImportBinding") {
+            return false;
+        }
+
+        const definitionNode = definition.node;
+        if (definitionNode.type !== "ImportSpecifier") {
+            return false;
+        }
+
+        if (definitionNode.local.name !== importedName) {
+            return false;
+        }
+
+        const parent = definitionNode.parent;
+
+        return (
+            parent.type === "ImportDeclaration" &&
+            parent.source.value === sourceModuleName &&
+            parent.importKind !== "type" &&
+            definitionNode.importKind !== "type"
+        );
+    });
+};
+
+const createInsertNamedValueImportFix = ({
+    fixer,
+    importedName,
+    referenceNode,
+    sourceModuleName,
+}: {
+    fixer: TSESLint.RuleFixer;
+    importedName: string;
+    referenceNode: TSESTree.Node;
+    sourceModuleName: string;
+}): null | TSESLint.RuleFix => {
+    const programNode = getProgramNode(referenceNode);
+    if (!programNode) {
+        return null;
+    }
+
+    const importDeclarationText = `import { ${importedName} } from "${sourceModuleName}";`;
+
+    const importDeclarations: TSESTree.ImportDeclaration[] = [];
+    for (const statement of programNode.body) {
+        if (statement.type === "ImportDeclaration") {
+            importDeclarations.push(statement);
+        }
+    }
+
+    const lastImportDeclaration = importDeclarations.at(-1);
+    if (lastImportDeclaration) {
+        return fixer.insertTextAfter(
+            lastImportDeclaration,
+            `\n${importDeclarationText}`
+        );
+    }
+
+    const [programStart] = programNode.range;
+    return fixer.insertTextBeforeRange(
+        [programStart, programStart],
+        `${importDeclarationText}\n`
+    );
+};
 
 /**
  * Resolve a local alias that is safely bound to the expected import at a
@@ -212,6 +335,54 @@ export const getSafeLocalNameForImportedValue = ({
     return null;
 };
 
+const getSafeReplacementNameAndImportFixFactory = ({
+    context,
+    importedName,
+    imports,
+    referenceNode,
+    sourceModuleName,
+}: SafeImportedValueNameParams): null | {
+    createImportFix: (fixer: TSESLint.RuleFixer) => null | TSESLint.RuleFix;
+    replacementName: string;
+} => {
+    const existingReplacementName = getSafeLocalNameForImportedValue({
+        context,
+        importedName,
+        imports,
+        referenceNode,
+        sourceModuleName,
+    });
+
+    if (existingReplacementName) {
+        return {
+            createImportFix: () => null,
+            replacementName: existingReplacementName,
+        };
+    }
+
+    if (
+        !canUseDirectImportedNameSafely({
+            context,
+            importedName,
+            referenceNode,
+            sourceModuleName,
+        })
+    ) {
+        return null;
+    }
+
+    return {
+        createImportFix: (fixer) =>
+            createInsertNamedValueImportFix({
+                fixer,
+                importedName,
+                referenceNode,
+                sourceModuleName,
+            }),
+        replacementName: importedName,
+    };
+};
+
 /**
  * Create a fixer that safely replaces a target node with a resolved local
  * import alias.
@@ -225,19 +396,68 @@ export const createSafeValueReferenceReplacementFix = ({
     sourceModuleName,
     targetNode,
 }: SafeValueReplacementFixParams): null | TSESLint.ReportFixFunction => {
-    const replacementName = getSafeLocalNameForImportedValue({
-        context,
-        importedName,
-        imports,
-        referenceNode: targetNode,
-        sourceModuleName,
-    });
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode: targetNode,
+            sourceModuleName,
+        });
 
-    if (!replacementName) {
+    if (!replacementNameAndImportFixFactory) {
         return null;
     }
 
-    return (fixer) => fixer.replaceText(targetNode, replacementName);
+    return (fixer) => {
+        const importFix =
+            replacementNameAndImportFixFactory.createImportFix(fixer);
+        const replacementFix = fixer.replaceText(
+            targetNode,
+            replacementNameAndImportFixFactory.replacementName
+        );
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
+};
+
+/**
+ * Create a fixer that safely rewrites a target node using custom replacement
+ * text derived from a resolved helper local name.
+ *
+ * @returns A report fixer when safe; otherwise `null`.
+ */
+export const createSafeValueNodeTextReplacementFix = ({
+    context,
+    importedName,
+    imports,
+    replacementTextFactory,
+    sourceModuleName,
+    targetNode,
+}: SafeValueNodeTextReplacementFixParams): null | TSESLint.ReportFixFunction => {
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode: targetNode,
+            sourceModuleName,
+        });
+
+    if (!replacementNameAndImportFixFactory) {
+        return null;
+    }
+
+    return (fixer) => {
+        const replacementText = replacementTextFactory(
+            replacementNameAndImportFixFactory.replacementName
+        );
+        const importFix =
+            replacementNameAndImportFixFactory.createImportFix(fixer);
+        const replacementFix = fixer.replaceText(targetNode, replacementText);
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
 };
 
 /**
@@ -261,15 +481,16 @@ export const createMethodToFunctionCallFix = ({
         return null;
     }
 
-    const replacementName = getSafeLocalNameForImportedValue({
-        context,
-        importedName,
-        imports,
-        referenceNode: callNode,
-        sourceModuleName,
-    });
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode: callNode,
+            sourceModuleName,
+        });
 
-    if (!replacementName) {
+    if (!replacementNameAndImportFixFactory) {
         return null;
     }
 
@@ -281,10 +502,16 @@ export const createMethodToFunctionCallFix = ({
 
     const replacementText =
         argumentText.length > 0
-            ? `${replacementName}(${receiverText}, ${argumentText})`
-            : `${replacementName}(${receiverText})`;
+            ? `${replacementNameAndImportFixFactory.replacementName}(${receiverText}, ${argumentText})`
+            : `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
-    return (fixer) => fixer.replaceText(callNode, replacementText);
+    return (fixer) => {
+        const importFix =
+            replacementNameAndImportFixFactory.createImportFix(fixer);
+        const replacementFix = fixer.replaceText(callNode, replacementText);
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
 };
 
 /**
@@ -303,21 +530,29 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    const replacementName = getSafeLocalNameForImportedValue({
-        context,
-        importedName,
-        imports,
-        referenceNode: memberNode,
-        sourceModuleName,
-    });
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode: memberNode,
+            sourceModuleName,
+        });
 
-    if (!replacementName) {
+    if (!replacementNameAndImportFixFactory) {
         return null;
     }
 
     const receiverText = context.sourceCode.getText(memberNode.object);
-    return (fixer) =>
-        fixer.replaceText(memberNode, `${replacementName}(${receiverText})`);
+    const replacementText = `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
+
+    return (fixer) => {
+        const importFix =
+            replacementNameAndImportFixFactory.createImportFix(fixer);
+        const replacementFix = fixer.replaceText(memberNode, replacementText);
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
 };
 
 /**
@@ -334,15 +569,16 @@ export const createSafeValueArgumentFunctionCallFix = ({
     sourceModuleName,
     targetNode,
 }: ValueArgumentFunctionCallFixParams): null | TSESLint.ReportFixFunction => {
-    const replacementName = getSafeLocalNameForImportedValue({
-        context,
-        importedName,
-        imports,
-        referenceNode: targetNode,
-        sourceModuleName,
-    });
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode: targetNode,
+            sourceModuleName,
+        });
 
-    if (!replacementName) {
+    if (!replacementNameAndImportFixFactory) {
         return null;
     }
 
@@ -351,8 +587,14 @@ export const createSafeValueArgumentFunctionCallFix = ({
         return null;
     }
 
-    const callText = `${replacementName}(${argumentText})`;
+    const callText = `${replacementNameAndImportFixFactory.replacementName}(${argumentText})`;
     const replacementText = negated === true ? `!${callText}` : callText;
 
-    return (fixer) => fixer.replaceText(targetNode, replacementText);
+    return (fixer) => {
+        const importFix =
+            replacementNameAndImportFixFactory.createImportFix(fixer);
+        const replacementFix = fixer.replaceText(targetNode, replacementText);
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
 };

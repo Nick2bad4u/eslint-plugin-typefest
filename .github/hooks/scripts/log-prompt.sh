@@ -13,9 +13,9 @@ mkdir -p "$LOG_DIR"
 chmod 700 "$LOG_DIR"
 
 jq -n \
-  --arg ts "$TIMESTAMP_MS" \
-  --arg cwd "$CWD" \
-  '{event:"userPromptSubmitted", timestampMs:$ts, cwd:$cwd}' \
-  >> "$LOG_DIR/audit.jsonl"
+    --arg ts "$TIMESTAMP_MS" \
+    --arg cwd "$CWD" \
+    '{event:"userPromptSubmitted", timestampMs:$ts, cwd:$cwd}' \
+    >> "$LOG_DIR/audit.jsonl"
 
 exit 0

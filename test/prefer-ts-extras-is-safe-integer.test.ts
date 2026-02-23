@@ -36,6 +36,10 @@ const inlineFixableOutput = [
     "",
     "const result = isSafeInteger(42);",
 ].join("\n");
+const inlineInvalidOutputCode = [
+    'import { isSafeInteger } from "ts-extras";',
+    "const result = isSafeInteger(42);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
     invalid: [
@@ -57,6 +61,7 @@ ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
             errors: [{ messageId: "preferTsExtrasIsSafeInteger" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Number.isSafeInteger call",
+            output: inlineInvalidOutputCode,
         },
         {
             code: inlineFixableCode,

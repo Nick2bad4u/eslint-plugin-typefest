@@ -15,6 +15,10 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-object-values.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-object-values.invalid.ts";
 const inlineInvalidCode = "const values = Object.values({ alpha: 1 });";
+const inlineInvalidOutput = [
+    'import { objectValues } from "ts-extras";',
+    "const values = objectValues({ alpha: 1 });",
+].join("\n");
 const computedAccessValidCode =
     "const values = Object['values']({ alpha: 1 });";
 const nonObjectReceiverValidCode = [
@@ -60,6 +64,7 @@ ruleTester.run("prefer-ts-extras-object-values", rule, {
             errors: [{ messageId: "preferTsExtrasObjectValues" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct Object.values call",
+            output: inlineInvalidOutput,
         },
         {
             code: inlineFixableCode,

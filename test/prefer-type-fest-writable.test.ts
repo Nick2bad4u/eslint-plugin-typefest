@@ -21,6 +21,15 @@ const ruleTester = createTypedRuleTester();
 const mappedInvalidFixtureName = "prefer-type-fest-writable.invalid.ts";
 const importedAliasInvalidFixtureName =
     "prefer-type-fest-writable-imported-alias.invalid.ts";
+const importedAliasInvalidFixtureCode = readTypedFixture(
+    importedAliasInvalidFixtureName
+);
+const importedAliasFixtureFixableOutputCode = importedAliasInvalidFixtureCode
+    .replace(
+        'import type { Mutable } from "type-aliases";\r\n',
+        'import type { Mutable } from "type-aliases";\nimport type { Writable } from "type-fest";\r\n'
+    )
+    .replace("Mutable<", "Writable<");
 const inlineFixableInvalidCode = [
     'import type { Mutable } from "type-aliases";',
     'import type { Writable } from "type-fest";',
@@ -86,16 +95,14 @@ interface WritableRuleMetadataSnapshot {
     name?: string;
 }
 
-const loadWritableRuleMetadata = async (): Promise<
-    WritableRuleMetadataSnapshot
-> => {
-    vi.resetModules();
-    const moduleUnderTest = await import(
-        "../src/rules/prefer-type-fest-writable.ts"
-    );
+const loadWritableRuleMetadata =
+    async (): Promise<WritableRuleMetadataSnapshot> => {
+        vi.resetModules();
+        const moduleUnderTest =
+            await import("../src/rules/prefer-type-fest-writable");
 
-    return moduleUnderTest.default as WritableRuleMetadataSnapshot;
-};
+        return moduleUnderTest.default as WritableRuleMetadataSnapshot;
+    };
 
 type WritableMappedTypeNode = TSESTree.TSMappedType;
 type WritableRuleCreateContext = Parameters<(typeof rule)["create"]>[0];
@@ -217,7 +224,7 @@ describe(ruleName, () => {
             }));
 
             const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-writable.ts")) as {
+                (await import("../src/rules/prefer-type-fest-writable")) as {
                     default: WritableRuleMetadataSnapshot;
                 };
 
@@ -235,7 +242,8 @@ describe(ruleName, () => {
             type: "TSTypeReference",
         } as unknown as TSESTree.TypeNode;
         const mappedTypeNode = createWritableMappedTypeNode({
-            constraint: undefined as unknown as WritableMappedTypeNode["constraint"],
+            constraint:
+                undefined as unknown as WritableMappedTypeNode["constraint"],
             key: {
                 name: "K",
                 type: "Identifier",
@@ -371,7 +379,7 @@ describe(ruleName, () => {
 ruleTester.run(ruleName, rule, {
     invalid: [
         {
-            code: readTypedFixture(importedAliasInvalidFixtureName),
+            code: importedAliasInvalidFixtureCode,
             errors: [
                 {
                     data: {
@@ -383,6 +391,7 @@ ruleTester.run(ruleName, rule, {
             ],
             filename: typedFixturePath(importedAliasInvalidFixtureName),
             name: "reports fixture imported Mutable alias usage",
+            output: importedAliasFixtureFixableOutputCode,
         },
         {
             code: inlineFixableInvalidCode,

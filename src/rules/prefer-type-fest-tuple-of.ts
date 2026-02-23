@@ -7,6 +7,7 @@ import type { TSESLint } from "@typescript-eslint/utils";
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
+    createSafeTypeNodeTextReplacementFix,
     isTypeParameterNameShadowed,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
@@ -61,7 +62,6 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         tupleTypeParameters?.length === 2 &&
-                        typeFestDirectImports.has("TupleOf") &&
                         !isTypeParameterNameShadowed(node, "TupleOf")
                     ) {
                         const [elementType, lengthType] = tupleTypeParameters;
@@ -83,8 +83,12 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                                     elementTypeText
                                 );
 
-                            fix = (fixer: TSESLint.RuleFixer) =>
-                                fixer.replaceText(node, replacementText);
+                            fix = createSafeTypeNodeTextReplacementFix(
+                                node,
+                                "TupleOf",
+                                replacementText,
+                                typeFestDirectImports
+                            );
                         }
                     }
 

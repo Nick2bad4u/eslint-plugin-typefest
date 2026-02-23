@@ -11,6 +11,8 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const invalidFixtureName = "prefer-type-fest-promisable.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 
 const inlineFixableInvalidCode = [
     'import type { MaybePromise } from "type-aliases";',
@@ -27,6 +29,12 @@ const inlineInvalidWithoutFixCode = [
     'import type { MaybePromise } from "type-aliases";',
     "",
     "type JobResult = MaybePromise<string>;",
+].join("\n");
+const inlineInvalidWithoutFixOutputCode = [
+    'import type { MaybePromise } from "type-aliases";',
+    'import type { Promisable } from "type-fest";',
+    "",
+    "type JobResult = Promisable<string>;",
 ].join("\n");
 const promiseFirstInvalidCode = "type Result = Promise<string> | string;";
 const promiseSecondInvalidCode = "type Result = string | Promise<string>;";
@@ -51,8 +59,7 @@ const promiseFourMemberLeadingPairValidCode =
     "type Result = Promise<string> | string | boolean | number;";
 const promiseFourMemberLeadingReversePairValidCode =
     "type Result = string | Promise<string> | boolean | number;";
-const nullFirstPromiseSecondValidCode =
-    "type Result = null | Promise<string>;";
+const nullFirstPromiseSecondValidCode = "type Result = null | Promise<string>;";
 const undefinedFirstPromiseSecondValidCode =
     "type Result = undefined | Promise<string>;";
 const neverFirstPromiseSecondValidCode =
@@ -81,18 +88,15 @@ const customWrapperValidCode = [
     "type Result = MaybePromise<string> | string;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-promisable",
-    {
-        docsDescription:
-            "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
-        enforceRuleShape: true,
-        messages: {
-            preferPromisable:
-                "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
-        },
-    }
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
+    docsDescription:
+        "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+    enforceRuleShape: true,
+    messages: {
+        preferPromisable:
+            "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
+    },
+});
 
 ruleTester.run(
     "prefer-type-fest-promisable",
@@ -100,52 +104,43 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferPromisable" },
                     { messageId: "preferPromisable" },
                     { messageId: "preferPromisable" },
                 ],
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Promise<T> | T unions",
+                output: null,
             },
             {
                 code: promiseFirstInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                filename: typedFixturePath(invalidFixtureName),
                 name: "reports union with Promise first and value second",
+                output: null,
             },
             {
                 code: promiseSecondInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                filename: typedFixturePath(invalidFixtureName),
                 name: "reports union with value first and Promise second",
+                output: null,
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes imported MaybePromise alias",
                 output: inlineFixableOutputCode,
             },
             {
                 code: inlineInvalidWithoutFixCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.invalid.ts"
-                ),
+                filename: typedFixturePath(invalidFixtureName),
                 name: "reports alias usage when Promisable import is missing",
-                output: null,
+                output: inlineInvalidWithoutFixOutputCode,
             },
         ],
         valid: [

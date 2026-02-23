@@ -15,6 +15,20 @@ const validFixtureName = "prefer-ts-extras-is-present.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-ts-extras-is-present.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-is-present.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureInvalidOutput = `import { isPresent } from "ts-extras";\n${invalidFixtureCode.replace(
+    "if (maybeValue != null) {\r\n",
+    "if (isPresent(maybeValue)) {\r\n"
+)}`;
+const fixtureInvalidSecondPassOutput = fixtureInvalidOutput
+    .replace(
+        "if (null != maybeValue) {\r\n",
+        "if (isPresent(maybeValue)) {\r\n"
+    )
+    .replace(
+        "if (maybeValue == null) {\r\n",
+        "if (!isPresent(maybeValue)) {\r\n"
+    );
 const inlineValidThreeTermStrictPresentCode = [
     "declare const maybeValue: null | string | undefined;",
     "declare const hasPermission: boolean;",
@@ -153,7 +167,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasIsPresent" },
                     { messageId: "preferTsExtrasIsPresent" },
@@ -164,6 +178,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture strict present and absent checks",
+                output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
             },
             {
                 code: inlineInvalidStrictPresentComparisonCode,

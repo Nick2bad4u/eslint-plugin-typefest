@@ -18,6 +18,13 @@ const namespaceValidFixtureName =
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-set-readonly.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-readonly.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        'import type { ReadonlyBy } from "type-aliases";\r\n',
+        'import type { ReadonlyBy } from "type-aliases";\nimport type { SetReadonly } from "type-fest";\r\n'
+    )
+    .replace("ReadonlyBy<", "SetReadonly<");
 const inlineFixableInvalidCode = [
     'import type { ReadonlyBy } from "type-aliases";',
     'import type { SetReadonly } from "type-fest";',
@@ -34,7 +41,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type FrozenUser = SetReadonly<User, "id">;'
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-set-readonly");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-set-readonly"
+);
 
 ruleTester.run(
     "prefer-type-fest-set-readonly",
@@ -42,7 +51,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     {
                         data: {
@@ -54,6 +63,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture MarkReadonly and ReadonlyBy aliases",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

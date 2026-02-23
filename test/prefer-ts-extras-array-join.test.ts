@@ -42,12 +42,27 @@ const unionArrayInvalidCode = [
     "const joined = values.join('-');",
     "String(joined);",
 ].join("\n");
+const unionArrayInvalidOutputCode = [
+    'import { arrayJoin } from "ts-extras";',
+    "declare const values: string[] | readonly string[];",
+    "const joined = arrayJoin(values, '-');",
+    "String(joined);",
+].join("\n");
 const unionWithCustomValidCode = [
     "type Custom = {",
     "    join(separator?: string): string;",
     "};",
     "declare const values: string[] | Custom;",
     "const joined = values.join('-');",
+    "String(joined);",
+].join("\n");
+const unionWithCustomOutputCode = [
+    'import { arrayJoin } from "ts-extras";',
+    "type Custom = {",
+    "    join(separator?: string): string;",
+    "};",
+    "declare const values: string[] | Custom;",
+    "const joined = arrayJoin(values, '-');",
     "String(joined);",
 ].join("\n");
 const inlineFixableCode = [
@@ -86,12 +101,14 @@ ruleTester.run(
                 errors: [{ messageId: "preferTsExtrasArrayJoin" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union of mutable and readonly arrays",
+                output: unionArrayInvalidOutputCode,
             },
             {
                 code: unionWithCustomValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayJoin" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union including custom join receiver",
+                output: unionWithCustomOutputCode,
             },
             {
                 code: inlineFixableCode,

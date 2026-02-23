@@ -26,6 +26,19 @@ const inlineInvalidInOperatorCode = [
     "",
     "String(hasDynamicKey);",
 ].join("\n");
+const inlineInvalidInOperatorOutput = [
+    'import { keyIn } from "ts-extras";',
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const payload: MonitorPayload;",
+    "",
+    "const hasDynamicKey = keyIn(payload, dynamicKey);",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
 const inlineInvalidNoFilenameCode = [
     "type MonitorPayload = {",
     "    readonly id: string;",
@@ -35,6 +48,19 @@ const inlineInvalidNoFilenameCode = [
     "declare const payload: MonitorPayload;",
     "",
     "const hasDynamicKey = dynamicKey in payload;",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidNoFilenameOutput = [
+    'import { keyIn } from "ts-extras";',
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const payload: MonitorPayload;",
+    "",
+    "const hasDynamicKey = keyIn(payload, dynamicKey);",
     "",
     "String(hasDynamicKey);",
 ].join("\n");
@@ -111,6 +137,7 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports direct in-operator membership check",
+            output: inlineInvalidInOperatorOutput,
         },
         {
             code: inlineInvalidNoFilenameCode,
@@ -120,6 +147,7 @@ ruleTester.run("prefer-ts-extras-key-in", rule, {
                 },
             ],
             name: "reports in-operator check without explicit filename",
+            output: inlineInvalidNoFilenameOutput,
         },
         {
             code: inlineFixableCode,

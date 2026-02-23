@@ -16,6 +16,11 @@ const validFixtureName = "prefer-type-fest-merge-exclusive.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-merge-exclusive.skip.ts";
 const invalidFixtureName = "prefer-type-fest-merge-exclusive.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { MergeExclusive } from "type-fest";\n${invalidFixtureCode.replace(
+    "XOR<UserQuery, UserLookup>",
+    "MergeExclusive<UserQuery, UserLookup>"
+)}`;
 const inlineFixableInvalidCode = [
     'import type { XOR } from "type-aliases";',
     'import type { MergeExclusive } from "type-fest";',
@@ -31,7 +36,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type AB = MergeExclusive<A, B>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-merge-exclusive");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-merge-exclusive"
+);
 
 ruleTester.run(
     "prefer-type-fest-merge-exclusive",
@@ -39,10 +46,11 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [{ messageId: "preferMergeExclusive" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture XOR alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

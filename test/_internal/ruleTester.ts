@@ -1,3 +1,5 @@
+import type { UnknownRecord } from "type-fest";
+
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -160,7 +162,7 @@ export const createRuleTester = (): RuleTester =>
  * @returns `true` when the value is record; otherwise `false`.
  */
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+const isRecord = (value: unknown): value is UnknownRecord =>
     typeof value === "object" && value !== null;
 
 /**
@@ -189,7 +191,7 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
  */
 export const getPluginRule = (ruleId: string): PluginRuleModule => {
     const { rules } = typefestPlugin;
-    const dynamicRules = rules as Record<string, unknown>;
+    const dynamicRules = rules as UnknownRecord;
     if (!Object.hasOwn(dynamicRules, ruleId)) {
         throw new Error(`Rule '${ruleId}' is not registered in typefestPlugin`);
     }

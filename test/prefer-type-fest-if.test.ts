@@ -18,6 +18,37 @@ const namespaceValidFixtureName = "prefer-type-fest-if.namespace.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-if.skip.ts";
 const invalidFixtureName = "prefer-type-fest-if.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = invalidFixtureCode
+    .replace(
+        '} from "type-aliases";\r\n',
+        '} from "type-aliases";\nimport type { IsAny } from "type-fest";\r\n'
+    )
+    .replace("IfAny<", "IsAny<");
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode
+    .replace(
+        'import type { IsAny } from "type-fest";\r\n',
+        'import type { IsAny } from "type-fest";\nimport type { IsEmptyObject } from "type-fest";\r\n'
+    )
+    .replace("IfEmptyObject<", "IsEmptyObject<");
+const fixtureFixableThirdPassOutputCode = fixtureFixableSecondPassOutputCode
+    .replace(
+        'import type { IsEmptyObject } from "type-fest";\r\n',
+        'import type { IsEmptyObject } from "type-fest";\nimport type { IsNever } from "type-fest";\r\n'
+    )
+    .replace("IfNever<", "IsNever<");
+const fixtureFixableFourthPassOutputCode = fixtureFixableThirdPassOutputCode
+    .replace(
+        'import type { IsNever } from "type-fest";\r\n',
+        'import type { IsNever } from "type-fest";\nimport type { IsNull } from "type-fest";\r\n'
+    )
+    .replace("IfNull<", "IsNull<");
+const fixtureFixableFifthPassOutputCode = fixtureFixableFourthPassOutputCode
+    .replace(
+        'import type { IsNull } from "type-fest";\r\n',
+        'import type { IsNull } from "type-fest";\nimport type { IsUnknown } from "type-fest";\r\n'
+    )
+    .replace("IfUnknown<", "IsUnknown<");
 const inlineFixableInvalidCode = [
     'import type { IfAny } from "type-aliases";',
     'import type { IsAny } from "type-fest";',
@@ -45,7 +76,7 @@ interface IfRuleMetadataSnapshot {
 const loadIfRuleMetadata = async (): Promise<IfRuleMetadataSnapshot> => {
     vi.resetModules();
 
-    const moduleUnderTest = await import("../src/rules/prefer-type-fest-if.ts");
+    const moduleUnderTest = await import("../src/rules/prefer-type-fest-if");
 
     return moduleUnderTest.default as IfRuleMetadataSnapshot;
 };
@@ -81,7 +112,7 @@ describe("prefer-type-fest-if metadata", () => {
             }));
 
             const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-if.ts")) as {
+                (await import("../src/rules/prefer-type-fest-if")) as {
                     default: IfRuleMetadataSnapshot;
                 };
 
@@ -103,7 +134,10 @@ describe("prefer-type-fest-if metadata", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 collectImportedTypeAliasMatches: () =>
-                    new Map<string, { importedName: string; replacementName: string }>(),
+                    new Map<
+                        string,
+                        { importedName: string; replacementName: string }
+                    >(),
                 createSafeTypeReferenceReplacementFix: () => undefined,
             }));
 
@@ -117,7 +151,7 @@ describe("prefer-type-fest-if metadata", () => {
             }));
 
             const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-if.ts")) as {
+                (await import("../src/rules/prefer-type-fest-if")) as {
                     default: IfRuleMetadataSnapshot;
                 };
 
@@ -135,7 +169,7 @@ describe("prefer-type-fest-if metadata", () => {
 ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     data: {
@@ -175,6 +209,13 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture If* alias usage",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+                fixtureFixableThirdPassOutputCode,
+                fixtureFixableFourthPassOutputCode,
+                fixtureFixableFifthPassOutputCode,
+            ],
         },
         {
             code: inlineFixableInvalidCode,

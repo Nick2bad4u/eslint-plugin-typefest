@@ -1,3 +1,4 @@
+import type { UnknownArray } from "type-fest";
 /**
  * @packageDocumentation
  * Internal shared utilities used by eslint-plugin-typefest rule modules and plugin wiring.
@@ -33,7 +34,7 @@ export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> =
  * @returns Parser services and type checker references.
  */
 export const getTypedRuleServices = (
-    context: TSESLint.RuleContext<string, readonly unknown[]>
+    context: TSESLint.RuleContext<string, UnknownArray>
 ): TypedRuleServices => {
     const parserServices = ESLintUtils.getParserServices(context, true);
 

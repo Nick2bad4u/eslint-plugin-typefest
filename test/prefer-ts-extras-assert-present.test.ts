@@ -190,6 +190,22 @@ const inlineAutofixableCanonicalOutput = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineInvalidNullableSuggestionOutputCode = [
+    'import { assertPresent } from "ts-extras";',
+    "function ensureValue(value: string | null): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineInvalidNullishSuggestionOutputCode = [
+    'import { assertPresent } from "ts-extras";',
+    "function ensureValue(value: string | null | undefined): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 ruleTester.run(
     "prefer-ts-extras-assert-present",
@@ -211,31 +227,81 @@ ruleTester.run(
             },
             {
                 code: inlineInvalidEqNullCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineInvalidNullableSuggestionOutputCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports loose null comparison guard",
             },
             {
                 code: inlineInvalidLogicalCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineInvalidNullishSuggestionOutputCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports strict null-or-undefined logical guard",
             },
             {
                 code: inlineInvalidLogicalReversedCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineInvalidNullishSuggestionOutputCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports strict logical guard with reversed operands",
             },
             {
                 code: invalidNullOnLeftEqGuardCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineInvalidNullableSuggestionOutputCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports loose null guard with literal on left",
             },
             {
                 code: invalidDirectThrowConsequentCode,
-                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineInvalidNullableSuggestionOutputCode,
+                            },
+                        ],
+                    },
+                ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports direct-throw loose null guard",
             },

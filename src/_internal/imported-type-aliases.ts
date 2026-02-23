@@ -4,6 +4,8 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+const TYPE_FEST_MODULE_NAME = "type-fest";
+
 /**
  * Matched imported type alias that can be replaced with a canonical name.
  */
@@ -123,6 +125,71 @@ const getParentNode = (
     return nodeWithParent.parent;
 };
 
+const getProgramNode = (
+    node: Readonly<TSESTree.Node>
+): null | Readonly<TSESTree.Program> => {
+    let currentNode: null | Readonly<TSESTree.Node> = node;
+
+    while (currentNode) {
+        if (currentNode.type === "Program") {
+            return currentNode;
+        }
+
+        currentNode = getParentNode(currentNode) ?? null;
+    }
+
+    return null;
+};
+
+const collectProgramImportDeclarations = (
+    programNode: Readonly<TSESTree.Program>
+): readonly Readonly<TSESTree.ImportDeclaration>[] => {
+    const importDeclarations: TSESTree.ImportDeclaration[] = [];
+
+    for (const statement of programNode.body) {
+        if (statement.type === "ImportDeclaration") {
+            importDeclarations.push(statement);
+        }
+    }
+
+    return importDeclarations;
+};
+
+const getInsertionFixForMissingNamedTypeImport = ({
+    fixer,
+    node,
+    replacementName,
+    sourceModuleName,
+}: {
+    fixer: TSESLint.RuleFixer;
+    node: Readonly<TSESTree.Node>;
+    replacementName: string;
+    sourceModuleName: string;
+}): null | TSESLint.RuleFix => {
+    const programNode = getProgramNode(node);
+    if (!programNode) {
+        return null;
+    }
+
+    const importDeclarationText = `import type { ${replacementName} } from "${sourceModuleName}";`;
+
+    const importDeclarations = collectProgramImportDeclarations(programNode);
+
+    const lastImportDeclaration = importDeclarations.at(-1);
+    if (lastImportDeclaration) {
+        return fixer.insertTextAfter(
+            lastImportDeclaration,
+            `\n${importDeclarationText}`
+        );
+    }
+
+    const [programStart] = programNode.range;
+    return fixer.insertTextBeforeRange(
+        [programStart, programStart],
+        `${importDeclarationText}\n`
+    );
+};
+
 const ancestorDefinesTypeParameterNamed = (
     ancestor: Readonly<TSESTree.Node>,
     parameterName: string
@@ -141,10 +208,10 @@ const ancestorDefinesTypeParameterNamed = (
     );
 };
 
-export const isTypeParameterNameShadowed = (
+export function isTypeParameterNameShadowed(
     node: Readonly<TSESTree.Node>,
     parameterName: string
-): boolean => {
+): boolean {
     let currentNode: Readonly<TSESTree.Node> | undefined = node;
 
     while (currentNode) {
@@ -156,6 +223,41 @@ export const isTypeParameterNameShadowed = (
     }
 
     return false;
+}
+
+const createTypeReplacementFix = ({
+    applyReplacement,
+    availableReplacementNames,
+    node,
+    replacementName,
+    sourceModuleName,
+}: {
+    applyReplacement: (fixer: TSESLint.RuleFixer) => TSESLint.RuleFix;
+    availableReplacementNames: ReadonlySet<string>;
+    node: Readonly<TSESTree.Node>;
+    replacementName: string;
+    sourceModuleName: string;
+}): null | TSESLint.ReportFixFunction => {
+    if (isTypeParameterNameShadowed(node, replacementName)) {
+        return null;
+    }
+
+    if (availableReplacementNames.has(replacementName)) {
+        return (fixer) => applyReplacement(fixer);
+    }
+
+    return (fixer) => {
+        const importFix = getInsertionFixForMissingNamedTypeImport({
+            fixer,
+            node,
+            replacementName,
+            sourceModuleName,
+        });
+
+        const replacementFix = applyReplacement(fixer);
+
+        return importFix ? [importFix, replacementFix] : [replacementFix];
+    };
 };
 
 /**
@@ -171,21 +273,21 @@ export const isTypeParameterNameShadowed = (
 export const createSafeTypeReferenceReplacementFix = (
     node: Readonly<TSESTree.TSTypeReference>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>
+    availableReplacementNames: ReadonlySet<string>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
 ): null | TSESLint.ReportFixFunction => {
     if (node.typeName.type !== "Identifier") {
         return null;
     }
 
-    if (!availableReplacementNames.has(replacementName)) {
-        return null;
-    }
-
-    if (isTypeParameterNameShadowed(node, replacementName)) {
-        return null;
-    }
-
-    return (fixer) => fixer.replaceText(node.typeName, replacementName);
+    return createTypeReplacementFix({
+        applyReplacement: (fixer) =>
+            fixer.replaceText(node.typeName, replacementName),
+        availableReplacementNames,
+        node,
+        replacementName,
+        sourceModuleName,
+    });
 };
 
 /**
@@ -201,18 +303,16 @@ export const createSafeTypeReferenceReplacementFix = (
 export const createSafeTypeNodeReplacementFix = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
-    availableReplacementNames: ReadonlySet<string>
-): null | TSESLint.ReportFixFunction => {
-    if (!availableReplacementNames.has(replacementName)) {
-        return null;
-    }
-
-    if (isTypeParameterNameShadowed(node, replacementName)) {
-        return null;
-    }
-
-    return (fixer) => fixer.replaceText(node, replacementName);
-};
+    availableReplacementNames: ReadonlySet<string>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
+): null | TSESLint.ReportFixFunction =>
+    createTypeReplacementFix({
+        applyReplacement: (fixer) => fixer.replaceText(node, replacementName),
+        availableReplacementNames,
+        node,
+        replacementName,
+        sourceModuleName,
+    });
 
 /**
  * Build a safe whole-type-node replacement fixer with custom replacement text.
@@ -230,15 +330,13 @@ export const createSafeTypeNodeTextReplacementFix = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
     replacementText: string,
-    availableReplacementNames: ReadonlySet<string>
-): null | TSESLint.ReportFixFunction => {
-    if (!availableReplacementNames.has(replacementName)) {
-        return null;
-    }
-
-    if (isTypeParameterNameShadowed(node, replacementName)) {
-        return null;
-    }
-
-    return (fixer) => fixer.replaceText(node, replacementText);
-};
+    availableReplacementNames: ReadonlySet<string>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
+): null | TSESLint.ReportFixFunction =>
+    createTypeReplacementFix({
+        applyReplacement: (fixer) => fixer.replaceText(node, replacementText),
+        availableReplacementNames,
+        node,
+        replacementName,
+        sourceModuleName,
+    });

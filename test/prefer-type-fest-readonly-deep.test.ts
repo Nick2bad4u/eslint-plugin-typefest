@@ -16,6 +16,11 @@ const validFixtureName = "prefer-type-fest-readonly-deep.valid.ts";
 const skipTestPathFixtureDirectory = "tests";
 const skipTestPathFixtureName = "prefer-type-fest-readonly-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-readonly-deep.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { ReadonlyDeep } from "type-fest";\n${invalidFixtureCode.replace(
+    "DeepReadonly<TeamConfig>",
+    "ReadonlyDeep<TeamConfig>"
+)}`;
 const inlineFixableInvalidCode = [
     'import type { DeepReadonly } from "type-aliases";',
     'import type { ReadonlyDeep } from "type-fest";',
@@ -32,7 +37,9 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type FrozenUser = ReadonlyDeep<User>;"
 );
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-readonly-deep");
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-readonly-deep"
+);
 
 ruleTester.run(
     "prefer-type-fest-readonly-deep",
@@ -40,10 +47,11 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [{ messageId: "preferReadonlyDeep" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture DeepReadonly alias usage",
+                output: fixtureFixableOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

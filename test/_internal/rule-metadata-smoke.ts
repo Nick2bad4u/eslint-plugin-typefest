@@ -1,8 +1,10 @@
+import type { UnknownArray } from "type-fest";
+
 import { describe, expect, it, vi } from "vitest";
 
 interface RuleMetadataSnapshot {
     create: (context: unknown) => unknown;
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: UnknownArray;
     meta?: {
         docs?: {
             description?: string;
@@ -10,7 +12,7 @@ interface RuleMetadataSnapshot {
         };
         fixable?: string;
         messages?: Record<string, string>;
-        schema?: readonly unknown[];
+        schema?: UnknownArray;
         type?: string;
     };
     name?: string;
@@ -28,6 +30,7 @@ const docsBaseUrl =
 const importRuleModule = async (
     ruleId: string
 ): Promise<{ default: RuleMetadataSnapshot }> => {
+    // eslint-disable-next-line no-unsanitized/method -- Rule ids are repository-controlled constants in test files.
     const moduleUnderTest = (await import(
         `../../src/rules/${ruleId}.ts`
     )) as unknown;
@@ -36,8 +39,9 @@ const importRuleModule = async (
 };
 
 /**
- * Registers shared metadata/fallback tests that kill recurring Stryker survivors
- * in rule modules that use `createTypedRule` + `context.filename ?? ""`.
+ * Registers shared metadata/fallback tests that kill recurring Stryker
+ * survivors in rule modules that use `createTypedRule` + `context.filename ??
+ * ""`.
  */
 export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     ruleId: string,
@@ -53,32 +57,45 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                     ? (metadataRule as { defaultOptions?: unknown })
                           .defaultOptions
                     : undefined;
+            const expectedDocsDescription =
+                expectations.docsDescription ??
+                metadataRule.meta?.docs?.description;
+            const expectedRuleShape = {
+                fixable:
+                    expectations.enforceRuleShape === true
+                        ? "code"
+                        : metadataRule.meta?.fixable,
+                schema:
+                    expectations.enforceRuleShape === true
+                        ? []
+                        : metadataRule.meta?.schema,
+                type:
+                    expectations.enforceRuleShape === true
+                        ? "suggestion"
+                        : metadataRule.meta?.type,
+            } as const;
 
             expect(metadataRule.name).toBe(ruleId);
             expect(metadataDefaultOptions).toStrictEqual([]);
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 
-            if (expectations.docsDescription !== undefined) {
-                expect(metadataRule.meta?.docs?.description).toBe(
-                    expectations.docsDescription
+            expect(metadataRule.meta?.docs?.description).toBe(
+                expectedDocsDescription
+            );
+
+            for (const [messageId, expectedMessage] of Object.entries(
+                expectations.messages ?? {}
+            )) {
+                expect(metadataRule.meta?.messages?.[messageId]).toBe(
+                    expectedMessage
                 );
             }
 
-            if (expectations.messages !== undefined) {
-                for (const [messageId, expectedMessage] of Object.entries(
-                    expectations.messages
-                )) {
-                    expect(metadataRule.meta?.messages?.[messageId]).toBe(
-                        expectedMessage
-                    );
-                }
-            }
-
-            if (expectations.enforceRuleShape) {
-                expect(metadataRule.meta?.fixable).toBe("code");
-                expect(metadataRule.meta?.schema).toStrictEqual([]);
-                expect(metadataRule.meta?.type).toBe("suggestion");
-            }
+            expect(metadataRule.meta?.fixable).toBe(expectedRuleShape.fixable);
+            expect(metadataRule.meta?.schema).toStrictEqual(
+                expectedRuleShape.schema
+            );
+            expect(metadataRule.meta?.type).toBe(expectedRuleShape.type);
         });
 
         it("declares authored docs url literal before RuleCreator decoration", async () => {
@@ -91,7 +108,8 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                     isTestFilePath: () => false,
                 }));
 
-                const undecoratedRule = (await importRuleModule(ruleId)).default;
+                const undecoratedRule = (await importRuleModule(ruleId))
+                    .default;
 
                 expect(undecoratedRule.meta?.docs?.url).toBe(expectedDocsUrl);
             } finally {
@@ -116,7 +134,8 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                     },
                 }));
 
-                const undecoratedRule = (await importRuleModule(ruleId)).default;
+                const undecoratedRule = (await importRuleModule(ruleId))
+                    .default;
 
                 undecoratedRule.create({});
 

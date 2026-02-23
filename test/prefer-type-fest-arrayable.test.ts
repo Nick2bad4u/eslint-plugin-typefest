@@ -39,7 +39,8 @@ const genericArrayMismatchedElementValidCode =
     "type QueryValue = string | Array<number>;";
 const qualifiedGenericArrayValidCode =
     "type QueryValue = string | globalThis.Array<string>;";
-const bothMembersAreNativeArraysValidCode = "type QueryValue = string[] | string[];";
+const bothMembersAreNativeArraysValidCode =
+    "type QueryValue = string[] | string[];";
 const inlineFixableCode = [
     'import type { Arrayable } from "type-fest";',
     "",
@@ -70,6 +71,39 @@ const inlineGenericFixableReversedOutput = [
     "",
     "type QueryValue = Arrayable<string>;",
 ].join("\n");
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const fixtureFixableOutputCode = `import type { Arrayable } from "type-fest";\n${invalidFixtureCode.replace(
+    "Array<number> | number",
+    "Arrayable<number>"
+)}`;
+const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
+    "string | string[]",
+    "Arrayable<string>"
+);
+const inlineInvalidOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineInvalidReversedOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineInvalidGenericArrayOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineInvalidGenericArrayReversedOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<string>;",
+].join("\n");
+const inlineInvalidWhitespaceNormalizedGenericArrayOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<Map < string , number >>;",
+].join("\n");
+const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
+    'import type { Arrayable } from "type-fest";',
+    "type QueryValue = Arrayable<Map<string, number>>;",
+].join("\n");
 
 const skipPathInvalidCode = inlineInvalidCode;
 
@@ -89,49 +123,59 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferArrayable" },
                     { messageId: "preferArrayable" },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture string-or-array unions",
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports string | string[] union",
+                output: inlineInvalidOutputCode,
             },
             {
                 code: inlineInvalidReversedCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reversed string[] | string union",
+                output: inlineInvalidReversedOutputCode,
             },
             {
                 code: inlineInvalidGenericArrayCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports string | Array<string> union",
+                output: inlineInvalidGenericArrayOutputCode,
             },
             {
                 code: inlineInvalidGenericArrayReversedCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reversed Array<string> | string union",
+                output: inlineInvalidGenericArrayReversedOutputCode,
             },
             {
                 code: inlineInvalidWhitespaceNormalizedGenericArrayCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports generic unions when element text only differs by whitespace",
+                output: inlineInvalidWhitespaceNormalizedGenericArrayOutputCode,
             },
             {
                 code: inlineInvalidWhitespaceNormalizedGenericArrayReversedCode,
                 errors: [{ messageId: "preferArrayable" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports reversed generic unions when element text only differs by whitespace",
+                output: inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode,
             },
             {
                 code: inlineFixableCode,

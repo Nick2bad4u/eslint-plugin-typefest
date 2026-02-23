@@ -2,10 +2,11 @@
 
 /**
  * Documentation link checker with improvements:
- * - pathExists cache
- * - concurrency limit for file checks
- * - summary metrics and timing
- * - deduplicated issues
+ *
+ * - PathExists cache
+ * - Concurrency limit for file checks
+ * - Summary metrics and timing
+ * - Deduplicated issues
  * - --max-path-display and --concurrency CLI flags
  */
 
@@ -17,10 +18,14 @@ import pc from "picocolors";
 const argv = process.argv.slice(2);
 const isVerbose = argv.includes("--verbose") || argv.includes("-v");
 const failFast = argv.includes("--fail-fast") || argv.includes("-f");
-const maxPathDisplayArg = argv.find(a => a.startsWith("--max-path="));
-const maxPathDisplay = maxPathDisplayArg ? Number(maxPathDisplayArg.split("=")[1]) : 50;
-const concurrencyArg = argv.find(a => a.startsWith("--concurrency="));
-const CONCURRENCY = concurrencyArg ? Math.max(1, Number(concurrencyArg.split("=")[1])) : 50;
+const maxPathDisplayArg = argv.find((a) => a.startsWith("--max-path="));
+const maxPathDisplay = maxPathDisplayArg
+    ? Number(maxPathDisplayArg.split("=")[1])
+    : 50;
+const concurrencyArg = argv.find((a) => a.startsWith("--concurrency="));
+const CONCURRENCY = concurrencyArg
+    ? Math.max(1, Number(concurrencyArg.split("=")[1]))
+    : 50;
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectoryPath = dirname(currentFilePath);
@@ -30,7 +35,7 @@ const DOCS_DIRECTORIES = [
     "docs/rules",
     "docs/docusaurus/site-docs",
     "docs/docusaurus/src/pages",
-    "./"
+    "./",
 ];
 
 const IGNORED_DIRECTORIES = new Set([
@@ -63,23 +68,29 @@ const LEADING_BANG = /^!/;
 
 /**
  * Truncate safely keeping last `max` codepoints
+ *
  * @param {any} str
  * @param {number} max
  */
-function truncateEnd (str, max) {
+function truncateEnd(str, max) {
     const chars = [...str];
-    return chars.length > max ? '...' + chars.slice(-max).join('') : str;
+    return chars.length > max ? "..." + chars.slice(-max).join("") : str;
 }
 
 /**
  * @param {import("node:fs").PathLike} entryPath
  */
-async function isDirectory (entryPath) {
+async function isDirectory(entryPath) {
     try {
         const entryStat = await stat(entryPath);
         return entryStat.isDirectory();
     } catch (error) {
-        if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+        if (
+            error &&
+            typeof error === "object" &&
+            "code" in error &&
+            error.code === "ENOENT"
+        ) {
             return false;
         }
         throw error;
@@ -89,7 +100,7 @@ async function isDirectory (entryPath) {
 /**
  * @param {string} startDirectory
  */
-async function collectMarkdownFiles (startDirectory) {
+async function collectMarkdownFiles(startDirectory) {
     const results = [];
     const stack = [startDirectory];
 
@@ -105,7 +116,10 @@ async function collectMarkdownFiles (startDirectory) {
                 stack.push(entryPath);
                 continue;
             }
-            if (entry.isFile() && [".md", ".mdx"].includes(extname(entryName).toLowerCase())) {
+            if (
+                entry.isFile() &&
+                [".md", ".mdx"].includes(extname(entryName).toLowerCase())
+            ) {
                 results.push(entryPath);
             }
         }
@@ -117,7 +131,7 @@ async function collectMarkdownFiles (startDirectory) {
 /**
  * @param {string} link
  */
-function isExternalLink (link) {
+function isExternalLink(link) {
     return EXTERNAL_PROTOCOLS.some((protocol) =>
         link.toLowerCase().startsWith(protocol)
     );
@@ -126,14 +140,14 @@ function isExternalLink (link) {
 /**
  * @param {string} link
  */
-function isAnchor (link) {
+function isAnchor(link) {
     return link.startsWith("#");
 }
 
 /**
  * @param {string} rawLink
  */
-function normalizeLink (rawLink) {
+function normalizeLink(rawLink) {
     const [pathPart] = rawLink.split("#");
     if (!pathPart) return "";
     const [cleanPath] = pathPart.split("?");
@@ -146,7 +160,9 @@ function normalizeLink (rawLink) {
  */
 const pathExistsCache = new Map();
 
-const pathExists = async (/** @type {import("node:fs").PathLike} */ pathToCheck) => {
+const pathExists = async (
+    /** @type {import("node:fs").PathLike} */ pathToCheck
+) => {
     if (pathExistsCache.has(pathToCheck)) {
         return pathExistsCache.get(pathToCheck);
     }
@@ -160,7 +176,10 @@ const pathExists = async (/** @type {import("node:fs").PathLike} */ pathToCheck)
     }
 };
 
-const getPathCandidates = (/** @type {string} */ markdownPath, /** @type {string} */ normalizedLink) => {
+const getPathCandidates = (
+    /** @type {string} */ markdownPath,
+    /** @type {string} */ normalizedLink
+) => {
     const markdownDirectoryPath = dirname(markdownPath);
     const basePath = resolve(markdownDirectoryPath, normalizedLink);
     const hasKnownExtension = [
@@ -184,15 +203,23 @@ const getPathCandidates = (/** @type {string} */ markdownPath, /** @type {string
 };
 
 /**
- * Validate a single link and push to issues if broken.
- * Returns true if broken (so caller can optionally fail-fast).
+ * Validate a single link and push to issues if broken. Returns true if broken
+ * (so caller can optionally fail-fast).
+ *
  * @param {any} markdownPath
  * @param {string} link
- * @param {{ file: any; link: any; resolvedPath: string; }[]} issues
- * @param {{ has: (arg0: string) => any; add: (arg0: string) => void; }} issueSet
- * @param {{ totalLinksChecked: number; emptyLinks: number; anchorsIgnored: number; externalLinksIgnored: number; appRouteLinksIgnored: number; brokenLinks: number; }} metrics
+ * @param {{ file: any; link: any; resolvedPath: string }[]} issues
+ * @param {{ has: (arg0: string) => any; add: (arg0: string) => void }} issueSet
+ * @param {{
+ *     totalLinksChecked: number;
+ *     emptyLinks: number;
+ *     anchorsIgnored: number;
+ *     externalLinksIgnored: number;
+ *     appRouteLinksIgnored: number;
+ *     brokenLinks: number;
+ * }} metrics
  */
-async function validateLink (markdownPath, link, issues, issueSet, metrics) {
+async function validateLink(markdownPath, link, issues, issueSet, metrics) {
     metrics.totalLinksChecked++;
     const normalized = normalizeLink(link);
     if (normalized.length === 0) {
@@ -238,11 +265,25 @@ async function validateLink (markdownPath, link, issues, issueSet, metrics) {
  * @param {import("node:fs").PathLike | import("node:fs/promises").FileHandle} markdownPath
  * @param {any[]} issues
  * @param {Set<any>} issueSet
- * @param {{ totalFilesChecked?: number; totalLinksChecked?: number; brokenLinks?: number; externalLinksIgnored?: number; anchorsIgnored?: number; appRouteLinksIgnored?: number; imageLinksIgnored: any; emptyLinks?: number; filesWithLinks: any; filesWithNoLinks: any; }} metrics
+ * @param {{
+ *     totalFilesChecked?: number;
+ *     totalLinksChecked?: number;
+ *     brokenLinks?: number;
+ *     externalLinksIgnored?: number;
+ *     anchorsIgnored?: number;
+ *     appRouteLinksIgnored?: number;
+ *     imageLinksIgnored: any;
+ *     emptyLinks?: number;
+ *     filesWithLinks: any;
+ *     filesWithNoLinks: any;
+ * }} metrics
  */
-async function checkFile (markdownPath, issues, issueSet, metrics) {
+async function checkFile(markdownPath, issues, issueSet, metrics) {
     if (isVerbose) {
-        console.log(pc.cyan('Scanning: ') + pc.magenta(truncateEnd(markdownPath, maxPathDisplay)));
+        console.log(
+            pc.cyan("Scanning: ") +
+                pc.magenta(truncateEnd(markdownPath, maxPathDisplay))
+        );
     }
 
     const content = await readFile(markdownPath, "utf8");
@@ -275,7 +316,13 @@ async function checkFile (markdownPath, issues, issueSet, metrics) {
         }
         if (link) {
             // Pass validateMetrics to validateLink, then sync back to metrics
-            const broken = await validateLink(markdownPath, link, issues, issueSet, validateMetrics);
+            const broken = await validateLink(
+                markdownPath,
+                link,
+                issues,
+                issueSet,
+                validateMetrics
+            );
             // Sync updated values back to metrics
             metrics.totalLinksChecked = validateMetrics.totalLinksChecked;
             metrics.emptyLinks = validateMetrics.emptyLinks;
@@ -292,10 +339,11 @@ async function checkFile (markdownPath, issues, issueSet, metrics) {
 
 /**
  * Split array into batches
+ *
  * @param {string | any[]} array
  * @param {number} size
  */
-function batches (array, size) {
+function batches(array, size) {
     const out = [];
     for (let i = 0; i < array.length; i += size) {
         out.push(array.slice(i, i + size));
@@ -306,7 +354,7 @@ function batches (array, size) {
 /**
  *
  */
-async function main () {
+async function main() {
     /**
      * @type {any[]}
      */
@@ -316,22 +364,23 @@ async function main () {
     // Metrics
 
     /**
-     * All metrics properties must be initialized as numbers (not possibly undefined)
-     * to satisfy validateLink's type requirements.
+     * All metrics properties must be initialized as numbers (not possibly
+     * undefined) to satisfy validateLink's type requirements.
      */
     /**
      * @type {{
-     *   totalFilesChecked: number;
-     *   totalLinksChecked: number;
-     *   brokenLinks: number;
-     *   externalLinksIgnored: number;
-     *   anchorsIgnored: number;
-     *   appRouteLinksIgnored: number;
-     *   imageLinksIgnored: number;
-     *   emptyLinks: number;
-     *   filesWithLinks: number;
-     *   filesWithNoLinks: number;
-      }} */
+     *     totalFilesChecked: number;
+     *     totalLinksChecked: number;
+     *     brokenLinks: number;
+     *     externalLinksIgnored: number;
+     *     anchorsIgnored: number;
+     *     appRouteLinksIgnored: number;
+     *     imageLinksIgnored: number;
+     *     emptyLinks: number;
+     *     filesWithLinks: number;
+     *     filesWithNoLinks: number;
+     * }}
+     */
     const metrics = {
         totalFilesChecked: 0,
         totalLinksChecked: 0,
@@ -352,13 +401,19 @@ async function main () {
 
         if (!(await isDirectory(absoluteDirectory))) {
             if (isVerbose) {
-                console.log(pc.yellow(`Skipping non-existent directory: ${absoluteDirectory}`));
+                console.log(
+                    pc.yellow(
+                        `Skipping non-existent directory: ${absoluteDirectory}`
+                    )
+                );
             }
             continue;
         }
 
         if (isVerbose) {
-            console.log(pc.cyan(`Collecting markdown files in: ${absoluteDirectory}`));
+            console.log(
+                pc.cyan(`Collecting markdown files in: ${absoluteDirectory}`)
+            );
         }
 
         const markdownFiles = await collectMarkdownFiles(absoluteDirectory);
@@ -367,7 +422,11 @@ async function main () {
         // Process files in batches to limit concurrency
         for (const batch of batches(markdownFiles, CONCURRENCY)) {
             if (Array.isArray(batch)) {
-                await Promise.all(batch.map((/** @type {any} */ file) => checkFile(file, issues, issueSet, metrics)));
+                await Promise.all(
+                    batch.map((/** @type {any} */ file) =>
+                        checkFile(file, issues, issueSet, metrics)
+                    )
+                );
             } else {
                 // Defensive: if batch is not an array, skip or handle as needed
                 continue;
@@ -382,27 +441,37 @@ async function main () {
         for (const issue of issues) {
             console.error(
                 pc.red(`• ${issue.file}`) +
-                pc.gray(" -> ") +
-                pc.yellow(issue.link) +
-                pc.gray(" (resolved path: ") +
-                pc.magenta(issue.resolvedPath) +
-                pc.gray(")")
+                    pc.gray(" -> ") +
+                    pc.yellow(issue.link) +
+                    pc.gray(" (resolved path: ") +
+                    pc.magenta(issue.resolvedPath) +
+                    pc.gray(")")
             );
         }
-        console.error(pc.red(`\nTotal broken links: ${metrics.brokenLinks}. Please fix the links above.`));
+        console.error(
+            pc.red(
+                `\nTotal broken links: ${metrics.brokenLinks}. Please fix the links above.`
+            )
+        );
         // Summary
         console.error(pc.gray(`Files checked: ${metrics.totalFilesChecked}`));
         console.error(pc.gray(`Links checked: ${metrics.totalLinksChecked}`));
-        console.error(pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`));
+        console.error(
+            pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`)
+        );
         console.error(pc.gray(`Anchors ignored: ${metrics.anchorsIgnored}`));
         console.error(pc.gray(`Elapsed: ${(elapsedMs / 1000).toFixed(2)}s`));
         process.exit(1);
     }
 
-    console.log(pc.green("Documentation link check passed – no broken links found."));
+    console.log(
+        pc.green("Documentation link check passed – no broken links found.")
+    );
     console.log(pc.gray(`Files checked: ${metrics.totalFilesChecked}`));
     console.log(pc.gray(`Links checked: ${metrics.totalLinksChecked}`));
-    console.log(pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`));
+    console.log(
+        pc.gray(`External links ignored: ${metrics.externalLinksIgnored}`)
+    );
     console.log(pc.gray(`Anchors ignored: ${metrics.anchorsIgnored}`));
     console.log(pc.gray(`Elapsed: ${(elapsedMs / 1000).toFixed(2)}s`));
 }
@@ -410,7 +479,9 @@ async function main () {
 try {
     await main();
 } catch (error) {
-    console.error(pc.red("Documentation link check failed due to an unexpected error."));
+    console.error(
+        pc.red("Documentation link check failed due to an unexpected error.")
+    );
     console.error(error);
     process.exit(1);
 }

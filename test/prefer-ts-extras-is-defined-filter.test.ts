@@ -13,10 +13,17 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-defined-filter.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-defined-filter.invalid.ts";
+const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 
 const inlineInvalidCode = [
     "const values: Array<number | undefined> = [1, undefined, 2];",
     "const definedValues = values.filter((value) => value !== undefined);",
+    "String(definedValues);",
+].join("\n");
+const inlineInvalidOutput = [
+    'import { isDefined } from "ts-extras";',
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
     "String(definedValues);",
 ].join("\n");
 
@@ -25,9 +32,21 @@ const inlineInvalidRightSideCode = [
     "const definedValues = values.filter((value) => undefined !== value);",
     "String(definedValues);",
 ].join("\n");
+const inlineInvalidRightSideOutput = [
+    'import { isDefined } from "ts-extras";',
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
+    "String(definedValues);",
+].join("\n");
 const typeofInvalidCode = [
     "const values: Array<number | undefined> = [1, undefined, 2];",
     "const definedValues = values.filter((value) => typeof value !== 'undefined');",
+    "String(definedValues);",
+].join("\n");
+const typeofInvalidOutput = [
+    'import { isDefined } from "ts-extras";',
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const definedValues = values.filter(isDefined);",
     "String(definedValues);",
 ].join("\n");
 const typeofRightInvalidCode = [
@@ -107,6 +126,41 @@ const inlineFixableOutput = [
     "const definedValues = values.filter(isDefined);",
     "String(definedValues);",
 ].join("\n");
+const fixtureInvalidOutput = [
+    "interface MonitorRecord {",
+    "    readonly id: string;",
+    "}",
+    "",
+    "declare const maybeNumbers: readonly unknown[];",
+    "declare const maybeMonitors: readonly unknown[];",
+    "declare const maybeStrings: readonly unknown[];",
+    "",
+    "const numbers = maybeNumbers.filter(",
+    "    isDefined",
+    ");",
+    "const monitors = maybeMonitors.filter(",
+    "    (monitor): monitor is MonitorRecord => monitor !== undefined",
+    ");",
+    "const strings = maybeStrings.filter((entry) => entry !== undefined);",
+    "",
+    "const totalCount = numbers.length + monitors.length + strings.length;",
+    "if (totalCount < 0) {",
+    '    throw new TypeError("Unreachable total count");',
+    "}",
+    "",
+    'export const __typedFixtureModule = "typed-fixture-module";',
+].join("\r\n");
+const fixtureInvalidOutputWithMixedLineEndings = `import { isDefined } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
+const fixtureInvalidSecondPassOutputWithMixedLineEndings =
+    fixtureInvalidOutputWithMixedLineEndings
+        .replace(
+            "const monitors = maybeMonitors.filter(\r\n    (monitor): monitor is MonitorRecord => monitor !== undefined\r\n);\r\n",
+            "const monitors = maybeMonitors.filter(\r\n    isDefined\r\n);\r\n"
+        )
+        .replace(
+            "const strings = maybeStrings.filter((entry) => entry !== undefined);\r\n",
+            "const strings = maybeStrings.filter(isDefined);\r\n"
+        );
 
 ruleTester.run(
     "prefer-ts-extras-is-defined-filter",
@@ -114,7 +168,7 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: readTypedFixture(invalidFixtureName),
+                code: invalidFixtureCode,
                 errors: [
                     { messageId: "preferTsExtrasIsDefinedFilter" },
                     { messageId: "preferTsExtrasIsDefinedFilter" },
@@ -122,24 +176,31 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture filter guards for undefined",
+                output: [
+                    fixtureInvalidOutputWithMixedLineEndings,
+                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                ],
             },
             {
                 code: inlineInvalidCode,
                 errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports arrow predicate value !== undefined",
+                output: inlineInvalidOutput,
             },
             {
                 code: inlineInvalidRightSideCode,
                 errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports arrow predicate undefined !== value",
+                output: inlineInvalidRightSideOutput,
             },
             {
                 code: typeofInvalidCode,
                 errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports typeof undefined predicate",
+                output: typeofInvalidOutput,
             },
             {
                 code: inlineFixableCode,

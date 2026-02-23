@@ -21,6 +21,14 @@ const inlineInvalidThreeArgumentReflectHasCode = [
     "",
     "String(hasStatus);",
 ].join("\n");
+const inlineInvalidThreeArgumentReflectHasOutput = [
+    'import { objectHasIn } from "ts-extras";',
+    "declare const monitorRecord: { readonly status?: string };",
+    "",
+    'const hasStatus = objectHasIn(monitorRecord, "status", "extra");',
+    "",
+    "String(hasStatus);",
+].join("\n");
 const inlineFixableReflectHasCode = [
     'import { objectHasIn } from "ts-extras";',
     "",
@@ -81,6 +89,7 @@ ruleTester.run("prefer-ts-extras-object-has-in", rule, {
             errors: [{ messageId: "preferTsExtrasObjectHasIn" }],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Reflect.has call with extra argument",
+            output: inlineInvalidThreeArgumentReflectHasOutput,
         },
         {
             code: inlineFixableReflectHasCode,
