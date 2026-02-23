@@ -95,6 +95,30 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+# -------------------------
+# Embedded standard labels (your current set)
+# -------------------------
+$embeddedLabels = @(
+    @{ Name = "bug"; Color = "d73a4a"; Description = "Something isn't working." }
+    @{ Name = "documentation"; Color = "0075ca"; Description = "Improvements or additions to documentation." }
+    @{ Name = "duplicate"; Color = "cfd3d7"; Description = "This issue or pull request already exists." }
+    @{ Name = "enhancement"; Color = "a2eeef"; Description = "New feature or request." }
+    @{ Name = "good first issue"; Color = "7057ff"; Description = "Good for newcomers." }
+    @{ Name = "help wanted"; Color = "008672"; Description = "Extra attention is needed." }
+    @{ Name = "invalid"; Color = "e4e669"; Description = "This doesn't seem right." }
+    @{ Name = "question"; Color = "d876e3"; Description = "Further information is requested." }
+    @{ Name = "wontfix"; Color = "ffffff"; Description = "This will not be worked on." }
+    @{ Name = "test"; Color = "0e8a16"; Description = "Needs tests or QA verification." }
+    @{ Name = "vulnerability"; Color = "b60205"; Description = "Security vulnerability tracking." }
+    @{ Name = "codex"; Color = "1d76db"; Description = "CodeX automation and tooling updates." }
+    @{ Name = "dependabot"; Color = "06B1D0"; Description = "Automated Dependabot updates." }
+    @{ Name = "dependencies"; Color = "742D9A"; Description = "Dependency maintenance work." }
+    @{ Name = "github-actions"; Color = "5371BB"; Description = "GitHub Actions workflows or runners." }
+    @{ Name = "npm"; Color = "6F44BD"; Description = "npm registry or packaging changes." }
+    @{ Name = "CI/CD"; Color = "0b5394"; Description = "Continuous integration and delivery updates." }
+    @{ Name = "configuration"; Color = "fbca04"; Description = "Configuration and tooling updates." }
+)
+
 function Write-Section {
     param(
         [Parameter(Mandatory)] [string]$Title
@@ -211,30 +235,6 @@ function Ensure-DirectoryForFile {
 }
 
 Assert-CommandExists -Command "gh"
-
-# -------------------------
-# Embedded standard labels (your current set)
-# -------------------------
-$embeddedLabels = @(
-    @{ Name = "bug"; Color = "d73a4a"; Description = "Something isn't working." }
-    @{ Name = "documentation"; Color = "0075ca"; Description = "Improvements or additions to documentation." }
-    @{ Name = "duplicate"; Color = "cfd3d7"; Description = "This issue or pull request already exists." }
-    @{ Name = "enhancement"; Color = "a2eeef"; Description = "New feature or request." }
-    @{ Name = "good first issue"; Color = "7057ff"; Description = "Good for newcomers." }
-    @{ Name = "help wanted"; Color = "008672"; Description = "Extra attention is needed." }
-    @{ Name = "invalid"; Color = "e4e669"; Description = "This doesn't seem right." }
-    @{ Name = "question"; Color = "d876e3"; Description = "Further information is requested." }
-    @{ Name = "wontfix"; Color = "ffffff"; Description = "This will not be worked on." }
-    @{ Name = "test"; Color = "0e8a16"; Description = "Needs tests or QA verification." }
-    @{ Name = "vulnerability"; Color = "b60205"; Description = "Security vulnerability tracking." }
-    @{ Name = "codex"; Color = "1d76db"; Description = "CodeX automation and tooling updates." }
-    @{ Name = "dependabot"; Color = "06B1D0"; Description = "Automated Dependabot updates." }
-    @{ Name = "dependencies"; Color = "742D9A"; Description = "Dependency maintenance work." }
-    @{ Name = "github-actions"; Color = "5371BB"; Description = "GitHub Actions workflows or runners." }
-    @{ Name = "npm"; Color = "6F44BD"; Description = "npm registry or packaging changes." }
-    @{ Name = "CI/CD"; Color = "0b5394"; Description = "Continuous integration and delivery updates." }
-    @{ Name = "configuration"; Color = "fbca04"; Description = "Configuration and tooling updates." }
-)
 
 $embeddedByName = @{}
 foreach ($l in $embeddedLabels) {
