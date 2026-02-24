@@ -72,6 +72,7 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",

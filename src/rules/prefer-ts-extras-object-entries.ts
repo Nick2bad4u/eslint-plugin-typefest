@@ -65,6 +65,7 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras objectEntries over Object.entries for stronger key/value inference.",

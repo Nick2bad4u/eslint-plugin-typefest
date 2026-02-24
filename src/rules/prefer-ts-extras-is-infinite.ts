@@ -228,6 +228,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isInfinite over direct Infinity equality checks for consistent predicate helper usage.",

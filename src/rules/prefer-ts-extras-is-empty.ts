@@ -149,6 +149,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",

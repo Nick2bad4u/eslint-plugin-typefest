@@ -94,6 +94,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",

@@ -55,6 +55,7 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequiredDeep over `DeepRequired` aliases.",

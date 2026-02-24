@@ -72,6 +72,7 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest ConditionalPick over imported aliases such as PickByTypes.",

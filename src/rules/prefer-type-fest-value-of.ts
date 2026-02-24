@@ -87,6 +87,7 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",

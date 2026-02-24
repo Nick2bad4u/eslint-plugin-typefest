@@ -91,6 +91,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras setHas over Set#has for stronger element narrowing.",

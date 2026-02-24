@@ -162,6 +162,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",

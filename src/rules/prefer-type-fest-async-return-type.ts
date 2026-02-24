@@ -120,6 +120,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",

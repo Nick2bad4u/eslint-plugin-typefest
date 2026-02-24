@@ -72,6 +72,7 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest SetRequired over imported aliases such as RequiredBy.",

@@ -72,6 +72,7 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",

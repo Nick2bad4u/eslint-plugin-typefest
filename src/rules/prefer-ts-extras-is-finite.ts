@@ -65,6 +65,7 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isFinite over Number.isFinite for consistent predicate helper usage.",

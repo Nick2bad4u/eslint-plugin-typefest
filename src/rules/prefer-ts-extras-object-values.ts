@@ -65,6 +65,7 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras objectValues over Object.values for stronger value inference.",

@@ -244,6 +244,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.",

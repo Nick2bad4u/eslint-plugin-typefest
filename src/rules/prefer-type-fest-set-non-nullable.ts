@@ -72,6 +72,7 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",

@@ -73,6 +73,7 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",

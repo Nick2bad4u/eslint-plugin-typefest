@@ -72,6 +72,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras keyIn over `in` key checks for stronger narrowing.",

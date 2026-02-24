@@ -72,6 +72,7 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",

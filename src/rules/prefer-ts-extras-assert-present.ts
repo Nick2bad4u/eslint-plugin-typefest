@@ -323,6 +323,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras assertPresent over manual nullish-guard throw blocks.",

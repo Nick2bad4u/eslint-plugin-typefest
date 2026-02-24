@@ -179,6 +179,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras not helper over inline negated predicate callbacks in filter calls.",

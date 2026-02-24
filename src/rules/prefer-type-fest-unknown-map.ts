@@ -105,6 +105,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",

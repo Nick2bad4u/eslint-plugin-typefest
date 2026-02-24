@@ -55,6 +55,7 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest ReadonlyDeep over `DeepReadonly` aliases.",

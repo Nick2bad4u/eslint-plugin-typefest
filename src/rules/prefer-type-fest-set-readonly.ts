@@ -72,6 +72,7 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest SetReadonly over imported aliases such as ReadonlyBy.",

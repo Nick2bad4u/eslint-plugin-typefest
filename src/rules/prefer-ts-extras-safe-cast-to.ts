@@ -128,6 +128,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",

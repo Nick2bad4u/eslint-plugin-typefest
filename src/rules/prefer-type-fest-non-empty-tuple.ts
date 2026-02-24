@@ -171,6 +171,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",

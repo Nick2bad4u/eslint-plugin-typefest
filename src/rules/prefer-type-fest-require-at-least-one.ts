@@ -72,6 +72,7 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.",

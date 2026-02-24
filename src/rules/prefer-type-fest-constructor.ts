@@ -55,6 +55,7 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Constructor over explicit `new (...) => ...` constructor signatures.",

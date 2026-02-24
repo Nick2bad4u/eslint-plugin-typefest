@@ -157,6 +157,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras assertError over manual instanceof Error throw guards.",

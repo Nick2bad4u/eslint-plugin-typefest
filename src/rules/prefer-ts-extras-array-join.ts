@@ -104,6 +104,7 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",

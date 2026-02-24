@@ -108,6 +108,7 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Except over Omit when removing properties from object types.",

@@ -104,6 +104,7 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",

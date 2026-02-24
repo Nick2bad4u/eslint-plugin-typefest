@@ -192,6 +192,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",

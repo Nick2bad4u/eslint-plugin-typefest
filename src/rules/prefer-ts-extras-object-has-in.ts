@@ -75,6 +75,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",

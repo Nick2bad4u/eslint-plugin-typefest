@@ -102,6 +102,7 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",

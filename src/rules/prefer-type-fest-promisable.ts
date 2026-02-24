@@ -175,6 +175,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",

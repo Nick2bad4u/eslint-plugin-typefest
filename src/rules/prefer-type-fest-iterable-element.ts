@@ -74,6 +74,7 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.",

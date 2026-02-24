@@ -114,6 +114,7 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",

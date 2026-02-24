@@ -160,6 +160,7 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",

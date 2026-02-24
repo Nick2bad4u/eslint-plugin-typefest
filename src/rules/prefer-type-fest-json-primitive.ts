@@ -122,6 +122,7 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",

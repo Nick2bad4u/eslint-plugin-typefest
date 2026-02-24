@@ -175,6 +175,7 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",

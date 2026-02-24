@@ -72,6 +72,7 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest SetOptional over imported alias types like PartialBy.",

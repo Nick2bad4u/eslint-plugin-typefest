@@ -76,6 +76,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest If + Is* utilities over deprecated If* aliases.",

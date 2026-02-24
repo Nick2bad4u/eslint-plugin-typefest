@@ -125,6 +125,7 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",

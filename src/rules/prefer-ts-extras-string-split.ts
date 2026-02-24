@@ -94,6 +94,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras stringSplit over String#split for stronger tuple inference.",

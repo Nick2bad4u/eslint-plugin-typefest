@@ -379,6 +379,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",

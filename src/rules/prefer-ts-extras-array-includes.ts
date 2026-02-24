@@ -108,6 +108,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayIncludes over Array#includes for stronger element inference.",

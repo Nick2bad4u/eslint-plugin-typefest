@@ -55,6 +55,7 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest MergeExclusive over `XOR` aliases.",

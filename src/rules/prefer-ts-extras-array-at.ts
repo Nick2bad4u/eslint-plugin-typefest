@@ -108,6 +108,7 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayAt over Array#at for stronger element inference.",

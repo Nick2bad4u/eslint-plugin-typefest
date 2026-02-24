@@ -77,6 +77,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",

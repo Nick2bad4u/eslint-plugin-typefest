@@ -246,6 +246,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",

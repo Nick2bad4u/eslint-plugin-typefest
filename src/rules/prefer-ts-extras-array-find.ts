@@ -104,6 +104,7 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras arrayFind over Array#find for stronger predicate inference.",

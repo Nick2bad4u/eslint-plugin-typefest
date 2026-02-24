@@ -65,6 +65,7 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isInteger over Number.isInteger for consistent predicate helper usage.",

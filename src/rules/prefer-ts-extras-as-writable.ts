@@ -132,6 +132,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras asWritable over Writable<T> style assertions from type-fest.",

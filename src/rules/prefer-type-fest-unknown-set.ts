@@ -101,6 +101,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",

@@ -56,6 +56,7 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest WritableDeep over `DeepMutable` and `MutableDeep` aliases.",

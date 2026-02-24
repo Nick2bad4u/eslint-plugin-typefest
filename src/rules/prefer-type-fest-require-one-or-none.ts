@@ -72,6 +72,7 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.",

@@ -145,6 +145,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",

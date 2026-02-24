@@ -216,6 +216,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",

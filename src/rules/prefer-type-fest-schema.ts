@@ -72,6 +72,7 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Schema over imported aliases such as RecordDeep.",

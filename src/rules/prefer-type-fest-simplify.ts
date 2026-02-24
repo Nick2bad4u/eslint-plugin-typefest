@@ -73,6 +73,7 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Simplify over imported alias types like Prettify/Expand.",

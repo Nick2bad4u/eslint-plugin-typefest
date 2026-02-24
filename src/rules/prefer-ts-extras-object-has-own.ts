@@ -58,6 +58,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",

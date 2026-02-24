@@ -177,6 +177,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",

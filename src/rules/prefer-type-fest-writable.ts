@@ -177,6 +177,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",

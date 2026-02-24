@@ -73,6 +73,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
             };
         },
         meta: {
+            deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
