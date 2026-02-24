@@ -15,8 +15,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-unwrap-tagged.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-unwrap-tagged.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-unwrap-tagged.skip.ts";
 const invalidFixtureName = "prefer-type-fest-unwrap-tagged.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -96,17 +94,6 @@ ruleTester.run(
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
                 name: "accepts namespace-qualified UnwrapTagged references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

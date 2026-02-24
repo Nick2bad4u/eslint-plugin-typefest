@@ -53,7 +53,6 @@ const inlineFixableOutput = [
     "const sample = { alpha: 1 } as const;",
     "const values = objectValues(sample);",
 ].join("\n");
-const skipPathInvalidCode = inlineInvalidCode;
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -191,14 +190,6 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.keys usage",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-object-values.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

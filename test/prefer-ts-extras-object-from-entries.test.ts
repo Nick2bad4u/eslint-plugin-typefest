@@ -55,7 +55,6 @@ const nonObjectReceiverValidCode = [
 ].join("\n");
 const wrongPropertyValidCode =
     "const value = Object.entries({ alpha: 1 } as const);";
-const skipPathInvalidCode = inlineInvalidCode;
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -190,14 +189,6 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.entries usage",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-object-from-entries.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

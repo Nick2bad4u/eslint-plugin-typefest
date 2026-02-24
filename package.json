@@ -7,6 +7,7 @@
     "keywords": [
         "eslint",
         "eslint-plugin",
+        "eslintplugin",
         "type-fest",
         "ts-extras",
         "typescript"
@@ -45,9 +46,17 @@
         "docs/docusaurus"
     ],
     "scripts": {
-        "bench": "vitest bench --run",
-        "bench:compare": "vitest bench --run --compare",
+        "prebench": "npm run build",
+        "bench": "node benchmarks/run-eslint-stats.mjs",
+        "prebench:compare": "npm run build",
+        "bench:compare": "node benchmarks/run-eslint-stats.mjs --iterations=6 --warmup=2",
+        "prebench:eslint:stats": "npm run build",
+        "bench:eslint:stats": "node benchmarks/run-eslint-stats.mjs",
+        "prebench:eslint:timing": "npm run build",
+        "bench:eslint:timing": "cross-env TIMING=all eslint --config benchmarks/eslint-timing.config.mjs --stats \"test/fixtures/typed/*.invalid.ts\"",
+        "prebench:ui": "npm run build",
         "bench:ui": "vitest bench --ui",
+        "prebench:watch": "npm run build",
         "bench:watch": "vitest bench",
         "build": "tsc -p tsconfig.build.json",
         "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",

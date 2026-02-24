@@ -214,10 +214,5 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Record map type alias",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

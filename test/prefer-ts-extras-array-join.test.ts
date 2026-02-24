@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-join.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-join.invalid.ts";
-const skipPathInvalidCode = [
-    "const values = ['a', 'b'];",
-    "const joined = values.join('-');",
-    "String(joined);",
-].join("\n");
 const computedAccessValidCode = [
     "const values = ['a', 'b'];",
     'const joined = values["join"]("-");',
@@ -138,14 +133,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-join array method call",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-join.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

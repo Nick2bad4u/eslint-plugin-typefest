@@ -45,7 +45,6 @@ const inlineValidReadonlyMapWrongArityCode =
     "type Input = ReadonlyMap<unknown, unknown, unknown>;";
 const inlineValidGlobalReadonlyMapCode =
     "type Input = globalThis.ReadonlyMap<unknown, unknown>;";
-const skipPathInvalidCode = inlineInvalidReadonlyMapCode;
 const inlineFixableCode = [
     'import type { UnknownMap } from "type-fest";',
     "",
@@ -225,14 +224,6 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             code: inlineValidGlobalReadonlyMapCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.ReadonlyMap reference",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-unknown-map.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

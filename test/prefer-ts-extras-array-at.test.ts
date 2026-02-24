@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-at.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-at.invalid.ts";
-const skipPathInvalidCode = [
-    "const values = [1, 2, 3];",
-    "const value = values.at(0);",
-    "String(value);",
-].join("\n");
 const computedAccessValidCode = [
     "const values = [1, 2, 3];",
     'const value = values["at"](0);',
@@ -132,14 +127,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-at array method calls",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-at.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

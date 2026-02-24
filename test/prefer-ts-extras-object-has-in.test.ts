@@ -197,10 +197,5 @@ ruleTester.run("prefer-ts-extras-object-has-in", rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis-qualified Reflect.has calls",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

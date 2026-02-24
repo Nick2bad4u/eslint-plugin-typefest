@@ -88,7 +88,6 @@ const threeMemberPromisableUnionValidCode = [
     'import type { Promisable } from "type-fest";',
     "type Result = Promise<Promisable<string>> | Promisable<string> | boolean;",
 ].join("\n");
-const skipPathInvalidCode = promiseFirstInvalidCode;
 const qualifiedPromiseValidCode =
     "type Result = globalThis.Promise<string> | string;";
 const customWrapperValidCode = [
@@ -429,14 +428,6 @@ ruleTester.run(
                     "prefer-type-fest-promisable.valid.ts"
                 ),
                 name: "ignores multi-member union that already contains Promisable",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-type-fest-promisable.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

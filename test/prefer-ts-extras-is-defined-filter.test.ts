@@ -162,7 +162,6 @@ const computedFilterValidCode = [
     "String(definedValues);",
 ].join("\n");
 
-const skipPathInvalidCode = inlineInvalidCode;
 const inlineFixableCode = [
     'import { isDefined } from "ts-extras";',
     "",
@@ -456,14 +455,6 @@ ruleTester.run(ruleId, rule, {
             code: computedFilterValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores computed filter property access",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-is-defined-filter.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

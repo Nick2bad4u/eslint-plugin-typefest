@@ -53,7 +53,6 @@ const nonObjectReceiverValidCode = [
     "const pairs = helper.entries({ alpha: 1 });",
 ].join("\n");
 const wrongPropertyValidCode = "const keys = Object.keys({ alpha: 1 });";
-const skipPathInvalidCode = inlineInvalidCode;
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -187,14 +186,6 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.keys usage",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-object-entries.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

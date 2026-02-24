@@ -20,7 +20,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-literal-union.valid.ts";
 const invalidFixtureName = "prefer-type-fest-literal-union.invalid.ts";
-const skipFixtureName = "tests/prefer-type-fest-literal-union.skip.ts";
 const inlineInvalidBigIntLiteralUnionCode = "type SessionNonce = bigint | 1n;";
 const inlineInvalidBooleanLiteralUnionCode =
     "type FeatureFlag = true | false | boolean;";
@@ -508,11 +507,6 @@ ruleTester.run(
                 code: templateLiteralAndStringKeywordValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores unions that include template literal types",
-            },
-            {
-                code: readTypedFixture(skipFixtureName),
-                filename: typedFixturePath(skipFixtureName),
-                name: "skips file under tests fixture path",
             },
         ],
     }

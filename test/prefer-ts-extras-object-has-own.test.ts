@@ -165,11 +165,6 @@ ruleTester.run(
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Object member calls that are not hasOwn",
             },
-            {
-                code: readTypedFixture(invalidFixtureName),
-                filename: typedFixturePath("tests", invalidFixtureName),
-                name: "skips file under tests fixture path",
-            },
         ],
     }
 );

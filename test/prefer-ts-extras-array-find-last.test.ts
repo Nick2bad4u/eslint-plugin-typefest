@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-find-last.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-find-last.invalid.ts";
-const skipPathInvalidCode = [
-    "const numbers = [1, 2, 3];",
-    "const found = numbers.findLast((value) => value > 1);",
-    "String(found);",
-].join("\n");
 const computedAccessValidCode = [
     "const numbers = [1, 2, 3];",
     'const found = numbers["findLast"]((value) => value > 1);',
@@ -138,14 +133,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-findLast array method call",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-find-last.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

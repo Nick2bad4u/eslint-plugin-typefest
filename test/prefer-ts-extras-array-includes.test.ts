@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-includes.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-includes.invalid.ts";
-const skipPathInvalidCode = [
-    "const values = [1, 2, 3];",
-    "const hasValue = values.includes(2);",
-    "String(hasValue);",
-].join("\n");
 const computedAccessValidCode = [
     "const values = [1, 2, 3];",
     'const hasValue = values["includes"](2);',
@@ -132,14 +127,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-includes array method calls",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-includes.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

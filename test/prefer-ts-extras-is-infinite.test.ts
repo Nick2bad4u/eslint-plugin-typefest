@@ -313,10 +313,5 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number member comparisons that are not infinity constants",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

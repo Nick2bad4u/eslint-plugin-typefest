@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-conditional-pick.test` behavior.
@@ -16,8 +18,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-conditional-pick.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-conditional-pick.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-conditional-pick.skip.ts";
 const invalidFixtureName = "prefer-type-fest-conditional-pick.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -39,7 +39,7 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 
 interface ConditionalPickRuleMetadataSnapshot {
     create: (context: unknown) => unknown;
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: Readonly<UnknownArray>;
     meta?: {
         docs?: {
             description?: string;
@@ -191,17 +191,6 @@ ruleTester.run(
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
                 name: "accepts namespace-qualified type-fest references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-object.test` behavior.
@@ -104,7 +106,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
     it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
-        const replacementFixCalls: (readonly unknown[])[] = [];
+        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -121,7 +123,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeReplacementFix: (
-                    ...parameters: readonly unknown[]
+                    ...parameters: Readonly<UnknownArray>
                 ) => {
                     replacementFixCalls.push(parameters);
 
@@ -331,11 +333,6 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidRecordUnknownValueCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Record<string, unknown>",
-        },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
         },
     ],
 });

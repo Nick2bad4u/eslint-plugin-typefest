@@ -53,6 +53,14 @@ describe("plugin entry module", () => {
                 rules: expect.any(Object),
             })
         );
+
+        expect(plugin.meta).toEqual(
+            expect.objectContaining({
+                name: "eslint-plugin-typefest",
+                namespace: "typefest",
+                version: expect.any(String),
+            })
+        );
     });
 
     it("exposes critical presets and latest rule registrations", () => {

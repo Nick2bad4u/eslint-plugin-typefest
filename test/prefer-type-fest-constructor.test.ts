@@ -18,8 +18,6 @@ const preferConstructorSignatureMessage =
     "Prefer `Constructor<...>` from type-fest over explicit `new (...) => ...` constructor signatures.";
 
 const validFixtureName = "prefer-type-fest-constructor.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-constructor.skip.ts";
 const invalidFixtureName = "prefer-type-fest-constructor.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { Constructor } from "type-fest";\n${invalidFixtureCode.replace(
@@ -109,17 +107,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
             name: "accepts fixture-safe patterns",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

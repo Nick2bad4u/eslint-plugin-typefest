@@ -30,7 +30,6 @@ const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "boolean | null | number | string",
     "JsonPrimitive"
 );
-const skipFixtureName = "tests/prefer-type-fest-json-primitive.skip.ts";
 const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";
 const duplicatePrimitiveUnionValidCode =
@@ -182,11 +181,6 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             code: fiveMemberPrimitiveUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores five-member primitive union even when it contains all json primitive families",
-        },
-        {
-            code: readTypedFixture(skipFixtureName),
-            filename: typedFixturePath(skipFixtureName),
-            name: "skips file under tests fixture path",
         },
     ],
 });

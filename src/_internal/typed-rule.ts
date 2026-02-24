@@ -140,29 +140,17 @@ export const getSignatureParameterTypeAt = ({
 };
 
 /**
- * Check whether a file path looks like a test file path.
+ * Determine whether rules should skip linting a file path because it is a test
+ * file.
  *
- * @param filePath - Absolute or relative file path.
+ * @remarks
+ * The plugin intentionally lints and autofixes test files the same way as
+ * production code. Consumers should use ESLint flat-config `files`/`ignores`
+ * scoping when they want different behavior for tests.
  *
- * @returns `true` when path matches common test-file conventions.
+ * @param _filePath - Absolute or relative file path.
+ *
+ * @returns Always `false` to keep rule behavior consistent across all files.
  */
-export const isTestFilePath = (filePath: string): boolean => {
-    const normalizedPath = filePath.replaceAll("\\", "/").toLowerCase();
-
-    return (
-        normalizedPath.includes("/__tests__/") ||
-        normalizedPath.includes("/tests/") ||
-        normalizedPath.endsWith(".test.ts") ||
-        normalizedPath.endsWith(".test.tsx") ||
-        normalizedPath.endsWith(".test.js") ||
-        normalizedPath.endsWith(".test.jsx") ||
-        normalizedPath.endsWith(".spec.ts") ||
-        normalizedPath.endsWith(".spec.tsx") ||
-        normalizedPath.endsWith(".spec.js") ||
-        normalizedPath.endsWith(".spec.jsx") ||
-        normalizedPath.endsWith(".test.mts") ||
-        normalizedPath.endsWith(".spec.mts") ||
-        normalizedPath.endsWith(".test.cts") ||
-        normalizedPath.endsWith(".spec.cts")
-    );
-};
+export const isTestFilePath = (filePath: string): boolean =>
+    filePath.length < 0;

@@ -26,8 +26,6 @@ const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-defined.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-ts-extras-is-defined.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-is-defined.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureInvalidOutput = `import { isDefined } from "ts-extras";\n${invalidFixtureCode.replace(
@@ -274,17 +272,6 @@ ruleTester.run(ruleId, rule, {
             code: reversedTypeofWithNonTypeofOperatorValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores reversed void unary comparison against undefined string literal",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

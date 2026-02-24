@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-find.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-find.invalid.ts";
-const skipPathInvalidCode = [
-    "const numbers = [1, 2, 3];",
-    "const found = numbers.find((value) => value === 2);",
-    "String(found);",
-].join("\n");
 const computedAccessValidCode = [
     "const numbers = [1, 2, 3];",
     'const found = numbers["find"]((value) => value === 2);',
@@ -138,14 +133,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-find array method call",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-find.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

@@ -30,7 +30,6 @@ const nonNumberReceiverValidCode = [
     "const result = helper.isSafeInteger(42);",
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isInteger(42);";
-const skipPathInvalidCode = inlineInvalidCode;
 const inlineFixableCode = [
     'import { isSafeInteger } from "ts-extras";',
     "",
@@ -130,14 +129,6 @@ ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number.isInteger call",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-is-safe-integer.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

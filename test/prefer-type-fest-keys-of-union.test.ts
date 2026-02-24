@@ -20,8 +20,6 @@ const preferKeysOfUnionMessage =
 const validFixtureName = "prefer-type-fest-keys-of-union.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-keys-of-union.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-keys-of-union.skip.ts";
 const invalidFixtureName = "prefer-type-fest-keys-of-union.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -94,17 +92,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified KeysOfUnion references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

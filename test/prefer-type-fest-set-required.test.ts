@@ -15,8 +15,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-set-required.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-set-required.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-set-required.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-required.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -102,17 +100,6 @@ ruleTester.run(
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
                 name: "accepts namespace-qualified SetRequired references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

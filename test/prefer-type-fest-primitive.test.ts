@@ -31,7 +31,6 @@ const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined",
     "    Primitive"
 );
-const skipFixtureName = "tests/prefer-type-fest-primitive.skip.ts";
 const nonPrimitiveKeywordUnionValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | object;";
 const duplicatePrimitiveMemberValidCode =
@@ -215,11 +214,6 @@ ruleTester.run(ruleId, rule, {
             code: missingUndefinedWithDuplicateNullValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores 7-member primitive union missing undefined with duplicate null",
-        },
-        {
-            code: readTypedFixture(skipFixtureName),
-            filename: typedFixturePath(skipFixtureName),
-            name: "skips file under tests fixture path",
         },
     ],
 });

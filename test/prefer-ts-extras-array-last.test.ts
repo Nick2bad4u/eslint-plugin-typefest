@@ -15,7 +15,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-array-last.valid.ts";
 const patternValidFixtureName = "prefer-ts-extras-array-last.patterns.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-last.invalid.ts";
-const skipFixtureName = "tests/prefer-ts-extras-array-last.skip.ts";
 const inlineInvalidUnionArrayCode = [
     "declare const monitorStatuses: readonly string[] | readonly number[];",
     "const lastStatus = monitorStatuses[monitorStatuses.length - 1];",
@@ -108,11 +107,6 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             code: inlineValidDeleteWriteTargetCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores delete write-target last index usage",
-        },
-        {
-            code: readTypedFixture(skipFixtureName),
-            filename: typedFixturePath(skipFixtureName),
-            name: "skips file under tests fixture path",
         },
     ],
 });

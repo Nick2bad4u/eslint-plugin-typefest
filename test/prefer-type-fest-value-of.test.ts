@@ -105,7 +105,6 @@ const inlineValidReadonlyTypeOperatorCode = [
     "};",
     "type Output = Input[readonly Input];",
 ].join("\n");
-const skipPathInvalidCode = inlineInvalidCode;
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -189,14 +188,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: inlineValidReadonlyTypeOperatorCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores indexed access when type operator is not keyof",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-value-of.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

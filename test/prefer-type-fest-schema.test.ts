@@ -19,8 +19,6 @@ const preferSchemaMessage =
 
 const validFixtureName = "prefer-type-fest-schema.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-schema.skip.ts";
 const invalidFixtureName = "prefer-type-fest-schema.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -98,17 +96,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified Schema references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

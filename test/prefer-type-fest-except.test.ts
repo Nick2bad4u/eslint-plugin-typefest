@@ -211,10 +211,5 @@ ruleTester.run("prefer-type-fest-except", rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores bare Omit type reference",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

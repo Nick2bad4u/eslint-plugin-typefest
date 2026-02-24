@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -62,7 +64,6 @@ const inlineValidCustomGenericUnknownCode = [
     "type Box<T> = T;",
     "type Input = Box<unknown>;",
 ].join("\n");
-const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
 const inlineInvalidWithoutFixOutputCode = [
     'import type { UnknownArray } from "type-fest";',
@@ -115,7 +116,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             messageId?: string;
             node?: unknown;
         }[] = [];
-        const replacementFixCalls: (readonly unknown[])[] = [];
+        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
 
         try {
             vi.resetModules();
@@ -128,7 +129,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeReplacementFixPreservingReadonly: (
-                    ...parameters: readonly unknown[]
+                    ...parameters: Readonly<UnknownArray>
                 ) => {
                     replacementFixCalls.push(parameters);
 
@@ -324,14 +325,6 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidCustomGenericUnknownCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-ReadonlyArray generic with unknown type argument",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-unknown-array.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

@@ -98,7 +98,6 @@ const declaredStringObjectInvalidOutput = [
     "String(parts);",
 ].join("\n");
 
-const skipPathInvalidCode = inlineInvalidCode;
 const inlineFixableCode = [
     'import { stringSplit } from "ts-extras";',
     "",
@@ -312,14 +311,6 @@ ruleTester.run(
                 code: differentStringMethodValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-split string method call",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-string-split.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

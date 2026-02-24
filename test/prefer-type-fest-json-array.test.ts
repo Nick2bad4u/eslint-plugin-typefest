@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-array.test` behavior.
@@ -197,7 +199,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
     it("reports only native/generic JsonValue array union pairs", async () => {
-        const replacementFixCalls: (readonly unknown[])[] = [];
+        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -209,7 +211,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
         });
         const createTypeReferenceNode = (
             referenceName: string,
-            genericArguments: readonly unknown[] = []
+            genericArguments: Readonly<UnknownArray> = []
         ) => ({
             type: "TSTypeReference",
             ...(genericArguments.length === 0
@@ -231,7 +233,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             type: "TSTypeOperator",
             typeAnnotation: createNativeArrayNode(elementType),
         });
-        const createUnionNode = (...types: readonly unknown[]) => ({
+        const createUnionNode = (...types: Readonly<UnknownArray>) => ({
             type: "TSUnionType",
             types,
         });
@@ -247,7 +249,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeReplacementFix: (
-                    ...parameters: readonly unknown[]
+                    ...parameters: Readonly<UnknownArray>
                 ) => {
                     replacementFixCalls.push(parameters);
 
@@ -508,11 +510,6 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidNonReadonlyTypeOperatorArrayCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-readonly type-operator array member",
-        },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
         },
     ],
 });

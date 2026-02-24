@@ -13,8 +13,6 @@ import {
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-safe-cast-to.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-ts-extras-safe-cast-to.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-safe-cast-to.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const nonAssignableAsExpressionValidCode = [
@@ -164,17 +162,6 @@ ruleTester.run(
                 code: ignoredUnknownAnnotationValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores as-expression assertions targeting unknown",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

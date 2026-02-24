@@ -20,8 +20,6 @@ const preferSetReadonlyMessage =
 const validFixtureName = "prefer-type-fest-set-readonly.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-set-readonly.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-set-readonly.skip.ts";
 const invalidFixtureName = "prefer-type-fest-set-readonly.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -99,17 +97,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified SetReadonly references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

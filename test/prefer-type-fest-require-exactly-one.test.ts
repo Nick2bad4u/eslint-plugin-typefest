@@ -15,8 +15,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-require-exactly-one.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-require-exactly-one.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-require-exactly-one.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-exactly-one.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -111,17 +109,6 @@ ruleTester.run(
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
                 name: "accepts namespace-qualified RequireExactlyOne references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

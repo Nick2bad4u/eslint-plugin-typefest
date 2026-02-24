@@ -26,8 +26,6 @@ const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-present.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-ts-extras-is-present.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-is-present.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureInvalidOutput = `import { isPresent } from "ts-extras";\n${invalidFixtureCode.replace(
@@ -746,17 +744,6 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidFunctionExpressionFilterCallbackCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores strict checks inside function-expression filter callbacks",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

@@ -41,7 +41,6 @@ const inlineValidReadonlySetWrongArityCode =
     "type Input = ReadonlySet<unknown, unknown>;";
 const inlineValidGlobalReadonlySetCode =
     "type Input = globalThis.ReadonlySet<unknown>;";
-const skipPathInvalidCode = inlineInvalidReadonlySetCode;
 const inlineFixableCode = [
     'import type { UnknownSet } from "type-fest";',
     "",
@@ -209,14 +208,6 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             code: inlineValidGlobalReadonlySetCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.ReadonlySet reference",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-unknown-set.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

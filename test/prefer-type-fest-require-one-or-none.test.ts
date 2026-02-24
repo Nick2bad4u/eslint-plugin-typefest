@@ -20,8 +20,6 @@ const preferRequireOneOrNoneMessage =
 const validFixtureName = "prefer-type-fest-require-one-or-none.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-require-one-or-none.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-require-one-or-none.skip.ts";
 const invalidFixtureName = "prefer-type-fest-require-one-or-none.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -94,17 +92,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified RequireOneOrNone references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

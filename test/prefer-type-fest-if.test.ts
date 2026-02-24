@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-if.test` behavior.
@@ -15,8 +17,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-if.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-if.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-if.skip.ts";
 const invalidFixtureName = "prefer-type-fest-if.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -62,7 +62,7 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
 
 interface IfRuleMetadataSnapshot {
     create: (context: unknown) => unknown;
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: Readonly<UnknownArray>;
     meta?: {
         docs?: {
             description?: string;
@@ -243,17 +243,6 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified Is* references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

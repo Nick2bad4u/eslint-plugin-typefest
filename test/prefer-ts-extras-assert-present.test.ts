@@ -170,7 +170,6 @@ const logicalAndNullishValidCode = [
     "}",
 ].join("\n");
 
-const skipPathInvalidCode = inlineInvalidEqNullCode;
 const inlineSuggestableCode = [
     'import { assertPresent } from "ts-extras";',
     "",
@@ -653,14 +652,6 @@ ruleTester.run(
                 code: logicalAndNullishValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores logical-and nullish guards",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-assert-present.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

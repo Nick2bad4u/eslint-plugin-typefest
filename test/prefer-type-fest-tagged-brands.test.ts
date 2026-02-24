@@ -214,11 +214,6 @@ ruleTester.run(
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores nested Tagged references inside union and intersection",
             },
-            {
-                code: readTypedFixture(invalidFixtureName),
-                filename: typedFixturePath("tests", invalidFixtureName),
-                name: "skips file under tests fixture path",
-            },
         ],
     }
 );

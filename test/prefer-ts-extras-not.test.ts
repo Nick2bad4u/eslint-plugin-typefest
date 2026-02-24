@@ -314,10 +314,5 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores unary expressions over predicate calls when operator is not not",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

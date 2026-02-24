@@ -13,11 +13,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-array-concat.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-array-concat.invalid.ts";
-const skipPathInvalidCode = [
-    "const numbers = [1, 2, 3];",
-    "const merged = numbers.concat([4]);",
-    "String(merged);",
-].join("\n");
 const computedAccessValidCode = [
     "const numbers = [1, 2, 3];",
     'const merged = numbers["concat"]([4]);',
@@ -138,14 +133,6 @@ ruleTester.run(
                 code: wrongPropertyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-concat array method call",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-array-concat.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

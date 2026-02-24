@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 import * as fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
@@ -79,12 +80,10 @@ const mappedNamespaceAliasValidCode = [
     "",
     "type MutableUser = Aliases.Mutable<User>;",
 ].join("\n");
-const skipPathInvalidCode =
-    "type WritableLike<T> = { -readonly [K in keyof T]: T[K] };";
 const validFixtureName = "prefer-type-fest-writable.valid.ts";
 
 interface WritableRuleMetadataSnapshot {
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: Readonly<UnknownArray>;
     meta?: {
         docs?: {
             description?: string;
@@ -495,14 +494,6 @@ ruleTester.run(ruleName, rule, {
             code: mappedNamespaceAliasValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores namespace-qualified Mutable alias reference",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-writable.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

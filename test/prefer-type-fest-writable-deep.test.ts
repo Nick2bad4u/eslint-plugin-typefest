@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-writable-deep.test` behavior.
@@ -16,8 +18,6 @@ const ruleTester = createTypedRuleTester();
 const writableDeepRule = getPluginRule("prefer-type-fest-writable-deep");
 
 const validFixtureName = "prefer-type-fest-writable-deep.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-writable-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-writable-deep.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { WritableDeep } from "type-fest";\n${invalidFixtureCode.replace(
@@ -73,22 +73,11 @@ ruleTester.run("prefer-type-fest-writable-deep", writableDeepRule, {
             filename: typedFixturePath(validFixtureName),
             name: "accepts fixture-safe patterns",
         },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
-        },
     ],
 });
 
 interface WritableDeepRuleMetadataSnapshot {
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: Readonly<UnknownArray>;
     meta?: {
         docs?: {
             description?: string;

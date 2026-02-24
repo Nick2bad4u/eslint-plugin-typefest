@@ -99,7 +99,6 @@ const privateIdentifierValidCode = [
     "    }",
     "}",
 ].join("\n");
-const skipPathInvalidCode = inlineInvalidCode;
 const inlineSuggestableCode = [
     'import { assertError } from "ts-extras";',
     "",
@@ -269,14 +268,6 @@ ruleTester.run(ruleId, rule, {
             code: nonInstanceofBinaryValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-instanceof binary guard",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-assert-error.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

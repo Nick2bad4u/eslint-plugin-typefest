@@ -21,11 +21,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-is-empty.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-empty.invalid.ts";
-const skipPathInvalidCode = [
-    "const values = [1, 2, 3];",
-    "const isEmpty = values.length === 0;",
-    "String(isEmpty);",
-].join("\n");
 const leftLiteralInvalidCode = [
     "const values = [1, 2, 3];",
     "const isEmpty = 0 === values.length;",
@@ -333,14 +328,6 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
             code: unresolvedMixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores unresolved mixed string-or-array unions when not all members are array-like",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-is-empty.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -120,7 +122,6 @@ const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
     "type QueryValue = Arrayable<Map<string, number>>;",
 ].join("\n");
 
-const skipPathInvalidCode = inlineInvalidCode;
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -134,7 +135,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
-        const replacementFixCalls: (readonly unknown[])[] = [];
+        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -153,7 +154,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
         });
         const createTypeReferenceNode = (
             referenceName: string,
-            genericArguments: readonly unknown[] = [],
+            genericArguments: Readonly<UnknownArray> = [],
             text = referenceName
         ) => ({
             text,
@@ -166,7 +167,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                       },
             typeName: createIdentifierNode(referenceName),
         });
-        const createUnionNode = (...types: readonly unknown[]) => ({
+        const createUnionNode = (...types: Readonly<UnknownArray>) => ({
             type: "TSUnionType",
             types,
         });
@@ -182,7 +183,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeTextReplacementFix: (
-                    ...parameters: readonly unknown[]
+                    ...parameters: Readonly<UnknownArray>
                 ) => {
                     replacementFixCalls.push(parameters);
 
@@ -441,14 +442,6 @@ ruleTester.run(ruleId, rule, {
             code: inlineInvalidReadonlyArrayCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly array unions already matching Arrayable semantics",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-arrayable.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

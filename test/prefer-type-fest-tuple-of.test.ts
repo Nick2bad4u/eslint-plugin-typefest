@@ -20,8 +20,6 @@ const preferTupleOfMessage =
 const validFixtureName = "prefer-type-fest-tuple-of.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-tuple-of.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-tuple-of.skip.ts";
 const invalidFixtureName = "prefer-type-fest-tuple-of.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = invalidFixtureCode
@@ -220,17 +218,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
             name: "accepts namespace-qualified FixedLengthArray references",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

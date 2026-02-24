@@ -114,10 +114,5 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Record generic with string unknown type arguments",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

@@ -24,11 +24,6 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-ts-extras-set-has.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-set-has.invalid.ts";
-const skipPathInvalidCode = [
-    "const values = new Set([1, 2, 3]);",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
 const computedAccessValidCode = [
     "const values = new Set([1, 2, 3]);",
     'const hasValue = values["has"](2);',
@@ -374,14 +369,6 @@ ruleTester.run(ruleId, rule, {
             code: setDifferentMethodValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-has set method invocation",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-set-has.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

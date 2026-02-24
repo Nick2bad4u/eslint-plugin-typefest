@@ -128,6 +128,7 @@ type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
     configs: TypefestConfigsContract;
     meta: {
         name: string;
+        namespace: string;
         version: string;
     };
     processors: NonNullable<ESLint.Plugin["processors"]>;
@@ -525,6 +526,7 @@ const typefestPlugin: TypefestPluginContract = {
     configs: typefestConfigs,
     meta: {
         name: "eslint-plugin-typefest",
+        namespace: "typefest",
         version: getPackageVersion(packageJson),
     },
     processors: {},

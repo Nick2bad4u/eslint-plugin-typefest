@@ -20,6 +20,7 @@
     "include": [
         ".remarkrc.mjs",
         "*.mjs",
+        "benchmarks/**/*.ts",
         "knip.config.ts",
         "src/**/*.ts",
         "test/**/*.ts",

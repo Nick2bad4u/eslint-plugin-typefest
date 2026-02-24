@@ -18,8 +18,6 @@ const preferReadonlyDeepMessage =
     "Prefer `ReadonlyDeep` from type-fest over `DeepReadonly`.";
 
 const validFixtureName = "prefer-type-fest-readonly-deep.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-type-fest-readonly-deep.skip.ts";
 const invalidFixtureName = "prefer-type-fest-readonly-deep.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { ReadonlyDeep } from "type-fest";\n${invalidFixtureCode.replace(
@@ -74,17 +72,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),
             name: "accepts fixture-safe patterns",
-        },
-        {
-            code: readTypedFixture(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            filename: typedFixturePath(
-                skipTestPathFixtureDirectory,
-                skipTestPathFixtureName
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

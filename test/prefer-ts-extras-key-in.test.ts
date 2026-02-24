@@ -249,10 +249,5 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores for-in loop iteration",
         },
-        {
-            code: readTypedFixture(invalidFixtureName),
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

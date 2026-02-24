@@ -73,7 +73,6 @@ const nonReadonlyOperatorValidCode =
 const readonlyNonTupleTypeValidCode = "type Input = readonly string[];";
 const readonlySingleElementTupleValidCode = "type Input = readonly [string];";
 const readonlyEmptyTupleValidCode = "type Input = readonly [];";
-const skipPathInvalidCode = inlineInvalidTupleCode;
 const inlineFixableCode = [
     'import type { NonEmptyTuple } from "type-fest";',
     "",
@@ -342,14 +341,6 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             code: readonlyEmptyTupleValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores readonly empty tuple",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-non-empty-tuple.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

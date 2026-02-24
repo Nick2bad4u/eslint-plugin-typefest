@@ -19,8 +19,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-as-writable.valid.ts";
 const namespaceValidFixtureName =
     "prefer-ts-extras-as-writable.namespace.valid.ts";
-const skipTestPathFixtureDirectory = "tests";
-const skipTestPathFixtureName = "prefer-ts-extras-as-writable.skip.ts";
 const invalidFixtureName = "prefer-ts-extras-as-writable.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const inlineInvalidTypeAssertionCode = [
@@ -322,17 +320,6 @@ ruleTester.run(
                 code: inlineValidTypeFestNamespaceNonWritableMemberCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores type-fest namespace members that are not Writable",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
             },
         ],
     }

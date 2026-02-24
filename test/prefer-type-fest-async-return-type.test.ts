@@ -56,7 +56,6 @@ const nonAwaitedWrapperOfReturnTypeValidCode = [
     "type Wrapper<T> = T;",
     "type Result = Wrapper<ReturnType<() => Promise<string>>>;",
 ].join("\n");
-const skipPathInvalidCode = inlineInvalidCode;
 const inlineFixableCode = [
     'import type { AsyncReturnType } from "type-fest";',
     "",
@@ -191,14 +190,6 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             code: nonAwaitedWrapperOfReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Awaited wrappers around ReturnType operands",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-type-fest-async-return-type.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });

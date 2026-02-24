@@ -559,10 +559,5 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-filter map callback",
         },
-        {
-            code: invalidFixtureCode,
-            filename: typedFixturePath("tests", invalidFixtureName),
-            name: "skips file under tests fixture path",
-        },
     ],
 });

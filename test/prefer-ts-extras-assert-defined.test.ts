@@ -103,7 +103,6 @@ const nonBinaryGuardValidCode = [
     "    return value;",
     "}",
 ].join("\n");
-const skipPathInvalidCode = undefinedOnLeftInvalidCode;
 const inlineSuggestableCode = [
     'import { assertDefined } from "ts-extras";',
     "",
@@ -424,14 +423,6 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             code: nonBinaryGuardValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-binary guard expression",
-        },
-        {
-            code: skipPathInvalidCode,
-            filename: typedFixturePath(
-                "tests",
-                "prefer-ts-extras-assert-defined.skip.ts"
-            ),
-            name: "skips file under tests fixture path",
         },
     ],
 });
