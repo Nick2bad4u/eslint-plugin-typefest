@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-omit-index-signature";
 const docsDescription =
     "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.";
 const preferOmitIndexSignatureMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to strip index signatures from object types instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-omit-index-signature.valid.ts";
 const namespaceValidFixtureName =
@@ -51,64 +51,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "RemoveIndexSignature",
-                            replacement: "OmitIndexSignature",
-                        },
-                        messageId: "preferOmitIndexSignature",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RemoveIndexSignature",
+                        replacement: "OmitIndexSignature",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture RemoveIndexSignature alias usage",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "RemoveIndexSignature",
-                            replacement: "OmitIndexSignature",
-                        },
-                        messageId: "preferOmitIndexSignature",
+                    messageId: "preferOmitIndexSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture RemoveIndexSignature alias usage",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RemoveIndexSignature",
+                        replacement: "OmitIndexSignature",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline RemoveIndexSignature alias",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified OmitIndexSignature references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferOmitIndexSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline RemoveIndexSignature alias",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified OmitIndexSignature references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

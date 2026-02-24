@@ -80,14 +80,14 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-schema.md",
             },
             fixable: "code",
             messages: {
                 preferSchema:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to model recursive object schemas instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

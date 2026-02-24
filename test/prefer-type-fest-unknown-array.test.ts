@@ -16,7 +16,7 @@ const ruleId = "prefer-type-fest-unknown-array";
 const docsDescription =
     "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.";
 const preferUnknownArrayMessage =
-    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.";
+    "Prefer `Readonly<UnknownArray>` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.";
 
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
@@ -26,16 +26,16 @@ const invalidFixtureName = "prefer-type-fest-unknown-array.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { UnknownArray } from "type-fest";\n${invalidFixtureCode.replace(
     "readonly unknown[]",
-    "UnknownArray"
+    "Readonly<UnknownArray>"
 )}`;
 const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "ReadonlyArray<unknown>",
-    "UnknownArray"
+    "Readonly<UnknownArray>"
 );
 const inlineInvalidReadonlyArrayCode = "type Input = readonly unknown[];";
 const inlineInvalidReadonlyArrayOutputCode = [
     'import type { UnknownArray } from "type-fest";',
-    "type Input = UnknownArray;",
+    "type Input = Readonly<UnknownArray>;",
 ].join("\n");
 const inlineValidArrayCode = "type Input = unknown[];";
 const inlineValidAnyArrayCode = "type Input = readonly any[];";
@@ -50,7 +50,7 @@ const inlineInvalidReadonlyNonArrayOperatorCode =
     "type Input = readonly ReadonlyArray<unknown>;";
 const inlineInvalidReadonlyNonArrayOperatorOutputCode = [
     'import type { UnknownArray } from "type-fest";',
-    "type Input = readonly UnknownArray;",
+    "type Input = readonly Readonly<UnknownArray>;",
 ].join("\n");
 const inlineValidMissingReadonlyArrayTypeArgumentCode =
     "type Input = ReadonlyArray;";
@@ -66,7 +66,7 @@ const skipPathInvalidCode = inlineInvalidReadonlyArrayCode;
 const inlineInvalidWithoutFixCode = "type Input = ReadonlyArray<unknown>;";
 const inlineInvalidWithoutFixOutputCode = [
     'import type { UnknownArray } from "type-fest";',
-    "type Input = UnknownArray;",
+    "type Input = Readonly<UnknownArray>;",
 ].join("\n");
 const inlineReadonlyNonArrayOperatorFixableCode = [
     'import type { UnknownArray } from "type-fest";',
@@ -76,7 +76,7 @@ const inlineReadonlyNonArrayOperatorFixableCode = [
 const inlineReadonlyNonArrayOperatorFixableOutput = [
     'import type { UnknownArray } from "type-fest";',
     "",
-    "type Input = readonly UnknownArray;",
+    "type Input = readonly Readonly<UnknownArray>;",
 ].join("\n");
 const inlineReadonlyShorthandFixableCode = [
     'import type { UnknownArray } from "type-fest";',
@@ -86,7 +86,7 @@ const inlineReadonlyShorthandFixableCode = [
 const inlineReadonlyShorthandFixableOutput = [
     'import type { UnknownArray } from "type-fest";',
     "",
-    "type Input = UnknownArray;",
+    "type Input = Readonly<UnknownArray>;",
 ].join("\n");
 const inlineFixableCode = [
     'import type { UnknownArray } from "type-fest";',
@@ -96,7 +96,7 @@ const inlineFixableCode = [
 const inlineFixableOutput = [
     'import type { UnknownArray } from "type-fest";',
     "",
-    "type Input = UnknownArray;",
+    "type Input = Readonly<UnknownArray>;",
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
@@ -127,26 +127,29 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: readonly unknown[]) => {
+                createSafeTypeNodeReplacementFixPreservingReadonly: (
+                    ...parameters: readonly unknown[]
+                ) => {
                     replacementFixCalls.push(parameters);
 
                     return null;
                 },
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-unknown-array"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeReference?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-unknown-array")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = undecoratedRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
+                report(
+                    descriptor: Readonly<{ messageId?: string; node?: unknown }>
+                ) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

@@ -87,15 +87,14 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-value metadata", () => {
     it("declares authored hasSuggestions metadata literal", async () => {
-        const authoredRuleModule = (await import(
-            "../src/rules/prefer-type-fest-json-value"
-        )) as {
-            default: {
-                readonly meta?: {
-                    readonly hasSuggestions?: boolean;
+        const authoredRuleModule =
+            (await import("../src/rules/prefer-type-fest-json-value")) as {
+                default: {
+                    readonly meta?: {
+                        readonly hasSuggestions?: boolean;
+                    };
                 };
             };
-        };
 
         expect(authoredRuleModule.default.meta?.hasSuggestions).toBeTruthy();
     });

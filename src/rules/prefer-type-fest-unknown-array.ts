@@ -6,11 +6,12 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
-    createSafeTypeNodeReplacementFix,
+    createSafeTypeNodeReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
+const UNKNOWN_ARRAY_TYPE_NAME = "UnknownArray";
 
 /**
  * Check whether the input is identifier type reference.
@@ -60,7 +61,9 @@ const hasSingleUnknownTypeArgument = (
  *   `false`.
  */
 
-const isReadonlyUnknownArrayType = (node: Readonly<TSESTree.TSTypeOperator>): boolean => {
+const isReadonlyUnknownArrayType = (
+    node: Readonly<TSESTree.TSTypeOperator>
+): boolean => {
     if (node.operator !== "readonly") {
         return false;
     }
@@ -99,11 +102,12 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementFix = createSafeTypeNodeReplacementFix(
-                        node,
-                        "UnknownArray",
-                        typeFestDirectImports
-                    );
+                    const replacementFix =
+                        createSafeTypeNodeReplacementFixPreservingReadonly(
+                            node,
+                            UNKNOWN_ARRAY_TYPE_NAME,
+                            typeFestDirectImports
+                        );
 
                     context.report({
                         ...(replacementFix ? { fix: replacementFix } : {}),
@@ -125,11 +129,12 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementFix = createSafeTypeNodeReplacementFix(
-                        node,
-                        "UnknownArray",
-                        typeFestDirectImports
-                    );
+                    const replacementFix =
+                        createSafeTypeNodeReplacementFixPreservingReadonly(
+                            node,
+                            UNKNOWN_ARRAY_TYPE_NAME,
+                            typeFestDirectImports
+                        );
 
                     context.report({
                         ...(replacementFix ? { fix: replacementFix } : {}),
@@ -148,14 +153,14 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-array.md",
             },
             fixable: "code",
             messages: {
                 preferUnknownArray:
-                    "Prefer `UnknownArray` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
+                    "Prefer `Readonly<UnknownArray>` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.",
             },
             schema: [],
             type: "suggestion",

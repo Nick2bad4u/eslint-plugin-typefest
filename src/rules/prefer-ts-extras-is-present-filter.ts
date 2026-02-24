@@ -44,22 +44,23 @@ type NullishInequalityPart = {
 const isIdentifierWithName = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
-): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
+): node is TSESTree.Identifier =>
+    node.type === "Identifier" && node.name === name;
 
 const isNullLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Literal & { value: null; } =>
+): node is TSESTree.Literal & { value: null } =>
     node.type === "Literal" && node.value === null;
 
 const isUndefinedStringLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Literal & { value: "undefined"; } =>
+): node is TSESTree.Literal & { value: "undefined" } =>
     node.type === "Literal" && node.value === "undefined";
 
 const isTypeofParameter = (
     node: Readonly<TSESTree.Expression>,
     parameterName: string
-): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier; } =>
+): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
     node.type === "UnaryExpression" &&
     node.operator === "typeof" &&
     isIdentifierWithName(node.argument, parameterName);
@@ -192,7 +193,9 @@ const isUndefinedComparison = (
  */
 
 const isNullishFilterGuardBody = (
-    callback: Readonly<TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; }>,
+    callback: Readonly<
+        TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression }
+    >,
     parameterName: string
 ): boolean => {
     const { body } = callback;
@@ -233,7 +236,7 @@ const isSafePresentFilterAutoFixableCallback = ({
     parameterName,
     sourceCode,
 }: Readonly<{
-    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression; };
+    callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression };
     parameterName: string;
     sourceCode: Readonly<TSESLint.SourceCode>;
 }>): boolean => {
@@ -287,7 +290,7 @@ const isSafePresentFilterAutoFixableCallback = ({
  */
 const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create (context) {
+        create(context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -300,7 +303,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression (node) {
+                CallExpression(node) {
                     const { callee } = node;
 
                     if (callee.type !== "MemberExpression") {
@@ -362,12 +365,12 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     context.report({
                         fix: isAutoFixable
                             ? createSafeValueReferenceReplacementFix({
-                                context,
-                                importedName: "isPresent",
-                                imports: tsExtrasImports,
-                                sourceModuleName: "ts-extras",
-                                targetNode: expressionCallback,
-                            })
+                                  context,
+                                  importedName: "isPresent",
+                                  imports: tsExtrasImports,
+                                  sourceModuleName: "ts-extras",
+                                  targetNode: expressionCallback,
+                              })
                             : null,
                         messageId: "preferTsExtrasIsPresentFilter",
                         node: expressionCallback,
@@ -385,7 +388,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
             },

@@ -61,12 +61,19 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-integer", {
 describe("prefer-ts-extras-is-integer source assertions", () => {
     it("keeps is-integer member guard clauses in source", () => {
         const ruleSource = readFileSync(
-            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-integer.ts"),
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-is-integer.ts"
+            ),
             "utf8"
         );
 
-        expect(ruleSource).toContain('node.callee.property.type !== "Identifier" ||');
-        expect(ruleSource).toContain('node.callee.property.name !== "isInteger"');
+        expect(ruleSource).toContain(
+            'node.callee.property.type !== "Identifier" ||'
+        );
+        expect(ruleSource).toContain(
+            'node.callee.property.name !== "isInteger"'
+        );
     });
 });
 

@@ -80,14 +80,14 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unwrap-tagged.md",
             },
             fixable: "code",
             messages: {
                 preferUnwrapTagged:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to unwrap Tagged/Opaque values instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

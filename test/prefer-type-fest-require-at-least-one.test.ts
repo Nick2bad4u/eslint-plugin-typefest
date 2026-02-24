@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-require-at-least-one";
 const docsDescription =
     "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.";
 const preferRequireAtLeastOneMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to require at least one key from a group instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-require-at-least-one.valid.ts";
 const namespaceValidFixtureName =
@@ -51,64 +51,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "AtLeastOne",
-                            replacement: "RequireAtLeastOne",
-                        },
-                        messageId: "preferRequireAtLeastOne",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AtLeastOne",
+                        replacement: "RequireAtLeastOne",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture AtLeastOne alias usage",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "AtLeastOne",
-                            replacement: "RequireAtLeastOne",
-                        },
-                        messageId: "preferRequireAtLeastOne",
+                    messageId: "preferRequireAtLeastOne",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture AtLeastOne alias usage",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AtLeastOne",
+                        replacement: "RequireAtLeastOne",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline AtLeastOne alias import",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified RequireAtLeastOne references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferRequireAtLeastOne",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline AtLeastOne alias import",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified RequireAtLeastOne references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

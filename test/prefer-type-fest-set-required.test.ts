@@ -50,7 +50,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferSetRequired:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                "Prefer `{{replacement}}` from type-fest to make selected keys required instead of legacy alias `{{alias}}`.",
         },
         name: "prefer-type-fest-set-required",
     }

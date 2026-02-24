@@ -6,11 +6,12 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
-    createSafeTypeNodeReplacementFix,
+    createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_SET_TYPE_NAME = "ReadonlySet";
+const UNKNOWN_SET_TYPE_NAME = "UnknownSet";
 
 /**
  * Check whether the input is identifier type reference.
@@ -83,11 +84,13 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementFix = createSafeTypeNodeReplacementFix(
-                        node,
-                        "UnknownSet",
-                        typeFestDirectImports
-                    );
+                    const replacementFix =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonly(
+                            node,
+                            UNKNOWN_SET_TYPE_NAME,
+                            UNKNOWN_SET_TYPE_NAME,
+                            typeFestDirectImports
+                        );
 
                     context.report({
                         ...(replacementFix ? { fix: replacementFix } : {}),
@@ -106,14 +109,14 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-set.md",
             },
             fixable: "code",
             messages: {
                 preferUnknownSet:
-                    "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
+                    "Prefer `Readonly<UnknownSet>` from type-fest over `ReadonlySet<unknown>`.",
             },
             schema: [],
             type: "suggestion",

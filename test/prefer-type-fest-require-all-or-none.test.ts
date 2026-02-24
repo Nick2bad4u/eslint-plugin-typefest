@@ -49,7 +49,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferRequireAllOrNone:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                "Prefer `{{replacement}}` from type-fest to require all-or-none key groups instead of legacy alias `{{alias}}`.",
         },
         name: "prefer-type-fest-require-all-or-none",
     }

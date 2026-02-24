@@ -215,10 +215,10 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             ...(genericArguments.length === 0
                 ? {}
                 : {
-                    typeArguments: {
-                        params: genericArguments,
-                    },
-                }),
+                      typeArguments: {
+                          params: genericArguments,
+                      },
+                  }),
             typeName: createIdentifierNode(referenceName),
         });
         const jsonValueTypeReferenceNode = createTypeReferenceNode("JsonValue");
@@ -246,26 +246,29 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: readonly unknown[]) => {
+                createSafeTypeNodeReplacementFix: (
+                    ...parameters: readonly unknown[]
+                ) => {
                     replacementFixCalls.push(parameters);
 
                     return null;
                 },
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-json-array"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSUnionType?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-array")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
+                report(
+                    descriptor: Readonly<{ messageId?: string; node?: unknown }>
+                ) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -290,7 +293,9 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                 ])
             );
             const invalidNonTargetIdentifiersNode = createUnionNode(
-                createTypeReferenceNode("ArrayLike", [jsonValueTypeReferenceNode]),
+                createTypeReferenceNode("ArrayLike", [
+                    jsonValueTypeReferenceNode,
+                ]),
                 createTypeReferenceNode("ReadonlyArrayLike", [
                     jsonValueTypeReferenceNode,
                 ])

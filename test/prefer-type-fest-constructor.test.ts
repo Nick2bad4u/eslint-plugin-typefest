@@ -58,72 +58,68 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        messageId: "preferConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture constructor signatures",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineInvalidNoFilenameCode,
-                errors: [
-                    {
-                        messageId: "preferConstructorSignature",
-                    },
-                ],
-                name: "reports inline constructor signature without filename",
-                output: inlineInvalidNoFilenameOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [
-                    {
-                        messageId: "preferConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes constructor signature when Constructor import is in scope",
-                output: inlineFixableOutput,
-            },
-            {
-                code: inlineNoFixGenericCtorCode,
-                errors: [
-                    {
-                        messageId: "preferConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports generic constructor signature without autofix",
-                output: null,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    messageId: "preferConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture constructor signatures",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineInvalidNoFilenameCode,
+            errors: [
+                {
+                    messageId: "preferConstructorSignature",
+                },
+            ],
+            name: "reports inline constructor signature without filename",
+            output: inlineInvalidNoFilenameOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [
+                {
+                    messageId: "preferConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes constructor signature when Constructor import is in scope",
+            output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixGenericCtorCode,
+            errors: [
+                {
+                    messageId: "preferConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports generic constructor signature without autofix",
+            output: null,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

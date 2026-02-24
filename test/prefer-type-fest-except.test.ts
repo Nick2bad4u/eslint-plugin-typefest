@@ -97,15 +97,14 @@ describe("prefer-type-fest-except source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-except"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeReference?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-except")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(
                 'type UserWithoutId = Omit<{ id: string; name: string }, "id">;',

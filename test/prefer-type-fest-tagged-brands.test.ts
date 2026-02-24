@@ -100,7 +100,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferTaggedAlias:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                "Prefer `{{replacement}}` from type-fest for canonical tagged-brand aliases instead of legacy alias `{{alias}}`.",
             preferTaggedBrand:
                 "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
         },

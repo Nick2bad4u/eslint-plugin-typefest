@@ -22,17 +22,17 @@ const invalidFixtureName = "prefer-type-fest-unknown-set.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { UnknownSet } from "type-fest";\n${invalidFixtureCode.replace(
     "ReadonlySet<unknown>",
-    "UnknownSet"
+    "Readonly<UnknownSet>"
 )}`;
 const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "ReadonlySet<unknown>",
-    "UnknownSet"
+    "Readonly<UnknownSet>"
 );
 const inlineInvalidSetCode = "type Input = Set<unknown>;";
 const inlineInvalidReadonlySetCode = "type Input = ReadonlySet<unknown>;";
 const inlineInvalidReadonlySetOutputCode = [
     'import type { UnknownSet } from "type-fest";',
-    "type Input = UnknownSet;",
+    "type Input = Readonly<UnknownSet>;",
 ].join("\n");
 const inlineValidSetCode = "type Input = Set<string>;";
 const inlineValidReadonlySetCode = "type Input = ReadonlySet<number>;";
@@ -50,18 +50,21 @@ const inlineFixableCode = [
 const inlineFixableOutput = [
     'import type { UnknownSet } from "type-fest";',
     "",
-    "type Input = UnknownSet;",
+    "type Input = Readonly<UnknownSet>;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-set", {
-    docsDescription:
-        "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
-    enforceRuleShape: true,
-    messages: {
-        preferUnknownSet:
-            "Prefer `UnknownSet` from type-fest over `ReadonlySet<unknown>`.",
-    },
-});
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-unknown-set",
+    {
+        docsDescription:
+            "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferUnknownSet:
+                "Prefer `Readonly<UnknownSet>` from type-fest over `ReadonlySet<unknown>`.",
+        },
+    }
+);
 
 describe("prefer-type-fest-unknown-set source assertions", () => {
     it("matches ReadonlySet<unknown> in undecorated visitor", async () => {
@@ -73,15 +76,14 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-unknown-set"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeReference?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-unknown-set")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(
                 "type Input = ReadonlySet<unknown>;",
@@ -114,7 +116,8 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-type-fest-unknown-set.invalid.ts",
+                filename:
+                    "fixtures/typed/prefer-type-fest-unknown-set.invalid.ts",
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,

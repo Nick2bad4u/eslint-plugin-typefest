@@ -167,9 +167,7 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.property.type === "Identifier" &&'
-        );
+        expect(ruleSource).toContain('node.property.type === "Identifier" &&');
         expect(ruleSource).toContain(
             '(node.property.name === "POSITIVE_INFINITY" ||\n            node.property.name === "NEGATIVE_INFINITY")'
         );
@@ -196,9 +194,7 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
         expect(ruleSource).toContain(
             "sourceCode.getText(right.comparedExpression).trim()"
         );
-        expect(ruleSource).toContain(
-            "parent?.type === \"LogicalExpression\" &&"
-        );
+        expect(ruleSource).toContain('parent?.type === "LogicalExpression" &&');
     });
 });
 

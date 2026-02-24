@@ -36,7 +36,9 @@ const isPrimitiveKeywordType = (
  * @returns `true` when has primitive union shape; otherwise `false`.
  */
 
-const hasPrimitiveUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
+const hasPrimitiveUnionShape = (
+    node: Readonly<TSESTree.TSUnionType>
+): boolean => {
     if (node.types.length !== primitiveKeywordTypes.length) {
         return false;
     }
@@ -62,7 +64,7 @@ const hasPrimitiveUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean =
  */
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create (context) {
+        create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -74,7 +76,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSUnionType (node) {
+                TSUnionType(node) {
                     if (!hasPrimitiveUnionShape(node)) {
                         return;
                     }
@@ -103,7 +105,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-primitive.md",
             },

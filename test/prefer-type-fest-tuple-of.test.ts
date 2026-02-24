@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-tuple-of";
 const docsDescription =
     "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.";
 const preferTupleOfMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to model fixed-length homogeneous tuples instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-tuple-of.valid.ts";
 const namespaceValidFixtureName =
@@ -102,139 +102,135 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "ReadonlyTuple",
-                            replacement: "Readonly<TupleOf<Length, Element>>",
-                        },
-                        messageId: "preferTupleOf",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "ReadonlyTuple",
+                        replacement: "Readonly<TupleOf<Length, Element>>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture ReadonlyTuple and Tuple aliases",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableReadonlyTupleInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "ReadonlyTuple",
-                            replacement: "Readonly<TupleOf<Length, Element>>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture ReadonlyTuple and Tuple aliases",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableReadonlyTupleInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "ReadonlyTuple",
+                        replacement: "Readonly<TupleOf<Length, Element>>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline ReadonlyTuple alias import",
-                output: inlineFixableReadonlyTupleOutputCode,
-            },
-            {
-                code: inlineFixableTupleInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "Tuple",
-                            replacement: "TupleOf<Length, Element>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline ReadonlyTuple alias import",
+            output: inlineFixableReadonlyTupleOutputCode,
+        },
+        {
+            code: inlineFixableTupleInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "Tuple",
+                        replacement: "TupleOf<Length, Element>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline Tuple alias import",
-                output: inlineFixableTupleOutputCode,
-            },
-            {
-                code: inlineNoFixShadowedTupleOfInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "ReadonlyTuple",
-                            replacement: "Readonly<TupleOf<Length, Element>>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline Tuple alias import",
+            output: inlineFixableTupleOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedTupleOfInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "ReadonlyTuple",
+                        replacement: "Readonly<TupleOf<Length, Element>>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports ReadonlyTuple alias when TupleOf identifier is shadowed",
-                output: null,
-            },
-            {
-                code: inlineNoFixTupleAliasShadowedTupleOfInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "Tuple",
-                            replacement: "TupleOf<Length, Element>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlyTuple alias when TupleOf identifier is shadowed",
+            output: null,
+        },
+        {
+            code: inlineNoFixTupleAliasShadowedTupleOfInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "Tuple",
+                        replacement: "TupleOf<Length, Element>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports Tuple alias when TupleOf identifier is shadowed",
-                output: null,
-            },
-            {
-                code: inlineNoFixShadowedReadonlyInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "ReadonlyTuple",
-                            replacement: "Readonly<TupleOf<Length, Element>>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports Tuple alias when TupleOf identifier is shadowed",
+            output: null,
+        },
+        {
+            code: inlineNoFixShadowedReadonlyInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "ReadonlyTuple",
+                        replacement: "Readonly<TupleOf<Length, Element>>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports ReadonlyTuple alias when Readonly identifier is shadowed",
-                output: null,
-            },
-            {
-                code: inlineFixTupleWhenReadonlyShadowedInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "Tuple",
-                            replacement: "TupleOf<Length, Element>",
-                        },
-                        messageId: "preferTupleOf",
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlyTuple alias when Readonly identifier is shadowed",
+            output: null,
+        },
+        {
+            code: inlineFixTupleWhenReadonlyShadowedInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "Tuple",
+                        replacement: "TupleOf<Length, Element>",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes Tuple alias even when Readonly identifier is shadowed",
-                output: inlineFixTupleWhenReadonlyShadowedOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified FixedLengthArray references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Tuple alias even when Readonly identifier is shadowed",
+            output: inlineFixTupleWhenReadonlyShadowedOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified FixedLengthArray references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

@@ -6,7 +6,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
-    createSafeTypeNodeTextReplacementFix,
+    createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
@@ -154,12 +154,13 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementFix = createSafeTypeNodeTextReplacementFix(
-                        node,
-                        "NonEmptyTuple",
-                        `NonEmptyTuple<${sourceCode.getText(firstType)}>`,
-                        typeFestDirectImports
-                    );
+                    const replacementFix =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonly(
+                            node,
+                            "NonEmptyTuple",
+                            `NonEmptyTuple<${sourceCode.getText(firstType)}>`,
+                            typeFestDirectImports
+                        );
 
                     context.report({
                         ...(replacementFix ? { fix: replacementFix } : {}),
@@ -178,14 +179,14 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-non-empty-tuple.md",
             },
             fixable: "code",
             messages: {
                 preferNonEmptyTuple:
-                    "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",
+                    "Prefer `Readonly<NonEmptyTuple<T>>` from type-fest over `readonly [T, ...T[]]`.",
             },
             schema: [],
             type: "suggestion",

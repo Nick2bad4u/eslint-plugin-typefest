@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-iterable-element";
 const docsDescription =
     "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.";
 const preferIterableElementMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to extract element types from iterable containers instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-iterable-element.valid.ts";
 const namespaceValidFixtureName =
@@ -54,81 +54,77 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "SetElement",
-                            replacement: "IterableElement",
-                        },
-                        messageId: "preferIterableElement",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "SetElement",
+                        replacement: "IterableElement",
                     },
-                    {
-                        data: {
-                            alias: "SetEntry",
-                            replacement: "IterableElement",
-                        },
-                        messageId: "preferIterableElement",
+                    messageId: "preferIterableElement",
+                },
+                {
+                    data: {
+                        alias: "SetEntry",
+                        replacement: "IterableElement",
                     },
-                    {
-                        data: {
-                            alias: "SetValues",
-                            replacement: "IterableElement",
-                        },
-                        messageId: "preferIterableElement",
+                    messageId: "preferIterableElement",
+                },
+                {
+                    data: {
+                        alias: "SetValues",
+                        replacement: "IterableElement",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture Set* alias usage",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableSecondPassOutputCode,
-                ],
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "SetElement",
-                            replacement: "IterableElement",
-                        },
-                        messageId: "preferIterableElement",
+                    messageId: "preferIterableElement",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Set* alias usage",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "SetElement",
+                        replacement: "IterableElement",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline SetElement alias import",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified IterableElement references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferIterableElement",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline SetElement alias import",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified IterableElement references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

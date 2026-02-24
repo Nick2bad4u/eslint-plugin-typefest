@@ -45,7 +45,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferUnwrapTagged:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                "Prefer `{{replacement}}` from type-fest to unwrap Tagged/Opaque values instead of legacy alias `{{alias}}`.",
         },
     }
 );

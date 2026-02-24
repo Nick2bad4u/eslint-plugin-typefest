@@ -1,4 +1,4 @@
-import type { UnknownRecord } from "type-fest";
+import type { UnknownArray, UnknownRecord } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -50,21 +50,22 @@ const withGeneratedRuleCaseNames = (
     runCases: Readonly<RuleRunCases>
 ): RuleRunCases => {
     const normalizedInvalidCases: RuleRunCases["invalid"] =
-        runCases.invalid.map((entry: Readonly<RuleRunInvalidCase>, caseIndex) =>
-            typeof entry.name === "string" && entry.name.length > 0
-                ? {
-                    ...entry,
-                    name: pc.bold(pc.cyanBright(entry.name)),
-                }
-                : {
-                    ...entry,
-                    name: deriveGeneratedCaseName(
-                        ruleName,
-                        "invalid",
-                        caseIndex,
-                        entry.filename
-                    ),
-                }
+        runCases.invalid.map(
+            (entry: Readonly<RuleRunInvalidCase>, caseIndex) =>
+                typeof entry.name === "string" && entry.name.length > 0
+                    ? {
+                          ...entry,
+                          name: pc.bold(pc.cyanBright(entry.name)),
+                      }
+                    : {
+                          ...entry,
+                          name: deriveGeneratedCaseName(
+                              ruleName,
+                              "invalid",
+                              caseIndex,
+                              entry.filename
+                          ),
+                      }
         );
 
     const normalizedValidCases: RuleRunCases["valid"] = runCases.valid.map(
@@ -107,7 +108,7 @@ const patchRuleTesterRunWithGeneratedCaseNames = (
     const writableTester = tester as RuleTester;
     const originalRun = writableTester.run.bind(writableTester);
     writableTester.run = ((ruleName, ruleModule, runCases) => {
-        (originalRun as (...args: readonly unknown[]) => void)(
+        (originalRun as (...args: UnknownArray) => void)(
             ruleName,
             ruleModule,
             withGeneratedRuleCaseNames(ruleName, runCases)
@@ -179,7 +180,7 @@ const isRuleModule = (value: unknown): value is PluginRuleModule => {
         return false;
     }
 
-    const maybeCreate = (value as { create?: unknown; }).create;
+    const maybeCreate = (value as { create?: unknown }).create;
 
     return typeof maybeCreate === "function";
 };

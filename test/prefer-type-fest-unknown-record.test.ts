@@ -64,64 +64,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [{ messageId: "preferUnknownRecord" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture unknown record aliases",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineInvalidRecordStringUnknownCode,
-                errors: [{ messageId: "preferUnknownRecord" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports inline Record<string, unknown> alias",
-                output: inlineInvalidRecordStringUnknownOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferUnknownRecord" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes Record<string, unknown> when UnknownRecord import is in scope",
-                output: inlineFixableOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: inlineValidGlobalRecordCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores globalThis.Record<string, unknown>",
-            },
-            {
-                code: inlineValidNonUnknownValueCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores Record with non-unknown value type",
-            },
-            {
-                code: inlineValidNonStringKeyCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores Record with non-string key type",
-            },
-            {
-                code: inlineValidNonRecordIdentifierCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-Record generic with string unknown type arguments",
-            },
-            {
-                code: readTypedFixture(invalidFixtureName),
-                filename: typedFixturePath("tests", invalidFixtureName),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [{ messageId: "preferUnknownRecord" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture unknown record aliases",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineInvalidRecordStringUnknownCode,
+            errors: [{ messageId: "preferUnknownRecord" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports inline Record<string, unknown> alias",
+            output: inlineInvalidRecordStringUnknownOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferUnknownRecord" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes Record<string, unknown> when UnknownRecord import is in scope",
+            output: inlineFixableOutput,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: inlineValidGlobalRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.Record<string, unknown>",
+        },
+        {
+            code: inlineValidNonUnknownValueCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with non-unknown value type",
+        },
+        {
+            code: inlineValidNonStringKeyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Record with non-string key type",
+        },
+        {
+            code: inlineValidNonRecordIdentifierCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-Record generic with string unknown type arguments",
+        },
+        {
+            code: readTypedFixture(invalidFixtureName),
+            filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

@@ -8,7 +8,9 @@ import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
     createSafeTypeNodeReplacementFix,
+    createSafeTypeNodeReplacementFixPreservingReadonly,
     createSafeTypeNodeTextReplacementFix,
+    createSafeTypeNodeTextReplacementFixPreservingReadonly,
     createSafeTypeReferenceReplacementFix,
 } from "../../src/_internal/imported-type-aliases";
 
@@ -130,6 +132,27 @@ const createSafeTypeNodeTextReplacementFixFn: (
 ) => ReturnType<typeof createSafeTypeNodeTextReplacementFix> =
     createSafeTypeNodeTextReplacementFix;
 
+const createSafeTypeNodeReplacementFixPreservingReadonlyFn: (
+    node: Readonly<
+        Parameters<typeof createSafeTypeNodeReplacementFixPreservingReadonly>[0]
+    >,
+    replacementName: string,
+    availableReplacementNames: Readonly<ReadonlySet<string>>
+) => ReturnType<typeof createSafeTypeNodeReplacementFixPreservingReadonly> =
+    createSafeTypeNodeReplacementFixPreservingReadonly;
+
+const createSafeTypeNodeTextReplacementFixPreservingReadonlyFn: (
+    node: Readonly<
+        Parameters<
+            typeof createSafeTypeNodeTextReplacementFixPreservingReadonly
+        >[0]
+    >,
+    replacementName: string,
+    replacementText: string,
+    availableReplacementNames: Readonly<ReadonlySet<string>>
+) => ReturnType<typeof createSafeTypeNodeTextReplacementFixPreservingReadonly> =
+    createSafeTypeNodeTextReplacementFixPreservingReadonly;
+
 const createTypeParameterDeclarationWithNames = (
     ...parameterNames: readonly string[]
 ): {
@@ -155,6 +178,31 @@ const createTypeNode = (
         type: "TSStringKeyword",
         ...(parent === undefined ? {} : { parent }),
     }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
+
+const createReadonlyContainerTypeReferenceNode = (
+    readonlyContainerTypeName: string
+): Parameters<typeof createSafeTypeNodeReplacementFix>[0] =>
+    ({
+        type: "TSTypeReference",
+        typeName: {
+            name: readonlyContainerTypeName,
+            type: "Identifier",
+        },
+    }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
+
+const createReadonlyTypeOperatorNode = (): Parameters<
+    typeof createSafeTypeNodeTextReplacementFix
+>[0] =>
+    ({
+        operator: "readonly",
+        type: "TSTypeOperator",
+        typeAnnotation: {
+            elementType: {
+                type: "TSUnknownKeyword",
+            },
+            type: "TSArrayType",
+        },
+    }) as unknown as Parameters<typeof createSafeTypeNodeTextReplacementFix>[0];
 
 describe(collectImportedTypeAliasMatches, () => {
     it("collects canonical named imports that are not renamed", () => {
@@ -510,5 +558,78 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
         );
 
         expect(fixer).toBeTypeOf("function");
+    });
+});
+
+function createSafeTypeNodeReplacementFixPreservingReadonlyGroup (): void {
+    // no-op
+}
+
+describe(createSafeTypeNodeReplacementFixPreservingReadonlyGroup, () => {
+    it("wraps replacement text in Readonly<> when the source node is an explicit readonly container reference", () => {
+        expect.hasAssertions();
+
+        const node = createReadonlyContainerTypeReferenceNode("ReadonlyMap");
+        const fixer = createSafeTypeNodeReplacementFixPreservingReadonlyFn(
+            node,
+            "UnknownMap",
+            new Set(["UnknownMap"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+
+        const replacementTexts: string[] = [];
+        const fakeFixer = {
+            insertTextAfterRange: (): string => "",
+            replaceText: (_targetNode: unknown, text: string): string => {
+                replacementTexts.push(text);
+
+                return text;
+            },
+        };
+
+        const fixOutput = fixer?.(
+            fakeFixer as unknown as Parameters<typeof fixer>[0]
+        );
+
+        expect(fixOutput).toBe("Readonly<UnknownMap>");
+        expect(replacementTexts).toStrictEqual(["Readonly<UnknownMap>"]);
+    });
+});
+
+function createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup (): void {
+    // no-op
+}
+
+describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
+    it("keeps existing Readonly<> wrappers untouched to avoid double wrapping", () => {
+        expect.hasAssertions();
+
+        const node = createReadonlyTypeOperatorNode();
+        const fixer = createSafeTypeNodeTextReplacementFixPreservingReadonlyFn(
+            node,
+            "UnknownArray",
+            "Readonly<UnknownArray>",
+            new Set(["UnknownArray"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+
+        const replacementTexts: string[] = [];
+        const fakeFixer = {
+            insertTextAfterRange: (): string => "",
+            replaceText: (_targetNode: unknown, text: string): string => {
+                replacementTexts.push(text);
+
+                return text;
+            },
+        };
+
+        const fixOutput = fixer?.(
+            fakeFixer as unknown as Parameters<typeof fixer>[0]
+        );
+
+        expect(fixOutput).toBe("Readonly<UnknownArray>");
+        expect(replacementTexts).toStrictEqual(["Readonly<UnknownArray>"]);
     });
 });

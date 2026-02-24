@@ -88,9 +88,9 @@ const createRuleContextWithVariables = (
             typeof node === "object" &&
             node !== null &&
             "_text" in node &&
-            typeof (node as { _text: unknown; })._text === "string"
+            typeof (node as { _text: unknown })._text === "string"
         ) {
-            return (node as { _text: string; })._text;
+            return (node as { _text: string })._text;
         }
 
         return "";

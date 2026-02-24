@@ -58,14 +58,14 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
     defaultOptions: [],
     meta: {
         docs: {
-                description:
+            description:
                 "require TypeFest AbstractConstructor over explicit `abstract new (...) => ...` signatures.",
             recommended: [
-                    "typefest.configs.recommended",
-                    "typefest.configs.strict",
-                    "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
-                ],
+                "typefest.configs.recommended",
+                "typefest.configs.strict",
+                "typefest.configs.all",
+                'typefest.configs["type-fest/types"]',
+            ],
             url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-abstract-constructor.md",
         },
         fixable: "code",

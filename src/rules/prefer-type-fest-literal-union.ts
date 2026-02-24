@@ -92,7 +92,9 @@ const isLiteralMemberForFamily = (
  *
  * @returns `true` when has literal union shape; otherwise `false`.
  */
-const hasLiteralUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
+const hasLiteralUnionShape = (
+    node: Readonly<TSESTree.TSUnionType>
+): boolean => {
     for (const family of literalUnionFamilies) {
         let allMembersAreFamilyMembers = true;
         let hasKeywordMember = false;
@@ -177,8 +179,8 @@ const getLiteralUnionReplacementText = (
         literalMembers.length === 1
             ? sourceCode.getText(literalMembers[0])
             : literalMembers
-                .map((member) => sourceCode.getText(member))
-                .join(" | ");
+                  .map((member) => sourceCode.getText(member))
+                  .join(" | ");
 
     return `LiteralUnion<${literalText}, ${family}>`;
 };
@@ -191,7 +193,7 @@ const getLiteralUnionReplacementText = (
  */
 const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create (context) {
+        create(context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -204,7 +206,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSUnionType (node) {
+                TSUnionType(node) {
                     if (!hasLiteralUnionShape(node)) {
                         return;
                     }
@@ -252,7 +254,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-literal-union.md",
             },

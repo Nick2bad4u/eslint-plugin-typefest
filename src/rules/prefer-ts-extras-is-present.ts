@@ -67,7 +67,9 @@ const flattenLogicalTerms = ({
  * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
-const isUndefinedIdentifier = (expression: Readonly<TSESTree.Expression>): boolean =>
+const isUndefinedIdentifier = (
+    expression: Readonly<TSESTree.Expression>
+): boolean =>
     expression.type === "Identifier" && expression.name === "undefined";
 
 /**
@@ -175,8 +177,9 @@ const isFunctionCallbackNode = (
  * @returns GetParentNode helper result.
  */
 
-const getParentNode = (node: Readonly<TSESTree.Node>): TSESTree.Node | undefined =>
-    (node as NodeWithParent).parent;
+const getParentNode = (
+    node: Readonly<TSESTree.Node>
+): TSESTree.Node | undefined => (node as NodeWithParent).parent;
 
 /**
  * Check whether the input is within filter callback.
@@ -186,7 +189,9 @@ const getParentNode = (node: Readonly<TSESTree.Node>): TSESTree.Node | undefined
  * @returns `true` when the value is within filter callback; otherwise `false`.
  */
 
-const isWithinFilterCallback = ({ node }: Readonly<{ node: TSESTree.Node }>): boolean => {
+const isWithinFilterCallback = ({
+    node,
+}: Readonly<{ node: TSESTree.Node }>): boolean => {
     let currentNode: TSESTree.Node | undefined = node;
 
     while (currentNode) {
@@ -456,7 +461,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present.md",
             },

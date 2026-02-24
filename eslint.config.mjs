@@ -1051,7 +1051,8 @@ export default defineConfig([
             "eslint-plugin/report-message-format": "warn",
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
-            "eslint-plugin/require-meta-docs-recommended": ["warn",
+            "eslint-plugin/require-meta-docs-recommended": [
+                "warn",
                 { allowNonBoolean: true },
             ],
             "eslint-plugin/require-meta-docs-url": "error",

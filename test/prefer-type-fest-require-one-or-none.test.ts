@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-require-one-or-none";
 const docsDescription =
     "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.";
 const preferRequireOneOrNoneMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to allow one-or-none key groups instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-require-one-or-none.valid.ts";
 const namespaceValidFixtureName =
@@ -51,64 +51,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "AtMostOne",
-                            replacement: "RequireOneOrNone",
-                        },
-                        messageId: "preferRequireOneOrNone",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AtMostOne",
+                        replacement: "RequireOneOrNone",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture AtMostOne alias usage",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "AtMostOne",
-                            replacement: "RequireOneOrNone",
-                        },
-                        messageId: "preferRequireOneOrNone",
+                    messageId: "preferRequireOneOrNone",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture AtMostOne alias usage",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AtMostOne",
+                        replacement: "RequireOneOrNone",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline AtMostOne alias import",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified RequireOneOrNone references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferRequireOneOrNone",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline AtMostOne alias import",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified RequireOneOrNone references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

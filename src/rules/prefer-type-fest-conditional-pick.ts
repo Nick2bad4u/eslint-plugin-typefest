@@ -80,14 +80,14 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md",
             },
             fixable: "code",
             messages: {
                 preferConditionalPick:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to pick keys whose values match a condition instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

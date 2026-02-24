@@ -143,7 +143,7 @@ export const collectDirectNamedValueImportsFromSource = (
     );
 };
 
-function getVariableInScopeChain (
+function getVariableInScopeChain(
     scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
 ): null | TSESLint.Scope.Variable {
@@ -187,7 +187,7 @@ const getProgramNode = (
     return null;
 };
 
-function isLocalNameBoundToExpectedImport (
+function isLocalNameBoundToExpectedImport(
     sourceCode: Readonly<TSESLint.SourceCode>,
     referenceNode: Readonly<TSESTree.Node>,
     localName: string,
@@ -342,7 +342,9 @@ const getSafeReplacementNameAndImportFixFactory = ({
     referenceNode,
     sourceModuleName,
 }: Readonly<SafeImportedValueNameParams>): null | {
-    createImportFix: (fixer: Readonly<TSESLint.RuleFixer>) => null | TSESLint.RuleFix;
+    createImportFix: (
+        fixer: Readonly<TSESLint.RuleFixer>
+    ) => null | TSESLint.RuleFix;
     replacementName: string;
 } => {
     const existingReplacementName = getSafeLocalNameForImportedValue({

@@ -241,8 +241,8 @@ const inlineAutofixableCanonicalCode = [
     "function ensureValue(value: string | null | undefined): string {",
     "    if (value === null || value === undefined) {",
     "        throw new TypeError(`Expected a present value, got " +
-    "$" +
-    "{value}`);",
+        "$" +
+        "{value}`);",
     "    }",
     "",
     "    return value;",
@@ -513,8 +513,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasAssertPresent",
-                                output:
-                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
                             },
                         ],
                     },
@@ -530,8 +529,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasAssertPresent",
-                                output:
-                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
                             },
                         ],
                     },
@@ -547,8 +545,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasAssertPresent",
-                                output:
-                                    inlineSuggestableTemplateWrongExpressionOutput,
+                                output: inlineSuggestableTemplateWrongExpressionOutput,
                             },
                         ],
                     },
@@ -571,8 +568,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasAssertPresent",
-                                output:
-                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
                             },
                         ],
                     },
@@ -588,8 +584,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasAssertPresent",
-                                output:
-                                    inlineInvalidNullableSuggestionOutputWithImportGapCode,
+                                output: inlineInvalidNullableSuggestionOutputWithImportGapCode,
                             },
                         ],
                     },

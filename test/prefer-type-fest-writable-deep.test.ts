@@ -166,10 +166,12 @@ describe("prefer-type-fest-writable-deep metadata", () => {
 });
 
 interface WritableDeepRuleModuleForCreate {
-    create: (context: Readonly<{
-        filename?: string | undefined;
-        sourceCode: object;
-    }>) => Record<string, unknown>;
+    create: (
+        context: Readonly<{
+            filename?: string | undefined;
+            sourceCode: object;
+        }>
+    ) => Record<string, unknown>;
 }
 
 describe("prefer-type-fest-writable-deep filename fallback", () => {

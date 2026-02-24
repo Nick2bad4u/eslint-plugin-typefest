@@ -28,8 +28,8 @@ type TypefestConfigReference =
     | "typefest.configs.strict"
     | "typefest.configs.ts-extras/type-guards"
     | "typefest.configs.type-fest/types"
-    | "typefest.configs[\"ts-extras/type-guards\"]"
-    | "typefest.configs[\"type-fest/types\"]";
+    | 'typefest.configs["ts-extras/type-guards"]'
+    | 'typefest.configs["type-fest/types"]';
 
 /**
  * Plugin-specific metadata extensions for `meta.docs`.
@@ -48,11 +48,13 @@ type TypefestRuleDocs = {
 /**
  * Create typed rules with docs URLs that point to this repository's rule docs.
  */
+/* eslint-disable total-functions/no-hidden-type-assertions -- RuleCreator generic specialization is required so `meta.docs.recommended` is typed across all rules. */
 export const createTypedRule: ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
 > = ESLintUtils.RuleCreator<TypefestRuleDocs>(
     (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
 );
+/* eslint-enable total-functions/no-hidden-type-assertions -- Re-enable hidden-type-assertion checks for the rest of the module. */
 
 /**
  * Retrieve parser services and type checker for typed rules.
@@ -93,7 +95,10 @@ export const isTypeAssignableTo = (
     targetType: Readonly<ts.Type>
 ): boolean => {
     const checkerWithAssignable = checker as ts.TypeChecker & {
-        isTypeAssignableTo?: (source: Readonly<ts.Type>, target: Readonly<ts.Type>) => boolean;
+        isTypeAssignableTo?: (
+            source: Readonly<ts.Type>,
+            target: Readonly<ts.Type>
+        ) => boolean;
     };
 
     if (typeof checkerWithAssignable.isTypeAssignableTo === "function") {

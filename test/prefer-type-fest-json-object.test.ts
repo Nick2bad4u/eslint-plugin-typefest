@@ -92,18 +92,15 @@ const inlineFixableOutput = [
     "type MonitorJsonShape = JsonObject;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    ruleId,
-    {
-        defaultOptions: [],
-        docsDescription,
-        enforceRuleShape: true,
-        messages: {
-            preferJsonObject: preferJsonObjectMessage,
-        },
-        name: ruleId,
-    }
-);
+addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+    defaultOptions: [],
+    docsDescription,
+    enforceRuleShape: true,
+    messages: {
+        preferJsonObject: preferJsonObjectMessage,
+    },
+    name: ruleId,
+});
 
 describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
     it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
@@ -123,26 +120,29 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: readonly unknown[]) => {
+                createSafeTypeNodeReplacementFix: (
+                    ...parameters: readonly unknown[]
+                ) => {
                     replacementFixCalls.push(parameters);
 
                     return null;
                 },
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-json-object"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeReference?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-object")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
+                report(
+                    descriptor: Readonly<{ messageId?: string; node?: unknown }>
+                ) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

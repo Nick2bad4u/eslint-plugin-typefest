@@ -162,8 +162,8 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                 genericArguments.length === 0
                     ? undefined
                     : {
-                        params: genericArguments,
-                    },
+                          params: genericArguments,
+                      },
             typeName: createIdentifierNode(referenceName),
         });
         const createUnionNode = (...types: readonly unknown[]) => ({
@@ -190,23 +190,24 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                 },
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-type-fest-arrayable"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSUnionType?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-arrayable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; node?: unknown; }>) {
+                report(
+                    descriptor: Readonly<{ messageId?: string; node?: unknown }>
+                ) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
-                    getText (node: Readonly<{ text?: string; }>) {
+                    getText(node: Readonly<{ text?: string }>) {
                         return node.text ?? "";
                     },
                 },
@@ -227,18 +228,34 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
 
             const validRightGenericNode = createUnionNode(
                 stringKeywordNode,
-                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>")
+                createTypeReferenceNode(
+                    "Array",
+                    [stringKeywordNode],
+                    "Array<string>"
+                )
             );
             const validLeftGenericNode = createUnionNode(
-                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>"),
+                createTypeReferenceNode(
+                    "Array",
+                    [stringKeywordNode],
+                    "Array<string>"
+                ),
                 stringKeywordNode
             );
             const invalidNonArrayGenericNode = createUnionNode(
                 stringKeywordNode,
-                createTypeReferenceNode("Box", [stringKeywordNode], "Box<string>")
+                createTypeReferenceNode(
+                    "Box",
+                    [stringKeywordNode],
+                    "Box<string>"
+                )
             );
             const invalidMismatchedLeftGenericNode = createUnionNode(
-                createTypeReferenceNode("Array", [numberKeywordNode], "Array<number>"),
+                createTypeReferenceNode(
+                    "Array",
+                    [numberKeywordNode],
+                    "Array<number>"
+                ),
                 stringKeywordNode
             );
             const invalidMissingGenericArgumentNode = createUnionNode(
@@ -247,7 +264,11 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             );
             const invalidThreeMemberUnionNode = createUnionNode(
                 stringKeywordNode,
-                createTypeReferenceNode("Array", [stringKeywordNode], "Array<string>"),
+                createTypeReferenceNode(
+                    "Array",
+                    [stringKeywordNode],
+                    "Array<string>"
+                ),
                 {
                     text: "null",
                     type: "TSNullKeyword",
@@ -281,157 +302,153 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     });
 });
 
-ruleTester.run(
-    ruleId,
-    rule,
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferArrayable" },
-                    { messageId: "preferArrayable" },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture string-or-array unions",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableSecondPassOutputCode,
-                ],
-            },
-            {
-                code: inlineInvalidCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports string | string[] union",
-                output: inlineInvalidOutputCode,
-            },
-            {
-                code: inlineInvalidReversedCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports reversed string[] | string union",
-                output: inlineInvalidReversedOutputCode,
-            },
-            {
-                code: inlineInvalidGenericArrayCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports string | Array<string> union",
-                output: inlineInvalidGenericArrayOutputCode,
-            },
-            {
-                code: inlineInvalidGenericArrayReversedCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports reversed Array<string> | string union",
-                output: inlineInvalidGenericArrayReversedOutputCode,
-            },
-            {
-                code: inlineInvalidWhitespaceNormalizedGenericArrayCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports generic unions when element text only differs by whitespace",
-                output: inlineInvalidWhitespaceNormalizedGenericArrayOutputCode,
-            },
-            {
-                code: inlineInvalidWhitespaceNormalizedGenericArrayReversedCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports reversed generic unions when element text only differs by whitespace",
-                output: inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes T | T[] union when Arrayable import is in scope",
-                output: inlineFixableOutput,
-            },
-            {
-                code: inlineGenericFixableCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes T | Array<T> union when Arrayable import is in scope",
-                output: inlineGenericFixableOutput,
-            },
-            {
-                code: inlineGenericFixableReversedCode,
-                errors: [{ messageId: "preferArrayable" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes reversed Array<T> | T union when Arrayable import is in scope",
-                output: inlineGenericFixableReversedOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: nonMatchingUnionValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores unions with mismatched array element types",
-            },
-            {
-                code: singleTypeValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores single non-union type alias",
-            },
-            {
-                code: threeMemberUnionValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores unions with more than two members",
-            },
-            {
-                code: genericArrayMissingTypeArgumentValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores generic array without type arguments",
-            },
-            {
-                code: genericArrayExtraTypeArgumentValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores generic array with extra type arguments",
-            },
-            {
-                code: genericArrayMismatchedElementValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores generic array with mismatched element type",
-            },
-            {
-                code: reversedGenericArrayMismatchedElementValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores reversed generic array with mismatched element type",
-            },
-            {
-                code: nonArrayGenericMatchingElementValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-Array generic with matching element type",
-            },
-            {
-                code: bothMembersAreNativeArraysValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores unions where both members are native arrays",
-            },
-            {
-                code: qualifiedGenericArrayValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores globalThis.Array qualified generic unions",
-            },
-            {
-                code: inlineInvalidReadonlyArrayCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores readonly array unions already matching Arrayable semantics",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-type-fest-arrayable.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, rule, {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                { messageId: "preferArrayable" },
+                { messageId: "preferArrayable" },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture string-or-array unions",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
+        },
+        {
+            code: inlineInvalidCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports string | string[] union",
+            output: inlineInvalidOutputCode,
+        },
+        {
+            code: inlineInvalidReversedCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed string[] | string union",
+            output: inlineInvalidReversedOutputCode,
+        },
+        {
+            code: inlineInvalidGenericArrayCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports string | Array<string> union",
+            output: inlineInvalidGenericArrayOutputCode,
+        },
+        {
+            code: inlineInvalidGenericArrayReversedCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed Array<string> | string union",
+            output: inlineInvalidGenericArrayReversedOutputCode,
+        },
+        {
+            code: inlineInvalidWhitespaceNormalizedGenericArrayCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports generic unions when element text only differs by whitespace",
+            output: inlineInvalidWhitespaceNormalizedGenericArrayOutputCode,
+        },
+        {
+            code: inlineInvalidWhitespaceNormalizedGenericArrayReversedCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed generic unions when element text only differs by whitespace",
+            output: inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes T | T[] union when Arrayable import is in scope",
+            output: inlineFixableOutput,
+        },
+        {
+            code: inlineGenericFixableCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes T | Array<T> union when Arrayable import is in scope",
+            output: inlineGenericFixableOutput,
+        },
+        {
+            code: inlineGenericFixableReversedCode,
+            errors: [{ messageId: "preferArrayable" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes reversed Array<T> | T union when Arrayable import is in scope",
+            output: inlineGenericFixableReversedOutput,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: nonMatchingUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unions with mismatched array element types",
+        },
+        {
+            code: singleTypeValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores single non-union type alias",
+        },
+        {
+            code: threeMemberUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unions with more than two members",
+        },
+        {
+            code: genericArrayMissingTypeArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores generic array without type arguments",
+        },
+        {
+            code: genericArrayExtraTypeArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores generic array with extra type arguments",
+        },
+        {
+            code: genericArrayMismatchedElementValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores generic array with mismatched element type",
+        },
+        {
+            code: reversedGenericArrayMismatchedElementValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores reversed generic array with mismatched element type",
+        },
+        {
+            code: nonArrayGenericMatchingElementValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-Array generic with matching element type",
+        },
+        {
+            code: bothMembersAreNativeArraysValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unions where both members are native arrays",
+        },
+        {
+            code: qualifiedGenericArrayValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores globalThis.Array qualified generic unions",
+        },
+        {
+            code: inlineInvalidReadonlyArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly array unions already matching Arrayable semantics",
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-type-fest-arrayable.skip.ts"
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

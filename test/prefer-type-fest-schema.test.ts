@@ -15,7 +15,7 @@ const ruleId = "prefer-type-fest-schema";
 const docsDescription =
     "require TypeFest Schema over imported aliases such as RecordDeep.";
 const preferSchemaMessage =
-    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.";
+    "Prefer `{{replacement}}` from type-fest to model recursive object schemas instead of legacy alias `{{alias}}`.";
 
 const validFixtureName = "prefer-type-fest-schema.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
@@ -55,64 +55,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "RecordDeep",
-                            replacement: "Schema",
-                        },
-                        messageId: "preferSchema",
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RecordDeep",
+                        replacement: "Schema",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture Jsonify alias usage",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [
-                    {
-                        data: {
-                            alias: "RecordDeep",
-                            replacement: "Schema",
-                        },
-                        messageId: "preferSchema",
+                    messageId: "preferSchema",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture Jsonify alias usage",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RecordDeep",
+                        replacement: "Schema",
                     },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline Jsonify alias import",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(namespaceValidFixtureName),
-                filename: typedFixturePath(namespaceValidFixtureName),
-                name: "accepts namespace-qualified Schema references",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+                    messageId: "preferSchema",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline Jsonify alias import",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(namespaceValidFixtureName),
+            filename: typedFixturePath(namespaceValidFixtureName),
+            name: "accepts namespace-qualified Schema references",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

@@ -138,7 +138,7 @@ describe("prefer-ts-extras-string-split source assertions", () => {
         );
 
         expect(ruleSource).toContain('typeText === "String" ||');
-        expect(ruleSource).toContain('typeText.startsWith(\'"\')');
+        expect(ruleSource).toContain("typeText.startsWith('\"')");
         expect(ruleSource).toContain(
             'node.callee.property.type !== "Identifier" ||'
         );
@@ -170,15 +170,14 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-string-split"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-string-split")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(
                 [
@@ -203,14 +202,17 @@ describe("prefer-ts-extras-string-split source assertions", () => {
 
             const firstDeclarator = secondStatement.declarations[0];
             if (firstDeclarator?.init?.type !== AST_NODE_TYPES.CallExpression) {
-                throw new Error("Expected call expression initializer for split call");
+                throw new Error(
+                    "Expected call expression initializer for split call"
+                );
             }
 
             const splitCallExpression = firstDeclarator.init;
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                filename:
+                    "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,

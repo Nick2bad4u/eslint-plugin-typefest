@@ -29,12 +29,12 @@ const isIdentifierWithName = (
 
 const isTypeofExpression = (
     expression: Readonly<TSESTree.Expression>
-): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression; } =>
+): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
     expression.type === "UnaryExpression" && expression.operator === "typeof";
 
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
-): expression is TSESTree.Literal & { value: "undefined"; } =>
+): expression is TSESTree.Literal & { value: "undefined" } =>
     expression.type === "Literal" && expression.value === "undefined";
 
 /**
@@ -45,8 +45,9 @@ const isUndefinedStringLiteral = (
  * @returns `true` when the value is undefined identifier; otherwise `false`.
  */
 
-const isUndefinedIdentifier = (expression: Readonly<TSESTree.Expression>): boolean =>
-    isIdentifierWithName(expression, "undefined");
+const isUndefinedIdentifier = (
+    expression: Readonly<TSESTree.Expression>
+): boolean => isIdentifierWithName(expression, "undefined");
 
 /**
  * GetUndefinedComparisonMatch helper.
@@ -142,10 +143,9 @@ const isFilterCall = (
 
 const isFunctionCallbackNode = (
     node: Readonly<TSESTree.Node>
-): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression => (
+): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
     node.type === "ArrowFunctionExpression" ||
-    node.type === "FunctionExpression"
-);
+    node.type === "FunctionExpression";
 
 /**
  * GetParentNode helper.
@@ -155,8 +155,9 @@ const isFunctionCallbackNode = (
  * @returns GetParentNode helper result.
  */
 
-const getParentNode = (node: Readonly<TSESTree.Node>): TSESTree.Node | undefined =>
-    (node as NodeWithParent).parent;
+const getParentNode = (
+    node: Readonly<TSESTree.Node>
+): TSESTree.Node | undefined => (node as NodeWithParent).parent;
 
 /**
  * Check whether the input is within filter callback.
@@ -202,7 +203,7 @@ const isWithinFilterCallback = (node: Readonly<TSESTree.Node>): boolean => {
  */
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create (context) {
+        create(context) {
             const filePath = context.filename ?? "";
             if (isTestFilePath(filePath)) {
                 return {};
@@ -214,7 +215,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                BinaryExpression (node) {
+                BinaryExpression(node) {
                     if (isWithinFilterCallback(node)) {
                         return;
                     }
@@ -251,7 +252,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined.md",
             },

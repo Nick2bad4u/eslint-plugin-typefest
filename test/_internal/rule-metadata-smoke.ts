@@ -80,7 +80,9 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
             } as const;
 
             expect(metadataRule.name).toBe(expectedRuleName);
-            expect(metadataDefaultOptions).toStrictEqual(expectedDefaultOptions);
+            expect(metadataDefaultOptions).toStrictEqual(
+                expectedDefaultOptions
+            );
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 
             expect(metadataRule.meta?.docs?.description).toBe(

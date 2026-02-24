@@ -117,90 +117,86 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferValueOf" },
-                    { messageId: "preferValueOf" },
-                    { messageId: "preferValueOf" },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture indexed-access value unions",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableThirdPassOutputCode,
-                ],
-            },
-            {
-                code: inlineInvalidCode,
-                errors: [{ messageId: "preferValueOf" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports direct T[keyof T] indexed-access alias",
-                output: inlineInvalidOutputCode,
-            },
-            {
-                code: inlineInvalidSpacedCode,
-                errors: [{ messageId: "preferValueOf" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports indexed-access alias with spaced keyof token",
-                output: inlineInvalidOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [{ messageId: "preferValueOf" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes indexed-access alias with ValueOf import",
-                output: inlineFixableOutputCode,
-            },
-            {
-                code: inlineInvalidWhitespaceFormattedLiteralCode,
-                errors: [{ messageId: "preferValueOf" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports differently formatted inline type literals with equivalent structure",
-                output: inlineInvalidWhitespaceFormattedLiteralOutputCode,
-            },
-            {
-                code: inlineNoFixShadowedValueOfInvalidCode,
-                errors: [{ messageId: "preferValueOf" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports indexed-access alias when ValueOf identifier is shadowed",
-                output: null,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: inlineValidDifferentKeyCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores indexed access with explicit literal key",
-            },
-            {
-                code: inlineValidMismatchedObjectTextCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores keyed access when object text and keyof target differ",
-            },
-            {
-                code: inlineValidReadonlyTypeOperatorCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores indexed access when type operator is not keyof",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-type-fest-value-of.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                { messageId: "preferValueOf" },
+                { messageId: "preferValueOf" },
+                { messageId: "preferValueOf" },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture indexed-access value unions",
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableThirdPassOutputCode,
+            ],
+        },
+        {
+            code: inlineInvalidCode,
+            errors: [{ messageId: "preferValueOf" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports direct T[keyof T] indexed-access alias",
+            output: inlineInvalidOutputCode,
+        },
+        {
+            code: inlineInvalidSpacedCode,
+            errors: [{ messageId: "preferValueOf" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports indexed-access alias with spaced keyof token",
+            output: inlineInvalidOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [{ messageId: "preferValueOf" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes indexed-access alias with ValueOf import",
+            output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineInvalidWhitespaceFormattedLiteralCode,
+            errors: [{ messageId: "preferValueOf" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports differently formatted inline type literals with equivalent structure",
+            output: inlineInvalidWhitespaceFormattedLiteralOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedValueOfInvalidCode,
+            errors: [{ messageId: "preferValueOf" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports indexed-access alias when ValueOf identifier is shadowed",
+            output: null,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: inlineValidDifferentKeyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores indexed access with explicit literal key",
+        },
+        {
+            code: inlineValidMismatchedObjectTextCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores keyed access when object text and keyof target differ",
+        },
+        {
+            code: inlineValidReadonlyTypeOperatorCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores indexed access when type operator is not keyof",
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-type-fest-value-of.skip.ts"
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

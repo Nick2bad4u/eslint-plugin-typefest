@@ -263,7 +263,7 @@ describe("prefer-ts-extras-is-present-filter metadata literals", () => {
 
 describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
     it("ignores non-Identifier filter property and non-callback first argument", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -274,23 +274,23 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createSafeValueReferenceReplacementFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-present-filter"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -412,161 +412,157 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
         "const numbers = maybeNumbers.filter(isPresent);\r\n"
     );
 
-ruleTester.run(
-    ruleId,
-    rule,
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferTsExtrasIsPresentFilter" },
-                    { messageId: "preferTsExtrasIsPresentFilter" },
-                    { messageId: "preferTsExtrasIsPresentFilter" },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture present-filter guards",
-                output: [
-                    fixtureInvalidOutputWithMixedLineEndings,
-                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
-                ],
-            },
-            {
-                code: inlineInvalidPredicateUndefinedStrictCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports predicate using strict undefined inequality",
-                output: null,
-            },
-            {
-                code: inlineInvalidTypeofUndefinedGuardCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports predicate using typeof undefined check",
-                output: inlineInvalidTypeofUndefinedGuardOutput,
-            },
-            {
-                code: inlineInvalidReverseNullLooseCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports reverse null loose inequality predicate",
-                output: inlineInvalidReverseNullLooseOutput,
-            },
-            {
-                code: inlineInvalidReverseUndefinedLooseCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports reverse undefined loose inequality predicate",
-                output: inlineInvalidReverseUndefinedLooseOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes filter callback to isPresent when import is in scope",
-                output: inlineFixableOutput,
-            },
-            {
-                code: inlineInvalidMixedNullishOperatorCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports mixed loose and strict nullish inequality predicate without autofix",
-                output: null,
-            },
-            {
-                code: inlineValidAndThreeTermNullishGuardCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports three-term conjunction nullish guard callback without autofix",
-                output: null,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: inlineValidStrictNullWithoutPredicateCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict null inequality without type predicate",
-            },
-            {
-                code: inlineValidStrictUndefinedWithoutPredicateCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict undefined inequality without type predicate",
-            },
-            {
-                code: inlineValidAndWithoutUndefinedCheckCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores logical and callback lacking undefined check",
-            },
-            {
-                code: inlineValidLogicalOrNullishGuardCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores disjunction nullish guard callback",
-            },
-            {
-                code: inlineValidAndNonParameterNullComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores null comparison using non-parameter identifier",
-            },
-            {
-                code: inlineValidAndNonParameterUndefinedComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores undefined comparison using non-parameter identifier",
-            },
-            {
-                code: inlineValidAndNonNullLiteralComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-null literal comparison in conjunction",
-            },
-            {
-                code: inlineValidAndUndefinedAliasComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores undefined alias identifier comparison in conjunction",
-            },
-            {
-                code: inlineValidFilterBlockBodyCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores block-body filter callback",
-            },
-            {
-                code: inlineValidFunctionExpressionCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores function expression callback",
-            },
-            {
-                code: inlineValidComputedFilterCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores computed filter property access",
-            },
-            {
-                code: inlineValidNoCallbackCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores filter call without callback",
-            },
-            {
-                code: inlineValidDestructuredParameterCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores destructured callback parameter",
-            },
-            {
-                code: inlineValidSecondCallbackParameterCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores filter callback with second index parameter",
-            },
-            {
-                code: inlineValidMapCallbackCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-filter map callback",
-            },
-            {
-                code: invalidFixtureCode,
-                filename: typedFixturePath("tests", invalidFixtureName),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, rule, {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                { messageId: "preferTsExtrasIsPresentFilter" },
+                { messageId: "preferTsExtrasIsPresentFilter" },
+                { messageId: "preferTsExtrasIsPresentFilter" },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture present-filter guards",
+            output: [
+                fixtureInvalidOutputWithMixedLineEndings,
+                fixtureInvalidSecondPassOutputWithMixedLineEndings,
+            ],
+        },
+        {
+            code: inlineInvalidPredicateUndefinedStrictCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports predicate using strict undefined inequality",
+            output: null,
+        },
+        {
+            code: inlineInvalidTypeofUndefinedGuardCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports predicate using typeof undefined check",
+            output: inlineInvalidTypeofUndefinedGuardOutput,
+        },
+        {
+            code: inlineInvalidReverseNullLooseCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reverse null loose inequality predicate",
+            output: inlineInvalidReverseNullLooseOutput,
+        },
+        {
+            code: inlineInvalidReverseUndefinedLooseCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reverse undefined loose inequality predicate",
+            output: inlineInvalidReverseUndefinedLooseOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes filter callback to isPresent when import is in scope",
+            output: inlineFixableOutput,
+        },
+        {
+            code: inlineInvalidMixedNullishOperatorCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports mixed loose and strict nullish inequality predicate without autofix",
+            output: null,
+        },
+        {
+            code: inlineValidAndThreeTermNullishGuardCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports three-term conjunction nullish guard callback without autofix",
+            output: null,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: inlineValidStrictNullWithoutPredicateCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict null inequality without type predicate",
+        },
+        {
+            code: inlineValidStrictUndefinedWithoutPredicateCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict undefined inequality without type predicate",
+        },
+        {
+            code: inlineValidAndWithoutUndefinedCheckCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores logical and callback lacking undefined check",
+        },
+        {
+            code: inlineValidLogicalOrNullishGuardCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores disjunction nullish guard callback",
+        },
+        {
+            code: inlineValidAndNonParameterNullComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores null comparison using non-parameter identifier",
+        },
+        {
+            code: inlineValidAndNonParameterUndefinedComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined comparison using non-parameter identifier",
+        },
+        {
+            code: inlineValidAndNonNullLiteralComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-null literal comparison in conjunction",
+        },
+        {
+            code: inlineValidAndUndefinedAliasComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined alias identifier comparison in conjunction",
+        },
+        {
+            code: inlineValidFilterBlockBodyCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores block-body filter callback",
+        },
+        {
+            code: inlineValidFunctionExpressionCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores function expression callback",
+        },
+        {
+            code: inlineValidComputedFilterCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores computed filter property access",
+        },
+        {
+            code: inlineValidNoCallbackCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores filter call without callback",
+        },
+        {
+            code: inlineValidDestructuredParameterCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores destructured callback parameter",
+        },
+        {
+            code: inlineValidSecondCallbackParameterCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores filter callback with second index parameter",
+        },
+        {
+            code: inlineValidMapCallbackCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-filter map callback",
+        },
+        {
+            code: invalidFixtureCode,
+            filename: typedFixturePath("tests", invalidFixtureName),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

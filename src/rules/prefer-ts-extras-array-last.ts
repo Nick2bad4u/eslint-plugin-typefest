@@ -54,7 +54,9 @@ const isWriteTarget = (node: Readonly<TSESTree.MemberExpression>): boolean => {
 const isLastIndexPattern = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     objectExpression: Readonly<TSESTree.Expression>,
-    propertyExpression: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
+    propertyExpression: Readonly<
+        TSESTree.Expression | TSESTree.PrivateIdentifier
+    >
 ): boolean => {
     if (propertyExpression.type === "PrivateIdentifier") {
         return false;

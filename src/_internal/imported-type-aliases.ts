@@ -5,6 +5,13 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 const TYPE_FEST_MODULE_NAME = "type-fest";
+const READONLY_UTILITY_TYPE_NAME = "Readonly";
+
+const READONLY_CONTAINER_TYPE_NAMES = new Set([
+    "ReadonlyArray",
+    "ReadonlyMap",
+    "ReadonlySet",
+]);
 
 /**
  * Matched imported type alias that can be replaced with a canonical name.
@@ -211,7 +218,7 @@ const ancestorDefinesTypeParameterNamed = (
     );
 };
 
-export function isTypeParameterNameShadowed (
+export function isTypeParameterNameShadowed(
     node: Readonly<TSESTree.Node>,
     parameterName: string
 ): boolean {
@@ -240,8 +247,7 @@ const createTypeReplacementFix = ({
     node: Readonly<TSESTree.Node>;
     replacementName: string;
     sourceModuleName: string;
-}>
-): null | TSESLint.ReportFixFunction => {
+}>): null | TSESLint.ReportFixFunction => {
     if (isTypeParameterNameShadowed(node, replacementName)) {
         return null;
     }
@@ -344,3 +350,85 @@ export const createSafeTypeNodeTextReplacementFix = (
         replacementName,
         sourceModuleName,
     });
+
+const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
+    if (node.type === "TSTypeOperator") {
+        return node.operator === "readonly";
+    }
+
+    if (
+        node.type !== "TSTypeReference" ||
+        node.typeName.type !== "Identifier"
+    ) {
+        return false;
+    }
+
+    return READONLY_CONTAINER_TYPE_NAMES.has(node.typeName.name);
+};
+
+const isReadonlyUtilityWrappedText = (replacementText: string): boolean =>
+    /^\s*Readonly\s*</u.test(replacementText);
+
+const toReadonlyUtilityWrappedText = (replacementText: string): string =>
+    `${READONLY_UTILITY_TYPE_NAME}<${replacementText}>`;
+
+/**
+ * Build a safe whole-type-node replacement fixer that preserves explicit
+ * readonly wrappers/operators from the original node.
+ *
+ * @param node - Type node to potentially replace.
+ * @param replacementName - Replacement symbol name used for import/scope safety
+ *   checks.
+ * @param replacementText - Final replacement text before readonly-preservation
+ *   adjustment.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
+ *
+ * @returns Fix function when replacement is safe; otherwise `null`.
+ */
+export const createSafeTypeNodeTextReplacementFixPreservingReadonly = (
+    node: Readonly<TSESTree.Node>,
+    replacementName: string,
+    replacementText: string,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
+): null | TSESLint.ReportFixFunction => {
+    const replacementTextWithReadonlyPreservation =
+        isExplicitReadonlyTypeNode(node) &&
+        !isReadonlyUtilityWrappedText(replacementText)
+            ? toReadonlyUtilityWrappedText(replacementText)
+            : replacementText;
+
+    return createSafeTypeNodeTextReplacementFix(
+        node,
+        replacementName,
+        replacementTextWithReadonlyPreservation,
+        availableReplacementNames,
+        sourceModuleName
+    );
+};
+
+/**
+ * Build a safe whole-type-node replacement fixer that preserves explicit
+ * readonly wrappers/operators from the original node.
+ *
+ * @param node - Type node to potentially replace.
+ * @param replacementName - Replacement identifier text.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
+ *
+ * @returns Fix function when replacement is safe; otherwise `null`.
+ */
+export const createSafeTypeNodeReplacementFixPreservingReadonly = (
+    node: Readonly<TSESTree.Node>,
+    replacementName: string,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
+): null | TSESLint.ReportFixFunction =>
+    createSafeTypeNodeTextReplacementFixPreservingReadonly(
+        node,
+        replacementName,
+        replacementName,
+        availableReplacementNames,
+        sourceModuleName
+    );

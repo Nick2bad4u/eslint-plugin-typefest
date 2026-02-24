@@ -18,11 +18,10 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-is-equal-type.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-equal-type.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const invalidFixtureCodeWithTsExtrasImport =
-    invalidFixtureCode.replace(
-        'import type { IsEqual } from "type-fest";\r\n',
-        'import type { IsEqual } from "type-fest";\nimport { isEqualType } from "ts-extras";\r\n'
-    );
+const invalidFixtureCodeWithTsExtrasImport = invalidFixtureCode.replace(
+    'import type { IsEqual } from "type-fest";\r\n',
+    'import type { IsEqual } from "type-fest";\nimport { isEqualType } from "ts-extras";\r\n'
+);
 const invalidFixtureDirectEqualSuggestionOutput =
     invalidFixtureCodeWithTsExtrasImport.replace(
         "const directEqualCheck: IsEqual<string, string> = true;",
@@ -188,23 +187,20 @@ interface IsEqualTypeRuleMetadataSnapshot {
     name?: string;
 }
 
-const loadIsEqualTypeRuleMetadata = async (): Promise<
-    IsEqualTypeRuleMetadataSnapshot
-> => {
-    const moduleUnderTest = await import(
-        "../src/rules/prefer-ts-extras-is-equal-type"
-    );
+const loadIsEqualTypeRuleMetadata =
+    async (): Promise<IsEqualTypeRuleMetadataSnapshot> => {
+        const moduleUnderTest =
+            await import("../src/rules/prefer-ts-extras-is-equal-type");
 
-    return moduleUnderTest.default as IsEqualTypeRuleMetadataSnapshot;
-};
+        return moduleUnderTest.default as IsEqualTypeRuleMetadataSnapshot;
+    };
 
 describe("prefer-ts-extras-is-equal-type metadata", () => {
     it("exposes stable report and suggestion messages", async () => {
         const metadataRule = await loadIsEqualTypeRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
-                ? (metadataRule as { defaultOptions?: unknown; })
-                    .defaultOptions
+                ? (metadataRule as { defaultOptions?: unknown }).defaultOptions
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-ts-extras-is-equal-type");
@@ -236,11 +232,10 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
             }));
 
-            const undecoratedRule = (await import(
-                "../src/rules/prefer-ts-extras-is-equal-type"
-            )) as {
-                default: IsEqualTypeRuleMetadataSnapshot;
-            };
+            const undecoratedRule =
+                (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {
+                    default: IsEqualTypeRuleMetadataSnapshot;
+                };
 
             expect(undecoratedRule.default.name).toBe(
                 "prefer-ts-extras-is-equal-type"
@@ -255,14 +250,14 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             expect(undecoratedRule.default.meta?.hasSuggestions).toBeTruthy();
             expect(
                 undecoratedRule.default.meta?.messages?.[
-                "preferTsExtrasIsEqualType"
+                    "preferTsExtrasIsEqualType"
                 ]
             ).toBe(
                 "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
             );
             expect(
                 undecoratedRule.default.meta?.messages?.[
-                "suggestTsExtrasIsEqualType"
+                    "suggestTsExtrasIsEqualType"
                 ]
             ).toBe(
                 "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`."
@@ -298,19 +293,19 @@ describe("prefer-ts-extras-is-equal-type source assertions", () => {
             'typeof statement.source.value === "string"'
         );
         expect(ruleSource).toContain(
-            'if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {'
+            "if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {"
         );
         expect(ruleSource).toContain(
             'if (specifier.type === "ImportNamespaceSpecifier") {'
         );
         expect(ruleSource).toContain(
-            "node.typeName.left.type === \"Identifier\" &&"
+            'node.typeName.left.type === "Identifier" &&'
         );
         expect(ruleSource).toContain(
             "typeFestNamespaceImportNames.has(node.typeName.left.name) &&"
         );
         expect(ruleSource).toContain(
-            "node.typeName.right.type === \"Identifier\" &&"
+            'node.typeName.right.type === "Identifier" &&'
         );
         expect(ruleSource).toContain('typeof node.init.value !== "boolean"');
         expect(ruleSource).toContain("if (!leftType || !rightType) {");
@@ -382,8 +377,7 @@ ruleTester.run(
                         suggestions: [
                             {
                                 messageId: "suggestTsExtrasIsEqualType",
-                                output:
-                                    inlineInvalidAliasedTsExtrasImportSuggestionOutput,
+                                output: inlineInvalidAliasedTsExtrasImportSuggestionOutput,
                             },
                         ],
                     },

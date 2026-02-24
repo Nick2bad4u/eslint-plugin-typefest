@@ -25,7 +25,9 @@ import {
  * @returns `true` when the value is ignored type annotation; otherwise `false`.
  */
 
-const isIgnoredTypeAnnotation = (typeAnnotation: Readonly<TSESTree.TypeNode>): boolean =>
+const isIgnoredTypeAnnotation = (
+    typeAnnotation: Readonly<TSESTree.TypeNode>
+): boolean =>
     typeAnnotation.type === "TSAnyKeyword" ||
     typeAnnotation.type === "TSNeverKeyword" ||
     typeAnnotation.type === "TSUnknownKeyword" ||
@@ -134,7 +136,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-safe-cast-to.md",
             },

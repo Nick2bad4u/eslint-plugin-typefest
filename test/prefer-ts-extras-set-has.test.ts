@@ -134,7 +134,7 @@ describe("prefer-ts-extras-set-has metadata literals", () => {
 
 describe("prefer-ts-extras-set-has internal listener guards", () => {
     it("ignores non-Identifier member property even when object type is Set-like", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         const fakeSetType = {
             isUnion: () => false,
@@ -160,23 +160,23 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-set-has"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-set-has")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -216,7 +216,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("swallows parser-service failures without reporting", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -240,23 +240,23 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-set-has"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-set-has")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -296,96 +296,92 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 });
 
-ruleTester.run(
-    ruleId,
-    rule,
-    {
-        invalid: [
-            {
-                code: readTypedFixture(invalidFixtureName),
-                errors: [
-                    {
-                        messageId: "preferTsExtrasSetHas",
-                    },
-                    {
-                        messageId: "preferTsExtrasSetHas",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture set.has usage",
-            },
-            {
-                code: unionSetInvalidCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports union of set and readonly set",
-                output: unionSetInvalidOutput,
-            },
-            {
-                code: readonlySetInvalidCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports readonly set has call",
-                output: readonlySetInvalidOutput,
-            },
-            {
-                code: mixedUnionInvalidCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports union of set and map when calling has",
-                output: mixedUnionInvalidOutput,
-            },
-            {
-                code: reversedMixedUnionInvalidCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports union of map and set when calling has",
-                output: reversedMixedUnionInvalidOutput,
-            },
-            {
-                code: declaredUnionSetInvalidCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports declared set-like union has call",
-                output: declaredUnionSetInvalidOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasSetHas" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes set.has() when setHas import is in scope",
-                output: inlineFixableOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: computedAccessValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores computed has member access",
-            },
-            {
-                code: nonSetReceiverValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores custom object has method",
-            },
-            {
-                code: setDifferentMethodValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-has set method invocation",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-set-has.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, rule, {
+    invalid: [
+        {
+            code: readTypedFixture(invalidFixtureName),
+            errors: [
+                {
+                    messageId: "preferTsExtrasSetHas",
+                },
+                {
+                    messageId: "preferTsExtrasSetHas",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture set.has usage",
+        },
+        {
+            code: unionSetInvalidCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports union of set and readonly set",
+            output: unionSetInvalidOutput,
+        },
+        {
+            code: readonlySetInvalidCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly set has call",
+            output: readonlySetInvalidOutput,
+        },
+        {
+            code: mixedUnionInvalidCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports union of set and map when calling has",
+            output: mixedUnionInvalidOutput,
+        },
+        {
+            code: reversedMixedUnionInvalidCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports union of map and set when calling has",
+            output: reversedMixedUnionInvalidOutput,
+        },
+        {
+            code: declaredUnionSetInvalidCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports declared set-like union has call",
+            output: declaredUnionSetInvalidOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes set.has() when setHas import is in scope",
+            output: inlineFixableOutput,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: computedAccessValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores computed has member access",
+        },
+        {
+            code: nonSetReceiverValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores custom object has method",
+        },
+        {
+            code: setDifferentMethodValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-has set method invocation",
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-ts-extras-set-has.skip.ts"
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

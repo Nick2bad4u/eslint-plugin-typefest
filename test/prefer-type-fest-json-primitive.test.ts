@@ -96,7 +96,9 @@ describe("prefer-type-fest-json-primitive source assertions", () => {
         expect(ruleSource).toContain(
             "if (!isJsonPrimitiveKeywordNode(typeNode)) {"
         );
-        expect(ruleSource).toContain('if (typeNode.type === "TSStringKeyword") {');
+        expect(ruleSource).toContain(
+            'if (typeNode.type === "TSStringKeyword") {'
+        );
         expect(ruleSource).toContain("return false;");
     });
 });

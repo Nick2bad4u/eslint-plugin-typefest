@@ -301,12 +301,14 @@ describe("prefer-ts-extras-is-present metadata literals", () => {
 });
 
 describe("prefer-ts-extras-is-present internal filter guards", () => {
-    const getNodeText = (node: Readonly<{
-        name?: string;
-        raw?: string;
-        text?: string;
-        value?: unknown;
-    }>): string => {
+    const getNodeText = (
+        node: Readonly<{
+            name?: string;
+            raw?: string;
+            text?: string;
+            value?: unknown;
+        }>
+    ): string => {
         if (typeof node.text === "string") {
             return node.text;
         }
@@ -327,7 +329,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     };
 
     it("reports strict checks for non-function filter arguments", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -338,23 +340,23 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createSafeValueArgumentFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-present"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        LogicalExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -414,9 +416,9 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 type: "CallExpression",
             };
 
-            (leftBinaryNode as { parent?: unknown; }).parent = logicalNode;
-            (rightBinaryNode as { parent?: unknown; }).parent = logicalNode;
-            (logicalNode as { parent?: unknown; }).parent = filterCallNode;
+            (leftBinaryNode as { parent?: unknown }).parent = logicalNode;
+            (rightBinaryNode as { parent?: unknown }).parent = logicalNode;
+            (logicalNode as { parent?: unknown }).parent = filterCallNode;
 
             logicalExpressionListener?.(logicalNode);
 
@@ -432,7 +434,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     });
 
     it("does not treat private filter-like call as filter callback", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -443,23 +445,23 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createSafeValueArgumentFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-present"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        LogicalExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -536,11 +538,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 type: "CallExpression",
             };
 
-            (leftBinaryNode as { parent?: unknown; }).parent = logicalNode;
-            (rightBinaryNode as { parent?: unknown; }).parent = logicalNode;
-            (logicalNode as { parent?: unknown; }).parent = returnNode;
-            (returnNode as { parent?: unknown; }).parent = functionCallbackNode;
-            (functionCallbackNode as { parent?: unknown; }).parent =
+            (leftBinaryNode as { parent?: unknown }).parent = logicalNode;
+            (rightBinaryNode as { parent?: unknown }).parent = logicalNode;
+            (logicalNode as { parent?: unknown }).parent = returnNode;
+            (returnNode as { parent?: unknown }).parent = functionCallbackNode;
+            (functionCallbackNode as { parent?: unknown }).parent =
                 privateFilterCallNode;
 
             logicalExpressionListener?.(logicalNode);
@@ -557,208 +559,204 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     });
 });
 
-ruleTester.run(
-    ruleId,
-    rule,
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferTsExtrasIsPresent" },
-                    { messageId: "preferTsExtrasIsPresent" },
-                    { messageId: "preferTsExtrasIsPresentNegated" },
-                    { messageId: "preferTsExtrasIsPresent" },
-                    { messageId: "preferTsExtrasIsPresent" },
-                    { messageId: "preferTsExtrasIsPresentNegated" },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture strict present and absent checks",
-                output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
-            },
-            {
-                code: inlineInvalidStrictPresentComparisonCode,
-                errors: [{ messageId: "preferTsExtrasIsPresent" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict present conjunction check",
-            },
-            {
-                code: inlineInvalidStrictAbsentComparisonCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict absent disjunction check",
-            },
-            {
-                code: inlineInvalidMapCallbackStrictPresentCode,
-                errors: [{ messageId: "preferTsExtrasIsPresent" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict present check inside map callback",
-            },
-            {
-                code: inlineInvalidMapCallbackStrictAbsentCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict absent check inside map callback",
-            },
-            {
-                code: inlineFixablePresentCode,
-                errors: [{ messageId: "preferTsExtrasIsPresent" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes loose null inequality when isPresent import is in scope",
-                output: inlineFixablePresentOutput,
-            },
-            {
-                code: inlineFixableAbsentCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes loose null equality when isPresent import is in scope",
-                output: inlineFixableAbsentOutput,
-            },
-            {
-                code: inlineInvalidStrictPresentWithUndefinedOnLeftCode,
-                errors: [{ messageId: "preferTsExtrasIsPresent" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict present conjunction when undefined is on the left",
-            },
-            {
-                code: inlineInvalidStrictAbsentWithUndefinedOnLeftCode,
-                errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports strict absent disjunction when undefined is on the left",
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: inlineValidThreeTermStrictPresentCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores three-term strict present conjunction",
-            },
-            {
-                code: inlineValidStrictPresentWithNonBinaryTermCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present conjunction with non-binary term",
-            },
-            {
-                code: inlineValidStrictPresentOperatorMismatchCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check with operator mismatch",
-            },
-            {
-                code: inlineValidStrictPresentSameKindCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check using repeated null branch",
-            },
-            {
-                code: inlineValidStrictPresentWithNonNullLiteralCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check using non-null literal on the right",
-            },
-            {
-                code: inlineValidStrictPresentWithNonNullLeftLiteralCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check using non-null literal on the left",
-            },
-            {
-                code: inlineValidStrictPresentWithUndefinedAliasCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check using non-undefined identifier alias",
-            },
-            {
-                code: inlineValidStrictPresentDifferentComparedExpressionCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check when compared expressions differ",
-            },
-            {
-                code: inlineValidStrictPresentWrongLogicalOperatorCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present comparisons joined by disjunction",
-            },
-            {
-                code: inlineValidThreeTermStrictPresentComparableCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores three-term strict present chain with comparable terms",
-            },
-            {
-                code: inlineValidStrictPresentFirstOperatorMismatchCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict present check when first operator is strict equality",
-            },
-            {
-                code: inlineValidThreeTermStrictAbsentCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores three-term strict absent disjunction",
-            },
-            {
-                code: inlineValidStrictAbsentWrongLogicalOperatorCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent comparisons joined by conjunction",
-            },
-            {
-                code: inlineValidThreeTermStrictAbsentComparableCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores three-term strict absent chain with comparable terms",
-            },
-            {
-                code: inlineValidStrictAbsentFirstOperatorMismatchCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent check when first operator is strict inequality",
-            },
-            {
-                code: inlineValidStrictAbsentDifferentComparedExpressionCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent check when compared expressions differ",
-            },
-            {
-                code: inlineValidStrictAbsentWithNonBinaryTermCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent disjunction with non-binary term",
-            },
-            {
-                code: inlineValidStrictAbsentOperatorMismatchCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent check with operator mismatch",
-            },
-            {
-                code: inlineValidStrictAbsentSameKindCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict absent check using repeated null branch",
-            },
-            {
-                code: inlineValidUndefinedOnLeftComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores undefined comparison with literal on left",
-            },
-            {
-                code: inlineValidNonNullishBinaryComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-nullish binary comparison",
-            },
-            {
-                code: inlineValidFilterCallbackLogicalComparisonCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict checks inside filter callbacks",
-            },
-            {
-                code: inlineValidFunctionExpressionFilterCallbackCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict checks inside function-expression filter callbacks",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, rule, {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                { messageId: "preferTsExtrasIsPresent" },
+                { messageId: "preferTsExtrasIsPresent" },
+                { messageId: "preferTsExtrasIsPresentNegated" },
+                { messageId: "preferTsExtrasIsPresent" },
+                { messageId: "preferTsExtrasIsPresent" },
+                { messageId: "preferTsExtrasIsPresentNegated" },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture strict present and absent checks",
+            output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
+        },
+        {
+            code: inlineInvalidStrictPresentComparisonCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict present conjunction check",
+        },
+        {
+            code: inlineInvalidStrictAbsentComparisonCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict absent disjunction check",
+        },
+        {
+            code: inlineInvalidMapCallbackStrictPresentCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict present check inside map callback",
+        },
+        {
+            code: inlineInvalidMapCallbackStrictAbsentCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict absent check inside map callback",
+        },
+        {
+            code: inlineFixablePresentCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes loose null inequality when isPresent import is in scope",
+            output: inlineFixablePresentOutput,
+        },
+        {
+            code: inlineFixableAbsentCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes loose null equality when isPresent import is in scope",
+            output: inlineFixableAbsentOutput,
+        },
+        {
+            code: inlineInvalidStrictPresentWithUndefinedOnLeftCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict present conjunction when undefined is on the left",
+        },
+        {
+            code: inlineInvalidStrictAbsentWithUndefinedOnLeftCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports strict absent disjunction when undefined is on the left",
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: inlineValidThreeTermStrictPresentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores three-term strict present conjunction",
+        },
+        {
+            code: inlineValidStrictPresentWithNonBinaryTermCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present conjunction with non-binary term",
+        },
+        {
+            code: inlineValidStrictPresentOperatorMismatchCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check with operator mismatch",
+        },
+        {
+            code: inlineValidStrictPresentSameKindCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check using repeated null branch",
+        },
+        {
+            code: inlineValidStrictPresentWithNonNullLiteralCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check using non-null literal on the right",
+        },
+        {
+            code: inlineValidStrictPresentWithNonNullLeftLiteralCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check using non-null literal on the left",
+        },
+        {
+            code: inlineValidStrictPresentWithUndefinedAliasCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check using non-undefined identifier alias",
+        },
+        {
+            code: inlineValidStrictPresentDifferentComparedExpressionCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check when compared expressions differ",
+        },
+        {
+            code: inlineValidStrictPresentWrongLogicalOperatorCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present comparisons joined by disjunction",
+        },
+        {
+            code: inlineValidThreeTermStrictPresentComparableCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores three-term strict present chain with comparable terms",
+        },
+        {
+            code: inlineValidStrictPresentFirstOperatorMismatchCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present check when first operator is strict equality",
+        },
+        {
+            code: inlineValidThreeTermStrictAbsentCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores three-term strict absent disjunction",
+        },
+        {
+            code: inlineValidStrictAbsentWrongLogicalOperatorCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent comparisons joined by conjunction",
+        },
+        {
+            code: inlineValidThreeTermStrictAbsentComparableCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores three-term strict absent chain with comparable terms",
+        },
+        {
+            code: inlineValidStrictAbsentFirstOperatorMismatchCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent check when first operator is strict inequality",
+        },
+        {
+            code: inlineValidStrictAbsentDifferentComparedExpressionCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent check when compared expressions differ",
+        },
+        {
+            code: inlineValidStrictAbsentWithNonBinaryTermCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent disjunction with non-binary term",
+        },
+        {
+            code: inlineValidStrictAbsentOperatorMismatchCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent check with operator mismatch",
+        },
+        {
+            code: inlineValidStrictAbsentSameKindCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict absent check using repeated null branch",
+        },
+        {
+            code: inlineValidUndefinedOnLeftComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined comparison with literal on left",
+        },
+        {
+            code: inlineValidNonNullishBinaryComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-nullish binary comparison",
+        },
+        {
+            code: inlineValidFilterCallbackLogicalComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict checks inside filter callbacks",
+        },
+        {
+            code: inlineValidFunctionExpressionFilterCallbackCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict checks inside function-expression filter callbacks",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

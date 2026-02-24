@@ -207,7 +207,6 @@ describe("prefer-ts-extras-assert-defined metadata assertions", () => {
     });
 });
 
-
 describe("prefer-ts-extras-assert-defined source assertions", () => {
     it("keeps assert-defined source guard and message canonical checks", () => {
         const ruleSource = readFileSync(
@@ -222,9 +221,7 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
             'node.type === "Identifier" && node.name === "undefined"'
         );
         expect(ruleSource).toContain("node.body.length === 1 &&");
-        expect(ruleSource).toContain(
-            'node.body[0]?.type === "ThrowStatement"'
-        );
+        expect(ruleSource).toContain('node.body[0]?.type === "ThrowStatement"');
         expect(ruleSource).toContain(
             "throwStatement.argument.arguments.length !== 1"
         );
@@ -232,7 +229,7 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
             'if (!firstArgument || firstArgument.type === "SpreadElement") {'
         );
         expect(ruleSource).toContain(
-            'context.sourceCode.getText(guardExpression)'
+            "context.sourceCode.getText(guardExpression)"
         );
         expect(ruleSource).toContain(
             '(test.operator !== "==" && test.operator !== "===")'

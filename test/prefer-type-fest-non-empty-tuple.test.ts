@@ -24,16 +24,16 @@ const invalidFixtureName = "prefer-type-fest-non-empty-tuple.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { NonEmptyTuple } from "type-fest";\n${invalidFixtureCode.replace(
     "type NamedNonEmptyTuple = readonly [first: number, ...rest: number[]];",
-    "type NamedNonEmptyTuple = NonEmptyTuple<number>;"
+    "type NamedNonEmptyTuple = Readonly<NonEmptyTuple<number>>;"
 )}`;
 const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "type VerboseNonEmptyTuple = readonly [string, ...string[]];",
-    "type VerboseNonEmptyTuple = NonEmptyTuple<string>;"
+    "type VerboseNonEmptyTuple = Readonly<NonEmptyTuple<string>>;"
 );
 const inlineInvalidTupleCode = "type Input = readonly [string, ...string[]];";
 const inlineInvalidTupleOutputCode = [
     'import type { NonEmptyTuple } from "type-fest";',
-    "type Input = NonEmptyTuple<string>;",
+    "type Input = Readonly<NonEmptyTuple<string>>;",
 ].join("\n");
 const optionalFirstValidCode = "type Input = [first?: string, ...string[]];";
 const restOnlyValidCode = "type Input = [...string[]];";
@@ -50,19 +50,19 @@ const namedRestInvalidCode =
     "type Input = readonly [string, ...rest: string[]];";
 const namedRestInvalidOutputCode = [
     'import type { NonEmptyTuple } from "type-fest";',
-    "type Input = NonEmptyTuple<string>;",
+    "type Input = Readonly<NonEmptyTuple<string>>;",
 ].join("\n");
 const namedHeadInvalidCode =
     "type Input = readonly [head: string, ...string[]];";
 const namedHeadInvalidOutputCode = [
     'import type { NonEmptyTuple } from "type-fest";',
-    "type Input = NonEmptyTuple<string>;",
+    "type Input = Readonly<NonEmptyTuple<string>>;",
 ].join("\n");
 const whitespaceNormalizedInvalidCode =
     "type Input = readonly [Map < string , number >, ...Map<string, number>[]];";
 const whitespaceNormalizedInvalidOutputCode = [
     'import type { NonEmptyTuple } from "type-fest";',
-    "type Input = NonEmptyTuple<Map < string , number >>;",
+    "type Input = Readonly<NonEmptyTuple<Map < string , number >>>;",
 ].join("\n");
 const nonArrayRestAnnotationValidCode =
     "type Input = readonly [string, ...rest: ReadonlyArray<string>];";
@@ -82,7 +82,7 @@ const inlineFixableCode = [
 const inlineFixableOutput = [
     'import type { NonEmptyTuple } from "type-fest";',
     "",
-    "type Input = NonEmptyTuple<string>;",
+    "type Input = Readonly<NonEmptyTuple<string>>;",
 ].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
@@ -94,7 +94,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferNonEmptyTuple:
-                "Prefer `NonEmptyTuple<T>` from type-fest over `readonly [T, ...T[]]`.",
+                "Prefer `Readonly<NonEmptyTuple<T>>` from type-fest over `readonly [T, ...T[]]`.",
         },
         name: "prefer-type-fest-non-empty-tuple",
     }
@@ -122,15 +122,14 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-non-empty-tuple"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeOperator?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-non-empty-tuple")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeOperator?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const optionalHeadCode =
                 "type Input = readonly [string?, ...string[]];";
@@ -143,8 +142,10 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
 
             const [optionalStatement] = optionalParsed.ast.body;
             if (
-                optionalStatement?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
-                optionalStatement.typeAnnotation.type !== AST_NODE_TYPES.TSTypeOperator
+                optionalStatement?.type !==
+                    AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                optionalStatement.typeAnnotation.type !==
+                    AST_NODE_TYPES.TSTypeOperator
             ) {
                 throw new Error("Expected optional-head tuple alias AST shape");
             }
@@ -179,7 +180,7 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
             const getText = vi.fn((node: unknown): string => {
                 const nodeType =
                     typeof node === "object" && node !== null && "type" in node
-                        ? (node as { type?: string; }).type
+                        ? (node as { type?: string }).type
                         : undefined;
 
                 if (
@@ -195,7 +196,8 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
             });
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-type-fest-non-empty-tuple.valid.ts",
+                filename:
+                    "fixtures/typed/prefer-type-fest-non-empty-tuple.valid.ts",
                 report,
                 sourceCode: {
                     ast: optionalParsed.ast,

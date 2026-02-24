@@ -115,7 +115,10 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
 describe("prefer-ts-extras-is-empty source assertions", () => {
     it("keeps is-empty helper guards and literals in source", () => {
         const ruleSource = readFileSync(
-            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-is-empty.ts"),
+            path.resolve(
+                process.cwd(),
+                "src/rules/prefer-ts-extras-is-empty.ts"
+            ),
             "utf8"
         );
 
@@ -123,9 +126,7 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
             'node.type === "Literal" && node.value === 0;'
         );
         expect(ruleSource).toContain('node.type === "MemberExpression" &&');
-        expect(ruleSource).toContain(
-            'node.property.type === "Identifier" &&'
-        );
+        expect(ruleSource).toContain('node.property.type === "Identifier" &&');
         expect(ruleSource).toContain('node.property.name === "length";');
         expect(ruleSource).toContain("typedChecker.isArrayType?.(type) ||");
         expect(ruleSource).toContain("typedChecker.isTupleType?.(type)");
@@ -172,15 +173,14 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-empty"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        BinaryExpression?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-empty")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(
                 [
@@ -200,9 +200,12 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
             expect(declarationStatement?.type).toBe("VariableDeclaration");
 
             if (
-                declarationStatement?.type !== AST_NODE_TYPES.VariableDeclaration
+                declarationStatement?.type !==
+                AST_NODE_TYPES.VariableDeclaration
             ) {
-                throw new Error("Expected variable declaration for length check");
+                throw new Error(
+                    "Expected variable declaration for length check"
+                );
             }
 
             const firstDeclarator = declarationStatement.declarations[0];

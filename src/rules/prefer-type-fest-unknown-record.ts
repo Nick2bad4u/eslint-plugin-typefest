@@ -18,7 +18,9 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is record string unknown; otherwise `false`.
  */
 
-const isRecordStringUnknown = (node: Readonly<TSESTree.TSTypeReference>): boolean => {
+const isRecordStringUnknown = (
+    node: Readonly<TSESTree.TSTypeReference>
+): boolean => {
     if (
         node.typeName.type !== "Identifier" ||
         node.typeName.name !== "Record" ||
@@ -42,7 +44,7 @@ const isRecordStringUnknown = (node: Readonly<TSESTree.TSTypeReference>): boolea
  */
 const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create (context) {
+        create(context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -55,7 +57,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference (node) {
+                TSTypeReference(node) {
                     if (!isRecordStringUnknown(node)) {
                         return;
                     }
@@ -84,7 +86,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-record.md",
             },

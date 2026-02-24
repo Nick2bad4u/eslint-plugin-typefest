@@ -39,7 +39,9 @@ const isJsonPrimitiveKeywordNode = (
  * @returns `true` when has json primitive union shape; otherwise `false`.
  */
 
-const hasJsonPrimitiveUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
+const hasJsonPrimitiveUnionShape = (
+    node: Readonly<TSESTree.TSUnionType>
+): boolean => {
     if (node.types.length !== 4) {
         return false;
     }
@@ -129,7 +131,7 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-primitive.md",
             },

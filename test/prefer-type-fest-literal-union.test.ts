@@ -170,20 +170,22 @@ describe("prefer-type-fest-literal-union source assertions", () => {
         const matchCount = (pattern: Readonly<RegExp>): number =>
             [...ruleSource.matchAll(pattern)].length;
 
-        expect(ruleSource).toContain('if (typeof node.literal.value === "bigint")');
+        expect(ruleSource).toContain(
+            'if (typeof node.literal.value === "bigint")'
+        );
         expect(ruleSource).toContain(
             'return typeof literalWithPotentialBigInt.bigint === "string";'
         );
-        expect(ruleSource).toContain(
-            'if (!hasLiteralUnionShape(node)) {'
-        );
-        expect(ruleSource).toContain('if (literalMembers.length === 0) {');
-        expect(ruleSource).toContain('literalMembers.length === 1');
+        expect(ruleSource).toContain("if (!hasLiteralUnionShape(node)) {");
+        expect(ruleSource).toContain("if (literalMembers.length === 0) {");
+        expect(ruleSource).toContain("literalMembers.length === 1");
 
         expect(matchCount(/let hasKeywordMember = false;/gv)).toBe(2);
         expect(matchCount(/let hasLiteralMember = false;/gv)).toBe(2);
         expect(
-            matchCount(/if \(isLiteralMemberForFamily\(unionMember, family\)\)/gv)
+            matchCount(
+                /if \(isLiteralMemberForFamily\(unionMember, family\)\)/gv
+            )
         ).toBe(2);
         expect(matchCount(/allMembersAreFamilyMembers = false;/gv)).toBe(2);
 
@@ -210,15 +212,14 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-literal-union"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSUnionType?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-literal-union")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsed = parser.parseForESLint(code, {
                 ecmaVersion: "latest",
@@ -234,7 +235,10 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                     statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
                     statement.typeAnnotation.type === AST_NODE_TYPES.TSUnionType
                 ) {
-                    unionByAliasName.set(statement.id.name, statement.typeAnnotation);
+                    unionByAliasName.set(
+                        statement.id.name,
+                        statement.typeAnnotation
+                    );
                 }
             }
 
@@ -258,26 +262,35 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             const numberAndStringUnion = getRequiredUnion("NumberAndString");
 
             const secondBigIntValueMember = bigIntValueUnion.types[1] as {
-                literal?: { bigint?: unknown; };
+                literal?: { bigint?: unknown };
                 type?: string;
             };
-            if (secondBigIntValueMember.type === "TSLiteralType" && secondBigIntValueMember.literal) {
-                Reflect.deleteProperty(secondBigIntValueMember.literal, "bigint");
+            if (
+                secondBigIntValueMember.type === "TSLiteralType" &&
+                secondBigIntValueMember.literal
+            ) {
+                Reflect.deleteProperty(
+                    secondBigIntValueMember.literal,
+                    "bigint"
+                );
                 secondBigIntValueMember.literal.bigint = undefined;
             }
 
             const secondBigIntTextMember = bigIntTextUnion.types[1] as {
-                literal?: { bigint?: unknown; value?: unknown; };
+                literal?: { bigint?: unknown; value?: unknown };
                 type?: string;
             };
-            if (secondBigIntTextMember.type === "TSLiteralType" && secondBigIntTextMember.literal) {
+            if (
+                secondBigIntTextMember.type === "TSLiteralType" &&
+                secondBigIntTextMember.literal
+            ) {
                 secondBigIntTextMember.literal.value = null;
                 secondBigIntTextMember.literal.bigint = "2";
             }
 
             const sourceCode = {
                 ast: parsed.ast,
-                getText (node: unknown): string {
+                getText(node: unknown): string {
                     if (
                         typeof node !== "object" ||
                         node === null ||
@@ -286,8 +299,9 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                         return "";
                     }
 
-                    const nodeRange = (node as { range?: readonly [number, number]; })
-                        .range;
+                    const nodeRange = (
+                        node as { range?: readonly [number, number] }
+                    ).range;
 
                     if (!nodeRange) {
                         return "";
@@ -301,7 +315,8 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-type-fest-literal-union.invalid.ts",
+                filename:
+                    "fixtures/typed/prefer-type-fest-literal-union.invalid.ts",
                 report,
                 sourceCode,
             });
@@ -314,7 +329,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             expect(report).toHaveBeenCalledTimes(2);
 
             const reportedNodes = report.mock.calls
-                .map((call) => call[0] as { node?: unknown; })
+                .map((call) => call[0] as { node?: unknown })
                 .map((descriptor) => descriptor.node);
 
             expect(reportedNodes).toContain(bigIntValueUnion);

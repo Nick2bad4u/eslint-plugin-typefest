@@ -22,18 +22,18 @@ const invalidFixtureName = "prefer-type-fest-unknown-map.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const fixtureFixableOutputCode = `import type { UnknownMap } from "type-fest";\n${invalidFixtureCode.replace(
     "ReadonlyMap<unknown, unknown>",
-    "UnknownMap"
+    "Readonly<UnknownMap>"
 )}`;
 const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
     "ReadonlyMap<unknown, unknown>",
-    "UnknownMap"
+    "Readonly<UnknownMap>"
 );
 const inlineInvalidMapCode = "type Input = Map<unknown, unknown>;";
 const inlineInvalidReadonlyMapCode =
     "type Input = ReadonlyMap<unknown, unknown>;";
 const inlineInvalidReadonlyMapOutputCode = [
     'import type { UnknownMap } from "type-fest";',
-    "type Input = UnknownMap;",
+    "type Input = Readonly<UnknownMap>;",
 ].join("\n");
 const inlineValidMixedMapCode = "type Input = Map<string, unknown>;";
 const inlineValidMixedReadonlyMapCode =
@@ -54,18 +54,21 @@ const inlineFixableCode = [
 const inlineFixableOutput = [
     'import type { UnknownMap } from "type-fest";',
     "",
-    "type Input = UnknownMap;",
+    "type Input = Readonly<UnknownMap>;",
 ].join("\n");
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-unknown-map", {
-    docsDescription:
-        "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
-    enforceRuleShape: true,
-    messages: {
-        preferUnknownMap:
-            "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",
-    },
-});
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-type-fest-unknown-map",
+    {
+        docsDescription:
+            "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
+        enforceRuleShape: true,
+        messages: {
+            preferUnknownMap:
+                "Prefer `Readonly<UnknownMap>` from type-fest over `ReadonlyMap<unknown, unknown>`.",
+        },
+    }
+);
 
 describe("prefer-type-fest-unknown-map source assertions", () => {
     it("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {
@@ -77,15 +80,14 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-unknown-map"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSTypeReference?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-unknown-map")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(
                 [
@@ -116,13 +118,16 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
                 reportedTypeReference.type !== AST_NODE_TYPES.TSTypeReference ||
                 ignoredTypeReference.type !== AST_NODE_TYPES.TSTypeReference
             ) {
-                throw new Error("Expected type alias annotations to be type references");
+                throw new Error(
+                    "Expected type alias annotations to be type references"
+                );
             }
 
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-type-fest-unknown-map.invalid.ts",
+                filename:
+                    "fixtures/typed/prefer-type-fest-unknown-map.invalid.ts",
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,

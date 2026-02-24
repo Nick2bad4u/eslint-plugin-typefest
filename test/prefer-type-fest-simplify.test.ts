@@ -85,7 +85,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
     enforceRuleShape: true,
     messages: {
         preferSimplify:
-            "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+            "Prefer `{{replacement}}` from type-fest to flatten resolved object and intersection types instead of legacy alias `{{alias}}`.",
     },
     name: "prefer-type-fest-simplify",
 });

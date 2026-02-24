@@ -72,7 +72,7 @@ describe("prefer-ts-extras-object-keys metadata literals", () => {
 
 describe("prefer-ts-extras-object-keys internal listener guards", () => {
     it("ignores non-Identifier Object property access", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -83,23 +83,23 @@ describe("prefer-ts-extras-object-keys internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createSafeValueReferenceReplacementFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-object-keys"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-object-keys")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {

@@ -196,7 +196,7 @@ describe("prefer-ts-extras-is-defined-filter metadata literals", () => {
 
 describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
     it("ignores non-Identifier filter property and non-callback first argument", async () => {
-        const reportCalls: { messageId?: string; }[] = [];
+        const reportCalls: { messageId?: string }[] = [];
 
         try {
             vi.resetModules();
@@ -207,23 +207,23 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Set<string>(),
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
                 createSafeValueReferenceReplacementFix: () => null,
             }));
 
-            const authoredRuleModule = (await import(
-                "../src/rules/prefer-ts-extras-is-defined-filter"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        CallExpression?: (node: unknown) => void;
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-defined-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
-                report (descriptor: Readonly<{ messageId?: string; }>) {
+                report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
@@ -322,152 +322,148 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
             "const strings = maybeStrings.filter(isDefined);\r\n"
         );
 
-ruleTester.run(
-    ruleId,
-    rule,
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferTsExtrasIsDefinedFilter" },
-                    { messageId: "preferTsExtrasIsDefinedFilter" },
-                    { messageId: "preferTsExtrasIsDefinedFilter" },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture filter guards for undefined",
-                output: [
-                    fixtureInvalidOutputWithMixedLineEndings,
-                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
-                ],
-            },
-            {
-                code: inlineInvalidCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports arrow predicate value !== undefined",
-                output: inlineInvalidOutput,
-            },
-            {
-                code: inlineInvalidRightSideCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports arrow predicate undefined !== value",
-                output: inlineInvalidRightSideOutput,
-            },
-            {
-                code: inlineInvalidLooseCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports arrow predicate value != undefined",
-                output: inlineInvalidLooseOutput,
-            },
-            {
-                code: inlineInvalidLooseRightSideCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports arrow predicate undefined != value",
-                output: inlineInvalidLooseRightSideOutput,
-            },
-            {
-                code: typeofInvalidCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports typeof undefined predicate",
-                output: typeofInvalidOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes filter callback to isDefined when import is in scope",
-                output: inlineFixableOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: nonFilterValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-filter array method",
-            },
-            {
-                code: noArgumentValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores filter call without callback",
-            },
-            {
-                code: functionExpressionValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores function-expression callback",
-            },
-            {
-                code: blockBodyArrowValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores block-body arrow callback",
-            },
-            {
-                code: twoParamsArrowValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores callback using additional index parameter",
-            },
-            {
-                code: destructuredParamValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores destructured callback parameter",
-            },
-            {
-                code: typeofRightInvalidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores reversed typeof undefined comparison",
-            },
-            {
-                code: strictEqualityUndefinedValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores strict equality comparison against undefined",
-            },
-            {
-                code: nonUndefinedLooseComparisonValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores loose comparison against null",
-            },
-            {
-                code: differentIdentifierComparisonValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores undefined comparison using non-parameter identifier",
-            },
-            {
-                code: undefinedAliasComparisonValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores undefined alias identifier comparison",
-            },
-            {
-                code: typeofNonUndefinedLiteralValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores typeof comparison against non-undefined literal",
-            },
-            {
-                code: identifierBodyValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores callback returning identifier directly",
-            },
-            {
-                code: computedFilterValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores computed filter property access",
-            },
-            {
-                code: skipPathInvalidCode,
-                filename: typedFixturePath(
-                    "tests",
-                    "prefer-ts-extras-is-defined-filter.skip.ts"
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, rule, {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                { messageId: "preferTsExtrasIsDefinedFilter" },
+                { messageId: "preferTsExtrasIsDefinedFilter" },
+                { messageId: "preferTsExtrasIsDefinedFilter" },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture filter guards for undefined",
+            output: [
+                fixtureInvalidOutputWithMixedLineEndings,
+                fixtureInvalidSecondPassOutputWithMixedLineEndings,
+            ],
+        },
+        {
+            code: inlineInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports arrow predicate value !== undefined",
+            output: inlineInvalidOutput,
+        },
+        {
+            code: inlineInvalidRightSideCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports arrow predicate undefined !== value",
+            output: inlineInvalidRightSideOutput,
+        },
+        {
+            code: inlineInvalidLooseCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports arrow predicate value != undefined",
+            output: inlineInvalidLooseOutput,
+        },
+        {
+            code: inlineInvalidLooseRightSideCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports arrow predicate undefined != value",
+            output: inlineInvalidLooseRightSideOutput,
+        },
+        {
+            code: typeofInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports typeof undefined predicate",
+            output: typeofInvalidOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes filter callback to isDefined when import is in scope",
+            output: inlineFixableOutput,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: nonFilterValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-filter array method",
+        },
+        {
+            code: noArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores filter call without callback",
+        },
+        {
+            code: functionExpressionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores function-expression callback",
+        },
+        {
+            code: blockBodyArrowValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores block-body arrow callback",
+        },
+        {
+            code: twoParamsArrowValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores callback using additional index parameter",
+        },
+        {
+            code: destructuredParamValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores destructured callback parameter",
+        },
+        {
+            code: typeofRightInvalidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores reversed typeof undefined comparison",
+        },
+        {
+            code: strictEqualityUndefinedValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict equality comparison against undefined",
+        },
+        {
+            code: nonUndefinedLooseComparisonValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores loose comparison against null",
+        },
+        {
+            code: differentIdentifierComparisonValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined comparison using non-parameter identifier",
+        },
+        {
+            code: undefinedAliasComparisonValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined alias identifier comparison",
+        },
+        {
+            code: typeofNonUndefinedLiteralValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores typeof comparison against non-undefined literal",
+        },
+        {
+            code: identifierBodyValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores callback returning identifier directly",
+        },
+        {
+            code: computedFilterValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores computed filter property access",
+        },
+        {
+            code: skipPathInvalidCode,
+            filename: typedFixturePath(
+                "tests",
+                "prefer-ts-extras-is-defined-filter.skip.ts"
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

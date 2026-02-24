@@ -6,11 +6,12 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
-    createSafeTypeNodeReplacementFix,
+    createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
+const UNKNOWN_MAP_TYPE_NAME = "UnknownMap";
 
 /**
  * Check whether the input is identifier type reference.
@@ -87,11 +88,13 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const replacementFix = createSafeTypeNodeReplacementFix(
-                        node,
-                        "UnknownMap",
-                        typeFestDirectImports
-                    );
+                    const replacementFix =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonly(
+                            node,
+                            UNKNOWN_MAP_TYPE_NAME,
+                            UNKNOWN_MAP_TYPE_NAME,
+                            typeFestDirectImports
+                        );
 
                     context.report({
                         ...(replacementFix ? { fix: replacementFix } : {}),
@@ -110,14 +113,14 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-map.md",
             },
             fixable: "code",
             messages: {
                 preferUnknownMap:
-                    "Prefer `UnknownMap` from type-fest over `ReadonlyMap<unknown, unknown>`.",
+                    "Prefer `Readonly<UnknownMap>` from type-fest over `ReadonlyMap<unknown, unknown>`.",
             },
             schema: [],
             type: "suggestion",

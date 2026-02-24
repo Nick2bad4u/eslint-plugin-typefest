@@ -82,14 +82,14 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-iterable-element.md",
             },
             fixable: "code",
             messages: {
                 preferIterableElement:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to extract element types from iterable containers instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

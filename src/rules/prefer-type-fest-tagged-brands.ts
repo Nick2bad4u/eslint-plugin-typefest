@@ -29,7 +29,9 @@ const taggedAliasReplacements = {
  * @returns `true` when has ad hoc brand literal; otherwise `false`.
  */
 
-const hasAdHocBrandLiteral = (typeNode: Readonly<TSESTree.TypeNode>): boolean => {
+const hasAdHocBrandLiteral = (
+    typeNode: Readonly<TSESTree.TypeNode>
+): boolean => {
     if (typeNode.type !== "TSIntersectionType") {
         return false;
     }
@@ -60,7 +62,9 @@ const hasAdHocBrandLiteral = (typeNode: Readonly<TSESTree.TypeNode>): boolean =>
  * @returns `true` when type contains tagged reference; otherwise `false`.
  */
 
-const typeContainsTaggedReference = (typeNode: Readonly<TSESTree.TypeNode>): boolean => {
+const typeContainsTaggedReference = (
+    typeNode: Readonly<TSESTree.TypeNode>
+): boolean => {
     if (
         typeNode.type === "TSTypeReference" &&
         typeNode.typeName.type === "Identifier" &&
@@ -164,14 +168,14 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tagged-brands.md",
             },
             fixable: "code",
             messages: {
                 preferTaggedAlias:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest for canonical tagged-brand aliases instead of legacy alias `{{alias}}`.",
                 preferTaggedBrand:
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },

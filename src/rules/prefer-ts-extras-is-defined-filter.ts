@@ -18,7 +18,8 @@ type UndefinedInequalityMatch = {
 const isIdentifierWithName = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
-): node is TSESTree.Identifier => node.type === "Identifier" && node.name === name;
+): node is TSESTree.Identifier =>
+    node.type === "Identifier" && node.name === name;
 
 const isUndefinedStringLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
@@ -45,19 +46,25 @@ const getUndefinedInequalityMatch = (
         return null;
     }
 
-    if (isIdentifierWithName(body.left, parameterName) && isIdentifierWithName(body.right, "undefined")) {
-            return {
-                comparedExpression: body.left,
-                operator: body.operator,
-            };
-        }
+    if (
+        isIdentifierWithName(body.left, parameterName) &&
+        isIdentifierWithName(body.right, "undefined")
+    ) {
+        return {
+            comparedExpression: body.left,
+            operator: body.operator,
+        };
+    }
 
-    if (isIdentifierWithName(body.right, parameterName) && isIdentifierWithName(body.left, "undefined")) {
-            return {
-                comparedExpression: body.right,
-                operator: body.operator,
-            };
-        }
+    if (
+        isIdentifierWithName(body.right, parameterName) &&
+        isIdentifierWithName(body.left, "undefined")
+    ) {
+        return {
+            comparedExpression: body.right,
+            operator: body.operator,
+        };
+    }
 
     if (
         isTypeofParameter(body.left, parameterName) &&
@@ -179,7 +186,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
             },

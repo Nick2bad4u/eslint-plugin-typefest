@@ -80,14 +80,14 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
             },
             fixable: "code",
             messages: {
                 preferOmitIndexSignature:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to strip index signatures from object types instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

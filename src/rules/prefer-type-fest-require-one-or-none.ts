@@ -80,14 +80,14 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-one-or-none.md",
             },
             fixable: "code",
             messages: {
                 preferRequireOneOrNone:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to allow one-or-none key groups instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

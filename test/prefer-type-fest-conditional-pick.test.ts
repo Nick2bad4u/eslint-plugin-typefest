@@ -77,7 +77,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md"
         );
         expect(metadataRule.meta?.messages?.["preferConditionalPick"]).toBe(
-            "Prefer `{{replacement}}` from type-fest over `{{alias}}`."
+            "Prefer `{{replacement}}` from type-fest to pick keys whose values match a condition instead of legacy alias `{{alias}}`."
         );
     });
 

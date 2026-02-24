@@ -185,7 +185,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
             },
@@ -194,7 +194,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                 preferWritable:
                     "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`.",
                 preferWritableAlias:
-                    "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                    "Prefer `{{replacement}}` from type-fest to remove readonly modifiers from selected keys instead of legacy alias `{{alias}}`.",
             },
             schema: [],
             type: "suggestion",

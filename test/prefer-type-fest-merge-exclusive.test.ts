@@ -12,8 +12,7 @@ import {
 
 const ruleTester = createTypedRuleTester();
 const ruleId = "prefer-type-fest-merge-exclusive";
-const docsDescription =
-    "require TypeFest MergeExclusive over `XOR` aliases.";
+const docsDescription = "require TypeFest MergeExclusive over `XOR` aliases.";
 const preferMergeExclusiveMessage =
     "Prefer `MergeExclusive` from type-fest over `XOR`.";
 
@@ -51,43 +50,39 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [{ messageId: "preferMergeExclusive" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture XOR alias usage",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineFixableInvalidCode,
-                errors: [{ messageId: "preferMergeExclusive" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports and autofixes inline XOR alias import",
-                output: inlineFixableOutputCode,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [{ messageId: "preferMergeExclusive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture XOR alias usage",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [{ messageId: "preferMergeExclusive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports and autofixes inline XOR alias import",
+            output: inlineFixableOutputCode,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

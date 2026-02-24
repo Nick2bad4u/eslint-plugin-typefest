@@ -128,15 +128,14 @@ describe("prefer-type-fest-promisable source assertions", () => {
                 isTestFilePath: (): boolean => false,
             }));
 
-            const undecoratedRuleModule = (await import(
-                "../src/rules/prefer-type-fest-promisable"
-            )) as {
-                default: {
-                    create: (context: unknown) => {
-                        TSUnionType?: (node: unknown) => void;
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-promisable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
                     };
                 };
-            };
 
             const parsedResult = parser.parseForESLint(code, {
                 ecmaVersion: "latest",
@@ -154,8 +153,9 @@ describe("prefer-type-fest-promisable source assertions", () => {
                     return "";
                 }
 
-                const nodeRange = (node as { range?: readonly [number, number]; })
-                    .range;
+                const nodeRange = (
+                    node as { range?: readonly [number, number] }
+                ).range;
                 if (!nodeRange) {
                     return "";
                 }
@@ -167,7 +167,8 @@ describe("prefer-type-fest-promisable source assertions", () => {
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
-                filename: "fixtures/typed/prefer-type-fest-promisable.invalid.ts",
+                filename:
+                    "fixtures/typed/prefer-type-fest-promisable.invalid.ts",
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,

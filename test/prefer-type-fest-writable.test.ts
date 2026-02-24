@@ -203,7 +203,7 @@ describe(ruleName, () => {
             "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`."
         );
         expect(metadataRule.meta?.messages?.["preferWritableAlias"]).toBe(
-            "Prefer `{{replacement}}` from type-fest over `{{alias}}`."
+            "Prefer `{{replacement}}` from type-fest to remove readonly modifiers from selected keys instead of legacy alias `{{alias}}`."
         );
 
         const writableRuleSource = fs.readFileSync(

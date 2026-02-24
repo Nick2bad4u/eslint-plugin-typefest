@@ -49,7 +49,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         enforceRuleShape: true,
         messages: {
             preferRequireExactlyOne:
-                "Prefer `{{replacement}}` from type-fest over `{{alias}}`.",
+                "Prefer `{{replacement}}` from type-fest to require exactly one key from a group instead of legacy alias `{{alias}}`.",
         },
         name: "prefer-type-fest-require-exactly-one",
     }

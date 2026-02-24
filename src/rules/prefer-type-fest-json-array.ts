@@ -63,7 +63,9 @@ const isJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean =>
  *   `false`.
  */
 
-const isReadonlyJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean => {
+const isReadonlyJsonValueArrayType = (
+    node: Readonly<TSESTree.TypeNode>
+): boolean => {
     if (node.type !== "TSTypeOperator" || node.operator !== "readonly") {
         return false;
     }
@@ -85,7 +87,9 @@ const isReadonlyJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolea
  *   `false`.
  */
 
-const isGenericJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean => {
+const isGenericJsonValueArrayType = (
+    node: Readonly<TSESTree.TypeNode>
+): boolean => {
     if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
         return false;
     }
@@ -134,7 +138,9 @@ const isGenericReadonlyJsonValueArrayType = (
  * @returns `true` when has json array union shape; otherwise `false`.
  */
 
-const hasJsonArrayUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean => {
+const hasJsonArrayUnionShape = (
+    node: Readonly<TSESTree.TSUnionType>
+): boolean => {
     if (node.types.length !== 2) {
         return false;
     }
@@ -157,7 +163,10 @@ const hasJsonArrayUnionShape = (node: Readonly<TSESTree.TSUnionType>): boolean =
         isGenericJsonValueArrayType(leftType) &&
         isGenericReadonlyJsonValueArrayType(rightType);
 
-    if (isNativePair(firstType, secondType) || isNativePair(secondType, firstType)) {
+    if (
+        isNativePair(firstType, secondType) ||
+        isNativePair(secondType, firstType)
+    ) {
         return true;
     }
 
@@ -216,7 +225,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"type-fest/types\"]",
+                    'typefest.configs["type-fest/types"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-array.md",
             },

@@ -59,72 +59,68 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     name: ruleId,
 });
 
-ruleTester.run(
-    ruleId,
-    getPluginRule(ruleId),
-    {
-        invalid: [
-            {
-                code: invalidFixtureCode,
-                errors: [
-                    {
-                        messageId: "preferAbstractConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture abstract constructor signatures",
-                output: fixtureFixableOutputCode,
-            },
-            {
-                code: inlineInvalidNoFilenameCode,
-                errors: [
-                    {
-                        messageId: "preferAbstractConstructorSignature",
-                    },
-                ],
-                name: "reports inline abstract constructor signature without filename",
-                output: inlineInvalidNoFilenameOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [
-                    {
-                        messageId: "preferAbstractConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes abstract constructor signature when AbstractConstructor import is in scope",
-                output: inlineFixableOutput,
-            },
-            {
-                code: inlineNoFixGenericAbstractCtorCode,
-                errors: [
-                    {
-                        messageId: "preferAbstractConstructorSignature",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports generic abstract constructor signature without autofix",
-                output: null,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: readTypedFixture(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                filename: typedFixturePath(
-                    skipTestPathFixtureDirectory,
-                    skipTestPathFixtureName
-                ),
-                name: "skips file under tests fixture path",
-            },
-        ],
-    }
-);
+ruleTester.run(ruleId, getPluginRule(ruleId), {
+    invalid: [
+        {
+            code: invalidFixtureCode,
+            errors: [
+                {
+                    messageId: "preferAbstractConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports fixture abstract constructor signatures",
+            output: fixtureFixableOutputCode,
+        },
+        {
+            code: inlineInvalidNoFilenameCode,
+            errors: [
+                {
+                    messageId: "preferAbstractConstructorSignature",
+                },
+            ],
+            name: "reports inline abstract constructor signature without filename",
+            output: inlineInvalidNoFilenameOutput,
+        },
+        {
+            code: inlineFixableCode,
+            errors: [
+                {
+                    messageId: "preferAbstractConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes abstract constructor signature when AbstractConstructor import is in scope",
+            output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixGenericAbstractCtorCode,
+            errors: [
+                {
+                    messageId: "preferAbstractConstructorSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports generic abstract constructor signature without autofix",
+            output: null,
+        },
+    ],
+    valid: [
+        {
+            code: readTypedFixture(validFixtureName),
+            filename: typedFixturePath(validFixtureName),
+            name: "accepts fixture-safe patterns",
+        },
+        {
+            code: readTypedFixture(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            filename: typedFixturePath(
+                skipTestPathFixtureDirectory,
+                skipTestPathFixtureName
+            ),
+            name: "skips file under tests fixture path",
+        },
+    ],
+});

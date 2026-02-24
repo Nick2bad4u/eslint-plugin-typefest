@@ -56,7 +56,7 @@ const inlineValidPrivateFilterMethodCode = [
     "",
     "class Store {",
     "    #filter(predicate: (value: null | string) => boolean): readonly (null | string)[] {",
-    "        return [null, \"ok\"].filter(predicate);",
+    '        return [null, "ok"].filter(predicate);',
     "    }",
     "",
     "    run(): readonly (null | string)[] {",
@@ -198,7 +198,7 @@ describe("prefer-ts-extras-not source assertions", () => {
         );
         expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
         expect(ruleSource).toContain(
-            "predicateCall.optional ||\n                    predicateCall.callee.type !== \"Identifier\""
+            'predicateCall.optional ||\n                    predicateCall.callee.type !== "Identifier"'
         );
         expect(ruleSource).toContain(".trim();");
         expect(ruleSource).toContain("if (predicateText.length === 0) {");
@@ -206,7 +206,7 @@ describe("prefer-ts-extras-not source assertions", () => {
             "if (!isFilterCall(node) || node.arguments.length === 0) {"
         );
         expect(ruleSource).toContain(
-            "(firstArgument.type !== \"ArrowFunctionExpression\" &&\n                            firstArgument.type !== \"FunctionExpression\")"
+            '(firstArgument.type !== "ArrowFunctionExpression" &&\n                            firstArgument.type !== "FunctionExpression")'
         );
     });
 });

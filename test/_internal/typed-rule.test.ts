@@ -115,7 +115,9 @@ interface ParserServicesLike {
  * @returns CreateTypedRuleContext helper result.
  */
 
-const createTypedRuleContext = (parserServices: Readonly<ParserServicesLike>) => ({
+const createTypedRuleContext = (
+    parserServices: Readonly<ParserServicesLike>
+) => ({
     languageOptions: {
         parser: {
             meta: {
@@ -170,7 +172,12 @@ describe(isTypeAssignableTo, () => {
 
     it("uses checker.isTypeAssignableTo when available", () => {
         const isTypeAssignableToMock = vi
-            .fn<(source: Readonly<ts.Type>, target: Readonly<ts.Type>) => boolean>()
+            .fn<
+                (
+                    source: Readonly<ts.Type>,
+                    target: Readonly<ts.Type>
+                ) => boolean
+            >()
             .mockReturnValue(true);
 
         const checker = {

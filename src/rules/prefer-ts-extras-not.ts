@@ -57,7 +57,9 @@ const isTargetCallbackParameter = (
  */
 
 const getNegatedPredicateCall = (
-    callback: Readonly<TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression>
+    callback: Readonly<
+        TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+    >
 ): null | TSESTree.CallExpression => {
     if (callback.params.length !== 1) {
         return null;
@@ -185,7 +187,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    "typefest.configs[\"ts-extras/type-guards\"]",
+                    'typefest.configs["ts-extras/type-guards"]',
                 ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-not.md",
             },
