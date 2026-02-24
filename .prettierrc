@@ -42,7 +42,6 @@
                     "prettier-plugin-interpolated-html-tags",
                     "@softonus/prettier-plugin-duplicate-remover",
                     "prettier-plugin-jsdoc",
-                    "prettier-plugin-jsdoc-type",
                     "prettier-plugin-multiline-arrays",
                     "prettier-plugin-tailwindcss",
                     "prettier-plugin-merge"
@@ -102,7 +101,6 @@
                     "prettier-plugin-multiline-arrays",
                     "prettier-plugin-sort-json",
                     "prettier-plugin-jsdoc",
-                    "prettier-plugin-jsdoc-type",
                     "prettier-plugin-merge"
                 ],
                 "tabWidth": 1
@@ -128,7 +126,6 @@
                     "prettier-plugin-multiline-arrays",
                     "prettier-plugin-sort-json",
                     "prettier-plugin-jsdoc",
-                    "prettier-plugin-jsdoc-type",
                     "prettier-plugin-merge"
                 ],
                 "printWidth": 100,
