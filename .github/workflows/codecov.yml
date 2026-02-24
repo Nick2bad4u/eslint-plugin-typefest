@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: Codecov
+
+concurrency:
+    group: codecov-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    coverage:
+        name: Run coverage and upload
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+              with:
+                  egress-policy: audit
+
+            - name: Checkout
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  fetch-depth: 2
+
+            - name: Setup Node.js
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+              with:
+                  node-version: 20.19.0
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci --force
+
+            - name: Build package
+              run: npm run build
+
+            - name: Run tests with coverage
+              run: npm run test:coverage:quiet
+              env:
+                  CI: "true"
+                  MAX_THREADS: "1"
+
+            - name: Verify coverage artifact
+              run: test -f coverage/lcov.info
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  slug: Nick2bad4u/eslint-plugin-typefest
+                  files: ./coverage/lcov.info
+                  flags: unit
+                  name: vitest-unit-coverage
+                  fail_ci_if_error: true
+                  disable_search: true
+                  verbose: true

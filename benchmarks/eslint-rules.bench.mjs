@@ -16,7 +16,7 @@ import {
  */
 
 /**
- * @typedef {Record<string, unknown>} BenchmarkRules
+ * @typedef {import("eslint").Linter.RulesRecord} BenchmarkRules
  */
 
 /**
@@ -29,6 +29,7 @@ import {
 
 const singleRuleBenchmarks = Object.freeze({
     "typefest/prefer-ts-extras-is-present": "error",
+    "typefest/prefer-ts-extras-safe-cast-to": "error",
     "typefest/prefer-type-fest-arrayable": "error",
 });
 
@@ -148,16 +149,35 @@ const sumRuleTimingMilliseconds = (lintResults) => {
  *
  * @param {string} scenarioName - Human-friendly scenario label.
  * @param {LintResults} lintResults - ESLint lint results.
+ * @param {{
+ *     maximumReportedProblems?: number;
+ *     minimumReportedProblems?: number;
+ * }} [options]
+ *   - Signal options.
  */
-const assertMeaningfulBenchmarkSignal = (scenarioName, lintResults) => {
+const assertMeaningfulBenchmarkSignal = (
+    scenarioName,
+    lintResults,
+    options
+) => {
+    const maximumReportedProblems =
+        options?.maximumReportedProblems ?? Number.POSITIVE_INFINITY;
+    const minimumReportedProblems = options?.minimumReportedProblems ?? 1;
+
     if (lintResults.length === 0) {
         throw new Error(`${scenarioName}: ESLint returned no lint results.`);
     }
 
     const reportedProblems = countReportedProblems(lintResults);
-    if (reportedProblems < 1) {
+    if (reportedProblems < minimumReportedProblems) {
         throw new Error(
-            `${scenarioName}: expected at least one reported lint problem.`
+            `${scenarioName}: expected at least ${minimumReportedProblems} reported lint problem(s).`
+        );
+    }
+
+    if (reportedProblems > maximumReportedProblems) {
+        throw new Error(
+            `${scenarioName}: expected at most ${maximumReportedProblems} reported lint problem(s).`
         );
     }
 
@@ -218,6 +238,42 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
             assertMeaningfulBenchmarkSignal(
                 "strict preset on full invalid typed fixture corpus",
                 lintResults
+            );
+        },
+        standardBenchmarkOptions
+    );
+
+    bench(
+        "recommended preset on full valid typed fixture corpus",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.typedValidFixtures,
+                fix: false,
+                rules: typefestRuleSets.recommended,
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "recommended preset on full valid typed fixture corpus",
+                lintResults,
+                { minimumReportedProblems: 0 }
+            );
+        },
+        standardBenchmarkOptions
+    );
+
+    bench(
+        "recommended preset on curated zero-message corpus",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.recommendedZeroMessageFixture,
+                fix: false,
+                rules: typefestRuleSets.recommended,
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "recommended preset on curated zero-message corpus",
+                lintResults,
+                { maximumReportedProblems: 0, minimumReportedProblems: 0 }
             );
         },
         standardBenchmarkOptions
@@ -294,6 +350,51 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
             );
         },
         standardBenchmarkOptions
+    );
+
+    bench(
+        "single rule prefer-ts-extras-safe-cast-to on stress fixture",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.safeCastToStressFixture,
+                fix: false,
+                rules: {
+                    "typefest/prefer-ts-extras-safe-cast-to":
+                        singleRuleBenchmarks[
+                            "typefest/prefer-ts-extras-safe-cast-to"
+                        ],
+                },
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "single rule prefer-ts-extras-safe-cast-to on stress fixture",
+                lintResults
+            );
+        },
+        standardBenchmarkOptions
+    );
+
+    bench(
+        "single rule prefer-ts-extras-safe-cast-to on stress fixture (fix=true)",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.safeCastToStressFixture,
+                fix: true,
+                rules: {
+                    "typefest/prefer-ts-extras-safe-cast-to":
+                        singleRuleBenchmarks[
+                            "typefest/prefer-ts-extras-safe-cast-to"
+                        ],
+                },
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "single rule prefer-ts-extras-safe-cast-to on stress fixture (fix=true)",
+                lintResults,
+                { maximumReportedProblems: 0, minimumReportedProblems: 0 }
+            );
+        },
+        expensiveBenchmarkOptions
     );
 
     bench(

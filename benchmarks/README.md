@@ -5,8 +5,10 @@ This directory contains **meaningful ESLint performance benchmarks** for `eslint
 The suite intentionally measures three complementary workloads:
 
 - **Real corpus benchmarks** against `test/fixtures/typed/*.invalid.ts` so rule timing reflects real rule inputs.
+- **Valid corpus benchmarks** against `test/fixtures/typed/*.valid.ts` to track near-clean traversal overhead.
+- **Curated zero-message benchmark** against `benchmarks/fixtures/recommended-zero-message.baseline.ts` for a true steady-state baseline.
 - **Preset-focused benchmarks** (`recommended`, `strict`, `ts-extras/type-guards`, `type-fest/types`) so regressions are attributable to a config surface.
-- **Single-rule stress benchmarks** for focused hot-path investigation (`prefer-ts-extras-is-present`, `prefer-type-fest-arrayable`).
+- **Single-rule stress benchmarks** for focused hot-path investigation (`prefer-ts-extras-is-present`, `prefer-ts-extras-safe-cast-to`, `prefer-type-fest-arrayable`), including both `fix=false` and `fix=true` for `prefer-ts-extras-safe-cast-to`.
 
 ## Why this is meaningful
 
@@ -37,6 +39,18 @@ Optional knobs:
 node benchmarks/run-eslint-stats.mjs --iterations=5 --warmup=2
 ```
 
+Compare against a previously generated stats file:
+
+```bash
+node benchmarks/run-eslint-stats.mjs --compare=coverage/benchmarks/eslint-stats.json
+```
+
+Or use the convenience script:
+
+```bash
+npm run bench:compare
+```
+
 This writes scenario metrics and top-rule timing breakdowns to `coverage/benchmarks/eslint-stats.json`.
 
 ### Optional Vitest benchmark mode (experimental)
@@ -58,5 +72,7 @@ This command enables `TIMING=all` and `--stats` to mirror ESLint's documented ru
 ## Interpreting results
 
 - Use `recommended-invalid-corpus` as your baseline for day-to-day regressions.
+- Use `recommended-valid-corpus` to measure steady-state cost on already-correct code paths.
+- Use `recommended-zero-message-corpus` for a strict zero-violation steady-state baseline.
 - Use single-rule stress scenarios to isolate specific rule regressions before broad config runs.
 - Compare `fix=false` vs `fix=true` to understand whether regressions come from detection or fixer generation.

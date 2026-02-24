@@ -43,6 +43,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
             ],
             include: ["benchmarks/**/*.bench.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
             includeSamples: true,
+            includeSource: ["src/**/*.ts"],
             outputJson: "./coverage/bench-results.json",
             reporters: ["default", "verbose"],
         },

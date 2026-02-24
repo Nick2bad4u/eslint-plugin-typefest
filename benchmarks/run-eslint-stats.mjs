@@ -1,7 +1,8 @@
 import { ESLint } from "eslint";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
+import pc from "picocolors";
 
 import {
     benchmarkFileGlobs,
@@ -19,13 +20,15 @@ import {
  */
 
 /**
- * @typedef {Record<string, unknown>} BenchmarkRules
+ * @typedef {import("eslint").Linter.RulesRecord} BenchmarkRules
  */
 
 /**
  * @typedef {Readonly<{
  *     filePatterns: readonly string[];
  *     fix: boolean;
+ *     maximumMessageCount?: number;
+ *     minimumMessageCount?: number;
  *     name: string;
  *     rules: BenchmarkRules;
  * }>} BenchmarkScenario
@@ -36,6 +39,8 @@ import {
  *     filePatterns: readonly string[];
  *     fix: boolean;
  *     iterations: number;
+ *     maximumMessageCount: number;
+ *     minimumMessageCount: number;
  *     name: string;
  *     rules: BenchmarkRules;
  *     warmupIterations: number;
@@ -44,6 +49,39 @@ import {
 
 /**
  * @typedef {{ ruleName: string; totalMilliseconds: number }} RuleTiming
+ */
+
+/**
+ * @typedef {{
+ *     fixMs: number;
+ *     meanMs: number;
+ *     medianMs: number;
+ *     messages: number;
+ *     parseMs: number;
+ *     rulesMs: number;
+ *     scenario: string;
+ * }} SummaryRow
+ */
+
+/**
+ * @typedef {{
+ *     fixMs: number;
+ *     meanDeltaMs: number;
+ *     meanDeltaPct: number | "n/a";
+ *     messagesDelta: number;
+ *     parseMs: number;
+ *     rulesMs: number;
+ *     scenario: string;
+ * }} ComparisonRow
+ */
+
+/**
+ * @typedef {{
+ *     generatedAt: string;
+ *     iterations: number;
+ *     scenarios: ScenarioResult[];
+ *     warmupIterations: number;
+ * }} BenchmarkReport
  */
 
 /**
@@ -76,7 +114,52 @@ import {
  */
 
 const defaultIterations = 3;
+const defaultMaximumMessageCount = Number.POSITIVE_INFINITY;
 const defaultWarmupIterations = 1;
+const defaultMinimumMessageCount = 1;
+
+const singleRuleBenchmarkRules = Object.freeze({
+    "typefest/prefer-ts-extras-safe-cast-to": "error",
+});
+
+/**
+ * Ensure a value is a readonly array of strings.
+ *
+ * @param {unknown} value - Value to validate.
+ * @param {string} label - Error label for diagnostics.
+ *
+ * @returns {readonly string[]} Normalized readonly string array.
+ */
+const ensureStringArray = (value, label) => {
+    if (!Array.isArray(value)) {
+        throw new TypeError(`${label} must be a readonly string array.`);
+    }
+
+    /** @type {string[]} */
+    const normalizedValues = [];
+    for (const entry of value) {
+        if (typeof entry !== "string") {
+            throw new TypeError(`${label} must be a readonly string array.`);
+        }
+
+        normalizedValues.push(entry);
+    }
+
+    return normalizedValues;
+};
+
+const typedValidFixtureGlobs = ensureStringArray(
+    benchmarkFileGlobs.typedValidFixtures,
+    "benchmarkFileGlobs.typedValidFixtures"
+);
+const recommendedZeroMessageFixtureGlobs = ensureStringArray(
+    benchmarkFileGlobs.recommendedZeroMessageFixture,
+    "benchmarkFileGlobs.recommendedZeroMessageFixture"
+);
+const safeCastToStressFixtureGlobs = ensureStringArray(
+    benchmarkFileGlobs.safeCastToStressFixture,
+    "benchmarkFileGlobs.safeCastToStressFixture"
+);
 
 /** @type {readonly BenchmarkScenario[]} */
 const benchmarkScenarios = Object.freeze([
@@ -84,6 +167,21 @@ const benchmarkScenarios = Object.freeze([
         filePatterns: benchmarkFileGlobs.typedInvalidFixtures,
         fix: false,
         name: "recommended-invalid-corpus",
+        rules: typefestRuleSets.recommended,
+    },
+    {
+        filePatterns: typedValidFixtureGlobs,
+        fix: false,
+        minimumMessageCount: 0,
+        name: "recommended-valid-corpus",
+        rules: typefestRuleSets.recommended,
+    },
+    {
+        filePatterns: recommendedZeroMessageFixtureGlobs,
+        fix: false,
+        maximumMessageCount: 0,
+        minimumMessageCount: 0,
+        name: "recommended-zero-message-corpus",
         rules: typefestRuleSets.recommended,
     },
     {
@@ -109,6 +207,20 @@ const benchmarkScenarios = Object.freeze([
         fix: true,
         name: "recommended-fix-on-ts-extras-invalid-corpus",
         rules: typefestRuleSets.recommended,
+    },
+    {
+        filePatterns: safeCastToStressFixtureGlobs,
+        fix: false,
+        name: "single-rule-safe-cast-to-stress",
+        rules: singleRuleBenchmarkRules,
+    },
+    {
+        filePatterns: safeCastToStressFixtureGlobs,
+        fix: true,
+        maximumMessageCount: 0,
+        minimumMessageCount: 0,
+        name: "single-rule-safe-cast-to-stress-fix",
+        rules: singleRuleBenchmarkRules,
     },
 ]);
 
@@ -137,6 +249,31 @@ const parseIntegerArgument = (key, fallbackValue) => {
     }
 
     return parsedValue;
+};
+
+/**
+ * Parse a string argument in `--key=value` form.
+ *
+ * @param {string} key - CLI key without the leading dashes.
+ *
+ * @returns {string | undefined} Parsed string when provided.
+ */
+const parseStringArgument = (key) => {
+    const matchingArgument = process.argv.find((argument) =>
+        argument.startsWith(`--${key}=`)
+    );
+    if (matchingArgument === undefined) {
+        return undefined;
+    }
+
+    const [, rawValue = ""] = matchingArgument.split("=");
+    if (rawValue.length === 0) {
+        throw new TypeError(
+            `Expected --${key}=<value>; received an empty value.`
+        );
+    }
+
+    return rawValue;
 };
 
 /**
@@ -236,12 +373,163 @@ const getPassRules = (pass) => {
 };
 
 /**
+ * Resolve a potentially relative path from the repository root.
+ *
+ * @param {string} filePath - Candidate path from CLI.
+ *
+ * @returns {string} Absolute file path.
+ */
+const resolvePath = (filePath) =>
+    path.isAbsolute(filePath)
+        ? filePath
+        : path.resolve(repositoryRoot, filePath);
+
+/**
+ * Read a named string property from an object record.
+ *
+ * @param {Record<string, unknown>} record - Source record.
+ * @param {string} key - Property key.
+ * @param {string} context - Error context.
+ *
+ * @returns {string} String property value.
+ */
+const readRequiredString = (record, key, context) => {
+    const value = record[key];
+    if (typeof value !== "string") {
+        throw new TypeError(`${context}: expected '${key}' to be a string.`);
+    }
+
+    return value;
+};
+
+/**
+ * Read a named number property from an object record.
+ *
+ * @param {Record<string, unknown>} record - Source record.
+ * @param {string} key - Property key.
+ * @param {string} context - Error context.
+ *
+ * @returns {number} Numeric property value.
+ */
+const readRequiredNumber = (record, key, context) => {
+    const value = record[key];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new TypeError(
+            `${context}: expected '${key}' to be a finite number.`
+        );
+    }
+
+    return value;
+};
+
+/**
+ * Parse an unknown scenario payload into a comparable shape.
+ *
+ * @param {unknown} scenario - Scenario payload from JSON.
+ * @param {number} index - Scenario index in source file.
+ * @param {string} comparePath - Compare file path for diagnostics.
+ *
+ * @returns {{
+ *     fixMs: number;
+ *     meanMs: number;
+ *     messages: number;
+ *     parseMs: number;
+ *     rulesMs: number;
+ *     scenario: string;
+ * }}
+ *   Comparable scenario summary.
+ */
+const parseComparableScenario = (scenario, index, comparePath) => {
+    const scenarioContext = `${comparePath}: scenarios[${index}]`;
+    if (!isObjectRecord(scenario)) {
+        throw new TypeError(`${scenarioContext} must be an object.`);
+    }
+
+    const wallClock = scenario.wallClock;
+    if (!isObjectRecord(wallClock)) {
+        throw new TypeError(`${scenarioContext}.wallClock must be an object.`);
+    }
+
+    return {
+        fixMs: readRequiredNumber(scenario, "fixMilliseconds", scenarioContext),
+        meanMs: readRequiredNumber(
+            wallClock,
+            "meanMilliseconds",
+            `${scenarioContext}.wallClock`
+        ),
+        messages: readRequiredNumber(scenario, "messageCount", scenarioContext),
+        parseMs: readRequiredNumber(
+            scenario,
+            "parseMilliseconds",
+            scenarioContext
+        ),
+        rulesMs: readRequiredNumber(
+            scenario,
+            "ruleMilliseconds",
+            scenarioContext
+        ),
+        scenario: readRequiredString(scenario, "name", scenarioContext),
+    };
+};
+
+/**
+ * Load a benchmark report for comparison.
+ *
+ * @param {string} comparePath - Baseline benchmark report path.
+ *
+ * @returns {Promise<null | Map<
+ *     string,
+ *     ReturnType<typeof parseComparableScenario>
+ * >>}
+ *   Scenario summary map keyed by scenario name, or null when the file does not
+ *   exist.
+ */
+const loadComparisonScenarioMap = async (comparePath) => {
+    try {
+        const source = await readFile(comparePath, "utf8");
+        /** @type {unknown} */
+        const parsedJson = JSON.parse(source);
+
+        if (!isObjectRecord(parsedJson)) {
+            throw new TypeError(`${comparePath}: expected a JSON object.`);
+        }
+
+        const scenarios = parsedJson.scenarios;
+        if (!Array.isArray(scenarios)) {
+            throw new TypeError(`${comparePath}: missing 'scenarios' array.`);
+        }
+
+        const comparableScenarios = scenarios.map((scenario, index) =>
+            parseComparableScenario(scenario, index, comparePath)
+        );
+        return new Map(
+            comparableScenarios.map((scenario) => [scenario.scenario, scenario])
+        );
+    } catch (error) {
+        if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+        ) {
+            return null;
+        }
+
+        throw error;
+    }
+};
+
+/**
  * Sum numeric samples.
  */
 const runtimeMath =
     /** @type {Math & { sumPrecise: (items: Iterable<number>) => number }} */ (
         Math
     );
+
+/**
+ * Whether the current runtime provides `Math.sumPrecise`.
+ */
+const supportsMathSumPrecise = typeof runtimeMath.sumPrecise === "function";
 
 /**
  * Sum numeric samples.
@@ -255,7 +543,21 @@ const sum = (values) => {
         return 0;
     }
 
-    return runtimeMath.sumPrecise(values);
+    if (supportsMathSumPrecise) {
+        return runtimeMath.sumPrecise(values);
+    }
+
+    let compensation = 0;
+    let runningTotal = 0;
+
+    for (const value of values) {
+        const adjustedValue = value - compensation;
+        const nextTotal = runningTotal + adjustedValue;
+        compensation = nextTotal - runningTotal - adjustedValue;
+        runningTotal = nextTotal;
+    }
+
+    return runningTotal;
 };
 
 /**
@@ -316,6 +618,92 @@ const addRuleTiming = (ruleTotals, ruleName, ruleTotal) => {
     const currentTotal = ruleTotals.get(ruleName) ?? 0;
     ruleTotals.set(ruleName, currentTotal + ruleTotal);
 };
+
+/**
+ * Build summary rows for console output.
+ *
+ * @param {readonly ScenarioResult[]} scenarios - Scenario results.
+ *
+ * @returns {SummaryRow[]} Console table summary rows.
+ */
+const toSummaryRows = (scenarios) =>
+    scenarios.map((scenarioResult) => ({
+        fixMs: Number(scenarioResult.fixMilliseconds.toFixed(2)),
+        meanMs: Number(scenarioResult.wallClock.meanMilliseconds.toFixed(2)),
+        medianMs: Number(
+            scenarioResult.wallClock.medianMilliseconds.toFixed(2)
+        ),
+        messages: scenarioResult.messageCount,
+        parseMs: Number(scenarioResult.parseMilliseconds.toFixed(2)),
+        rulesMs: Number(scenarioResult.ruleMilliseconds.toFixed(2)),
+        scenario: scenarioResult.name,
+    }));
+
+/**
+ * Build comparison rows against a baseline map.
+ *
+ * @param {readonly ScenarioResult[]} scenarios - Current scenario results.
+ * @param {Map<string, ReturnType<typeof parseComparableScenario>>} baselineMap
+ *   - Baseline scenario map by name.
+ *
+ * @returns {ComparisonRow[]} Rows with delta metrics.
+ */
+const toComparisonRows = (scenarios, baselineMap) => {
+    /** @type {ComparisonRow[]} */
+    const comparisonRows = [];
+
+    for (const scenarioResult of scenarios) {
+        const baseline = baselineMap.get(scenarioResult.name);
+        if (baseline !== undefined) {
+            const currentMeanMs = scenarioResult.wallClock.meanMilliseconds;
+            const meanDeltaMs = currentMeanMs - baseline.meanMs;
+            const meanDeltaRatio = divide(meanDeltaMs, baseline.meanMs);
+            /** @type {number | "n/a"} */
+            const meanDeltaPct =
+                meanDeltaRatio === undefined
+                    ? "n/a"
+                    : Number((meanDeltaRatio * 100).toFixed(2));
+
+            comparisonRows.push({
+                fixMs: Number(
+                    (scenarioResult.fixMilliseconds - baseline.fixMs).toFixed(2)
+                ),
+                meanDeltaMs: Number(meanDeltaMs.toFixed(2)),
+                meanDeltaPct,
+                messagesDelta: scenarioResult.messageCount - baseline.messages,
+                parseMs: Number(
+                    (
+                        scenarioResult.parseMilliseconds - baseline.parseMs
+                    ).toFixed(2)
+                ),
+                rulesMs: Number(
+                    (
+                        scenarioResult.ruleMilliseconds - baseline.rulesMs
+                    ).toFixed(2)
+                ),
+                scenario: scenarioResult.name,
+            });
+        }
+    }
+
+    return comparisonRows;
+};
+
+/**
+ * Build output payload for persistence.
+ *
+ * @param {readonly ScenarioResult[]} scenarios - Scenario results.
+ * @param {number} iterationsCount - Measured iterations.
+ * @param {number} warmupCount - Warmup iterations.
+ *
+ * @returns {BenchmarkReport} JSON payload written to disk.
+ */
+const toBenchmarkReport = (scenarios, iterationsCount, warmupCount) => ({
+    generatedAt: new Date().toISOString(),
+    iterations: iterationsCount,
+    scenarios: [...scenarios],
+    warmupIterations: warmupCount,
+});
 
 /**
  * Calculate arithmetic mean from numeric samples.
@@ -445,6 +833,8 @@ const runScenario = async ({
     filePatterns,
     fix,
     iterations,
+    maximumMessageCount,
+    minimumMessageCount,
     name,
     rules,
     warmupIterations,
@@ -475,8 +865,16 @@ const runScenario = async ({
     }
 
     const messageCount = countMessages(referenceLintResults);
-    if (messageCount < 1) {
-        throw new Error(`${name}: expected at least one lint message.`);
+    if (messageCount < minimumMessageCount) {
+        throw new Error(
+            `${name}: expected at least ${minimumMessageCount} lint message(s).`
+        );
+    }
+
+    if (messageCount > maximumMessageCount) {
+        throw new Error(
+            `${name}: expected at most ${maximumMessageCount} lint message(s).`
+        );
     }
 
     const timingBreakdown = aggregateTimingBreakdown(referenceLintResults);
@@ -505,6 +903,7 @@ const warmupIterations = parseIntegerArgument(
     "warmup",
     defaultWarmupIterations
 );
+const compareArgument = parseStringArgument("compare");
 
 if (iterations === 0) {
     throw new TypeError("--iterations must be at least 1.");
@@ -516,24 +915,25 @@ for (const scenario of benchmarkScenarios) {
     const result = await runScenario({
         ...scenario,
         iterations,
+        maximumMessageCount:
+            scenario.maximumMessageCount ?? defaultMaximumMessageCount,
+        minimumMessageCount:
+            scenario.minimumMessageCount ?? defaultMinimumMessageCount,
         warmupIterations,
     });
     scenarioResults.push(result);
 }
 
-const summaryRows = scenarioResults.map((scenarioResult) => ({
-    fixMs: Number(scenarioResult.fixMilliseconds.toFixed(2)),
-    meanMs: Number(scenarioResult.wallClock.meanMilliseconds.toFixed(2)),
-    medianMs: Number(scenarioResult.wallClock.medianMilliseconds.toFixed(2)),
-    messages: scenarioResult.messageCount,
-    parseMs: Number(scenarioResult.parseMilliseconds.toFixed(2)),
-    rulesMs: Number(scenarioResult.ruleMilliseconds.toFixed(2)),
-    scenario: scenarioResult.name,
-}));
+const summaryRows = toSummaryRows(scenarioResults);
 
+console.log(`\n${pc.bold(pc.cyan("Benchmark summary"))}`);
 console.table(summaryRows);
 for (const scenarioResult of scenarioResults) {
-    console.log(`\nTop rules by timing for '${scenarioResult.name}':`);
+    console.log(
+        `\n${pc.bold(pc.cyan("Top rules by timing"))} ${pc.magenta(
+            `(${scenarioResult.name})`
+        )}`
+    );
     console.table(
         scenarioResult.topRules.map((entry) => ({
             rule: entry.ruleName,
@@ -542,22 +942,42 @@ for (const scenarioResult of scenarioResults) {
     );
 }
 
+if (compareArgument !== undefined) {
+    const comparePath = resolvePath(compareArgument);
+    const baselineScenarioMap = await loadComparisonScenarioMap(comparePath);
+    if (baselineScenarioMap === null) {
+        console.warn(
+            `\n${pc.yellow("No baseline benchmark report found at")}` +
+                ` ${pc.magenta(comparePath)}. ${pc.yellow(
+                    "Skipping comparison."
+                )}`
+        );
+    } else {
+        const comparisonRows = toComparisonRows(
+            scenarioResults,
+            baselineScenarioMap
+        );
+        if (comparisonRows.length === 0) {
+            console.warn(
+                `\n${pc.yellow("No matching scenario names were found in")}` +
+                    ` ${pc.magenta(comparePath)}.`
+            );
+        } else {
+            console.log(
+                `\n${pc.bold(pc.cyan("Comparison against"))} ${pc.magenta(comparePath)}`
+            );
+            console.table(comparisonRows);
+        }
+    }
+}
+
 const outputDirectory = path.join(repositoryRoot, "coverage", "benchmarks");
 const outputPath = path.join(outputDirectory, "eslint-stats.json");
 await mkdir(outputDirectory, { recursive: true });
-await writeFile(
-    outputPath,
-    `${JSON.stringify(
-        {
-            generatedAt: new Date().toISOString(),
-            iterations,
-            scenarios: scenarioResults,
-            warmupIterations,
-        },
-        null,
-        2
-    )}\n`,
-    "utf8"
-);
+const report = toBenchmarkReport(scenarioResults, iterations, warmupIterations);
+await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
-console.log(`\nWrote benchmark stats to ${outputPath}`);
+console.log(
+    `\n${pc.green("✓ Wrote benchmark stats to")}` +
+        ` ${pc.bold(pc.magenta(outputPath))}`
+);

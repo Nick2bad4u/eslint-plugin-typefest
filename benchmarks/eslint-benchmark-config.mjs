@@ -8,8 +8,34 @@ import plugin from "../plugin.mjs";
  */
 
 /**
- * @typedef {{ rules: UnknownRecord }} CreateTypefestFlatConfigOptions
+ * @typedef {import("eslint").Linter.RulesRecord} BenchmarkRules
  */
+
+/**
+ * @typedef {{
+ *     arrayableStressFixture: readonly string[];
+ *     isPresentStressFixture: readonly string[];
+ *     recommendedZeroMessageFixture: readonly string[];
+ *     safeCastToStressFixture: readonly string[];
+ *     tsExtrasInvalidFixtures: readonly string[];
+ *     typedInvalidFixtures: readonly string[];
+ *     typedValidFixtures: readonly string[];
+ *     typeFestInvalidFixtures: readonly string[];
+ * }} BenchmarkFileGlobs
+ */
+
+/**
+ * @typedef {{ rules: BenchmarkRules }} CreateTypefestFlatConfigOptions
+ */
+
+/**
+ * Check whether a value is an object record.
+ *
+ * @param {unknown} value - Value to inspect.
+ *
+ * @returns {value is UnknownRecord} `true` when value is a non-null object.
+ */
+const isUnknownRecord = (value) => typeof value === "object" && value !== null;
 
 /**
  * Absolute repository root used by parser services and benchmark paths.
@@ -19,6 +45,7 @@ export const repositoryRoot = path.resolve(process.cwd());
 /**
  * Shared file globs used by benchmark scenarios.
  */
+/** @type {Readonly<BenchmarkFileGlobs>} */
 export const benchmarkFileGlobs = Object.freeze({
     arrayableStressFixture: Object.freeze([
         "benchmarks/fixtures/arrayable.stress.ts",
@@ -26,10 +53,17 @@ export const benchmarkFileGlobs = Object.freeze({
     isPresentStressFixture: Object.freeze([
         "benchmarks/fixtures/is-present.stress.ts",
     ]),
+    recommendedZeroMessageFixture: Object.freeze([
+        "benchmarks/fixtures/recommended-zero-message.baseline.ts",
+    ]),
+    safeCastToStressFixture: Object.freeze([
+        "benchmarks/fixtures/safe-cast-to.stress.ts",
+    ]),
     tsExtrasInvalidFixtures: Object.freeze([
         "test/fixtures/typed/prefer-ts-extras-*.invalid.ts",
     ]),
     typedInvalidFixtures: Object.freeze(["test/fixtures/typed/*.invalid.ts"]),
+    typedValidFixtures: Object.freeze(["test/fixtures/typed/*.valid.ts"]),
     typeFestInvalidFixtures: Object.freeze([
         "test/fixtures/typed/prefer-type-fest-*.invalid.ts",
     ]),
@@ -44,7 +78,7 @@ export const benchmarkFileGlobs = Object.freeze({
  * @returns {UnknownRecord} Normalized object record.
  */
 const ensureRecord = (value, label) => {
-    if (typeof value !== "object" || value === null) {
+    if (!isUnknownRecord(value)) {
         throw new TypeError(`${label} must be a non-null object.`);
     }
 
@@ -52,11 +86,50 @@ const ensureRecord = (value, label) => {
 };
 
 /**
+ * Check whether a value is an ESLint rule entry.
+ *
+ * @param {unknown} value - Rule config candidate.
+ *
+ * @returns {value is import("eslint").Linter.RuleEntry} Whether value matches
+ *   an ESLint rule entry shape.
+ */
+const isRuleEntry = (value) =>
+    typeof value === "number" ||
+    typeof value === "string" ||
+    Array.isArray(value);
+
+/**
+ * Ensure a dynamic value is a valid ESLint rules record.
+ *
+ * @param {unknown} value - Value to validate.
+ * @param {string} label - Error label for diagnostics.
+ *
+ * @returns {BenchmarkRules} Normalized rules record.
+ */
+const ensureRulesRecord = (value, label) => {
+    const record = ensureRecord(value, label);
+    /** @type {BenchmarkRules} */
+    const rulesRecord = {};
+
+    for (const [ruleName, ruleEntry] of Object.entries(record)) {
+        if (!isRuleEntry(ruleEntry)) {
+            throw new TypeError(
+                `${label}.${ruleName} must be a valid ESLint rule entry.`
+            );
+        }
+
+        rulesRecord[ruleName] = ruleEntry;
+    }
+
+    return rulesRecord;
+};
+
+/**
  * Resolve rules from a plugin preset by name.
  *
  * @param {string} presetName - Key under `typefestPlugin.configs`.
  *
- * @returns {Readonly<UnknownRecord>} Frozen rule map suitable for flat config.
+ * @returns {Readonly<BenchmarkRules>} Frozen rule map suitable for flat config.
  */
 const resolveRuleSet = (presetName) => {
     const configs = ensureRecord(plugin.configs, "plugin.configs");
@@ -64,7 +137,7 @@ const resolveRuleSet = (presetName) => {
         configs[presetName],
         `plugin.configs.${presetName}`
     );
-    const rules = ensureRecord(preset.rules, `${presetName} preset rules`);
+    const rules = ensureRulesRecord(preset.rules, `${presetName} preset rules`);
 
     return Object.freeze({ ...rules });
 };

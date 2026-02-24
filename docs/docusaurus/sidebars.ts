@@ -34,17 +34,17 @@ const sidebars: SidebarsConfig = {
                             type: "doc",
                         },
                         {
-                            id: "developer/adr/0001-eslint-plugin-kit-adoption",
+                            id: "developer/adr/eslint-plugin-kit-adoption",
                             label: "ADR 0001 · plugin-kit",
                             type: "doc",
                         },
                         {
-                            id: "developer/adr/0002-eslint-config-helpers-scope",
+                            id: "developer/adr/eslint-config-helpers-scope",
                             label: "ADR 0002 · config-helpers",
                             type: "doc",
                         },
                         {
-                            id: "developer/adr/0003-eslint-object-schema-adoption",
+                            id: "developer/adr/eslint-object-schema-adoption",
                             label: "ADR 0003 · object-schema",
                             type: "doc",
                         },

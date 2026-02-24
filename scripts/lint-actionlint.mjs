@@ -14,12 +14,13 @@
 import { readdirSync } from "node:fs";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
+import pc from "picocolors";
 
 const repoRoot = process.cwd();
 const workflowsDir = path.join(repoRoot, ".github", "workflows");
 const rawArgs = process.argv.slice(2);
-const includeBuild = rawArgs.includes("--include-build");
-const excludedFiles = new Set(["build.yml", "build.yaml"]);
+const overrideExcluded = rawArgs.includes("--include-excluded");
+const excludedFiles = new Set(["FILL_EXCLUDED_FILES_HERE.yml"]);
 /** @type {Set<string>} */
 const flagsWithValues = new Set([
     "-config-file",
@@ -42,7 +43,7 @@ for (let index = 0; index < rawArgs.length; index += 1) {
         continue;
     }
 
-    if (arg === "--include-build") {
+    if (arg === "--include-excluded") {
         continue;
     }
 
@@ -95,7 +96,7 @@ const workflowFiles = useDefaultFiles
                   return false;
               }
 
-              if (includeBuild) {
+              if (overrideExcluded) {
                   return true;
               }
 
@@ -107,8 +108,19 @@ const workflowFiles = useDefaultFiles
 const targetFiles = useDefaultFiles ? workflowFiles : fileArgs;
 
 if (useDefaultFiles && targetFiles.length === 0) {
-    console.error("No workflow files found to lint.");
+    console.error(pc.red("No workflow files found to lint."));
     process.exit(1);
+}
+
+if (useDefaultFiles) {
+    const scopeText = overrideExcluded
+        ? "including" + ` ${pc.magenta([...excludedFiles].join(", "))}`
+        : "excluding" + ` ${pc.magenta([...excludedFiles].join(", "))}`;
+    console.log(
+        `${pc.bold(pc.cyan("Running actionlint on"))} ${pc.magenta(
+            String(targetFiles.length)
+        )} ${pc.cyan(`workflow file(s), ${scopeText}.`)}`
+    );
 }
 
 const result = spawnSync("actionlint", [...userArgs, ...targetFiles], {
@@ -116,7 +128,30 @@ const result = spawnSync("actionlint", [...userArgs, ...targetFiles], {
 });
 
 if (result.error) {
-    console.error("Failed to run actionlint:", result.error);
+    console.error(pc.red("Failed to run actionlint:"), result.error);
+    process.exit(1);
+}
+
+if (result.status === 0) {
+    console.log(pc.green("✓ actionlint completed successfully."));
+    process.exit(0);
+}
+
+if (result.status !== null) {
+    console.error(
+        `${pc.red("actionlint failed with exit code")} ${pc.bold(
+            pc.magenta(String(result.status))
+        )}.`
+    );
+    process.exit(result.status);
+}
+
+if (result.signal !== null) {
+    console.error(
+        `${pc.red("actionlint terminated by signal")} ${pc.bold(
+            pc.magenta(result.signal)
+        )}.`
+    );
     process.exit(1);
 }
 
