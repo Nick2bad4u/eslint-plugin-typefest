@@ -95,7 +95,6 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

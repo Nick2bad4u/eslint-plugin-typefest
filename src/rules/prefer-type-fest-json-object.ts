@@ -124,7 +124,6 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

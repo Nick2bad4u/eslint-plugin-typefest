@@ -54,7 +54,6 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

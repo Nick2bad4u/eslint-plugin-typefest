@@ -103,7 +103,6 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

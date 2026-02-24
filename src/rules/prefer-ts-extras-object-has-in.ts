@@ -74,7 +74,6 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

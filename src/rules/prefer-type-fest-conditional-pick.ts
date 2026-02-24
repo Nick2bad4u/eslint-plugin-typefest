@@ -71,7 +71,6 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

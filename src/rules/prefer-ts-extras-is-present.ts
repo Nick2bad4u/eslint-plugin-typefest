@@ -452,7 +452,6 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

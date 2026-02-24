@@ -76,7 +76,6 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

@@ -71,7 +71,6 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

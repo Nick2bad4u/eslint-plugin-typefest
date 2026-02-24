@@ -90,7 +90,6 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

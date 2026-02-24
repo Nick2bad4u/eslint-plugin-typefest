@@ -107,7 +107,6 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

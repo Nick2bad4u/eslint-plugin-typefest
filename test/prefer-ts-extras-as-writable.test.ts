@@ -203,7 +203,9 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('const filePath = context.filename ?? "";');
+        expect(ruleSource).toContain(
+            'const filePath = context.filename ?? "";'
+        );
         expect(ruleSource).toContain(
             'typeof statement.source.value === "string"'
         );
@@ -213,7 +215,7 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
             'specifier.imported.type === "Identifier" &&'
         );
         expect(ruleSource).toContain(
-            'specifier.imported.name === WRITABLE_TYPE_NAME'
+            "specifier.imported.name === WRITABLE_TYPE_NAME"
         );
         expect(ruleSource).toContain(
             'if (specifier.type === "ImportNamespaceSpecifier") {'
@@ -225,7 +227,7 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
             'typeAnnotation.typeName.right.type === "Identifier" &&'
         );
         expect(ruleSource).toContain(
-            'typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME'
+            "typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME"
         );
     });
 
@@ -241,9 +243,7 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
         expect(ruleSource).toContain('name: "prefer-ts-extras-as-writable"');
         expect(ruleSource).toContain("defaultOptions: []");
         expect(ruleSource).toContain("meta: {");
-        expect(ruleSource).toContain(
-            "const isWritableTypeReference = ("
-        );
+        expect(ruleSource).toContain("const isWritableTypeReference = (");
         expect(ruleSource).toContain(
             'if (typeAnnotation.type !== "TSTypeReference") {'
         );

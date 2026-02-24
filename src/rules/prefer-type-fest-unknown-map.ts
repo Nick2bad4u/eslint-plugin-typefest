@@ -104,7 +104,6 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

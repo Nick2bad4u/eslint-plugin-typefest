@@ -40,9 +40,9 @@ type TypefestConfigReference =
  */
 type TypefestRuleDocs = {
     recommended?:
-    | boolean
-    | readonly TypefestConfigReference[]
-    | TypefestConfigReference;
+        | boolean
+        | readonly TypefestConfigReference[]
+        | TypefestConfigReference;
 };
 
 /**

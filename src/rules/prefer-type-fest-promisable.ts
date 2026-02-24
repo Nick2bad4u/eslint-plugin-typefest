@@ -174,7 +174,6 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

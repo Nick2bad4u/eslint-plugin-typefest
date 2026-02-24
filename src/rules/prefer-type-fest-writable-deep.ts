@@ -55,7 +55,6 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

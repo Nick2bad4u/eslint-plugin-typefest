@@ -121,7 +121,6 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

@@ -71,7 +71,6 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

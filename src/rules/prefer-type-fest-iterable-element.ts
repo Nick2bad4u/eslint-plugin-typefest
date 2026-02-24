@@ -73,7 +73,6 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

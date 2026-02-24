@@ -64,7 +64,6 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

@@ -32,7 +32,7 @@ const createSourceCode = (
         },
     }) as unknown as Parameters<typeof collectImportedTypeAliasMatches>[0];
 
-const mapToRecord = <TValue> (
+const mapToRecord = <TValue>(
     map: Readonly<ReadonlyMap<string, TValue>>
 ): Readonly<Record<string, TValue>> => Object.fromEntries(map);
 
@@ -298,7 +298,7 @@ describe(collectImportedTypeAliasMatches, () => {
     });
 });
 
-function collectDirectNamedImportsFromSourceGroup (): void {
+function collectDirectNamedImportsFromSourceGroup(): void {
     // no-op
 }
 
@@ -354,7 +354,7 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
     });
 });
 
-function createSafeTypeReferenceReplacementFixGroup (): void {
+function createSafeTypeReferenceReplacementFixGroup(): void {
     // no-op
 }
 
@@ -467,7 +467,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
     });
 });
 
-function createSafeTypeNodeReplacementFixGroup (): void {
+function createSafeTypeNodeReplacementFixGroup(): void {
     // no-op
 }
 
@@ -513,7 +513,7 @@ describe(createSafeTypeNodeReplacementFixGroup, () => {
     });
 });
 
-function createSafeTypeNodeTextReplacementFixGroup (): void {
+function createSafeTypeNodeTextReplacementFixGroup(): void {
     // no-op
 }
 
@@ -561,7 +561,7 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
     });
 });
 
-function createSafeTypeNodeReplacementFixPreservingReadonlyGroup (): void {
+function createSafeTypeNodeReplacementFixPreservingReadonlyGroup(): void {
     // no-op
 }
 
@@ -597,7 +597,7 @@ describe(createSafeTypeNodeReplacementFixPreservingReadonlyGroup, () => {
     });
 });
 
-function createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup (): void {
+function createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup(): void {
     // no-op
 }
 

@@ -131,7 +131,6 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

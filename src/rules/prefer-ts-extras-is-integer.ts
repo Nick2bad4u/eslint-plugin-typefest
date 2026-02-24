@@ -64,7 +64,6 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:

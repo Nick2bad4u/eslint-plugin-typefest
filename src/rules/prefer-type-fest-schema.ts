@@ -71,7 +71,6 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             docs: {
                 description:
