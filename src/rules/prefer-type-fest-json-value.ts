@@ -97,6 +97,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

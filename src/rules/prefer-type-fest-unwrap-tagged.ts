@@ -75,6 +75,7 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

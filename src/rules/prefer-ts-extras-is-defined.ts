@@ -247,6 +247,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

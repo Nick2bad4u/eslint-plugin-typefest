@@ -108,6 +108,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

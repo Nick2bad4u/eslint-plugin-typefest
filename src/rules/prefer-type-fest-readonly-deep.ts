@@ -58,6 +58,7 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest ReadonlyDeep over `DeepReadonly` aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

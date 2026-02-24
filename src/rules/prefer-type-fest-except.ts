@@ -111,6 +111,7 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Except over Omit when removing properties from object types.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

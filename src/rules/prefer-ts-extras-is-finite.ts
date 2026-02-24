@@ -68,6 +68,7 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isFinite over Number.isFinite for consistent predicate helper usage.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

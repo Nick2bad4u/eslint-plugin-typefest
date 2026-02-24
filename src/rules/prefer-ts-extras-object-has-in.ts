@@ -78,6 +78,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

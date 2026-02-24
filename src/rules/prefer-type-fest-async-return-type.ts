@@ -123,6 +123,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

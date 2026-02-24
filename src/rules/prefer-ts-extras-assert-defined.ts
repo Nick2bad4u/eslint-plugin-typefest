@@ -201,6 +201,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

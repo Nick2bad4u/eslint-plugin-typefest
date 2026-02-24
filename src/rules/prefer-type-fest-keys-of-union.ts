@@ -75,6 +75,7 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

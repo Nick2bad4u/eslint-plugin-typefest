@@ -128,6 +128,7 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

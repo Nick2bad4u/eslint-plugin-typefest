@@ -76,6 +76,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

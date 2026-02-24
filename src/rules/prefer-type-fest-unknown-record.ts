@@ -80,6 +80,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

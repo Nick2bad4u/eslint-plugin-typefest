@@ -58,6 +58,7 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest MergeExclusive over `XOR` aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

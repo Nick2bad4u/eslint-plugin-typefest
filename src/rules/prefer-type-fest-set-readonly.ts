@@ -75,6 +75,7 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest SetReadonly over imported aliases such as ReadonlyBy.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

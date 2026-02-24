@@ -59,6 +59,7 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest WritableDeep over `DeepMutable` and `MutableDeep` aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

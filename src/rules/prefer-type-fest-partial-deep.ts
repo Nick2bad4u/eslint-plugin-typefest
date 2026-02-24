@@ -58,6 +58,7 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest PartialDeep over `DeepPartial` aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

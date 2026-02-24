@@ -75,6 +75,7 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest SetRequired over imported aliases such as RequiredBy.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

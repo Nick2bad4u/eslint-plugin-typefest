@@ -58,6 +58,7 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest RequiredDeep over `DeepRequired` aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

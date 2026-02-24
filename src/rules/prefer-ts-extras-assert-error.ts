@@ -160,6 +160,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras assertError over manual instanceof Error throw guards.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

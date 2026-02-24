@@ -79,6 +79,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest If + Is* utilities over deprecated If* aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -195,6 +195,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

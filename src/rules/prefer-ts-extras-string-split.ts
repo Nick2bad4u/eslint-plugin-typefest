@@ -97,6 +97,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras stringSplit over String#split for stronger tuple inference.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

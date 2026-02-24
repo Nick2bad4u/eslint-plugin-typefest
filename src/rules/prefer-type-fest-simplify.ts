@@ -76,6 +76,7 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Simplify over imported alias types like Prettify/Expand.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -99,6 +99,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Primitive over explicit primitive keyword unions.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

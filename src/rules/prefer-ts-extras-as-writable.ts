@@ -135,6 +135,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

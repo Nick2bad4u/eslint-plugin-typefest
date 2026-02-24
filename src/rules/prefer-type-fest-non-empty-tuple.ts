@@ -174,6 +174,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

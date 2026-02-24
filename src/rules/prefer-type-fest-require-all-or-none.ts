@@ -76,6 +76,7 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

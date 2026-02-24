@@ -68,6 +68,7 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

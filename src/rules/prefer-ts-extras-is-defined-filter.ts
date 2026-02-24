@@ -180,6 +180,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

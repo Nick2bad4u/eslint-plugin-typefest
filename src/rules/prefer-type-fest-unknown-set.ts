@@ -104,6 +104,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

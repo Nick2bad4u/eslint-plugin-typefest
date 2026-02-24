@@ -107,6 +107,7 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

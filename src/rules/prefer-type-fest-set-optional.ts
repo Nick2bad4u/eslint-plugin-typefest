@@ -75,6 +75,7 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest SetOptional over imported alias types like PartialBy.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

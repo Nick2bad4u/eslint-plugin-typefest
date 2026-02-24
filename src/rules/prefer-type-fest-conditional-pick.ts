@@ -75,6 +75,7 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest ConditionalPick over imported aliases such as PickByTypes.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -111,6 +111,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

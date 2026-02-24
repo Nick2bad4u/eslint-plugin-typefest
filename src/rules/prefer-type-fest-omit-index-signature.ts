@@ -75,6 +75,7 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

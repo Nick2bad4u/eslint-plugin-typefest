@@ -178,6 +178,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

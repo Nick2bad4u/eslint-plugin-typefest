@@ -75,6 +75,7 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest RequireAtLeastOne over imported aliases such as AtLeastOne.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

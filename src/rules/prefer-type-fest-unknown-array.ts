@@ -148,6 +148,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

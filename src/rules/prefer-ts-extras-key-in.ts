@@ -75,6 +75,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras keyIn over `in` key checks for stronger narrowing.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -182,6 +182,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

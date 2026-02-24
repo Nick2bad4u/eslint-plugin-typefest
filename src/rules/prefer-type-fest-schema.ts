@@ -75,6 +75,7 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Schema over imported aliases such as RecordDeep.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

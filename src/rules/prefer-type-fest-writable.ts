@@ -180,6 +180,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -231,6 +231,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isInfinite over direct Infinity equality checks for consistent predicate helper usage.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

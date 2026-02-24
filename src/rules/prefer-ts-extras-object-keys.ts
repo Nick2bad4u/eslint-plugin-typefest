@@ -68,6 +68,7 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectKeys over Object.keys for stronger key inference.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

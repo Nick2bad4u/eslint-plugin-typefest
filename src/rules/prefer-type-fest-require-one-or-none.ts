@@ -75,6 +75,7 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest RequireOneOrNone over imported aliases such as AtMostOne.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

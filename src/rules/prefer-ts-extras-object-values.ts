@@ -68,6 +68,7 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectValues over Object.values for stronger value inference.",
+                frozen: false,
                 recommended: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
