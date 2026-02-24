@@ -81,7 +81,7 @@ applyTo: "**"
   - Use the todo list tooling (`manage_todo_list`) to track complex rule implementations.
   - Break down AST traversal logic into small, testable utility functions.
 - **Error Handling:** When parsing weird syntax, fail gracefully. Do not crash the linter process.
-- If you are getting truncated or large output from any command, you should redirect the command to a file and read it using proper tools. Put these files in the `temp/` directory and clean them up when done.
+- If you are getting truncated or large output from any command, you should redirect the command to a file and read it using proper tools. Put these files in the `temp/` directory. This folder is automatically cleared between prompts, so it is safe to use for temporary storage of command outputs.
 - When finishing a task or request, review everything from the lens of code quality, maintainability, readability, and adherence to best practices. If you identify any issues or areas for improvement, address them before finalizing the task.
 - Always prioritize code quality, maintainability, readability, and adherence to best practices over speed or convenience. Never cut corners or take shortcuts that would compromise these principles.
 - Sometimes you may need to take other steps that aren't explicitly requests (running tests, checking for type errors, etc) in order to ensure the quality of your work. Always take these steps when needed, even if they aren't explicitly requested.
