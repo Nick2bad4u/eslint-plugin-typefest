@@ -166,6 +166,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
+                recommended: "typefest.configs.all",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md",
             },
             hasSuggestions: true,

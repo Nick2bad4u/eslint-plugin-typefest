@@ -79,6 +79,13 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-unknown-record.md",
             },
             fixable: "code",

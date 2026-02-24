@@ -136,6 +136,10 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-as-writable.md",
             },
             fixable: "code",

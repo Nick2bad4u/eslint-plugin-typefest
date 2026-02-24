@@ -9,7 +9,7 @@ import builtPlugin from "./dist/plugin.js";
  * }}
  */
 const normalizedBuiltPlugin =
-    builtPlugin && typeof builtPlugin === "object" ? builtPlugin : {};
+    typeof builtPlugin === "object" && builtPlugin !== null ? builtPlugin : {};
 
 const {
     configs = {},

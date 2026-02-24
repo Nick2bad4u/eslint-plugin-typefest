@@ -62,6 +62,12 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-own.md",
             },
             fixable: "code",

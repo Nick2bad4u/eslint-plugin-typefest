@@ -108,6 +108,7 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayFind over Array#find for stronger predicate inference.",
+                recommended: "typefest.configs.all",
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-find.md",
             },
             fixable: "code",

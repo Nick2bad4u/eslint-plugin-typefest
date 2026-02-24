@@ -130,6 +130,12 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-safe-cast-to.md",
             },
             fixable: "code",

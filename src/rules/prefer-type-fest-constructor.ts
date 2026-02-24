@@ -59,6 +59,12 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Constructor over explicit `new (...) => ...` constructor signatures.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-constructor.md",
             },
             fixable: "code",

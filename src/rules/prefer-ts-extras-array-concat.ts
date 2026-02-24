@@ -108,6 +108,10 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-concat.md",
             },
             fixable: "code",

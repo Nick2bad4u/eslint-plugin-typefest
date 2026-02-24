@@ -174,6 +174,12 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-non-empty-tuple.md",
             },
             fixable: "code",

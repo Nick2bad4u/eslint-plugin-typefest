@@ -115,7 +115,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             messageId?: string;
             node?: unknown;
         }[] = [];
-        const replacementFixCalls: Array<readonly unknown[]> = [];
+        const replacementFixCalls: (readonly unknown[])[] = [];
 
         try {
             vi.resetModules();
@@ -127,7 +127,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: (...parameters: Readonly<unknown[]>) => {
+                createSafeTypeNodeReplacementFix: (...parameters: readonly unknown[]) => {
                     replacementFixCalls.push(parameters);
 
                     return null;

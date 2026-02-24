@@ -134,7 +134,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
-        const replacementFixCalls: Array<readonly unknown[]> = [];
+        const replacementFixCalls: (readonly unknown[])[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -153,7 +153,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
         });
         const createTypeReferenceNode = (
             referenceName: string,
-            genericArguments: Readonly<unknown[]> = [],
+            genericArguments: readonly unknown[] = [],
             text = referenceName
         ) => ({
             text,
@@ -166,7 +166,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                     },
             typeName: createIdentifierNode(referenceName),
         });
-        const createUnionNode = (...types: Readonly<unknown[]>) => ({
+        const createUnionNode = (...types: readonly unknown[]) => ({
             type: "TSUnionType",
             types,
         });
@@ -182,7 +182,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
                 collectDirectNamedImportsFromSource: () => new Set<string>(),
                 createSafeTypeNodeTextReplacementFix: (
-                    ...parameters: Readonly<unknown[]>
+                    ...parameters: readonly unknown[]
                 ) => {
                     replacementFixCalls.push(parameters);
 

@@ -327,6 +327,12 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras assertPresent over manual nullish-guard throw blocks.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-present.md",
             },
             fixable: "code",

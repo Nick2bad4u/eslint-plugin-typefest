@@ -177,8 +177,8 @@ const getLiteralUnionReplacementText = (
         literalMembers.length === 1
             ? sourceCode.getText(literalMembers[0])
             : literalMembers
-                  .map((member) => sourceCode.getText(member))
-                  .join(" | ");
+                .map((member) => sourceCode.getText(member))
+                .join(" | ");
 
     return `LiteralUnion<${literalText}, ${family}>`;
 };
@@ -191,7 +191,7 @@ const getLiteralUnionReplacementText = (
  */
 const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
-        create(context) {
+        create (context) {
             const filePath = context.filename ?? "";
 
             if (isTestFilePath(filePath)) {
@@ -204,7 +204,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSUnionType(node) {
+                TSUnionType (node) {
                     if (!hasLiteralUnionShape(node)) {
                         return;
                     }
@@ -221,7 +221,10 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                         family
                     );
 
-                    if (!replacementText) {
+                    if (
+                        replacementText === null ||
+                        replacementText.length === 0
+                    ) {
                         return;
                     }
 
@@ -245,6 +248,12 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-literal-union.md",
             },
             fixable: "code",

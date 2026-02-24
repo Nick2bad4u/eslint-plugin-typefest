@@ -19,12 +19,40 @@ type TypedRuleServices = {
 };
 
 /**
+ * Fully-qualified preset references used in rule docs metadata.
+ */
+type TypefestConfigReference =
+    | "typefest.configs.all"
+    | "typefest.configs.minimal"
+    | "typefest.configs.recommended"
+    | "typefest.configs.strict"
+    | "typefest.configs.ts-extras/type-guards"
+    | "typefest.configs.type-fest/types"
+    | "typefest.configs[\"ts-extras/type-guards\"]"
+    | "typefest.configs[\"type-fest/types\"]";
+
+/**
+ * Plugin-specific metadata extensions for `meta.docs`.
+ *
+ * @remarks
+ * `eslint-plugin/require-meta-docs-recommended` expects this field and the
+ * repository config allows non-boolean values for multi-preset tagging.
+ */
+type TypefestRuleDocs = {
+    recommended?:
+    | boolean
+    | readonly TypefestConfigReference[]
+    | TypefestConfigReference;
+};
+
+/**
  * Create typed rules with docs URLs that point to this repository's rule docs.
  */
-export const createTypedRule: ReturnType<typeof ESLintUtils.RuleCreator> =
-    ESLintUtils.RuleCreator(
-        (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
-    );
+export const createTypedRule: ReturnType<
+    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
+> = ESLintUtils.RuleCreator<TypefestRuleDocs>(
+    (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
+);
 
 /**
  * Retrieve parser services and type checker for typed rules.

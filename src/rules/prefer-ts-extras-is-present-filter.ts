@@ -380,6 +380,13 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present-filter.md",
             },
             fixable: "code",

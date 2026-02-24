@@ -179,6 +179,13 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-arrayable.md",
             },
             fixable: "code",

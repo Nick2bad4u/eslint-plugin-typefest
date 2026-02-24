@@ -148,6 +148,10 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-first.md",
             },
             fixable: "code",

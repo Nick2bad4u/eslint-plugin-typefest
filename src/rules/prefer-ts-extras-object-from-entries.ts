@@ -69,6 +69,10 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectFromEntries over Object.fromEntries for stronger key/value inference.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-from-entries.md",
             },
             fixable: "code",

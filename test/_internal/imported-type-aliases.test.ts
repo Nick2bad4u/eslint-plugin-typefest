@@ -22,7 +22,7 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
 };
 
 const createSourceCode = (
-    body: Readonly<unknown[]>
+    body: readonly unknown[]
 ): Parameters<typeof collectImportedTypeAliasMatches>[0] =>
     ({
         ast: {
@@ -30,7 +30,7 @@ const createSourceCode = (
         },
     }) as unknown as Parameters<typeof collectImportedTypeAliasMatches>[0];
 
-const mapToRecord = <TValue>(
+const mapToRecord = <TValue> (
     map: Readonly<ReadonlyMap<string, TValue>>
 ): Readonly<Record<string, TValue>> => Object.fromEntries(map);
 
@@ -59,7 +59,7 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     type: "ImportSpecifier",
 });
 
-const createImportDeclaration = (specifiers: Readonly<unknown[]>): unknown => ({
+const createImportDeclaration = (specifiers: readonly unknown[]): unknown => ({
     source: {
         value: "type-aliases",
     },
@@ -77,7 +77,7 @@ const createTypeReferenceNode = (
             name: referenceName,
             type: "Identifier",
         },
-        ...(parent ? { parent } : {}),
+        ...(parent === undefined ? {} : { parent }),
     }) as unknown as Parameters<
         typeof createSafeTypeReferenceReplacementFix
     >[0];
@@ -131,7 +131,7 @@ const createSafeTypeNodeTextReplacementFixFn: (
     createSafeTypeNodeTextReplacementFix;
 
 const createTypeParameterDeclarationWithNames = (
-    ...parameterNames: Readonly<string[]>
+    ...parameterNames: readonly string[]
 ): {
     params: {
         name: {
@@ -153,7 +153,7 @@ const createTypeNode = (
 ): Parameters<typeof createSafeTypeNodeReplacementFix>[0] =>
     ({
         type: "TSStringKeyword",
-        ...(parent ? { parent } : {}),
+        ...(parent === undefined ? {} : { parent }),
     }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
 
 describe(collectImportedTypeAliasMatches, () => {
@@ -250,7 +250,7 @@ describe(collectImportedTypeAliasMatches, () => {
     });
 });
 
-function collectDirectNamedImportsFromSourceGroup(): void {
+function collectDirectNamedImportsFromSourceGroup (): void {
     // no-op
 }
 
@@ -306,7 +306,7 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
     });
 });
 
-function createSafeTypeReferenceReplacementFixGroup(): void {
+function createSafeTypeReferenceReplacementFixGroup (): void {
     // no-op
 }
 
@@ -419,7 +419,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
     });
 });
 
-function createSafeTypeNodeReplacementFixGroup(): void {
+function createSafeTypeNodeReplacementFixGroup (): void {
     // no-op
 }
 
@@ -465,7 +465,7 @@ describe(createSafeTypeNodeReplacementFixGroup, () => {
     });
 });
 
-function createSafeTypeNodeTextReplacementFixGroup(): void {
+function createSafeTypeNodeTextReplacementFixGroup (): void {
     // no-op
 }
 

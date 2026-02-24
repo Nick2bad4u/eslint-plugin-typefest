@@ -112,6 +112,13 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Except over Omit when removing properties from object types.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-except.md",
             },
             fixable: "code",

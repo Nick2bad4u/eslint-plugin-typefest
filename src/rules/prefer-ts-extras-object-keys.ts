@@ -69,6 +69,10 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras objectKeys over Object.keys for stronger key inference.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md",
             },
             fixable: "code",

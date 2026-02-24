@@ -161,6 +161,12 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras assertError over manual instanceof Error throw guards.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-error.md",
             },
             hasSuggestions: true,

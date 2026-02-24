@@ -22,7 +22,7 @@ const typedFixturesRoot = repoPath("test", "fixtures", "typed");
  *
  * @returns Absolute fixture path.
  */
-export const typedFixturePath = (...segments: Readonly<string[]>): string =>
+export const typedFixturePath = (...segments: readonly string[]): string =>
     path.join(typedFixturesRoot, ...segments);
 
 /**
@@ -32,7 +32,7 @@ export const typedFixturePath = (...segments: Readonly<string[]>): string =>
  *
  * @returns Fixture source text.
  */
-export const readTypedFixture = (...segments: Readonly<string[]>): string =>
+export const readTypedFixture = (...segments: readonly string[]): string =>
     readFileSync(typedFixturePath(...segments), "utf8");
 
 /**

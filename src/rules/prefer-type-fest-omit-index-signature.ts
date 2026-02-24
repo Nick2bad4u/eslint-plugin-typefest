@@ -76,6 +76,12 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest OmitIndexSignature over imported aliases such as RemoveIndexSignature.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-omit-index-signature.md",
             },
             fixable: "code",

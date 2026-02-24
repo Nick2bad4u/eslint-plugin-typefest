@@ -76,6 +76,12 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras keyIn over `in` key checks for stronger narrowing.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-key-in.md",
             },
             fixable: "code",

@@ -241,7 +241,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             const getRequiredUnion = (aliasName: string): unknown => {
                 const unionNode = unionByAliasName.get(aliasName);
 
-                if (!unionNode) {
+                if (unionNode === undefined) {
                     throw new Error(`Expected union type alias '${aliasName}'`);
                 }
 

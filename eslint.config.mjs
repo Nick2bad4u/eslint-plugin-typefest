@@ -202,7 +202,12 @@ const fileProgressOverridesConfig = {
     },
 };
 
-if (!processEnvironment["RECHECK_JAR"]) {
+const configuredRecheckJar = processEnvironment["RECHECK_JAR"];
+
+if (
+    typeof configuredRecheckJar !== "string" ||
+    configuredRecheckJar.length === 0
+) {
     const resolvedRecheckJarPath = (() => {
         try {
             return require.resolve("recheck-jar/recheck.jar");
@@ -213,7 +218,10 @@ if (!processEnvironment["RECHECK_JAR"]) {
             return undefined;
         }
     })();
-    if (resolvedRecheckJarPath) {
+    if (
+        typeof resolvedRecheckJarPath === "string" &&
+        resolvedRecheckJarPath.length > 0
+    ) {
         processEnvironment["RECHECK_JAR"] = path.normalize(
             resolvedRecheckJarPath
         );
@@ -346,17 +354,19 @@ export default defineConfig([
     ...fixupConfigRules(pluginCasePolice.configs.recommended).map((config) => ({
         ...config,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-        name: config.name
-            ? `Case police (code files only): ${config.name}`
-            : "Case police (code files only)",
+        name:
+            typeof config.name === "string" && config.name.length > 0
+                ? `Case police (code files only): ${config.name}`
+                : "Case police (code files only)",
     })),
     ...jsdocPlugin.configs["examples-and-default-expressions"].map(
         (config) => ({
             ...config,
             files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-            name: config.name
-                ? `JSDoc examples/default expressions (code files only): ${config.name}`
-                : "JSDoc examples/default expressions (code files only)",
+            name:
+                typeof config.name === "string" && config.name.length > 0
+                    ? `JSDoc examples/default expressions (code files only): ${config.name}`
+                    : "JSDoc examples/default expressions (code files only)",
         })
     ),
     // #endregion
@@ -904,7 +914,11 @@ export default defineConfig([
                         },
                         {
                             from: "package",
-                            name: ["Signature", "Type", "TypeChecker"],
+                            name: [
+                                "Signature",
+                                "Type",
+                                "TypeChecker",
+                            ],
                             package: "typescript",
                         },
                     ],
@@ -1037,7 +1051,9 @@ export default defineConfig([
             "eslint-plugin/report-message-format": "warn",
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
-            "eslint-plugin/require-meta-docs-recommended": "warn",
+            "eslint-plugin/require-meta-docs-recommended": ["warn",
+                { allowNonBoolean: true },
+            ],
             "eslint-plugin/require-meta-docs-url": "error",
             "eslint-plugin/require-meta-fixable": "error",
             "eslint-plugin/require-meta-has-suggestions": "error",

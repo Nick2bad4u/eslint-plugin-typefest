@@ -174,6 +174,13 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-defined-filter.md",
             },
             fixable: "code",

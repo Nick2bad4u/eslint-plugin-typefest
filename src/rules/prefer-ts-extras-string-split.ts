@@ -98,6 +98,10 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras stringSplit over String#split for stronger tuple inference.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-string-split.md",
             },
             fixable: "code",

@@ -91,6 +91,12 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-value-of.md",
             },
             fixable: "code",

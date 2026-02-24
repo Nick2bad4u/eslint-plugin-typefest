@@ -181,6 +181,12 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-not.md",
             },
             fixable: "code",

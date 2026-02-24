@@ -202,6 +202,12 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"ts-extras/type-guards\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-assert-defined.md",
             },
             fixable: "code",

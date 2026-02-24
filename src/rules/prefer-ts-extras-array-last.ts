@@ -194,6 +194,10 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-last.md",
             },
             fixable: "code",

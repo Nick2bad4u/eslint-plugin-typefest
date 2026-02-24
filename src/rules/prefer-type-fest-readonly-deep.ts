@@ -59,6 +59,12 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest ReadonlyDeep over `DeepReadonly` aliases.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-readonly-deep.md",
             },
             fixable: "code",

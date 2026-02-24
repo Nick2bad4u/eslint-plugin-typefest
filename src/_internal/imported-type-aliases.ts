@@ -57,7 +57,10 @@ export const collectImportedTypeAliasMatches = (
 
             const replacementName =
                 replacementsByImportedName[specifier.imported.name];
-            if (!replacementName) {
+            if (
+                typeof replacementName !== "string" ||
+                replacementName.length === 0
+            ) {
                 continue;
             }
 

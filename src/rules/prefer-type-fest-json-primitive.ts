@@ -124,6 +124,13 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
+                recommended: [
+                    "typefest.configs.minimal",
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-json-primitive.md",
             },
             fixable: "code",

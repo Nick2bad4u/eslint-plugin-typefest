@@ -37,9 +37,10 @@ const deriveGeneratedCaseName = (
             : pc.bold(pc.green("valid")),
         pc.underline(pc.yellow(`#${String(caseIndex + 1)}`)),
     ].join(" ");
-    const caseSource = caseFilename
-        ? pc.underline(pc.cyan(path.basename(caseFilename)))
-        : pc.underline(pc.blue(ruleName));
+    const caseSource =
+        typeof caseFilename === "string" && caseFilename.length > 0
+            ? pc.underline(pc.cyan(path.basename(caseFilename)))
+            : pc.underline(pc.blue(ruleName));
 
     return `${caseSource}${pc.dim(" - ")}${caseLabel}`;
 };
@@ -50,7 +51,7 @@ const withGeneratedRuleCaseNames = (
 ): RuleRunCases => {
     const normalizedInvalidCases: RuleRunCases["invalid"] =
         runCases.invalid.map((entry: Readonly<RuleRunInvalidCase>, caseIndex) =>
-            entry.name
+            typeof entry.name === "string" && entry.name.length > 0
                 ? {
                     ...entry,
                     name: pc.bold(pc.cyanBright(entry.name)),
@@ -75,7 +76,7 @@ const withGeneratedRuleCaseNames = (
                 };
             }
 
-            if (entry.name) {
+            if (typeof entry.name === "string" && entry.name.length > 0) {
                 return {
                     ...entry,
                     name: pc.bold(pc.cyanBright(entry.name)),
@@ -106,7 +107,7 @@ const patchRuleTesterRunWithGeneratedCaseNames = (
     const writableTester = tester as RuleTester;
     const originalRun = writableTester.run.bind(writableTester);
     writableTester.run = ((ruleName, ruleModule, runCases) => {
-        (originalRun as (...args: Readonly<unknown[]>) => void)(
+        (originalRun as (...args: readonly unknown[]) => void)(
             ruleName,
             ruleModule,
             withGeneratedRuleCaseNames(ruleName, runCases)
@@ -134,7 +135,7 @@ export const applySharedRuleTesterRunBehavior = (
  *
  * @returns Absolute path rooted at the current workspace.
  */
-export const repoPath = (...segments: Readonly<string[]>): string =>
+export const repoPath = (...segments: readonly string[]): string =>
     path.join(process.cwd(), ...segments);
 
 /**

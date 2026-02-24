@@ -160,6 +160,12 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-tagged-brands.md",
             },
             fixable: "code",

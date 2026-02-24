@@ -108,6 +108,10 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-join.md",
             },
             fixable: "code",

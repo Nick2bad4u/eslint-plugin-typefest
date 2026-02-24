@@ -15,7 +15,7 @@ type RuleContext = Parameters<
 >[0]["context"];
 
 const createSourceCode = (
-    body: Readonly<unknown[]>
+    body: readonly unknown[]
 ): Parameters<typeof collectDirectNamedValueImportsFromSource>[0] =>
     ({
         ast: {
@@ -44,7 +44,7 @@ const createImportSpecifier = (
 
 const createImportDeclaration = (
     sourceValue: string,
-    specifiers: Readonly<unknown[]>,
+    specifiers: readonly unknown[],
     importKind: "type" | "value" = "value"
 ): unknown => ({
     importKind,
@@ -88,9 +88,9 @@ const createRuleContextWithVariables = (
             typeof node === "object" &&
             node !== null &&
             "_text" in node &&
-            typeof (node as { _text: unknown })._text === "string"
+            typeof (node as { _text: unknown; })._text === "string"
         ) {
-            return (node as { _text: string })._text;
+            return (node as { _text: string; })._text;
         }
 
         return "";
@@ -128,7 +128,7 @@ const createRuleContext = (
 
 const createImportsMap = (
     importedName: string,
-    ...localNames: Readonly<string[]>
+    ...localNames: readonly string[]
 ): ReadonlyMap<string, ReadonlySet<string>> =>
     new Map([[importedName, new Set(localNames)]]);
 

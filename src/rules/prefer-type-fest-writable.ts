@@ -181,6 +181,12 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
             docs: {
                 description:
                     "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
+                recommended: [
+                    "typefest.configs.recommended",
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                    "typefest.configs[\"type-fest/types\"]",
+                ],
                 url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md",
             },
             fixable: "code",
