@@ -98,9 +98,9 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                         );
 
                     context.report({
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferExcept",
                         node,
                     });

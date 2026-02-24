@@ -63,9 +63,9 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferRequireAllOrNone",
                         node,
                     });

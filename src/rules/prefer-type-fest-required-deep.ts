@@ -45,9 +45,9 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                         );
 
                     context.report({
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferRequiredDeep",
                         node,
                     });

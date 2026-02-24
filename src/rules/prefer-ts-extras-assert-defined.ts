@@ -158,7 +158,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    if (!replacementFix) {
+                    if (replacementFix === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertDefined",
                             node,

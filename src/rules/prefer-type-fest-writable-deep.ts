@@ -46,9 +46,9 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                         );
 
                     context.report({
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferWritableDeep",
                         node,
                     });

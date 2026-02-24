@@ -45,9 +45,9 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
                         );
 
                     context.report({
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferMergeExclusive",
                         node,
                     });

@@ -45,9 +45,9 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
                         );
 
                     context.report({
-                        ...(aliasReplacementFix
-                            ? { fix: aliasReplacementFix }
-                            : {}),
+                        ...(aliasReplacementFix === null
+                            ? {}
+                            : { fix: aliasReplacementFix }),
                         messageId: "preferPartialDeep",
                         node,
                     });

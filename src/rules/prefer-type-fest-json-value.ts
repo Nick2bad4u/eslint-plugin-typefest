@@ -71,7 +71,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                             typeFestDirectImports
                         );
 
-                    if (!jsonObjectSuggestionFix) {
+                    if (jsonObjectSuggestionFix === null) {
                         context.report({
                             messageId: "preferJsonValue",
                             node,
