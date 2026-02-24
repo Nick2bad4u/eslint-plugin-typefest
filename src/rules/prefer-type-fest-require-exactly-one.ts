@@ -72,6 +72,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -101,3 +102,4 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-exactly-one` rule module.
  */
 export default preferTypeFestRequireExactlyOneRule;
+

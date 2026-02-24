@@ -170,6 +170,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -199,3 +200,4 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-non-empty-tuple` rule module.
  */
 export default preferTypeFestNonEmptyTupleRule;
+

@@ -76,6 +76,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -106,3 +107,4 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-record` rule module.
  */
 export default preferTypeFestUnknownRecordRule;
+

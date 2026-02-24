@@ -131,6 +131,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -158,3 +159,4 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-as-writable` rule module.
  */
 export default preferTsExtrasAsWritableRule;
+

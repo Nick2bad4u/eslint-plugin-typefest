@@ -144,6 +144,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -173,3 +174,4 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-array` rule module.
  */
 export default preferTypeFestUnknownArrayRule;
+

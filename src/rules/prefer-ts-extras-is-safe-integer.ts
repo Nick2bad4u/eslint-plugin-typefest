@@ -64,6 +64,7 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -93,3 +94,4 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-safe-integer` rule module.
  */
 export default preferTsExtrasIsSafeIntegerRule;
+

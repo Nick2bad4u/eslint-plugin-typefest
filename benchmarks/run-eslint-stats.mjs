@@ -1,6 +1,6 @@
 import { ESLint } from "eslint";
 import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 import { performance } from "node:perf_hooks";
 
 import {
@@ -124,7 +124,7 @@ const parseIntegerArgument = (key, fallbackValue) => {
     const matchingArgument = process.argv.find((argument) =>
         argument.startsWith(`--${key}=`)
     );
-    if (!matchingArgument) {
+    if (matchingArgument === undefined) {
         return fallbackValue;
     }
 
@@ -157,14 +157,174 @@ const createBenchmarkEslint = ({ fix, rules }) =>
     });
 
 /**
+ * Narrow unknown values to object records.
+ *
+ * @param {unknown} value - Value to inspect.
+ *
+ * @returns {value is Record<string, unknown>} Whether value is object-like.
+ */
+const isObjectRecord = (value) => typeof value === "object" && value !== null;
+
+/**
+ * Extract lint passes from ESLint result stats.
+ *
+ * @param {LintResult} lintResult - ESLint lint result.
+ *
+ * @returns {readonly unknown[]} ESLint pass payloads.
+ */
+const getLintPasses = (lintResult) => {
+    const stats = lintResult.stats;
+    if (!isObjectRecord(stats)) {
+        return [];
+    }
+
+    const times = stats.times;
+    if (!isObjectRecord(times)) {
+        return [];
+    }
+
+    const passes = times.passes;
+    return Array.isArray(passes) ? passes : [];
+};
+
+/**
+ * Normalize timing payloads to milliseconds.
+ *
+ * @param {unknown} timingPayload - Arbitrary timing payload.
+ *
+ * @returns {number} Timing total in milliseconds.
+ */
+const getTimingTotalMilliseconds = (timingPayload) => {
+    if (!isObjectRecord(timingPayload)) {
+        return 0;
+    }
+
+    const total = timingPayload["total"];
+    return typeof total === "number" ? total : 0;
+};
+
+/**
+ * Extract a phase timing (`parse`, `fix`) from a lint pass.
+ *
+ * @param {unknown} pass - ESLint pass payload.
+ * @param {"fix" | "parse"} phaseName - Pass phase field name.
+ *
+ * @returns {number} Phase timing in milliseconds.
+ */
+const getPassPhaseTimingMilliseconds = (pass, phaseName) => {
+    if (!isObjectRecord(pass)) {
+        return 0;
+    }
+
+    return getTimingTotalMilliseconds(pass[phaseName]);
+};
+
+/**
+ * Extract pass rule timing record.
+ *
+ * @param {unknown} pass - ESLint pass payload.
+ *
+ * @returns {null | Record<string, unknown>} Rule timing map when available.
+ */
+const getPassRules = (pass) => {
+    if (!isObjectRecord(pass)) {
+        return null;
+    }
+
+    const rules = pass.rules;
+    return isObjectRecord(rules) ? rules : null;
+};
+
+/**
+ * Sum numeric samples.
+ */
+const runtimeMath =
+    /** @type {Math & { sumPrecise: (items: Iterable<number>) => number }} */ (
+        Math
+    );
+
+/**
+ * Sum numeric samples.
+ *
+ * @param {readonly number[]} values - Numeric samples.
+ *
+ * @returns {number} Sum of all values.
+ */
+const sum = (values) => {
+    if (values.length === 0) {
+        return 0;
+    }
+
+    return runtimeMath.sumPrecise(values);
+};
+
+/**
+ * Safely divide two numbers and return `undefined` when denominator is zero.
+ *
+ * @param {number} numerator - Numerator.
+ * @param {number} denominator - Denominator.
+ *
+ * @returns {number | undefined} Quotient when denominator is non-zero.
+ */
+const divide = (numerator, denominator) =>
+    // eslint-disable-next-line total-functions/no-partial-division -- Guard above guarantees denominator is non-zero on this branch.
+    denominator === 0 ? undefined : numerator / denominator;
+
+/**
+ * Sort values without mutating native prototype methods like `.sort()`.
+ *
+ * @template T
+ *
+ * @param {readonly T[]} values - Values to sort.
+ * @param {(left: T, right: T) => number} compare - Comparator callback.
+ *
+ * @returns {T[]} New sorted array.
+ */
+const sortValues = (values, compare) => {
+    const sortedValues = [...values];
+
+    for (
+        let currentIndex = 1;
+        currentIndex < sortedValues.length;
+        currentIndex += 1
+    ) {
+        const currentValue = sortedValues[currentIndex];
+        let scanIndex = currentIndex - 1;
+
+        while (
+            scanIndex >= 0 &&
+            compare(sortedValues[scanIndex], currentValue) > 0
+        ) {
+            sortedValues[scanIndex + 1] = sortedValues[scanIndex];
+            scanIndex -= 1;
+        }
+
+        sortedValues[scanIndex + 1] = currentValue;
+    }
+
+    return sortedValues;
+};
+
+/**
+ * Accumulate a single rule timing into a totals map.
+ *
+ * @param {Map<string, number>} ruleTotals - Existing totals map.
+ * @param {string} ruleName - Rule identifier.
+ * @param {number} ruleTotal - Rule timing to add.
+ */
+const addRuleTiming = (ruleTotals, ruleName, ruleTotal) => {
+    const currentTotal = ruleTotals.get(ruleName) ?? 0;
+    ruleTotals.set(ruleName, currentTotal + ruleTotal);
+};
+
+/**
  * Calculate arithmetic mean from numeric samples.
  *
  * @param {readonly number[]} values - Numeric samples.
  *
  * @returns {number} Mean value.
  */
-const mean = (values) =>
-    Math.sumPrecise(values) / values.length;
+const mean = (values) => divide(sum(values), values.length) ?? 0;
 
 /**
  * Calculate median from numeric samples.
@@ -174,11 +334,17 @@ const mean = (values) =>
  * @returns {number} Median value.
  */
 const median = (values) => {
-    const sortedValues = [...values].sort((left, right) => left - right);
+    if (values.length === 0) {
+        return 0;
+    }
+
+    const sortedValues = sortValues(values, (left, right) => left - right);
     const middleIndex = Math.floor(sortedValues.length / 2);
 
     if (sortedValues.length % 2 === 0) {
-        return (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
+        return (
+            (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) * 0.5
+        );
     }
 
     return sortedValues[middleIndex];
@@ -197,27 +363,15 @@ const aggregateTimingBreakdown = (lintResults) => {
     let ruleMilliseconds = 0;
 
     for (const lintResult of lintResults) {
-        const passes = lintResult.stats?.times?.passes;
-        if (!Array.isArray(passes)) {
-            continue;
-        }
+        for (const pass of getLintPasses(lintResult)) {
+            parseMilliseconds += getPassPhaseTimingMilliseconds(pass, "parse");
+            fixMilliseconds += getPassPhaseTimingMilliseconds(pass, "fix");
 
-        for (const pass of passes) {
-            parseMilliseconds +=
-                typeof pass?.parse?.total === "number" ? pass.parse.total : 0;
-            fixMilliseconds +=
-                typeof pass?.fix?.total === "number" ? pass.fix.total : 0;
-
-            const passRules = pass?.rules;
-            if (typeof passRules !== "object" || passRules === null) {
-                continue;
-            }
-
-            for (const ruleTiming of Object.values(passRules)) {
-                ruleMilliseconds +=
-                    typeof ruleTiming?.total === "number"
-                        ? ruleTiming.total
-                        : 0;
+            const passRules = getPassRules(pass);
+            if (passRules !== null) {
+                for (const ruleTiming of Object.values(passRules)) {
+                    ruleMilliseconds += getTimingTotalMilliseconds(ruleTiming);
+                }
             }
         }
     }
@@ -242,30 +396,23 @@ const collectTopRuleTimings = (lintResults, topCount = 8) => {
     const ruleTotals = new Map();
 
     for (const lintResult of lintResults) {
-        const passes = lintResult.stats?.times?.passes;
-        if (!Array.isArray(passes)) {
-            continue;
-        }
-
-        for (const pass of passes) {
-            const passRules = pass?.rules;
-            if (typeof passRules !== "object" || passRules === null) {
-                continue;
-            }
-
-            for (const [ruleName, ruleTiming] of Object.entries(passRules)) {
-                const ruleTotal =
-                    typeof ruleTiming?.total === "number"
-                        ? ruleTiming.total
-                        : 0;
-                const previousTotal = ruleTotals.get(ruleName) ?? 0;
-                ruleTotals.set(ruleName, previousTotal + ruleTotal);
+        for (const pass of getLintPasses(lintResult)) {
+            const passRules = getPassRules(pass);
+            if (passRules !== null) {
+                for (const [ruleName, ruleTiming] of Object.entries(
+                    passRules
+                )) {
+                    const ruleTotal = getTimingTotalMilliseconds(ruleTiming);
+                    addRuleTiming(ruleTotals, ruleName, ruleTotal);
+                }
             }
         }
     }
 
-    return [...ruleTotals.entries()]
-        .sort((left, right) => right[1] - left[1])
+    return sortValues(
+        [...ruleTotals.entries()],
+        (left, right) => right[1] - left[1]
+    )
         .slice(0, topCount)
         .map(([ruleName, totalMilliseconds]) => ({
             ruleName,
@@ -319,9 +466,7 @@ const runScenario = async ({
 
         if (iteration >= warmupIterations) {
             measuredDurations.push(elapsedMilliseconds);
-            if (referenceLintResults === null) {
-                referenceLintResults = lintResults;
-            }
+            referenceLintResults ??= lintResults;
         }
     }
 

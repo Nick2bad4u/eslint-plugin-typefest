@@ -71,6 +71,7 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-readonly` rule module.
  */
 export default preferTypeFestSetReadonlyRule;
+

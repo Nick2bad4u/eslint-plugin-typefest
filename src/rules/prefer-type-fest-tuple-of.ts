@@ -113,6 +113,7 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -139,3 +140,4 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     });
 
 export default preferTypeFestTupleOfRule;
+

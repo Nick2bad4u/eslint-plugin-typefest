@@ -104,6 +104,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -133,3 +134,4 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-map` rule module.
  */
 export default preferTypeFestUnknownMapRule;
+

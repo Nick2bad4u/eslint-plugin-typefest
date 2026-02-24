@@ -43,6 +43,69 @@ const expensiveBenchmarkOptions = Object.freeze({
 });
 
 /**
+ * Narrow unknown values to object records.
+ *
+ * @param {unknown} value - Value to inspect.
+ *
+ * @returns {value is Record<string, unknown>} Whether the value is object-like.
+ */
+const isObjectRecord = (value) => typeof value === "object" && value !== null;
+
+/**
+ * Read `stats.times.passes` from an ESLint lint result.
+ *
+ * @param {LintResult} lintResult - ESLint lint result.
+ *
+ * @returns {readonly unknown[]} Lint passes (or empty array when unavailable).
+ */
+const getLintPasses = (lintResult) => {
+    const stats = lintResult.stats;
+    if (!isObjectRecord(stats)) {
+        return [];
+    }
+
+    const times = stats.times;
+    if (!isObjectRecord(times)) {
+        return [];
+    }
+
+    const passes = times.passes;
+    return Array.isArray(passes) ? passes : [];
+};
+
+/**
+ * Read per-rule timing object from a lint pass.
+ *
+ * @param {unknown} pass - ESLint pass payload.
+ *
+ * @returns {null | Record<string, unknown>} Rule timing record when present.
+ */
+const getPassRules = (pass) => {
+    if (!isObjectRecord(pass)) {
+        return null;
+    }
+
+    const rules = pass["rules"];
+    return isObjectRecord(rules) ? rules : null;
+};
+
+/**
+ * Normalize a single rule timing object to milliseconds.
+ *
+ * @param {unknown} ruleTiming - Timing payload.
+ *
+ * @returns {number} Rule timing in milliseconds.
+ */
+const getRuleTimingMilliseconds = (ruleTiming) => {
+    if (!isObjectRecord(ruleTiming)) {
+        return 0;
+    }
+
+    const total = ruleTiming["total"];
+    return typeof total === "number" ? total : 0;
+};
+
+/**
  * Count lint problems so benchmark runs assert useful signal.
  *
  * @param {LintResults} lintResults - ESLint lint results.
@@ -67,23 +130,12 @@ const sumRuleTimingMilliseconds = (lintResults) => {
     let totalRuleTime = 0;
 
     for (const result of lintResults) {
-        const passes = result.stats?.times?.passes;
-        if (!Array.isArray(passes)) {
-            continue;
-        }
-
-        for (const pass of passes) {
-            const passRules = pass?.rules;
-            if (typeof passRules !== "object" || passRules === null) {
-                continue;
-            }
-
-            for (const ruleTiming of Object.values(passRules)) {
-                const measuredDuration =
-                    typeof ruleTiming?.total === "number"
-                        ? ruleTiming.total
-                        : 0;
-                totalRuleTime += measuredDuration;
+        for (const pass of getLintPasses(result)) {
+            const passRules = getPassRules(pass);
+            if (passRules !== null) {
+                for (const ruleTiming of Object.values(passRules)) {
+                    totalRuleTime += getRuleTimingMilliseconds(ruleTiming);
+                }
             }
         }
     }

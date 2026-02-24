@@ -1,9 +1,7 @@
 import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
+import * as path from "node:path";
 
-import typefestPlugin from "../plugin.mjs";
-
-const benchmarkDirectory = import.meta.dirname;
+import plugin from "../plugin.mjs";
 
 /**
  * @typedef {Record<string, unknown>} UnknownRecord
@@ -16,7 +14,7 @@ const benchmarkDirectory = import.meta.dirname;
 /**
  * Absolute repository root used by parser services and benchmark paths.
  */
-export const repositoryRoot = path.resolve(benchmarkDirectory, "..");
+export const repositoryRoot = path.resolve(process.cwd());
 
 /**
  * Shared file globs used by benchmark scenarios.
@@ -61,13 +59,10 @@ const ensureRecord = (value, label) => {
  * @returns {Readonly<UnknownRecord>} Frozen rule map suitable for flat config.
  */
 const resolveRuleSet = (presetName) => {
-    const configs = ensureRecord(
-        typefestPlugin.configs,
-        "typefestPlugin.configs"
-    );
+    const configs = ensureRecord(plugin.configs, "plugin.configs");
     const preset = ensureRecord(
         configs[presetName],
-        `typefestPlugin.configs.${presetName}`
+        `plugin.configs.${presetName}`
     );
     const rules = ensureRecord(preset.rules, `${presetName} preset rules`);
 
@@ -94,22 +89,27 @@ export const typefestRuleSets = Object.freeze({
  * @returns {import("eslint").Linter.Config[]} Flat config array for ESLint Node
  *   API / CLI usage.
  */
-export const createTypefestFlatConfig = ({ rules }) => [
-    {
-        files: ["**/*.{ts,tsx,mts,cts}"],
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: "latest",
-                project: "./tsconfig.eslint.json",
-                sourceType: "module",
-                tsconfigRootDir: repositoryRoot,
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- This .mjs module relies on JSDoc contracts instead of TS syntax.
+export function createTypefestFlatConfig(options) {
+    const { rules } = options;
+
+    return [
+        {
+            files: ["**/*.{ts,tsx,mts,cts}"],
+            languageOptions: {
+                parser: tsParser,
+                parserOptions: {
+                    ecmaVersion: "latest",
+                    project: "./tsconfig.eslint.json",
+                    sourceType: "module",
+                    tsconfigRootDir: repositoryRoot,
+                },
             },
+            name: "benchmark:typefest",
+            plugins: {
+                typefest: plugin,
+            },
+            rules,
         },
-        name: "benchmark:typefest",
-        plugins: {
-            typefest: typefestPlugin,
-        },
-        rules,
-    },
-];
+    ];
+}

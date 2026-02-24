@@ -54,6 +54,7 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -83,3 +84,4 @@ const preferTypeFestReadonlyDeepRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-readonly-deep` rule module.
  */
 export default preferTypeFestReadonlyDeepRule;
+

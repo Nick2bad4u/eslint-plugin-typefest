@@ -243,6 +243,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -274,3 +275,4 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-defined` rule module.
  */
 export default preferTsExtrasIsDefinedRule;
+

@@ -1,15 +1,15 @@
-type MetricSet0 = number | number[];
-type MetricSet1 = string | string[];
-type MetricSet2 = boolean | boolean[];
-type MetricSet3 = Date | Date[];
-type MetricSet4 = bigint | bigint[];
-type MetricSet5 = symbol | symbol[];
-type MetricSet6 = number | number[];
-type MetricSet7 = string | string[];
-type MetricSet8 = boolean | boolean[];
-type MetricSet9 = Date | Date[];
-type MetricSet10 = bigint | bigint[];
-type MetricSet11 = symbol | symbol[];
+type MetricSet0 = number | readonly number[];
+type MetricSet1 = readonly string[] | string;
+type MetricSet2 = boolean | readonly boolean[];
+type MetricSet3 = Date | readonly Date[];
+type MetricSet4 = bigint | readonly bigint[];
+type MetricSet5 = readonly symbol[] | symbol;
+type MetricSet6 = number | readonly number[];
+type MetricSet7 = readonly string[] | string;
+type MetricSet8 = boolean | readonly boolean[];
+type MetricSet9 = Date | readonly Date[];
+type MetricSet10 = bigint | readonly bigint[];
+type MetricSet11 = readonly symbol[] | symbol;
 
 declare const now: Date;
 declare const id: symbol;

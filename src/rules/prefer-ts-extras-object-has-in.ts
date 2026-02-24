@@ -74,6 +74,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -103,3 +104,4 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-object-has-in` rule module.
  */
 export default preferTsExtrasObjectHasInRule;
+

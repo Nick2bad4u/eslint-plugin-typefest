@@ -71,6 +71,7 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-one-or-none` rule module.
  */
 export default preferTypeFestRequireOneOrNoneRule;
+

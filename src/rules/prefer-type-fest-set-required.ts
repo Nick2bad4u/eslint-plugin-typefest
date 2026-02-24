@@ -71,6 +71,7 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-required` rule module.
  */
 export default preferTypeFestSetRequiredRule;
+

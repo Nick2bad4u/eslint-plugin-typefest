@@ -174,6 +174,7 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -204,3 +205,4 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-arrayable` rule module.
  */
 export default preferTypeFestArrayableRule;
+

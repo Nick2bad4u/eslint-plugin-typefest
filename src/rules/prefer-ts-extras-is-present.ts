@@ -452,6 +452,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -483,3 +484,4 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-present` rule module.
  */
 export default preferTsExtrasIsPresentRule;
+

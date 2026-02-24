@@ -95,6 +95,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -125,3 +126,4 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-primitive` rule module.
  */
 export default preferTypeFestPrimitiveRule;
+

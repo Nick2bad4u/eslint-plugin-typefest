@@ -72,6 +72,7 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -101,3 +102,4 @@ const preferTypeFestSimplifyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-simplify` rule module.
  */
 export default preferTypeFestSimplifyRule;
+

@@ -245,6 +245,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -274,3 +275,4 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-literal-union` rule module.
  */
 export default preferTypeFestLiteralUnionRule;
+

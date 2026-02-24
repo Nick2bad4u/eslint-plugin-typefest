@@ -55,6 +55,7 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -84,3 +85,4 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-writable-deep` rule module.
  */
 export default preferTypeFestWritableDeepRule;
+

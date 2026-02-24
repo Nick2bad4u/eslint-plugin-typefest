@@ -103,6 +103,7 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -127,3 +128,4 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-find-last` rule module.
  */
 export default preferTsExtrasArrayFindLastRule;
+

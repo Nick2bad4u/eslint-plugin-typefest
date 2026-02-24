@@ -73,6 +73,7 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -102,3 +103,4 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-iterable-element` rule module.
  */
 export default preferTypeFestIterableElementRule;
+

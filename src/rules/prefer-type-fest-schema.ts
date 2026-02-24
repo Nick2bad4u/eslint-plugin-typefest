@@ -71,6 +71,7 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-schema` rule module.
  */
 export default preferTypeFestSchemaRule;
+

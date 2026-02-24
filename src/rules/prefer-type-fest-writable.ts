@@ -176,6 +176,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -207,3 +208,4 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-writable` rule module.
  */
 export default preferTypeFestWritableRule;
+

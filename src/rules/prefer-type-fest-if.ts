@@ -75,6 +75,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -104,3 +105,4 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-if` rule module.
  */
 export default preferTypeFestIfRule;
+

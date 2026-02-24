@@ -215,6 +215,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -245,3 +246,4 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-array` rule module.
  */
 export default preferTypeFestJsonArrayRule;
+

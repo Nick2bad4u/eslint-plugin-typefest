@@ -57,6 +57,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -86,3 +87,4 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-object-has-own` rule module.
  */
 export default preferTsExtrasObjectHasOwnRule;
+

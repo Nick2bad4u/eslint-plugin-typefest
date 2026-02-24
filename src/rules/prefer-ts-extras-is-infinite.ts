@@ -227,6 +227,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -256,3 +257,4 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-infinite` rule module.
  */
 export default preferTsExtrasIsInfiniteRule;
+

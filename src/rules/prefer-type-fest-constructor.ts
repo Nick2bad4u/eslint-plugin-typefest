@@ -54,6 +54,7 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -83,3 +84,4 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-constructor` rule module.
  */
 export default preferTypeFestConstructorRule;
+

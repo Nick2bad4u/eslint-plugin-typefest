@@ -148,6 +148,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -177,3 +178,4 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-empty` rule module.
  */
 export default preferTsExtrasIsEmptyRule;
+

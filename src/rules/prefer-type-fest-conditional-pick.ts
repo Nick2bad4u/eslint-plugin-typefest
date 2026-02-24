@@ -71,6 +71,7 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-conditional-pick` rule module.
  */
 export default preferTypeFestConditionalPickRule;
+

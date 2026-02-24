@@ -1,4 +1,4 @@
-import type { UnknownArray } from "type-fest";
+import type { UnknownArray, UnknownRecord } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -160,7 +160,7 @@ interface WritableDeepRuleModuleForCreate {
             filename?: string | undefined;
             sourceCode: object;
         }>
-    ) => Record<string, unknown>;
+    ) => UnknownRecord;
 }
 
 describe("prefer-type-fest-writable-deep filename fallback", () => {

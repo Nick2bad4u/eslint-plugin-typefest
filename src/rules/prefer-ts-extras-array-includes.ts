@@ -107,6 +107,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -136,3 +137,4 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-includes` rule module.
  */
 export default preferTsExtrasArrayIncludesRule;
+

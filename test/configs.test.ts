@@ -2,16 +2,18 @@
  * @packageDocumentation
  * Vitest coverage for `configs.test` behavior.
  */
+import type { UnknownRecord } from "type-fest";
+
 import { describe, expect, it } from "vitest";
 
 import plugin from "../plugin.mjs";
 
 interface FlatConfigLike {
     files?: unknown;
-    languageOptions?: Record<string, unknown>;
+    languageOptions?: UnknownRecord;
     name?: unknown;
-    plugins?: Record<string, unknown>;
-    rules?: Record<string, unknown>;
+    plugins?: UnknownRecord;
+    rules?: UnknownRecord;
 }
 
 /**
@@ -24,9 +26,9 @@ interface FlatConfigLike {
  */
 
 function getConfigRules(
-    configs: Readonly<null | Record<string, unknown>>,
+    configs: Readonly<null | UnknownRecord>,
     configName: string
-): null | Record<string, unknown> {
+): null | UnknownRecord {
     const config = configs?.[configName];
     if (!isObject(config)) {
         return null;
@@ -48,9 +50,7 @@ function getConfigRules(
  * @returns GetPluginConfigs helper result.
  */
 
-function getPluginConfigs(
-    pluginValue: unknown
-): null | Record<string, unknown> {
+function getPluginConfigs(pluginValue: unknown): null | UnknownRecord {
     if (!isObject(pluginValue)) {
         return null;
     }
@@ -71,7 +71,7 @@ function getPluginConfigs(
  * @returns GetPluginRules helper result.
  */
 
-function getPluginRules(pluginValue: unknown): null | Record<string, unknown> {
+function getPluginRules(pluginValue: unknown): null | UnknownRecord {
     if (!isObject(pluginValue)) {
         return null;
     }
@@ -92,7 +92,7 @@ function getPluginRules(pluginValue: unknown): null | Record<string, unknown> {
  * @returns `true` when the value is object; otherwise `false`.
  */
 
-function isObject(value: unknown): value is Record<string, unknown> {
+function isObject(value: unknown): value is UnknownRecord {
     return typeof value === "object" && value !== null;
 }
 

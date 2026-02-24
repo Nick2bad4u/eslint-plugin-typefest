@@ -197,6 +197,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -229,3 +230,4 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-assert-defined` rule module.
  */
 export default preferTsExtrasAssertDefinedRule;
+

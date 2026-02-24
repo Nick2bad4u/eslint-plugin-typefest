@@ -140,17 +140,15 @@ export const getSignatureParameterTypeAt = ({
 };
 
 /**
- * Determine whether rules should skip linting a file path because it is a test
- * file.
+ * Determine whether a file path appears to reference a test file.
  *
- * @remarks
- * The plugin intentionally lints and autofixes test files the same way as
- * production code. Consumers should use ESLint flat-config `files`/`ignores`
- * scoping when they want different behavior for tests.
+ * @param filePath - Absolute or relative file path.
  *
- * @param _filePath - Absolute or relative file path.
- *
- * @returns Always `false` to keep rule behavior consistent across all files.
+ * @returns `true` when the path contains a dedicated test directory segment or
+ *   ends with a known `.{spec|test}.<ext>` suffix.
  */
 export const isTestFilePath = (filePath: string): boolean =>
-    filePath.length < 0;
+    /(^|\/)(__tests__|tests)(\/|$)/u.test(
+        filePath.replaceAll("\\", "/").toLowerCase()
+    ) ||
+    /\.(spec|test)\.(cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());

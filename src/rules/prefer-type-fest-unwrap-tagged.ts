@@ -71,6 +71,7 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unwrap-tagged` rule module.
  */
 export default preferTypeFestUnwrapTaggedRule;
+

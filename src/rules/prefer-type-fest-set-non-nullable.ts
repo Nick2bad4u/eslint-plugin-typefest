@@ -71,6 +71,7 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -100,3 +101,4 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-non-nullable` rule module.
  */
 export default preferTypeFestSetNonNullableRule;
+

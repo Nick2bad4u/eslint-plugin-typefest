@@ -100,6 +100,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -129,3 +130,4 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-set` rule module.
  */
 export default preferTypeFestUnknownSetRule;
+

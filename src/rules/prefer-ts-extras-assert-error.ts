@@ -156,6 +156,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -187,3 +188,4 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-assert-error` rule module.
  */
 export default preferTsExtrasAssertErrorRule;
+

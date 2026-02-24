@@ -72,6 +72,7 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
+        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {
@@ -101,3 +102,4 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-all-or-none` rule module.
  */
 export default preferTypeFestRequireAllOrNoneRule;
+
