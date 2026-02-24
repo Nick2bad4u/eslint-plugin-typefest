@@ -65,7 +65,8 @@ def run_gh_command(args: Sequence[str], cwd: Path) -> GhResult:
     return GhResult(process.returncode, process.stdout, process.stderr)
 
 
-def run_gh_command_raw(args: Sequence[str], cwd: Path) -> tuple[int, bytes, str]:
+def run_gh_command_raw(
+        args: Sequence[str], cwd: Path) -> tuple[int, bytes, str]:
     process = subprocess.run(
         ["gh", *args],
         cwd=cwd,
@@ -78,18 +79,23 @@ def run_gh_command_raw(args: Sequence[str], cwd: Path) -> tuple[int, bytes, str]
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Inspect failing GitHub PR checks, fetch GitHub Actions logs, and extract a "
-            "failure snippet."
-        ),
+            "Inspect failing GitHub PR checks,\n"
+            "fetch GitHub Actions logs, and extract a "
+            "failure snippet."),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--repo", default=".", help="Path inside the target Git repository.")
     parser.add_argument(
-        "--pr", default=None, help="PR number or URL (defaults to current branch PR)."
-    )
+        "--repo",
+        default=".",
+        help="Path inside the target Git repository.")
+    parser.add_argument(
+        "--pr", default=None,
+        help="PR number or URL (defaults to current branch PR).")
     parser.add_argument("--max-lines", type=int, default=DEFAULT_MAX_LINES)
     parser.add_argument("--context", type=int, default=DEFAULT_CONTEXT_LINES)
-    parser.add_argument("--json", action="store_true", help="Emit JSON instead of text output.")
+    parser.add_argument(
+        "--json", action="store_true",
+        help="Emit JSON instead of text output.")
     return parser.parse_args()
 
 
@@ -179,14 +185,24 @@ def resolve_pr(pr_value: str | None, repo_root: Path) -> str | None:
     return str(number)
 
 
-def fetch_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
-    primary_fields = ["name", "state", "conclusion", "detailsUrl", "startedAt", "completedAt"]
+def fetch_checks(
+        pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
+    primary_fields = [
+        "name",
+        "state",
+        "conclusion",
+        "detailsUrl",
+        "startedAt",
+        "completedAt"]
     result = run_gh_command(
         ["pr", "checks", pr_value, "--json", ",".join(primary_fields)],
         cwd=repo_root,
     )
     if result.returncode != 0:
-        message = "\n".join(filter(None, [result.stderr, result.stdout])).strip()
+        message = "\n".join(
+            filter(
+                None, [
+                    result.stderr, result.stdout])).strip()
         available_fields = parse_available_fields(message)
         if available_fields:
             fallback_fields = [
@@ -198,17 +214,23 @@ def fetch_checks(pr_value: str, repo_root: Path) -> list[dict[str, Any]] | None:
                 "completedAt",
                 "workflow",
             ]
-            selected_fields = [field for field in fallback_fields if field in available_fields]
+            selected_fields = [
+                field for field in fallback_fields
+                if field in available_fields]
             if not selected_fields:
-                print("Error: no usable fields available for gh pr checks.", file=sys.stderr)
+                print(
+                    "Error: no usable fields available for gh pr checks.",
+                    file=sys.stderr)
                 return None
             result = run_gh_command(
-                ["pr", "checks", pr_value, "--json", ",".join(selected_fields)],
-                cwd=repo_root,
-            )
+                ["pr", "checks", pr_value, "--json",
+                 ",".join(selected_fields)],
+                cwd=repo_root,)
             if result.returncode != 0:
                 message = (result.stderr or result.stdout or "").strip()
-                print(message or "Error: gh pr checks failed.", file=sys.stderr)
+                print(
+                    message or "Error: gh pr checks failed.",
+                    file=sys.stderr)
                 return None
         else:
             print(message or "Error: gh pr checks failed.", file=sys.stderr)
@@ -277,7 +299,8 @@ def analyze_check(
             base["run"] = metadata
         return base
 
-    snippet = extract_failure_snippet(log_text, max_lines=max_lines, context=context)
+    snippet = extract_failure_snippet(
+        log_text, max_lines=max_lines, context=context)
     base["status"] = "ok"
     base["run"] = metadata or {}
     base["logSnippet"] = snippet
@@ -318,7 +341,9 @@ def fetch_run_metadata(run_id: str, repo_root: Path) -> dict[str, Any] | None:
         "headSha",
         "url",
     ]
-    result = run_gh_command(["run", "view", run_id, "--json", ",".join(fields)], cwd=repo_root)
+    result = run_gh_command(
+        ["run", "view", run_id, "--json", ",".join(fields)],
+        cwd=repo_root)
     if result.returncode != 0:
         return None
     try:
@@ -368,7 +393,8 @@ def fetch_job_log(job_id: str, repo_root: Path) -> tuple[str, str]:
     if not repo_slug:
         return "", "Error: unable to resolve repository name for job logs."
     endpoint = f"/repos/{repo_slug}/actions/jobs/{job_id}/logs"
-    returncode, stdout_bytes, stderr = run_gh_command_raw(["api", endpoint], cwd=repo_root)
+    returncode, stdout_bytes, stderr = run_gh_command_raw(
+        ["api", endpoint], cwd=repo_root)
     if returncode != 0:
         message = (stderr or stdout_bytes.decode(errors="replace")).strip()
         return "", message or "gh api job logs failed"
@@ -378,7 +404,9 @@ def fetch_job_log(job_id: str, repo_root: Path) -> tuple[str, str]:
 
 
 def fetch_repo_slug(repo_root: Path) -> str | None:
-    result = run_gh_command(["repo", "view", "--json", "nameWithOwner"], cwd=repo_root)
+    result = run_gh_command(
+        ["repo", "view", "--json", "nameWithOwner"],
+        cwd=repo_root)
     if result.returncode != 0:
         return None
     try:
@@ -424,7 +452,10 @@ def is_zip_payload(payload: bytes) -> bool:
     return payload.startswith(b"PK")
 
 
-def extract_failure_snippet(log_text: str, max_lines: int, context: int) -> str:
+def extract_failure_snippet(
+        log_text: str,
+        max_lines: int,
+        context: int) -> str:
     lines = log_text.splitlines()
     if not lines:
         return ""
@@ -477,8 +508,10 @@ def render_results(pr_number: str, results: Iterable[dict[str, Any]]) -> None:
         if run_meta:
             branch = run_meta.get("headBranch", "")
             sha = (run_meta.get("headSha") or "")[:12]
-            workflow = run_meta.get("workflowName") or run_meta.get("name") or ""
-            conclusion = run_meta.get("conclusion") or run_meta.get("status") or ""
+            workflow = run_meta.get(
+                "workflowName") or run_meta.get("name") or ""
+            conclusion = run_meta.get(
+                "conclusion") or run_meta.get("status") or ""
             print(f"Workflow: {workflow} ({conclusion})")
             if branch or sha:
                 print(f"Branch/SHA: {branch} {sha}")
