@@ -43,7 +43,6 @@ import moduleInterop from "eslint-plugin-module-interop";
 import nodePlugin from "eslint-plugin-n";
 import nitpick from "eslint-plugin-nitpick";
 import noBarrelFiles from "eslint-plugin-no-barrel-files";
-import noConstructorBind from "eslint-plugin-no-constructor-bind";
 import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
@@ -108,7 +107,6 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
     : {};
 
 const canonicalPlugin = fixupPluginRules(pluginCanonical);
-const noConstructorBindPlugin = fixupPluginRules(noConstructorBind);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
 // @ts-expect-error -- Plugin needs update for Eslint v10
@@ -118,9 +116,11 @@ const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
 const securityPlugin = fixupPluginRules(pluginSecurity);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
+// @ts-expect-error -- Plugin needs update for Eslint v10
 const etc = fixupPluginRules(etcPlugin);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
@@ -575,6 +575,7 @@ export default defineConfig([
             "*.{js,mjs,cjs,ts,mts,cts,tsx}",
             "src/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
             "test/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
+            "benchmarks/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         ],
         ignores: [],
         languageOptions: {
@@ -1373,7 +1374,10 @@ export default defineConfig([
     // SECTION: 🧪 Tests
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: ["test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}"],
+        files: [
+            "test/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}",
+            "benchmarks/**/*.{ts,tsx,mts,cts,mjs,js,jsx,cjs}",
+        ],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -2627,7 +2631,6 @@ export default defineConfig([
         name: "Global: Globals",
         plugins: {
             canonical: canonicalPlugin,
-            "no-constructor-bind": noConstructorBindPlugin,
             "no-explicit-type-exports": noExplicitTypeExportsPlugin,
             "no-secrets": noSecrets,
             "no-unsanitized": noUnsanitizedPlugin,
@@ -2668,8 +2671,6 @@ export default defineConfig([
             ],
             "max-params": "off",
             "no-console": "off",
-            "no-constructor-bind/no-constructor-bind": "error",
-            "no-constructor-bind/no-constructor-state": "error",
             "no-debugger": "error",
             "no-duplicate-imports": [
                 "error",

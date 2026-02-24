@@ -1,3 +1,5 @@
+import type { AsyncReturnType } from "type-fest";
+
 import { describe, expect, it, vi } from "vitest";
 
 const loadSourcePlugin = async () => {
@@ -7,7 +9,7 @@ const loadSourcePlugin = async () => {
 };
 
 type PluginConfig = PluginType["configs"][keyof PluginType["configs"]];
-type PluginType = Awaited<ReturnType<typeof loadSourcePlugin>>;
+type PluginType = AsyncReturnType<typeof loadSourcePlugin>;
 
 const getRuleEntries = (
     config: Readonly<PluginConfig>

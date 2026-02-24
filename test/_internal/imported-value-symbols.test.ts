@@ -1,4 +1,5 @@
 import type { TSESLint } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 import { describe, expect, it } from "vitest";
 
@@ -15,7 +16,7 @@ type RuleContext = Parameters<
 >[0]["context"];
 
 const createSourceCode = (
-    body: readonly unknown[]
+    body: Readonly<UnknownArray>
 ): Parameters<typeof collectDirectNamedValueImportsFromSource>[0] =>
     ({
         ast: {
@@ -44,7 +45,7 @@ const createImportSpecifier = (
 
 const createImportDeclaration = (
     sourceValue: string,
-    specifiers: readonly unknown[],
+    specifiers: Readonly<UnknownArray>,
     importKind: "type" | "value" = "value"
 ): unknown => ({
     importKind,

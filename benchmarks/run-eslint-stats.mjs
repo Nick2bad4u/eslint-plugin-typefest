@@ -1,8 +1,7 @@
+import { ESLint } from "eslint";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
-
-import { ESLint } from "eslint";
 
 import {
     benchmarkFileGlobs,
@@ -165,7 +164,7 @@ const createBenchmarkEslint = ({ fix, rules }) =>
  * @returns {number} Mean value.
  */
 const mean = (values) =>
-    values.reduce((sum, value) => sum + value, 0) / values.length;
+    Math.sumPrecise(values) / values.length;
 
 /**
  * Calculate median from numeric samples.
@@ -378,13 +377,13 @@ for (const scenario of benchmarkScenarios) {
 }
 
 const summaryRows = scenarioResults.map((scenarioResult) => ({
-    scenario: scenarioResult.name,
-    messages: scenarioResult.messageCount,
+    fixMs: Number(scenarioResult.fixMilliseconds.toFixed(2)),
     meanMs: Number(scenarioResult.wallClock.meanMilliseconds.toFixed(2)),
     medianMs: Number(scenarioResult.wallClock.medianMilliseconds.toFixed(2)),
+    messages: scenarioResult.messageCount,
     parseMs: Number(scenarioResult.parseMilliseconds.toFixed(2)),
     rulesMs: Number(scenarioResult.ruleMilliseconds.toFixed(2)),
-    fixMs: Number(scenarioResult.fixMilliseconds.toFixed(2)),
+    scenario: scenarioResult.name,
 }));
 
 console.table(summaryRows);

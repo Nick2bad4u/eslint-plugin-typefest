@@ -31,7 +31,7 @@ const candidate5 = values[5];
 if (candidate0 != null) {
     consume(candidate0);
 }
-if (null != candidate0) {
+if (candidate0 != null) {
     consume(candidate0);
 }
 if (candidate1 == null) {
@@ -50,7 +50,7 @@ if (candidate2 === null || candidate2 === undefined) {
 if (candidate3 != null) {
     consume(candidate3);
 }
-if (null != candidate3) {
+if (candidate3 != null) {
     consume(candidate3);
 }
 if (candidate4 == null) {

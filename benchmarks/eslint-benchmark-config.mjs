@@ -1,11 +1,9 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import tsParser from "@typescript-eslint/parser";
+import path from "node:path";
 
 import typefestPlugin from "../plugin.mjs";
 
-const benchmarkDirectory = path.dirname(fileURLToPath(import.meta.url));
+const benchmarkDirectory = import.meta.dirname;
 
 /**
  * @typedef {Record<string, unknown>} UnknownRecord

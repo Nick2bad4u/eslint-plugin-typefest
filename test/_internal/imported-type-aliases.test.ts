@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -24,7 +26,7 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
 };
 
 const createSourceCode = (
-    body: readonly unknown[]
+    body: Readonly<UnknownArray>
 ): Parameters<typeof collectImportedTypeAliasMatches>[0] =>
     ({
         ast: {
@@ -61,7 +63,7 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     type: "ImportSpecifier",
 });
 
-const createImportDeclaration = (specifiers: readonly unknown[]): unknown => ({
+const createImportDeclaration = (specifiers: Readonly<UnknownArray>): unknown => ({
     source: {
         value: "type-aliases",
     },

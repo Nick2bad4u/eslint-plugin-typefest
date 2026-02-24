@@ -21,12 +21,18 @@
         ".remarkrc.mjs",
         "*.mjs",
         "benchmarks/**/*.ts",
+        "benchmarks/**/*.mjs",
         "knip.config.ts",
         "src/**/*.ts",
+        "src/**/*.mjs",
+        "scripts/**/*.ts",
+        "scripts/**/*.mjs",
         "test/**/*.ts",
+        "test/**/*.mjs",
         "vitest.stryker.config.ts",
         "vite.config.ts",
         "docs/**/*.ts",
+        "docs/**/*.mjs",
         "docs/**/*.tsx"
     ]
 }

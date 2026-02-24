@@ -36,12 +36,12 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         // Stop after 200 failures to avoid excessive output
         bail: 200,
         benchmark: {
-            include: ["benchmarks/**/*.bench.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
             exclude: [
                 "**/dist*/**",
                 "**/html/**",
                 ...defaultExclude,
             ],
+            include: ["benchmarks/**/*.bench.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
             includeSamples: true,
             outputJson: "./coverage/bench-results.json",
             reporters: ["default", "verbose"],

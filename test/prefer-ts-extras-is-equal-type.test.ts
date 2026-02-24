@@ -1,3 +1,5 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-equal-type.test` behavior.
@@ -173,7 +175,7 @@ const inlineValidLocalNamespaceIsEqualCode = [
 ].join("\n");
 
 interface IsEqualTypeRuleMetadataSnapshot {
-    defaultOptions?: readonly unknown[];
+    defaultOptions?: Readonly<UnknownArray>;
     meta?: {
         docs?: {
             description?: string;
@@ -181,7 +183,7 @@ interface IsEqualTypeRuleMetadataSnapshot {
         };
         hasSuggestions?: boolean;
         messages?: Record<string, string>;
-        schema?: readonly unknown[];
+        schema?: Readonly<UnknownArray>;
         type?: string;
     };
     name?: string;
