@@ -168,8 +168,8 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
         );
 
         expect(ruleSource).toContain('node.property.type === "Identifier" &&');
-        expect(ruleSource).toContain(
-            '(node.property.name === "POSITIVE_INFINITY" ||\n            node.property.name === "NEGATIVE_INFINITY")'
+        expect(ruleSource).toMatch(
+            /\(node\.property\.name === "POSITIVE_INFINITY" \|\|\s+node\.property\.name === "NEGATIVE_INFINITY"\)/v
         );
         expect(ruleSource).toContain(
             'if (node.type === "Identifier" && node.name === "Infinity") {'

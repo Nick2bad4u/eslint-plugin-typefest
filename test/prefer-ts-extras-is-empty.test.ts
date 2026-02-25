@@ -135,11 +135,11 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
         expect(ruleSource).toContain(
             'if (node.operator !== "==" && node.operator !== "===") {'
         );
-        expect(ruleSource).toContain(
-            "isLengthMemberExpression(node.left) &&\n                        isZeroLiteral(node.right);"
+        expect(ruleSource).toMatch(
+            /isLengthMemberExpression\(node\.left\) &&\s+isZeroLiteral\(node\.right\)/v
         );
-        expect(ruleSource).toContain(
-            "isLengthMemberExpression(node.right) &&\n                        isZeroLiteral(node.left);"
+        expect(ruleSource).toMatch(
+            /isLengthMemberExpression\(node\.right\) &&\s+isZeroLiteral\(node\.left\);/v
         );
         expect(ruleSource).toContain(
             "if (!isLeftLengthCheck && !isRightLengthCheck) {"

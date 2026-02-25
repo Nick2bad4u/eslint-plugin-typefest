@@ -197,16 +197,16 @@ describe("prefer-ts-extras-not source assertions", () => {
             'node.callee.property.type === "Identifier" &&'
         );
         expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
-        expect(ruleSource).toContain(
-            'predicateCall.optional ||\n                    predicateCall.callee.type !== "Identifier"'
+        expect(ruleSource).toMatch(
+            /predicateCall\.optional \|\|\s+predicateCall\.callee\.type !== "Identifier"/v
         );
         expect(ruleSource).toContain(".trim();");
         expect(ruleSource).toContain("if (predicateText.length === 0) {");
         expect(ruleSource).toContain(
             "if (!isFilterCall(node) || node.arguments.length === 0) {"
         );
-        expect(ruleSource).toContain(
-            '(firstArgument.type !== "ArrowFunctionExpression" &&\n                            firstArgument.type !== "FunctionExpression")'
+        expect(ruleSource).toMatch(
+            /\(firstArgument\.type !== "ArrowFunctionExpression" &&\s+firstArgument\.type !== "FunctionExpression"\)/v
         );
     });
 });
