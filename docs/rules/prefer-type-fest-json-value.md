@@ -72,3 +72,8 @@ Disable this rule if boundary contracts intentionally allow non-JSON runtime val
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)
 - [`type-fest` npm documentation](https://www.npmjs.com/package/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

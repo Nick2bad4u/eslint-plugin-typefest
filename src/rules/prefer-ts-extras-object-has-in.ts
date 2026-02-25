@@ -87,7 +87,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-has-in.md",
+                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-object-has-in",
             },
             fixable: "code",
             messages: {

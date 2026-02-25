@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-object-keys";
 const docsDescription =
     "require ts-extras objectKeys over Object.keys for stronger key inference.";
 const docsUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-keys.md";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-object-keys";
 const preferTsExtrasObjectKeysMessage =
     "Prefer `objectKeys` from `ts-extras` over `Object.keys(...)` for stronger key inference.";
 

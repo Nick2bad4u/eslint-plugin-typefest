@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-is-present";
 const docsDescription =
     "require ts-extras isPresent over inline nullish comparisons outside filter callbacks.";
 const docsUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-present.md";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-is-present";
 const preferTsExtrasIsPresentMessage =
     "Prefer `isPresent(value)` from `ts-extras` over inline nullish comparisons.";
 const preferTsExtrasIsPresentNegatedMessage =

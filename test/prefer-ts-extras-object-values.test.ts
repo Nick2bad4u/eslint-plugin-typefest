@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-object-values";
 const docsDescription =
     "require ts-extras objectValues over Object.values for stronger value inference.";
 const docsUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-values.md";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-object-values";
 const preferTsExtrasObjectValuesMessage =
     "Prefer `objectValues` from `ts-extras` over `Object.values(...)` for stronger value inference.";
 

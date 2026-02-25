@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-set-has";
 const docsDescription =
     "require ts-extras setHas over Set#has for stronger element narrowing.";
 const docsUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-set-has.md";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-set-has";
 const preferTsExtrasSetHasMessage =
     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.";
 const rule = getPluginRule(ruleId);

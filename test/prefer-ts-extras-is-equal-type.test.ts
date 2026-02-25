@@ -211,7 +211,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables."
         );
         expect(metadataRule.meta?.docs?.url).toBe(
-            "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
+            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-is-equal-type"
         );
         expect(metadataRule.meta?.hasSuggestions).toBeTruthy();
         expect(metadataRule.meta?.messages?.["preferTsExtrasIsEqualType"]).toBe(
@@ -247,7 +247,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
                 "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables."
             );
             expect(undecoratedRule.default.meta?.docs?.url).toBe(
-                "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-is-equal-type.md"
+                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-is-equal-type"
             );
             expect(undecoratedRule.default.meta?.hasSuggestions).toBeTruthy();
             expect(

@@ -114,7 +114,7 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-array-join.md",
+                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-array-join",
             },
             fixable: "code",
             messages: {

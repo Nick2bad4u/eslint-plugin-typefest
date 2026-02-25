@@ -193,10 +193,10 @@ describe(ruleName, () => {
             "require TypeFest Writable over manual mapped types that strip readonly with -readonly."
         );
         expect(metadataRule.meta?.docs?.url).toBe(
-            "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md"
+            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable"
         );
         expect(rule.meta?.docs?.url).toBe(
-            "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md"
+            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable"
         );
         expect(metadataRule.meta?.messages?.["preferWritable"]).toBe(
             "Prefer `Writable<T>` from type-fest over `{-readonly [K in keyof T]: T[K]}`."
@@ -228,7 +228,7 @@ describe(ruleName, () => {
                 };
 
             expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-writable.md"
+                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable"
             );
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");

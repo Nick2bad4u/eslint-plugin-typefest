@@ -65,8 +65,8 @@ describe("rule metadata integrity", () => {
 
                 if (isNonEmptyString(docsUrl)) {
                     expect(
-                        docsUrl.endsWith(`/docs/rules/${ruleName}.md`),
-                        `Rule '${ruleName}' docs.url should end with /docs/rules/${ruleName}.md`
+                        docsUrl.endsWith(`/rules/${ruleName}`),
+                        `Rule '${ruleName}' docs.url should end with /rules/${ruleName}`
                     ).toBeTruthy();
                 }
 

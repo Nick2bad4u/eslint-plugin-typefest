@@ -84,7 +84,7 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["type-fest/types"]',
                 ],
-                url: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-require-at-least-one.md",
+                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-require-at-least-one",
             },
             fixable: "code",
             messages: {

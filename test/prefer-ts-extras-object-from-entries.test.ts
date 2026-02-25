@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-object-from-entries";
 const docsDescription =
     "require ts-extras objectFromEntries over Object.fromEntries for stronger key/value inference.";
 const docsUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-ts-extras-object-from-entries.md";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-object-from-entries";
 const preferTsExtrasObjectFromEntriesMessage =
     "Prefer `objectFromEntries` from `ts-extras` over `Object.fromEntries(...)` for stronger key and value inference.";
 

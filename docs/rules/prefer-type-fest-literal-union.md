@@ -71,3 +71,8 @@ Disable this rule if your team prefers explicit primitive-plus-literal unions an
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)
 - [TypeScript Handbook: Literal Types](https://www.typescriptlang.org/docs/handbook/literal-types.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

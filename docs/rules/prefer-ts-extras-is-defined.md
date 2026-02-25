@@ -96,3 +96,8 @@ Disable this rule if your team uses explicit `=== undefined` comparisons as a re
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
 - [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

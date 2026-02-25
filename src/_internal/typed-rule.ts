@@ -8,7 +8,7 @@ import type ts from "typescript";
 import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 
 const RULE_DOCS_URL_BASE =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -52,7 +52,7 @@ type TypefestRuleDocs = {
 export const createTypedRule: ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
 > = ESLintUtils.RuleCreator<TypefestRuleDocs>(
-    (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}.md`
+    (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}`
 );
 /* eslint-enable total-functions/no-hidden-type-assertions -- Re-enable hidden-type-assertion checks for the rest of the module. */
 

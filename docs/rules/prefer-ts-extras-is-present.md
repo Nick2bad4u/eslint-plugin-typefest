@@ -96,3 +96,8 @@ Disable this rule if your code style requires explicit `=== null` / `=== undefin
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
 - [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

@@ -48,6 +48,26 @@ const sidebars: SidebarsConfig = {
                             label: "ADR 0003 · object-schema",
                             type: "doc",
                         },
+                        {
+                            id: "developer/adr/rule-docs-specificity-and-shared-guides",
+                            label: "ADR 0004 · rule-doc specificity",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/runtime-vs-type-level-rule-families",
+                            label: "ADR 0005 · rule families",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/canonical-rule-doc-urls-use-docusaurus-routes",
+                            label: "ADR 0006 · docs URL canonicalization",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/rule-doc-footer-links-to-shared-guides",
+                            label: "ADR 0007 · rule footer guide links",
+                            type: "doc",
+                        },
                     ],
                     label: "🧭 Architecture Decisions",
                     link: {

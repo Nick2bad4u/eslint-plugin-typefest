@@ -64,3 +64,8 @@ Disable this rule if your codebase intentionally standardizes `XOR` naming inste
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)
 - [TypeScript Handbook: Unions and Intersections](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

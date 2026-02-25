@@ -64,3 +64,8 @@ Disable this rule if your codebase intentionally prefers explicit abstract const
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)
 - [TypeScript Handbook: Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

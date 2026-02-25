@@ -74,7 +74,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             "require TypeFest ConditionalPick over imported aliases such as PickByTypes."
         );
         expect(metadataRule.meta?.docs?.url).toBe(
-            "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md"
+            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-conditional-pick"
         );
         expect(metadataRule.meta?.messages?.["preferConditionalPick"]).toBe(
             "Prefer `{{replacement}}` from type-fest to pick keys whose values match a condition instead of legacy alias `{{alias}}`."
@@ -96,7 +96,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
                 };
 
             expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules/prefer-type-fest-conditional-pick.md"
+                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-conditional-pick"
             );
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");

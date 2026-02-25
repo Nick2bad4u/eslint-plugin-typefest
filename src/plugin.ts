@@ -92,7 +92,7 @@ import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 const require = createRequire(import.meta.url);
 
 const DEFAULT_RULE_DOCS_URL_BASE =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
 const ERROR_SEVERITY = "error" as const;
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
@@ -377,7 +377,7 @@ const typefestEslintRules = typefestRules as unknown as NonNullable<
 
 for (const [ruleName, rule] of Object.entries(typefestRules)) {
     if (rule.meta?.docs) {
-        rule.meta.docs.url ??= `${DEFAULT_RULE_DOCS_URL_BASE}/${ruleName}.md`;
+        rule.meta.docs.url ??= `${DEFAULT_RULE_DOCS_URL_BASE}/${ruleName}`;
     }
 }
 

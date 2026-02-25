@@ -64,3 +64,8 @@ Disable this rule if your codebase intentionally standardizes `DeepRequired` nam
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)
 - [TypeScript Handbook: Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](./guides/adoption-checklist.md)
+- [Rollout and fix safety](./guides/rollout-and-fix-safety.md)

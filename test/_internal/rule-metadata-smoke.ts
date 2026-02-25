@@ -27,7 +27,7 @@ interface TypeFestRuleMetadataExpectations {
 }
 
 const docsBaseUrl =
-    "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/docs/rules";
+    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
 
 const importRuleModule = async (
     ruleId: string
