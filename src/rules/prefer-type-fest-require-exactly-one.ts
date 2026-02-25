@@ -102,4 +102,3 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-exactly-one` rule module.
  */
 export default preferTypeFestRequireExactlyOneRule;
-

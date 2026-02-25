@@ -63,7 +63,9 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     type: "ImportSpecifier",
 });
 
-const createImportDeclaration = (specifiers: Readonly<UnknownArray>): unknown => ({
+const createImportDeclaration = (
+    specifiers: Readonly<UnknownArray>
+): unknown => ({
     source: {
         value: "type-aliases",
     },

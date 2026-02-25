@@ -159,4 +159,3 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-as-writable` rule module.
  */
 export default preferTsExtrasAsWritableRule;
-

@@ -208,4 +208,3 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-not` rule module.
  */
 export default preferTsExtrasNotRule;
-

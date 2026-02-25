@@ -101,4 +101,3 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-conditional-pick` rule module.
  */
 export default preferTypeFestConditionalPickRule;
-

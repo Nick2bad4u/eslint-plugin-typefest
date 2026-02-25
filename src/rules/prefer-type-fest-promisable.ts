@@ -205,4 +205,3 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-promisable` rule module.
  */
 export default preferTypeFestPromisableRule;
-

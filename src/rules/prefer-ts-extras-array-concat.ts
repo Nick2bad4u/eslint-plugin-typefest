@@ -131,4 +131,3 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-concat` rule module.
  */
 export default preferTsExtrasArrayConcatRule;
-

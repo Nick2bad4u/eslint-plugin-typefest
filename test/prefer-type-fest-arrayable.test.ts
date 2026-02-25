@@ -122,7 +122,6 @@ const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
     "type QueryValue = Arrayable<Map<string, number>>;",
 ].join("\n");
 
-
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -135,7 +134,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
-        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
+        const replacementFixCalls: Readonly<UnknownArray>[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;

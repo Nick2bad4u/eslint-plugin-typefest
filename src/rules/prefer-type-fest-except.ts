@@ -138,4 +138,3 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-except` rule module.
  */
 export default preferTypeFestExceptRule;
-

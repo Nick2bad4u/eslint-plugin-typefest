@@ -106,7 +106,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => {
     it("reports only Record<string, JsonValue> references with exactly two type arguments", async () => {
-        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
+        const replacementFixCalls: Readonly<UnknownArray>[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;

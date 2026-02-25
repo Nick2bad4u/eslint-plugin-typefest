@@ -149,4 +149,3 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-async-return-type` rule module.
  */
 export default preferTypeFestAsyncReturnTypeRule;
-

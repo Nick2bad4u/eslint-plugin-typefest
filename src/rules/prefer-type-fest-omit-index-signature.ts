@@ -101,4 +101,3 @@ const preferTypeFestOmitIndexSignatureRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-omit-index-signature` rule module.
  */
 export default preferTypeFestOmitIndexSignatureRule;
-

@@ -101,4 +101,3 @@ const preferTypeFestRequireAtLeastOneRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-require-at-least-one` rule module.
  */
 export default preferTypeFestRequireAtLeastOneRule;
-

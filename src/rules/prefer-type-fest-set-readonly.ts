@@ -101,4 +101,3 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-readonly` rule module.
  */
 export default preferTypeFestSetReadonlyRule;
-

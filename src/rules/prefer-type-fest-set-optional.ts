@@ -101,4 +101,3 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-set-optional` rule module.
  */
 export default preferTypeFestSetOptionalRule;
-

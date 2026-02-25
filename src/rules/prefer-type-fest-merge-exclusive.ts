@@ -84,4 +84,3 @@ const preferTypeFestMergeExclusiveRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-merge-exclusive` rule module.
  */
 export default preferTypeFestMergeExclusiveRule;
-

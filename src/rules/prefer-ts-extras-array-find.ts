@@ -128,4 +128,3 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-find` rule module.
  */
 export default preferTsExtrasArrayFindRule;
-

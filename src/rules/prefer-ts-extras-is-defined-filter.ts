@@ -207,4 +207,3 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-defined-filter` rule module.
  */
 export default preferTsExtrasIsDefinedFilterRule;
-

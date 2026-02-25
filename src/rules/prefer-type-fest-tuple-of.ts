@@ -140,4 +140,3 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     });
 
 export default preferTypeFestTupleOfRule;
-

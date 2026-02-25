@@ -135,4 +135,3 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-at` rule module.
  */
 export default preferTsExtrasArrayAtRule;
-

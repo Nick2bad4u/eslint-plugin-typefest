@@ -199,7 +199,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
 
 describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
     it("reports only native/generic JsonValue array union pairs", async () => {
-        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
+        const replacementFixCalls: Readonly<UnknownArray>[] = [];
         const reportCalls: {
             messageId?: string;
             node?: unknown;

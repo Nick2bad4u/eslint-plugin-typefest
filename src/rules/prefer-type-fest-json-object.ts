@@ -155,4 +155,3 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-object` rule module.
  */
 export default preferTypeFestJsonObjectRule;
-

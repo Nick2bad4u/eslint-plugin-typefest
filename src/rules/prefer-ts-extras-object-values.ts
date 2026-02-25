@@ -92,4 +92,3 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-object-values` rule module.
  */
 export default preferTsExtrasObjectValuesRule;
-

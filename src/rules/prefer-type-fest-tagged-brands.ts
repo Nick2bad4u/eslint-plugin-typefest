@@ -191,4 +191,3 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-tagged-brands` rule module.
  */
 export default preferTypeFestTaggedBrandsRule;
-

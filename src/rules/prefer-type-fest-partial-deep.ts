@@ -84,4 +84,3 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-partial-deep` rule module.
  */
 export default preferTypeFestPartialDeepRule;
-

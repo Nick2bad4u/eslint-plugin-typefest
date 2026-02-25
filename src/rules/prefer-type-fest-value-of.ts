@@ -116,4 +116,3 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-value-of` rule module.
  */
 export default preferTypeFestValueOfRule;
-

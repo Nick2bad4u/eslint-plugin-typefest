@@ -116,7 +116,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             messageId?: string;
             node?: unknown;
         }[] = [];
-        const replacementFixCalls: (Readonly<UnknownArray>)[] = [];
+        const replacementFixCalls: Readonly<UnknownArray>[] = [];
 
         try {
             vi.resetModules();

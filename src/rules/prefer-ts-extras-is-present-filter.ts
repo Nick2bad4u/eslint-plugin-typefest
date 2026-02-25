@@ -409,4 +409,3 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-present-filter` rule module.
  */
 export default preferTsExtrasIsPresentFilterRule;
-

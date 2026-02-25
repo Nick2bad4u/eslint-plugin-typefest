@@ -134,4 +134,3 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-unknown-map` rule module.
  */
 export default preferTypeFestUnknownMapRule;
-

@@ -131,4 +131,3 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-join` rule module.
  */
 export default preferTsExtrasArrayJoinRule;
-

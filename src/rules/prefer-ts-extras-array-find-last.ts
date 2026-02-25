@@ -128,4 +128,3 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-array-find-last` rule module.
  */
 export default preferTsExtrasArrayFindLastRule;
-

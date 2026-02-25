@@ -101,4 +101,3 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-schema` rule module.
  */
 export default preferTypeFestSchemaRule;
-

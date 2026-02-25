@@ -94,4 +94,3 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-is-finite` rule module.
  */
 export default preferTsExtrasIsFiniteRule;
-

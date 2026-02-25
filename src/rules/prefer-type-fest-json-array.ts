@@ -246,4 +246,3 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-type-fest-json-array` rule module.
  */
 export default preferTypeFestJsonArrayRule;
-

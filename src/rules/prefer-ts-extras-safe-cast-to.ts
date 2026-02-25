@@ -157,4 +157,3 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
  * Default export for the `prefer-ts-extras-safe-cast-to` rule module.
  */
 export default preferTsExtrasSafeCastToRule;
-
