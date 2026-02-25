@@ -14,6 +14,11 @@ const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
 ) => RuleTester;
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
+const carriageReturnAndLineFeed = "\r\n";
+const lineFeedPattern = /\r?\n/g;
+
+const normalizeLineEndingsForRuleTester = (fixtureSource: string): string =>
+    fixtureSource.replace(lineFeedPattern, carriageReturnAndLineFeed);
 
 /**
  * Resolve a path inside `test/fixtures/typed`.
@@ -33,7 +38,9 @@ export const typedFixturePath = (...segments: readonly string[]): string =>
  * @returns Fixture source text.
  */
 export const readTypedFixture = (...segments: readonly string[]): string =>
-    readFileSync(typedFixturePath(...segments), "utf8");
+    normalizeLineEndingsForRuleTester(
+        readFileSync(typedFixturePath(...segments), "utf8")
+    );
 
 /**
  * Create a RuleTester configured for typed fixture tests.

@@ -286,16 +286,19 @@ const config: Config = {
         navbar: {
             items: [
                 {
+                    activeBaseRegex: "^/docs/rules/overview/?$",
                     label: "Docs",
                     position: "left",
                     to: "/docs/rules/overview",
                 },
                 {
+                    activeBaseRegex: "^/docs/rules(?:/(?!presets(?:/|$)).*)?$",
                     label: "Rules",
                     position: "left",
                     to: "/docs/rules",
                 },
                 {
+                    activeBaseRegex: "^/docs/rules/presets(?:/.*)?$",
                     label: "Presets",
                     position: "left",
                     to: "/docs/rules/presets",

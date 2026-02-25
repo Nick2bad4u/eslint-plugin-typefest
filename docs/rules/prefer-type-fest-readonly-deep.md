@@ -2,13 +2,24 @@
 
 Require TypeFest `ReadonlyDeep` over `DeepReadonly` aliases.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes deep-readonly helper usage on the canonical TypeFest utility name.
+This rule reports `DeepReadonly<T>` aliases and prefers `ReadonlyDeep<T>` for recursive immutability contracts.
 
 ### What it checks
 
 - Type references named `DeepReadonly`.
+
+### Detection boundaries
+
+- ✅ Reports direct `DeepReadonly<T>` type references.
+- ❌ Does not auto-fix when legacy helper semantics differ for containers.
+
+## Why this rule exists
+
+`ReadonlyDeep<T>` is TypeFest's canonical deep immutability utility.
+
+Canonical naming prevents mixed deep-readonly conventions in shared contract packages.
 
 ## ❌ Incorrect
 
@@ -23,6 +34,12 @@ import type { ReadonlyDeep } from "type-fest";
 
 type Config = ReadonlyDeep<AppConfig>;
 ```
+
+## Behavior and migration notes
+
+- `ReadonlyDeep<T>` recursively applies readonly semantics to nested structures.
+- Verify behavior for maps/sets/tuples if your prior alias had custom handling.
+- Prefer applying deep readonly at API boundaries where mutation should be prevented.
 
 ## ESLint flat config example
 

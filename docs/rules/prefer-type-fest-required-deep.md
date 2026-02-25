@@ -2,13 +2,24 @@
 
 Require TypeFest `RequiredDeep` over `DeepRequired` aliases.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes deep-required helper usage on the canonical TypeFest utility name.
+This rule reports `DeepRequired<T>` aliases and prefers `RequiredDeep<T>` for recursively required object shapes.
 
 ### What it checks
 
 - Type references named `DeepRequired`.
+
+### Detection boundaries
+
+- ✅ Reports direct `DeepRequired<T>` references.
+- ❌ Does not auto-fix where legacy aliases treat nullable leaves differently.
+
+## Why this rule exists
+
+`RequiredDeep<T>` is the canonical TypeFest utility for recursively requiring nested properties.
+
+Using one utility name clarifies strict configuration and post-validation object contracts.
 
 ## ❌ Incorrect
 
@@ -23,6 +34,12 @@ import type { RequiredDeep } from "type-fest";
 
 type StrictConfig = RequiredDeep<AppConfig>;
 ```
+
+## Behavior and migration notes
+
+- `RequiredDeep<T>` recursively removes optional modifiers from nested properties.
+- Re-check generated API types if optionality was previously preserved in certain branches.
+- Combine with validation/parsing phases before exposing strict internal types.
 
 ## ESLint flat config example
 

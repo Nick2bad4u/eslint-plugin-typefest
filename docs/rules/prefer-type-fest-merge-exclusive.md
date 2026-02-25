@@ -2,13 +2,24 @@
 
 Require TypeFest `MergeExclusive` over `XOR` aliases.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes mutually exclusive object-union helper usage on the canonical TypeFest utility name.
+This rule reports `XOR<...>` helper aliases and prefers `MergeExclusive<...>` for mutually exclusive object contracts.
 
 ### What it checks
 
 - Type references named `XOR`.
+
+### Detection boundaries
+
+- ✅ Reports direct `XOR<...>` type references.
+- ❌ Does not auto-fix when project-local `XOR` semantics differ from `MergeExclusive`.
+
+## Why this rule exists
+
+`MergeExclusive<A, B>` is the canonical TypeFest utility for object-level XOR constraints.
+
+Unifying on one name reduces contract ambiguity in auth/selectors where two modes must be mutually exclusive.
 
 ## ❌ Incorrect
 
@@ -23,6 +34,12 @@ import type { MergeExclusive } from "type-fest";
 
 type Selector = MergeExclusive<{ email: string }, { id: string }>;
 ```
+
+## Behavior and migration notes
+
+- `MergeExclusive` ensures overlapping key sets cannot be simultaneously satisfied.
+- Verify parity if your legacy `XOR` helper applied custom key normalization.
+- Keep mutually exclusive contract types near API boundaries to improve review clarity.
 
 ## ESLint flat config example
 

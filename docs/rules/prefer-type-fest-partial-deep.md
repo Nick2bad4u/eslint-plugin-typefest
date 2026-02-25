@@ -2,13 +2,24 @@
 
 Require TypeFest `PartialDeep` over `DeepPartial` aliases.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes deep-partial helper usage on the canonical TypeFest utility name.
+This rule reports `DeepPartial<T>` aliases and prefers `PartialDeep<T>` for recursive optional patch types.
 
 ### What it checks
 
 - Type references named `DeepPartial`.
+
+### Detection boundaries
+
+- ✅ Reports direct `DeepPartial<T>` type references.
+- ❌ Does not auto-fix where project-local aliases have non-TypeFest semantics.
+
+## Why this rule exists
+
+`PartialDeep<T>` is the canonical TypeFest utility for recursive optionality.
+
+Using a single name for deep patch semantics makes update/persistence DTOs easier to audit.
 
 ## ❌ Incorrect
 
@@ -23,6 +34,12 @@ import type { PartialDeep } from "type-fest";
 
 type Patch = PartialDeep<AppConfig>;
 ```
+
+## Behavior and migration notes
+
+- `PartialDeep<T>` recursively marks nested properties optional.
+- Validate parity if your legacy alias excluded arrays, maps, or sets.
+- Prefer narrowing the patch surface with `Pick`/`Except` before applying deep optionality.
 
 ## ESLint flat config example
 

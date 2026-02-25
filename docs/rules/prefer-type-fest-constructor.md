@@ -2,13 +2,24 @@
 
 Require TypeFest `Constructor` over explicit constructor signatures.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes constructor type modeling on TypeFest `Constructor`.
+This rule reports explicit `new (...args) => T` signatures and prefers `Constructor<T>` for newable class contracts.
 
 ### What it checks
 
 - `new (...args) => T` constructor type signatures.
+
+### Detection boundaries
+
+- ✅ Reports explicit non-abstract constructor signatures in type positions.
+- ❌ Does not auto-fix when argument-generic relationships need manual preservation.
+
+## Why this rule exists
+
+`Constructor<T>` is a canonical alias for class factory contracts.
+
+Using one alias across modules keeps dependency-injection and class-registry types uniform.
 
 ## ❌ Incorrect
 
@@ -23,6 +34,12 @@ import type { Constructor } from "type-fest";
 
 type ServiceCtor = Constructor<Service>;
 ```
+
+## Behavior and migration notes
+
+- `Constructor<T>` expresses "newable" class values that produce `T`.
+- Preserve specialized argument tuples with wrapper types when replacing explicit signatures.
+- Prefer this alias in public APIs to avoid repeated constructor signature boilerplate.
 
 ## ESLint flat config example
 

@@ -49,6 +49,33 @@ const sidebars: SidebarsConfig = {
             type: "doc",
         },
         {
+            className: "sb-cat-guides",
+            collapsed: true,
+            customProps: {
+                badge: "guides",
+            },
+            type: "category",
+            label: "🧭 Adoption & Rollout",
+            link: {
+                type: "generated-index",
+                title: "Adoption & Rollout",
+                description:
+                    "Shared migration, rollout, and fix-safety guidance for rule adoption.",
+            },
+            items: [
+                {
+                    id: "guides/adoption-checklist",
+                    label: "✅ Adoption checklist",
+                    type: "doc",
+                },
+                {
+                    id: "guides/rollout-and-fix-safety",
+                    label: "🛡️ Rollout and fix safety",
+                    type: "doc",
+                },
+            ],
+        },
+        {
             className: "sb-cat-presets",
             collapsed: true,
             customProps: {

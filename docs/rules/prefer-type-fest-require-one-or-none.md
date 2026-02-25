@@ -2,10 +2,9 @@
 
 Require TypeFest `RequireOneOrNone<T, Keys>` over imported aliases like `AtMostOne`.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes “zero-or-one key” constraints to
-`RequireOneOrNone<T, Keys>` from `type-fest`.
+This rule reports imported `AtMostOne` aliases and prefers `RequireOneOrNone<T, Keys>` for zero-or-one selector constraints.
 
 Use this utility when a payload may omit all optional selectors, but must not
 provide two selectors at the same time.
@@ -49,15 +48,11 @@ type OptionalAuth = RequireOneOrNone<{
 }>;
 ```
 
-## Upstream terminology and benefits
+## Behavior and migration notes
 
-`type-fest` describes itself as **"A collection of essential TypeScript types"**.
-
-`type-fest` utilities are compile-time only (nothing is emitted into runtime JavaScript), which makes them ideal for expressive, maintainable type models.
-
-For this rule, the canonical utility is **`RequireOneOrNone`**: `RequireOneOrNone` creates a type that requires exactly one key (or none) from the given key set.
-
-Standardizing on canonical names lowers cognitive overhead and makes refactors and onboarding easier.
+- `RequireOneOrNone<T, Keys>` models selectors where zero is valid but more than one is invalid.
+- This rule targets alias names with equivalent semantics (`AtMostOne`).
+- Keep the key subset focused on mutually exclusive selectors to maintain readable contract intent.
 
 ## Additional examples
 
@@ -98,31 +93,6 @@ type SessionIdentity = RequireOneOrNone<
 >;
 ```
 
-## Why this helps in real projects
-
-- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
-- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
-- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
-
-## Adoption tips
-
-1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
-2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing alternate aliases.
-4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
-
-### Rollout strategy
-
-- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
-- Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove alternate aliases once all consumers use canonical names.
-
-## Rule behavior and fixes
-
-- Reports imported `AtMostOne` alias references.
-- Does not provide autofix or suggestions.
-- Typical replacement: `AtMostOne<T, K>` → `RequireOneOrNone<T, K>`.
-
 ## ESLint flat config example
 
 ```ts
@@ -138,23 +108,9 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
-and then override this rule as needed.
-
-## Frequently asked questions
-
-### Why replace working aliases with canonical type-fest names?
-
-These constraints usually define valid user input states. Canonical naming makes
-those states easier to audit and maintain.
-
-### Does this affect runtime JavaScript?
-
-No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
-
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
+Disable this rule if existing alias names are part of a published API contract.
 
 ## Further reading
 

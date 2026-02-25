@@ -2,14 +2,25 @@
 
 Require TypeFest `WritableDeep` over `DeepMutable` and `MutableDeep` aliases.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes deep-mutable helper usage on the canonical TypeFest utility name.
+This rule reports `DeepMutable<T>`/`MutableDeep<T>` aliases and prefers `WritableDeep<T>` for deep mutability transforms.
 
 ### What it checks
 
 - Type references named `DeepMutable`.
 - Type references named `MutableDeep`.
+
+### Detection boundaries
+
+- ✅ Reports direct `DeepMutable<T>` and `MutableDeep<T>` references.
+- ❌ Does not auto-fix where internal helpers intentionally diverge from `WritableDeep` behavior.
+
+## Why this rule exists
+
+`WritableDeep<T>` is the canonical TypeFest utility for recursively removing readonly constraints.
+
+Standardizing on one helper name reduces confusion when mutability transitions are part of data-processing pipelines.
 
 ## ❌ Incorrect
 
@@ -25,6 +36,12 @@ import type { WritableDeep } from "type-fest";
 
 type MutableConfig = WritableDeep<AppConfig>;
 ```
+
+## Behavior and migration notes
+
+- `WritableDeep<T>` recursively removes readonly modifiers from nested members.
+- Validate migration behavior for tuple/read-only array branches in critical types.
+- Prefer local wrapper aliases if your domain needs a narrower deep-writable contract.
 
 ## ESLint flat config example
 

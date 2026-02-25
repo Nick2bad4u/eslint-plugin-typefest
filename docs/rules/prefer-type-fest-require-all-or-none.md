@@ -3,10 +3,9 @@
 Require TypeFest `RequireAllOrNone<T, Keys>` over imported aliases like
 `AllOrNone` or `AllOrNothing`.
 
-## Rule details
+## Targeted pattern scope
 
-This rule standardizes “atomic key group” constraints to
-`RequireAllOrNone<T, Keys>` from `type-fest`.
+This rule reports imported `AllOrNone`/`AllOrNothing` aliases and prefers `RequireAllOrNone<T, Keys>` for atomic key-group constraints.
 
 Use this utility when fields only make sense as a complete set (for example,
 `username` + `password`, or `country` + `vatId`).
@@ -47,15 +46,11 @@ import type { RequireAllOrNone } from "type-fest";
 type Credentials = RequireAllOrNone<User, "username" | "password">;
 ```
 
-## Upstream terminology and benefits
+## Behavior and migration notes
 
-`type-fest` describes itself as **"A collection of essential TypeScript types"**.
-
-`type-fest` utilities are compile-time only (nothing is emitted into runtime JavaScript), which makes them ideal for expressive, maintainable type models.
-
-For this rule, the canonical utility is **`RequireAllOrNone`**: `RequireAllOrNone` creates a type that requires all of the given keys or none of them.
-
-Standardizing on canonical names lowers cognitive overhead and makes refactors and onboarding easier.
+- `RequireAllOrNone<T, Keys>` enforces atomic key groups (all keys present together or all omitted).
+- This rule targets alias names that encode the same constraint (`AllOrNone`, `AllOrNothing`).
+- Keep key-group definitions explicit and colocated with contract types to avoid drift.
 
 ## Additional examples
 
@@ -81,33 +76,6 @@ type BillingIdentity = RequireAllOrNone<OrderInput, "country" | "vatId">;
 type OAuthPair = RequireAllOrNone<AuthInput, "clientId" | "clientSecret">;
 ```
 
-## Why this helps in real projects
-
-- **Shared type vocabulary across packages:** canonical `type-fest` names map directly to upstream docs and ecosystem examples.
-- **Safer API evolution:** utility names encode intent in signatures, which lowers ambiguity during refactors.
-- **No runtime overhead:** these are compile-time type utilities and do not add JavaScript output.
-
-## Adoption tips
-
-1. Replace non-canonical aliases with the canonical `type-fest` utility shown in this doc.
-2. Update shared type libraries first so downstream packages inherit consistent type names.
-3. Prefer direct canonical imports and avoid introducing alternate aliases.
-4. Use CI linting to prevent new non-canonical aliases from being reintroduced.
-
-### Rollout strategy
-
-- Roll out by domain module (API types, persistence types, UI view models) to reduce review noise.
-- Validate generated declaration output (`.d.ts`) if your package exports public types.
-- Remove alternate aliases once all consumers use canonical names.
-
-## Rule behavior and fixes
-
-- Reports imported `AllOrNone` and `AllOrNothing` alias references.
-- Does not provide autofix or suggestions.
-- Typical replacement:
-  - `AllOrNone<T, K>` → `RequireAllOrNone<T, K>`
-  - `AllOrNothing<T, K>` → `RequireAllOrNone<T, K>`
-
 ## ESLint flat config example
 
 ```ts
@@ -123,24 +91,9 @@ export default [
 ];
 ```
 
-For broader adoption, you can also start from `typefest.configs["type-fest/types"]`
-and then override this rule as needed.
-
-## Frequently asked questions
-
-### Why replace working aliases with canonical type-fest names?
-
-Because these key-group constraints usually model real business rules. Using
-the canonical utility keeps those rules recognizable and less error-prone in
-code reviews.
-
-### Does this affect runtime JavaScript?
-
-No. `type-fest` utilities are compile-time only type constructs, so this rule improves type clarity without changing emitted runtime code.
-
 ## When not to use it
 
-You may disable this rule if your codebase intentionally standardizes on a different utility-type library, or if you are preserving external/public type names for interoperability with another package.
+Disable this rule if existing exported aliases must stay unchanged for compatibility.
 
 ## Further reading
 

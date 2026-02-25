@@ -11,11 +11,23 @@ permissions:
 
 jobs:
     test:
-        runs-on: ubuntu-latest
+        name: Test (${{ matrix.label }})
+        runs-on: ${{ matrix.os }}
         timeout-minutes: 20
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - label: linux
+                      os: ubuntu-latest
+                    - label: windows
+                      os: windows-latest
+                    - label: macos
+                      os: macos-latest
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
               with:
                   egress-policy: audit
@@ -36,9 +48,11 @@ jobs:
               run: npm run build
 
             - name: Lint
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               run: npm run lint
 
             - name: Typecheck
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               run: npm run typecheck
 
             - name: Test

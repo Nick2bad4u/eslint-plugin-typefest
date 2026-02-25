@@ -2,7 +2,7 @@
 
 Require TypeFest `LiteralUnion` over unions that mix primitive keywords with same-family literal members.
 
-## Rule details
+## Targeted pattern scope
 
 This rule targets patterns like `"foo" | "bar" | string` and `200 | 404 | number`.
 
@@ -14,6 +14,17 @@ Those unions are usually better expressed with `LiteralUnion`, which preserves l
 - Number literal unions that also include `number`.
 - Boolean literal unions that also include `boolean`.
 - Bigint literal unions that also include `bigint`.
+
+### Detection boundaries
+
+- ✅ Reports same-family literal-plus-primitive unions (for example `"a" | string`).
+- ❌ Does not rewrite cross-family unions (for example `"a" | number`).
+
+## Why this rule exists
+
+`LiteralUnion<Literals, Primitive>` preserves literal completions while still accepting the broad primitive type.
+
+This keeps APIs ergonomic for known values without over-constraining extension points.
 
 ## ❌ Incorrect
 
@@ -30,6 +41,12 @@ import type { LiteralUnion } from "type-fest";
 type Environment = LiteralUnion<"dev" | "prod", string>;
 type HttpCode = LiteralUnion<200 | 404, number>;
 ```
+
+## Behavior and migration notes
+
+- Use the second parameter to match the primitive family (`string`, `number`, `boolean`, `bigint`).
+- Preserve literal member intent by keeping the literal union in the first type argument.
+- Avoid this pattern for closed enums where broad primitive assignability is not wanted.
 
 ## ESLint flat config example
 

@@ -20,6 +20,35 @@ import typefest from "eslint-plugin-typefest";
 export default [typefest.configs.recommended];
 ```
 
+## Alternative: apply recommended rules in your own scope
+
+```ts
+import tsParser from "@typescript-eslint/parser";
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        files: ["src/**/*.ts", "src/**/*.tsx"],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: "latest",
+                projectService: true,
+                sourceType: "module",
+            },
+        },
+        plugins: {
+            typefest,
+        },
+        rules: {
+            ...typefest.configs.recommended.rules,
+        },
+    },
+];
+```
+
+This option is useful when you want the recommended rule set, but only for specific file globs.
+
 ## Rules in this preset
 
 | Rule                                                                                                                                            |

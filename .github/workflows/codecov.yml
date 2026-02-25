@@ -17,12 +17,26 @@ permissions:
 
 jobs:
     coverage:
-        name: Run coverage and upload
-        runs-on: ubuntu-latest
+        name: Run coverage and upload (${{ matrix.label }})
+        runs-on: ${{ matrix.os }}
         timeout-minutes: 20
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - label: linux
+                      os: ubuntu-latest
+                      codecov_flag: os-linux
+                    - label: windows
+                      os: windows-latest
+                      codecov_flag: os-windows
+                    - label: macos
+                      os: macos-latest
+                      codecov_flag: os-macos
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
               with:
                   egress-policy: audit
@@ -51,10 +65,10 @@ jobs:
                   MAX_THREADS: "1"
 
             - name: Verify coverage artifact
-              run: test -f coverage/lcov.info
+              run: python -c "from pathlib import Path; assert Path('coverage/lcov.info').is_file(), 'coverage/lcov.info was not generated'"
 
             - name: Verify JUnit artifact
-              run: test -f test-report.junit.xml
+              run: python -c "from pathlib import Path; assert Path('test-report.junit.xml').is_file(), 'test-report.junit.xml was not generated'"
 
             - name: Upload test results to Codecov
               if: ${{ !cancelled() }}
@@ -62,6 +76,8 @@ jobs:
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   files: test-report.junit.xml
+                  flags: unit,${{ matrix.codecov_flag }}
+                  name: vitest-junit-${{ matrix.codecov_flag }}
 
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
@@ -69,8 +85,8 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   slug: Nick2bad4u/eslint-plugin-typefest
                   files: ./coverage/lcov.info
-                  flags: unit
-                  name: vitest-unit-coverage
+                  flags: unit,${{ matrix.codecov_flag }}
+                  name: vitest-unit-coverage-${{ matrix.codecov_flag }}
                   fail_ci_if_error: true
                   disable_search: true
                   verbose: true

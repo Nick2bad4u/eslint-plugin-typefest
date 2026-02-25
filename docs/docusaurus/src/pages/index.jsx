@@ -4,6 +4,27 @@ import Heading from "@theme/Heading";
 
 import styles from "./index.module.css";
 
+const heroBadges = [
+    "Flat Config native",
+    "TypeScript-first",
+    "Actionable rule docs",
+];
+
+const heroStats = [
+    {
+        label: "Rules",
+        value: "70+",
+    },
+    {
+        label: "Presets",
+        value: "6",
+    },
+    {
+        label: "Autofix & suggestions",
+        value: "DX-first",
+    },
+];
+
 const homeCards = [
     {
         title: "Get Started",
@@ -32,7 +53,10 @@ export default function Home() {
             description="Documentation for eslint-plugin-typefest"
         >
             <header className={styles.heroBanner}>
-                <div className="container">
+                <div className={`container ${styles.heroContent}`}>
+                    <p className={styles.heroKicker}>
+                        ESLint plugin for modern TypeScript teams
+                    </p>
                     <Heading as="h1" className={styles.heroTitle}>
                         eslint-plugin-typefest
                     </Heading>
@@ -40,6 +64,15 @@ export default function Home() {
                         Opinionated ESLint rules for safer, clearer TypeScript
                         patterns with type-fest and ts-extras.
                     </p>
+
+                    <div className={styles.heroBadgeRow}>
+                        {heroBadges.map((badge) => (
+                            <span key={badge} className={styles.heroBadge}>
+                                {badge}
+                            </span>
+                        ))}
+                    </div>
+
                     <div className={styles.heroActions}>
                         <Link
                             className="button button--primary button--lg"
@@ -53,6 +86,22 @@ export default function Home() {
                         >
                             Compare Presets
                         </Link>
+                    </div>
+
+                    <div className={styles.heroStats}>
+                        {heroStats.map((stat) => (
+                            <article
+                                key={stat.label}
+                                className={styles.heroStatCard}
+                            >
+                                <p className={styles.heroStatValue}>
+                                    {stat.value}
+                                </p>
+                                <p className={styles.heroStatLabel}>
+                                    {stat.label}
+                                </p>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </header>
@@ -73,6 +122,57 @@ export default function Home() {
                                 </Link>
                             </article>
                         ))}
+                    </div>
+                </section>
+
+                <section className={`container ${styles.secondarySection}`}>
+                    <div className={styles.secondaryGrid}>
+                        <article className={styles.secondaryCard}>
+                            <Heading as="h2" className={styles.secondaryTitle}>
+                                Why teams adopt it
+                            </Heading>
+                            <ul className={styles.secondaryList}>
+                                <li>
+                                    Encodes safer type and runtime patterns as
+                                    enforceable lint rules.
+                                </li>
+                                <li>
+                                    Uses focused presets so teams can roll out
+                                    in stages.
+                                </li>
+                                <li>
+                                    Keeps migration practical with clear
+                                    messages and fix suggestions.
+                                </li>
+                            </ul>
+                            <Link
+                                className={styles.cardLink}
+                                to="/docs/rules/overview"
+                            >
+                                Explore all rules →
+                            </Link>
+                        </article>
+
+                        <article className={styles.secondaryCard}>
+                            <Heading as="h2" className={styles.secondaryTitle}>
+                                Manual scoped setup
+                            </Heading>
+                            <p className={styles.secondaryDescription}>
+                                Prefer integrating plugin rules into your own
+                                file-scoped config blocks? Keep parser, plugins,
+                                and preset rules together in one place.
+                            </p>
+                            <pre className={styles.codeBlock}>
+                                <code>{`{
+  files: ["src/**/*.{ts,tsx}"],
+  languageOptions: { parser: tsParser },
+  plugins: { typefest },
+  rules: {
+    ...typefest.configs.recommended.rules,
+  },
+}`}</code>
+                            </pre>
+                        </article>
                     </div>
                 </section>
             </main>
