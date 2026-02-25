@@ -107,6 +107,7 @@
         "lint:all:fix": "npm run lint:fix && npm run lint:css:fix && npm run lint:prettier:fix && npm run lint:remark && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular",
         "lint:all:fix:quiet": "npm run lint:fix:quiet && npm run lint:css:fix && npm run lint:prettier:fix && npm run lint:remark && npm run lint:package && npm run lint:secretlint && npm run lint:yaml:fix && npm run lint:actions && npm run lint:circular",
         "lint:circular": "npm run madge:circular",
+        "lint:compat:eslint9": "node scripts/eslint9-compat-smoke.mjs",
         "lint:complexity": "npm run lint:cognitive-complexity",
         "lint:config:build": "npm run build:eslint-inspector",
         "lint:config:inspect": "npx eslint --inspect-config",
@@ -257,7 +258,7 @@
         "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-array-func": "^5.1.0",
         "eslint-plugin-canonical": "^5.1.3",
-        "eslint-plugin-case-police": "^2.1.1",
+        "eslint-plugin-case-police": "^2.2.0",
         "eslint-plugin-comment-length": "^2.3.0",
         "eslint-plugin-compat": "^6.2.0",
         "eslint-plugin-css-modules": "^2.12.0",
@@ -518,7 +519,7 @@
         "yamllint-js": "^0.2.4"
     },
     "peerDependencies": {
-        "eslint": "^10.0.2",
+        "eslint": "^9.0.0 || ^10.0.0",
         "typescript": ">=5.9.3"
     },
     "packageManager": "npm@11.10.1",

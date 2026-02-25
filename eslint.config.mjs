@@ -8,7 +8,7 @@
 
 import pluginDocusaurus from "@docusaurus/eslint-plugin";
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
-import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
+import { fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import css from "@eslint/css";
 import js from "@eslint/js";
@@ -116,11 +116,9 @@ const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
 const securityPlugin = fixupPluginRules(pluginSecurity);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
-// @ts-expect-error -- Plugin needs update for Eslint v10
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
-// @ts-expect-error -- Plugin needs update for Eslint v10
 const etc = fixupPluginRules(etcPlugin);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
@@ -350,15 +348,7 @@ export default defineConfig([
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
     },
-    // @ts-expect-error -- Plugin needs update for Eslint v10
-    ...fixupConfigRules(pluginCasePolice.configs.recommended).map((config) => ({
-        ...config,
-        files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-        name:
-            typeof config.name === "string" && config.name.length > 0
-                ? `Case police (code files only): ${config.name}`
-                : "Case police (code files only)",
-    })),
+    ...pluginCasePolice.configs.recommended,
     ...jsdocPlugin.configs["examples-and-default-expressions"].map(
         (config) => ({
             ...config,

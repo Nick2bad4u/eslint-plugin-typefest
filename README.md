@@ -29,6 +29,13 @@ npm install --save-dev eslint-plugin-typefest typescript
 
 > `@typescript-eslint/parser` is loaded automatically by plugin presets.
 
+### Compatibility
+
+- **Supported ESLint versions:** `9.x` and `10.x`
+- **Config system:** Flat Config only (`eslint.config.*`)
+- **Node.js runtime:** `>=20.19.0`
+- **ESLint 9 verification:** CI runs smoke checks for both `9.0.0` and latest `9.x`, including typed detection, typed autofix, and non-typed detection paths.
+
 ## Quick start (flat config)
 
 ```js

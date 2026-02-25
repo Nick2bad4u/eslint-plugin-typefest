@@ -148,7 +148,7 @@ export const getSignatureParameterTypeAt = ({
  *   ends with a known `.{spec|test}.<ext>` suffix.
  */
 export const isTestFilePath = (filePath: string): boolean =>
-    /(^|\/)(__tests__|tests)(\/|$)/u.test(
+    /(?:^|\/)(?:__tests__|tests)(?:\/|$)/u.test(
         filePath.replaceAll("\\", "/").toLowerCase()
     ) ||
-    /\.(spec|test)\.(cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());
+    /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());
