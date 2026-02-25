@@ -27,7 +27,7 @@ interface TypeFestRuleMetadataExpectations {
 }
 
 const docsBaseUrl =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 const importRuleModule = async (
     ruleId: string
@@ -50,7 +50,7 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     expectations: TypeFestRuleMetadataExpectations = {}
 ): void => {
     const expectedDefaultOptions = expectations.defaultOptions ?? [];
-    const expectedDocsUrl = `${docsBaseUrl}/${ruleId}.md`;
+    const expectedDocsUrl = `${docsBaseUrl}/${ruleId}`;
     const expectedRuleName = expectations.name ?? ruleId;
 
     describe(`${ruleId} metadata`, () => {

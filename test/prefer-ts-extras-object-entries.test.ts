@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-object-entries";
 const docsDescription =
     "require ts-extras objectEntries over Object.entries for stronger key/value inference.";
 const docsUrl =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-object-entries";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-entries";
 const preferTsExtrasObjectEntriesMessage =
     "Prefer `objectEntries` from `ts-extras` over `Object.entries(...)` for stronger key and value inference.";
 

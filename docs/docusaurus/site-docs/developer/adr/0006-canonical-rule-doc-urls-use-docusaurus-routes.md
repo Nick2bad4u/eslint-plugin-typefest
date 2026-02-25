@@ -19,8 +19,8 @@ Those links are source-oriented and not the user-facing documentation experience
 
 Set canonical rule docs URLs to the live Docusaurus site routes:
 
-- Base URL: `https://eslint-plugin-typefest.nick2bad4u.com/rules`
-- Rule URL shape: `https://eslint-plugin-typefest.nick2bad4u.com/rules/<rule-id>`
+- Base URL: `https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules`
+- Rule URL shape: `https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/<rule-id>`
 
 All rule metadata URL builders and tests should validate against this route format.
 

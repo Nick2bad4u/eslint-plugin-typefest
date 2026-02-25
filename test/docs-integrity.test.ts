@@ -45,7 +45,7 @@ describe("typefest rule docs", () => {
             const url = docs?.url;
 
             if (typeof url === "string") {
-                    expect(url).toContain(`/rules/${ruleId}`);
+                expect(url).toContain(`/rules/${ruleId}`);
             }
 
             const description = docs?.description;

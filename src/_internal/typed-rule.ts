@@ -8,7 +8,7 @@ import type ts from "typescript";
 import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 
 const RULE_DOCS_URL_BASE =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -152,3 +152,4 @@ export const isTestFilePath = (filePath: string): boolean =>
         filePath.replaceAll("\\", "/").toLowerCase()
     ) ||
     /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());
+

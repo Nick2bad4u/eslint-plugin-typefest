@@ -70,7 +70,7 @@ describe("plugin runtime edge branches", () => {
             const arrayAtRule = plugin.rules["prefer-ts-extras-array-at"];
 
             expect(arrayAtRule.meta.docs?.url).toBe(
-                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-array-at"
+                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-at"
             );
         } finally {
             resetRuntimeMocks();

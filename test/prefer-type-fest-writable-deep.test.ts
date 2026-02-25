@@ -111,10 +111,10 @@ describe("prefer-type-fest-writable-deep metadata", () => {
             "require TypeFest WritableDeep over `DeepMutable` and `MutableDeep` aliases."
         );
         expect(metadataRule.meta?.docs?.url).toBe(
-            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable-deep"
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-writable-deep"
         );
         expect(writableDeepRule.meta?.docs?.url).toBe(
-            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable-deep"
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-writable-deep"
         );
         expect(metadataRule.meta?.messages?.["preferWritableDeep"]).toBe(
             "Prefer `WritableDeep` from type-fest over `DeepMutable`/`MutableDeep`."
@@ -145,7 +145,7 @@ describe("prefer-type-fest-writable-deep metadata", () => {
                 };
 
             expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-writable-deep"
+                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-writable-deep"
             );
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");

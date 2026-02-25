@@ -95,7 +95,7 @@ describe("prefer-type-fest-if metadata", () => {
             "require TypeFest If + Is* utilities over deprecated If* aliases."
         );
         expect(metadataRule.meta?.docs?.url).toBe(
-            "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-if"
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if"
         );
         expect(metadataRule.meta?.messages?.["preferTypeFestIf"]).toBe(
             "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`."
@@ -117,7 +117,7 @@ describe("prefer-type-fest-if metadata", () => {
                 };
 
             expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-if"
+                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if"
             );
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");

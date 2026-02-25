@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-assert-error";
 const docsDescription =
     "require ts-extras assertError over manual instanceof Error throw guards.";
 const docsUrl =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-assert-error";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error";
 const preferTsExtrasAssertErrorMessage =
     "Prefer `assertError` from `ts-extras` over manual `instanceof Error` throw guards.";
 const suggestTsExtrasAssertErrorMessage =

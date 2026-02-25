@@ -118,7 +118,7 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-array-at",
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-at",
             },
             fixable: "code",
             messages: {

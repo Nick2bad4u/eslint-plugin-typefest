@@ -256,7 +256,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-is-defined",
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined",
             },
             fixable: "code",
             messages: {

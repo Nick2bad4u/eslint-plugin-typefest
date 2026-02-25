@@ -92,7 +92,7 @@ import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 const require = createRequire(import.meta.url);
 
 const DEFAULT_RULE_DOCS_URL_BASE =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 const ERROR_SEVERITY = "error" as const;
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
@@ -542,3 +542,4 @@ export type TypefestPlugin = typeof typefestPlugin;
  * Default plugin export consumed by ESLint flat config.
  */
 export default typefestPlugin;
+

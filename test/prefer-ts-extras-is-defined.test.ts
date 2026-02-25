@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-is-defined";
 const docsDescription =
     "require ts-extras isDefined over inline undefined comparisons outside filter callbacks.";
 const docsUrl =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-is-defined";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined";
 const preferTsExtrasIsDefinedMessage =
     "Prefer `isDefined(value)` from `ts-extras` over inline undefined comparisons.";
 const preferTsExtrasIsDefinedNegatedMessage =

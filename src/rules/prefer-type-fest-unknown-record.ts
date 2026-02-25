@@ -90,7 +90,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["type-fest/types"]',
                 ],
-                url: "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-type-fest-unknown-record",
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-unknown-record",
             },
             fixable: "code",
             messages: {

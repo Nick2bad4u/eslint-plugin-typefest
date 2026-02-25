@@ -16,7 +16,7 @@ const ruleId = "prefer-ts-extras-key-in";
 const docsDescription =
     "require ts-extras keyIn over `in` key checks for stronger narrowing.";
 const docsUrl =
-    "https://eslint-plugin-typefest.nick2bad4u.com/rules/prefer-ts-extras-key-in";
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-key-in";
 const preferTsExtrasKeyInMessage =
     "Prefer `keyIn` from `ts-extras` over `key in object` checks for stronger narrowing.";
 
