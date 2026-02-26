@@ -1,6 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { JsonObject } from "type-fest";
 
-type ComparableObject = Readonly<Record<string, unknown>>;
+type ComparableObject = Readonly<JsonObject>;
 
 const ignoredPropertyKeys = new Set<string>([
     "end",
@@ -121,3 +122,16 @@ export const areEquivalentExpressions = (
         unwrapTransparentExpression(left),
         unwrapTransparentExpression(right)
     );
+
+/**
+ * AreEquivalentTypeNodes helper.
+ *
+ * @param left - Left-hand type node.
+ * @param right - Right-hand type node.
+ *
+ * @returns `true` when both type nodes are structurally equivalent.
+ */
+export const areEquivalentTypeNodes = (
+    left: Readonly<TSESTree.TypeNode>,
+    right: Readonly<TSESTree.TypeNode>
+): boolean => areEquivalentNodeValues(left, right);

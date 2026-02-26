@@ -1,3 +1,5 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -8,6 +10,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    createTypedRule,
     getSignatureParameterTypeAt,
     getTypedRuleServices,
     isTestFilePath,
@@ -193,34 +196,386 @@ describe(isTypeAssignableTo, () => {
         );
     });
 
-    it("falls back to typeToString equality when native assignability API is unavailable", () => {
-        const stringifyTypeMock = vi
-            .fn<(type: Readonly<ts.Type>) => string>()
-            .mockReturnValue("shared");
-
+    it("falls back to strict identity when native assignability API is unavailable", () => {
         const checker = {
-            typeToString: stringifyTypeMock,
+            typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
 
         expect(
-            isTypeAssignableTo(checker, sourceType, targetType)
+            isTypeAssignableTo(checker, sourceType, sourceType)
         ).toBeTruthy();
-        expect(stringifyTypeMock).toHaveBeenCalledWith(sourceType);
-        expect(stringifyTypeMock).toHaveBeenCalledWith(targetType);
     });
 
-    it("returns false when typeToString fallback values differ", () => {
-        const stringifyTypeMock = vi
-            .fn<(type: Readonly<ts.Type>) => string>()
-            .mockImplementation((type) =>
-                type === sourceType ? "source" : "target"
-            );
-
+    it("fails gracefully and falls back to identity when native assignability API throws", () => {
         const checker = {
-            typeToString: stringifyTypeMock,
+            isTypeAssignableTo: vi
+                .fn<
+                    (
+                        source: Readonly<ts.Type>,
+                        target: Readonly<ts.Type>
+                    ) => boolean
+                >()
+                .mockImplementation(() => {
+                    throw new TypeError("checker failure");
+                }),
+            typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
+        } as unknown as ts.TypeChecker;
+
+        expect(
+            isTypeAssignableTo(checker, sourceType, sourceType)
+        ).toBeTruthy();
+        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBeFalsy();
+    });
+
+    it("returns false for non-identical types when assignability API is unavailable", () => {
+        const checker = {
+            typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
 
         expect(isTypeAssignableTo(checker, sourceType, targetType)).toBeFalsy();
+    });
+});
+
+describe(createTypedRule, () => {
+    type RuleMessageIds = "blocked";
+
+    const createFixOnlyRule = (): ReturnType<typeof createTypedRule> =>
+        createTypedRule({
+            create(context) {
+                return {
+                    Program(node) {
+                        context.report({
+                            fix: (fixer) => fixer.insertTextAfter(node, "\n"),
+                            messageId: "blocked",
+                            node,
+                        });
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-autofix-gating-test-rule",
+        });
+
+    const createSuggestOnlyRule = (): ReturnType<typeof createTypedRule> =>
+        createTypedRule({
+            create(context) {
+                return {
+                    Program(node) {
+                        context.report({
+                            messageId: "blocked",
+                            node,
+                            suggest: [
+                                {
+                                    fix: (fixer) =>
+                                        fixer.insertTextAfter(node, "\n"),
+                                    messageId: "blocked",
+                                },
+                            ],
+                        });
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-suggest-gating-test-rule",
+        });
+
+    const createRuleContext = ({
+        report,
+        settings,
+    }: Readonly<{
+        report: TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"];
+        settings: unknown;
+    }>): TSESLint.RuleContext<RuleMessageIds, UnknownArray> =>
+        ({
+            filename: "test-file.ts",
+            id: "internal-autofix-gating-test-rule",
+            languageOptions: {
+                parser: {
+                    meta: {
+                        name: "@typescript-eslint/parser",
+                    },
+                },
+            },
+            options: [],
+            report,
+            settings,
+            sourceCode: {
+                ast: {
+                    body: [],
+                    comments: [],
+                    range: [0, 0],
+                    sourceType: "module",
+                    tokens: [],
+                    type: "Program",
+                },
+            },
+        }) as unknown as TSESLint.RuleContext<RuleMessageIds, UnknownArray>;
+
+    it("keeps fix callbacks when disableAllAutofixes is not enabled", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {},
+        });
+
+        const ruleUnderTest = createFixOnlyRule();
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        listeners.Program?.(
+            context.sourceCode.ast as unknown as TSESTree.Program
+        );
+
+        expect(reportSpy).toHaveBeenCalledTimes(1);
+
+        const [descriptor] = reportSpy.mock.calls[0] as [
+            TSESLint.ReportDescriptor<RuleMessageIds>,
+        ];
+
+        expect(descriptor.fix).toBeTypeOf("function");
+    });
+
+    it("removes fix callbacks while keeping suggestions when disableAllAutofixes is enabled", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        const ruleUnderTest = createSuggestOnlyRule();
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        listeners.Program?.(
+            context.sourceCode.ast as unknown as TSESTree.Program
+        );
+
+        expect(reportSpy).toHaveBeenCalledTimes(1);
+
+        const [descriptor] = reportSpy.mock.calls[0] as [
+            TSESLint.ReportDescriptor<RuleMessageIds>,
+        ];
+
+        expect(descriptor.fix).toBeUndefined();
+        expect(descriptor.suggest).toHaveLength(1);
+    });
+
+    it("strips top-level fix but preserves suggestions when both are present", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        const ruleUnderTest = createTypedRule({
+            create(ruleContext) {
+                return {
+                    Program(node) {
+                        ruleContext.report({
+                            fix: (fixer) => fixer.insertTextAfter(node, "\n"),
+                            messageId: "blocked",
+                            node,
+                            suggest: [
+                                {
+                                    fix: (fixer) =>
+                                        fixer.insertTextAfter(node, "\n"),
+                                    messageId: "blocked",
+                                },
+                            ],
+                        });
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-combined-fix-suggest-test-rule",
+        });
+
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        listeners.Program?.(
+            context.sourceCode.ast as unknown as TSESTree.Program
+        );
+
+        expect(reportSpy).toHaveBeenCalledTimes(1);
+
+        const [descriptor] = reportSpy.mock.calls[0] as [
+            TSESLint.ReportDescriptor<RuleMessageIds>,
+        ];
+
+        expect(descriptor.fix).toBeUndefined();
+        expect(descriptor.suggest).toHaveLength(1);
+    });
+
+    it("does not mutate original report descriptor when stripping fix", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        let originalDescriptor:
+            | TSESLint.ReportDescriptor<RuleMessageIds>
+            | undefined;
+
+        const ruleUnderTest = createTypedRule({
+            create(ruleContext) {
+                return {
+                    Program(node) {
+                        originalDescriptor = {
+                            fix: (fixer) => fixer.insertTextAfter(node, "\n"),
+                            messageId: "blocked",
+                            node,
+                        };
+
+                        ruleContext.report(originalDescriptor);
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-descriptor-mutation-test-rule",
+        });
+
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        listeners.Program?.(
+            context.sourceCode.ast as unknown as TSESTree.Program
+        );
+
+        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(originalDescriptor).toBeDefined();
+        expect(originalDescriptor?.fix).toBeTypeOf("function");
+    });
+
+    it("does not strip non-function fix values", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        const ruleUnderTest = createTypedRule({
+            create(ruleContext) {
+                return {
+                    Program(node) {
+                        ruleContext.report({
+                            fix: null,
+                            messageId: "blocked",
+                            node,
+                        } as unknown as TSESLint.ReportDescriptor<RuleMessageIds>);
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-non-function-fix-test-rule",
+        });
+
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        listeners.Program?.(
+            context.sourceCode.ast as unknown as TSESTree.Program
+        );
+
+        expect(reportSpy).toHaveBeenCalledTimes(1);
+
+        const [descriptor] = reportSpy.mock.calls[0] as [
+            TSESLint.ReportDescriptor<RuleMessageIds>,
+        ];
+
+        expect(descriptor.fix).toBeNull();
     });
 });
 

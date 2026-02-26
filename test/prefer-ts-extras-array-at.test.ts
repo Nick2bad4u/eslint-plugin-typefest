@@ -66,6 +66,16 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const value = arrayAt(sample, 0);",
 ].join("\n");
+const disableImportInsertionSettings = {
+    typefest: {
+        disableImportInsertionFixes: true,
+    },
+};
+const disableAllAutofixesSettings = {
+    typefest: {
+        disableAllAutofixes: true,
+    },
+};
 
 ruleTester.run(
     "prefer-ts-extras-array-at",
@@ -100,11 +110,27 @@ ruleTester.run(
                 output: inlineFixableOutput,
             },
             {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasArrayAt" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "skips all autofixes when disableAllAutofixes is enabled",
+                output: null,
+                settings: disableAllAutofixesSettings,
+            },
+            {
                 code: unionWithNonArrayValidCode,
                 errors: [{ messageId: "preferTsExtrasArrayAt" }],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union containing array when calling .at",
                 output: unionWithNonArrayOutput,
+            },
+            {
+                code: unionWithNonArrayValidCode,
+                errors: [{ messageId: "preferTsExtrasArrayAt" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "skips autofix when import insertion fixes are globally disabled",
+                output: null,
+                settings: disableImportInsertionSettings,
             },
         ],
         valid: [

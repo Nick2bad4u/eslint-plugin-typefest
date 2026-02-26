@@ -2,33 +2,17 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-arrayable`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
+import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
-
-/**
- * Check whether the input is identifier type reference.
- *
- * @param node - Value to inspect.
- * @param expectedTypeName - Value to inspect.
- *
- * @returns `true` when the value is identifier type reference; otherwise
- *   `false`.
- */
-
-const isIdentifierTypeReference = (
-    node: Readonly<TSESTree.TypeNode>,
-    expectedTypeName: string
-): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
-    node.typeName.name === expectedTypeName;
 
 /**
  * GetArrayTypeReferenceElementType helper.
@@ -54,31 +38,7 @@ const getArrayTypeReferenceElementType = (
     return firstTypeArgument ?? null;
 };
 
-/**
- * NormalizeTypeNodeText helper.
- *
- * @param sourceCode - Value to inspect.
- * @param node - Value to inspect.
- *
- * @returns NormalizeTypeNodeText helper result.
- */
-
-const normalizeTypeNodeText = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
-    node: Readonly<TSESTree.TypeNode>
-): string => sourceCode.getText(node).replaceAll(/\s/gu, "");
-
-/**
- * Check whether has arrayable shape.
- *
- * @param sourceCode - Value to inspect.
- * @param node - Value to inspect.
- *
- * @returns `true` when has arrayable shape; otherwise `false`.
- */
-
 const getArrayableElementType = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
     node: Readonly<TSESTree.TSUnionType>
 ): null | TSESTree.TypeNode => {
     const unionTypes = node.types;
@@ -92,17 +52,19 @@ const getArrayableElementType = (
     }
 
     if (firstUnionType.type === "TSArrayType") {
-        return normalizeTypeNodeText(sourceCode, firstUnionType.elementType) ===
-            normalizeTypeNodeText(sourceCode, secondUnionType)
+        return areEquivalentTypeNodes(
+            firstUnionType.elementType,
+            secondUnionType
+        )
             ? secondUnionType
             : null;
     }
 
     if (secondUnionType.type === "TSArrayType") {
-        return normalizeTypeNodeText(
-            sourceCode,
-            secondUnionType.elementType
-        ) === normalizeTypeNodeText(sourceCode, firstUnionType)
+        return areEquivalentTypeNodes(
+            secondUnionType.elementType,
+            firstUnionType
+        )
             ? firstUnionType
             : null;
     }
@@ -110,8 +72,7 @@ const getArrayableElementType = (
     const firstArrayElementType =
         getArrayTypeReferenceElementType(firstUnionType);
     if (firstArrayElementType) {
-        return normalizeTypeNodeText(sourceCode, firstArrayElementType) ===
-            normalizeTypeNodeText(sourceCode, secondUnionType)
+        return areEquivalentTypeNodes(firstArrayElementType, secondUnionType)
             ? secondUnionType
             : null;
     }
@@ -119,8 +80,7 @@ const getArrayableElementType = (
     const secondArrayElementType =
         getArrayTypeReferenceElementType(secondUnionType);
     if (secondArrayElementType) {
-        return normalizeTypeNodeText(sourceCode, secondArrayElementType) ===
-            normalizeTypeNodeText(sourceCode, firstUnionType)
+        return areEquivalentTypeNodes(secondArrayElementType, firstUnionType)
             ? firstUnionType
             : null;
     }
@@ -150,10 +110,7 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSUnionType(node) {
-                    const arrayableElementType = getArrayableElementType(
-                        sourceCode,
-                        node
-                    );
+                    const arrayableElementType = getArrayableElementType(node);
 
                     if (!arrayableElementType) {
                         return;

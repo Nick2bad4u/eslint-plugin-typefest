@@ -7,7 +7,13 @@ import type ts from "typescript";
 
 import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 
+import { registerProgramSettingsForContext } from "./plugin-settings.js";
 import { createRuleDocsUrl } from "./rule-docs-url.js";
+
+type ReportDescriptor<
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+> = Parameters<TSESLint.RuleContext<MessageIds, Options>["report"]>[0];
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -44,15 +50,83 @@ type TypefestRuleDocs = {
         | TypefestConfigReference;
 };
 
+const stripFixFromReportDescriptor = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>(
+    descriptor: Readonly<ReportDescriptor<MessageIds, Options>>
+): ReportDescriptor<MessageIds, Options> => {
+    if (
+        typeof descriptor !== "object" ||
+        descriptor === null ||
+        !Object.hasOwn(descriptor, "fix") ||
+        typeof descriptor.fix !== "function"
+    ) {
+        return descriptor as ReportDescriptor<MessageIds, Options>;
+    }
+
+    const descriptorWithoutFix = {
+        ...descriptor,
+    } as ReportDescriptor<MessageIds, Options> & {
+        fix?: unknown;
+    };
+
+    Reflect.deleteProperty(descriptorWithoutFix, "fix");
+
+    return descriptorWithoutFix;
+};
+
+const createContextWithoutAutofixes = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>(
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
+): Readonly<TSESLint.RuleContext<MessageIds, Options>> => {
+    const reportWithoutAutofixes: typeof context.report = (descriptor) => {
+        context.report(stripFixFromReportDescriptor(descriptor));
+    };
+
+    const effectiveContext = Object.create(context) as TSESLint.RuleContext<
+        MessageIds,
+        Options
+    >;
+
+    Object.defineProperty(effectiveContext, "report", {
+        configurable: true,
+        enumerable: true,
+        value: reportWithoutAutofixes,
+        writable: false,
+    });
+
+    return effectiveContext;
+};
+
 /**
  * Create typed rules with docs URLs that point to this repository's rule docs.
  */
 /* eslint-disable total-functions/no-hidden-type-assertions -- RuleCreator generic specialization is required so `meta.docs.recommended` is typed across all rules. */
+const baseTypedRuleCreator = ESLintUtils.RuleCreator<TypefestRuleDocs>(
+    (ruleName) => createRuleDocsUrl(ruleName)
+);
+
 export const createTypedRule: ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
-> = ESLintUtils.RuleCreator<TypefestRuleDocs>((ruleName) =>
-    createRuleDocsUrl(ruleName)
-);
+> = ((ruleDefinition) => {
+    const createdRule = baseTypedRuleCreator(ruleDefinition);
+
+    return {
+        ...createdRule,
+        create(context) {
+            const settings = registerProgramSettingsForContext(context);
+
+            const effectiveContext = settings.disableAllAutofixes
+                ? createContextWithoutAutofixes(context)
+                : context;
+
+            return createdRule.create(effectiveContext);
+        },
+    };
+}) as ReturnType<typeof ESLintUtils.RuleCreator<TypefestRuleDocs>>;
 /* eslint-enable total-functions/no-hidden-type-assertions -- Re-enable hidden-type-assertion checks for the rest of the module. */
 
 /**
@@ -101,12 +175,17 @@ export const isTypeAssignableTo = (
     };
 
     if (typeof checkerWithAssignable.isTypeAssignableTo === "function") {
-        return checkerWithAssignable.isTypeAssignableTo(sourceType, targetType);
+        try {
+            return checkerWithAssignable.isTypeAssignableTo(
+                sourceType,
+                targetType
+            );
+        } catch {
+            return sourceType === targetType;
+        }
     }
 
-    return (
-        checker.typeToString(sourceType) === checker.typeToString(targetType)
-    );
+    return sourceType === targetType;
 };
 
 /**

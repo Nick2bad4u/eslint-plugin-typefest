@@ -2,37 +2,19 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-except`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const OMIT_TYPE_NAME = "Omit";
 const exceptAliasReplacements = {
     HomomorphicOmit: "Except",
 } as const;
-
-/**
- * Check whether the input is identifier type reference.
- *
- * @param node - Value to inspect.
- * @param expectedTypeName - Value to inspect.
- *
- * @returns `true` when the value is identifier type reference; otherwise
- *   `false`.
- */
-
-const isIdentifierTypeReference = (
-    node: Readonly<TSESTree.TypeNode>,
-    expectedTypeName: string
-): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
-    node.typeName.name === expectedTypeName;
 
 /**
  * ESLint rule definition for `prefer-type-fest-except`.

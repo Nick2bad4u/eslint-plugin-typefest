@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
@@ -23,14 +24,6 @@ const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
  * @returns `true` when the value is identifier type reference; otherwise
  *   `false`.
  */
-
-const isIdentifierTypeReference = (
-    node: Readonly<TSESTree.TypeNode>,
-    expectedTypeName: string
-): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
-    node.typeName.name === expectedTypeName;
 
 /**
  * Check whether the input is json value type.

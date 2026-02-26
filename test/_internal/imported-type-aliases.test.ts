@@ -1,3 +1,4 @@
+import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
@@ -9,7 +10,8 @@ import { describe, expect, it } from "vitest";
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
-    createSafeTypeNodeReplacementFix,
+    collectNamedImportLocalNamesFromSource,
+    collectNamespaceImportLocalNamesFromSource,
     createSafeTypeNodeReplacementFixPreservingReadonly,
     createSafeTypeNodeTextReplacementFix,
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
@@ -73,6 +75,13 @@ const createImportDeclaration = (
     type: "ImportDeclaration",
 });
 
+const createNamespaceImportSpecifier = (localName: string): unknown => ({
+    local: {
+        name: localName,
+    },
+    type: "ImportNamespaceSpecifier",
+});
+
 const createTypeReferenceNode = (
     referenceName: string,
     parent?: unknown
@@ -114,6 +123,17 @@ const collectDirectNamedImportsFromSourceFn: (
     expectedSourceValue: string
 ) => ReadonlySet<string> = collectDirectNamedImportsFromSource;
 
+const collectNamedImportLocalNamesFromSourceFn: (
+    sourceCode: Readonly<Parameters<typeof collectImportedTypeAliasMatches>[0]>,
+    expectedSourceValue: string,
+    expectedImportedName: string
+) => ReadonlySet<string> = collectNamedImportLocalNamesFromSource;
+
+const collectNamespaceImportLocalNamesFromSourceFn: (
+    sourceCode: Readonly<Parameters<typeof collectImportedTypeAliasMatches>[0]>,
+    expectedSourceValue: string
+) => ReadonlySet<string> = collectNamespaceImportLocalNamesFromSource;
+
 const createSafeTypeReferenceReplacementFixFn: (
     node: Readonly<Parameters<typeof createSafeTypeReferenceReplacementFix>[0]>,
     replacementName: string,
@@ -122,11 +142,20 @@ const createSafeTypeReferenceReplacementFixFn: (
     createSafeTypeReferenceReplacementFix;
 
 const createSafeTypeNodeReplacementFixFn: (
-    node: Readonly<Parameters<typeof createSafeTypeNodeReplacementFix>[0]>,
+    node: Readonly<Parameters<typeof createSafeTypeNodeTextReplacementFix>[0]>,
     replacementName: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>
-) => ReturnType<typeof createSafeTypeNodeReplacementFix> =
-    createSafeTypeNodeReplacementFix;
+) => ReturnType<typeof createSafeTypeNodeTextReplacementFix> = (
+    node,
+    replacementName,
+    availableReplacementNames
+) =>
+    createSafeTypeNodeTextReplacementFix(
+        node,
+        replacementName,
+        replacementName,
+        availableReplacementNames
+    );
 
 const createSafeTypeNodeTextReplacementFixFn: (
     node: Readonly<Parameters<typeof createSafeTypeNodeTextReplacementFix>[0]>,
@@ -177,22 +206,22 @@ const createTypeParameterDeclarationWithNames = (
 
 const createTypeNode = (
     parent?: unknown
-): Parameters<typeof createSafeTypeNodeReplacementFix>[0] =>
+): Parameters<typeof createSafeTypeNodeTextReplacementFix>[0] =>
     ({
         type: "TSStringKeyword",
         ...(parent === undefined ? {} : { parent }),
-    }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
+    }) as unknown as Parameters<typeof createSafeTypeNodeTextReplacementFix>[0];
 
 const createReadonlyContainerTypeReferenceNode = (
     readonlyContainerTypeName: string
-): Parameters<typeof createSafeTypeNodeReplacementFix>[0] =>
+): Parameters<typeof createSafeTypeNodeTextReplacementFix>[0] =>
     ({
         type: "TSTypeReference",
         typeName: {
             name: readonlyContainerTypeName,
             type: "Identifier",
         },
-    }) as unknown as Parameters<typeof createSafeTypeNodeReplacementFix>[0];
+    }) as unknown as Parameters<typeof createSafeTypeNodeTextReplacementFix>[0];
 
 const createReadonlyTypeOperatorNode = (): Parameters<
     typeof createSafeTypeNodeTextReplacementFix
@@ -355,6 +384,80 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
 
         expect(namedImports.has("Tagged")).toBeTruthy();
         expect(namedImports.size).toBe(1);
+    });
+});
+
+function collectNamedImportLocalNamesFromSourceGroup(): void {
+    // no-op
+}
+
+describe(collectNamedImportLocalNamesFromSourceGroup, () => {
+    it("collects local names for matching named imports including aliases", () => {
+        expect.hasAssertions();
+
+        const sourceCode = createSourceCode([
+            createImportDeclaration([
+                createIdentifierImportSpecifier("Writable", "Writable"),
+                createIdentifierImportSpecifier("Writable", "MutableAlias"),
+                createIdentifierImportSpecifier("Other", "Other"),
+            ]),
+        ]);
+
+        const localNames = collectNamedImportLocalNamesFromSourceFn(
+            sourceCode,
+            "type-aliases",
+            "Writable"
+        );
+
+        expect(localNames).toStrictEqual(new Set(["MutableAlias", "Writable"]));
+    });
+
+    it("returns an empty set when no matching named imports exist", () => {
+        expect.hasAssertions();
+
+        const sourceCode = createSourceCode([
+            createImportDeclaration([
+                createIdentifierImportSpecifier("Other", "Other"),
+            ]),
+        ]);
+
+        const localNames = collectNamedImportLocalNamesFromSourceFn(
+            sourceCode,
+            "type-aliases",
+            "Writable"
+        );
+
+        expect(localNames.size).toBe(0);
+    });
+});
+
+function collectNamespaceImportLocalNamesFromSourceGroup(): void {
+    // no-op
+}
+
+describe(collectNamespaceImportLocalNamesFromSourceGroup, () => {
+    it("collects namespace import local names for the selected source", () => {
+        expect.hasAssertions();
+
+        const sourceCode = createSourceCode([
+            createImportDeclaration([
+                createNamespaceImportSpecifier("TypeFest"),
+            ]),
+            {
+                source: {
+                    value: "other-source",
+                },
+                specifiers: [createNamespaceImportSpecifier("OtherNamespace")],
+                type: "ImportDeclaration",
+            },
+        ]);
+
+        const localNames = collectNamespaceImportLocalNamesFromSourceFn(
+            sourceCode,
+            "type-aliases"
+        );
+
+        expect(localNames).toStrictEqual(new Set(["TypeFest"]));
     });
 });
 
@@ -562,6 +665,122 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
         );
 
         expect(fixer).toBeTypeOf("function");
+    });
+
+    it("inserts missing import after directive prologue when no imports are present", () => {
+        expect.hasAssertions();
+
+        const directiveStatement = {
+            expression: {
+                type: "Literal",
+                value: "use client",
+            },
+            range: [0, 12],
+            type: "ExpressionStatement",
+        };
+        const firstStatement = {
+            range: [13, 32],
+            type: "TSTypeAliasDeclaration",
+        };
+        const programNode = {
+            body: [directiveStatement, firstStatement],
+            range: [0, 32],
+            type: "Program",
+        };
+
+        const node = createTypeNode(programNode);
+        const fix = createSafeTypeNodeTextReplacementFixFn(
+            node,
+            "Simplify",
+            "Simplify<string>",
+            new Set<string>()
+        );
+
+        expect(fix).toBeTypeOf("function");
+
+        const insertAfterCalls: { target: unknown; text: string }[] = [];
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fakeFixer = {
+            insertTextAfter(target: unknown, text: string): string {
+                insertAfterCalls.push({ target, text });
+
+                return text;
+            },
+            insertTextBeforeRange(
+                range: readonly [number, number],
+                text: string
+            ): string {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+            replaceText: (): string => "Simplify<string>",
+        } as unknown as TSESLint.RuleFixer;
+
+        fix?.(fakeFixer);
+
+        expect(insertAfterCalls).toStrictEqual([
+            {
+                target: directiveStatement,
+                text: '\nimport type { Simplify } from "type-fest";',
+            },
+        ]);
+        expect(insertBeforeRangeCalls).toStrictEqual([]);
+    });
+
+    it("inserts missing import before first statement when file has no imports or directives", () => {
+        expect.hasAssertions();
+
+        const firstStatement = {
+            range: [8, 28],
+            type: "TSTypeAliasDeclaration",
+        };
+        const programNode = {
+            body: [firstStatement],
+            range: [0, 28],
+            type: "Program",
+        };
+
+        const node = createTypeNode(programNode);
+        const fix = createSafeTypeNodeTextReplacementFixFn(
+            node,
+            "Simplify",
+            "Simplify<string>",
+            new Set<string>()
+        );
+
+        expect(fix).toBeTypeOf("function");
+
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fakeFixer = {
+            insertTextAfter: (): string => "",
+            insertTextBeforeRange(
+                range: readonly [number, number],
+                text: string
+            ): string {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+            replaceText: (): string => "Simplify<string>",
+        } as unknown as TSESLint.RuleFixer;
+
+        fix?.(fakeFixer);
+
+        expect(insertBeforeRangeCalls).toStrictEqual([
+            {
+                range: [8, 8],
+                text: 'import type { Simplify } from "type-fest";\n',
+            },
+        ]);
     });
 });
 

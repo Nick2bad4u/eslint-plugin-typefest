@@ -31,8 +31,9 @@
         "test/**/*.mjs",
         "vitest.stryker.config.ts",
         "vite.config.ts",
-        "docs/**/*.ts",
         "docs/**/*.mjs",
+        "docs/**/*.mts",
+        "docs/**/*.ts",
         "docs/**/*.tsx"
     ]
 }

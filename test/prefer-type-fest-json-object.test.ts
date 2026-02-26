@@ -93,6 +93,11 @@ const inlineFixableOutput = [
     "",
     "type MonitorJsonShape = JsonObject;",
 ].join("\n");
+const disableImportInsertionSettings = {
+    typefest: {
+        disableImportInsertionFixes: true,
+    },
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -284,6 +289,14 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Record<string, JsonValue> without fix when JsonObject import is missing",
             output: inlineInvalidWithoutFixOutputCode,
+        },
+        {
+            code: inlineInvalidWithoutFixCode,
+            errors: [{ messageId: "preferJsonObject" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without autofix when import insertion fixes are globally disabled",
+            output: null,
+            settings: disableImportInsertionSettings,
         },
         {
             code: inlineFixableCode,

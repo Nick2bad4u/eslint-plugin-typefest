@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-string-split`.
  */
-import ts from "typescript";
+import type ts from "typescript";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -12,6 +12,7 @@ import {
     createTypedRule,
     getTypedRuleServices,
     isTestFilePath,
+    isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -34,6 +35,12 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
+            const checkerWithStringHelpers = checker as ts.TypeChecker & {
+                getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
+                getStringType?: () => ts.Type;
+            };
+            const stringPrimitiveType =
+                checkerWithStringHelpers.getStringType?.();
 
             const isStringLikeType = (
                 type: Readonly<ReturnType<typeof checker.getTypeAtLocation>>
@@ -61,7 +68,14 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         );
                     }
 
-                    if ((candidateType.flags & ts.TypeFlags.StringLike) !== 0) {
+                    if (
+                        stringPrimitiveType !== undefined &&
+                        isTypeAssignableTo(
+                            checker,
+                            candidateType,
+                            stringPrimitiveType
+                        )
+                    ) {
                         return true;
                     }
 
@@ -69,8 +83,12 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    const apparentType = checker.getApparentType(candidateType);
-                    return apparentType === candidateType
+                    const apparentType =
+                        checkerWithStringHelpers.getApparentType?.(
+                            candidateType
+                        );
+                    return apparentType === undefined ||
+                        apparentType === candidateType
                         ? false
                         : isStringLikeTypeInternal(apparentType);
                 };

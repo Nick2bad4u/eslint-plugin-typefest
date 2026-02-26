@@ -5,6 +5,10 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
+    collectNamedImportLocalNamesFromSource,
+    collectNamespaceImportLocalNamesFromSource,
+} from "../_internal/imported-type-aliases.js";
+import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
@@ -32,36 +36,16 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 "ts-extras"
             );
 
-            const writableLocalNames = new Set<string>();
-            const typeFestNamespaceImportNames = new Set<string>();
-
-            for (const statement of context.sourceCode.ast.body) {
-                if (statement.type !== "ImportDeclaration") {
-                    continue;
-                }
-
-                const sourceValue =
-                    typeof statement.source.value === "string"
-                        ? statement.source.value
-                        : "";
-                if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {
-                    continue;
-                }
-
-                for (const specifier of statement.specifiers) {
-                    if (
-                        specifier.type === "ImportSpecifier" &&
-                        specifier.imported.type === "Identifier" &&
-                        specifier.imported.name === WRITABLE_TYPE_NAME
-                    ) {
-                        writableLocalNames.add(specifier.local.name);
-                    }
-
-                    if (specifier.type === "ImportNamespaceSpecifier") {
-                        typeFestNamespaceImportNames.add(specifier.local.name);
-                    }
-                }
-            }
+            const writableLocalNames = collectNamedImportLocalNamesFromSource(
+                context.sourceCode,
+                TYPE_FEST_PACKAGE_NAME,
+                WRITABLE_TYPE_NAME
+            );
+            const typeFestNamespaceImportNames =
+                collectNamespaceImportLocalNamesFromSource(
+                    context.sourceCode,
+                    TYPE_FEST_PACKAGE_NAME
+                );
 
             const isWritableTypeReference = (
                 typeAnnotation: Readonly<TSESTree.TypeNode>

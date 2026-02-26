@@ -204,19 +204,12 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
         expect(ruleSource).toContain(
             'const filePath = context.filename ?? "";'
         );
+        expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
         expect(ruleSource).toContain(
-            'typeof statement.source.value === "string"'
+            "collectNamespaceImportLocalNamesFromSource("
         );
-        expect(ruleSource).toContain(': "";');
-        expect(ruleSource).toContain('specifier.type === "ImportSpecifier" &&');
-        expect(ruleSource).toContain(
-            'specifier.imported.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain(
-            "specifier.imported.name === WRITABLE_TYPE_NAME"
-        );
-        expect(ruleSource).toContain(
-            'if (specifier.type === "ImportNamespaceSpecifier") {'
+        expect(ruleSource).not.toContain(
+            "for (const statement of context.sourceCode.ast.body) {"
         );
         expect(ruleSource).toContain(
             'if (typeAnnotation.typeName.type !== "TSQualifiedName") {'

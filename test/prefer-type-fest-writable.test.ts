@@ -323,7 +323,7 @@ describe(ruleName, () => {
         expect(report).not.toHaveBeenCalled();
     });
 
-    it("normalizes type text using collapsed whitespace regex", () => {
+    it("matches mapped type shape without text normalization", () => {
         const baseTypeNode = {
             type: "TSTypeReference",
         } as unknown as TSESTree.TypeNode;
@@ -342,38 +342,16 @@ describe(ruleName, () => {
                 objectType: baseTypeNode,
             }),
         });
-        const replaceAllSpy = vi.spyOn(String.prototype, "replaceAll");
+        const getText = vi.fn(() => "T  \n\tU");
         const { mappedTypeListener, report } =
             createWritableMappedTypeListenerHarness({
-                getText: () => "T  \n\tU",
+                getText,
             });
 
-        try {
-            mappedTypeListener(mappedTypeNode);
+        mappedTypeListener(mappedTypeNode);
 
-            const regexPatternCall = replaceAllSpy.mock.calls.find(
-                ([pattern]) => pattern instanceof RegExp
-            );
-
-            expect(regexPatternCall).toBeDefined();
-
-            if (!regexPatternCall) {
-                return;
-            }
-
-            const [pattern, replacement] = regexPatternCall;
-            if (!(pattern instanceof RegExp)) {
-                throw new TypeError("Expected RegExp pattern call");
-            }
-
-            expect(pattern.source).toBe(String.raw`\s+`);
-            expect(pattern.flags.includes("g")).toBeTruthy();
-            expect(replacement).toBe("");
-
-            expect(report).toHaveBeenCalledTimes(1);
-        } finally {
-            replaceAllSpy.mockRestore();
-        }
+        expect(getText).not.toHaveBeenCalled();
+        expect(report).toHaveBeenCalledTimes(1);
     });
 });
 

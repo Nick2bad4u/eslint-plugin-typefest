@@ -100,7 +100,7 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
 );
 
 describe("prefer-type-fest-non-empty-tuple source assertions", () => {
-    it("keeps whitespace-run normalization in normalizeTypeText", () => {
+    it("uses structural type-node equivalence instead of text normalization", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -109,7 +109,8 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(String.raw`replaceAll(/\s+/g, "")`);
+        expect(ruleSource).toContain("areEquivalentTypeNodes(");
+        expect(ruleSource).not.toContain(String.raw`replaceAll(/\s+/g, "")`);
     });
 
     it("returns early before text extraction for optional/rest tuple heads", async () => {

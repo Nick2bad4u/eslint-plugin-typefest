@@ -19,7 +19,8 @@ included in each preset config.
 2. [Quick start (flat config)](#quick-start-flat-config)
 3. [Presets](#presets)
 4. [Configuration examples by preset](#configuration-examples-by-preset)
-5. [Rules](#rules)
+5. [Global settings](#global-settings)
+6. [Rules](#rules)
 
 ## Installation
 
@@ -103,18 +104,49 @@ import typefest from "eslint-plugin-typefest";
 const recommended = typefest.configs.recommended;
 
 export default [
-    {
-        ...recommended,
-        languageOptions: {
-            ...recommended.languageOptions,
-            parserOptions: {
-                ...recommended.languageOptions?.parserOptions,
-                projectService: true,
-            },
-        },
+  {
+    ...recommended,
+    languageOptions: {
+      ...recommended.languageOptions,
+      parserOptions: {
+        ...recommended.languageOptions?.parserOptions,
+        projectService: true,
+      },
     },
+  },
 ];
 ```
+
+## Global settings
+
+You can globally disable autofixes that add missing imports while still keeping
+rule reports and non-import autofixes enabled.
+
+```js
+import typefest from "eslint-plugin-typefest";
+
+export default [
+  {
+    ...typefest.configs.recommended,
+    settings: {
+      typefest: {
+        // Disable all autofixes while keeping suggestions enabled.
+        // disableAllAutofixes: true,
+
+        // Disable only autofixes that add missing imports.
+        disableImportInsertionFixes: true,
+      },
+    },
+  },
+];
+```
+
+When `settings.typefest.disableImportInsertionFixes` is `true`, rules that
+would normally add a missing `type-fest` or `ts-extras` import will report
+without applying that import-adding autofix.
+
+When `settings.typefest.disableAllAutofixes` is `true`, all rule autofixes are
+suppressed, but suggestions remain available.
 
 ## Rules
 

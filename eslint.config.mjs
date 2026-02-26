@@ -8,6 +8,7 @@
 
 import pluginDocusaurus from "@docusaurus/eslint-plugin";
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
+import eslintReactPlugin from "@eslint-react/eslint-plugin";
 import { fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import css from "@eslint/css";
@@ -36,6 +37,7 @@ import progress from "eslint-plugin-file-progress-2";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
+import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
 import listeners from "eslint-plugin-listeners";
 import loadbleImportsPlugin from "eslint-plugin-loadable-imports";
 import eslintPluginMath from "eslint-plugin-math";
@@ -120,6 +122,14 @@ const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
 const etc = fixupPluginRules(etcPlugin);
+const jsxA11yPlugin = fixupPluginRules(eslintPluginJsxA11y);
+const eslintReactStrictTypeCheckedConfig = /**
+ * @type {{
+ *     plugins: Record<string, unknown>;
+ *     rules: Record<string, unknown>;
+ *     settings: Record<string, unknown>;
+ * }}
+ */ (eslintReactPlugin.configs["strict-type-checked"]);
 
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
@@ -508,7 +518,7 @@ export default defineConfig([
     // SECTION: Docusaurus (docusaurus/*)
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: ["docs/docusaurus/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"],
+        files: ["docs/docusaurus/**/*.{js,mjs,cjs,ts,mts,cts,tsx,jsx}"],
         ignores: [
             "docs/docusaurus/.docusaurus/**",
             "docs/docusaurus/build/**",
@@ -523,19 +533,38 @@ export default defineConfig([
                 },
                 ecmaVersion: "latest",
                 jsDocParsingMode: "all",
+                projectService: {
+                    allowDefaultProject: [
+                        "docs/docusaurus/src/pages/*.js",
+                        "docs/docusaurus/src/pages/*.jsx",
+                        "docs/docusaurus/typedoc-plugins/*.mjs",
+                        "docs/docusaurus/typedoc-plugins/*.mts",
+                    ],
+                },
                 sourceType: "module",
+                tsconfigRootDir: import.meta.dirname,
                 warnOnUnsupportedTypeScriptVersion: true,
             },
         },
         name: "Docusaurus Workspace Files",
         plugins: {
+            ...eslintReactStrictTypeCheckedConfig.plugins,
             "@docusaurus": pluginDocusaurus,
+            "@eslint-react": eslintReactPlugin,
+            "jsx-a11y": jsxA11yPlugin,
         },
         rules: {
+            ...eslintReactStrictTypeCheckedConfig.rules,
+            ...eslintPluginJsxA11y.flatConfigs.recommended.rules,
+
             "@docusaurus/no-html-links": "warn",
             "@docusaurus/no-untranslated-text": "off",
+
             "@docusaurus/prefer-docusaurus-heading": "warn",
             "@docusaurus/string-literal-i18n-messages": "off",
+        },
+        settings: {
+            ...eslintReactStrictTypeCheckedConfig.settings,
         },
     },
     // #endregion
@@ -787,7 +816,7 @@ export default defineConfig([
                 {
                     checksConditionals: true, // Check if Promises used in conditionals
                     checksSpreads: true, // Check Promise spreads
-                    checksVoidReturn: true, // Critical for Electron IPC handlers
+                    checksVoidReturn: true, // Critical for IPC handlers
                 },
             ],
             "@typescript-eslint/no-misused-spread": "warn",
@@ -851,8 +880,6 @@ export default defineConfig([
             "@typescript-eslint/no-unused-expressions": "warn",
             "@typescript-eslint/no-unused-private-class-members": "warn",
             "@typescript-eslint/no-unused-vars": "warn",
-            // Disabled: Function declarations are hoisted in JS/TS, and this rule creates unnecessary constraints
-            // For Electron projects that often organize helper functions after main functions for better readability
             "@typescript-eslint/no-use-before-define": "warn",
             "@typescript-eslint/no-useless-constructor": "warn",
             "@typescript-eslint/no-useless-empty-export": "warn",
@@ -932,7 +959,7 @@ export default defineConfig([
             "@typescript-eslint/prefer-return-this-type": "warn",
             "@typescript-eslint/prefer-string-starts-ends-with": "warn",
             // Configured: Allows non-async functions that return promises (like utility wrappers around Promise.all)
-            // But encourages async for most cases. This is more flexible for Electron projects.
+            // But encourages async for most cases.
             "@typescript-eslint/promise-function-async": [
                 "warn",
                 {
@@ -1082,18 +1109,12 @@ export default defineConfig([
             "import-x/consistent-type-specifier-style": "off",
             "import-x/default": "warn",
             "import-x/dynamic-import-chunkname": "off",
-
-            // Webpack-only guidance; disabled for Vite/Electron.
             "import-x/export": "warn",
             "import-x/exports-last": "off",
             "import-x/extensions": "warn",
-
             "import-x/first": "warn",
             "import-x/group-exports": "off",
-
             "import-x/max-dependencies": "off",
-
-            // Import/Export Rules (import-x/*)
             "import-x/named": "warn",
             "import-x/namespace": "warn",
             "import-x/newline-after-import": "warn",
@@ -1102,7 +1123,6 @@ export default defineConfig([
             "import-x/no-anonymous-default-export": "warn",
             "import-x/no-commonjs": "warn",
             "import-x/no-cycle": "warn",
-
             "import-x/no-default-export": "off",
             "import-x/no-deprecated": "warn",
             "import-x/no-duplicates": "warn",
@@ -1117,15 +1137,12 @@ export default defineConfig([
             "import-x/no-named-default": "warn",
             "import-x/no-named-export": "off",
             "import-x/no-namespace": "off",
-
             "import-x/no-nodejs-modules": "off",
             "import-x/no-relative-packages": "warn",
-
             "import-x/no-relative-parent-imports": "off",
             "import-x/no-rename-default": "warn",
             "import-x/no-restricted-paths": "warn",
             "import-x/no-self-import": "warn",
-            // Import rules
             "import-x/no-unassigned-import": [
                 "error",
                 {
@@ -1413,7 +1430,6 @@ export default defineConfig([
             vitest: vitest,
         },
         rules: {
-            // Test Files Backend Rules (Electron Tests)
             ...js.configs.all.rules,
             ...tseslint.configs["recommendedTypeChecked"],
             ...tseslint.configs["recommended"].rules,
@@ -1620,9 +1636,7 @@ export default defineConfig([
             "vitest/prefer-describe-function-title": "warn",
             "vitest/prefer-expect-assertions": "off",
             "vitest/prefer-expect-resolves": "warn",
-            // NOTE: conflicts with uptime-watcher/test-no-mock-return-value-constructors
-            // (enabled via uptime-watcher `configs.repo`).
-            "vitest/prefer-mock-return-shorthand": "off",
+            "vitest/prefer-mock-return-shorthand": "warn",
             "vitest/prefer-spy-on": "off",
             "vitest/prefer-strict-boolean-matchers": "off",
             "vitest/prefer-strict-equal": "off",
@@ -1742,7 +1756,6 @@ export default defineConfig([
             "package-json/require-repository": "error",
             "package-json/require-scripts": "warn",
             "package-json/require-sideEffects": "warn",
-            // Not needed for Electron applications and Breaks Docusaurus
             "package-json/require-type": [
                 "error",
                 {
@@ -2581,11 +2594,6 @@ export default defineConfig([
     // ═══════════════════════════════════════════════════════════════════════════════
     // SECTION: @Stylistic Overrides
     // ═══════════════════════════════════════════════════════════════════════════════
-    // NOTE: uptime-watcher drift-guard and utility-type convention rules are
-    // enabled (and scoped) by the internal repo presets:
-    // `...uptimeWatcherRepoConfigs` and
-    // `...uptimeWatcherTypeUtilsRepoConfigs`.
-    // Keep them centralized there to avoid config drift.
     {
         files: ["**/**"],
         name: "Global: Stylistic Overrides",

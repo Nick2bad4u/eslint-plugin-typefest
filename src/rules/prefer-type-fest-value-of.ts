@@ -8,17 +8,8 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
-
-/**
- * NormalizeTypeText helper.
- *
- * @param text - Value to inspect.
- *
- * @returns NormalizeTypeText helper result.
- */
-
-const normalizeTypeText = (text: string): string => text.replaceAll(/\s/gu, "");
 
 /**
  * ESLint rule definition for `prefer-type-fest-value-of`.
@@ -50,14 +41,17 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const keyOfTargetText = normalizeTypeText(
-                        sourceCode.getText(node.indexType.typeAnnotation)
-                    );
-                    const objectTypeText = normalizeTypeText(
-                        sourceCode.getText(node.objectType)
-                    );
+                    const keyOfTargetType = node.indexType.typeAnnotation;
+                    if (!keyOfTargetType) {
+                        return;
+                    }
 
-                    if (objectTypeText !== keyOfTargetText) {
+                    if (
+                        !areEquivalentTypeNodes(
+                            node.objectType,
+                            keyOfTargetType
+                        )
+                    ) {
                         return;
                     }
 

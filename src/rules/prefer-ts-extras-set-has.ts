@@ -34,6 +34,9 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
+            const checkerWithApparentType = checker as ts.TypeChecker & {
+                getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
+            };
 
             const isSetType = (type: Readonly<ts.Type>): boolean => {
                 const seenTypes = new Set<ts.Type>();
@@ -64,20 +67,29 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    const apparentType = checker.getApparentType(candidateType);
+                    const apparentType =
+                        checkerWithApparentType.getApparentType?.(
+                            candidateType
+                        );
                     if (
+                        apparentType !== undefined &&
                         apparentType !== candidateType &&
                         isSetTypeInternal(apparentType)
                     ) {
                         return true;
                     }
 
-                    if (
-                        (candidateType.flags & ts.TypeFlags.Object) === 0 ||
-                        ((candidateType as ts.ObjectType).objectFlags &
-                            ts.ObjectFlags.ClassOrInterface) ===
-                            0
-                    ) {
+                    const typeDeclarations =
+                        candidateType.getSymbol()?.declarations ?? [];
+                    const isClassOrInterfaceLikeType = typeDeclarations.some(
+                        (declaration) =>
+                            declaration.kind ===
+                                ts.SyntaxKind.ClassDeclaration ||
+                            declaration.kind ===
+                                ts.SyntaxKind.InterfaceDeclaration
+                    );
+
+                    if (!isClassOrInterfaceLikeType) {
                         return false;
                     }
 

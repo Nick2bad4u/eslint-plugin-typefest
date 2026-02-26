@@ -2,13 +2,14 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-writable`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const writableAliasReplacements = {
@@ -16,40 +17,14 @@ const writableAliasReplacements = {
 } as const;
 
 /**
- * NormalizeTypeText helper.
- *
- * @param text - Value to inspect.
- *
- * @returns NormalizeTypeText helper result.
- */
-
-const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
-
-/**
- * NormalizeTypeNodeText helper.
- *
- * @param sourceCode - Value to inspect.
- * @param node - Value to inspect.
- *
- * @returns NormalizeTypeNodeText helper result.
- */
-
-const normalizeTypeNodeText = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
-    node: Readonly<TSESTree.TypeNode>
-): string => normalizeTypeText(sourceCode.getText(node));
-
-/**
  * Check whether has writable mapped type shape.
  *
- * @param sourceCode - Value to inspect.
  * @param node - Value to inspect.
  *
  * @returns `true` when has writable mapped type shape; otherwise `false`.
  */
 
 const hasWritableMappedTypeShape = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
     node: Readonly<TSESTree.TSMappedType>
 ): boolean => {
     if (node.readonly !== "-") {
@@ -83,13 +58,7 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const indexedObjectTypeText = normalizeTypeNodeText(
-        sourceCode,
-        typeAnnotation.objectType
-    );
-    const baseTypeText = normalizeTypeNodeText(sourceCode, baseType);
-
-    if (indexedObjectTypeText !== baseTypeText) {
+    if (!areEquivalentTypeNodes(typeAnnotation.objectType, baseType)) {
         return false;
     }
 
@@ -134,7 +103,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSMappedType(node) {
-                    if (!hasWritableMappedTypeShape(sourceCode, node)) {
+                    if (!hasWritableMappedTypeShape(node)) {
                         return;
                     }
 

@@ -4,18 +4,13 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isWithinFilterCallback } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
-
-const FILTER_METHOD_NAME = "filter";
-
-type NodeWithParent = TSESTree.Node & {
-    parent?: TSESTree.Node;
-};
 
 type NullishComparison = {
     readonly comparedExpression: TSESTree.Expression;
@@ -133,85 +128,6 @@ const getNullishComparison = (
     }
 
     return null;
-};
-
-/**
- * Check whether the input is filter call.
- *
- * @param expression - Value to inspect.
- *
- * @returns `true` when the value is filter call; otherwise `false`.
- */
-
-const isFilterCall = (
-    expression: Readonly<TSESTree.CallExpression>
-): expression is TSESTree.CallExpression & {
-    callee: TSESTree.MemberExpression & {
-        computed: false;
-        property: TSESTree.Identifier;
-    };
-} =>
-    expression.callee.type === "MemberExpression" &&
-    !expression.callee.computed &&
-    expression.callee.property.type === "Identifier" &&
-    expression.callee.property.name === FILTER_METHOD_NAME;
-
-/**
- * Check whether the input is function callback node.
- *
- * @param node - Value to inspect.
- *
- * @returns `true` when the value is function callback node; otherwise `false`.
- */
-
-const isFunctionCallbackNode = (
-    node: Readonly<TSESTree.Node>
-): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
-    node.type === "ArrowFunctionExpression" ||
-    node.type === "FunctionExpression";
-
-/**
- * GetParentNode helper.
- *
- * @param node - Value to inspect.
- *
- * @returns GetParentNode helper result.
- */
-
-const getParentNode = (
-    node: Readonly<TSESTree.Node>
-): TSESTree.Node | undefined => (node as NodeWithParent).parent;
-
-/**
- * Check whether the input is within filter callback.
- *
- * @param value - Value to inspect.
- *
- * @returns `true` when the value is within filter callback; otherwise `false`.
- */
-
-const isWithinFilterCallback = ({
-    node,
-}: Readonly<{ node: TSESTree.Node }>): boolean => {
-    let currentNode: TSESTree.Node | undefined = node;
-
-    while (currentNode) {
-        if (isFunctionCallbackNode(currentNode)) {
-            const callbackParent = getParentNode(currentNode);
-
-            if (
-                callbackParent?.type === "CallExpression" &&
-                callbackParent.arguments.includes(currentNode) &&
-                isFilterCall(callbackParent)
-            ) {
-                return true;
-            }
-        }
-
-        currentNode = getParentNode(currentNode);
-    }
-
-    return false;
 };
 
 /**
@@ -356,11 +272,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
             return {
                 BinaryExpression(node) {
-                    if (
-                        isWithinFilterCallback({
-                            node,
-                        })
-                    ) {
+                    if (isWithinFilterCallback(node)) {
                         return;
                     }
 
@@ -401,11 +313,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     }
                 },
                 LogicalExpression(node) {
-                    if (
-                        isWithinFilterCallback({
-                            node,
-                        })
-                    ) {
+                    if (isWithinFilterCallback(node)) {
                         return;
                     }
 

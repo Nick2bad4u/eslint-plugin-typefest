@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
+import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const READONLY_SET_TYPE_NAME = "ReadonlySet";
@@ -22,15 +23,6 @@ const UNKNOWN_SET_TYPE_NAME = "UnknownSet";
  * @returns `true` when the value is identifier type reference; otherwise
  *   `false`.
  */
-
-const isIdentifierTypeReference = (
-    node: Readonly<TSESTree.TypeNode>,
-    expectedTypeName: string
-): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
-    node.typeName.name === expectedTypeName;
-
 /**
  * Check whether has single unknown type argument.
  *

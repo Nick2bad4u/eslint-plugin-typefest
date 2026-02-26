@@ -8,17 +8,8 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
+import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
-
-/**
- * NormalizeTypeText helper.
- *
- * @param text - Value to inspect.
- *
- * @returns NormalizeTypeText helper result.
- */
-
-const normalizeTypeText = (text: string): string => text.replaceAll(/\s+/g, "");
 
 type RestAnnotation = TSESTree.TSRestType["typeAnnotation"];
 type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
@@ -143,14 +134,9 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const firstText = normalizeTypeText(
-                        sourceCode.getText(firstType)
-                    );
-                    const restText = normalizeTypeText(
-                        sourceCode.getText(restArrayElementType)
-                    );
-
-                    if (firstText !== restText) {
+                    if (
+                        !areEquivalentTypeNodes(firstType, restArrayElementType)
+                    ) {
                         return;
                     }
 

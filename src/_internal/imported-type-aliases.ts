@@ -4,6 +4,9 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { getParentNode } from "./ast-node.js";
+import { createImportInsertionFix } from "./import-insertion.js";
+
 const TYPE_FEST_MODULE_NAME = "type-fest";
 const READONLY_UTILITY_TYPE_NAME = "Readonly";
 
@@ -125,44 +128,85 @@ export const collectDirectNamedImportsFromSource = (
     return namedImports;
 };
 
-const getParentNode = (
-    node: Readonly<TSESTree.Node>
-): Readonly<TSESTree.Node> | undefined => {
-    const nodeWithParent = node as Readonly<TSESTree.Node> & {
-        parent?: Readonly<TSESTree.Node>;
-    };
+/**
+ * Collect local identifier names for a specific named import from a selected
+ * module source.
+ *
+ * @param sourceCode - Source code object for the current file.
+ * @param expectedSourceValue - Module source string to match.
+ * @param expectedImportedName - Imported symbol name to match.
+ *
+ * @returns Set of local identifier names (including aliased locals).
+ */
+export const collectNamedImportLocalNamesFromSource = (
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    expectedSourceValue: string,
+    expectedImportedName: string
+): ReadonlySet<string> => {
+    const localNames = new Set<string>();
 
-    return nodeWithParent.parent;
-};
-
-const getProgramNode = (
-    node: Readonly<TSESTree.Node>
-): null | Readonly<TSESTree.Program> => {
-    let currentNode: null | Readonly<TSESTree.Node> = node;
-
-    while (currentNode) {
-        if (currentNode.type === "Program") {
-            return currentNode;
+    for (const statement of sourceCode.ast.body) {
+        if (statement.type !== "ImportDeclaration") {
+            continue;
         }
 
-        currentNode = getParentNode(currentNode) ?? null;
-    }
+        if (statement.source.value !== expectedSourceValue) {
+            continue;
+        }
 
-    return null;
-};
+        for (const specifier of statement.specifiers) {
+            if (specifier.type !== "ImportSpecifier") {
+                continue;
+            }
 
-const collectProgramImportDeclarations = (
-    programNode: Readonly<TSESTree.Program>
-): readonly Readonly<TSESTree.ImportDeclaration>[] => {
-    const importDeclarations: TSESTree.ImportDeclaration[] = [];
+            if (
+                specifier.imported.type !== "Identifier" ||
+                specifier.imported.name !== expectedImportedName
+            ) {
+                continue;
+            }
 
-    for (const statement of programNode.body) {
-        if (statement.type === "ImportDeclaration") {
-            importDeclarations.push(statement);
+            localNames.add(specifier.local.name);
         }
     }
 
-    return importDeclarations;
+    return localNames;
+};
+
+/**
+ * Collect local identifier names for namespace imports from a selected module
+ * source.
+ *
+ * @param sourceCode - Source code object for the current file.
+ * @param expectedSourceValue - Module source string to match.
+ *
+ * @returns Set of namespace import local names.
+ */
+export const collectNamespaceImportLocalNamesFromSource = (
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    expectedSourceValue: string
+): ReadonlySet<string> => {
+    const localNames = new Set<string>();
+
+    for (const statement of sourceCode.ast.body) {
+        if (statement.type !== "ImportDeclaration") {
+            continue;
+        }
+
+        if (statement.source.value !== expectedSourceValue) {
+            continue;
+        }
+
+        for (const specifier of statement.specifiers) {
+            if (specifier.type !== "ImportNamespaceSpecifier") {
+                continue;
+            }
+
+            localNames.add(specifier.local.name);
+        }
+    }
+
+    return localNames;
 };
 
 const getInsertionFixForMissingNamedTypeImport = ({
@@ -176,28 +220,13 @@ const getInsertionFixForMissingNamedTypeImport = ({
     replacementName: string;
     sourceModuleName: string;
 }>): null | TSESLint.RuleFix => {
-    const programNode = getProgramNode(node);
-    if (!programNode) {
-        return null;
-    }
-
     const importDeclarationText = `import type { ${replacementName} } from "${sourceModuleName}";`;
 
-    const importDeclarations = collectProgramImportDeclarations(programNode);
-
-    const lastImportDeclaration = importDeclarations.at(-1);
-    if (lastImportDeclaration) {
-        return fixer.insertTextAfter(
-            lastImportDeclaration,
-            `\n${importDeclarationText}`
-        );
-    }
-
-    const [programStart] = programNode.range;
-    return fixer.insertTextBeforeRange(
-        [programStart, programStart],
-        `${importDeclarationText}\n`
-    );
+    return createImportInsertionFix({
+        fixer,
+        importDeclarationText,
+        referenceNode: node,
+    });
 };
 
 const ancestorDefinesTypeParameterNamed = (
@@ -264,9 +293,13 @@ const createTypeReplacementFix = ({
             sourceModuleName,
         });
 
+        if (!importFix) {
+            return null;
+        }
+
         const replacementFix = applyReplacement(fixer);
 
-        return importFix ? [importFix, replacementFix] : [replacementFix];
+        return [importFix, replacementFix];
     };
 };
 
@@ -301,30 +334,6 @@ export const createSafeTypeReferenceReplacementFix = (
 };
 
 /**
- * Build a safe whole-type-node replacement fixer.
- *
- * @param node - Type node to potentially replace.
- * @param replacementName - Replacement identifier text.
- * @param availableReplacementNames - Available direct imported replacement
- *   names.
- *
- * @returns Fix function when replacement is safe; otherwise `null`.
- */
-export const createSafeTypeNodeReplacementFix = (
-    node: Readonly<TSESTree.Node>,
-    replacementName: string,
-    availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME
-): null | TSESLint.ReportFixFunction =>
-    createTypeReplacementFix({
-        applyReplacement: (fixer) => fixer.replaceText(node, replacementName),
-        availableReplacementNames,
-        node,
-        replacementName,
-        sourceModuleName,
-    });
-
-/**
  * Build a safe whole-type-node replacement fixer with custom replacement text.
  *
  * @param node - Type node to potentially replace.
@@ -350,6 +359,30 @@ export const createSafeTypeNodeTextReplacementFix = (
         replacementName,
         sourceModuleName,
     });
+
+/**
+ * Build a safe whole-type-node replacement fixer.
+ *
+ * @param node - Type node to potentially replace.
+ * @param replacementName - Replacement identifier text.
+ * @param availableReplacementNames - Available direct imported replacement
+ *   names.
+ *
+ * @returns Fix function when replacement is safe; otherwise `null`.
+ */
+export const createSafeTypeNodeReplacementFix = (
+    node: Readonly<TSESTree.Node>,
+    replacementName: string,
+    availableReplacementNames: Readonly<ReadonlySet<string>>,
+    sourceModuleName: string = TYPE_FEST_MODULE_NAME
+): null | TSESLint.ReportFixFunction =>
+    createSafeTypeNodeTextReplacementFix(
+        node,
+        replacementName,
+        replacementName,
+        availableReplacementNames,
+        sourceModuleName
+    );
 
 const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
     if (node.type === "TSTypeOperator") {

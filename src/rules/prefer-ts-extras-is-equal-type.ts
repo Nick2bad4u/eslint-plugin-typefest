@@ -5,6 +5,10 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
+    collectNamedImportLocalNamesFromSource,
+    collectNamespaceImportLocalNamesFromSource,
+} from "../_internal/imported-type-aliases.js";
+import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
@@ -24,41 +28,20 @@ const TYPE_FEST_PACKAGE_NAME = "type-fest";
 const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const isEqualLocalNames = new Set<string>();
-            const typeFestNamespaceImportNames = new Set<string>();
+            const isEqualLocalNames = collectNamedImportLocalNamesFromSource(
+                context.sourceCode,
+                TYPE_FEST_PACKAGE_NAME,
+                IS_EQUAL_TYPE_NAME
+            );
+            const typeFestNamespaceImportNames =
+                collectNamespaceImportLocalNamesFromSource(
+                    context.sourceCode,
+                    TYPE_FEST_PACKAGE_NAME
+                );
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 TS_EXTRAS_PACKAGE_NAME
             );
-
-            for (const statement of context.sourceCode.ast.body) {
-                if (statement.type !== "ImportDeclaration") {
-                    continue;
-                }
-
-                const sourceValue =
-                    typeof statement.source.value === "string"
-                        ? statement.source.value
-                        : "";
-
-                if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {
-                    continue;
-                }
-
-                for (const specifier of statement.specifiers) {
-                    if (
-                        specifier.type === "ImportSpecifier" &&
-                        specifier.imported.type === "Identifier" &&
-                        specifier.imported.name === IS_EQUAL_TYPE_NAME
-                    ) {
-                        isEqualLocalNames.add(specifier.local.name);
-                    }
-
-                    if (specifier.type === "ImportNamespaceSpecifier") {
-                        typeFestNamespaceImportNames.add(specifier.local.name);
-                    }
-                }
-            }
 
             const getIsEqualTypeReference = (
                 node: Readonly<TSESTree.TypeNode>

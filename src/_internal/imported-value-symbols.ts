@@ -5,6 +5,8 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { createImportInsertionFix } from "./import-insertion.js";
+
 /**
  * Immutable mapping of imported symbol names to directly imported local
  * aliases.
@@ -84,9 +86,10 @@ type ValueArgumentFunctionCallFixParams = Readonly<{
 /**
  * Collect direct named value imports from a specific module.
  *
- * @remarks
- * - Includes aliased imports (`{ foo as bar }`).
- * - Excludes type-only imports.
+ * @param sourceCode - Source code object for the current file.
+ * @param sourceModuleName - Module source string to match.
+ *
+ * @returns Readonly map of imported symbol names to local aliases.
  */
 export const collectDirectNamedValueImportsFromSource = (
     sourceCode: Readonly<TSESLint.SourceCode>,
@@ -160,32 +163,6 @@ function getVariableInScopeChain(
 
     return null;
 }
-
-const getParentNode = (
-    node: Readonly<TSESTree.Node>
-): Readonly<TSESTree.Node> | undefined => {
-    const nodeWithParent = node as Readonly<TSESTree.Node> & {
-        parent?: Readonly<TSESTree.Node>;
-    };
-
-    return nodeWithParent.parent;
-};
-
-const getProgramNode = (
-    node: Readonly<TSESTree.Node>
-): null | Readonly<TSESTree.Program> => {
-    let currentNode: null | Readonly<TSESTree.Node> = node;
-
-    while (currentNode !== null) {
-        if (currentNode.type === "Program") {
-            return currentNode;
-        }
-
-        currentNode = getParentNode(currentNode) ?? null;
-    }
-
-    return null;
-};
 
 function isLocalNameBoundToExpectedImport(
     sourceCode: Readonly<TSESLint.SourceCode>,
@@ -272,33 +249,13 @@ const createInsertNamedValueImportFix = ({
     referenceNode: TSESTree.Node;
     sourceModuleName: string;
 }>): null | TSESLint.RuleFix => {
-    const programNode = getProgramNode(referenceNode);
-    if (!programNode) {
-        return null;
-    }
-
     const importDeclarationText = `import { ${importedName} } from "${sourceModuleName}";`;
 
-    const importDeclarations: TSESTree.ImportDeclaration[] = [];
-    for (const statement of programNode.body) {
-        if (statement.type === "ImportDeclaration") {
-            importDeclarations.push(statement);
-        }
-    }
-
-    const lastImportDeclaration = importDeclarations.at(-1);
-    if (lastImportDeclaration) {
-        return fixer.insertTextAfter(
-            lastImportDeclaration,
-            `\n${importDeclarationText}`
-        );
-    }
-
-    const [programStart] = programNode.range;
-    return fixer.insertTextBeforeRange(
-        [programStart, programStart],
-        `${importDeclarationText}\n`
-    );
+    return createImportInsertionFix({
+        fixer,
+        importDeclarationText,
+        referenceNode,
+    });
 };
 
 /**
@@ -346,6 +303,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
         fixer: Readonly<TSESLint.RuleFixer>
     ) => null | TSESLint.RuleFix;
     replacementName: string;
+    requiresImportInsertion: boolean;
 } => {
     const existingReplacementName = getSafeLocalNameForImportedValue({
         context,
@@ -362,6 +320,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
         return {
             createImportFix: () => null,
             replacementName: existingReplacementName,
+            requiresImportInsertion: false,
         };
     }
 
@@ -385,6 +344,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
                 sourceModuleName,
             }),
         replacementName: importedName,
+        requiresImportInsertion: true,
     };
 };
 
@@ -417,6 +377,13 @@ export const createSafeValueReferenceReplacementFix = ({
     return (fixer) => {
         const importFix =
             replacementNameAndImportFixFactory.createImportFix(fixer);
+        if (
+            importFix === null &&
+            replacementNameAndImportFixFactory.requiresImportInsertion
+        ) {
+            return null;
+        }
+
         const replacementFix = fixer.replaceText(
             targetNode,
             replacementNameAndImportFixFactory.replacementName
@@ -459,6 +426,13 @@ export const createSafeValueNodeTextReplacementFix = ({
         );
         const importFix =
             replacementNameAndImportFixFactory.createImportFix(fixer);
+        if (
+            importFix === null &&
+            replacementNameAndImportFixFactory.requiresImportInsertion
+        ) {
+            return null;
+        }
+
         const replacementFix = fixer.replaceText(targetNode, replacementText);
 
         return importFix ? [importFix, replacementFix] : [replacementFix];
@@ -513,6 +487,13 @@ export const createMethodToFunctionCallFix = ({
     return (fixer) => {
         const importFix =
             replacementNameAndImportFixFactory.createImportFix(fixer);
+        if (
+            importFix === null &&
+            replacementNameAndImportFixFactory.requiresImportInsertion
+        ) {
+            return null;
+        }
+
         const replacementFix = fixer.replaceText(callNode, replacementText);
 
         return importFix ? [importFix, replacementFix] : [replacementFix];
@@ -554,6 +535,13 @@ export const createMemberToFunctionCallFix = ({
     return (fixer) => {
         const importFix =
             replacementNameAndImportFixFactory.createImportFix(fixer);
+        if (
+            importFix === null &&
+            replacementNameAndImportFixFactory.requiresImportInsertion
+        ) {
+            return null;
+        }
+
         const replacementFix = fixer.replaceText(memberNode, replacementText);
 
         return importFix ? [importFix, replacementFix] : [replacementFix];
@@ -598,6 +586,13 @@ export const createSafeValueArgumentFunctionCallFix = ({
     return (fixer) => {
         const importFix =
             replacementNameAndImportFixFactory.createImportFix(fixer);
+        if (
+            importFix === null &&
+            replacementNameAndImportFixFactory.requiresImportInsertion
+        ) {
+            return null;
+        }
+
         const replacementFix = fixer.replaceText(targetNode, replacementText);
 
         return importFix ? [importFix, replacementFix] : [replacementFix];

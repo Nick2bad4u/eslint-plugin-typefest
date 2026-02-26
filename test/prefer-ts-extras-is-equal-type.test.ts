@@ -173,6 +173,11 @@ const inlineValidLocalNamespaceIsEqualCode = [
     "",
     "Boolean(localNamespaceCheck);",
 ].join("\n");
+const disableAllAutofixesSettings = {
+    typefest: {
+        disableAllAutofixes: true,
+    },
+};
 
 interface IsEqualTypeRuleMetadataSnapshot {
     defaultOptions?: Readonly<UnknownArray>;
@@ -291,14 +296,12 @@ describe("prefer-ts-extras-is-equal-type source assertions", () => {
         expect(ruleSource).toContain(
             'const TYPE_FEST_PACKAGE_NAME = "type-fest";'
         );
+        expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
         expect(ruleSource).toContain(
-            'typeof statement.source.value === "string"'
+            "collectNamespaceImportLocalNamesFromSource("
         );
-        expect(ruleSource).toContain(
-            "if (sourceValue !== TYPE_FEST_PACKAGE_NAME) {"
-        );
-        expect(ruleSource).toContain(
-            'if (specifier.type === "ImportNamespaceSpecifier") {'
+        expect(ruleSource).not.toContain(
+            "for (const statement of context.sourceCode.ast.body) {"
         );
         expect(ruleSource).toContain(
             'node.typeName.left.type === "Identifier" &&'
@@ -370,6 +373,23 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports aliased IsEqual import in variable initializer",
+            },
+            {
+                code: inlineInvalidAliasedImportCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasIsEqualType",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasIsEqualType",
+                                output: inlineInvalidAliasedImportSuggestionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "preserves suggestions when disableAllAutofixes is enabled",
+                settings: disableAllAutofixesSettings,
             },
             {
                 code: inlineInvalidAliasedTsExtrasImportCode,

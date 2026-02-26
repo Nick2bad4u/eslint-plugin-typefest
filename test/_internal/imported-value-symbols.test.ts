@@ -8,6 +8,7 @@ import {
     createMemberToFunctionCallFix,
     createMethodToFunctionCallFix,
     createSafeValueArgumentFunctionCallFix,
+    createSafeValueReferenceReplacementFix,
     getSafeLocalNameForImportedValue,
 } from "../../src/_internal/imported-value-symbols";
 
@@ -557,5 +558,80 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         });
 
         expect(invokeFix(fix)).toStrictEqual(["!isPresent(candidate)"]);
+    });
+});
+
+describe(createSafeValueReferenceReplacementFix, () => {
+    it("inserts missing value import after directive prologue", () => {
+        expect.hasAssertions();
+
+        const directiveStatement = {
+            expression: {
+                type: "Literal",
+                value: "use client",
+            },
+            range: [0, 12],
+            type: "ExpressionStatement",
+        };
+        const firstStatement = {
+            range: [13, 30],
+            type: "VariableDeclaration",
+        };
+        const programNode = {
+            body: [directiveStatement, firstStatement],
+            range: [0, 30],
+            type: "Program",
+        };
+
+        const targetNode = {
+            parent: programNode,
+            type: "Identifier",
+        } as unknown as Parameters<
+            typeof createSafeValueReferenceReplacementFix
+        >[0]["targetNode"];
+
+        const context = createRuleContextWithVariables(new Map());
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode,
+        });
+
+        expect(fix).toBeTypeOf("function");
+
+        const insertAfterCalls: { target: unknown; text: string }[] = [];
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fakeFixer = {
+            insertTextAfter(target: unknown, text: string): string {
+                insertAfterCalls.push({ target, text });
+
+                return text;
+            },
+            insertTextBeforeRange(
+                range: readonly [number, number],
+                text: string
+            ): string {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+            replaceText: (): string => "arrayIncludes",
+        } as unknown as TSESLint.RuleFixer;
+
+        fix?.(fakeFixer);
+
+        expect(insertAfterCalls).toStrictEqual([
+            {
+                target: directiveStatement,
+                text: '\nimport { arrayIncludes } from "ts-extras";',
+            },
+        ]);
+        expect(insertBeforeRangeCalls).toStrictEqual([]);
     });
 });

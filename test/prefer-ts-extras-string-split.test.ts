@@ -136,7 +136,8 @@ describe("prefer-ts-extras-string-split source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("ts.TypeFlags.StringLike");
+        expect(ruleSource).toContain("isTypeAssignableTo(");
+        expect(ruleSource).toContain("getStringType?.()");
         expect(ruleSource).toContain(
             'candidateType.getSymbol()?.getName() === "String"'
         );
