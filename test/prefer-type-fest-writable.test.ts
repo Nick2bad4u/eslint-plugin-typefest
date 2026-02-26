@@ -210,7 +210,9 @@ describe(ruleName, () => {
             "utf8"
         );
 
-        expect(writableRuleSource).toMatch(/prefer-type-fest-writable\.md/v);
+        expect(writableRuleSource).toMatch(
+            /\/docs\/rules\/prefer-type-fest-writable"/v
+        );
     });
 
     it("declares authored docs url literal before RuleCreator decoration", async () => {

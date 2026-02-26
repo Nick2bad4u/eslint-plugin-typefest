@@ -2,12 +2,13 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-present`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -72,11 +73,9 @@ const getThrowStatementFromConsequent = (
 
 const isCanonicalAssertPresentThrow = ({
     guardExpression,
-    sourceCode,
     throwStatement,
 }: Readonly<{
     guardExpression: TSESTree.Expression;
-    sourceCode: Readonly<TSESLint.SourceCode>;
     throwStatement: TSESTree.ThrowStatement;
 }>): boolean => {
     if (
@@ -115,8 +114,7 @@ const isCanonicalAssertPresentThrow = ({
         (prefixQuasi.value.cooked === "Expected a present value, got `" ||
             prefixQuasi.value.cooked === "Expected a present value, got ") &&
         (suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === "") &&
-        sourceCode.getText(templateExpression) ===
-            sourceCode.getText(guardExpression)
+        areEquivalentExpressions(templateExpression, guardExpression)
     );
 };
 
@@ -217,8 +215,6 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 "ts-extras"
             );
 
-            const { sourceCode } = context;
-
             const extractPresentGuardExpression = (
                 test: Readonly<TSESTree.Expression>
             ): null | TSESTree.Expression => {
@@ -245,8 +241,10 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     return null;
                 }
 
-                return sourceCode.getText(leftPart.expression) ===
-                    sourceCode.getText(rightPart.expression)
+                return areEquivalentExpressions(
+                    leftPart.expression,
+                    rightPart.expression
+                )
                     ? leftPart.expression
                     : null;
             };
@@ -295,7 +293,6 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         throwStatement !== null &&
                         isCanonicalAssertPresentThrow({
                             guardExpression,
-                            sourceCode,
                             throwStatement,
                         });
 

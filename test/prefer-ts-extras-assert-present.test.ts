@@ -361,7 +361,7 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
             'suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === ""'
         );
         expect(ruleSource).toContain(
-            "sourceCode.getText(templateExpression) ==="
+            "areEquivalentExpressions(templateExpression, guardExpression)"
         );
         expect(ruleSource).toContain(
             '(expression.operator !== "==" && expression.operator !== "===")'

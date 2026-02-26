@@ -8,6 +8,7 @@ import type { PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
 
+import { createRuleDocsUrl } from "./_internal/rule-docs-url.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
 import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
@@ -91,8 +92,6 @@ import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
  */
 const require = createRequire(import.meta.url);
 
-const DEFAULT_RULE_DOCS_URL_BASE =
-    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 const ERROR_SEVERITY = "error" as const;
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
@@ -377,7 +376,7 @@ const typefestEslintRules = typefestRules as unknown as NonNullable<
 
 for (const [ruleName, rule] of Object.entries(typefestRules)) {
     if (rule.meta?.docs) {
-        rule.meta.docs.url ??= `${DEFAULT_RULE_DOCS_URL_BASE}/${ruleName}`;
+        rule.meta.docs.url ??= createRuleDocsUrl(ruleName);
     }
 }
 
@@ -438,15 +437,29 @@ function withTypefestPlugin(
     config: Readonly<TypefestPresetConfig>,
     plugin: Readonly<ESLint.Plugin>
 ): TypefestPresetConfig {
-    const languageOptions: FlatLanguageOptions = config.languageOptions ?? {};
+    const existingLanguageOptions = config.languageOptions ?? {};
+
+    const languageOptions: FlatLanguageOptions = {
+        ...existingLanguageOptions,
+    };
 
     if (typeScriptParser) {
-        languageOptions["parser"] ??=
-            typeScriptParser as FlatLanguageOptions["parser"];
-        languageOptions["parserOptions"] ??= {
-            ecmaVersion: "latest",
-            sourceType: "module",
-        };
+        languageOptions["parser"] =
+            existingLanguageOptions["parser"] ??
+            (typeScriptParser as FlatLanguageOptions["parser"]);
+
+        const existingParserOptions = existingLanguageOptions["parserOptions"];
+
+        languageOptions["parserOptions"] =
+            existingParserOptions !== undefined &&
+            existingParserOptions !== null &&
+            typeof existingParserOptions === "object" &&
+            !Array.isArray(existingParserOptions)
+                ? { ...existingParserOptions }
+                : {
+                      ecmaVersion: "latest",
+                      sourceType: "module",
+                  };
     }
 
     return {
@@ -542,4 +555,3 @@ export type TypefestPlugin = typeof typefestPlugin;
  * Default plugin export consumed by ESLint flat config.
  */
 export default typefestPlugin;
-

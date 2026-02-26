@@ -136,8 +136,10 @@ describe("prefer-ts-extras-string-split source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('typeText === "String" ||');
-        expect(ruleSource).toContain("typeText.startsWith('\"')");
+        expect(ruleSource).toContain("ts.TypeFlags.StringLike");
+        expect(ruleSource).toContain(
+            'candidateType.getSymbol()?.getName() === "String"'
+        );
         expect(ruleSource).toContain(
             'node.callee.property.type !== "Identifier" ||'
         );

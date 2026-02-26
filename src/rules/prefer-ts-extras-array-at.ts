@@ -2,9 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-array-at`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-import type ts from "typescript";
-
+import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
@@ -35,43 +33,10 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-
-            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
-                const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-                };
-
-                if (
-                    typedChecker.isArrayType?.(type) ||
-                    typedChecker.isTupleType?.(type)
-                ) {
-                    return true;
-                }
-
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isArrayLikeType(partType)
-                    );
-                }
-
-                const typeText = checker.typeToString(type).trim();
-                return typeText.endsWith("[]");
-            };
-
-            const isArrayLikeExpression = (
-                expression: Readonly<TSESTree.Expression>
-            ): boolean => {
-                try {
-                    const tsNode =
-                        parserServices.esTreeNodeToTSNodeMap.get(expression);
-                    const expressionType = checker.getTypeAtLocation(tsNode);
-                    return isArrayLikeType(expressionType);
-                } catch {
-                    /* C8 ignore next -- defensive parser-services mismatch */
-                    return false;
-                }
-            };
+            const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+                checker,
+                parserServices,
+            });
 
             return {
                 CallExpression(node) {

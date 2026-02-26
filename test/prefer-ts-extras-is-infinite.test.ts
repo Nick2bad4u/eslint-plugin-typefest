@@ -141,6 +141,23 @@ const inlineInvalidMathNegativeInfinityDisjunctionCode = [
     "",
     "String(isInfiniteMetric);",
 ].join("\n");
+const inlineParenthesizedDisjunctionCode = [
+    'import { isInfinite } from "ts-extras";',
+    "",
+    "const metric = Number.POSITIVE_INFINITY;",
+    "const hasInfiniteMetric =",
+    "    (metric) === Number.POSITIVE_INFINITY ||",
+    "    Number.NEGATIVE_INFINITY === metric;",
+    "String(hasInfiniteMetric);",
+].join("\n");
+const inlineParenthesizedDisjunctionOutput = [
+    'import { isInfinite } from "ts-extras";',
+    "",
+    "const metric = Number.POSITIVE_INFINITY;",
+    "const hasInfiniteMetric =",
+    "    isInfinite(metric);",
+    "String(hasInfiniteMetric);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-is-infinite",
@@ -188,12 +205,8 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
             'if (left.operator !== "===" || right.operator !== "===") {'
         );
         expect(ruleSource).toContain("if (left.kind === right.kind) {");
-        expect(ruleSource).toContain(
-            "sourceCode.getText(left.comparedExpression).trim() ==="
-        );
-        expect(ruleSource).toContain(
-            "sourceCode.getText(right.comparedExpression).trim()"
-        );
+        expect(ruleSource).toContain("areEquivalentExpressions(");
+        expect(ruleSource).not.toContain("normalizeExpressionText");
         expect(ruleSource).toContain('parent?.type === "LogicalExpression" &&');
     });
 });
@@ -247,6 +260,13 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports mixed strictness dual-sign disjunction without treating it as safe helper target",
+        },
+        {
+            code: inlineParenthesizedDisjunctionCode,
+            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes paired disjunction when one compared expression is parenthesized",
+            output: inlineParenthesizedDisjunctionOutput,
         },
         {
             code: inlineInvalidSameSignStrictDisjunctionCode,

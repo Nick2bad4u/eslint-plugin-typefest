@@ -10,10 +10,30 @@ import plugin from "../plugin.mjs";
 
 interface FlatConfigLike {
     files?: unknown;
-    languageOptions?: UnknownRecord;
+    languageOptions?: UnknownRecord & {
+        parser?: unknown;
+        parserOptions?: unknown;
+    };
     name?: unknown;
     plugins?: UnknownRecord;
     rules?: UnknownRecord;
+}
+
+/**
+ * GetConfig helper.
+ *
+ * @param configs - Value to inspect.
+ * @param configName - Value to inspect.
+ *
+ * @returns GetConfig helper result.
+ */
+function getConfig(
+    configs: Readonly<null | UnknownRecord>,
+    configName: string
+): FlatConfigLike | undefined {
+    const config = configs?.[configName];
+
+    return isObject(config) ? (config as FlatConfigLike) : undefined;
 }
 
 /**
@@ -113,6 +133,34 @@ describe("typefest plugin configs", () => {
             "ts-extras/type-guards",
             "type-fest/types",
         ]);
+    });
+
+    it("keeps languageOptions objects isolated per preset", () => {
+        const recommendedConfig = getConfig(configs, "recommended");
+        const strictConfig = getConfig(configs, "strict");
+        const allConfig = getConfig(configs, "all");
+
+        expect(recommendedConfig).toBeDefined();
+        expect(strictConfig).toBeDefined();
+        expect(allConfig).toBeDefined();
+
+        const recommendedPresetConfig = recommendedConfig!;
+        const strictPresetConfig = strictConfig!;
+        const allPresetConfig = allConfig!;
+
+        expect(recommendedPresetConfig.languageOptions).not.toBe(
+            strictPresetConfig.languageOptions
+        );
+        expect(recommendedPresetConfig.languageOptions).not.toBe(
+            allPresetConfig.languageOptions
+        );
+
+        expect(recommendedPresetConfig.languageOptions?.parserOptions).not.toBe(
+            strictPresetConfig.languageOptions?.parserOptions
+        );
+        expect(strictPresetConfig.languageOptions?.parserOptions).not.toBe(
+            allPresetConfig.languageOptions?.parserOptions
+        );
     });
 
     it("every exported config registers plugin and TypeScript parser defaults", () => {

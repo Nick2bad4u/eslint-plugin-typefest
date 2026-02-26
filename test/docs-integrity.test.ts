@@ -8,6 +8,9 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 
 import plugin from "../plugin.mjs";
 
+const RULE_DOCS_URL_BASE =
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
+
 interface RuleWithMeta {
     readonly meta?: {
         readonly docs?: {
@@ -45,7 +48,8 @@ describe("typefest rule docs", () => {
             const url = docs?.url;
 
             if (typeof url === "string") {
-                expect(url).toContain(`/rules/${ruleId}`);
+                expect(url).toBe(`${RULE_DOCS_URL_BASE}${ruleId}`);
+                expect(url).not.toContain(".md");
             }
 
             const description = docs?.description;

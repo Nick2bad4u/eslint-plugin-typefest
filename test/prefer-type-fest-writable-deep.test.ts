@@ -126,7 +126,7 @@ describe("prefer-type-fest-writable-deep metadata", () => {
         );
 
         expect(writableDeepRuleSource).toMatch(
-            /prefer-type-fest-writable-deep\.md/v
+            /\/docs\/rules\/prefer-type-fest-writable-deep"/v
         );
     });
 

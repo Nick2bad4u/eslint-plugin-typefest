@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-set-has`.
  */
-import type ts from "typescript";
+import ts from "typescript";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -36,15 +36,63 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             const { checker, parserServices } = getTypedRuleServices(context);
 
             const isSetType = (type: Readonly<ts.Type>): boolean => {
-                if (type.isUnion()) {
-                    return type.types.some((partType) => isSetType(partType));
-                }
+                const seenTypes = new Set<ts.Type>();
 
-                const typeText = checker.typeToString(type);
-                return (
-                    typeText.startsWith("ReadonlySet<") ||
-                    typeText.startsWith("Set<")
-                );
+                const isSetTypeInternal = (
+                    candidateType: Readonly<ts.Type>
+                ): boolean => {
+                    if (seenTypes.has(candidateType)) {
+                        return false;
+                    }
+
+                    seenTypes.add(candidateType);
+
+                    if (candidateType.isUnion()) {
+                        return candidateType.types.some((partType) =>
+                            isSetTypeInternal(partType)
+                        );
+                    }
+
+                    if (candidateType.isIntersection()) {
+                        return candidateType.types.some((partType) =>
+                            isSetTypeInternal(partType)
+                        );
+                    }
+
+                    const symbolName = candidateType.getSymbol()?.getName();
+                    if (symbolName === "ReadonlySet" || symbolName === "Set") {
+                        return true;
+                    }
+
+                    const apparentType = checker.getApparentType(candidateType);
+                    if (
+                        apparentType !== candidateType &&
+                        isSetTypeInternal(apparentType)
+                    ) {
+                        return true;
+                    }
+
+                    if (
+                        (candidateType.flags & ts.TypeFlags.Object) === 0 ||
+                        ((candidateType as ts.ObjectType).objectFlags &
+                            ts.ObjectFlags.ClassOrInterface) ===
+                            0
+                    ) {
+                        return false;
+                    }
+
+                    const baseTypes = checker.getBaseTypes(
+                        candidateType as ts.InterfaceType
+                    );
+
+                    return (
+                        baseTypes?.some((baseType) =>
+                            isSetTypeInternal(baseType)
+                        ) ?? false
+                    );
+                };
+
+                return isSetTypeInternal(type);
             };
 
             return {

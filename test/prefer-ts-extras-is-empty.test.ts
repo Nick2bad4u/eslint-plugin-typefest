@@ -123,15 +123,8 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
         expect(ruleSource).toContain('node.type === "MemberExpression" &&');
         expect(ruleSource).toContain('node.property.type === "Identifier" &&');
         expect(ruleSource).toContain('node.property.name === "length";');
-        expect(ruleSource).toContain("typedChecker.isArrayType?.(type) ||");
-        expect(ruleSource).toContain("typedChecker.isTupleType?.(type)");
-        expect(ruleSource).toContain("return true;");
-        expect(ruleSource).toContain("if (type.isUnion()) {");
-        expect(ruleSource).toContain("type.types.every((partType) =>");
-        expect(ruleSource).toContain('typeText.endsWith("[]") ||');
-        expect(ruleSource).toContain('typeText.startsWith("readonly [") ||');
-        expect(ruleSource).toContain('typeText.startsWith("[")');
-        expect(ruleSource).toContain("return false;");
+        expect(ruleSource).toContain("createIsArrayLikeExpressionChecker({");
+        expect(ruleSource).toContain('unionMatchMode: "every"');
         expect(ruleSource).toContain(
             'if (node.operator !== "==" && node.operator !== "===") {'
         );

@@ -2,13 +2,17 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-array-last`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type ts from "typescript";
+import type { TSESTree } from "@typescript-eslint/utils";
 
+import {
+    createIsArrayLikeExpressionChecker,
+    isWriteTargetMemberExpression,
+} from "../_internal/array-like-expression.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -16,65 +20,35 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is write target.
+ * IsLastIndexPattern helper.
  *
  * @param node - Value to inspect.
- *
- * @returns `true` when the value is write target; otherwise `false`.
- */
-
-const isWriteTarget = (node: Readonly<TSESTree.MemberExpression>): boolean => {
-    const { parent } = node;
-
-    if (parent.type === "AssignmentExpression" && parent.left === node) {
-        return true;
-    }
-
-    if (parent.type === "UpdateExpression" && parent.argument === node) {
-        return true;
-    }
-
-    return (
-        parent.type === "UnaryExpression" &&
-        parent.operator === "delete" &&
-        parent.argument === node
-    );
-};
-
-/**
- * Check whether the input is last index pattern.
- *
  * @param sourceCode - Value to inspect.
- * @param objectExpression - Value to inspect.
- * @param propertyExpression - Value to inspect.
  *
- * @returns `true` when the value is last index pattern; otherwise `false`.
+ * @returns IsLastIndexPattern helper result.
  */
-
 const isLastIndexPattern = (
-    sourceCode: Readonly<TSESLint.SourceCode>,
-    objectExpression: Readonly<TSESTree.Expression>,
-    propertyExpression: Readonly<
-        TSESTree.Expression | TSESTree.PrivateIdentifier
-    >
+    node: Readonly<TSESTree.MemberExpression>
 ): boolean => {
-    if (propertyExpression.type === "PrivateIdentifier") {
+    if (!node.computed || node.property.type !== "BinaryExpression") {
         return false;
     }
 
-    if (
-        propertyExpression.type !== "BinaryExpression" ||
-        propertyExpression.operator !== "-"
-    ) {
+    const propertyExpression = node.property;
+
+    if (propertyExpression.operator !== "-") {
         return false;
     }
 
-    if (
-        propertyExpression.right.type !== "Literal" ||
-        propertyExpression.right.value !== 1
-    ) {
+    if (propertyExpression.right.type !== "Literal") {
         return false;
     }
+
+    if (propertyExpression.right.value !== 1) {
+        return false;
+    }
+
+    const objectExpression = node.object;
 
     if (
         propertyExpression.left.type !== "MemberExpression" ||
@@ -85,81 +59,42 @@ const isLastIndexPattern = (
         return false;
     }
 
-    return (
-        sourceCode.getText(propertyExpression.left.object) ===
-        sourceCode.getText(objectExpression)
+    if (propertyExpression.left.object.type === "Super") {
+        return false;
+    }
+
+    return areEquivalentExpressions(
+        propertyExpression.left.object,
+        objectExpression
     );
 };
 
-/**
- * ESLint rule definition for `prefer-ts-extras-array-last`.
- *
- * @remarks
- * Defines metadata, diagnostics, and suggestions/fixes for this rule.
- */
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
             const filePath = context.filename ?? "";
+
             if (isTestFilePath(filePath)) {
                 return {};
             }
 
-            const tsExtrasImports = collectDirectNamedValueImportsFromSource(
+            const directImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"
             );
-
-            const { sourceCode } = context;
             const { checker, parserServices } = getTypedRuleServices(context);
-
-            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
-                const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-                };
-
-                if (
-                    typedChecker.isArrayType?.(type) ||
-                    typedChecker.isTupleType?.(type)
-                ) {
-                    return true;
-                }
-
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isArrayLikeType(partType)
-                    );
-                }
-
-                const typeText = checker.typeToString(type);
-                return (
-                    typeText.endsWith("[]") ||
-                    typeText.startsWith("readonly [") ||
-                    typeText.startsWith("[")
-                );
-            };
-
-            const isArrayLikeExpression = (
-                expression: Readonly<TSESTree.Expression>
-            ): boolean => {
-                try {
-                    const tsNode =
-                        parserServices.esTreeNodeToTSNodeMap.get(expression);
-                    const expressionType = checker.getTypeAtLocation(tsNode);
-                    return isArrayLikeType(expressionType);
-                } catch {
-                    return false;
-                }
-            };
+            const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+                checker,
+                parserServices,
+            });
 
             return {
-                MemberExpression(node) {
-                    if (!node.computed) {
+                MemberExpression(node): void {
+                    if (!isLastIndexPattern(node)) {
                         return;
                     }
 
-                    if (isWriteTarget(node)) {
+                    if (isWriteTargetMemberExpression(node)) {
                         return;
                     }
 
@@ -167,24 +102,16 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (
-                        !isLastIndexPattern(
-                            sourceCode,
-                            node.object,
-                            node.property
-                        )
-                    ) {
-                        return;
-                    }
+                    const fixes = createMemberToFunctionCallFix({
+                        context,
+                        importedName: "arrayLast",
+                        imports: directImports,
+                        memberNode: node,
+                        sourceModuleName: "ts-extras",
+                    });
 
                     context.report({
-                        fix: createMemberToFunctionCallFix({
-                            context,
-                            importedName: "arrayLast",
-                            imports: tsExtrasImports,
-                            memberNode: node,
-                            sourceModuleName: "ts-extras",
-                        }),
+                        fix: fixes,
                         messageId: "preferTsExtrasArrayLast",
                         node,
                     });
@@ -196,9 +123,10 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "require ts-extras arrayLast over direct array[array.length - 1] access for stronger tuple and readonly-array inference.",
+                    "require `arrayLast` from `ts-extras` instead of manual last-index member access.",
                 frozen: false,
                 recommended: [
+                    "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
@@ -207,7 +135,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             fixable: "code",
             messages: {
                 preferTsExtrasArrayLast:
-                    "Prefer `arrayLast` from `ts-extras` over direct `array[array.length - 1]` access for stronger inference.",
+                    "Prefer `arrayLast` from `ts-extras` over direct last-index access.",
             },
             schema: [],
             type: "suggestion",

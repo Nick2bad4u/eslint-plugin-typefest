@@ -54,6 +54,20 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const last = arrayLast(sample);",
 ].join("\n");
+const inlineParenthesizedObjectCode = [
+    'import { arrayLast } from "ts-extras";',
+    "",
+    "const monitorStatuses = ['healthy', 'degraded'];",
+    "const lastStatus = (monitorStatuses)[(monitorStatuses).length - 1];",
+    "String(lastStatus);",
+].join("\n");
+const inlineParenthesizedObjectOutput = [
+    'import { arrayLast } from "ts-extras";',
+    "",
+    "const monitorStatuses = ['healthy', 'degraded'];",
+    "const lastStatus = arrayLast(monitorStatuses);",
+    "String(lastStatus);",
+].join("\n");
 
 ruleTester.run("prefer-ts-extras-array-last", rule, {
     invalid: [
@@ -90,6 +104,13 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes array[array.length - 1] when arrayLast import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineParenthesizedObjectCode,
+            errors: [{ messageId: "preferTsExtrasArrayLast" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes parenthesized object array[array.length - 1] patterns",
+            output: inlineParenthesizedObjectOutput,
         },
     ],
     valid: [

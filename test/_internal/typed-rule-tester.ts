@@ -15,10 +15,10 @@ const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
 
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 const carriageReturnAndLineFeed = "\r\n";
-const lineFeedPattern = /\r?\n/g;
+const lineFeedPattern = /\r?\n/gv;
 
 const normalizeLineEndingsForRuleTester = (fixtureSource: string): string =>
-    fixtureSource.replace(lineFeedPattern, carriageReturnAndLineFeed);
+    fixtureSource.replaceAll(lineFeedPattern, carriageReturnAndLineFeed);
 
 /**
  * Resolve a path inside `test/fixtures/typed`.

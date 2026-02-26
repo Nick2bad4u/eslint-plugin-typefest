@@ -1,5 +1,6 @@
 interface BenchmarkRecord {
     readonly id: number;
+    readonly normalizedRows?: string;
     readonly scores: readonly number[];
     readonly title: string;
 }
@@ -39,7 +40,6 @@ const benchmarkRecords: readonly BenchmarkRecord[] = [
  * violation-free under the recommended preset.
  */
 const summarizeRecords = (records: readonly BenchmarkRecord[]): string => {
-    /** @type {string[]} */
     const normalizedRows = [];
 
     for (const record of records) {

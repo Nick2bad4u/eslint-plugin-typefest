@@ -1,11 +1,13 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-string-split`.
  */
+import ts from "typescript";
+
+import {
+    collectDirectNamedValueImportsFromSource,
+    createMethodToFunctionCallFix,
+} from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -36,18 +38,44 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             const isStringLikeType = (
                 type: Readonly<ReturnType<typeof checker.getTypeAtLocation>>
             ): boolean => {
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isStringLikeType(partType)
-                    );
-                }
+                const seenTypes = new Set<ts.Type>();
 
-                const typeText = checker.typeToString(type);
-                return (
-                    typeText === "string" ||
-                    typeText === "String" ||
-                    typeText.startsWith('"')
-                );
+                const isStringLikeTypeInternal = (
+                    candidateType: Readonly<ts.Type>
+                ): boolean => {
+                    if (seenTypes.has(candidateType)) {
+                        return false;
+                    }
+
+                    seenTypes.add(candidateType);
+
+                    if (candidateType.isUnion()) {
+                        return candidateType.types.some((partType) =>
+                            isStringLikeTypeInternal(partType)
+                        );
+                    }
+
+                    if (candidateType.isIntersection()) {
+                        return candidateType.types.some((partType) =>
+                            isStringLikeTypeInternal(partType)
+                        );
+                    }
+
+                    if ((candidateType.flags & ts.TypeFlags.StringLike) !== 0) {
+                        return true;
+                    }
+
+                    if (candidateType.getSymbol()?.getName() === "String") {
+                        return true;
+                    }
+
+                    const apparentType = checker.getApparentType(candidateType);
+                    return apparentType === candidateType
+                        ? false
+                        : isStringLikeTypeInternal(apparentType);
+                };
+
+                return isStringLikeTypeInternal(type);
             };
 
             return {

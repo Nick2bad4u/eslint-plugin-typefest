@@ -32,7 +32,7 @@ import * as pluginCssModules from "eslint-plugin-css-modules";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import etcPlugin from "eslint-plugin-etc";
-import progress from "eslint-plugin-file-progress";
+import progress from "eslint-plugin-file-progress-2";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
@@ -128,14 +128,6 @@ const etc = fixupPluginRules(etcPlugin);
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
 const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
-// eslint-disable-next-line sonarjs/no-require-or-define -- Runtime ESLint major detection is required to conditionally disable incompatible third-party presets.
-const eslintVersion = require("eslint/package.json").version;
-
-const eslintMajorVersion = Number.parseInt(
-    eslintVersion.split(".")[0] ?? "0",
-    10
-);
-const isEslintV10OrNewer = eslintMajorVersion >= 10;
 const processEnvironment = globalThis.process.env;
 
 /**
@@ -187,6 +179,7 @@ const HIDE_PROGRESS_FILENAMES = ESLINT_PROGRESS_MODE === "nofile";
 /** @type {import("eslint").Linter.Config} */
 const fileProgressOverridesConfig = {
     name: "CLI: file progress overrides",
+    plugins: { progress: progress },
     rules: {
         // The preset already auto-hides on CI, but we also support explicit
         // local toggles.
@@ -322,9 +315,8 @@ export default defineConfig([
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Import-X TypeScript (code files only)",
     },
-    ...(isEslintV10OrNewer
-        ? []
-        : [progress.configs["recommended-ci"], fileProgressOverridesConfig]),
+    progress.configs["recommended-ci"],
+    fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
@@ -455,6 +447,25 @@ export default defineConfig([
             },
         },
         name: "Type Declarations - TypeScript Parser",
+    },
+    // #endregion
+    // #region 📃 TSDoc Setup
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SECTION: 📃 TSDoc (tsdoc/*)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    {
+        files: ["**/*.{ts,mts,cts,tsx}"],
+        name: "TSDoc rules (TypeScript files)",
+        plugins: {
+            tsdoc: pluginTsdoc,
+            "tsdoc-require": pluginTSDocRequire,
+        },
+        rules: {
+            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
+            // supports ESLint 10 rule context APIs.
+            "tsdoc-require/require": "off",
+            "tsdoc/syntax": "warn",
+        },
     },
     // #endregion
     // #region 🎨 CSS files
@@ -618,7 +629,6 @@ export default defineConfig([
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             "total-functions": fixupPluginRules(pluginTotalFunctions),
-            tsdoc: pluginTsdoc,
             "tsdoc-require": pluginTSDocRequire,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
@@ -1185,12 +1195,6 @@ export default defineConfig([
             "total-functions/no-unsafe-readonly-mutable-assignment": "off",
             "total-functions/no-unsafe-type-assertion": "off",
             "total-functions/require-strict-mode": "warn",
-            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
-            // supports ESLint 10 rule context APIs.
-            "tsdoc-require/require": "off",
-            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc supports
-            // ESLint 10 without legacy context helpers.
-            "tsdoc/syntax": "off",
             "unused-imports/no-unused-imports": "error",
             "unused-imports/no-unused-vars": "error",
         },
@@ -2353,8 +2357,6 @@ export default defineConfig([
             security: securityPlugin,
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
-            tsdoc: pluginTsdoc,
-            "tsdoc-require": pluginTSDocRequire,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
             "write-good-comments": writeGoodCommentsPlugin,

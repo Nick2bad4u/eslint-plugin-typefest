@@ -2,8 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-array-join`.
  */
-import type ts from "typescript";
-
+import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
@@ -34,29 +33,10 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-
-            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
-                const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-                };
-
-                if (
-                    typedChecker.isArrayType?.(type) ||
-                    typedChecker.isTupleType?.(type)
-                ) {
-                    return true;
-                }
-
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isArrayLikeType(partType)
-                    );
-                }
-
-                const typeText = checker.typeToString(type).trim();
-                return typeText.endsWith("[]");
-            };
+            const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+                checker,
+                parserServices,
+            });
 
             return {
                 CallExpression(node) {
@@ -74,20 +54,9 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    try {
-                        const tsNode = parserServices.esTreeNodeToTSNodeMap.get(
-                            node.callee.object
-                        );
-                        const objectType = checker.getTypeAtLocation(tsNode);
-
-                        if (!isArrayLikeType(objectType)) {
-                            return;
-                        }
-                    } catch {
-                        /* C8 ignore start -- defensive parser-services failure path */
+                    if (!isArrayLikeExpression(node.callee.object)) {
                         return;
                     }
-                    /* C8 ignore stop */
 
                     context.report({
                         fix: createMethodToFunctionCallFix({

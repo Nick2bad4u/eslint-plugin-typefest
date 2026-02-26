@@ -7,8 +7,7 @@ import type ts from "typescript";
 
 import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
 
-const RULE_DOCS_URL_BASE =
-    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
+import { createRuleDocsUrl } from "./rule-docs-url.js";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -51,8 +50,8 @@ type TypefestRuleDocs = {
 /* eslint-disable total-functions/no-hidden-type-assertions -- RuleCreator generic specialization is required so `meta.docs.recommended` is typed across all rules. */
 export const createTypedRule: ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
-> = ESLintUtils.RuleCreator<TypefestRuleDocs>(
-    (ruleName) => `${RULE_DOCS_URL_BASE}/${ruleName}`
+> = ESLintUtils.RuleCreator<TypefestRuleDocs>((ruleName) =>
+    createRuleDocsUrl(ruleName)
 );
 /* eslint-enable total-functions/no-hidden-type-assertions -- Re-enable hidden-type-assertion checks for the rest of the module. */
 
@@ -152,4 +151,3 @@ export const isTestFilePath = (filePath: string): boolean =>
         filePath.replaceAll("\\", "/").toLowerCase()
     ) ||
     /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());
-

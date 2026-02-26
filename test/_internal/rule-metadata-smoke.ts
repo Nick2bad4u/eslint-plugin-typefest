@@ -42,8 +42,8 @@ const importRuleModule = async (
 
 /**
  * Registers shared metadata/fallback tests that kill recurring Stryker
- * survivors in rule modules that use `createTypedRule` + `context.filename ??
- * ""`.
+ * survivors in rule modules that use `createTypedRule` and the function
+ * `context.filename ?? ""`.
  */
 export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     ruleId: string,

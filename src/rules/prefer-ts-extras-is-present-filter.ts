@@ -2,12 +2,13 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-present-filter`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
@@ -234,11 +235,9 @@ const isNullishFilterGuardBody = (
 const isSafePresentFilterAutoFixableCallback = ({
     callback,
     parameterName,
-    sourceCode,
 }: Readonly<{
     callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression };
     parameterName: string;
-    sourceCode: Readonly<TSESLint.SourceCode>;
 }>): boolean => {
     const { body } = callback;
 
@@ -272,14 +271,7 @@ const isSafePresentFilterAutoFixableCallback = ({
         return false;
     }
 
-    const normalizedFirstText = sourceCode
-        .getText(first.expression)
-        .replaceAll(/\s/gu, "");
-    const normalizedSecondText = sourceCode
-        .getText(second.expression)
-        .replaceAll(/\s/gu, "");
-
-    return normalizedFirstText === normalizedSecondText;
+    return areEquivalentExpressions(first.expression, second.expression);
 };
 
 /**
@@ -359,7 +351,6 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                         isSafePresentFilterAutoFixableCallback({
                             callback: expressionCallback,
                             parameterName: parameter.name,
-                            sourceCode: context.sourceCode,
                         });
 
                     context.report({

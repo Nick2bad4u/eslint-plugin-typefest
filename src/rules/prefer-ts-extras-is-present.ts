@@ -2,12 +2,13 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-present`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 const FILTER_METHOD_NAME = "filter";
@@ -225,21 +226,10 @@ const isWithinFilterCallback = ({
 const haveSameComparedExpression = ({
     first,
     second,
-    sourceCode,
 }: Readonly<{
     first: TSESTree.Expression;
     second: TSESTree.Expression;
-    sourceCode: Readonly<TSESLint.SourceCode>;
-}>): boolean => {
-    const normalizedFirstText = sourceCode
-        .getText(first)
-        .replaceAll(/\s/gu, "");
-    const normalizedSecondText = sourceCode
-        .getText(second)
-        .replaceAll(/\s/gu, "");
-
-    return normalizedFirstText === normalizedSecondText;
-};
+}>): boolean => areEquivalentExpressions(first, second);
 
 /**
  * Check whether the input is strict present check.
@@ -251,10 +241,8 @@ const haveSameComparedExpression = ({
 
 const isStrictPresentCheck = ({
     node,
-    sourceCode,
 }: Readonly<{
     node: TSESTree.LogicalExpression;
-    sourceCode: Readonly<TSESLint.SourceCode>;
 }>): boolean => {
     if (node.operator !== "&&") {
         return false;
@@ -292,7 +280,6 @@ const isStrictPresentCheck = ({
     return haveSameComparedExpression({
         first: first.comparedExpression,
         second: second.comparedExpression,
-        sourceCode,
     });
 };
 
@@ -306,10 +293,8 @@ const isStrictPresentCheck = ({
 
 const isStrictAbsentCheck = ({
     node,
-    sourceCode,
 }: Readonly<{
     node: TSESTree.LogicalExpression;
-    sourceCode: Readonly<TSESLint.SourceCode>;
 }>): boolean => {
     if (node.operator !== "||") {
         return false;
@@ -347,7 +332,6 @@ const isStrictAbsentCheck = ({
     return haveSameComparedExpression({
         first: first.comparedExpression,
         second: second.comparedExpression,
-        sourceCode,
     });
 };
 
@@ -428,7 +412,6 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     if (
                         isStrictPresentCheck({
                             node,
-                            sourceCode: context.sourceCode,
                         })
                     ) {
                         context.report({
@@ -441,7 +424,6 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     if (
                         isStrictAbsentCheck({
                             node,
-                            sourceCode: context.sourceCode,
                         })
                     ) {
                         context.report({

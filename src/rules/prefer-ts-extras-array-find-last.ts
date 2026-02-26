@@ -2,8 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-array-find-last`.
  */
-import type ts from "typescript";
-
+import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
@@ -34,29 +33,10 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-
-            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
-                const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-                };
-
-                if (
-                    typedChecker.isArrayType?.(type) ||
-                    typedChecker.isTupleType?.(type)
-                ) {
-                    return true;
-                }
-
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isArrayLikeType(partType)
-                    );
-                }
-
-                const typeText = checker.typeToString(type).trim();
-                return typeText.endsWith("[]");
-            };
+            const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+                checker,
+                parserServices,
+            });
 
             return {
                 CallExpression(node) {
@@ -74,20 +54,9 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    try {
-                        const tsNode = parserServices.esTreeNodeToTSNodeMap.get(
-                            node.callee.object
-                        );
-                        const objectType = checker.getTypeAtLocation(tsNode);
-
-                        if (!isArrayLikeType(objectType)) {
-                            return;
-                        }
-                    } catch {
-                        /* C8 ignore start -- defensive parser-services failure path */
+                    if (!isArrayLikeExpression(node.callee.object)) {
                         return;
                     }
-                    /* C8 ignore stop */
 
                     context.report({
                         fix: createMethodToFunctionCallFix({
@@ -110,7 +79,10 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayFindLast over Array#findLast for stronger predicate inference.",
                 frozen: false,
-                recommended: "typefest.configs.all",
+                recommended: [
+                    "typefest.configs.strict",
+                    "typefest.configs.all",
+                ],
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find-last",
             },
             fixable: "code",

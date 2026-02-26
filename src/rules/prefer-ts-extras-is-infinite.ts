@@ -2,12 +2,13 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-infinite`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 type InfinityComparison = Readonly<{
@@ -25,7 +26,6 @@ type InfinityKind = "negative" | "positive";
  *
  * @returns `true` when the value is infinity reference; otherwise `false`.
  */
-
 const isInfinityReference = (node: Readonly<TSESTree.Expression>): boolean => {
     if (node.type === "Identifier" && node.name === "Infinity") {
         return true;
@@ -125,8 +125,7 @@ const extractInfinityComparison = (
  * @returns ExtractSafeInfinityDisjunctionTarget helper result.
  */
 const extractSafeInfinityDisjunctionTarget = (
-    node: Readonly<TSESTree.LogicalExpression>,
-    sourceCode: Readonly<TSESLint.SourceCode>
+    node: Readonly<TSESTree.LogicalExpression>
 ): null | TSESTree.Expression => {
     if (node.operator !== "||") {
         return null;
@@ -147,22 +146,19 @@ const extractSafeInfinityDisjunctionTarget = (
         return null;
     }
 
-    return sourceCode.getText(left.comparedExpression).trim() ===
-        sourceCode.getText(right.comparedExpression).trim()
+    return areEquivalentExpressions(
+        left.comparedExpression,
+        right.comparedExpression
+    )
         ? left.comparedExpression
         : null;
 };
 
-/**
- * ESLint rule definition for `prefer-ts-extras-is-infinite`.
- *
- * @remarks
- * Defines metadata, diagnostics, and suggestions/fixes for this rule.
- */
 const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
             const filePath = context.filename ?? "";
+
             if (isTestFilePath(filePath)) {
                 return {};
             }
@@ -177,10 +173,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                     const parent = node.parent;
                     if (
                         parent?.type === "LogicalExpression" &&
-                        extractSafeInfinityDisjunctionTarget(
-                            parent,
-                            context.sourceCode
-                        )
+                        extractSafeInfinityDisjunctionTarget(parent)
                     ) {
                         return;
                     }
@@ -203,10 +196,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 },
                 LogicalExpression(node) {
                     const comparedExpression =
-                        extractSafeInfinityDisjunctionTarget(
-                            node,
-                            context.sourceCode
-                        );
+                        extractSafeInfinityDisjunctionTarget(node);
 
                     if (!comparedExpression) {
                         return;

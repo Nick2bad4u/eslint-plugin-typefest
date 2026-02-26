@@ -3,8 +3,11 @@
  * ESLint rule implementation for `prefer-ts-extras-array-first`.
  */
 import type { TSESTree } from "@typescript-eslint/utils";
-import type ts from "typescript";
 
+import {
+    createIsArrayLikeExpressionChecker,
+    isWriteTargetMemberExpression,
+} from "../_internal/array-like-expression.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
@@ -14,32 +17,6 @@ import {
     getTypedRuleServices,
     isTestFilePath,
 } from "../_internal/typed-rule.js";
-
-/**
- * Check whether the input is write target.
- *
- * @param node - Value to inspect.
- *
- * @returns `true` when the value is write target; otherwise `false`.
- */
-
-const isWriteTarget = (node: Readonly<TSESTree.MemberExpression>): boolean => {
-    const { parent } = node;
-
-    if (parent.type === "AssignmentExpression" && parent.left === node) {
-        return true;
-    }
-
-    if (parent.type === "UpdateExpression" && parent.argument === node) {
-        return true;
-    }
-
-    return (
-        parent.type === "UnaryExpression" &&
-        parent.operator === "delete" &&
-        parent.argument === node
-    );
-};
 
 /**
  * Check whether the input is zero property.
@@ -74,46 +51,10 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-
-            const isArrayLikeType = (type: Readonly<ts.Type>): boolean => {
-                const typedChecker = checker as ts.TypeChecker & {
-                    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-                    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-                };
-
-                if (
-                    typedChecker.isArrayType?.(type) ||
-                    typedChecker.isTupleType?.(type)
-                ) {
-                    return true;
-                }
-
-                if (type.isUnion()) {
-                    return type.types.some((partType) =>
-                        isArrayLikeType(partType)
-                    );
-                }
-
-                const typeText = checker.typeToString(type);
-                return (
-                    typeText.endsWith("[]") ||
-                    typeText.startsWith("readonly [") ||
-                    typeText.startsWith("[")
-                );
-            };
-
-            const isArrayLikeExpression = (
-                expression: Readonly<TSESTree.Expression>
-            ): boolean => {
-                try {
-                    const tsNode =
-                        parserServices.esTreeNodeToTSNodeMap.get(expression);
-                    const expressionType = checker.getTypeAtLocation(tsNode);
-                    return isArrayLikeType(expressionType);
-                } catch {
-                    return false;
-                }
-            };
+            const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+                checker,
+                parserServices,
+            });
 
             return {
                 MemberExpression(node) {
@@ -121,7 +62,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (isWriteTarget(node)) {
+                    if (isWriteTargetMemberExpression(node)) {
                         return;
                     }
 
