@@ -305,6 +305,14 @@ ruleTester.run(ruleId, rule, {
             name: "autofixes Record<string, JsonValue> when JsonObject import is in scope",
             output: inlineFixableOutput,
         },
+        {
+            code: inlineFixableCode,
+            errors: [{ messageId: "preferJsonObject" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "still autofixes when disableImportInsertionFixes is enabled and JsonObject import is in scope",
+            output: inlineFixableOutput,
+            settings: disableImportInsertionSettings,
+        },
     ],
     valid: [
         {

@@ -197,8 +197,13 @@ const fileProgressOverridesConfig = {
     },
     settings: {
         progress: {
-            hide: IS_CI || DISABLE_PROGRESS,
-            hideFileName: HIDE_PROGRESS_FILENAMES,
+            detailedSuccess: true, // Show multi-line final summary (duration, file count, exit code)
+            failureMark: "✖", // Custom mark used for failure completion
+            hide: IS_CI || DISABLE_PROGRESS, // Hide progress output (useful in CI)
+            hideFileName: HIDE_PROGRESS_FILENAMES, // Show generic "Linting..." instead of file names
+            prefixMark: "•", // Marker after plugin name prefix in progress lines
+            spinnerStyle: "dots", // Line | dots | arc | bounce | clock
+            successMark: "✔", // Custom mark used for success completion
         },
     },
 };
@@ -535,8 +540,6 @@ export default defineConfig([
                 jsDocParsingMode: "all",
                 projectService: {
                     allowDefaultProject: [
-                        "docs/docusaurus/src/pages/*.js",
-                        "docs/docusaurus/src/pages/*.jsx",
                         "docs/docusaurus/typedoc-plugins/*.mjs",
                         "docs/docusaurus/typedoc-plugins/*.mts",
                     ],

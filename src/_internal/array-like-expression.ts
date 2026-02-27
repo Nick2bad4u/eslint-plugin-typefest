@@ -38,13 +38,13 @@ type TypeCheckerWithArrayHelpers = ts.TypeChecker & {
 };
 
 /**
- * IsArrayLikeType helper.
+ * Determine whether a TypeScript type resolves to an array-like shape.
  *
- * @param checker - Value to inspect.
- * @param type - Value to inspect.
- * @param unionMatchMode - Value to inspect.
+ * @param checker - Type checker used to inspect and unwrap candidate types.
+ * @param type - Candidate type to evaluate.
+ * @param unionMatchMode - Strategy for union members (`"some"` or `"every"`).
  *
- * @returns IsArrayLikeType helper result.
+ * @returns `true` when the candidate resolves to an array/tuple-like type.
  */
 export const isArrayLikeType = (
     checker: Readonly<ts.TypeChecker>,
@@ -108,11 +108,11 @@ export const isArrayLikeType = (
 };
 
 /**
- * CreateIsArrayLikeExpressionChecker helper.
+ * Build a safe ESTree expression predicate for array-like type checks.
  *
- * @param options - Value to inspect.
+ * @param options - Type checker and parser-service dependencies.
  *
- * @returns CreateIsArrayLikeExpressionChecker helper result.
+ * @returns Function that returns `true` when the expression is array-like.
  */
 export const createIsArrayLikeExpressionChecker =
     ({
@@ -137,20 +137,35 @@ export const createIsArrayLikeExpressionChecker =
     };
 
 /**
- * IsWriteTargetMemberExpression helper.
+ * Check whether a member expression is used as a write target.
  *
- * @param node - Value to inspect.
+ * @param node - Member expression candidate.
  *
- * @returns IsWriteTargetMemberExpression helper result.
+ * @returns `true` for assignment LHS, `delete` target, or update operand.
  */
 export const isWriteTargetMemberExpression = (
     node: Readonly<TSESTree.MemberExpression>
 ): boolean => {
-    const parentNode = node.parent;
+    const nodeWithParent = node as Readonly<TSESTree.MemberExpression> & {
+        parent?: Readonly<TSESTree.Node>;
+    };
+    const parentNode = nodeWithParent.parent;
 
-    return parentNode.type === "AssignmentExpression"
-        ? parentNode.left === node
-        : parentNode.type === "UnaryExpression"
-          ? parentNode.operator === "delete"
-          : parentNode.type === "UpdateExpression";
+    if (parentNode === undefined) {
+        return false;
+    }
+
+    if (parentNode.type === "AssignmentExpression") {
+        return parentNode.left === node;
+    }
+
+    if (parentNode.type === "UnaryExpression") {
+        return parentNode.operator === "delete";
+    }
+
+    if (parentNode.type === "UpdateExpression") {
+        return parentNode.argument === node;
+    }
+
+    return false;
 };

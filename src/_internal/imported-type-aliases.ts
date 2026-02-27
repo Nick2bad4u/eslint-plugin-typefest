@@ -17,6 +17,19 @@ const READONLY_CONTAINER_TYPE_NAMES = new Set([
 ]);
 
 /**
+ * Check whether an import declaration targets the expected source module.
+ *
+ * @param statement - Import declaration node.
+ * @param sourceModuleName - Expected module specifier value.
+ *
+ * @returns `true` when the import declaration source matches.
+ */
+const isImportDeclarationFromSource = (
+    statement: Readonly<TSESTree.ImportDeclaration>,
+    sourceModuleName: string
+): boolean => statement.source.value === sourceModuleName;
+
+/**
  * Matched imported type alias that can be replaced with a canonical name.
  */
 export type ImportedTypeAliasMatch = {
@@ -104,7 +117,7 @@ export const collectDirectNamedImportsFromSource = (
             continue;
         }
 
-        if (statement.source.value !== expectedSourceValue) {
+        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
             continue;
         }
 
@@ -150,7 +163,7 @@ export const collectNamedImportLocalNamesFromSource = (
             continue;
         }
 
-        if (statement.source.value !== expectedSourceValue) {
+        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
             continue;
         }
 
@@ -193,7 +206,7 @@ export const collectNamespaceImportLocalNamesFromSource = (
             continue;
         }
 
-        if (statement.source.value !== expectedSourceValue) {
+        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
             continue;
         }
 

@@ -131,6 +131,71 @@ describe(isWithinFilterCallback, () => {
         expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
     });
 
+    it("returns false for computed member access filter calls", () => {
+        const program = createProgramNode();
+
+        const callbackNode = {
+            parent: undefined,
+            type: "ArrowFunctionExpression",
+        } as unknown as TSESTree.ArrowFunctionExpression;
+
+        const computedFilterCallNode = {
+            arguments: [callbackNode],
+            callee: {
+                computed: true,
+                object: {
+                    type: "Identifier",
+                },
+                property: {
+                    name: "filter",
+                    type: "Identifier",
+                },
+                type: "MemberExpression",
+            },
+            parent: program,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        (callbackNode as unknown as { parent?: TSESTree.Node }).parent =
+            computedFilterCallNode;
+
+        const nestedNode = {
+            parent: callbackNode,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+    });
+
+    it("returns false for non-member filter calls", () => {
+        const program = createProgramNode();
+
+        const callbackNode = {
+            parent: undefined,
+            type: "ArrowFunctionExpression",
+        } as unknown as TSESTree.ArrowFunctionExpression;
+
+        const filterIdentifierCallNode = {
+            arguments: [callbackNode],
+            callee: {
+                name: "filter",
+                type: "Identifier",
+            },
+            parent: program,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        (callbackNode as unknown as { parent?: TSESTree.Node }).parent =
+            filterIdentifierCallNode;
+
+        const nestedNode = {
+            parent: callbackNode,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+    });
+
     it("returns false for cyclic parent chains", () => {
         const cycleA = {
             type: "Identifier",

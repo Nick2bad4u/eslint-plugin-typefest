@@ -23,10 +23,9 @@ const collectProgramImportDeclarations = (
 
 const isDirectiveExpressionStatement = (
     statement: Readonly<TSESTree.ProgramStatement>
-): statement is TSESTree.ExpressionStatement =>
+): statement is TSESTree.ExpressionStatement & { directive: string } =>
     statement.type === "ExpressionStatement" &&
-    statement.expression.type === "Literal" &&
-    typeof statement.expression.value === "string";
+    typeof statement.directive === "string";
 
 const getLastDirectivePrologueStatement = (
     programNode: Readonly<TSESTree.Program>
@@ -43,6 +42,36 @@ const getLastDirectivePrologueStatement = (
     }
 
     return lastDirectiveStatement;
+};
+
+const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
+    const nodeRange = (node as Readonly<TSESTree.Node> & { range?: unknown })
+        .range;
+
+    if (!Array.isArray(nodeRange) || typeof nodeRange[0] !== "number") {
+        return null;
+    }
+
+    return nodeRange[0];
+};
+
+const getProgramRangeEnd = (
+    programNode: Readonly<TSESTree.Program>
+): null | number => {
+    const programRange = (
+        programNode as Readonly<TSESTree.Program> & { range?: unknown }
+    ).range;
+
+    if (!Array.isArray(programRange) || typeof programRange[1] !== "number") {
+        return null;
+    }
+
+    const programEnd = programRange[1];
+    if (!Number.isInteger(programEnd) || programEnd < 0) {
+        return null;
+    }
+
+    return programEnd;
 };
 
 /**
@@ -99,15 +128,20 @@ export const createImportInsertionFix = ({
 
     const [firstStatement] = programNode.body;
     if (firstStatement) {
-        const [firstStatementStart] = firstStatement.range;
-
-        return fixer.insertTextBeforeRange(
-            [firstStatementStart, firstStatementStart],
-            `${normalizedImportDeclarationText}\n`
-        );
+        const firstStatementStart = getNodeRangeStart(firstStatement);
+        if (firstStatementStart !== null) {
+            return fixer.insertTextBeforeRange(
+                [firstStatementStart, firstStatementStart],
+                `${normalizedImportDeclarationText}\n`
+            );
+        }
     }
 
-    const [, programEnd] = programNode.range;
+    const programEnd = getProgramRangeEnd(programNode);
+    if (programEnd === null) {
+        return null;
+    }
+
     return fixer.insertTextBeforeRange(
         [programEnd, programEnd],
         `${programEnd === 0 ? "" : "\n"}${normalizedImportDeclarationText}\n`

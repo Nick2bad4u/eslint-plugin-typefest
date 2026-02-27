@@ -59,21 +59,39 @@ const stripFixFromReportDescriptor = <
     if (
         typeof descriptor !== "object" ||
         descriptor === null ||
-        !Object.hasOwn(descriptor, "fix") ||
-        typeof descriptor.fix !== "function"
+        !Object.hasOwn(descriptor, "fix")
     ) {
         return descriptor as ReportDescriptor<MessageIds, Options>;
     }
 
-    const descriptorWithoutFix = {
-        ...descriptor,
-    } as ReportDescriptor<MessageIds, Options> & {
-        fix?: unknown;
+    const fixPropertyDescriptor = Object.getOwnPropertyDescriptor(
+        descriptor,
+        "fix"
+    );
+
+    if (!fixPropertyDescriptor) {
+        return descriptor as ReportDescriptor<MessageIds, Options>;
+    }
+
+    if (
+        "value" in fixPropertyDescriptor &&
+        typeof fixPropertyDescriptor.value !== "function"
+    ) {
+        return descriptor as ReportDescriptor<MessageIds, Options>;
+    }
+
+    const descriptorProperties = {
+        ...Object.getOwnPropertyDescriptors(descriptor),
     };
 
-    Reflect.deleteProperty(descriptorWithoutFix, "fix");
+    Reflect.deleteProperty(descriptorProperties, "fix");
 
-    return descriptorWithoutFix;
+    const descriptorWithoutFix = Object.defineProperties(
+        {},
+        descriptorProperties
+    );
+
+    return descriptorWithoutFix as ReportDescriptor<MessageIds, Options>;
 };
 
 const createContextWithoutAutofixes = <

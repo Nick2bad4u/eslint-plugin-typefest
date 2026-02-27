@@ -18,18 +18,25 @@ const getComparableKeys = (value: ComparableObject): readonly string[] =>
     Object.keys(value).filter((key) => !ignoredPropertyKeys.has(key));
 
 /**
- * UnwrapParenthesizedExpression helper.
+ * Unwrap transparent TypeScript expression wrappers.
  *
- * @param expression - Value to inspect.
+ * @param expression - Expression to normalize.
  *
- * @returns UnwrapParenthesizedExpression helper result.
+ * @returns The innermost wrapped expression.
  */
 const unwrapTransparentExpression = (
     expression: Readonly<TSESTree.Expression>
 ): Readonly<TSESTree.Expression> => {
     let currentExpression = expression;
+    const visitedExpressions = new Set<Readonly<TSESTree.Expression>>();
 
     while (true) {
+        if (visitedExpressions.has(currentExpression)) {
+            return currentExpression;
+        }
+
+        visitedExpressions.add(currentExpression);
+
         if (currentExpression.type === "TSAsExpression") {
             currentExpression = currentExpression.expression;
             continue;
@@ -54,7 +61,30 @@ const unwrapTransparentExpression = (
     }
 };
 
-const areEquivalentNodeValues = (left: unknown, right: unknown): boolean => {
+const markAndCheckSeenPair = (
+    left: object,
+    right: object,
+    seenPairs: WeakMap<object, WeakSet<object>>
+): boolean => {
+    const seenRightNodes = seenPairs.get(left);
+    if (seenRightNodes?.has(right) === true) {
+        return true;
+    }
+
+    if (seenRightNodes === undefined) {
+        seenPairs.set(left, new WeakSet([right]));
+    } else {
+        seenRightNodes.add(right);
+    }
+
+    return false;
+};
+
+const areEquivalentNodeValues = (
+    left: unknown,
+    right: unknown,
+    seenPairs: WeakMap<object, WeakSet<object>> = new WeakMap()
+): boolean => {
     if (Object.is(left, right)) {
         return true;
     }
@@ -72,17 +102,25 @@ const areEquivalentNodeValues = (left: unknown, right: unknown): boolean => {
             return false;
         }
 
+        if (markAndCheckSeenPair(left, right, seenPairs)) {
+            return true;
+        }
+
         if (left.length !== right.length) {
             return false;
         }
 
         return left.every((value, index) =>
-            areEquivalentNodeValues(value, right[index])
+            areEquivalentNodeValues(value, right[index], seenPairs)
         );
     }
 
     if (!isComparableRecord(left) || !isComparableRecord(right)) {
         return false;
+    }
+
+    if (markAndCheckSeenPair(left, right, seenPairs)) {
+        return true;
     }
 
     const leftKeys = getComparableKeys(left);
@@ -102,7 +140,7 @@ const areEquivalentNodeValues = (left: unknown, right: unknown): boolean => {
             return false;
         }
 
-        return areEquivalentNodeValues(left[key], right[key]);
+        return areEquivalentNodeValues(left[key], right[key], seenPairs);
     });
 };
 

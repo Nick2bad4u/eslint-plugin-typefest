@@ -476,7 +476,7 @@ describe(createTypedRule, () => {
 
         let originalDescriptor:
             | TSESLint.ReportDescriptor<RuleMessageIds>
-            | undefined;
+            | undefined = undefined;
 
         const ruleUnderTest = createTypedRule({
             create(ruleContext) {
@@ -517,7 +517,11 @@ describe(createTypedRule, () => {
 
         expect(reportSpy).toHaveBeenCalledTimes(1);
         expect(originalDescriptor).toBeDefined();
-        expect(originalDescriptor?.fix).toBeTypeOf("function");
+
+        const ensuredDescriptor =
+            originalDescriptor as unknown as TSESLint.ReportDescriptor<RuleMessageIds>;
+
+        expect(Object.hasOwn(ensuredDescriptor, "fix")).toBeTruthy();
     });
 
     it("does not strip non-function fix values", () => {
@@ -576,6 +580,70 @@ describe(createTypedRule, () => {
         ];
 
         expect(descriptor.fix).toBeNull();
+    });
+
+    it("does not crash when fix getter throws", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        const ruleUnderTest = createTypedRule({
+            create(ruleContext) {
+                return {
+                    Program(node) {
+                        const descriptor = {
+                            messageId: "blocked",
+                            node,
+                        } as TSESLint.ReportDescriptor<RuleMessageIds>;
+
+                        const fixGetter = vi.fn(() => {
+                            throw new TypeError("boom");
+                        });
+
+                        Object.defineProperty(descriptor, "fix", {
+                            get: fixGetter,
+                        });
+
+                        ruleContext.report(descriptor);
+
+                        expect(fixGetter).not.toHaveBeenCalled();
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-throwing-fix-getter-test-rule",
+        });
+
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        expect(() =>
+            listeners.Program?.(
+                context.sourceCode.ast as unknown as TSESTree.Program
+            )
+        ).not.toThrowError();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 });
 

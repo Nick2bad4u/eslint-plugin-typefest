@@ -143,10 +143,15 @@ export default [
 
 When `settings.typefest.disableImportInsertionFixes` is `true`, rules that
 would normally add a missing `type-fest` or `ts-extras` import will report
-without applying that import-adding autofix.
+without applying that import-adding autofix. Autofixes that do not require
+inserting a new import (for example, when the replacement symbol is already in
+scope) still apply.
 
 When `settings.typefest.disableAllAutofixes` is `true`, all rule autofixes are
-suppressed, but suggestions remain available.
+suppressed, but reports and suggestions remain available.
+
+If both settings are enabled, `disableAllAutofixes` takes precedence for
+autofix behavior.
 
 ## Rules
 

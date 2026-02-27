@@ -84,6 +84,19 @@ type ValueArgumentFunctionCallFixParams = Readonly<{
 }>;
 
 /**
+ * Check whether an import declaration targets the expected source module.
+ *
+ * @param statement - Import declaration node.
+ * @param sourceModuleName - Expected module specifier value.
+ *
+ * @returns `true` when the import declaration source matches.
+ */
+const isImportDeclarationFromSource = (
+    statement: Readonly<TSESTree.ImportDeclaration>,
+    sourceModuleName: string
+): boolean => statement.source.value === sourceModuleName;
+
+/**
  * Collect direct named value imports from a specific module.
  *
  * @param sourceCode - Source code object for the current file.
@@ -106,7 +119,7 @@ export const collectDirectNamedValueImportsFromSource = (
             continue;
         }
 
-        if (node.source.value !== sourceModuleName) {
+        if (!isImportDeclarationFromSource(node, sourceModuleName)) {
             continue;
         }
 
@@ -190,7 +203,7 @@ function isLocalNameBoundToExpectedImport(
         const parent = definitionNode.parent;
         return (
             parent.type === "ImportDeclaration" &&
-            parent.source.value === sourceModuleName
+            isImportDeclarationFromSource(parent, sourceModuleName)
         );
     });
 }
@@ -231,7 +244,7 @@ const canUseDirectImportedNameSafely = ({
 
         return (
             parent.type === "ImportDeclaration" &&
-            parent.source.value === sourceModuleName &&
+            isImportDeclarationFromSource(parent, sourceModuleName) &&
             parent.importKind !== "type" &&
             definitionNode.importKind !== "type"
         );
@@ -348,6 +361,58 @@ const getSafeReplacementNameAndImportFixFactory = ({
     };
 };
 
+const createImportAwareFixes = ({
+    createReplacementFix,
+    fixer,
+    replacementNameAndImportFixFactory,
+}: Readonly<{
+    createReplacementFix: (
+        fixer: Readonly<TSESLint.RuleFixer>
+    ) => TSESLint.RuleFix;
+    fixer: Readonly<TSESLint.RuleFixer>;
+    replacementNameAndImportFixFactory: Readonly<{
+        createImportFix: (
+            fixer: Readonly<TSESLint.RuleFixer>
+        ) => null | TSESLint.RuleFix;
+        requiresImportInsertion: boolean;
+    }>;
+}>): null | readonly TSESLint.RuleFix[] => {
+    const importFix = replacementNameAndImportFixFactory.createImportFix(fixer);
+    if (
+        importFix === null &&
+        replacementNameAndImportFixFactory.requiresImportInsertion
+    ) {
+        return null;
+    }
+
+    const replacementFix = createReplacementFix(fixer);
+
+    return importFix ? [importFix, replacementFix] : [replacementFix];
+};
+
+const getFunctionCallArgumentText = ({
+    argumentNode,
+    sourceCode,
+}: Readonly<{
+    argumentNode: Readonly<TSESTree.Node>;
+    sourceCode: Readonly<TSESLint.SourceCode>;
+}>): null | string => {
+    const argumentText = sourceCode.getText(argumentNode).trim();
+    if (argumentText.length === 0) {
+        return null;
+    }
+
+    if (argumentNode.type !== "SequenceExpression") {
+        return argumentText;
+    }
+
+    if (argumentText.startsWith("(") && argumentText.endsWith(")")) {
+        return argumentText;
+    }
+
+    return `(${argumentText})`;
+};
+
 /**
  * Create a fixer that safely replaces a target node with a resolved local
  * import alias.
@@ -374,23 +439,16 @@ export const createSafeValueReferenceReplacementFix = ({
         return null;
     }
 
-    return (fixer) => {
-        const importFix =
-            replacementNameAndImportFixFactory.createImportFix(fixer);
-        if (
-            importFix === null &&
-            replacementNameAndImportFixFactory.requiresImportInsertion
-        ) {
-            return null;
-        }
-
-        const replacementFix = fixer.replaceText(
-            targetNode,
-            replacementNameAndImportFixFactory.replacementName
-        );
-
-        return importFix ? [importFix, replacementFix] : [replacementFix];
-    };
+    return (fixer) =>
+        createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                replacementFixer.replaceText(
+                    targetNode,
+                    replacementNameAndImportFixFactory.replacementName
+                ),
+            fixer,
+            replacementNameAndImportFixFactory,
+        });
 };
 
 /**
@@ -424,18 +482,13 @@ export const createSafeValueNodeTextReplacementFix = ({
         const replacementText = replacementTextFactory(
             replacementNameAndImportFixFactory.replacementName
         );
-        const importFix =
-            replacementNameAndImportFixFactory.createImportFix(fixer);
-        if (
-            importFix === null &&
-            replacementNameAndImportFixFactory.requiresImportInsertion
-        ) {
-            return null;
-        }
 
-        const replacementFix = fixer.replaceText(targetNode, replacementText);
-
-        return importFix ? [importFix, replacementFix] : [replacementFix];
+        return createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                replacementFixer.replaceText(targetNode, replacementText),
+            fixer,
+            replacementNameAndImportFixFactory,
+        });
     };
 };
 
@@ -484,20 +537,13 @@ export const createMethodToFunctionCallFix = ({
             ? `${replacementNameAndImportFixFactory.replacementName}(${receiverText}, ${argumentText})`
             : `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
-    return (fixer) => {
-        const importFix =
-            replacementNameAndImportFixFactory.createImportFix(fixer);
-        if (
-            importFix === null &&
-            replacementNameAndImportFixFactory.requiresImportInsertion
-        ) {
-            return null;
-        }
-
-        const replacementFix = fixer.replaceText(callNode, replacementText);
-
-        return importFix ? [importFix, replacementFix] : [replacementFix];
-    };
+    return (fixer) =>
+        createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                replacementFixer.replaceText(callNode, replacementText),
+            fixer,
+            replacementNameAndImportFixFactory,
+        });
 };
 
 /**
@@ -532,20 +578,13 @@ export const createMemberToFunctionCallFix = ({
     const receiverText = context.sourceCode.getText(memberNode.object);
     const replacementText = `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
-    return (fixer) => {
-        const importFix =
-            replacementNameAndImportFixFactory.createImportFix(fixer);
-        if (
-            importFix === null &&
-            replacementNameAndImportFixFactory.requiresImportInsertion
-        ) {
-            return null;
-        }
-
-        const replacementFix = fixer.replaceText(memberNode, replacementText);
-
-        return importFix ? [importFix, replacementFix] : [replacementFix];
-    };
+    return (fixer) =>
+        createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                replacementFixer.replaceText(memberNode, replacementText),
+            fixer,
+            replacementNameAndImportFixFactory,
+        });
 };
 
 /**
@@ -575,26 +614,22 @@ export const createSafeValueArgumentFunctionCallFix = ({
         return null;
     }
 
-    const argumentText = context.sourceCode.getText(argumentNode).trim();
-    if (argumentText.length === 0) {
+    const argumentText = getFunctionCallArgumentText({
+        argumentNode,
+        sourceCode: context.sourceCode,
+    });
+    if (argumentText === null) {
         return null;
     }
 
     const callText = `${replacementNameAndImportFixFactory.replacementName}(${argumentText})`;
     const replacementText = negated === true ? `!${callText}` : callText;
 
-    return (fixer) => {
-        const importFix =
-            replacementNameAndImportFixFactory.createImportFix(fixer);
-        if (
-            importFix === null &&
-            replacementNameAndImportFixFactory.requiresImportInsertion
-        ) {
-            return null;
-        }
-
-        const replacementFix = fixer.replaceText(targetNode, replacementText);
-
-        return importFix ? [importFix, replacementFix] : [replacementFix];
-    };
+    return (fixer) =>
+        createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                replacementFixer.replaceText(targetNode, replacementText),
+            fixer,
+            replacementNameAndImportFixFactory,
+        });
 };

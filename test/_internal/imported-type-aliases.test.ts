@@ -671,6 +671,7 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
         expect.hasAssertions();
 
         const directiveStatement = {
+            directive: "use client",
             expression: {
                 type: "Literal",
                 value: "use client",

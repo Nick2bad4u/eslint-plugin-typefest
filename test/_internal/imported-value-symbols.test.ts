@@ -559,6 +559,32 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
         expect(invokeFix(fix)).toStrictEqual(["!isPresent(candidate)"]);
     });
+
+    it("wraps sequence-expression arguments to preserve single-argument semantics", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("isPresent", "ts-extras");
+        const fix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: {
+                _text: "left, right",
+                type: "SequenceExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["argumentNode"],
+            context,
+            importedName: "isPresent",
+            imports: createImportsMap("isPresent", "isPresent"),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                _text: "left, right",
+                type: "SequenceExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["targetNode"],
+        });
+
+        expect(invokeFix(fix)).toStrictEqual(["isPresent((left, right))"]);
+    });
 });
 
 describe(createSafeValueReferenceReplacementFix, () => {
@@ -566,6 +592,7 @@ describe(createSafeValueReferenceReplacementFix, () => {
         expect.hasAssertions();
 
         const directiveStatement = {
+            directive: "use client",
             expression: {
                 type: "Literal",
                 value: "use client",

@@ -113,6 +113,36 @@ describe(registerProgramSettingsForContext, () => {
         expect(secondSettings.disableImportInsertionFixes).toBeTruthy();
     });
 
+    it("does not share cached settings across different programs", () => {
+        const firstProgram = createProgramNode();
+        const secondProgram = createProgramNode();
+
+        const firstContext = createContext({
+            program: firstProgram,
+            settings: {
+                typefest: {
+                    disableImportInsertionFixes: true,
+                },
+            },
+        });
+
+        const secondContext = createContext({
+            program: secondProgram,
+            settings: {
+                typefest: {
+                    disableImportInsertionFixes: false,
+                },
+            },
+        });
+
+        const firstSettings = registerProgramSettingsForContext(firstContext);
+        const secondSettings = registerProgramSettingsForContext(secondContext);
+
+        expect(secondSettings).not.toBe(firstSettings);
+        expect(firstSettings.disableImportInsertionFixes).toBeTruthy();
+        expect(secondSettings.disableImportInsertionFixes).toBeFalsy();
+    });
+
     it("treats non-object settings as disabled", () => {
         const program = createProgramNode();
         const context = createContext({
@@ -133,6 +163,45 @@ describe(registerProgramSettingsForContext, () => {
             settings: {
                 typefest: ["invalid"],
             },
+        });
+
+        const parsedSettings = registerProgramSettingsForContext(context);
+
+        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
+        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+    });
+
+    it("treats non-boolean settings values as disabled", () => {
+        const program = createProgramNode();
+        const context = createContext({
+            program,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: "true",
+                    disableImportInsertionFixes: 1,
+                },
+            },
+        });
+
+        const parsedSettings = registerProgramSettingsForContext(context);
+
+        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
+        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+    });
+
+    it("treats inherited non-boolean settings values as disabled", () => {
+        const inheritedSettings = {
+            disableAllAutofixes: "true",
+            disableImportInsertionFixes: 1,
+        };
+        const settings = {
+            typefest: Object.create(inheritedSettings),
+        };
+        const program = createProgramNode();
+
+        const context = createContext({
+            program,
+            settings,
         });
 
         const parsedSettings = registerProgramSettingsForContext(context);
