@@ -758,6 +758,60 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
         expect(invokeFix(fix)).toStrictEqual(["isPresent((left, right))"]);
     });
+
+    it("preserves unicode, emoji, and nerd-font glyphs in argument text", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("isPresent", "ts-extras");
+        const fix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: {
+                _text: '候補?.["emoji_🧪___値"]',
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["argumentNode"],
+            context,
+            importedName: "isPresent",
+            imports: createImportsMap("isPresent", "isPresent"),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                _text: '候補?.["emoji_🧪___値"]',
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["targetNode"],
+        });
+
+        expect(invokeFix(fix)).toStrictEqual([
+            'isPresent(候補?.["emoji_🧪___値"])',
+        ]);
+    });
+
+    it("trims unicode spacing around argument text before replacement", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("isPresent", "ts-extras");
+        const fix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: {
+                _text: "\u00A0\u2003候補?.name\u00A0",
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["argumentNode"],
+            context,
+            importedName: "isPresent",
+            imports: createImportsMap("isPresent", "isPresent"),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                _text: "候補?.name",
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["targetNode"],
+        });
+
+        expect(invokeFix(fix)).toStrictEqual(["isPresent(候補?.name)"]);
+    });
 });
 
 describe(createSafeValueReferenceReplacementFix, () => {

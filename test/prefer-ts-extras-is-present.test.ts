@@ -274,6 +274,34 @@ const inlineFixableAbsentOutput = [
     "declare const maybeValue: null | string | undefined;",
     "const isMissing = !isPresent(maybeValue);",
 ].join("\n");
+const inlineFixablePresentWithUnicodeAndEmojiCode = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const 候補値: null | string | undefined;",
+    'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "const hasValue = 候補値 != null; // keep comment 😅",
+].join("\n");
+const inlineFixablePresentWithUnicodeAndEmojiOutput = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const 候補値: null | string | undefined;",
+    'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "const hasValue = isPresent(候補値); // keep comment 😅",
+].join("\n");
+const inlineFixableAbsentWithUnicodeAndEmojiCode = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const 候補値: null | string | undefined;",
+    "const debugText = `glyphs 🧵 🛰️  `;",
+    "const isMissing = 候補値 == null;",
+].join("\n");
+const inlineFixableAbsentWithUnicodeAndEmojiOutput = [
+    'import { isPresent } from "ts-extras";',
+    "",
+    "declare const 候補値: null | string | undefined;",
+    "const debugText = `glyphs 🧵 🛰️  `;",
+    "const isMissing = !isPresent(候補値);",
+].join("\n");
 const inlineInvalidStrictPresentWithUndefinedOnLeftCode = [
     "declare const maybeValue: null | string | undefined;",
     "",
@@ -630,6 +658,20 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes loose null equality when isPresent import is in scope",
             output: inlineFixableAbsentOutput,
+        },
+        {
+            code: inlineFixablePresentWithUnicodeAndEmojiCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes loose null inequality without disturbing unicode, emoji, or nerd-font glyph text",
+            output: inlineFixablePresentWithUnicodeAndEmojiOutput,
+        },
+        {
+            code: inlineFixableAbsentWithUnicodeAndEmojiCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes loose null equality in files containing unicode-rich template literals",
+            output: inlineFixableAbsentWithUnicodeAndEmojiOutput,
         },
         {
             code: inlineInvalidStrictPresentWithUndefinedOnLeftCode,

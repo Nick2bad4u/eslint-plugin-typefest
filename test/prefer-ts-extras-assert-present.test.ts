@@ -311,6 +311,36 @@ const inlineAutofixableCanonicalOutput = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineAutofixableCanonicalUnicodeRichCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "",
+    "function ensureValue(候補値: string | null | undefined): string {",
+    "    if (候補値 === null || 候補値 === undefined) {",
+    "        throw new TypeError(`Expected a present value, got " +
+        "$" +
+        "{候補値}`);",
+    "    }",
+    "",
+    "    return 候補値;",
+    "}",
+    "",
+    "String(glyphBanner);",
+].join("\n");
+const inlineAutofixableCanonicalUnicodeRichOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "",
+    "function ensureValue(候補値: string | null | undefined): string {",
+    "    assertPresent(候補値);",
+    "",
+    "    return 候補値;",
+    "}",
+    "",
+    "String(glyphBanner);",
+].join("\n");
 const inlineSuggestableTemplateWrongExpressionOutput = [
     'import { assertPresent } from "ts-extras";',
     "",
@@ -640,6 +670,13 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "suggests direct canonical throw guard",
+            },
+            {
+                code: inlineAutofixableCanonicalUnicodeRichCode,
+                errors: [{ messageId: "preferTsExtrasAssertPresent" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes canonical nullish guard in unicode-rich source text",
+                output: inlineAutofixableCanonicalUnicodeRichOutput,
             },
         ],
         valid: [

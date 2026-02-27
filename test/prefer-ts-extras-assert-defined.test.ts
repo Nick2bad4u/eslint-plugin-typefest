@@ -209,6 +209,34 @@ const inlineAutofixableCanonicalOutput = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineAutofixableCanonicalUnicodeRichCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "",
+    "function ensureValue(候補値: string | undefined): string {",
+    "    if (候補値 === undefined) {",
+    "        throw new TypeError('Expected a defined value, got `undefined`');",
+    "    }",
+    "",
+    "    return 候補値;",
+    "}",
+    "",
+    "String(glyphBanner);",
+].join("\n");
+const inlineAutofixableCanonicalUnicodeRichOutput = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
+    "",
+    "function ensureValue(候補値: string | undefined): string {",
+    "    assertDefined(候補値);",
+    "",
+    "    return 候補値;",
+    "}",
+    "",
+    "String(glyphBanner);",
+].join("\n");
 const inlineInvalidSuggestionOutputCode = [
     'import { assertDefined } from "ts-extras";',
     "function ensureValue(value: string | undefined): string {",
@@ -436,6 +464,13 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes direct-throw canonical undefined guard",
             output: inlineAutofixableCanonicalOutput,
+        },
+        {
+            code: inlineAutofixableCanonicalUnicodeRichCode,
+            errors: [{ messageId: "preferTsExtrasAssertDefined" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes canonical undefined guard in unicode-rich source text",
+            output: inlineAutofixableCanonicalUnicodeRichOutput,
         },
     ],
     valid: [
