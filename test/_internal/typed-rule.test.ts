@@ -13,6 +13,8 @@ import {
     createTypedRule,
     getSignatureParameterTypeAt,
     getTypedRuleServices,
+    isGlobalIdentifierNamed,
+    isGlobalUndefinedIdentifier,
     isTestFilePath,
     isTypeAssignableTo,
 } from "../../src/_internal/typed-rule";
@@ -166,6 +168,185 @@ describe(isTestFilePath, () => {
         expect.hasAssertions();
 
         assertNonTestPaths();
+    });
+});
+
+describe(isGlobalUndefinedIdentifier, () => {
+    const createScope = ({
+        defsLength,
+        upper,
+    }: Readonly<{
+        defsLength?: number;
+        upper?: null | Readonly<TSESLint.Scope.Scope>;
+    }>): Readonly<TSESLint.Scope.Scope> => {
+        const variableEntries =
+            defsLength === undefined
+                ? []
+                : [
+                      [
+                          "undefined",
+                          {
+                              defs: Array.from(
+                                  { length: defsLength },
+                                  () => ({}) as TSESLint.Scope.Definition
+                              ),
+                          } as TSESLint.Scope.Variable,
+                      ] as const,
+                  ];
+
+        return {
+            set: new Map(variableEntries),
+            upper: upper ?? null,
+        } as TSESLint.Scope.Scope;
+    };
+
+    const createContextWithScope = (
+        scopeFactory: () => Readonly<TSESLint.Scope.Scope>
+    ): Readonly<TSESLint.RuleContext<string, readonly unknown[]>> =>
+        ({
+            sourceCode: {
+                getScope: () => scopeFactory(),
+            },
+        }) as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
+
+    const undefinedIdentifierExpression = {
+        name: "undefined",
+        type: "Identifier",
+    } as unknown as TSESTree.Expression;
+
+    const undefinedLiteralExpression = {
+        raw: '"undefined"',
+        type: "Literal",
+        value: "undefined",
+    } as unknown as TSESTree.Expression;
+
+    it("returns true for identifier references resolved to global undefined", () => {
+        const context = createContextWithScope(() => createScope({}));
+
+        expect(
+            isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
+        ).toBeTruthy();
+    });
+
+    it("returns false when undefined is shadowed with local definitions", () => {
+        const context = createContextWithScope(() =>
+            createScope({
+                defsLength: 1,
+            })
+        );
+
+        expect(
+            isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
+        ).toBeFalsy();
+    });
+
+    it("walks parent scopes when current scope does not define undefined", () => {
+        const context = createContextWithScope(() =>
+            createScope({
+                upper: createScope({
+                    defsLength: 0,
+                }),
+            })
+        );
+
+        expect(
+            isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
+        ).toBeTruthy();
+    });
+
+    it("returns false when sourceCode.getScope throws", () => {
+        const context = {
+            sourceCode: {
+                getScope: () => {
+                    throw new TypeError("scope failure");
+                },
+            },
+        } as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
+
+        expect(
+            isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
+        ).toBeFalsy();
+    });
+
+    it("returns false for non-identifier expressions", () => {
+        const context = createContextWithScope(() => createScope({}));
+
+        expect(
+            isGlobalUndefinedIdentifier(context, undefinedLiteralExpression)
+        ).toBeFalsy();
+    });
+});
+
+describe(isGlobalIdentifierNamed, () => {
+    const createScopeWithBinding = ({
+        defsLength,
+        identifierName,
+    }: Readonly<{
+        defsLength: number;
+        identifierName: string;
+    }>): Readonly<TSESLint.Scope.Scope> =>
+        ({
+            set: new Map([
+                [
+                    identifierName,
+                    {
+                        defs: Array.from(
+                            { length: defsLength },
+                            () => ({}) as TSESLint.Scope.Definition
+                        ),
+                    } as TSESLint.Scope.Variable,
+                ],
+            ]),
+            upper: null,
+        }) as TSESLint.Scope.Scope;
+
+    const createContextWithScope = (
+        scope: Readonly<TSESLint.Scope.Scope>
+    ): Readonly<TSESLint.RuleContext<string, readonly unknown[]>> =>
+        ({
+            sourceCode: {
+                getScope: () => scope,
+            },
+        }) as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
+
+    it("returns true for unshadowed global-like identifier references", () => {
+        const context = createContextWithScope(
+            createScopeWithBinding({
+                defsLength: 0,
+                identifierName: "Infinity",
+            })
+        );
+
+        expect(
+            isGlobalIdentifierNamed(
+                context,
+                {
+                    name: "Infinity",
+                    type: "Identifier",
+                } as unknown as TSESTree.Expression,
+                "Infinity"
+            )
+        ).toBeTruthy();
+    });
+
+    it("returns false for shadowed identifier references", () => {
+        const context = createContextWithScope(
+            createScopeWithBinding({
+                defsLength: 1,
+                identifierName: "Infinity",
+            })
+        );
+
+        expect(
+            isGlobalIdentifierNamed(
+                context,
+                {
+                    name: "Infinity",
+                    type: "Identifier",
+                } as unknown as TSESTree.Expression,
+                "Infinity"
+            )
+        ).toBeFalsy();
     });
 });
 
@@ -580,6 +761,89 @@ describe(createTypedRule, () => {
         ];
 
         expect(descriptor.fix).toBeNull();
+    });
+
+    it("falls back safely when fix descriptor lookup returns undefined", () => {
+        const reportSpy =
+            vi.fn<
+                TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
+            >();
+        const context = createRuleContext({
+            report: reportSpy,
+            settings: {
+                typefest: {
+                    disableAllAutofixes: true,
+                },
+            },
+        });
+
+        const ruleUnderTest = createTypedRule({
+            create(ruleContext) {
+                return {
+                    Program(node) {
+                        let fixDescriptorLookups = 0;
+
+                        const descriptorTarget = {
+                            messageId: "blocked",
+                            node,
+                        };
+
+                        const descriptorWithVolatileFix = new Proxy(
+                            descriptorTarget,
+                            {
+                                getOwnPropertyDescriptor(target, property) {
+                                    if (property !== "fix") {
+                                        return Reflect.getOwnPropertyDescriptor(
+                                            target,
+                                            property
+                                        );
+                                    }
+
+                                    fixDescriptorLookups += 1;
+
+                                    if (fixDescriptorLookups === 1) {
+                                        return {
+                                            configurable: true,
+                                            enumerable: true,
+                                            value: () => null,
+                                            writable: true,
+                                        };
+                                    }
+
+                                    return undefined;
+                                },
+                            }
+                        ) as unknown as TSESLint.ReportDescriptor<RuleMessageIds>;
+
+                        ruleContext.report(descriptorWithVolatileFix);
+                    },
+                };
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal test rule",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-volatile-fix-descriptor-test-rule",
+        });
+
+        const listeners = ruleUnderTest.create(
+            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
+        );
+
+        expect(() =>
+            listeners.Program?.(
+                context.sourceCode.ast as unknown as TSESTree.Program
+            )
+        ).not.toThrowError();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 
     it("does not crash when fix getter throws", () => {

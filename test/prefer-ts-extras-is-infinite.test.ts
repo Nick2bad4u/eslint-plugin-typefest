@@ -69,6 +69,22 @@ const inlineValidNonInfinityNumberPropertyCode = [
     "",
     "String(isInfiniteMetric);",
 ].join("\n");
+const inlineValidShadowedInfinityBindingCode = [
+    "declare const metric: number;",
+    "const Infinity = Number.NaN;",
+    "",
+    "const isInfiniteMetric = metric === Infinity;",
+    "",
+    "String(isInfiniteMetric);",
+].join("\n");
+const inlineValidShadowedNumberBindingCode = [
+    "declare const metric: number;",
+    "const Number = { POSITIVE_INFINITY: 1, NEGATIVE_INFINITY: -1 };",
+    "",
+    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY;",
+    "",
+    "String(isInfiniteMetric);",
+].join("\n");
 const inlineFixableDualSignCode = [
     'import { isInfinite } from "ts-extras";',
     "",
@@ -189,7 +205,7 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
             /\(node\.property\.name === "POSITIVE_INFINITY" \|\|\s+node\.property\.name === "NEGATIVE_INFINITY"\)/v
         );
         expect(ruleSource).toContain(
-            'if (node.type === "Identifier" && node.name === "Infinity") {'
+            'isGlobalIdentifierNamed(context, node, "Infinity")'
         );
         expect(ruleSource).toContain('node.object.name !== "Number" ||');
         expect(ruleSource).toContain('node.property.type !== "Identifier"');
@@ -332,6 +348,16 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             code: inlineValidNonInfinityNumberPropertyCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number member comparisons that are not infinity constants",
+        },
+        {
+            code: inlineValidShadowedInfinityBindingCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores comparisons against shadowed Infinity identifiers",
+        },
+        {
+            code: inlineValidShadowedNumberBindingCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Number infinity member checks when Number binding is shadowed",
         },
     ],
 });

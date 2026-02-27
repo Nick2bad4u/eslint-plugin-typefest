@@ -5,7 +5,11 @@ import type { UnknownArray } from "type-fest";
  */
 import type ts from "typescript";
 
-import { ESLintUtils, type TSESLint } from "@typescript-eslint/utils";
+import {
+    ESLintUtils,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 import { registerProgramSettingsForContext } from "./plugin-settings.js";
 import { createRuleDocsUrl } from "./rule-docs-url.js";
@@ -48,6 +52,27 @@ type TypefestRuleDocs = {
         | boolean
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
+};
+
+const TEST_DIRECTORY_SEGMENT_PATTERN = /(?:^|\/)(?:__tests__|tests)(?:\/|$)/u;
+const TEST_FILE_SUFFIX_PATTERN = /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u;
+
+const getVariableInScopeChain = (
+    scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
+    variableName: string
+): null | TSESLint.Scope.Variable => {
+    let currentScope = scope;
+
+    while (currentScope !== null) {
+        const variable = currentScope.set.get(variableName);
+        if (variable !== undefined) {
+            return variable;
+        }
+
+        currentScope = currentScope.upper;
+    }
+
+    return null;
 };
 
 const stripFixFromReportDescriptor = <
@@ -243,8 +268,67 @@ export const getSignatureParameterTypeAt = ({
  * @returns `true` when the path contains a dedicated test directory segment or
  *   ends with a known `.{spec|test}.<ext>` suffix.
  */
-export const isTestFilePath = (filePath: string): boolean =>
-    /(?:^|\/)(?:__tests__|tests)(?:\/|$)/u.test(
-        filePath.replaceAll("\\", "/").toLowerCase()
-    ) ||
-    /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u.test(filePath.toLowerCase());
+export const isTestFilePath = (filePath: string): boolean => {
+    const normalizedLowercaseFilePath = filePath
+        .replaceAll("\\", "/")
+        .toLowerCase();
+
+    return (
+        TEST_DIRECTORY_SEGMENT_PATTERN.test(normalizedLowercaseFilePath) ||
+        TEST_FILE_SUFFIX_PATTERN.test(normalizedLowercaseFilePath)
+    );
+};
+
+/**
+ * Determine whether an expression references an unshadowed global identifier.
+ *
+ * @param context - Rule context used for scope resolution.
+ * @param expression - Expression to inspect.
+ * @param identifierName - Expected identifier name.
+ *
+ * @returns `true` when the expression is an Identifier with the expected name
+ *   and resolves to the global binding.
+ */
+export const isGlobalIdentifierNamed = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>(
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
+    expression: Readonly<TSESTree.Expression>,
+    identifierName: string
+): expression is TSESTree.Identifier => {
+    if (
+        expression.type !== "Identifier" ||
+        expression.name !== identifierName
+    ) {
+        return false;
+    }
+
+    try {
+        const initialScope = context.sourceCode.getScope(expression);
+        const variable = getVariableInScopeChain(initialScope, identifierName);
+
+        return variable === null || variable.defs.length === 0;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Determine whether an expression references the global `undefined` binding
+ * (not a shadowed user-defined symbol).
+ *
+ * @param context - Rule context used for scope resolution.
+ * @param expression - Expression to inspect.
+ *
+ * @returns `true` when the expression is an Identifier named `undefined` that
+ *   resolves to the global binding.
+ */
+export const isGlobalUndefinedIdentifier = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>(
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
+    expression: Readonly<TSESTree.Expression>
+): expression is TSESTree.Identifier =>
+    isGlobalIdentifierNamed(context, expression, "undefined");

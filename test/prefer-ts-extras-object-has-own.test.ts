@@ -78,6 +78,15 @@ const inlineValidObjectKeysCode = [
     "const keys = Object.keys(sample);",
     "String(keys.length);",
 ].join("\n");
+const shadowedObjectBindingValidCode = [
+    "const Object = {",
+    "    hasOwn(target: object, key: PropertyKey): boolean {",
+    "        return key in target;",
+    "    },",
+    "};",
+    'const hasStatus = Object.hasOwn({ status: "ok" }, "status");',
+    "String(hasStatus);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-object-has-own",
@@ -105,6 +114,7 @@ describe("prefer-ts-extras-object-has-own source assertions", () => {
         );
 
         expect(ruleSource).toContain('callee.object.name !== "Object" ||');
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
         expect(ruleSource).toContain(
             'callee.property.type !== "Identifier" ||'
         );
@@ -164,6 +174,11 @@ ruleTester.run(
                 code: inlineValidObjectKeysCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores Object member calls that are not hasOwn",
+            },
+            {
+                code: shadowedObjectBindingValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores Object.hasOwn call when Object binding is shadowed",
             },
         ],
     }

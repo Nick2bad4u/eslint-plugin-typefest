@@ -209,4 +209,20 @@ describe(isWithinFilterCallback, () => {
 
         expect(isWithinFilterCallback(cycleA)).toBeFalsy();
     });
+
+    it("returns false when callback-like node is not parented by a call expression", () => {
+        const program = createProgramNode();
+
+        const detachedFunctionNode = {
+            parent: program,
+            type: "FunctionExpression",
+        } as unknown as TSESTree.FunctionExpression;
+
+        const nestedNode = {
+            parent: detachedFunctionNode,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+    });
 });

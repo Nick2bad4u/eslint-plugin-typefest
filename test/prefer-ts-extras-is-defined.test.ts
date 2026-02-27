@@ -121,6 +121,20 @@ const reversedTypeofWithNonTypeofOperatorValidCode = [
     'const hasValue = "undefined" !== void maybeValue;',
     "String(hasValue);",
 ].join("\n");
+const shadowedUndefinedBindingValidCode = [
+    "declare const maybeValue: string | undefined;",
+    "const undefined = Symbol('undefined');",
+    "const hasValue = maybeValue !== undefined;",
+    "String(hasValue);",
+].join("\n");
+const undeclaredTypeofInequalityValidCode = [
+    'const hasValue = typeof maybeUndeclared !== "undefined";',
+    "String(hasValue);",
+].join("\n");
+const undeclaredTypeofEqualityValidCode = [
+    'const isMissing = "undefined" === typeof maybeUndeclared;',
+    "String(isMissing);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -148,6 +162,12 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
                 isTestFilePath: (filePath: string) => filePath.length > 0,
             }));
 
@@ -272,6 +292,21 @@ ruleTester.run(ruleId, rule, {
             code: reversedTypeofWithNonTypeofOperatorValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores reversed void unary comparison against undefined string literal",
+        },
+        {
+            code: shadowedUndefinedBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores comparisons against shadowed undefined bindings",
+        },
+        {
+            code: undeclaredTypeofInequalityValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores typeof inequality checks against undeclared identifiers",
+        },
+        {
+            code: undeclaredTypeofEqualityValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores reversed typeof equality checks against undeclared identifiers",
         },
     ],
 });

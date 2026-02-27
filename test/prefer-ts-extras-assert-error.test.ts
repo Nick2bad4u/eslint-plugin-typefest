@@ -84,6 +84,42 @@ const nonInstanceofBinaryValidCode = [
     "    }",
     "}",
 ].join("\n");
+const nonBlockNonThrowConsequentValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (!(value instanceof Error))",
+    "        String(value);",
+    "}",
+].join("\n");
+const unaryNonBinaryArgumentValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (!value) {",
+    "        throw new TypeError('Expected Error');",
+    "    }",
+    "}",
+].join("\n");
+const nonIdentifierInstanceofRightValidCode = [
+    "declare const ErrorNamespace: { Error: new (...arguments_: readonly unknown[]) => Error };",
+    "function ensureError(value: unknown): void {",
+    "    if (!(value instanceof ErrorNamespace.Error)) {",
+    "        throw new TypeError('Expected Error');",
+    "    }",
+    "}",
+].join("\n");
+const unaryNonNegationValidCode = [
+    "function ensureError(value: unknown): void {",
+    "    if (void (value instanceof Error)) {",
+    "        throw new TypeError('Expected Error');",
+    "    }",
+    "}",
+].join("\n");
+const shadowedErrorBindingValidCode = [
+    "class Error extends TypeError {}",
+    "function ensureError(value: unknown): void {",
+    "    if (!(value instanceof Error)) {",
+    "        throw new TypeError('Expected local Error');",
+    "    }",
+    "}",
+].join("\n");
 const privateIdentifierValidCode = [
     "class ErrorContainer {",
     "    #value: unknown;",
@@ -150,6 +186,56 @@ describe("prefer-ts-extras-assert-error metadata literals", () => {
     it("declares authored docs URL and hasSuggestions literals", () => {
         expect(rule.meta.docs?.url).toBe(docsUrl);
         expect(rule.meta.hasSuggestions).toBeTruthy();
+    });
+});
+
+describe("prefer-ts-extras-assert-error internal listener guards", () => {
+    it("ignores synthetic PrivateIdentifier instanceof guards without crashing", () => {
+        const reportCalls: { messageId?: string }[] = [];
+
+        const listeners = rule.create({
+            filename: "src/example.ts",
+            report(descriptor: Readonly<{ messageId?: string }>) {
+                reportCalls.push(descriptor);
+            },
+            sourceCode: {
+                ast: {
+                    body: [],
+                },
+                getText: () => "value",
+            },
+        } as never);
+
+        const ifStatementListener = listeners.IfStatement;
+
+        expect(ifStatementListener).toBeTypeOf("function");
+
+        expect(() =>
+            ifStatementListener?.({
+                alternate: null,
+                consequent: {
+                    type: "ThrowStatement",
+                },
+                test: {
+                    argument: {
+                        left: {
+                            name: "#value",
+                            type: "PrivateIdentifier",
+                        },
+                        operator: "instanceof",
+                        right: {
+                            name: "Error",
+                            type: "Identifier",
+                        },
+                        type: "BinaryExpression",
+                    },
+                    operator: "!",
+                    type: "UnaryExpression",
+                },
+                type: "IfStatement",
+            } as never)
+        ).not.toThrowError();
+        expect(reportCalls).toHaveLength(0);
     });
 });
 
@@ -268,6 +354,31 @@ ruleTester.run(ruleId, rule, {
             code: nonInstanceofBinaryValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-instanceof binary guard",
+        },
+        {
+            code: nonBlockNonThrowConsequentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores non-block non-throw consequent guards",
+        },
+        {
+            code: unaryNonBinaryArgumentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores negated guards with non-binary expressions",
+        },
+        {
+            code: nonIdentifierInstanceofRightValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores instanceof guards whose right-hand side is not an identifier",
+        },
+        {
+            code: unaryNonNegationValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unary guards that are not logical negation",
+        },
+        {
+            code: shadowedErrorBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores instanceof guard when Error binding is shadowed",
         },
     ],
 });

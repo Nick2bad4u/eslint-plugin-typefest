@@ -6,7 +6,11 @@ import {
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
  */
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-has-own`.
@@ -37,6 +41,11 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                         callee.computed ||
                         callee.object.type !== "Identifier" ||
                         callee.object.name !== "Object" ||
+                        !isGlobalIdentifierNamed(
+                            context,
+                            callee.object,
+                            "Object"
+                        ) ||
                         callee.property.type !== "Identifier" ||
                         callee.property.name !== "hasOwn"
                     ) {

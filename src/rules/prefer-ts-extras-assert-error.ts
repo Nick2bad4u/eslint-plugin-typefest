@@ -2,18 +2,24 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-error`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * Check whether the input is throw only consequent.
  *
- * @param node - Value to inspect.
+ * @param context - Rule context used for global identifier resolution.
+ * @param expression - Value to inspect.
  *
  * @returns `true` when the value is throw only consequent; otherwise `false`.
  */
@@ -44,32 +50,35 @@ const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
  */
 
 const isErrorInstanceofExpression = (
-    node: Readonly<TSESTree.Expression>
-): node is TSESTree.BinaryExpression => {
-    if (node.type !== "BinaryExpression") {
+    context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
+    expression: Readonly<TSESTree.Expression>
+): expression is TSESTree.BinaryExpression => {
+    if (expression.type !== "BinaryExpression") {
         return false;
     }
 
-    if (node.operator !== "instanceof") {
+    if (expression.operator !== "instanceof") {
         return false;
     }
 
-    if (node.right.type !== "Identifier") {
+    if (expression.right.type !== "Identifier") {
         return false;
     }
 
-    return node.right.name === "Error";
+    return isGlobalIdentifierNamed(context, expression.right, "Error");
 };
 
 /**
  * ExtractAssertErrorTarget helper.
  *
+ * @param context - Rule context used for global identifier resolution.
  * @param test - Value to inspect.
  *
  * @returns ExtractAssertErrorTarget helper result.
  */
 
 const extractAssertErrorTarget = (
+    context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
     test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
     if (test.type !== "UnaryExpression") {
@@ -80,13 +89,20 @@ const extractAssertErrorTarget = (
         return null;
     }
 
-    if (!isErrorInstanceofExpression(test.argument)) {
+    const { argument } = test;
+
+    if (!isErrorInstanceofExpression(context, argument)) {
         return null;
     }
 
-    return test.argument.left.type === "PrivateIdentifier"
-        ? null
-        : test.argument.left;
+    /* V8 ignore next -- ESTree allows PrivateIdentifier here, but parsed
+       TS/JS `instanceof` left operands are expressions (e.g. `this.#value`),
+       not bare PrivateIdentifier nodes. */
+    if (argument.left.type === "PrivateIdentifier") {
+        return null;
+    }
+
+    return argument.left;
 };
 
 /**
@@ -117,7 +133,10 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const guardExpression = extractAssertErrorTarget(node.test);
+                    const guardExpression = extractAssertErrorTarget(
+                        context,
+                        node.test
+                    );
 
                     if (!guardExpression) {
                         return;

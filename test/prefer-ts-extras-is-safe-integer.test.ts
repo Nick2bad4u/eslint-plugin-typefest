@@ -30,6 +30,17 @@ const nonNumberReceiverValidCode = [
     "const result = helper.isSafeInteger(42);",
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isInteger(42);";
+const shadowedNumberBindingValidCode = [
+    "const Number = {",
+    "    isSafeInteger(value: number): boolean {",
+    "        return Number.isFinite(value);",
+    "    },",
+    "    isFinite(value: number): boolean {",
+    "        return value > 0;",
+    "    },",
+    "};",
+    "const result = Number.isSafeInteger(42);",
+].join("\n");
 const inlineFixableCode = [
     'import { isSafeInteger } from "ts-extras";',
     "",
@@ -76,6 +87,7 @@ describe("prefer-ts-extras-is-safe-integer source assertions", () => {
         expect(ruleSource).toContain(
             'node.callee.property.name !== "isSafeInteger"'
         );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });
 
@@ -129,6 +141,11 @@ ruleTester.run("prefer-ts-extras-is-safe-integer", rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number.isInteger call",
+        },
+        {
+            code: shadowedNumberBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Number.isSafeInteger call when Number binding is shadowed",
         },
     ],
 });

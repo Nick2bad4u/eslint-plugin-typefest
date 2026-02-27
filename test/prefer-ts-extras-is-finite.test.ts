@@ -30,6 +30,14 @@ const nonNumberReceiverValidCode = [
     "const result = helper.isFinite(42);",
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isInteger(42);";
+const shadowedNumberBindingValidCode = [
+    "const Number = {",
+    "    isFinite(value: number): boolean {",
+    "        return value > 0;",
+    "    },",
+    "};",
+    "const result = Number.isFinite(42);",
+].join("\n");
 const inlineFixableCode = [
     'import { isFinite } from "ts-extras";',
     "",
@@ -69,6 +77,7 @@ describe("prefer-ts-extras-is-finite source assertions", () => {
         expect(ruleSource).toContain(
             'node.callee.property.name !== "isFinite"'
         );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });
 
@@ -121,6 +130,11 @@ ruleTester.run("prefer-ts-extras-is-finite", rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number.isInteger call",
+        },
+        {
+            code: shadowedNumberBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Number.isFinite call when Number binding is shadowed",
         },
     ],
 });

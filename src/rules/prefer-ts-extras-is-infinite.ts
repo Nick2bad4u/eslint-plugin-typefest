@@ -9,7 +9,11 @@ import {
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 type InfinityComparison = Readonly<{
     comparedExpression: TSESTree.Expression;
@@ -19,6 +23,10 @@ type InfinityComparison = Readonly<{
 
 type InfinityKind = "negative" | "positive";
 
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
+
 /**
  * Check whether the input is infinity reference.
  *
@@ -26,8 +34,14 @@ type InfinityKind = "negative" | "positive";
  *
  * @returns `true` when the value is infinity reference; otherwise `false`.
  */
-const isInfinityReference = (node: Readonly<TSESTree.Expression>): boolean => {
-    if (node.type === "Identifier" && node.name === "Infinity") {
+const isInfinityReference = ({
+    context,
+    node,
+}: Readonly<{
+    context: RuleContext;
+    node: Readonly<TSESTree.Expression>;
+}>): boolean => {
+    if (isGlobalIdentifierNamed(context, node, "Infinity")) {
         return true;
     }
 
@@ -36,6 +50,7 @@ const isInfinityReference = (node: Readonly<TSESTree.Expression>): boolean => {
         !node.computed &&
         node.object.type === "Identifier" &&
         node.object.name === "Number" &&
+        isGlobalIdentifierNamed(context, node.object, "Number") &&
         node.property.type === "Identifier" &&
         (node.property.name === "POSITIVE_INFINITY" ||
             node.property.name === "NEGATIVE_INFINITY")
@@ -50,9 +65,10 @@ const isInfinityReference = (node: Readonly<TSESTree.Expression>): boolean => {
  * @returns ExtractInfinityKind helper result.
  */
 const extractInfinityKind = (
+    context: RuleContext,
     node: Readonly<TSESTree.Expression>
 ): InfinityKind | null => {
-    if (node.type === "Identifier" && node.name === "Infinity") {
+    if (isGlobalIdentifierNamed(context, node, "Infinity")) {
         return "positive";
     }
 
@@ -61,6 +77,7 @@ const extractInfinityKind = (
         node.computed ||
         node.object.type !== "Identifier" ||
         node.object.name !== "Number" ||
+        !isGlobalIdentifierNamed(context, node.object, "Number") ||
         node.property.type !== "Identifier"
     ) {
         return null;
@@ -85,6 +102,7 @@ const extractInfinityKind = (
  * @returns ExtractInfinityComparison helper result.
  */
 const extractInfinityComparison = (
+    context: RuleContext,
     expression: Readonly<TSESTree.Expression>
 ): InfinityComparison | null => {
     if (
@@ -94,8 +112,8 @@ const extractInfinityComparison = (
         return null;
     }
 
-    const leftKind = extractInfinityKind(expression.left);
-    const rightKind = extractInfinityKind(expression.right);
+    const leftKind = extractInfinityKind(context, expression.left);
+    const rightKind = extractInfinityKind(context, expression.right);
 
     if (leftKind && !rightKind) {
         return {
@@ -125,14 +143,15 @@ const extractInfinityComparison = (
  * @returns ExtractSafeInfinityDisjunctionTarget helper result.
  */
 const extractSafeInfinityDisjunctionTarget = (
+    context: RuleContext,
     node: Readonly<TSESTree.LogicalExpression>
 ): null | TSESTree.Expression => {
     if (node.operator !== "||") {
         return null;
     }
 
-    const left = extractInfinityComparison(node.left);
-    const right = extractInfinityComparison(node.right);
+    const left = extractInfinityComparison(context, node.left);
+    const right = extractInfinityComparison(context, node.right);
 
     if (!left || !right) {
         return null;
@@ -173,7 +192,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                     const parent = node.parent;
                     if (
                         parent?.type === "LogicalExpression" &&
-                        extractSafeInfinityDisjunctionTarget(parent)
+                        extractSafeInfinityDisjunctionTarget(context, parent)
                     ) {
                         return;
                     }
@@ -183,8 +202,14 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (
-                        !isInfinityReference(node.left) &&
-                        !isInfinityReference(node.right)
+                        !isInfinityReference({
+                            context,
+                            node: node.left,
+                        }) &&
+                        !isInfinityReference({
+                            context,
+                            node: node.right,
+                        })
                     ) {
                         return;
                     }
@@ -196,7 +221,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 },
                 LogicalExpression(node) {
                     const comparedExpression =
-                        extractSafeInfinityDisjunctionTarget(node);
+                        extractSafeInfinityDisjunctionTarget(context, node);
 
                     if (!comparedExpression) {
                         return;

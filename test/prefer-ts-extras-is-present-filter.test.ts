@@ -164,6 +164,16 @@ const inlineValidAndUndefinedAliasComparisonCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineValidReverseNonUndefinedIdentifierComparisonCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "declare const marker: string;",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => marker != value",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 const inlineValidFilterBlockBodyCode = [
     "declare const values: readonly (null | string)[];",
     "",
@@ -244,6 +254,44 @@ const inlineInvalidMixedNullishOperatorCode = [
     "",
     "String(presentValues.length);",
 ].join("\n");
+const inlineInvalidReversedTypeofUndefinedCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    '    (value): value is string => value !== null && "undefined" !== typeof value',
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineInvalidReversedTypeofUndefinedOutput = [
+    'import { isPresent } from "ts-extras";',
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    isPresent",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidUnsupportedNullishOperatorCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value === null",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
+const inlineValidShadowedUndefinedBindingCode = [
+    "declare const values: readonly (null | string | undefined)[];",
+    "const undefined = Symbol('undefined');",
+    "",
+    "const presentValues = values.filter(",
+    "    (value): value is string => value !== null && value !== undefined",
+    ");",
+    "",
+    "String(presentValues.length);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -270,6 +318,12 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
                 isTestFilePath: () => false,
             }));
 
@@ -471,6 +525,13 @@ ruleTester.run(ruleId, rule, {
             output: null,
         },
         {
+            code: inlineInvalidReversedTypeofUndefinedCode,
+            errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed typeof undefined nullish guards",
+            output: inlineInvalidReversedTypeofUndefinedOutput,
+        },
+        {
             code: inlineValidAndThreeTermNullishGuardCode,
             errors: [{ messageId: "preferTsExtrasIsPresentFilter" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -505,6 +566,11 @@ ruleTester.run(ruleId, rule, {
             name: "ignores disjunction nullish guard callback",
         },
         {
+            code: inlineValidUnsupportedNullishOperatorCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores unsupported nullish binary operators",
+        },
+        {
             code: inlineValidAndNonParameterNullComparisonCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores null comparison using non-parameter identifier",
@@ -523,6 +589,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidAndUndefinedAliasComparisonCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores undefined alias identifier comparison in conjunction",
+        },
+        {
+            code: inlineValidReverseNonUndefinedIdentifierComparisonCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores reversed non-undefined identifier comparisons",
         },
         {
             code: inlineValidFilterBlockBodyCode,
@@ -558,6 +629,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidMapCallbackCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-filter map callback",
+        },
+        {
+            code: inlineValidShadowedUndefinedBindingCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores nullish conjunctions using shadowed undefined bindings",
         },
     ],
 });

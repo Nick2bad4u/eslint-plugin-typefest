@@ -55,6 +55,14 @@ const nonObjectReceiverValidCode = [
 ].join("\n");
 const wrongPropertyValidCode =
     "const value = Object.entries({ alpha: 1 } as const);";
+const shadowedObjectBindingValidCode = [
+    "const Object = {",
+    "    fromEntries(entries: ReadonlyArray<readonly [string, number]>): { alpha: number } {",
+    "        return { alpha: entries[0][1] };",
+    "    },",
+    "};",
+    "const value = Object.fromEntries([['alpha', 1]] as const);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -81,6 +89,13 @@ describe("prefer-ts-extras-object-from-entries internal listener guards", () => 
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type?: string }>,
+                    identifierName: string
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === identifierName,
                 isTestFilePath: () => false,
             }));
 
@@ -189,6 +204,11 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.entries usage",
+        },
+        {
+            code: shadowedObjectBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Object.fromEntries call when Object binding is shadowed",
         },
     ],
 });

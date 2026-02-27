@@ -60,44 +60,51 @@ const createImportDeclaration = (
 const createImportBindingDefinition = (
     importedName: string,
     localName: string,
-    sourceModuleName: string
+    sourceModuleName: string,
+    options: Readonly<{
+        parentImportKind?: "type" | "value";
+        specifierImportKind?: "type" | "value";
+        specifierType?: string;
+    }> = {}
 ): unknown => ({
     node: {
         imported: {
             name: importedName,
             type: "Identifier",
         },
+        importKind: options.specifierImportKind ?? "value",
         local: {
             name: localName,
             type: "Identifier",
         },
         parent: {
+            importKind: options.parentImportKind ?? "value",
             source: {
                 value: sourceModuleName,
             },
             type: "ImportDeclaration",
         },
-        type: "ImportSpecifier",
+        type: options.specifierType ?? "ImportSpecifier",
     },
     type: "ImportBinding",
 });
 
+const getNodeTextFromSyntheticNode = (node: unknown): string => {
+    if (
+        typeof node === "object" &&
+        node !== null &&
+        "_text" in node &&
+        typeof (node as { _text: unknown })._text === "string"
+    ) {
+        return (node as { _text: string })._text;
+    }
+
+    return "";
+};
+
 const createRuleContextWithVariables = (
     variablesByName: Readonly<ReadonlyMap<string, unknown>>
 ): RuleContext => {
-    const getNodeText = (node: unknown): string => {
-        if (
-            typeof node === "object" &&
-            node !== null &&
-            "_text" in node &&
-            typeof (node as { _text: unknown })._text === "string"
-        ) {
-            return (node as { _text: string })._text;
-        }
-
-        return "";
-    };
-
     const scope = {
         set: new Map(variablesByName),
         upper: null,
@@ -106,7 +113,30 @@ const createRuleContextWithVariables = (
     return {
         sourceCode: {
             getScope: () => scope as unknown as Readonly<TSESLint.Scope.Scope>,
-            getText: getNodeText,
+            getText: getNodeTextFromSyntheticNode,
+        },
+    } as unknown as RuleContext;
+};
+
+const createRuleContextWithNestedScopes = (
+    innerVariablesByName: Readonly<ReadonlyMap<string, unknown>>,
+    outerVariablesByName: Readonly<ReadonlyMap<string, unknown>>
+): RuleContext => {
+    const outerScope = {
+        set: new Map(outerVariablesByName),
+        upper: null,
+    };
+
+    const innerScope = {
+        set: new Map(innerVariablesByName),
+        upper: outerScope,
+    };
+
+    return {
+        sourceCode: {
+            getScope: () =>
+                innerScope as unknown as Readonly<TSESLint.Scope.Scope>,
+            getText: getNodeTextFromSyntheticNode,
         },
     } as unknown as RuleContext;
 };
@@ -211,6 +241,65 @@ describe(collectDirectNamedValueImportsFromSource, () => {
         expect(aliases?.size).toBe(2);
         expect(aliases?.has("arrayAt")).toBeTruthy();
         expect(aliases?.has("arrayAtAlias")).toBeTruthy();
+    });
+
+    it("ignores specifiers whose imported or local nodes are not identifiers", () => {
+        expect.hasAssertions();
+
+        const collected = collectDirectNamedValueImportsFromSource(
+            createSourceCode([
+                createImportDeclaration("ts-extras", [
+                    {
+                        imported: {
+                            type: "Literal",
+                            value: "arrayAt",
+                        },
+                        importKind: "value",
+                        local: {
+                            name: "arrayAt",
+                            type: "Identifier",
+                        },
+                        type: "ImportSpecifier",
+                    },
+                    {
+                        imported: {
+                            name: "arrayAt",
+                            type: "Identifier",
+                        },
+                        importKind: "value",
+                        local: {
+                            name: "arrayAtAlias",
+                            type: "Literal",
+                        },
+                        type: "ImportSpecifier",
+                    },
+                ]),
+            ]),
+            "ts-extras"
+        );
+
+        expect(collected.size).toBe(0);
+    });
+
+    it("ignores non-ImportSpecifier entries in import declarations", () => {
+        expect.hasAssertions();
+
+        const collected = collectDirectNamedValueImportsFromSource(
+            createSourceCode([
+                createImportDeclaration("ts-extras", [
+                    {
+                        local: {
+                            name: "arrayAt",
+                            type: "Identifier",
+                        },
+                        type: "ImportDefaultSpecifier",
+                    },
+                ]),
+            ]),
+            "ts-extras"
+        );
+
+        expect(collected.size).toBe(0);
     });
 });
 
@@ -359,9 +448,67 @@ describe(getSafeLocalNameForImportedValue, () => {
 
         expect(safeName).toBeNull();
     });
+
+    it("resolves candidate aliases from parent scope when not found in current scope", () => {
+        expect.hasAssertions();
+
+        const outerVariable = {
+            defs: [
+                createImportBindingDefinition(
+                    "arrayIncludes",
+                    "arrayIncludes",
+                    "ts-extras"
+                ),
+            ],
+        };
+
+        const context = createRuleContextWithNestedScopes(
+            new Map(),
+            new Map([["arrayIncludes", outerVariable]])
+        );
+
+        const safeName = getSafeLocalNameForImportedValue({
+            context,
+            importedName: "arrayIncludes",
+            imports: createImportsMap("arrayIncludes", "arrayIncludes"),
+            referenceNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof getSafeLocalNameForImportedValue
+            >[0]["referenceNode"],
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(safeName).toBe("arrayIncludes");
+    });
 });
 
 describe(createMethodToFunctionCallFix, () => {
+    it("returns null for non-member call expressions", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayIncludes", "ts-extras");
+        const fix = createMethodToFunctionCallFix({
+            callNode: {
+                arguments: [],
+                callee: {
+                    name: "includes",
+                    type: "Identifier",
+                },
+                optional: false,
+                type: "CallExpression",
+            } as unknown as Parameters<
+                typeof createMethodToFunctionCallFix
+            >[0]["callNode"],
+            context,
+            importedName: "arrayIncludes",
+            imports: createImportsMap("arrayIncludes", "arrayIncludes"),
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(fix).toBeNull();
+    });
+
     it("returns null for optional member access calls", () => {
         expect.hasAssertions();
 
@@ -585,9 +732,219 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
         expect(invokeFix(fix)).toStrictEqual(["isPresent((left, right))"]);
     });
+
+    it("keeps already-parenthesized sequence-expression arguments unchanged", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("isPresent", "ts-extras");
+        const fix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: {
+                _text: "(left, right)",
+                type: "SequenceExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["argumentNode"],
+            context,
+            importedName: "isPresent",
+            imports: createImportsMap("isPresent", "isPresent"),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                _text: "(left, right)",
+                type: "SequenceExpression",
+            } as unknown as Parameters<
+                typeof createSafeValueArgumentFunctionCallFix
+            >[0]["targetNode"],
+        });
+
+        expect(invokeFix(fix)).toStrictEqual(["isPresent((left, right))"]);
+    });
 });
 
 describe(createSafeValueReferenceReplacementFix, () => {
+    it("returns null when the imported identifier is shadowed by a non-import binding", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContextWithVariables(
+            new Map([
+                [
+                    "arrayIncludes",
+                    {
+                        defs: [
+                            {
+                                type: "Variable",
+                            },
+                        ],
+                    },
+                ],
+            ])
+        );
+
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof createSafeValueReferenceReplacementFix
+            >[0]["targetNode"],
+        });
+
+        expect(fix).toBeNull();
+    });
+
+    it("returns null when the in-scope import binding is type-only", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContextWithVariables(
+            new Map([
+                [
+                    "arrayIncludes",
+                    {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayIncludes",
+                                "arrayIncludes",
+                                "ts-extras",
+                                {
+                                    parentImportKind: "type",
+                                    specifierImportKind: "type",
+                                }
+                            ),
+                        ],
+                    },
+                ],
+            ])
+        );
+
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof createSafeValueReferenceReplacementFix
+            >[0]["targetNode"],
+        });
+
+        expect(fix).toBeNull();
+    });
+
+    it("returns null when import specifier importKind is type even with value import declaration", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContextWithVariables(
+            new Map([
+                [
+                    "arrayIncludes",
+                    {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayIncludes",
+                                "arrayIncludes",
+                                "ts-extras",
+                                {
+                                    parentImportKind: "value",
+                                    specifierImportKind: "type",
+                                }
+                            ),
+                        ],
+                    },
+                ],
+            ])
+        );
+
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof createSafeValueReferenceReplacementFix
+            >[0]["targetNode"],
+        });
+
+        expect(fix).toBeNull();
+    });
+
+    it("returns null when import binding node is not an import specifier", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContextWithVariables(
+            new Map([
+                [
+                    "arrayIncludes",
+                    {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayIncludes",
+                                "arrayIncludes",
+                                "ts-extras",
+                                {
+                                    specifierType: "ImportDefaultSpecifier",
+                                }
+                            ),
+                        ],
+                    },
+                ],
+            ])
+        );
+
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof createSafeValueReferenceReplacementFix
+            >[0]["targetNode"],
+        });
+
+        expect(fix).toBeNull();
+    });
+
+    it("returns null when in-scope import local name does not match the imported name", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContextWithVariables(
+            new Map([
+                [
+                    "arrayIncludes",
+                    {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayIncludes",
+                                "arrayIncludesAlias",
+                                "ts-extras"
+                            ),
+                        ],
+                    },
+                ],
+            ])
+        );
+
+        const fix = createSafeValueReferenceReplacementFix({
+            context,
+            importedName: "arrayIncludes",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof createSafeValueReferenceReplacementFix
+            >[0]["targetNode"],
+        });
+
+        expect(fix).toBeNull();
+    });
+
     it("inserts missing value import after directive prologue", () => {
         expect.hasAssertions();
 

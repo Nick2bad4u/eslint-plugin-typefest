@@ -92,6 +92,15 @@ const inlineValidGlobalReflectHasCode = [
     'const hasStatus = globalThis.Reflect.has(monitorRecord, "status");',
     "String(hasStatus);",
 ].join("\n");
+const shadowedReflectBindingValidCode = [
+    "const Reflect = {",
+    "    has(target: object, key: PropertyKey): boolean {",
+    "        return Object.prototype.hasOwnProperty.call(target, key);",
+    "    },",
+    "};",
+    'const hasStatus = Reflect.has({ status: "ok" }, "status");',
+    "String(hasStatus);",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-object-has-in",
@@ -124,6 +133,7 @@ describe("prefer-ts-extras-object-has-in source assertions", () => {
         expect(ruleSource).toContain(
             'node.callee.object.name === "Reflect" &&'
         );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
         expect(ruleSource).toContain(
             'node.callee.property.type === "Identifier" &&'
         );
@@ -196,6 +206,11 @@ ruleTester.run("prefer-ts-extras-object-has-in", rule, {
             code: inlineValidGlobalReflectHasCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis-qualified Reflect.has calls",
+        },
+        {
+            code: shadowedReflectBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Reflect.has call when Reflect binding is shadowed",
         },
     ],
 });

@@ -120,6 +120,12 @@ const identifierBodyValidCode = [
     "const definedValues = values.filter((value) => value);",
     "String(definedValues);",
 ].join("\n");
+const shadowedUndefinedBindingValidCode = [
+    "const values: Array<number | undefined> = [1, undefined, 2];",
+    "const undefined = Symbol('undefined');",
+    "const definedValues = values.filter((value) => value !== undefined);",
+    "String(values.length + definedValues.length);",
+].join("\n");
 
 const nonFilterValidCode = [
     "const values: Array<number | undefined> = [1, undefined, 2];",
@@ -202,6 +208,12 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
                 isTestFilePath: () => false,
             }));
 
@@ -455,6 +467,11 @@ ruleTester.run(ruleId, rule, {
             code: computedFilterValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores computed filter property access",
+        },
+        {
+            code: shadowedUndefinedBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores filter comparisons against shadowed undefined bindings",
         },
     ],
 });

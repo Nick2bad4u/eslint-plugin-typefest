@@ -8,7 +8,16 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 /**
  * Check whether the input is undefined expression.
@@ -18,8 +27,19 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
-const isUndefinedExpression = (node: Readonly<TSESTree.Expression>): boolean =>
-    node.type === "Identifier" && node.name === "undefined";
+const isUndefinedExpression = ({
+    context,
+    node,
+}: Readonly<{
+    context: RuleContext;
+    node: Readonly<TSESTree.Expression>;
+}>): boolean => {
+    if (!(node.type === "Identifier" && node.name === "undefined")) {
+        return false;
+    }
+
+    return isGlobalUndefinedIdentifier(context, node);
+};
 
 /**
  * Check whether the input is throw only consequent.
@@ -60,12 +80,18 @@ const getThrowStatementFromConsequent = (
 };
 
 const isCanonicalAssertDefinedThrow = (
+    context: RuleContext,
     throwStatement: Readonly<TSESTree.ThrowStatement>
 ): boolean => {
     if (
         throwStatement.argument.type !== "NewExpression" ||
         throwStatement.argument.callee.type !== "Identifier" ||
         throwStatement.argument.callee.name !== "TypeError" ||
+        !isGlobalIdentifierNamed(
+            context,
+            throwStatement.argument.callee,
+            "TypeError"
+        ) ||
         throwStatement.argument.arguments.length !== 1
     ) {
         return false;
@@ -91,7 +117,8 @@ const isCanonicalAssertDefinedThrow = (
  */
 
 const extractDefinedGuardExpression = (
-    test: Readonly<TSESTree.Expression>
+    test: Readonly<TSESTree.Expression>,
+    context: RuleContext
 ): null | TSESTree.Expression => {
     if (
         test.type !== "BinaryExpression" ||
@@ -100,11 +127,21 @@ const extractDefinedGuardExpression = (
         return null;
     }
 
-    if (isUndefinedExpression(test.left)) {
+    if (
+        isUndefinedExpression({
+            context,
+            node: test.left,
+        })
+    ) {
         return test.right;
     }
 
-    if (isUndefinedExpression(test.right)) {
+    if (
+        isUndefinedExpression({
+            context,
+            node: test.right,
+        })
+    ) {
         return test.left;
     }
 
@@ -140,7 +177,8 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const guardExpression = extractDefinedGuardExpression(
-                        node.test
+                        node.test,
+                        context
                     );
 
                     if (!guardExpression) {
@@ -172,7 +210,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     );
                     const canAutofix =
                         throwStatement !== null &&
-                        isCanonicalAssertDefinedThrow(throwStatement);
+                        isCanonicalAssertDefinedThrow(context, throwStatement);
 
                     if (canAutofix) {
                         context.report({

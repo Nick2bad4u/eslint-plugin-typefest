@@ -819,6 +819,39 @@ describe(createSafeTypeNodeReplacementFixPreservingReadonlyGroup, () => {
         expect(fixOutput).toBe("Readonly<UnknownMap>");
         expect(replacementTexts).toStrictEqual(["Readonly<UnknownMap>"]);
     });
+
+    it("does not add Readonly<> for qualified readonly container references", () => {
+        expect.hasAssertions();
+
+        const node = createQualifiedTypeReferenceNode(
+            "Collections",
+            "ReadonlyMap"
+        );
+        const fixer = createSafeTypeNodeReplacementFixPreservingReadonlyFn(
+            node,
+            "UnknownMap",
+            new Set(["UnknownMap"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+
+        const replacementTexts: string[] = [];
+        const fakeFixer = {
+            insertTextAfterRange: (): string => "",
+            replaceText: (_targetNode: unknown, text: string): string => {
+                replacementTexts.push(text);
+
+                return text;
+            },
+        };
+
+        const fixOutput = fixer?.(
+            fakeFixer as unknown as Parameters<typeof fixer>[0]
+        );
+
+        expect(fixOutput).toBe("UnknownMap");
+        expect(replacementTexts).toStrictEqual(["UnknownMap"]);
+    });
 });
 
 function createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup(): void {

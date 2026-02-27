@@ -9,7 +9,16 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 /**
  * Check whether the input is null expression.
@@ -30,8 +39,19 @@ const isNullExpression = (node: Readonly<TSESTree.Expression>): boolean =>
  * @returns `true` when the value is undefined expression; otherwise `false`.
  */
 
-const isUndefinedExpression = (node: Readonly<TSESTree.Expression>): boolean =>
-    node.type === "Identifier" && node.name === "undefined";
+const isUndefinedExpression = ({
+    context,
+    node,
+}: Readonly<{
+    context: RuleContext;
+    node: Readonly<TSESTree.Expression>;
+}>): boolean => {
+    if (!(node.type === "Identifier" && node.name === "undefined")) {
+        return false;
+    }
+
+    return isGlobalUndefinedIdentifier(context, node);
+};
 
 /**
  * Check whether the input is throw only consequent.
@@ -72,9 +92,11 @@ const getThrowStatementFromConsequent = (
 };
 
 const isCanonicalAssertPresentThrow = ({
+    context,
     guardExpression,
     throwStatement,
 }: Readonly<{
+    context: RuleContext;
     guardExpression: TSESTree.Expression;
     throwStatement: TSESTree.ThrowStatement;
 }>): boolean => {
@@ -82,6 +104,11 @@ const isCanonicalAssertPresentThrow = ({
         throwStatement.argument.type !== "NewExpression" ||
         throwStatement.argument.callee.type !== "Identifier" ||
         throwStatement.argument.callee.name !== "TypeError" ||
+        !isGlobalIdentifierNamed(
+            context,
+            throwStatement.argument.callee,
+            "TypeError"
+        ) ||
         throwStatement.argument.arguments.length !== 1
     ) {
         return false;
@@ -153,7 +180,8 @@ const extractEqNullGuardExpression = (
  */
 
 const extractNullishEqualityPart = (
-    expression: Readonly<TSESTree.Expression>
+    expression: Readonly<TSESTree.Expression>,
+    context: RuleContext
 ): null | {
     expression: TSESTree.Expression;
     kind: "null" | "undefined";
@@ -179,14 +207,24 @@ const extractNullishEqualityPart = (
         };
     }
 
-    if (isUndefinedExpression(expression.left)) {
+    if (
+        isUndefinedExpression({
+            context,
+            node: expression.left,
+        })
+    ) {
         return {
             expression: expression.right,
             kind: "undefined",
         };
     }
 
-    if (isUndefinedExpression(expression.right)) {
+    if (
+        isUndefinedExpression({
+            context,
+            node: expression.right,
+        })
+    ) {
         return {
             expression: expression.left,
             kind: "undefined",
@@ -230,8 +268,11 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     return null;
                 }
 
-                const leftPart = extractNullishEqualityPart(test.left);
-                const rightPart = extractNullishEqualityPart(test.right);
+                const leftPart = extractNullishEqualityPart(test.left, context);
+                const rightPart = extractNullishEqualityPart(
+                    test.right,
+                    context
+                );
 
                 if (
                     !leftPart ||
@@ -292,6 +333,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     const canAutofix =
                         throwStatement !== null &&
                         isCanonicalAssertPresentThrow({
+                            context,
                             guardExpression,
                             throwStatement,
                         });

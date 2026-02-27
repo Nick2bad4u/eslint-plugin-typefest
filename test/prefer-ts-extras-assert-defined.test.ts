@@ -103,6 +103,17 @@ const nonBinaryGuardValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const shadowedUndefinedBindingValidCode = [
+    "function ensureValue(value: string | undefined): string {",
+    "    const undefined = 'sentinel';",
+    "",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineSuggestableCode = [
     'import { assertDefined } from "ts-extras";',
     "",
@@ -141,6 +152,30 @@ const inlineAutofixableDirectThrowCanonicalCode = [
     "",
     "function ensureValue(value: string | undefined): string {",
     "    if (value === undefined) throw new TypeError('Expected a defined value, got `undefined`');",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const shadowedTypeErrorSuggestableCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "class TypeError extends Error {}",
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError('Expected a defined value, got `undefined`');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const shadowedTypeErrorSuggestableOutput = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "class TypeError extends Error {}",
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    assertDefined(value);",
     "",
     "    return value;",
     "}",
@@ -233,9 +268,8 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
         expect(ruleSource).toContain(
             '(test.operator !== "==" && test.operator !== "===")'
         );
-        expect(ruleSource).toContain(
-            "if (isUndefinedExpression(test.right)) {"
-        );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
     });
 
     it("preserves authored metadata literals for assert-defined rule", () => {
@@ -374,6 +408,22 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             name: "suggests assertDefined() replacement when import is in scope",
         },
         {
+            code: shadowedTypeErrorSuggestableCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: shadowedTypeErrorSuggestableOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests replacement when TypeError constructor is shadowed",
+        },
+        {
             code: inlineAutofixableCanonicalCode,
             errors: [{ messageId: "preferTsExtrasAssertDefined" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -423,6 +473,11 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             code: nonBinaryGuardValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-binary guard expression",
+        },
+        {
+            code: shadowedUndefinedBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores guards that compare against shadowed undefined bindings",
         },
     ],
 });

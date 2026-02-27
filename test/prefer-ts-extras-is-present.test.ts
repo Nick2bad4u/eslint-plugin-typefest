@@ -242,6 +242,14 @@ const inlineValidFunctionExpressionFilterCallbackCode = [
     "});",
     "String(presentValues.length + missingValues.length);",
 ].join("\n");
+const inlineValidStrictPresentWithShadowedUndefinedBindingCode = [
+    "declare const maybeValue: null | string | undefined;",
+    "const undefined = Symbol('undefined');",
+    "",
+    "const isPresentValue = maybeValue !== null && maybeValue !== undefined;",
+    "",
+    "String(isPresentValue);",
+].join("\n");
 const inlineFixablePresentCode = [
     'import { isPresent } from "ts-extras";',
     "",
@@ -334,6 +342,12 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
                 isTestFilePath: () => false,
             }));
 
@@ -439,6 +453,12 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
                 isTestFilePath: () => false,
             }));
 
@@ -744,6 +764,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidFunctionExpressionFilterCallbackCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores strict checks inside function-expression filter callbacks",
+        },
+        {
+            code: inlineValidStrictPresentWithShadowedUndefinedBindingCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present checks when undefined binding is shadowed",
         },
     ],
 });

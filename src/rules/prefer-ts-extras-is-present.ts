@@ -10,7 +10,11 @@ import {
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 type NullishComparison = {
     readonly comparedExpression: TSESTree.Expression;
@@ -19,6 +23,10 @@ type NullishComparison = {
 };
 
 type NullishKind = "null" | "undefined";
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 /**
  * FlattenLogicalTerms helper.
@@ -64,9 +72,12 @@ const flattenLogicalTerms = ({
  */
 
 const isUndefinedIdentifier = (
+    context: RuleContext,
     expression: Readonly<TSESTree.Expression>
 ): boolean =>
-    expression.type === "Identifier" && expression.name === "undefined";
+    expression.type === "Identifier" &&
+    expression.name === "undefined" &&
+    isGlobalUndefinedIdentifier(context, expression);
 
 /**
  * GetNullishComparison helper.
@@ -77,6 +88,7 @@ const isUndefinedIdentifier = (
  */
 
 const getNullishComparison = (
+    context: RuleContext,
     expression: Readonly<TSESTree.Expression>
 ): null | NullishComparison => {
     if (expression.type !== "BinaryExpression") {
@@ -111,7 +123,7 @@ const getNullishComparison = (
         };
     }
 
-    if (isUndefinedIdentifier(expression.right)) {
+    if (isUndefinedIdentifier(context, expression.right)) {
         return {
             comparedExpression: expression.left,
             kind: "undefined",
@@ -119,7 +131,7 @@ const getNullishComparison = (
         };
     }
 
-    if (isUndefinedIdentifier(expression.left)) {
+    if (isUndefinedIdentifier(context, expression.left)) {
         return {
             comparedExpression: expression.right,
             kind: "undefined",
@@ -156,8 +168,10 @@ const haveSameComparedExpression = ({
  */
 
 const isStrictPresentCheck = ({
+    context,
     node,
 }: Readonly<{
+    context: RuleContext;
     node: TSESTree.LogicalExpression;
 }>): boolean => {
     if (node.operator !== "&&") {
@@ -178,8 +192,8 @@ const isStrictPresentCheck = ({
         TSESTree.Expression,
     ];
 
-    const first = getNullishComparison(firstTerm);
-    const second = getNullishComparison(secondTerm);
+    const first = getNullishComparison(context, firstTerm);
+    const second = getNullishComparison(context, secondTerm);
 
     if (!first || !second) {
         return false;
@@ -208,8 +222,10 @@ const isStrictPresentCheck = ({
  */
 
 const isStrictAbsentCheck = ({
+    context,
     node,
 }: Readonly<{
+    context: RuleContext;
     node: TSESTree.LogicalExpression;
 }>): boolean => {
     if (node.operator !== "||") {
@@ -230,8 +246,8 @@ const isStrictAbsentCheck = ({
         TSESTree.Expression,
     ];
 
-    const first = getNullishComparison(firstTerm);
-    const second = getNullishComparison(secondTerm);
+    const first = getNullishComparison(context, firstTerm);
+    const second = getNullishComparison(context, secondTerm);
 
     if (!first || !second) {
         return false;
@@ -276,7 +292,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const comparison = getNullishComparison(node);
+                    const comparison = getNullishComparison(context, node);
                     if (comparison?.kind !== "null") {
                         return;
                     }
@@ -319,6 +335,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         isStrictPresentCheck({
+                            context,
                             node,
                         })
                     ) {
@@ -331,6 +348,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         isStrictAbsentCheck({
+                            context,
                             node,
                         })
                     ) {

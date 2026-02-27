@@ -2,14 +2,22 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-defined`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import { isWithinFilterCallback } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 type UndefinedComparisonMatch = {
     readonly comparedExpression: TSESTree.Expression;
@@ -27,6 +35,33 @@ const isTypeofExpression = (
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
     expression.type === "UnaryExpression" && expression.operator === "typeof";
 
+const isBoundIdentifierReference = (
+    context: RuleContext,
+    expression: Readonly<TSESTree.Expression>
+): boolean => {
+    if (expression.type !== "Identifier") {
+        return true;
+    }
+
+    try {
+        let currentScope: null | TSESLint.Scope.Scope =
+            context.sourceCode.getScope(expression);
+
+        while (currentScope !== null) {
+            const variable = currentScope.set.get(expression.name);
+            if (variable !== undefined) {
+                return variable.defs.length > 0;
+            }
+
+            currentScope = currentScope.upper;
+        }
+    } catch {
+        return false;
+    }
+
+    return false;
+};
+
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined" } =>
@@ -41,8 +76,11 @@ const isUndefinedStringLiteral = (
  */
 
 const isUndefinedIdentifier = (
+    context: RuleContext,
     expression: Readonly<TSESTree.Expression>
-): boolean => isIdentifierWithName(expression, "undefined");
+): boolean =>
+    isIdentifierWithName(expression, "undefined") &&
+    isGlobalUndefinedIdentifier(context, expression);
 
 /**
  * GetUndefinedComparisonMatch helper.
@@ -53,6 +91,7 @@ const isUndefinedIdentifier = (
  */
 
 const getUndefinedComparisonMatch = (
+    context: RuleContext,
     node: Readonly<TSESTree.BinaryExpression>
 ): null | UndefinedComparisonMatch => {
     const isPositiveComparison =
@@ -66,14 +105,14 @@ const getUndefinedComparisonMatch = (
 
     const prefersNegatedHelper = isNegativeComparison;
 
-    if (isUndefinedIdentifier(node.right)) {
+    if (isUndefinedIdentifier(context, node.right)) {
         return {
             comparedExpression: node.left,
             prefersNegatedHelper,
         };
     }
 
-    if (isUndefinedIdentifier(node.left)) {
+    if (isUndefinedIdentifier(context, node.left)) {
         return {
             comparedExpression: node.right,
             prefersNegatedHelper,
@@ -81,6 +120,10 @@ const getUndefinedComparisonMatch = (
     }
 
     if (isTypeofExpression(node.left) && isUndefinedStringLiteral(node.right)) {
+        if (!isBoundIdentifierReference(context, node.left.argument)) {
+            return null;
+        }
+
         return {
             comparedExpression: node.left.argument,
             prefersNegatedHelper,
@@ -88,6 +131,10 @@ const getUndefinedComparisonMatch = (
     }
 
     if (isTypeofExpression(node.right) && isUndefinedStringLiteral(node.left)) {
+        if (!isBoundIdentifierReference(context, node.right.argument)) {
+            return null;
+        }
+
         return {
             comparedExpression: node.right.argument,
             prefersNegatedHelper,
@@ -122,7 +169,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const match = getUndefinedComparisonMatch(node);
+                    const match = getUndefinedComparisonMatch(context, node);
                     if (!match) {
                         return;
                     }

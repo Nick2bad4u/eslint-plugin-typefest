@@ -30,6 +30,14 @@ const nonNumberReceiverValidCode = [
     "const result = helper.isInteger(42);",
 ].join("\n");
 const wrongPropertyValidCode = "const result = Number.isFinite(42);";
+const shadowedNumberBindingValidCode = [
+    "const Number = {",
+    "    isInteger(value: number): boolean {",
+    "        return value % 2 === 0;",
+    "    },",
+    "};",
+    "const result = Number.isInteger(42);",
+].join("\n");
 const inlineFixableCode = [
     'import { isInteger } from "ts-extras";',
     "",
@@ -73,6 +81,7 @@ describe("prefer-ts-extras-is-integer source assertions", () => {
         expect(ruleSource).toContain(
             'node.callee.property.name !== "isInteger"'
         );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });
 
@@ -126,6 +135,11 @@ ruleTester.run("prefer-ts-extras-is-integer", rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number.isFinite call",
+        },
+        {
+            code: shadowedNumberBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Number.isInteger call when Number binding is shadowed",
         },
     ],
 });

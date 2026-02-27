@@ -169,6 +169,17 @@ const logicalAndNullishValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const shadowedUndefinedBindingValidCode = [
+    "function ensureValue(value: string | null | undefined): string {",
+    "    const undefined = 'sentinel';",
+    "",
+    "    if (value === null || value === undefined) {",
+    "        throw new TypeError('Missing value');",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 
 const inlineSuggestableCode = [
     'import { assertPresent } from "ts-extras";',
@@ -263,6 +274,30 @@ const inlineAutofixableDirectThrowCanonicalCode = [
     "",
     "function ensureValue(value: string | null): string {",
     "    if (value == null) throw new TypeError(`Expected a present value, got \\u0024{value}`);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const shadowedTypeErrorSuggestableCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "class TypeError extends Error {}",
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    if (value === null || value === undefined) {",
+    "        throw new TypeError(`Expected a present value, got \\u0024{value}`);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const shadowedTypeErrorSuggestableOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "class TypeError extends Error {}",
+    "",
+    "function ensureValue(value: string | null | undefined): string {",
+    "    assertPresent(value);",
     "",
     "    return value;",
     "}",
@@ -366,9 +401,8 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
         expect(ruleSource).toContain(
             '(expression.operator !== "==" && expression.operator !== "===")'
         );
-        expect(ruleSource).toContain(
-            "if (isUndefinedExpression(expression.right)) {"
-        );
+        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
         expect(ruleSource).toContain('test.operator !== "||"');
         expect(ruleSource).toContain("hasSuggestions: true,");
     });
@@ -503,6 +537,22 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports mixed loose/strict nullish logical guards",
+            },
+            {
+                code: shadowedTypeErrorSuggestableCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: shadowedTypeErrorSuggestableOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests replacement when TypeError constructor is shadowed",
             },
             {
                 code: inlineSuggestableTemplateWrongPrefixCode,
@@ -652,6 +702,11 @@ ruleTester.run(
                 code: logicalAndNullishValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores logical-and nullish guards",
+            },
+            {
+                code: shadowedUndefinedBindingValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores nullish guards that compare against shadowed undefined bindings",
             },
         ],
     }

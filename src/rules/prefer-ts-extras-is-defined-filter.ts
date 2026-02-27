@@ -8,7 +8,15 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 type UndefinedInequalityMatch = {
     readonly comparedExpression: TSESTree.Expression;
@@ -35,6 +43,7 @@ const isTypeofParameter = (
     isIdentifierWithName(node.argument, parameterName);
 
 const getUndefinedInequalityMatch = (
+    context: RuleContext,
     body: Readonly<TSESTree.Expression>,
     parameterName: string
 ): null | UndefinedInequalityMatch => {
@@ -48,7 +57,8 @@ const getUndefinedInequalityMatch = (
 
     if (
         isIdentifierWithName(body.left, parameterName) &&
-        isIdentifierWithName(body.right, "undefined")
+        body.right.type === "Identifier" &&
+        isGlobalUndefinedIdentifier(context, body.right)
     ) {
         return {
             comparedExpression: body.left,
@@ -58,7 +68,8 @@ const getUndefinedInequalityMatch = (
 
     if (
         isIdentifierWithName(body.right, parameterName) &&
-        isIdentifierWithName(body.left, "undefined")
+        body.left.type === "Identifier" &&
+        isGlobalUndefinedIdentifier(context, body.left)
     ) {
         return {
             comparedExpression: body.right,
@@ -90,9 +101,11 @@ const getUndefinedInequalityMatch = (
  */
 
 const isUndefinedFilterGuardBody = (
+    context: RuleContext,
     body: Readonly<TSESTree.Expression>,
     parameterName: string
-): boolean => getUndefinedInequalityMatch(body, parameterName) !== null;
+): boolean =>
+    getUndefinedInequalityMatch(context, body, parameterName) !== null;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-defined-filter`.
@@ -155,6 +168,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         !isUndefinedFilterGuardBody(
+                            context,
                             callback.body,
                             parameter.name
                         )

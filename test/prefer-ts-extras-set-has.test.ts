@@ -289,6 +289,151 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             vi.resetModules();
         }
     });
+
+    it("handles recursive unions, intersections, apparent types, and non-member callees", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+
+        const setLeafType = {
+            getSymbol: () => ({
+                getName: () => "Set",
+            }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const recursiveUnionType: {
+            getSymbol: () => undefined;
+            isIntersection: () => false;
+            isUnion: () => true;
+            types: unknown[];
+        } = {
+            getSymbol: () => undefined,
+            isIntersection: () => false,
+            isUnion: () => true,
+            types: [],
+        };
+
+        recursiveUnionType.types = [recursiveUnionType];
+
+        const intersectionType = {
+            getSymbol: () => undefined,
+            isIntersection: () => true,
+            isUnion: () => false,
+            types: [setLeafType],
+        };
+
+        const apparentTypeSource = {
+            getSymbol: () => undefined,
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const nonClassLikeType = {
+            getSymbol: () => ({ declarations: [{ kind: -1 }] }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        let currentObjectType: unknown = recursiveUnionType;
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getApparentType: (type: unknown) =>
+                            type === apparentTypeSource ? setLeafType : type,
+                        getBaseTypes: () => [],
+                        getTypeAtLocation: () => currentObjectType,
+                        typeToString: () => "Set<number>",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                    },
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createMethodToFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-set-has")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const callExpressionListener = listeners.CallExpression;
+
+            expect(callExpressionListener).toBeTypeOf("function");
+
+            const identifierHasCallNode = {
+                callee: {
+                    computed: false,
+                    object: {
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "has",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            currentObjectType = recursiveUnionType;
+            callExpressionListener?.(identifierHasCallNode);
+
+            currentObjectType = intersectionType;
+            callExpressionListener?.(identifierHasCallNode);
+
+            currentObjectType = apparentTypeSource;
+            callExpressionListener?.(identifierHasCallNode);
+
+            currentObjectType = nonClassLikeType;
+            callExpressionListener?.(identifierHasCallNode);
+
+            callExpressionListener?.({
+                callee: {
+                    name: "has",
+                    type: "Identifier",
+                },
+                type: "CallExpression",
+            });
+
+            expect(reportCalls).toHaveLength(2);
+            expect(
+                reportCalls.map((descriptor) => descriptor.messageId)
+            ).toStrictEqual(["preferTsExtrasSetHas", "preferTsExtrasSetHas"]);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(ruleId, rule, {

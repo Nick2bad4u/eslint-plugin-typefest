@@ -36,6 +36,14 @@ const nonObjectReceiverValidCode = [
     "const keys = helper.keys({ alpha: 1 });",
 ].join("\n");
 const wrongPropertyValidCode = "const values = Object.values({ alpha: 1 });";
+const shadowedObjectBindingValidCode = [
+    "const Object = {",
+    "    keys(value: { alpha: number }): readonly string[] {",
+    "        return ['alpha'];",
+    "    },",
+    "};",
+    "const keys = Object.keys({ alpha: 1 });",
+].join("\n");
 const inlineFixableCode = [
     'import { objectKeys } from "ts-extras";',
     "",
@@ -78,6 +86,13 @@ describe("prefer-ts-extras-object-keys internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type?: string }>,
+                    identifierName: string
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === identifierName,
                 isTestFilePath: () => false,
             }));
 
@@ -189,6 +204,11 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.values usage",
+        },
+        {
+            code: shadowedObjectBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Object.keys call when Object binding is shadowed",
         },
     ],
 });

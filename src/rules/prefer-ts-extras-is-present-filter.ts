@@ -9,7 +9,11 @@ import {
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalUndefinedIdentifier,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * FlattenLogicalAndTerms helper.
@@ -41,6 +45,10 @@ type NullishInequalityPart = {
     readonly kind: "null" | "undefined";
     readonly operator: "!=" | "!==";
 };
+
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
 
 const isIdentifierWithName = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
@@ -75,6 +83,7 @@ const isTypeofParameter = (
  * @returns ExtractNullishInequalityPart helper result.
  */
 const extractNullishInequalityPart = (
+    context: RuleContext,
     expression: Readonly<TSESTree.Expression>,
     parameterName: string
 ): null | NullishInequalityPart => {
@@ -95,7 +104,10 @@ const extractNullishInequalityPart = (
             };
         }
 
-        if (isIdentifierWithName(expression.right, "undefined")) {
+        if (
+            expression.right.type === "Identifier" &&
+            isGlobalUndefinedIdentifier(context, expression.right)
+        ) {
             return {
                 expression: expression.left,
                 kind: "undefined",
@@ -113,7 +125,10 @@ const extractNullishInequalityPart = (
             };
         }
 
-        if (isIdentifierWithName(expression.left, "undefined")) {
+        if (
+            expression.left.type === "Identifier" &&
+            isGlobalUndefinedIdentifier(context, expression.left)
+        ) {
             return {
                 expression: expression.right,
                 kind: "undefined",
@@ -157,10 +172,15 @@ const extractNullishInequalityPart = (
  */
 
 const isNullComparison = (
+    context: RuleContext,
     node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.BinaryExpression => {
-    const comparison = extractNullishInequalityPart(node, parameterName);
+    const comparison = extractNullishInequalityPart(
+        context,
+        node,
+        parameterName
+    );
 
     return comparison?.kind === "null";
 };
@@ -175,10 +195,15 @@ const isNullComparison = (
  */
 
 const isUndefinedComparison = (
+    context: RuleContext,
     node: Readonly<TSESTree.Expression>,
     parameterName: string
 ): node is TSESTree.BinaryExpression => {
-    const comparison = extractNullishInequalityPart(node, parameterName);
+    const comparison = extractNullishInequalityPart(
+        context,
+        node,
+        parameterName
+    );
 
     return comparison?.kind === "undefined";
 };
@@ -194,6 +219,7 @@ const isUndefinedComparison = (
  */
 
 const isNullishFilterGuardBody = (
+    context: RuleContext,
     callback: Readonly<
         TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression }
     >,
@@ -202,8 +228,8 @@ const isNullishFilterGuardBody = (
     const { body } = callback;
 
     if (
-        isNullComparison(body, parameterName) ||
-        isUndefinedComparison(body, parameterName)
+        isNullComparison(context, body, parameterName) ||
+        isUndefinedComparison(context, body, parameterName)
     ) {
         if (body.operator === "!=") {
             return true;
@@ -214,10 +240,10 @@ const isNullishFilterGuardBody = (
 
     const andTerms = flattenLogicalAndTerms(body);
     const hasNullComparison = andTerms.some((term) =>
-        isNullComparison(term, parameterName)
+        isNullComparison(context, term, parameterName)
     );
     const hasUndefinedComparison = andTerms.some((term) =>
-        isUndefinedComparison(term, parameterName)
+        isUndefinedComparison(context, term, parameterName)
     );
 
     return hasNullComparison && hasUndefinedComparison;
@@ -234,14 +260,20 @@ const isNullishFilterGuardBody = (
  */
 const isSafePresentFilterAutoFixableCallback = ({
     callback,
+    context,
     parameterName,
 }: Readonly<{
     callback: TSESTree.ArrowFunctionExpression & { body: TSESTree.Expression };
+    context: RuleContext;
     parameterName: string;
 }>): boolean => {
     const { body } = callback;
 
-    const singlePart = extractNullishInequalityPart(body, parameterName);
+    const singlePart = extractNullishInequalityPart(
+        context,
+        body,
+        parameterName
+    );
     if (singlePart?.operator === "!=") {
         return true;
     }
@@ -250,9 +282,12 @@ const isSafePresentFilterAutoFixableCallback = ({
         return false;
     }
 
+    /* V8 ignore start -- reachable only when body is a logical expression that
+         survived nullish-guard detection; current guard logic only admits `&&`. */
     if (body.operator !== "&&") {
         return false;
     }
+    /* V8 ignore stop */
 
     const andTerms = flattenLogicalAndTerms(body);
     if (andTerms.length !== 2) {
@@ -264,8 +299,16 @@ const isSafePresentFilterAutoFixableCallback = ({
         TSESTree.Expression,
     ];
 
-    const first = extractNullishInequalityPart(firstTerm, parameterName);
-    const second = extractNullishInequalityPart(secondTerm, parameterName);
+    const first = extractNullishInequalityPart(
+        context,
+        firstTerm,
+        parameterName
+    );
+    const second = extractNullishInequalityPart(
+        context,
+        secondTerm,
+        parameterName
+    );
 
     if (first?.operator !== "!==" || second?.operator !== "!==") {
         return false;
@@ -340,6 +383,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         !isNullishFilterGuardBody(
+                            context,
                             expressionCallback,
                             parameter.name
                         )
@@ -350,6 +394,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     const isAutoFixable =
                         isSafePresentFilterAutoFixableCallback({
                             callback: expressionCallback,
+                            context,
                             parameterName: parameter.name,
                         });
 

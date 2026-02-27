@@ -6,7 +6,11 @@ import {
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-keys`.
  */
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-keys`.
@@ -38,7 +42,12 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Object"
+                        node.callee.object.name !== "Object" ||
+                        !isGlobalIdentifierNamed(
+                            context,
+                            node.callee.object,
+                            "Object"
+                        )
                     ) {
                         return;
                     }

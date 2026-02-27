@@ -6,7 +6,11 @@ import {
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-safe-integer`.
  */
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-safe-integer`.
@@ -38,7 +42,12 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Number"
+                        node.callee.object.name !== "Number" ||
+                        !isGlobalIdentifierNamed(
+                            context,
+                            node.callee.object,
+                            "Number"
+                        )
                     ) {
                         return;
                     }

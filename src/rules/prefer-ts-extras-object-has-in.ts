@@ -2,13 +2,18 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-in`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    isGlobalIdentifierNamed,
+    isTestFilePath,
+} from "../_internal/typed-rule.js";
 
 /**
  * Check whether the input is reflect has call.
@@ -18,7 +23,13 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
  * @returns `true` when the value is reflect has call; otherwise `false`.
  */
 
-const isReflectHasCall = (node: Readonly<TSESTree.CallExpression>): boolean => {
+const isReflectHasCall = ({
+    context,
+    node,
+}: Readonly<{
+    context: TSESLint.RuleContext<string, Readonly<UnknownArray>>;
+    node: TSESTree.CallExpression;
+}>): boolean => {
     if (node.callee.type !== "MemberExpression" || node.callee.computed) {
         return false;
     }
@@ -26,6 +37,7 @@ const isReflectHasCall = (node: Readonly<TSESTree.CallExpression>): boolean => {
     return (
         node.callee.object.type === "Identifier" &&
         node.callee.object.name === "Reflect" &&
+        isGlobalIdentifierNamed(context, node.callee.object, "Reflect") &&
         node.callee.property.type === "Identifier" &&
         node.callee.property.name === "has"
     );
@@ -52,7 +64,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (!isReflectHasCall(node)) {
+                    if (!isReflectHasCall({ context, node })) {
                         return;
                     }
 

@@ -53,6 +53,14 @@ const nonObjectReceiverValidCode = [
     "const pairs = helper.entries({ alpha: 1 });",
 ].join("\n");
 const wrongPropertyValidCode = "const keys = Object.keys({ alpha: 1 });";
+const shadowedObjectBindingValidCode = [
+    "const Object = {",
+    "    entries(value: { alpha: number }): readonly [string, number][] {",
+    "        return [['alpha', value.alpha]];",
+    "    },",
+    "};",
+    "const pairs = Object.entries({ alpha: 1 });",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -79,6 +87,13 @@ describe("prefer-ts-extras-object-entries internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type?: string }>,
+                    identifierName: string
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === identifierName,
                 isTestFilePath: () => false,
             }));
 
@@ -186,6 +201,11 @@ ruleTester.run(ruleId, rule, {
             code: wrongPropertyValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Object.keys usage",
+        },
+        {
+            code: shadowedObjectBindingValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores Object.entries call when Object binding is shadowed",
         },
     ],
 });

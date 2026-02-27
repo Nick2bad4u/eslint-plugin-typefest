@@ -413,7 +413,7 @@ const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
 };
 
 const isReadonlyUtilityWrappedText = (replacementText: string): boolean =>
-    /^\s*Readonly\s*</u.test(replacementText);
+    replacementText.trimStart().startsWith(`${READONLY_UTILITY_TYPE_NAME}<`);
 
 const toReadonlyUtilityWrappedText = (replacementText: string): string =>
     `${READONLY_UTILITY_TYPE_NAME}<${replacementText}>`;
