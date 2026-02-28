@@ -21,6 +21,10 @@ const modernEnhancementsClientModule = fileURLToPath(
 const pwaThemeColor = "#2E2A33";
 const pwaTileColor = "#2E2A33";
 const pwaMaskIconColor = "#71B041";
+const footerCopyright =
+    `© ${new Date().getFullYear()} ` +
+    '<a href="https://github.com/Nick2bad4u/" target="_blank" rel="noopener noreferrer">Nick2bad4u</a> 💻 Built with ' +
+    '<a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">🦖 Docusaurus</a>.';
 
 const removeHeadAttrFlagKey = [
     "remove",
@@ -225,7 +229,7 @@ const config: Config = {
     tagline:
         "Type-safe ESLint rules for preferring type-fest and ts-extras patterns.",
     themeConfig: {
-        copyright: `© ${new Date().getFullYear()} <a href="https://github.com/Nick2bad4u/" target="_blank" rel="noopener noreferrer">Nick2bad4u</a> 💻 Built with <a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">🦖 Docusaurus</a>.`,
+        copyright: footerCopyright,
         footer: {
             links: [
                 {
@@ -239,31 +243,26 @@ const config: Config = {
                             to: "/docs/rules/getting-started",
                         },
                         {
-                            label: "🎛 Presets",
-                            to: "/docs/rules/presets",
-                        },
-                        {
                             label: "📏 Rule Reference",
                             to: "/docs/rules",
                         },
+                        {
+                            label: "🎛 Presets",
+                            to: "/docs/rules/presets",
+                        },
                     ],
-                    title: "📚 Documentation",
+                    title: "📚 Explore",
                 },
                 {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "🔗 Repository",
+                            label: "🔗 GitHub Repository",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/issues`,
                             label: "🐛 Report Issues",
                         },
-                    ],
-                    title: "🧠 Deep Dive",
-                },
-                {
-                    items: [
                         {
                             href: `${siteUrl}${baseUrl}eslint-inspector/`,
                             label: "🔍 ESLint Inspector",
@@ -272,14 +271,17 @@ const config: Config = {
                             href: `https://www.npmjs.com/package/${projectName}`,
                             label: "🎁 NPM",
                         },
-                        {
-                            href: `https://github.com/${organizationName}/${projectName}/releases`,
-                            label: "📦 Download Latest",
-                        },
                     ],
-                    title: "🚀 Latest",
+                    title: "🚀 Project",
                 },
             ],
+            logo: {
+                alt: "Uptime Watcher Logo",
+                href: `https://github.com/${organizationName}/${projectName}`,
+                src: "img/logo.svg",
+                width: 60,
+                height: 60,
+            },
             style: "dark",
         },
         image: "img/logo.svg",
@@ -287,30 +289,30 @@ const config: Config = {
             items: [
                 {
                     activeBaseRegex: "^/docs/rules/overview/?$",
-                    label: "Docs",
+                    label: "📚 Docs",
                     position: "left",
                     to: "/docs/rules/overview",
                 },
                 {
                     activeBaseRegex: "^/docs/rules(?:/(?!presets(?:/|$)).*)?$",
-                    label: "Rules",
+                    label: "📏 Rules",
                     position: "left",
                     to: "/docs/rules",
                 },
                 {
                     activeBaseRegex: "^/docs/rules/presets(?:/.*)?$",
-                    label: "Presets",
+                    label: "🎛️ Presets",
                     position: "left",
                     to: "/docs/rules/presets",
                 },
                 {
-                    label: "Dev",
+                    label: "🛠️ Dev",
                     position: "right",
                     to: "/docs/developer",
                 },
                 {
                     href: `https://github.com/${organizationName}/${projectName}`,
-                    label: "GitHub",
+                    label: "🐙 GitHub",
                     position: "right",
                 },
             ],
