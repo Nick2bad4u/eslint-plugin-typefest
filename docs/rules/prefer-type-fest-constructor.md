@@ -6,7 +6,7 @@ Require TypeFest `Constructor` over explicit constructor signatures.
 
 This rule reports explicit `new (...args) => T` signatures and prefers `Constructor<T>` for newable class contracts.
 
-### What it checks
+## What this rule reports
 
 - `new (...args) => T` constructor type signatures.
 
@@ -59,6 +59,20 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase intentionally prefers explicit constructor signatures over TypeFest aliases.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/basic.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/basic.d.ts)
+
+```ts
+/**
+Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
+
+@category Class
+*/
+```
 
 ## Further reading
 

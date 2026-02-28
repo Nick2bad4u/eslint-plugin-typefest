@@ -18,6 +18,8 @@
 // @ts-ignore -- Ignore missing types for remark-ignore
 import { ignoreStart, ignoreEnd } from "remark-ignore";
 
+import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.mjs";
+
 // Type definitions for remark configuration
 /** @typedef {import("unified").Preset} Preset */
 /** @typedef {import("unified").Plugin} Plugin */
@@ -215,6 +217,7 @@ const remarkConfig = {
         "@double-great/remark-lint-alt-text", // Require alt text for images
         "remark-lint-heading-whitespace", // Remove trailing whitespace in headings
         "remark-validate-links", // Validate internal links exist
+        remarkLintRuleDocHeadings, // Enforce canonical helper-doc heading schema and package docs placement
         // Mathematical expressions
         "remark-math",
         "rehype-katex", // If you have math content

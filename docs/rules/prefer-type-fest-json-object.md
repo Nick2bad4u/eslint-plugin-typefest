@@ -2,6 +2,14 @@
 
 Require TypeFest `JsonObject` over equivalent explicit `Record<string, JsonValue>` aliases.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `Record<string, JsonValue>`
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `Record<string, JsonValue>`
@@ -30,19 +38,19 @@ type Payload = JsonObject;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Payload = Record<string, JsonValue>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Payload = JsonObject;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type EventAttributes = JsonObject;
@@ -66,6 +74,22 @@ export default [
 ## When not to use it
 
 Disable this rule if a published API requires preserving existing alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts)
+
+```ts
+/**
+Matches a JSON object.
+
+This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. Don't use this as a direct return type as the user would have to double-cast it: `jsonObject as unknown as CustomResponse`. Instead, you could extend your CustomResponse type from it to ensure your type only uses JSON-compatible types: `interface CustomResponse extends JsonObject { … }`.
+
+@category JSON
+*/
+```
 
 ## Further reading
 

@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-includes
 
-Prefer [`arrayIncludes`](https://github.com/sindresorhus/ts-extras#arrayincludes) from `ts-extras` over `array.includes(...)`.
+Prefer [`arrayIncludes`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-includes.ts) from `ts-extras` over `array.includes(...)`.
 
 `arrayIncludes(...)` improves inference and narrowing when checking whether unknown values belong to a known tuple/array.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const hasStatus = statuses.includes(inputStatus);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.includes(value)` call sites that can use `arrayIncludes(array, value)`.
 
-```ts
-const hasStatus = arrayIncludes(statuses, inputStatus);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const hasStatus = arrayIncludes(statuses, inputStatus);
 - Guard logic is consistent with other `ts-extras` predicates.
 - Native `.includes` call sites that need manual casts are reduced.
 
+## ❌ Incorrect
+
+```ts
+const hasStatus = statuses.includes(inputStatus);
+```
+
+## ✅ Correct
+
+```ts
+const hasStatus = arrayIncludes(statuses, inputStatus);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics follow native `Array.prototype.includes`.
@@ -36,7 +44,7 @@ const hasStatus = arrayIncludes(statuses, inputStatus);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (roles.includes(candidate)) {
@@ -44,7 +52,7 @@ if (roles.includes(candidate)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (arrayIncludes(roles, candidate)) {
@@ -52,7 +60,7 @@ if (arrayIncludes(roles, candidate)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const isKnownStatus = arrayIncludes(statuses, value);
@@ -76,6 +84,40 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase intentionally standardizes on native `.includes()`.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/array-includes.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-includes.ts)
+
+````ts
+/**
+A strongly-typed version of `Array#includes()` that properly acts as a type guard.
+
+When `arrayIncludes` returns `true`, the type is narrowed to the array's element type.
+When it returns `false`, the type remains unchanged (i.e., `unknown` stays `unknown`).
+
+It was [rejected](https://github.com/microsoft/TypeScript/issues/26255#issuecomment-748211891) from being done in TypeScript itself.
+
+@example
+```
+import {arrayIncludes} from 'ts-extras';
+
+const values = ['a', 'b', 'c'] as const;
+const valueToCheck: unknown = 'a';
+
+if (arrayIncludes(values, valueToCheck)) {
+    // We now know that the value is of type `typeof values[number]`.
+} else {
+    // The value remains `unknown`.
+}
+```
+
+@category Improved builtin
+@category Type guard
+*/
+````
 
 ## Further reading
 

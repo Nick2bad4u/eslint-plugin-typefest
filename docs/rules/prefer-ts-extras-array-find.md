@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-find
 
-Prefer [`arrayFind`](https://github.com/sindresorhus/ts-extras#arrayfind) from `ts-extras` over `array.find(...)`.
+Prefer [`arrayFind`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-find.ts) from `ts-extras` over `array.find(...)`.
 
 `arrayFind(...)` improves predicate inference and value narrowing in typed arrays.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const monitor = monitors.find((entry) => entry.id === targetId);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.find(predicate)` call sites that can use `arrayFind(array, predicate)`.
 
-```ts
-const monitor = arrayFind(monitors, (entry) => entry.id === targetId);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const monitor = arrayFind(monitors, (entry) => entry.id === targetId);
 - Result types are easier to follow in utility layers.
 - Local type assertions after `find` calls are reduced.
 
+## ❌ Incorrect
+
+```ts
+const monitor = monitors.find((entry) => entry.id === targetId);
+```
+
+## ✅ Correct
+
+```ts
+const monitor = arrayFind(monitors, (entry) => entry.id === targetId);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Array.prototype.find`.
@@ -36,19 +44,19 @@ const monitor = arrayFind(monitors, (entry) => entry.id === targetId);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const user = users.find((item) => item.id === userId);
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const user = arrayFind(users, (item) => item.id === userId);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const firstError = arrayFind(logs, (entry) => entry.level === "error");
@@ -72,6 +80,17 @@ export default [
 ## When not to use it
 
 Disable this rule if your team requires native `.find()` for consistency with existing shared APIs.
+
+## Package documentation
+
+ts-extras package documentation:
+
+`ts-extras@0.17.x` does not currently expose `arrayFind` in its published API, so there is no canonical `source/*.ts` link for this helper yet.
+
+Reference links:
+
+- [`ts-extras` API list (README)](https://github.com/sindresorhus/ts-extras/blob/main/readme.md#api)
+- [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
 
 ## Further reading
 

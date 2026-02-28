@@ -1,6 +1,18 @@
 # prefer-ts-extras-is-defined
 
-Require `isDefined` from `ts-extras` for direct undefined checks outside `Array.prototype.filter` callbacks.
+Require [`isDefined`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-defined.ts) from `ts-extras` for direct undefined checks outside `Array.prototype.filter` callbacks.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Direct undefined checks outside `Array.prototype.filter` callbacks:
+- `value !== undefined`
+- `undefined !== value`
+- `typeof value !== "undefined"`
+- `value === undefined`
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -17,12 +29,6 @@ Require `isDefined` from `ts-extras` for direct undefined checks outside `Array.
 - Guard intent is explicit at call sites.
 - Narrowing style is consistent across modules.
 - Repeated inline comparison variants are removed.
-
-## Behavior and migration notes
-
-- `isDefined(value)` is equivalent to `value !== undefined`.
-- `!isDefined(value)` is equivalent to `value === undefined`.
-- Filter-specific patterns are intentionally covered by `prefer-ts-extras-is-defined-filter`.
 
 ## ❌ Incorrect
 
@@ -48,9 +54,15 @@ if (!isDefined(value)) {
 }
 ```
 
+## Behavior and migration notes
+
+- `isDefined(value)` is equivalent to `value !== undefined`.
+- `!isDefined(value)` is equivalent to `value === undefined`.
+- Filter-specific patterns are intentionally covered by `prefer-ts-extras-is-defined-filter`.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (sessionId !== undefined) {
@@ -58,7 +70,7 @@ if (sessionId !== undefined) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isDefined(sessionId)) {
@@ -66,7 +78,7 @@ if (isDefined(sessionId)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const hasValue = isDefined(input);
@@ -90,6 +102,30 @@ export default [
 ## When not to use it
 
 Disable this rule if your team uses explicit `=== undefined` comparisons as a required style convention.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-defined.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-defined.ts)
+
+````ts
+/**
+Check whether a value is defined, meaning it is not `undefined`.
+
+This can be useful as a type guard, as for example, `[1, undefined].filter(Boolean)` does not always type-guard correctly.
+
+@example
+```
+import {isDefined} from 'ts-extras';
+
+[1, undefined, 2].filter(isDefined);
+//=> [1, 2]
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

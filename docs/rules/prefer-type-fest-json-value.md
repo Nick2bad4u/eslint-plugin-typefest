@@ -2,6 +2,14 @@
 
 Prefers TypeFest JSON types (`JsonValue`, `JsonObject`) for serialization-bound payload/context contracts.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Payload/context-like contract aliases using `Record<string, unknown>`/`Record<string, any>` in JSON boundary folders.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Payload/context-like contract aliases using `Record<string, unknown>`/`Record<string, any>` in JSON boundary folders.
@@ -30,19 +38,19 @@ type Payload = JsonValue;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type ConfigSnapshot = string | number | boolean | null | JsonObject | JsonArray;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type ConfigSnapshot = JsonValue;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type CacheEntry = JsonValue;
@@ -66,6 +74,22 @@ export default [
 ## When not to use it
 
 Disable this rule if boundary contracts intentionally allow non-JSON runtime values.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts)
+
+```ts
+/**
+Matches any valid JSON value.
+
+@see `Jsonify` if you need to transform a type to one that is assignable to `JsonValue`.
+
+@category JSON
+*/
+```
 
 ## Further reading
 

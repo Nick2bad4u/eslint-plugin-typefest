@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-join
 
-Prefer [`arrayJoin`](https://github.com/sindresorhus/ts-extras#arrayjoin) from `ts-extras` over `array.join(...)`.
+Prefer [`arrayJoin`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-join.ts) from `ts-extras` over `array.join(...)`.
 
 `arrayJoin(...)` can preserve stronger tuple-aware typing when joining array values.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const key = segments.join(":");
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.join(separator)` call sites that can use `arrayJoin(array, separator)`.
 
-```ts
-const key = arrayJoin(segments, ":");
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const key = arrayJoin(segments, ":");
 - Literal-based join results are inferred more precisely in typed utilities.
 - Join-heavy code paths avoid mixed native/helper patterns.
 
+## ❌ Incorrect
+
+```ts
+const key = segments.join(":");
+```
+
+## ✅ Correct
+
+```ts
+const key = arrayJoin(segments, ":");
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Array.prototype.join`.
@@ -36,19 +44,19 @@ const key = arrayJoin(segments, ":");
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const route = segments.join("/");
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const route = arrayJoin(segments, "/");
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const csv = arrayJoin(columns, ",");
@@ -72,6 +80,41 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase requires native `.join()` for API consistency.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/array-join.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-join.ts)
+
+````ts
+/**
+A strongly-typed version of `Array#join()` that preserves literal string types.
+
+The built-in `Array#join()` always returns `string`, losing type information. This function returns a properly-typed template literal when given a tuple of literals.
+
+@example
+```
+import {arrayJoin} from 'ts-extras';
+
+// Literal types are preserved automatically
+const joined = arrayJoin(['foo', 'bar', 'baz'], '-');
+//=> 'foo-bar-baz'
+//   ^? 'foo-bar-baz'
+
+const dotPath = arrayJoin(['a', 'b', 'c'], '.');
+//=> 'a.b.c'
+//   ^? 'a.b.c'
+
+// Dynamic arrays return string
+const dynamic: string[] = ['a', 'b'];
+const dynamicJoined = arrayJoin(dynamic, '-');
+//=> string
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

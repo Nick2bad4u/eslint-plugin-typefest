@@ -385,6 +385,13 @@ ruleTester.run(ruleId, rule, {
             output: typeofInvalidOutput,
         },
         {
+            code: typeofRightInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports reversed typeof undefined predicate",
+            output: typeofInvalidOutput,
+        },
+        {
             code: inlineFixableCode,
             errors: [{ messageId: "preferTsExtrasIsDefinedFilter" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -427,11 +434,6 @@ ruleTester.run(ruleId, rule, {
             code: destructuredParamValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores destructured callback parameter",
-        },
-        {
-            code: typeofRightInvalidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores reversed typeof undefined comparison",
         },
         {
             code: strictEqualityUndefinedValidCode,

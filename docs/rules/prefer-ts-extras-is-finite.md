@@ -1,20 +1,16 @@
 # prefer-ts-extras-is-finite
 
-Prefer [`isFinite`](https://github.com/sindresorhus/ts-extras#isfinite) from `ts-extras` over `Number.isFinite(...)`.
+Prefer [`isFinite`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-finite.ts) from `ts-extras` over `Number.isFinite(...)`.
 
 This keeps predicate usage consistent with other `ts-extras` narrowing helpers.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const isValid = Number.isFinite(value);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `Number.isFinite(value)` call sites that can use `isFinite(value)`.
 
-```ts
-const isValid = isFinite(value);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const isValid = isFinite(value);
 - Native/helper mixing in guard-heavy code is reduced.
 - Number guard logic stays consistent across modules.
 
+## ❌ Incorrect
+
+```ts
+const isValid = Number.isFinite(value);
+```
+
+## ✅ Correct
+
+```ts
+const isValid = isFinite(value);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Number.isFinite`.
@@ -36,7 +44,7 @@ const isValid = isFinite(value);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (Number.isFinite(metric)) {
@@ -44,7 +52,7 @@ if (Number.isFinite(metric)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isFinite(metric)) {
@@ -52,7 +60,7 @@ if (isFinite(metric)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const valid = isFinite(durationMs);
@@ -76,6 +84,21 @@ export default [
 ## When not to use it
 
 Disable this rule if your team explicitly standardizes on native `Number.isFinite` calls.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-finite.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-finite.ts)
+
+```ts
+/**
+A strongly-typed version of `Number.isFinite()`.
+
+@category Improved builtin
+@category Type guard
+*/
+```
 
 ## Further reading
 

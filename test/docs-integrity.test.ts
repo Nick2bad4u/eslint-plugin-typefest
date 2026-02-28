@@ -20,6 +20,44 @@ interface RuleWithMeta {
     };
 }
 
+const canonicalHeadingOrder = [
+    "Targeted pattern scope",
+    "What this rule reports",
+    "Why this rule exists",
+    "❌ Incorrect",
+    "✅ Correct",
+    "Behavior and migration notes",
+    "Additional examples",
+    "ESLint flat config example",
+    "When not to use it",
+    "Package documentation",
+    "Further reading",
+    "Adoption resources",
+] as const;
+
+const requiredCoreHeadings = [
+    "Targeted pattern scope",
+    "What this rule reports",
+    "Why this rule exists",
+    "❌ Incorrect",
+    "✅ Correct",
+    "Package documentation",
+    "Further reading",
+] as const;
+
+const canonicalHeadingOrderIndex = new Map<string, number>(
+    canonicalHeadingOrder.map((heading, index) => [heading, index])
+);
+
+const legacyHeadingsPattern =
+    /^##\s+(?:Targeted assertion pattern|Upstream helper TSDoc|Upstream helper status|Upstream type TSDoc|What it checks|Why)$/mv;
+
+const legacyExampleHeadingLabelPattern =
+    /\((?:additional scenario|team-scale usage)\)/v;
+
+const unlinkedTopSummaryPattern =
+    /^(?:Prefer|Require) `[^`]+` from `(?:ts-extras|type-fest)`/mv;
+
 /**
  * Check whether the input is rule with meta.
  *
@@ -28,8 +66,142 @@ interface RuleWithMeta {
  * @returns `true` when the value is rule with meta; otherwise `false`.
  */
 
+/**
+ * Assert canonical heading presence/order and core placement constraints.
+ *
+ * @param headings - Parsed H2 heading names.
+ */
+function assertCanonicalHeadingSchema(headings: readonly string[]): void {
+    let lastHeadingOrder = -1;
+
+    for (const heading of headings) {
+        const headingOrder = canonicalHeadingOrderIndex.get(heading);
+
+        expect(headingOrder).toBeDefined();
+
+        const safeHeadingOrder = headingOrder ?? -1;
+
+        expect(safeHeadingOrder).toBeGreaterThanOrEqual(lastHeadingOrder);
+
+        lastHeadingOrder = safeHeadingOrder;
+    }
+
+    const packageDocsIndex = headings.indexOf("Package documentation");
+    const furtherReadingIndex = headings.indexOf("Further reading");
+    const targetedPatternScopeIndex = headings.indexOf(
+        "Targeted pattern scope"
+    );
+    const whatThisRuleReportsIndex = headings.indexOf("What this rule reports");
+
+    for (const requiredHeading of requiredCoreHeadings) {
+        expect(headings).toContain(requiredHeading);
+    }
+
+    expect(targetedPatternScopeIndex).toBe(0);
+    expect(whatThisRuleReportsIndex).toBe(targetedPatternScopeIndex + 1);
+    expect(packageDocsIndex).toBeGreaterThanOrEqual(0);
+    expect(furtherReadingIndex).toBeGreaterThanOrEqual(0);
+    expect(packageDocsIndex).toBe(furtherReadingIndex - 1);
+}
+
+/**
+ * Assert optional detail heading placement/order.
+ *
+ * @param markdown - Rule documentation markdown.
+ */
+function assertOptionalDetailHeadingPlacement(markdown: string): void {
+    const packageHeadingOffset = markdown.indexOf("## Package documentation");
+    const matchedPatternsOffset = markdown.indexOf("### Matched patterns");
+    const detectionBoundariesOffset = markdown.indexOf(
+        "### Detection boundaries"
+    );
+    const targetedScopeOffset = markdown.indexOf("## Targeted pattern scope");
+    const whatThisRuleReportsOffset = markdown.indexOf(
+        "## What this rule reports"
+    );
+
+    if (matchedPatternsOffset !== -1) {
+        expect(packageHeadingOffset).toBeGreaterThan(matchedPatternsOffset);
+
+        const inTargetedScope =
+            matchedPatternsOffset > targetedScopeOffset &&
+            matchedPatternsOffset < whatThisRuleReportsOffset;
+        const inWhatThisRuleReports =
+            matchedPatternsOffset > whatThisRuleReportsOffset &&
+            (packageHeadingOffset === -1 ||
+                matchedPatternsOffset < packageHeadingOffset);
+
+        expect(inTargetedScope || inWhatThisRuleReports).toBeTruthy();
+    }
+
+    if (detectionBoundariesOffset !== -1) {
+        expect(packageHeadingOffset).toBeGreaterThan(detectionBoundariesOffset);
+
+        const inTargetedScope =
+            detectionBoundariesOffset > targetedScopeOffset &&
+            detectionBoundariesOffset < whatThisRuleReportsOffset;
+        const inWhatThisRuleReports =
+            detectionBoundariesOffset > whatThisRuleReportsOffset &&
+            (packageHeadingOffset === -1 ||
+                detectionBoundariesOffset < packageHeadingOffset);
+
+        expect(inTargetedScope || inWhatThisRuleReports).toBeTruthy();
+    }
+
+    if (matchedPatternsOffset !== -1 && detectionBoundariesOffset !== -1) {
+        expect(detectionBoundariesOffset).toBeGreaterThan(
+            matchedPatternsOffset
+        );
+    }
+}
+
+/**
+ * Parse H2 headings from Markdown content.
+ *
+ * @param markdown - Rule documentation markdown.
+ *
+ * @returns Ordered H2 heading names.
+ */
+
+/**
+ * Assert package documentation label by rule family.
+ *
+ * @param fileName - Rule docs file name.
+ * @param markdown - Rule documentation markdown.
+ */
+function assertPackageLabel(fileName: string, markdown: string): void {
+    if (fileName.startsWith("prefer-type-fest-")) {
+        expect(markdown).toMatch(/^TypeFest package documentation:$/mv);
+    }
+
+    if (fileName.startsWith("prefer-ts-extras-")) {
+        expect(markdown).toMatch(/^ts-extras package documentation:$/mv);
+    }
+}
+
 function isRuleWithMeta(value: unknown): value is RuleWithMeta {
     return typeof value === "object" && value !== null;
+}
+
+/**
+ * Parse H1 headings from Markdown content.
+ *
+ * @param markdown - Rule documentation markdown.
+ *
+ * @returns Ordered H1 heading names.
+ */
+function parseH1Headings(markdown: string): string[] {
+    return markdown
+        .split(/\r?\n/v)
+        .filter((line) => line.startsWith("# "))
+        .map((line) => line.slice(2).trim());
+}
+
+function parseH2Headings(markdown: string): string[] {
+    return markdown
+        .split(/\r?\n/v)
+        .filter((line) => line.startsWith("## "))
+        .map((line) => line.slice(3).trim());
 }
 
 describe("typefest rule docs", () => {
@@ -59,6 +231,40 @@ describe("typefest rule docs", () => {
             const expectedPath = path.join(docsDir, `${ruleId}.md`);
 
             expect(fs.existsSync(expectedPath)).toBeTruthy();
+        }
+    });
+
+    it("rule docs keep a canonical heading schema and package documentation placement", () => {
+        const docsDir = path.join(process.cwd(), "docs", "rules");
+
+        const ruleDocFiles = fs
+            .readdirSync(docsDir)
+            .filter(
+                (entry) => entry.startsWith("prefer-") && entry.endsWith(".md")
+            )
+            .toSorted((left, right) => left.localeCompare(right));
+
+        expect(ruleDocFiles.length).toBeGreaterThan(0);
+
+        for (const fileName of ruleDocFiles) {
+            const fullPath = path.join(docsDir, fileName);
+            const markdown = fs.readFileSync(fullPath, "utf8");
+
+            expect(markdown).not.toMatch(legacyHeadingsPattern);
+            expect(markdown).not.toMatch(legacyExampleHeadingLabelPattern);
+            expect(markdown).not.toMatch(unlinkedTopSummaryPattern);
+
+            const h1Headings = parseH1Headings(markdown);
+            const headings = parseH2Headings(markdown);
+            const expectedRuleId = fileName.replace(/\.md$/v, "");
+
+            expect(h1Headings).toHaveLength(1);
+            expect(h1Headings[0]).toBe(expectedRuleId);
+            expect(new Set(headings).size).toBe(headings.length);
+
+            assertCanonicalHeadingSchema(headings);
+            assertOptionalDetailHeadingPlacement(markdown);
+            assertPackageLabel(fileName, markdown);
         }
     });
 });

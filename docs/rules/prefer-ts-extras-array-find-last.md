@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-find-last
 
-Prefer [`arrayFindLast`](https://github.com/sindresorhus/ts-extras#arrayfindlast) from `ts-extras` over `array.findLast(...)`.
+Prefer [`arrayFindLast`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-find-last.ts) from `ts-extras` over `array.findLast(...)`.
 
 `arrayFindLast(...)` improves predicate inference and value narrowing in typed arrays.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const monitor = monitors.findLast((entry) => entry.id === targetId);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.findLast(predicate)` call sites that can use `arrayFindLast(array, predicate)`.
 
-```ts
-const monitor = arrayFindLast(monitors, (entry) => entry.id === targetId);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const monitor = arrayFindLast(monitors, (entry) => entry.id === targetId);
 - Call signatures stay consistent with `arrayFind` / `arrayFindLastIndex`.
 - Utility code that depends on "latest match" is easier to audit.
 
+## ❌ Incorrect
+
+```ts
+const monitor = monitors.findLast((entry) => entry.id === targetId);
+```
+
+## ✅ Correct
+
+```ts
+const monitor = arrayFindLast(monitors, (entry) => entry.id === targetId);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Array.prototype.findLast`.
@@ -36,19 +44,19 @@ const monitor = arrayFindLast(monitors, (entry) => entry.id === targetId);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const latest = events.findLast((entry) => entry.type === "login");
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const latest = arrayFindLast(events, (entry) => entry.type === "login");
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const trailingError = arrayFindLast(logs, (entry) => entry.level === "error");
@@ -72,6 +80,17 @@ export default [
 ## When not to use it
 
 Disable this rule if your team intentionally uses native `.findLast()` everywhere.
+
+## Package documentation
+
+ts-extras package documentation:
+
+`ts-extras@0.17.x` does not currently expose `arrayFindLast` in its published API, so there is no canonical `source/*.ts` link for this helper yet.
+
+Reference links:
+
+- [`ts-extras` API list (README)](https://github.com/sindresorhus/ts-extras/blob/main/readme.md#api)
+- [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
 
 ## Further reading
 

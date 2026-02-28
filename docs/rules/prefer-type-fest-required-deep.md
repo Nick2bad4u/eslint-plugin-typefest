@@ -6,7 +6,7 @@ Require TypeFest `RequiredDeep` over `DeepRequired` aliases.
 
 This rule reports `DeepRequired<T>` aliases and prefers `RequiredDeep<T>` for recursively required object shapes.
 
-### What it checks
+## What this rule reports
 
 - Type references named `DeepRequired`.
 
@@ -59,6 +59,56 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase intentionally standardizes `DeepRequired` naming instead of TypeFest.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/required-deep.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/required-deep.d.ts)
+
+````ts
+/**
+Create a type from another type with all keys and nested keys set to required.
+
+Use-cases:
+- Creating optional configuration interfaces where the underlying implementation still requires all options to be fully specified.
+- Modeling the resulting type after a deep merge with a set of defaults.
+
+@example
+```
+import type {RequiredDeep} from 'type-fest';
+
+type Settings = {
+    textEditor?: {
+        fontSize?: number;
+        fontColor?: string;
+        fontWeight?: number | undefined;
+    };
+    autocomplete?: boolean;
+    autosave?: boolean | undefined;
+};
+
+type RequiredSettings = RequiredDeep<Settings>;
+//=> {
+//     textEditor: {
+//         fontSize: number;
+//         fontColor: string;
+//         fontWeight: number | undefined;
+//     };
+//     autocomplete: boolean;
+//     autosave: boolean | undefined;
+// }
+```
+
+Note that types containing overloaded functions are not made deeply required due to a [TypeScript limitation](https://github.com/microsoft/TypeScript/issues/29732).
+
+@category Utilities
+@category Object
+@category Array
+@category Set
+@category Map
+*/
+````
 
 ## Further reading
 

@@ -3,6 +3,14 @@
 Require TypeFest `SetRequired<T, Keys>` over imported aliases like
 `RequiredBy`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type references that resolve to imported `RequiredBy` aliases.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type references that resolve to imported `RequiredBy` aliases.
@@ -37,7 +45,7 @@ type CompleteUser = SetRequired<User, "id">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { RequiredBy } from "type-aliases";
@@ -45,7 +53,7 @@ import type { RequiredBy } from "type-aliases";
 type Complete = RequiredBy<User, "id">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { SetRequired } from "type-fest";
@@ -53,7 +61,7 @@ import type { SetRequired } from "type-fest";
 type Complete = SetRequired<User, "id">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type Persisted = SetRequired<Order, "id" | "status">;
@@ -77,6 +85,44 @@ export default [
 ## When not to use it
 
 Disable this rule if existing exported alias names are part of a compatibility contract.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/set-required.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/set-required.d.ts)
+
+````ts
+/**
+Create a type that makes the given keys required. The remaining keys are kept as is. The sister of the `SetOptional` type.
+
+Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are required.
+
+@example
+```
+import type {SetRequired} from 'type-fest';
+
+type Foo = {
+    a?: number;
+    b: string;
+    c?: boolean;
+};
+
+type SomeRequired = SetRequired<Foo, 'b' | 'c'>;
+// type SomeRequired = {
+//     a?: number;
+//     b: string; // Was already required and still is.
+//     c: boolean; // Is now required.
+// }
+
+// Set specific indices in an array to be required.
+type ArrayExample = SetRequired<[number?, number?, number?], 0 | 1>;
+//=> [number, number, number?]
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

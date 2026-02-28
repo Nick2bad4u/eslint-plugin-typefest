@@ -11,7 +11,7 @@ It is designed for consistency, not aggressive rewriting. Replacing third-party
 aliases such as `RecordDeep` with `Schema` is usually straightforward, but you
 should still validate semantics if your old utility had custom behavior.
 
-## What it checks
+## What this rule reports
 
 - Imported `RecordDeep` aliases used as identifier type references.
 
@@ -22,7 +22,7 @@ should still validate semantics if your old utility had custom behavior.
 - ❌ Does not report namespace-qualified usages such as `TypeUtils.RecordDeep<...>`.
 - ❌ Does not auto-fix.
 
-## Why
+## Why this rule exists
 
 `Schema` is the canonical TypeFest utility for deep value-shape transformation across object types. Standardized naming helps readers recognize intent immediately.
 
@@ -54,7 +54,7 @@ type Flags = Schema<Config, boolean>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { RecordDeep } from "custom-type-utils";
@@ -62,7 +62,7 @@ import type { RecordDeep } from "custom-type-utils";
 type AuditMask = RecordDeep<UserProfile, "REDACTED">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { Schema } from "type-fest";
@@ -70,7 +70,7 @@ import type { Schema } from "type-fest";
 type AuditMask = Schema<UserProfile, "REDACTED">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type FeatureFlags = Schema<EnvironmentConfig, boolean>;
@@ -94,6 +94,58 @@ export default [
 ## When not to use it
 
 Disable this rule if existing deep-shape aliases encode custom semantics that differ from `Schema`.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/schema.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/schema.d.ts)
+
+````ts
+/**
+Create a deep version of another object type where property values are recursively replaced into a given value type.
+
+Use-cases:
+- Form validation: Define how each field should be validated.
+- Form settings: Define configuration for input fields.
+- Parsing: Define types that specify special behavior for specific fields.
+
+@example
+```
+import type {Schema} from 'type-fest';
+
+type User = {
+    id: string;
+    name: {
+        firstname: string;
+        lastname: string;
+    };
+    created: Date;
+    active: boolean;
+    passwordHash: string;
+    location: [latitude: number, longitude: number];
+};
+
+type UserMask = Schema<User, 'mask' | 'hide' | 'show'>;
+
+const userMaskSettings: UserMask = {
+    id: 'show',
+    name: {
+        firstname: 'show',
+        lastname: 'mask',
+    },
+    created: 'show',
+    active: 'show',
+    passwordHash: 'hide',
+    location: ['hide', 'hide'],
+};
+```
+
+@see {@link SchemaOptions}
+
+@category Object
+*/
+````
 
 ## Further reading
 

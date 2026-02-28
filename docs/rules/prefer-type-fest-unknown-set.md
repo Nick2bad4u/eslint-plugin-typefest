@@ -2,6 +2,14 @@
 
 Require TypeFest `UnknownSet` over `ReadonlySet<unknown>`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `ReadonlySet<unknown>` type references.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `ReadonlySet<unknown>` type references.
@@ -30,19 +38,19 @@ type Keys = UnknownSet;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Keys = ReadonlySet<unknown>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Keys = UnknownSet;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type DynamicSet = UnknownSet;
@@ -66,6 +74,38 @@ export default [
 ## When not to use it
 
 Disable this rule if exported type names must remain unchanged.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/unknown-set.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-set.d.ts)
+
+````ts
+/**
+Represents a set with `unknown` value.
+
+Use case: You want a type that all sets can be assigned to, but you don't care about the value.
+
+@example
+```
+import type {UnknownSet} from 'type-fest';
+
+type IsSet<T> = T extends UnknownSet ? true : false;
+
+type A = IsSet<Set<string>>;
+//=> true
+
+type B = IsSet<ReadonlySet<number>>;
+//=> true
+
+type C = IsSet<string>;
+//=> false
+```
+
+@category Type
+*/
+````
 
 ## Further reading
 

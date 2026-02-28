@@ -6,11 +6,11 @@ Require TypeFest `NonEmptyTuple` over the ad-hoc `readonly [T, ...T[]]` tuple pa
 
 This rule targets ad-hoc tuple-rest patterns that encode non-empty collections.
 
-## What it checks
+## What this rule reports
 
 - `readonly [T, ...T[]]`
 
-## Why
+## Why this rule exists
 
 `NonEmptyTuple<T>` is a well-known TypeFest alias that communicates the intent of a non-empty tuple and keeps shared utility-type usage consistent across codebases.
 
@@ -34,19 +34,19 @@ type Names = NonEmptyTuple<string>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Names = readonly [string, ...string[]];
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Names = NonEmptyTuple<string>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type Steps = NonEmptyTuple<{ id: string }>;
@@ -70,6 +70,36 @@ export default [
 ## When not to use it
 
 Disable this rule if existing tuple spellings must remain for public compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/non-empty-tuple.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/non-empty-tuple.d.ts)
+
+````ts
+/**
+Matches any non-empty tuple.
+
+@example
+```
+import type {NonEmptyTuple} from 'type-fest';
+
+const sum = (...numbers: NonEmptyTuple<number>) => numbers.reduce((total, value) => total + value, 0);
+
+sum(1, 2, 3);
+// Ok
+
+// @ts-expect-error
+sum();
+// Error: Expected at least 1 arguments, but got 0.
+```
+
+@see {@link RequireAtLeastOne} for objects
+
+@category Array
+*/
+````
 
 ## Further reading
 

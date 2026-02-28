@@ -1,20 +1,16 @@
 # prefer-ts-extras-object-values
 
-Prefer [`objectValues`](https://github.com/sindresorhus/ts-extras#objectvalues) from `ts-extras` over `Object.values(...)`.
+Prefer [`objectValues`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-values.ts) from `ts-extras` over `Object.values(...)`.
 
 `objectValues(...)` preserves stronger value typing and keeps value iteration contracts explicit.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const values = Object.values(siteStateMap);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `Object.values(value)` call sites that can use `objectValues(value)`.
 
-```ts
-const values = objectValues(siteStateMap);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const values = objectValues(siteStateMap);
 - Downstream map/filter code needs fewer local casts.
 - Value extraction style stays consistent across modules.
 
+## ❌ Incorrect
+
+```ts
+const values = Object.values(siteStateMap);
+```
+
+## ✅ Correct
+
+```ts
+const values = objectValues(siteStateMap);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics align with `Object.values` (own enumerable string-keyed values).
@@ -36,19 +44,19 @@ const values = objectValues(siteStateMap);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const values = Object.values(features);
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const values = objectValues(features);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const labels = objectValues(enumLikeObject);
@@ -72,6 +80,37 @@ export default [
 ## When not to use it
 
 Disable this rule if direct `Object.values` calls are required for interop constraints.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/object-values.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-values.ts)
+
+````ts
+/**
+A strongly-typed version of `Object.values()`.
+
+This is useful since `Object.values()` always returns `T[]`. This function returns a strongly-typed array of the values of the given object.
+
+- [TypeScript issues about this](https://github.com/microsoft/TypeScript/pull/12253)
+
+@example
+```
+import {objectValues} from 'ts-extras';
+
+const object: {a: number; b?: string} = {a: 1, b: 'hello'};
+
+const stronglyTypedValues = objectValues(object);
+//=> Array<number | string>
+
+const untypedValues = Object.values(object);
+//=> Array<string | number | undefined>
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

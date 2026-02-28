@@ -2,6 +2,14 @@
 
 Require TypeFest `SetOptional<T, Keys>` over imported aliases like `PartialBy`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type references that resolve to imported `PartialBy` aliases.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type references that resolve to imported `PartialBy` aliases.
@@ -34,7 +42,7 @@ type PartialUser = SetOptional<User, "email">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { PartialBy } from "type-aliases";
@@ -42,7 +50,7 @@ import type { PartialBy } from "type-aliases";
 type Draft = PartialBy<User, "email">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { SetOptional } from "type-fest";
@@ -50,7 +58,7 @@ import type { SetOptional } from "type-fest";
 type Draft = SetOptional<User, "email">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type PartialAddress = SetOptional<Address, "line2">;
@@ -74,6 +82,40 @@ export default [
 ## When not to use it
 
 Disable this rule if external contracts require preserving existing aliases.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/set-optional.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/set-optional.d.ts)
+
+````ts
+/**
+Create a type that makes the given keys optional. The remaining keys are kept as is. The sister of the `SetRequired` type.
+
+Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are optional.
+
+@example
+```
+import type {SetOptional} from 'type-fest';
+
+type Foo = {
+    a: number;
+    b?: string;
+    c: boolean;
+};
+
+type SomeOptional = SetOptional<Foo, 'b' | 'c'>;
+// type SomeOptional = {
+//     a: number;
+//     b?: string; // Was already optional and still is.
+//     c?: boolean; // Is now optional.
+// }
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

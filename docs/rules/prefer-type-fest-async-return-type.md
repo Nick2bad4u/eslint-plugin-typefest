@@ -6,11 +6,11 @@ Require TypeFest `AsyncReturnType<T>` over `Awaited<ReturnType<T>>` compositions
 
 This rule targets nested built-in utility compositions used for async return extraction.
 
-## What it checks
+## What this rule reports
 
 - Type references shaped like `Awaited<ReturnType<T>>`.
 
-## Why
+## Why this rule exists
 
 `AsyncReturnType<T>` is easier to scan and more explicit about intent than stacking two utility types. Using the TypeFest alias also keeps async return extraction conventions consistent across the codebase.
 
@@ -34,19 +34,19 @@ type Output = AsyncReturnType<typeof fetchData>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Data = Awaited<ReturnType<typeof fetchUser>>; // Repeated built-in composition
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Data = AsyncReturnType<typeof fetchUser>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type MutationResult = AsyncReturnType<typeof saveSettings>;
@@ -70,6 +70,38 @@ export default [
 ## When not to use it
 
 Disable this rule if explicit built-in utility composition is required for local style consistency.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/async-return-type.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/async-return-type.d.ts)
+
+````ts
+/**
+Unwrap the return type of a function that returns a `Promise`.
+
+There has been [discussion](https://github.com/microsoft/TypeScript/pull/35998) about implementing this type in TypeScript.
+
+@example
+```ts
+import type {AsyncReturnType} from 'type-fest';
+
+declare function asyncFunction(): Promise<{foo: string}>;
+
+// This type resolves to the unwrapped return type of `asyncFunction`.
+type Value = AsyncReturnType<typeof asyncFunction>;
+//=> {foo: string}
+
+declare function doSomething(value: Value): void;
+
+const value = await asyncFunction();
+doSomething(value);
+```
+
+@category Async
+*/
+````
 
 ## Further reading
 

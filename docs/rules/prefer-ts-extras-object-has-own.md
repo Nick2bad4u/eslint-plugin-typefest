@@ -1,8 +1,16 @@
 # prefer-ts-extras-object-has-own
 
-Require `objectHasOwn` from `ts-extras` over `Object.hasOwn` when checking own properties.
+Require [`objectHasOwn`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-has-own.ts) from `ts-extras` over `Object.hasOwn` when checking own properties.
 
-## What it checks
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Calls to `Object.hasOwn(...)` in runtime source files and typed rule fixtures.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
 
 - Calls to `Object.hasOwn(...)` in runtime source files and typed rule fixtures.
 
@@ -38,7 +46,7 @@ if (objectHasOwn(record, key)) {
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (Object.hasOwn(data, "id")) {
@@ -46,7 +54,7 @@ if (Object.hasOwn(data, "id")) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (objectHasOwn(data, "id")) {
@@ -54,7 +62,7 @@ if (objectHasOwn(data, "id")) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const isOwn = objectHasOwn(record, field);
@@ -78,6 +86,40 @@ export default [
 ## When not to use it
 
 Disable this rule if you intentionally rely on prototype-chain checks (`in`/`Reflect.has`) or if runtime helper dependencies are disallowed in your environment.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/object-has-own.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-has-own.ts)
+
+````ts
+/**
+A strongly-typed version of `Object.hasOwn()` that narrows the object type.
+
+This function performs __object narrowing__ for own properties only - it adds the checked property to the object's type, allowing safe property access. Does not check the prototype chain.
+
+Unlike `objectHasIn` (includes inherited) and `keyIn` (key narrowing), this narrows the _object_ type to include only own properties.
+
+@example
+```
+import {objectHasOwn} from 'ts-extras';
+
+const data: unknown = {foo: 1};
+
+if (objectHasOwn(data, 'foo')) {
+    // `data` is now: unknown & {foo: unknown}
+    console.log(data.foo); // Safe access to own property
+}
+
+objectHasOwn({}, 'toString');
+//=> false (inherited property, not own)
+```
+
+@category Improved builtin
+@category Type guard
+*/
+````
 
 ## Further reading
 

@@ -9,7 +9,7 @@ This rule reports imported `OneOf`/`RequireOnlyOne` aliases and prefers `Require
 Use this when callers must choose one mode, not multiple modes (for example,
 `id` _or_ `slug`, `apiKey` _or_ `token`).
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `OneOf` aliases.
 - Type references that resolve to imported `RequireOnlyOne` aliases.
@@ -20,7 +20,7 @@ Use this when callers must choose one mode, not multiple modes (for example,
 - ❌ Does not report namespace-qualified alias usage.
 - ❌ Does not auto-fix.
 
-## Why
+## Why this rule exists
 
 `RequireExactlyOne` is the canonical TypeFest utility for enforcing exactly one active key among a set. Using the canonical name reduces semantic drift between utility libraries.
 
@@ -57,7 +57,7 @@ type Auth = RequireExactlyOne<{
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { RequireOnlyOne } from "custom-type-utils";
@@ -72,7 +72,7 @@ type LookupInput = RequireOnlyOne<
 >;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { RequireExactlyOne } from "type-fest";
@@ -87,7 +87,7 @@ type LookupInput = RequireExactlyOne<
 >;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type AuthInput = RequireExactlyOne<
@@ -114,6 +114,44 @@ export default [
 ## When not to use it
 
 Disable this rule if compatibility requirements force existing alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/require-exactly-one.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/require-exactly-one.d.ts)
+
+````ts
+/**
+Create a type that requires exactly one of the given keys and disallows more. The remaining keys are kept as is.
+
+Use-cases:
+- Creating interfaces for components that only need one of the keys to display properly.
+- Declaring generic keys in a single place for a single use-case that gets narrowed down via `RequireExactlyOne`.
+
+The caveat with `RequireExactlyOne` is that TypeScript doesn't always know at compile time every key that will exist at runtime. Therefore `RequireExactlyOne` can't do anything to prevent extra keys it doesn't know about.
+
+@example
+```
+import type {RequireExactlyOne} from 'type-fest';
+
+type Responder = {
+    text: () => string;
+    json: () => string;
+    secure: boolean;
+};
+
+const responder: RequireExactlyOne<Responder, 'text' | 'json'> = {
+    // Adding a `text` key here would cause a compile error.
+
+    json: () => '{"message": "ok"}',
+    secure: true,
+};
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

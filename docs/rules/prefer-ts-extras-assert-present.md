@@ -1,10 +1,10 @@
 # prefer-ts-extras-assert-present
 
-Require `assertPresent()` from `ts-extras` over manual `== null` throw guards.
+Require [`assertPresent`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-present.ts) from `ts-extras` over manual `== null` throw guards.
 
-## What this rule reports
+## Targeted pattern scope
 
-Throw-only nullish guard blocks that can be replaced with `assertPresent(value)`.
+This rule focuses on throw-only nullish guards that map directly to `assertPresent(value)`.
 
 ### Matched patterns
 
@@ -21,6 +21,12 @@ reported.
 - ❌ Does not report a `null`-only guard (`value === null`) or `undefined`-only guard.
 - ❌ Does not report branches that do more than throw.
 - ❌ Does not auto-fix.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
+
+Throw-only nullish guard blocks that can be replaced with `assertPresent(value)`.
 
 ## Why this rule exists
 
@@ -51,7 +57,7 @@ assertPresent(payload);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (input === null || input === undefined) {
@@ -59,13 +65,13 @@ if (input === null || input === undefined) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 assertPresent(input);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 assertPresent(currentUser);
@@ -90,6 +96,34 @@ export default [
 ## When not to use it
 
 Disable this rule if your domain code requires custom error payloads inline at each nullish guard.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/assert-present.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-present.ts)
+
+````ts
+/**
+Assert that the given value is present (non-nullable), meaning it is neither `null` nor `undefined`.
+
+If the value is not present (`undefined` or `null`), a helpful `TypeError` will be thrown.
+
+@example
+```
+import {assertPresent} from 'ts-extras';
+
+const unicorn = 'unicorn';
+assertPresent(unicorn);
+
+const notUnicorn = null;
+assertPresent(notUnicorn);
+//=> TypeError: Expected a present value, got `null`
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

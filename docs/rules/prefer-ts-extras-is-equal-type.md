@@ -1,14 +1,14 @@
 # prefer-ts-extras-is-equal-type
 
-Prefer [`isEqualType`](https://github.com/sindresorhus/ts-extras#isequaltype) from `ts-extras` over `IsEqual<T, U>` boolean assertion variables.
+Prefer [`isEqualType`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-equal-type.ts) from `ts-extras` over `IsEqual<T, U>` boolean assertion variables.
 
-## Targeted assertion pattern
+## Targeted pattern scope
 
 This rule targets one assertion pattern: `IsEqual<T, U>` variables initialized with literal `true`/`false`, and rewrites them to `isEqualType<T, U>()`.
 
 The focus is narrow on assertion-style declarations so migration stays deterministic and avoids changing unrelated type aliases.
 
-## What it checks
+## What this rule reports
 
 This rule intentionally targets a narrow assertion pattern:
 
@@ -22,7 +22,7 @@ This rule intentionally targets a narrow assertion pattern:
 - ❌ Does not report type aliases (`type X = IsEqual<A, B>`).
 - ❌ Does not report variables initialized from expressions (`someCondition`) instead of boolean literals.
 
-## Why
+## Why this rule exists
 
 `isEqualType<T, U>()` expresses compile-time type equality checks for assertion-style code and avoids manual boolean literal scaffolding.
 
@@ -53,7 +53,7 @@ const typeCheck = isEqualType<Foo, Bar>();
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type * as TypeFest from "type-fest";
@@ -61,7 +61,7 @@ import type * as TypeFest from "type-fest";
 const dtoMatchesModel: TypeFest.IsEqual<UserDto, UserModel> = true;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import { isEqualType } from "ts-extras";
@@ -69,7 +69,7 @@ import { isEqualType } from "ts-extras";
 const dtoMatchesModel = isEqualType<UserDto, UserModel>();
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const idsAreEqual = isEqualType<Id, string>();
@@ -94,6 +94,41 @@ export default [
 ## When not to use it
 
 Disable this rule if your project prefers `type-fest` assertion types directly in declarations and does not want function-form assertion helpers.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-equal-type.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-equal-type.ts)
+
+````ts
+/**
+Check if two types are equal at compile time.
+
+Returns a boolean type (`true` or `false`) at compile time based on whether the types are equal.
+At runtime, this returns nothing (`void`) since it's purely a compile-time utility.
+
+@example
+```
+import {isEqualType} from 'ts-extras';
+
+// Type-level comparison
+const result1 = isEqualType<string, string>(); // Type: true
+const result2 = isEqualType<string, number>(); // Type: false
+
+// Value-level comparison
+const string1 = 'hello';
+const string2 = 'world';
+const number = 42;
+const result3 = isEqualType(string1, string2); // Type: true (both strings)
+const result4 = isEqualType(string1, number);  // Type: false (different types)
+```
+
+@note The runtime value is `void`. This function is designed for compile-time type checking only, not runtime behavior.
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

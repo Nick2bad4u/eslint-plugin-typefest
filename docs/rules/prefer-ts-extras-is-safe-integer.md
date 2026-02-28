@@ -1,20 +1,16 @@
 # prefer-ts-extras-is-safe-integer
 
-Prefer [`isSafeInteger`](https://github.com/sindresorhus/ts-extras#issafeinteger) from `ts-extras` over `Number.isSafeInteger(...)`.
+Prefer [`isSafeInteger`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-safe-integer.ts) from `ts-extras` over `Number.isSafeInteger(...)`.
 
 This keeps predicate usage consistent with other `ts-extras` narrowing helpers.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const isSafe = Number.isSafeInteger(value);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `Number.isSafeInteger(value)` call sites that can use `isSafeInteger(value)`.
 
-```ts
-const isSafe = isSafeInteger(value);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const isSafe = isSafeInteger(value);
 - Predicate style is consistent with `isInteger` and `isFinite`.
 - Guard code for IDs/counters avoids mixed native/helper forms.
 
+## ❌ Incorrect
+
+```ts
+const isSafe = Number.isSafeInteger(value);
+```
+
+## ✅ Correct
+
+```ts
+const isSafe = isSafeInteger(value);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Number.isSafeInteger`.
@@ -36,7 +44,7 @@ const isSafe = isSafeInteger(value);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (Number.isSafeInteger(quantity)) {
@@ -44,7 +52,7 @@ if (Number.isSafeInteger(quantity)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isSafeInteger(quantity)) {
@@ -52,7 +60,7 @@ if (isSafeInteger(quantity)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const supported = isSafeInteger(index);
@@ -76,6 +84,21 @@ export default [
 ## When not to use it
 
 Disable this rule if your team enforces native `Number.isSafeInteger` calls.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-safe-integer.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-safe-integer.ts)
+
+```ts
+/**
+A strongly-typed version of `Number.isSafeInteger()`.
+
+@category Improved builtin
+@category Type guard
+*/
+```
 
 ## Further reading
 

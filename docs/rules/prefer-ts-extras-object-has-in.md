@@ -1,8 +1,16 @@
 # prefer-ts-extras-object-has-in
 
-Require `objectHasIn()` from `ts-extras` over `Reflect.has()`.
+Require [`objectHasIn`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-has-in.ts) from `ts-extras` over `Reflect.has()`.
 
-## What it checks
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `Reflect.has(object, key)` calls.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
 
 - `Reflect.has(object, key)` calls.
 
@@ -38,7 +46,7 @@ if (objectHasIn(record, key)) {
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (Reflect.has(input, "name")) {
@@ -46,7 +54,7 @@ if (Reflect.has(input, "name")) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (objectHasIn(input, "name")) {
@@ -54,7 +62,7 @@ if (objectHasIn(input, "name")) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const canAccess = objectHasIn(candidate, key);
@@ -78,6 +86,44 @@ export default [
 ## When not to use it
 
 Disable this rule if checks must be own-property-only, or if runtime helper dependencies are disallowed in your environment.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/object-has-in.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-has-in.ts)
+
+````ts
+/**
+Check if an object has a property (including inherited) and narrow the object type.
+
+This function performs __object narrowing__ - it adds the checked property to the object's type, allowing safe property access. Uses the `in` operator to check the entire prototype chain.
+
+Unlike `objectHasOwn` (own properties only) and `keyIn` (key narrowing), this narrows the _object_ type to include inherited properties.
+
+@example
+```
+import {objectHasIn} from 'ts-extras';
+
+const data: unknown = {foo: 1};
+
+if (objectHasIn(data, 'foo')) {
+    // `data` is now: unknown & {foo: unknown}
+    console.log(data.foo); // Safe access
+}
+
+// Also checks prototype chain
+if (objectHasIn(data, 'toString')) {
+    // `data` is now: unknown & {toString: unknown}
+    console.log(data.toString); // Safe access to inherited method
+}
+```
+
+@note This uses the `in` operator and checks the entire prototype chain, but blocks `__proto__` and `constructor` for security.
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

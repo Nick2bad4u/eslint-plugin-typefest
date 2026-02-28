@@ -1,11 +1,11 @@
 # prefer-ts-extras-assert-error
 
-Require `assertError()` from `ts-extras` over manual `instanceof Error` throw
+Require [`assertError`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-error.ts) from `ts-extras` over manual `instanceof Error` throw
 guards.
 
-## What this rule reports
+## Targeted pattern scope
 
-Throw-only negative `instanceof Error` guards that can be replaced with `assertError(value)`.
+This rule focuses on throw-only negative `instanceof Error` guards that map directly to `assertError(value)`.
 
 ### Matched patterns
 
@@ -17,10 +17,15 @@ reported.
 ### Detection boundaries
 
 - ✅ Reports negative `instanceof Error` guards wrapped in `!()`.
-- ❌ Does not report positive-form patterns like
-  `if (value instanceof Error) { ... } else { throw ... }`.
+- ❌ Does not report positive-form patterns like `if (value instanceof Error) { ... } else { throw ... }`.
 - ❌ Does not report checks against custom error classes in this rule.
 - ❌ Does not auto-fix.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
+
+Throw-only negative `instanceof Error` guards that can be replaced with `assertError(value)`.
 
 ## Why this rule exists
 
@@ -49,7 +54,7 @@ assertError(error);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (!(reason instanceof Error)) {
@@ -57,13 +62,13 @@ if (!(reason instanceof Error)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 assertError(reason);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 assertError(caughtValue);
@@ -89,6 +94,44 @@ export default [
 
 Disable this rule if your project intentionally avoids runtime helper
 dependencies or enforces a different assertion utility layer.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/assert-error.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-error.ts)
+
+````ts
+/**
+Assert that the given value is an `Error`.
+
+If the value is not an `Error`, a helpful `TypeError` will be thrown.
+
+This can be useful as any value could potentially be thrown, but in practice, it's always an `Error`. However, because of this, TypeScript makes the caught error in a try/catch statement `unknown`, which is inconvenient to deal with.
+
+@example
+```
+import {assertError} from 'ts-extras';
+
+try {
+    fetchUnicorns();
+} catch (error: unknown) {
+    assertError(error);
+
+    // `error` is now of type `Error`
+
+    if (error.message === 'Failed to fetch') {
+        retry();
+        return;
+    }
+
+    throw error;
+}
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

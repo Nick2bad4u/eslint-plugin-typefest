@@ -6,13 +6,13 @@ Prefers TypeFest `Tagged` for branded primitive identifiers over ad-hoc `__brand
 
 This rule targets ad-hoc brand-marker intersections and legacy alias names used for branded primitives.
 
-## What it checks
+## What this rule reports
 
 - Type aliases that use intersection branding with explicit brand-marker fields.
 - Type references that resolve to imported `Opaque` / `Branded` aliases.
 - Existing `Tagged` usage is ignored.
 
-## Why
+## Why this rule exists
 
 `Tagged` provides a standard, reusable branded-type approach that improves consistency and readability.
 
@@ -36,19 +36,19 @@ type UserId = Tagged<string, "UserId">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type OrderId = string & { readonly __tag: "OrderId" };
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type OrderId = Tagged<string, "OrderId">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type TenantId = Tagged<string, "TenantId">;
@@ -72,6 +72,76 @@ export default [
 ## When not to use it
 
 Disable this rule if existing brand encodings must remain for backward compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/tagged.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/tagged.d.ts)
+
+````ts
+/**
+Attach a "tag" to an arbitrary type. This allows you to create distinct types, that aren't assignable to one another, for distinct concepts in your program that should not be interchangeable, even if their runtime values have the same type. (See examples.)
+
+A type returned by `Tagged` can be passed to `Tagged` again, to create a type with multiple tags.
+
+[Read more about tagged types.](https://medium.com/@KevinBGreene/surviving-the-typescript-ecosystem-branding-and-type-tagging-6cf6e516523d)
+
+A tag's name is usually a string (and must be a string, number, or symbol), but each application of a tag can also contain an arbitrary type as its "metadata". See {@link GetTagMetadata} for examples and explanation.
+
+A type `A` returned by `Tagged` is assignable to another type `B` returned by `Tagged` if and only if:
+  - the underlying (untagged) type of `A` is assignable to the underlying type of `B`;
+    - `A` contains at least all the tags `B` has;
+    - and the metadata type for each of `A`'s tags is assignable to the metadata type of `B`'s corresponding tag.
+
+There have been several discussions about adding similar features to TypeScript. Unfortunately, nothing has (yet) moved forward:
+    - [Microsoft/TypeScript#202](https://github.com/microsoft/TypeScript/issues/202)
+    - [Microsoft/TypeScript#4895](https://github.com/microsoft/TypeScript/issues/4895)
+    - [Microsoft/TypeScript#33290](https://github.com/microsoft/TypeScript/pull/33290)
+
+@example
+```
+import type {Tagged} from 'type-fest';
+
+type AccountNumber = Tagged<number, 'AccountNumber'>;
+type AccountBalance = Tagged<number, 'AccountBalance'>;
+
+function createAccountNumber(): AccountNumber {
+    // As you can see, casting from a `number` (the underlying type being tagged) is allowed.
+    return 2 as AccountNumber;
+}
+
+declare function getMoneyForAccount(accountNumber: AccountNumber): AccountBalance;
+
+// This will compile successfully.
+getMoneyForAccount(createAccountNumber());
+
+// But this won't, because it has to be explicitly passed as an `AccountNumber` type!
+// Critically, you could not accidentally use an `AccountBalance` as an `AccountNumber`.
+// @ts-expect-error
+getMoneyForAccount(2);
+
+// You can also use tagged values like their underlying, untagged type.
+// I.e., this will compile successfully because an `AccountNumber` can be used as a regular `number`.
+// In this sense, the underlying base type is not hidden, which differentiates tagged types from opaque types in other languages.
+const accountNumber = createAccountNumber() + 2;
+```
+
+@example
+```
+import type {Tagged} from 'type-fest';
+
+// You can apply multiple tags to a type by using `Tagged` repeatedly.
+type Url = Tagged<string, 'URL'>;
+type SpecialCacheKey = Tagged<Url, 'SpecialCacheKey'>;
+
+// You can also pass a union of tag names, so this is equivalent to the above, although it doesn't give you the ability to assign distinct metadata to each tag.
+type SpecialCacheKey2 = Tagged<string, 'URL' | 'SpecialCacheKey'>;
+```
+
+@category Type
+*/
+````
 
 ## Further reading
 

@@ -1,20 +1,23 @@
 # prefer-ts-extras-is-integer
 
-Prefer [`isInteger`](https://github.com/sindresorhus/ts-extras#isinteger) from `ts-extras` over `Number.isInteger(...)`.
+Prefer [`isInteger`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-integer.ts) from `ts-extras` over `Number.isInteger(...)`.
 
 This keeps predicate usage consistent with other `ts-extras` narrowing helpers.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const isWhole = Number.isInteger(value);
-```
+This rule targets direct integer predicate calls that map to `isInteger(value)`.
 
-## ✅ Correct
+### Matched patterns
 
-```ts
-const isWhole = isInteger(value);
-```
+- `Number.isInteger(value)` call sites that can use `isInteger(value)`.
+
+### Detection boundaries
+
+- ✅ Reports direct `Number.isInteger(...)` predicate calls.
+- ❌ Does not attempt to rewrite broader numeric validation chains or surrounding business logic.
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +31,18 @@ const isWhole = isInteger(value);
 - Native/helper predicate mixing is reduced.
 - Integer validation reads the same across services and packages.
 
+## ❌ Incorrect
+
+```ts
+const isWhole = Number.isInteger(value);
+```
+
+## ✅ Correct
+
+```ts
+const isWhole = isInteger(value);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Number.isInteger`.
@@ -36,7 +51,7 @@ const isWhole = isInteger(value);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (Number.isInteger(retryCount)) {
@@ -44,7 +59,7 @@ if (Number.isInteger(retryCount)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isInteger(retryCount)) {
@@ -52,7 +67,7 @@ if (isInteger(retryCount)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const whole = isInteger(userInput);
@@ -76,6 +91,21 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase requires direct `Number.isInteger` usage.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-integer.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-integer.ts)
+
+```ts
+/**
+A strongly-typed version of `Number.isInteger()`.
+
+@category Improved builtin
+@category Type guard
+*/
+```
 
 ## Further reading
 

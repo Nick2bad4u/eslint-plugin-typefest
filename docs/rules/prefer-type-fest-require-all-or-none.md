@@ -10,7 +10,7 @@ This rule reports imported `AllOrNone`/`AllOrNothing` aliases and prefers `Requi
 Use this utility when fields only make sense as a complete set (for example,
 `username` + `password`, or `country` + `vatId`).
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `AllOrNone` aliases.
 - Type references that resolve to imported `AllOrNothing` aliases.
@@ -21,7 +21,7 @@ Use this utility when fields only make sense as a complete set (for example,
 - ❌ Does not report namespace-qualified alias usage.
 - ❌ Does not auto-fix.
 
-## Why
+## Why this rule exists
 
 `RequireAllOrNone` is the canonical TypeFest utility for expressing atomic key
 groups (either every key in the group exists, or none of them do). Canonical
@@ -54,7 +54,7 @@ type Credentials = RequireAllOrNone<User, "username" | "password">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { AllOrNothing } from "custom-type-utils";
@@ -62,7 +62,7 @@ import type { AllOrNothing } from "custom-type-utils";
 type BillingIdentity = AllOrNothing<OrderInput, "country" | "vatId">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { RequireAllOrNone } from "type-fest";
@@ -70,7 +70,7 @@ import type { RequireAllOrNone } from "type-fest";
 type BillingIdentity = RequireAllOrNone<OrderInput, "country" | "vatId">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type OAuthPair = RequireAllOrNone<AuthInput, "clientId" | "clientSecret">;
@@ -94,6 +94,46 @@ export default [
 ## When not to use it
 
 Disable this rule if existing exported aliases must stay unchanged for compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/require-all-or-none.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/require-all-or-none.d.ts)
+
+````ts
+/**
+Create a type that requires all of the given keys or none of the given keys. The remaining keys are kept as is.
+
+Use-cases:
+- Creating interfaces for components with mutually-inclusive keys.
+
+The caveat with `RequireAllOrNone` is that TypeScript doesn't always know at compile time every key that will exist at runtime. Therefore `RequireAllOrNone` can't do anything to prevent extra keys it doesn't know about.
+
+@example
+```
+import type {RequireAllOrNone} from 'type-fest';
+
+type Responder = {
+    text?: () => string;
+    json?: () => string;
+    secure: boolean;
+};
+
+const responder1: RequireAllOrNone<Responder, 'text' | 'json'> = {
+    secure: true,
+};
+
+const responder2: RequireAllOrNone<Responder, 'text' | 'json'> = {
+    text: () => '{"message": "hi"}',
+    json: () => '{"message": "ok"}',
+    secure: true,
+};
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

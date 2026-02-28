@@ -1,6 +1,18 @@
 # prefer-ts-extras-is-present
 
-Require `isPresent` from `ts-extras` for direct nullish checks outside `Array.prototype.filter` callbacks.
+Require [`isPresent`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-present.ts) from `ts-extras` for direct nullish checks outside `Array.prototype.filter` callbacks.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Direct nullish checks outside `Array.prototype.filter` callbacks:
+- `value != null`
+- `value == null`
+- `value !== null && value !== undefined`
+- `value === null || value === undefined`
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -17,12 +29,6 @@ Require `isPresent` from `ts-extras` for direct nullish checks outside `Array.pr
 - Nullish guard intent is explicit.
 - Narrowing to `NonNullable<T>` follows one convention.
 - Verbose inline nullish checks are removed.
-
-## Behavior and migration notes
-
-- `isPresent(value)` means value is neither `null` nor `undefined`.
-- `!isPresent(value)` is the nullish guard equivalent.
-- Filter-specific nullish patterns are covered by `prefer-ts-extras-is-present-filter`.
 
 ## ❌ Incorrect
 
@@ -48,9 +54,15 @@ if (!isPresent(value)) {
 }
 ```
 
+## Behavior and migration notes
+
+- `isPresent(value)` means value is neither `null` nor `undefined`.
+- `!isPresent(value)` is the nullish guard equivalent.
+- Filter-specific nullish patterns are covered by `prefer-ts-extras-is-present-filter`.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (profile != null) {
@@ -58,7 +70,7 @@ if (profile != null) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isPresent(profile)) {
@@ -66,7 +78,7 @@ if (isPresent(profile)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const available = isPresent(cacheEntry);
@@ -90,6 +102,30 @@ export default [
 ## When not to use it
 
 Disable this rule if your code style requires explicit `=== null` / `=== undefined` branches.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-present.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-present.ts)
+
+````ts
+/**
+Check whether a value is present (non-nullable), meaning it is neither `null` nor `undefined`.
+
+This can be useful as a type guard, as for example, `[1, null].filter(Boolean)` does not always type-guard correctly.
+
+@example
+```
+import {isPresent} from 'ts-extras';
+
+[1, null, 2, undefined].filter(isPresent);
+//=> [1, 2]
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

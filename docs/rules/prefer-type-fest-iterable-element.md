@@ -2,6 +2,16 @@
 
 Require TypeFest `IterableElement<T>` over imported aliases like `SetElement`, `SetEntry`, and `SetValues`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type references that resolve to imported `SetElement` aliases.
+- Type references that resolve to imported `SetEntry` aliases.
+- Type references that resolve to imported `SetValues` aliases.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type references that resolve to imported `SetElement` aliases.
@@ -36,7 +46,7 @@ type Value = IterableElement<Set<string>>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { SetElement } from "type-aliases";
@@ -44,7 +54,7 @@ import type { SetElement } from "type-aliases";
 type Item = SetElement<Set<number>>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { IterableElement } from "type-fest";
@@ -52,7 +62,7 @@ import type { IterableElement } from "type-fest";
 type Item = IterableElement<Set<number>>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type StreamChunk = IterableElement<AsyncIterable<string>>;
@@ -76,6 +86,73 @@ export default [
 ## When not to use it
 
 Disable this rule if compatibility requires preserving external alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/iterable-element.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/iterable-element.d.ts)
+
+````ts
+/**
+Get the element type of an `Iterable`/`AsyncIterable`. For example, `Array`, `Set`, `Map`, generator, stream, etc.
+
+This can be useful, for example, if you want to get the type that is yielded in a generator function. Often the return type of those functions are not specified.
+
+This type works with both `Iterable`s and `AsyncIterable`s, so it can be use with synchronous and asynchronous generators.
+
+Here is an example of `IterableElement` in action with a generator function:
+
+@example
+```
+import type {IterableElement} from 'type-fest';
+
+function * iAmGenerator() {
+    yield 1;
+    yield 2;
+}
+
+type MeNumber = IterableElement<ReturnType<typeof iAmGenerator>>;
+```
+
+And here is an example with an async generator:
+
+@example
+```
+import type {IterableElement} from 'type-fest';
+
+async function * iAmGeneratorAsync() {
+    yield 'hi';
+    yield true;
+}
+
+type MeStringOrBoolean = IterableElement<ReturnType<typeof iAmGeneratorAsync>>;
+```
+
+Many types in JavaScript/TypeScript are iterables. This type works on all types that implement those interfaces.
+
+An example with an array of strings:
+
+@example
+```
+import type {IterableElement} from 'type-fest';
+
+type MeString = IterableElement<string[]>;
+```
+
+@example
+```
+import type {IterableElement} from 'type-fest';
+
+const fruits = new Set(['🍎', '🍌', '🍉'] as const);
+
+type Fruit = IterableElement<typeof fruits>;
+//=> '🍎' | '🍌' | '🍉'
+```
+
+@category Iterable
+*/
+````
 
 ## Further reading
 

@@ -1,20 +1,16 @@
 # prefer-ts-extras-string-split
 
-Prefer [`stringSplit`](https://github.com/sindresorhus/ts-extras#stringsplit) from `ts-extras` over `string.split(...)`.
+Prefer [`stringSplit`](https://github.com/sindresorhus/ts-extras/blob/main/source/string-split.ts) from `ts-extras` over `string.split(...)`.
 
 `stringSplit(...)` can preserve stronger tuple-like inference for literal separators.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const parts = monitorKey.split(":");
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `string.split(separator)` call sites that can use `stringSplit(string, separator)`.
 
-```ts
-const parts = stringSplit(monitorKey, ":");
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const parts = stringSplit(monitorKey, ":");
 - Destructuring from split results is easier to type in strict code.
 - Native/helper split styles are not mixed.
 
+## ❌ Incorrect
+
+```ts
+const parts = monitorKey.split(":");
+```
+
+## ✅ Correct
+
+```ts
+const parts = stringSplit(monitorKey, ":");
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `String.prototype.split`.
@@ -36,19 +44,19 @@ const parts = stringSplit(monitorKey, ":");
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const [major, minor] = version.split(".");
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const [major, minor] = stringSplit(version, ".");
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const pathParts = stringSplit(route, "/");
@@ -72,6 +80,42 @@ export default [
 ## When not to use it
 
 Disable this rule if your code style standardizes on direct `.split()` usage.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/string-split.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/string-split.ts)
+
+````ts
+/**
+A strongly-typed version of `String#split()` that returns a tuple for literal strings.
+
+@example
+```
+import {stringSplit} from 'ts-extras';
+
+const parts = stringSplit('foo-bar-baz', '-');
+//=> ['foo', 'bar', 'baz']
+//   ^? ['foo', 'bar', 'baz']
+
+const [first, second] = stringSplit('top-left', '-');
+//=> first: 'top', second: 'left'
+
+const placement = 'top-start' as const;
+const side = stringSplit(placement, '-')[0];
+//=> 'top'
+//   ^? 'top'
+
+// Dynamic strings return string[]
+const dynamic: string = 'a-b-c';
+const dynamicParts = stringSplit(dynamic, '-');
+//=> string[]
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

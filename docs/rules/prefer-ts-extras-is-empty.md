@@ -1,6 +1,16 @@
 # prefer-ts-extras-is-empty
 
-Require `isEmpty()` from `ts-extras` over direct `array.length === 0` checks.
+Require [`isEmpty`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-empty.ts) from `ts-extras` over direct `array.length === 0` checks.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Direct empty-array checks using length equality:
+- `array.length === 0`
+- `0 === array.length`
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -15,12 +25,6 @@ Require `isEmpty()` from `ts-extras` over direct `array.length === 0` checks.
 - Emptiness checks are easier to search and standardize.
 - Predicate style is consistent with other `ts-extras` guards.
 - Repeated comparison variants are removed from call sites.
-
-## Behavior and migration notes
-
-- `isEmpty(array)` is equivalent to `array.length === 0`.
-- Use `!isEmpty(array)` for non-empty checks.
-- This rule is about array emptiness checks, not object key-count checks.
 
 ## ❌ Incorrect
 
@@ -38,9 +42,15 @@ if (isEmpty(items)) {
 }
 ```
 
+## Behavior and migration notes
+
+- `isEmpty(array)` is equivalent to `array.length === 0`.
+- Use `!isEmpty(array)` for non-empty checks.
+- This rule is about array emptiness checks, not object key-count checks.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (items.length === 0) {
@@ -48,7 +58,7 @@ if (items.length === 0) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (isEmpty(items)) {
@@ -56,7 +66,7 @@ if (isEmpty(items)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const hasRows = !isEmpty(rows);
@@ -80,6 +90,41 @@ export default [
 ## When not to use it
 
 Disable this rule if your team requires direct `.length` comparisons for emptiness checks.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-empty.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-empty.ts)
+
+````ts
+/**
+Check whether an array is empty.
+
+This is useful because doing `array.length === 0` on its own won't work as a type-guard.
+
+@example
+```
+import {isEmpty} from 'ts-extras';
+
+isEmpty([1, 2, 3]);
+//=> false
+
+isEmpty([]);
+//=> true
+
+// Works with tuples
+const tuple: [string, number] | [] = Math.random() > 0.5 ? ['hello', 42] : [];
+if (isEmpty(tuple)) {
+    // tuple is now typed as []
+} else {
+    // tuple is now typed as [string, number]
+}
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

@@ -6,7 +6,7 @@ Require TypeFest `Primitive` over explicit unions of primitive keyword types.
 
 This rule targets full primitive keyword unions used as standalone scalar aliases.
 
-## What it checks
+## What this rule reports
 
 - Unions composed of all primitive keyword types:
   - `string`
@@ -17,7 +17,7 @@ This rule targets full primitive keyword unions used as standalone scalar aliase
   - `null`
   - `undefined`
 
-## Why
+## Why this rule exists
 
 `Primitive` communicates intent directly and avoids repeating a long union in multiple places.
 
@@ -41,19 +41,19 @@ type PrimitiveValue = Primitive;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Scalar = string | number | bigint | boolean | symbol | null | undefined;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Scalar = Primitive;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type LeafValue = Primitive;
@@ -77,6 +77,20 @@ export default [
 ## When not to use it
 
 Disable this rule if explicit primitive unions are part of a published API contract.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/primitive.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/primitive.d.ts)
+
+```ts
+/**
+Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
+
+@category Type
+*/
+```
 
 ## Further reading
 

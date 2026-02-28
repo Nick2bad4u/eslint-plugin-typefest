@@ -2,6 +2,14 @@
 
 Require TypeFest `Promisable<T>` for sync-or-async callback contracts currently expressed as `Promise<T> | T` unions.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type unions shaped like `Promise<T> | T` in architecture-critical runtime layers.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type unions shaped like `Promise<T> | T` in architecture-critical runtime layers.
@@ -30,19 +38,19 @@ type HookResult = Promisable<Result>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type MaybeAsync = Result | Promise<Result>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type MaybeAsync = Promisable<Result>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type HookOutput = Promisable<void>;
@@ -66,6 +74,39 @@ export default [
 ## When not to use it
 
 Disable this rule if runtime policy requires explicitly spelling out promise unions.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/promisable.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/promisable.d.ts)
+
+````ts
+/**
+Create a type that represents either the value or the value wrapped in `PromiseLike`.
+
+Use-cases:
+- A function accepts a callback that may either return a value synchronously or may return a promised value.
+- This type could be the return type of `Promise#then()`, `Promise#catch()`, and `Promise#finally()` callbacks.
+
+Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/31394) if you want to have this type as a built-in in TypeScript.
+
+@example
+```
+import type {Promisable} from 'type-fest';
+
+async function logger(getLogEntry: () => Promisable<string>): Promise<void> {
+    const entry = await getLogEntry();
+    console.log(entry);
+}
+
+await logger(() => 'foo');
+await logger(() => Promise.resolve('bar'));
+```
+
+@category Async
+*/
+````
 
 ## Further reading
 

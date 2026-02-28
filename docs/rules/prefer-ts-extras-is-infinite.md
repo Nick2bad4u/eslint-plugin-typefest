@@ -1,6 +1,17 @@
 # prefer-ts-extras-is-infinite
 
-Require `isInfinite()` from `ts-extras` over direct Infinity equality checks.
+Require [`isInfinite`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-infinite.ts) from `ts-extras` over direct Infinity equality checks.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Direct infinity equality checks:
+- `value === Infinity`
+- `value === Number.POSITIVE_INFINITY`
+- `value === Number.NEGATIVE_INFINITY`
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -17,12 +28,6 @@ Require `isInfinite()` from `ts-extras` over direct Infinity equality checks.
 - Mixed positive/negative infinity comparisons are normalized.
 - Numeric guard code is easier to audit.
 
-## Behavior and migration notes
-
-- `isInfinite(value)` covers both `Infinity` and `-Infinity`.
-- Finite numbers and `NaN` return `false`.
-- This rule targets direct equality checks, not broader numeric validation chains.
-
 ## ❌ Incorrect
 
 ```ts
@@ -35,21 +40,27 @@ const infinite = value === Infinity || value === Number.NEGATIVE_INFINITY;
 const infinite = isInfinite(value);
 ```
 
+## Behavior and migration notes
+
+- `isInfinite(value)` covers both `Infinity` and `-Infinity`.
+- Finite numbers and `NaN` return `false`.
+- This rule targets direct equality checks, not broader numeric validation chains.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const bad = value === Infinity || value === Number.NEGATIVE_INFINITY;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const bad = isInfinite(value);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 if (isInfinite(rate)) {
@@ -75,6 +86,37 @@ export default [
 ## When not to use it
 
 Disable this rule if direct infinity constant comparisons are required in generated code.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-infinite.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-infinite.ts)
+
+````ts
+/**
+Check whether a value is infinite.
+
+@example
+```
+import {isInfinite} from 'ts-extras';
+
+isInfinite(Number.POSITIVE_INFINITY);
+//=> true
+
+isInfinite(Number.NEGATIVE_INFINITY);
+//=> true
+
+isInfinite(42);
+//=> false
+
+isInfinite(Number.NaN);
+//=> false
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

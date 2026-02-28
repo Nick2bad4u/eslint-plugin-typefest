@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-find-last-index
 
-Prefer [`arrayFindLastIndex`](https://github.com/sindresorhus/ts-extras#arrayfindlastindex) from `ts-extras` over `array.findLastIndex(...)`.
+Prefer [`arrayFindLastIndex`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-find-last-index.ts) from `ts-extras` over `array.findLastIndex(...)`.
 
 `arrayFindLastIndex(...)` improves predicate inference in typed arrays.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const index = monitors.findLastIndex((entry) => entry.id === targetId);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
 
-```ts
-const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
 - Search code avoids mixed native/helper patterns.
 - Index-based follow-up logic stays uniform across modules.
 
+## ❌ Incorrect
+
+```ts
+const index = monitors.findLastIndex((entry) => entry.id === targetId);
+```
+
+## ✅ Correct
+
+```ts
+const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
+```
+
 ## Behavior and migration notes
 
 - Runtime behavior matches native `Array.prototype.findLastIndex`.
@@ -36,19 +44,19 @@ const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const index = logs.findLastIndex((entry) => entry.level === "warn");
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const index = arrayFindLastIndex(logs, (entry) => entry.level === "warn");
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const retryIndex = arrayFindLastIndex(attempts, (attempt) => !attempt.success);
@@ -72,6 +80,17 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase has standardized on native `.findLastIndex()`.
+
+## Package documentation
+
+ts-extras package documentation:
+
+`ts-extras@0.17.x` does not currently expose `arrayFindLastIndex` in its published API, so there is no canonical `source/*.ts` link for this helper yet.
+
+Reference links:
+
+- [`ts-extras` API list (README)](https://github.com/sindresorhus/ts-extras/blob/main/readme.md#api)
+- [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
 
 ## Further reading
 

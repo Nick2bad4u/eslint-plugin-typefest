@@ -2,6 +2,14 @@
 
 Prefers `UnknownRecord` from TypeFest over `Record<string, unknown>` in architecture-critical layers.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `Record<string, unknown>` type references in configured boundary paths (for example shared contracts and IPC-adjacent layers).
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `Record<string, unknown>` type references in configured boundary paths (for example shared contracts and IPC-adjacent layers).
@@ -30,19 +38,19 @@ type Payload = UnknownRecord;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Input = Record<string, unknown>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Input = UnknownRecord;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type EventPayload = UnknownRecord;
@@ -66,6 +74,45 @@ export default [
 ## When not to use it
 
 Disable this rule if a public contract requires preserving existing record alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/unknown-record.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-record.d.ts)
+
+````ts
+/**
+Represents an object with `unknown` value. You probably want this instead of `{}`.
+
+Use case: You have an object whose keys and values are unknown to you.
+
+@example
+```
+import type {UnknownRecord} from 'type-fest';
+
+function toJson(object: UnknownRecord) {
+    return JSON.stringify(object);
+}
+
+toJson({hello: 'world'}); // Ok
+
+function isObject(value: unknown): value is UnknownRecord {
+    return typeof value === 'object' && value !== null;
+}
+
+const value: unknown = {hello: 'world'};
+
+if (isObject(value)) {
+    const v = value;
+    //=> UnknownRecord
+}
+```
+
+@category Type
+@category Object
+*/
+````
 
 ## Further reading
 

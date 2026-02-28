@@ -87,6 +87,16 @@ const getUndefinedInequalityMatch = (
         };
     }
 
+    if (
+        isTypeofParameter(body.right, parameterName) &&
+        isUndefinedStringLiteral(body.left)
+    ) {
+        return {
+            comparedExpression: body.right.argument,
+            operator: body.operator,
+        };
+    }
+
     return null;
 };
 

@@ -2,6 +2,15 @@
 
 Require TypeFest `UnknownArray` over `readonly unknown[]` and `ReadonlyArray<unknown>`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `readonly unknown[]`
+- `ReadonlyArray<unknown>`
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `readonly unknown[]`
@@ -31,19 +40,19 @@ type Values = UnknownArray;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Input = readonly unknown[];
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Input = UnknownArray;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type PayloadList = UnknownArray;
@@ -67,6 +76,39 @@ export default [
 ## When not to use it
 
 Disable this rule if external API signatures must preserve existing alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/unknown-array.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-array.d.ts)
+
+````ts
+/**
+Represents an array with `unknown` value.
+
+Use case: You want a type that all arrays can be assigned to, but you don't care about the value.
+
+@example
+```
+import type {UnknownArray} from 'type-fest';
+
+type IsArray<T> = T extends UnknownArray ? true : false;
+
+type A = IsArray<['foo']>;
+//=> true
+
+type B = IsArray<readonly number[]>;
+//=> true
+
+type C = IsArray<string>;
+//=> false
+```
+
+@category Type
+@category Array
+*/
+````
 
 ## Further reading
 

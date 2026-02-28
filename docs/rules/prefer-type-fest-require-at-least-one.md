@@ -10,7 +10,7 @@ This rule reports imported `AtLeastOne` aliases and prefers `RequireAtLeastOne<T
 It is especially valuable for search DTOs and patch/update payloads where
 empty objects should be rejected at compile time.
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `AtLeastOne` aliases.
 
@@ -20,7 +20,7 @@ empty objects should be rejected at compile time.
 - ❌ Does not report namespace-qualified aliases.
 - ❌ Does not auto-fix.
 
-## Why
+## Why this rule exists
 
 `RequireAtLeastOne` is the canonical TypeFest utility for enforcing at least one
 required key among a set of optional candidates. Standardizing on canonical
@@ -53,7 +53,7 @@ type Update = RequireAtLeastOne<User>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { AtLeastOne } from "custom-type-utils";
@@ -68,7 +68,7 @@ type UserSearch = AtLeastOne<
 >;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { RequireAtLeastOne } from "type-fest";
@@ -83,7 +83,7 @@ type UserSearch = RequireAtLeastOne<
 >;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type ProfilePatch = RequireAtLeastOne<
@@ -110,6 +110,36 @@ export default [
 ## When not to use it
 
 Disable this rule if published contracts must preserve existing alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/require-at-least-one.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/require-at-least-one.d.ts)
+
+````ts
+/**
+Create a type that requires at least one of the given keys. The remaining keys are kept as is.
+
+@example
+```
+import type {RequireAtLeastOne} from 'type-fest';
+
+type Responder = {
+    text?: () => string;
+    json?: () => string;
+    secure?: boolean;
+};
+
+const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
+    json: () => '{"message": "ok"}',
+    secure: true,
+};
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

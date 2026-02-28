@@ -2,6 +2,14 @@
 
 Require TypeFest `JsonPrimitive` over explicit JSON primitive keyword unions.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `boolean | null | number | string` unions (in any order)
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `boolean | null | number | string` unions (in any order)
@@ -30,19 +38,19 @@ type Scalar = JsonPrimitive;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type PrimitiveValue = string | number | boolean | null;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type PrimitiveValue = JsonPrimitive;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type Cell = JsonPrimitive;
@@ -66,6 +74,20 @@ export default [
 ## When not to use it
 
 Disable this rule if existing exported aliases must remain stable.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts)
+
+```ts
+/**
+Matches any valid JSON primitive value.
+
+@category JSON
+*/
+```
 
 ## Further reading
 

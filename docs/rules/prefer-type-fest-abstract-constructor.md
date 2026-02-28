@@ -6,7 +6,7 @@ Require TypeFest `AbstractConstructor` over explicit abstract constructor signat
 
 This rule reports explicit `abstract new (...args) => T` signatures and prefers `AbstractConstructor<T>` for abstract class constructor contracts.
 
-### What it checks
+## What this rule reports
 
 - `abstract new (...args) => T` constructor type signatures.
 
@@ -59,6 +59,20 @@ export default [
 ## When not to use it
 
 Disable this rule if your codebase intentionally prefers explicit abstract constructor signatures over TypeFest aliases.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/basic.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/basic.d.ts)
+
+```ts
+/**
+Matches an [`abstract class`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-2.html#abstract-construct-signatures) constructor.
+
+@category Class
+*/
+```
 
 ## Further reading
 

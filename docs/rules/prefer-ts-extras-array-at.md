@@ -1,20 +1,16 @@
 # prefer-ts-extras-array-at
 
-Prefer [`arrayAt`](https://github.com/sindresorhus/ts-extras#arrayat) from `ts-extras` over `array.at(...)`.
+Prefer [`arrayAt`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-at.ts) from `ts-extras` over `array.at(...)`.
 
 `arrayAt(...)` preserves stronger element typing for indexed array access.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const firstStatus = statuses.at(0);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `array.at(index)` call sites that can use `arrayAt(array, index)`.
 
-```ts
-const firstStatus = arrayAt(statuses, 0);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const firstStatus = arrayAt(statuses, 0);
 - Tuple element access needs fewer local casts.
 - Call sites remain explicit about both source array and index.
 
+## ❌ Incorrect
+
+```ts
+const firstStatus = statuses.at(0);
+```
+
+## ✅ Correct
+
+```ts
+const firstStatus = arrayAt(statuses, 0);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics align with `Array.prototype.at`.
@@ -36,19 +44,19 @@ const firstStatus = arrayAt(statuses, 0);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const selected = tuple.at(-1); // Weaker tuple index inference
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const selected = arrayAt(tuple, -1);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const first = arrayAt(users, 0);
@@ -72,6 +80,41 @@ export default [
 ## When not to use it
 
 Disable this rule if native `.at()` usage is required by a local coding standard.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/array-at.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-at.ts)
+
+````ts
+/**
+Return the item at the given index like `Array#at()`, but with stronger typing for tuples. Supports `-1` on tuples.
+
+This mirrors the runtime behavior of `Array#at()` and returns `undefined` for out-of-bounds indices. For tuples, a negative index of `-1` resolves to the tuple’s last element type. Positive literal indices for tuples resolve to the corresponding element type.
+
+@example
+```
+import {arrayAt} from 'ts-extras';
+
+const tuple = ['abc', 123, true] as const;
+const last = arrayAt(tuple, -1);
+//=> true
+//   ^? true | undefined
+
+const first = arrayAt(tuple, 0);
+//=> 'abc'
+//   ^? 'abc' | undefined
+
+const array = ['a', 'b', 'c'];
+const maybeItem = arrayAt(array, -1);
+//=> 'c'
+//   ^? string | undefined
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

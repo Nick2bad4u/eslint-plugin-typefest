@@ -3,6 +3,14 @@
 Require TypeFest `SetReadonly<T, Keys>` over imported aliases like
 `ReadonlyBy`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type references that resolve to imported `ReadonlyBy` aliases.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type references that resolve to imported `ReadonlyBy` aliases.
@@ -37,7 +45,7 @@ type ImmutableUser = SetReadonly<User, "id">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { ReadonlyBy } from "type-aliases";
@@ -45,7 +53,7 @@ import type { ReadonlyBy } from "type-aliases";
 type Frozen = ReadonlyBy<User, "id">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { SetReadonly } from "type-fest";
@@ -53,7 +61,7 @@ import type { SetReadonly } from "type-fest";
 type Frozen = SetReadonly<User, "id">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type ImmutableAudit = SetReadonly<AuditEntry, "timestamp" | "actor">;
@@ -77,6 +85,40 @@ export default [
 ## When not to use it
 
 Disable this rule if existing exported alias names must be preserved.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/set-readonly.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/set-readonly.d.ts)
+
+````ts
+/**
+Create a type that makes the given keys readonly. The remaining keys are kept as is.
+
+Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are readonly.
+
+@example
+```
+import type {SetReadonly} from 'type-fest';
+
+type Foo = {
+    a: number;
+    readonly b: string;
+    c: boolean;
+};
+
+type SomeReadonly = SetReadonly<Foo, 'b' | 'c'>;
+// type SomeReadonly = {
+//     a: number;
+//     readonly b: string; // Was already readonly and still is.
+//     readonly c: boolean; // Is now readonly.
+// }
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

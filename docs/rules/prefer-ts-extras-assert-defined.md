@@ -1,10 +1,10 @@
 # prefer-ts-extras-assert-defined
 
-Require `assertDefined()` from `ts-extras` over manual undefined-guard throw blocks.
+Require [`assertDefined`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-defined.ts) from `ts-extras` over manual undefined-guard throw blocks.
 
-## What this rule reports
+## Targeted pattern scope
 
-Throw-only undefined guard blocks that can be replaced with `assertDefined(value)`.
+This rule focuses on throw-only undefined guards that map directly to `assertDefined(value)`.
 
 ### Matched patterns
 
@@ -22,6 +22,12 @@ reported.
 - ❌ Does not report guards that return, log, or perform additional statements.
 - ❌ Does not report `typeof value === "undefined"` patterns.
 - ❌ Does not auto-fix.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
+
+Throw-only undefined guard blocks that can be replaced with `assertDefined(value)`.
 
 ## Why this rule exists
 
@@ -52,7 +58,7 @@ assertDefined(token);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (undefined == monitorId) {
@@ -60,13 +66,13 @@ if (undefined == monitorId) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 assertDefined(monitorId);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 assertDefined(config.apiKey);
@@ -91,6 +97,34 @@ export default [
 ## When not to use it
 
 Disable this rule if your error-handling layer requires custom throw logic in each guard block.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/assert-defined.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/assert-defined.ts)
+
+````ts
+/**
+Assert that the given value is defined, meaning it is not `undefined`.
+
+If the value is `undefined`, a helpful `TypeError` will be thrown.
+
+@example
+```
+import {assertDefined} from 'ts-extras';
+
+const unicorn = 'unicorn';
+assertDefined(unicorn);
+
+const notUnicorn = undefined;
+assertDefined(notUnicorn);
+//=> TypeError: Expected a defined value, got `undefined`
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

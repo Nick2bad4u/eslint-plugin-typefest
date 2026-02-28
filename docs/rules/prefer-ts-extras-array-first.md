@@ -1,6 +1,21 @@
 # prefer-ts-extras-array-first
 
-Require `arrayFirst()` from `ts-extras` over direct `array[0]` access.
+Require [`arrayFirst`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-first.ts) from `ts-extras` over direct `array[0]` access.
+
+## Targeted pattern scope
+
+This rule targets direct first-element index access patterns that map to `arrayFirst(array)`.
+
+### Matched patterns
+
+- Direct first-element access using index form (`array[0]`).
+
+### Detection boundaries
+
+- ✅ Reports direct first-element index access.
+- ❌ Optional chaining around index access (`array?.[0]`) should be reviewed manually during migration.
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -14,12 +29,6 @@ Require `arrayFirst()` from `ts-extras` over direct `array[0]` access.
 - Tuple-aware access patterns are consistent in shared utilities.
 - Teams avoid mixing helper-based and index-based first-item access.
 
-## Behavior and migration notes
-
-- Runtime behavior matches `array[0]` access.
-- Empty arrays still yield `undefined`.
-- This rule targets index access; optional chaining around access (`array?.[0]`) should be reviewed manually during migration.
-
 ## ❌ Incorrect
 
 ```ts
@@ -32,21 +41,27 @@ const first = values[0];
 const first = arrayFirst(values);
 ```
 
+## Behavior and migration notes
+
+- Runtime behavior matches `array[0]` access.
+- Empty arrays still yield `undefined`.
+- This rule targets index access; optional chaining around access (`array?.[0]`) should be reviewed manually during migration.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const first = rows[0];
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const first = arrayFirst(rows);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const header = arrayFirst(headers);
@@ -70,6 +85,43 @@ export default [
 ## When not to use it
 
 Disable this rule if direct index access is required in performance-sensitive hotspots.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/array-first.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-first.ts)
+
+````ts
+/**
+Return the first item of an array with stronger typing for tuples.
+
+This mirrors getting `array[0]` but with better type safety and handling for empty arrays.
+
+@example
+```
+import {arrayFirst} from 'ts-extras';
+
+const tuple = ['abc', 123, true] as const;
+const first = arrayFirst(tuple);
+//=> 'abc'
+//   ^? 'abc'
+
+const array = ['a', 'b', 'c'];
+const maybeFirst = arrayFirst(array);
+//=> 'a'
+//   ^? string | undefined
+
+// Empty arrays
+const empty: string[] = [];
+const noFirst = arrayFirst(empty);
+//=> undefined
+//   ^? string | undefined
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

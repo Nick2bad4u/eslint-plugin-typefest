@@ -9,7 +9,7 @@ This rule reports imported `AtMostOne` aliases and prefers `RequireOneOrNone<T, 
 Use this utility when a payload may omit all optional selectors, but must not
 provide two selectors at the same time.
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `AtMostOne` aliases.
 
@@ -19,7 +19,7 @@ provide two selectors at the same time.
 - ❌ Does not report namespace-qualified alias usage.
 - ❌ Does not auto-fix.
 
-## Why
+## Why this rule exists
 
 `RequireOneOrNone` is the canonical TypeFest utility for expressing “zero or exactly one” optional key constraints. Canonical naming keeps type utility usage predictable in public codebases.
 
@@ -56,7 +56,7 @@ type OptionalAuth = RequireOneOrNone<{
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { AtMostOne } from "custom-type-utils";
@@ -70,7 +70,7 @@ type MonitorLookup = AtMostOne<
 >;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { RequireOneOrNone } from "type-fest";
@@ -84,7 +84,7 @@ type MonitorLookup = RequireOneOrNone<
 >;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type SessionIdentity = RequireOneOrNone<
@@ -111,6 +111,45 @@ export default [
 ## When not to use it
 
 Disable this rule if existing alias names are part of a published API contract.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/require-one-or-none.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/require-one-or-none.d.ts)
+
+````ts
+/**
+Create a type that requires exactly one of the given keys and disallows more, or none of the given keys. The remaining keys are kept as is.
+
+@example
+```
+import type {RequireOneOrNone} from 'type-fest';
+
+type Responder = RequireOneOrNone<{
+    text: () => string;
+    json: () => string;
+    secure: boolean;
+}, 'text' | 'json'>;
+
+const responder1: Responder = {
+    secure: true,
+};
+
+const responder2: Responder = {
+    text: () => '{"message": "hi"}',
+    secure: true,
+};
+
+const responder3: Responder = {
+    json: () => '{"message": "ok"}',
+    secure: true,
+};
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

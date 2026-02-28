@@ -1,20 +1,16 @@
 # prefer-ts-extras-set-has
 
-Prefer [`setHas`](https://github.com/sindresorhus/ts-extras#sethas) from `ts-extras` over `set.has(...)`.
+Prefer [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts) from `ts-extras` over `set.has(...)`.
 
 `setHas(...)` improves narrowing when checking membership in typed sets.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const hasMonitor = monitorIds.has(candidateId);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `set.has(value)` call sites that can use `setHas(set, value)`.
 
-```ts
-const hasMonitor = setHas(monitorIds, candidateId);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const hasMonitor = setHas(monitorIds, candidateId);
 - Candidate values can narrow after guard checks.
 - Native/helper mixing is removed from set-heavy code.
 
+## ❌ Incorrect
+
+```ts
+const hasMonitor = monitorIds.has(candidateId);
+```
+
+## ✅ Correct
+
+```ts
+const hasMonitor = setHas(monitorIds, candidateId);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics match native `Set.prototype.has`.
@@ -36,7 +44,7 @@ const hasMonitor = setHas(monitorIds, candidateId);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 if (allowed.has(input)) {
@@ -44,7 +52,7 @@ if (allowed.has(input)) {
 }
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 if (setHas(allowed, input)) {
@@ -52,7 +60,7 @@ if (setHas(allowed, input)) {
 }
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const known = setHas(codes, candidate);
@@ -76,6 +84,41 @@ export default [
 ## When not to use it
 
 Disable this rule if native `.has()` calls are required by local conventions.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/set-has.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts)
+
+````ts
+/**
+A strongly-typed version of `Set#has()` that properly acts as a type guard.
+
+When `setHas` returns `true`, the type is narrowed to the set's element type.
+When it returns `false`, the type remains unchanged (i.e., `unknown` stays `unknown`).
+
+It was [rejected](https://github.com/microsoft/TypeScript/issues/42641#issuecomment-774168319) from being done in TypeScript itself.
+
+@example
+```
+import {setHas} from 'ts-extras';
+
+const values = ['a', 'b', 'c'] as const;
+const valueSet = new Set(values);
+const valueToCheck: unknown = 'a';
+
+if (setHas(valueSet, valueToCheck)) {
+    // We now know that the value is of type `typeof values[number]`.
+} else {
+    // The value remains `unknown`.
+}
+```
+
+@category Improved builtin
+@category Type guard
+*/
+````
 
 ## Further reading
 

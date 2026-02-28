@@ -2,6 +2,14 @@
 
 Require TypeFest `ValueOf<T>` over direct `T[keyof T]` indexed-access unions when extracting object value unions.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type-level indexed access patterns shaped like `T[keyof T]`.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type-level indexed access patterns shaped like `T[keyof T]`.
@@ -30,19 +38,19 @@ type Values = ValueOf<User>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type StatusValue = StatusMap[keyof StatusMap];
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type StatusValue = ValueOf<StatusMap>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type Selected = ValueOf<User, "id" | "email">;
@@ -66,6 +74,36 @@ export default [
 ## When not to use it
 
 Disable this rule if explicit indexed-access expressions are required in a published API.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/value-of.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/value-of.d.ts)
+
+````ts
+/**
+Create a union of the given object's values, and optionally specify which keys to get the values from.
+
+Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/31438) if you want to have this type as a built-in in TypeScript.
+
+@example
+```
+import type {ValueOf} from 'type-fest';
+
+type A = ValueOf<{id: number; name: string; active: boolean}>;
+//=> string | number | boolean
+
+type B = ValueOf<{id: number; name: string; active: boolean}, 'name'>;
+//=> string
+
+type C = ValueOf<{id: number; name: string; active: boolean}, 'id' | 'name'>;
+//=> string | number
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

@@ -2,6 +2,15 @@
 
 Require TypeFest `Arrayable<T>` over `T | T[]` and `T | Array<T>` unions.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `T | T[]`
+- `T | Array<T>`
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `T | T[]`
@@ -31,19 +40,19 @@ type Input = Arrayable<string>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Input = number | Array<number>; // Union repeated inline across modules
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Input = Arrayable<number>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type QueryParam = Arrayable<string>;
@@ -67,6 +76,40 @@ export default [
 ## When not to use it
 
 Disable this rule if existing public type names must remain unchanged for compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/arrayable.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/arrayable.d.ts)
+
+````ts
+/**
+Create a type that represents either the value or an array of the value.
+
+@see {@link Promisable}
+
+@example
+```
+import type {Arrayable} from 'type-fest';
+
+function bundle(input: string, output: Arrayable<string>) {
+    const outputList = Array.isArray(output) ? output : [output];
+
+    // …
+
+    for (const output of outputList) {
+        console.log(`write ${input} to: ${output}`);
+    }
+}
+
+bundle('src/index.js', 'dist/index.js');
+bundle('src/index.js', ['dist/index.cjs', 'dist/index.mjs']);
+```
+
+@category Array
+*/
+````
 
 ## Further reading
 

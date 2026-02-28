@@ -1,6 +1,17 @@
 # prefer-ts-extras-is-present-filter
 
-Require `isPresent` from `ts-extras` in `Array.prototype.filter` callbacks instead of inline nullish checks.
+Require [`isPresent`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-present.ts) from `ts-extras` in `Array.prototype.filter` callbacks instead of inline nullish checks.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Inline nullish predicates inside `.filter(...)`, including:
+- `filter((value) => value != null)`
+- `filter((value): value is T => value !== null)`
+- `filter((value): value is T => value !== null && value !== undefined)`
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -17,12 +28,6 @@ Require `isPresent` from `ts-extras` in `Array.prototype.filter` callbacks inste
 - Non-nullish narrowing is explicit in one helper name.
 - Repeated null/undefined callback expressions are removed.
 
-## Behavior and migration notes
-
-- `array.filter(isPresent)` removes `null` and `undefined` entries.
-- Callbacks with extra side effects should be reviewed before replacement.
-- Non-filter nullish checks belong to `prefer-ts-extras-is-present`.
-
 ## ❌ Incorrect
 
 ```ts
@@ -35,21 +40,27 @@ const values = inputs.filter((value) => value != null);
 const values = inputs.filter(isPresent);
 ```
 
+## Behavior and migration notes
+
+- `array.filter(isPresent)` removes `null` and `undefined` entries.
+- Callbacks with extra side effects should be reviewed before replacement.
+- Non-filter nullish checks belong to `prefer-ts-extras-is-present`.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const rows = maybeRows.filter((row) => row != null);
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const rows = maybeRows.filter(isPresent);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const values = list.filter(isPresent);
@@ -73,6 +84,30 @@ export default [
 ## When not to use it
 
 Disable this rule if your filters intentionally use domain-specific predicate wrappers.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/is-present.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/is-present.ts)
+
+````ts
+/**
+Check whether a value is present (non-nullable), meaning it is neither `null` nor `undefined`.
+
+This can be useful as a type guard, as for example, `[1, null].filter(Boolean)` does not always type-guard correctly.
+
+@example
+```
+import {isPresent} from 'ts-extras';
+
+[1, null, 2, undefined].filter(isPresent);
+//=> [1, 2]
+```
+
+@category Type guard
+*/
+````
 
 ## Further reading
 

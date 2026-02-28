@@ -1,20 +1,16 @@
 # prefer-ts-extras-object-from-entries
 
-Prefer [`objectFromEntries`](https://github.com/sindresorhus/ts-extras#objectfromentries) from `ts-extras` over `Object.fromEntries(...)`.
+Prefer [`objectFromEntries`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-from-entries.ts) from `ts-extras` over `Object.fromEntries(...)`.
 
 `objectFromEntries(...)` preserves stronger key/value typing and avoids local casting after entry reconstruction.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const statusById = Object.fromEntries(statusEntries);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `Object.fromEntries(entries)` call sites that can use `objectFromEntries(entries)`.
 
-```ts
-const statusById = objectFromEntries(statusEntries);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const statusById = objectFromEntries(statusEntries);
 - Follow-up casting after reconstruction is needed less often.
 - Object reconstruction uses one explicit helper across modules.
 
+## ❌ Incorrect
+
+```ts
+const statusById = Object.fromEntries(statusEntries);
+```
+
+## ✅ Correct
+
+```ts
+const statusById = objectFromEntries(statusEntries);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics align with `Object.fromEntries`.
@@ -37,19 +45,19 @@ const statusById = objectFromEntries(statusEntries);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const config = Object.fromEntries(entries);
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const config = objectFromEntries(entries);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const grouped = objectFromEntries(pairs);
@@ -73,6 +81,39 @@ export default [
 ## When not to use it
 
 Disable this rule if you must keep direct `Object.fromEntries` calls for interop or platform constraints.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/object-from-entries.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-from-entries.ts)
+
+````ts
+/**
+A strongly-typed version of `Object.fromEntries()`.
+
+This is useful since `Object.fromEntries()` always returns `{[key: string]: T}`. This function returns a strongly-typed object from the given array of entries.
+
+- [TypeScript issues about this](https://github.com/microsoft/TypeScript/issues/35745)
+
+@example
+```
+import {objectFromEntries} from 'ts-extras';
+
+const stronglyTypedObjectFromEntries = objectFromEntries([
+    ['a', 123],
+    ['b', 'someString'],
+    ['c', true],
+]);
+//=> {a: number; b: string; c: boolean}
+
+const untypedEntries = Object.fromEntries([['a', 123], ['b', 'someString'], ['c', true]]);
+//=> {[key: string]: unknown}
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

@@ -6,11 +6,11 @@ Require TypeFest `KeysOfUnion<T>` over imported aliases like `AllKeys`.
 
 This rule targets imported alias names used for "all keys across union members" extraction.
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `AllKeys` aliases.
 
-## Why
+## Why this rule exists
 
 `KeysOfUnion` is the canonical TypeFest utility for extracting the full key union across object unions. Using canonical utility names improves readability and consistency.
 
@@ -38,7 +38,7 @@ type Keys = KeysOfUnion<Foo | Bar>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { AllKeys } from "type-aliases";
@@ -46,7 +46,7 @@ import type { AllKeys } from "type-aliases";
 type Keys = AllKeys<A | B>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { KeysOfUnion } from "type-fest";
@@ -54,7 +54,7 @@ import type { KeysOfUnion } from "type-fest";
 type Keys = KeysOfUnion<A | B>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type EventKeys = KeysOfUnion<CreateEvent | DeleteEvent>;
@@ -78,6 +78,52 @@ export default [
 ## When not to use it
 
 Disable this rule if existing alias names must remain for public API compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/keys-of-union.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/keys-of-union.d.ts)
+
+````ts
+/**
+Create a union of all keys from a given type, even those exclusive to specific union members.
+
+Unlike the native `keyof` keyword, which returns keys present in **all** union members, this type returns keys from **any** member.
+
+@link https://stackoverflow.com/a/49402091
+
+@example
+```
+import type {KeysOfUnion} from 'type-fest';
+
+type A = {
+    common: string;
+    a: number;
+};
+
+type B = {
+    common: string;
+    b: string;
+};
+
+type C = {
+    common: string;
+    c: boolean;
+};
+
+type Union = A | B | C;
+
+type CommonKeys = keyof Union;
+//=> 'common'
+
+type AllKeys = KeysOfUnion<Union>;
+//=> 'common' | 'a' | 'b' | 'c'
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

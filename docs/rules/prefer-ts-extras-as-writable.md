@@ -1,15 +1,26 @@
 # prefer-ts-extras-as-writable
 
-Prefer [`asWritable`](https://github.com/sindresorhus/ts-extras#aswritable) from `ts-extras` over `Writable<...>` type assertions.
+Prefer [`asWritable`](https://github.com/sindresorhus/ts-extras/blob/main/source/as-writable.ts) from `ts-extras` over `Writable<...>` type assertions.
 
-## What this rule reports
+## Targeted pattern scope
 
-`Writable<...>`-based type assertions that can be replaced with `asWritable(value)`.
+This rule focuses on mutation-intent type assertions that map directly to `asWritable(value)`.
 
 ### Matched patterns
 
 - `as` assertions where the asserted type is `Writable<...>` imported from `type-fest`.
 - Namespace-qualified assertions such as `TypeFest.Writable<...>` when `TypeFest` comes from `type-fest`.
+
+### Detection boundaries
+
+- ✅ Reports `Writable`-based type assertions that are direct helper replacements.
+- ❌ Does not report unrelated `as` assertions with non-`Writable` target types.
+
+These boundaries keep reporting and migration behavior deterministic.
+
+## What this rule reports
+
+`Writable<...>`-based type assertions that can be replaced with `asWritable(value)`.
 
 ## Why this rule exists
 
@@ -39,19 +50,19 @@ const writableUser = asWritable(readonlyUser);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const mutable = config as Writable<typeof config>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const mutable = asWritable(config);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const draft = asWritable(readonlyDraft);
@@ -75,6 +86,29 @@ export default [
 ## When not to use it
 
 Disable this rule if mutation boundaries are enforced through explicit type assertions by policy.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/as-writable.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/as-writable.ts)
+
+````ts
+/**
+Cast the given value to be [`Writable`](https://github.com/sindresorhus/type-fest/blob/main/source/writable.d.ts).
+
+This is useful because of a [TypeScript limitation](https://github.com/microsoft/TypeScript/issues/45618#issuecomment-908072756).
+
+@example
+```
+import {asWritable} from 'ts-extras';
+
+const writableContext = asWritable((await import('x')).context);
+```
+
+@category General
+*/
+````
 
 ## Further reading
 

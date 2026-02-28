@@ -3,6 +3,14 @@
 Require TypeFest `SetNonNullable<T, Keys>` over imported aliases like
 `NonNullableBy`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Type references that resolve to imported `NonNullableBy` aliases.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - Type references that resolve to imported `NonNullableBy` aliases.
@@ -37,7 +45,7 @@ type PersistedUser = SetNonNullable<User, "id">;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { NonNullableBy } from "type-aliases";
@@ -45,7 +53,7 @@ import type { NonNullableBy } from "type-aliases";
 type Persisted = NonNullableBy<User, "id">;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { SetNonNullable } from "type-fest";
@@ -53,7 +61,7 @@ import type { SetNonNullable } from "type-fest";
 type Persisted = SetNonNullable<User, "id">;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type SafeOrder = SetNonNullable<Order, "orderId" | "createdAt">;
@@ -77,6 +85,49 @@ export default [
 ## When not to use it
 
 Disable this rule if existing exported aliases must remain stable.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/set-non-nullable.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/set-non-nullable.d.ts)
+
+````ts
+/**
+Create a type that makes the given keys non-nullable, where the remaining keys are kept as is.
+
+If no keys are given, all keys will be made non-nullable.
+
+Use-case: You want to define a single model where the only thing that changes is whether or not some or all of the keys are non-nullable.
+
+@example
+```
+import type {SetNonNullable} from 'type-fest';
+
+type Foo = {
+    a: number | null;
+    b: string | undefined;
+    c?: boolean | null;
+};
+
+type SomeNonNullable = SetNonNullable<Foo, 'b' | 'c'>;
+// type SomeNonNullable = {
+//     a: number | null;
+//     b: string; // Can no longer be undefined.
+//     c?: boolean; // Can no longer be null, but is still optional.
+// }
+
+type AllNonNullable = SetNonNullable<Foo>;
+// type AllNonNullable = {
+//     a: number; // Can no longer be null.
+//     b: string; // Can no longer be undefined.
+//     c?: boolean; // Can no longer be null, but is still optional.
+// }
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 

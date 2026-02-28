@@ -1,20 +1,16 @@
 # prefer-ts-extras-object-keys
 
-Prefer [`objectKeys`](https://github.com/sindresorhus/ts-extras#objectkeys) from `ts-extras` over `Object.keys(...)`.
+Prefer [`objectKeys`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-keys.ts) from `ts-extras` over `Object.keys(...)`.
 
 `objectKeys(...)` preserves stronger key typing and avoids repeated casts in iteration paths.
 
-## ❌ Incorrect
+## Targeted pattern scope
 
-```ts
-const keys = Object.keys(monitorConfig);
-```
+This rule focuses on a narrow, deterministic set of syntactic forms:
 
-## ✅ Correct
+- `Object.keys(value)` call sites that can use `objectKeys(value)`.
 
-```ts
-const keys = objectKeys(monitorConfig);
-```
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -28,6 +24,18 @@ const keys = objectKeys(monitorConfig);
 - Safer indexed reads after key iteration.
 - One canonical helper for key iteration patterns.
 
+## ❌ Incorrect
+
+```ts
+const keys = Object.keys(monitorConfig);
+```
+
+## ✅ Correct
+
+```ts
+const keys = objectKeys(monitorConfig);
+```
+
 ## Behavior and migration notes
 
 - Runtime semantics align with `Object.keys` (own enumerable string keys only).
@@ -36,19 +44,19 @@ const keys = objectKeys(monitorConfig);
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const keys = Object.keys(model);
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const keys = objectKeys(model);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 for (const key of objectKeys(theme)) {
@@ -74,6 +82,34 @@ export default [
 ## When not to use it
 
 Disable this rule if you must keep direct `Object.keys` calls for interop constraints.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/object-keys.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-keys.ts)
+
+````ts
+/**
+A strongly-typed version of `Object.keys()`.
+
+This is useful since `Object.keys()` always returns an array of strings. This function returns a strongly-typed array of the keys of the given object.
+
+- [Explanation](https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript)
+- [TypeScript issues about this](https://github.com/microsoft/TypeScript/issues/45390)
+
+@example
+```
+import {objectKeys} from 'ts-extras';
+
+const stronglyTypedItems = objectKeys({a: 1, b: 2, c: 3}); // => Array<'a' | 'b' | 'c'>
+const untypedItems = Object.keys({a: 1, b: 2, c: 3}); // => Array<string>
+```
+
+@category Improved builtin
+@category Type guard
+*/
+````
 
 ## Further reading
 

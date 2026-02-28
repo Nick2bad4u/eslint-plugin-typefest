@@ -2,6 +2,14 @@
 
 Require TypeFest `UnknownMap` over `ReadonlyMap<unknown, unknown>`.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `ReadonlyMap<unknown, unknown>` type references.
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `ReadonlyMap<unknown, unknown>` type references.
@@ -30,19 +38,19 @@ type Meta = UnknownMap;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Store = ReadonlyMap<unknown, unknown>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Store = UnknownMap;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type Metadata = UnknownMap;
@@ -66,6 +74,38 @@ export default [
 ## When not to use it
 
 Disable this rule if published contracts must preserve existing map alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/unknown-map.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-map.d.ts)
+
+````ts
+/**
+Represents a map with `unknown` key and value.
+
+Use case: You want a type that all maps can be assigned to, but you don't care about the value.
+
+@example
+```
+import type {UnknownMap} from 'type-fest';
+
+type IsMap<T> = T extends UnknownMap ? true : false;
+
+type A = IsMap<Map<string, number>>;
+//=> true
+
+type B = IsMap<ReadonlyMap<number, string>>;
+//=> true
+
+type C = IsMap<string>;
+//=> false
+```
+
+@category Type
+*/
+````
 
 ## Further reading
 

@@ -2,6 +2,15 @@
 
 Require TypeFest `JsonArray` over explicit `JsonValue` array-union aliases.
 
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- `JsonValue[] | readonly JsonValue[]`
+- `Array<JsonValue> | ReadonlyArray<JsonValue>`
+
+These boundaries keep reporting and migration behavior deterministic.
+
 ## What this rule reports
 
 - `JsonValue[] | readonly JsonValue[]`
@@ -31,19 +40,19 @@ type Payload = JsonArray;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 type Payload = Array<JsonValue>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 type Payload = JsonArray;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type SerializedRows = JsonArray;
@@ -67,6 +76,20 @@ export default [
 ## When not to use it
 
 Disable this rule if public APIs must preserve existing custom alias names for compatibility.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts)
+
+```ts
+/**
+Matches a JSON array.
+
+@category JSON
+*/
+```
 
 ## Further reading
 

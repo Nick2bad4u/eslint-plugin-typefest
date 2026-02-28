@@ -1,6 +1,14 @@
 # prefer-ts-extras-array-last
 
-Require `arrayLast()` from `ts-extras` over direct `array[array.length - 1]` access.
+Require [`arrayLast`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-last.ts) from `ts-extras` over direct `array[array.length - 1]` access.
+
+## Targeted pattern scope
+
+This rule focuses on a narrow, deterministic set of syntactic forms:
+
+- Direct last-element index patterns (`array[array.length - 1]`).
+
+These boundaries keep reporting and migration behavior deterministic.
 
 ## What this rule reports
 
@@ -14,12 +22,6 @@ Require `arrayLast()` from `ts-extras` over direct `array[array.length - 1]` acc
 - Tuple/readonly array access patterns are standardized.
 - Helper-driven access reduces repeated inline index arithmetic.
 
-## Behavior and migration notes
-
-- Runtime behavior matches `array[array.length - 1]`.
-- Empty arrays still produce `undefined`.
-- Equivalent index expressions with extra wrappers should be reviewed manually during migration.
-
 ## ❌ Incorrect
 
 ```ts
@@ -32,21 +34,27 @@ const last = values[values.length - 1];
 const last = arrayLast(values);
 ```
 
+## Behavior and migration notes
+
+- Runtime behavior matches `array[array.length - 1]`.
+- Empty arrays still produce `undefined`.
+- Equivalent index expressions with extra wrappers should be reviewed manually during migration.
+
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 const last = rows[rows.length - 1];
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 const last = arrayLast(rows);
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 const lastStep = arrayLast(steps);
@@ -70,6 +78,43 @@ export default [
 ## When not to use it
 
 Disable this rule if direct index expressions are mandated by local style rules.
+
+## Package documentation
+
+ts-extras package documentation:
+
+Source file: [`source/array-last.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-last.ts)
+
+````ts
+/**
+Return the last item of an array with stronger typing for tuples.
+
+This provides better type safety than `array[array.length - 1]` or `array.at(-1)`.
+
+@example
+```
+import {arrayLast} from 'ts-extras';
+
+const tuple = ['abc', 123, true] as const;
+const last = arrayLast(tuple);
+//=> true
+//   ^? true
+
+const array = ['a', 'b', 'c'];
+const maybeLast = arrayLast(array);
+//=> 'c'
+//   ^? string | undefined
+
+// Empty arrays
+const empty: string[] = [];
+const noLast = arrayLast(empty);
+//=> undefined
+//   ^? string | undefined
+```
+
+@category Improved builtin
+*/
+````
 
 ## Further reading
 

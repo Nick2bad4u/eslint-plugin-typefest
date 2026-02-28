@@ -6,11 +6,11 @@ Require TypeFest `ConditionalPick<T, Condition>` over imported aliases like `Pic
 
 This rule targets imported alias names that mirror TypeFest conditional property selection semantics.
 
-## What it checks
+## What this rule reports
 
 - Type references that resolve to imported `PickByTypes` aliases.
 
-## Why
+## Why this rule exists
 
 `ConditionalPick` is the canonical TypeFest utility for selecting fields by value type. Standardizing on TypeFest naming improves discoverability and improves consistency.
 
@@ -38,7 +38,7 @@ type StringProps = ConditionalPick<User, string>;
 
 ## Additional examples
 
-### ❌ Incorrect (additional scenario)
+### ❌ Incorrect — Additional example
 
 ```ts
 import type { PickByTypes } from "type-aliases";
@@ -46,7 +46,7 @@ import type { PickByTypes } from "type-aliases";
 type StringFields = PickByTypes<User, string>;
 ```
 
-### ✅ Correct (additional scenario)
+### ✅ Correct — Additional example
 
 ```ts
 import type { ConditionalPick } from "type-fest";
@@ -54,7 +54,7 @@ import type { ConditionalPick } from "type-fest";
 type StringFields = ConditionalPick<User, string>;
 ```
 
-### ✅ Correct (team-scale usage)
+### ✅ Correct — Repository-wide usage
 
 ```ts
 type DateFields = ConditionalPick<User, Date>;
@@ -78,6 +78,53 @@ export default [
 ## When not to use it
 
 Disable this rule if compatibility requirements force existing alias names.
+
+## Package documentation
+
+TypeFest package documentation:
+
+Source file: [`source/conditional-pick.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/conditional-pick.d.ts)
+
+````ts
+/**
+Pick keys from the shape that matches the given `Condition`.
+
+This is useful when you want to create a new type from a specific subset of an existing type. For example, you might want to pick all the primitive properties from a class and form a new automatically derived type.
+
+@example
+```
+import type {Primitive, ConditionalPick} from 'type-fest';
+
+class Awesome {
+    constructor(public name: string, public successes: number, public failures: bigint) {}
+
+    run() {
+        // do something
+    }
+}
+
+type PickPrimitivesFromAwesome = ConditionalPick<Awesome, Primitive>;
+//=> {name: string; successes: number; failures: bigint}
+```
+
+@example
+```
+import type {ConditionalPick} from 'type-fest';
+
+type Example = {
+    a: string;
+    b: string | number;
+    c: () => void;
+    d: {};
+};
+
+type StringKeysOnly = ConditionalPick<Example, string>;
+//=> {a: string}
+```
+
+@category Object
+*/
+````
 
 ## Further reading
 
