@@ -87,14 +87,14 @@ const getThrowStatementFromConsequent = (
 };
 
 /**
- * Check whether the throw body matches the canonical `assertDefined`-equivalent
+ * Check whether the throw body matches the canonical assertDefined-equivalent
  * error shape.
  *
  * @param context - Active rule context for global-binding checks.
  * @param throwStatement - Throw statement extracted from the guard branch.
  *
- * @returns `true` when the throw is `new TypeError("Expected a defined value,
- *   got \`undefined`")`.
+ * @returns True when the throw is a TypeError whose message equals "Expected a
+ *   defined value, got undefined".
  */
 const isCanonicalAssertDefinedThrow = (
     context: RuleContext,

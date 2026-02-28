@@ -168,7 +168,25 @@ const config: Config = {
         [
             "classic",
             {
-                blog: false,
+                blog: {
+                    blogDescription:
+                        "Updates, architecture notes, and practical guidance for eslint-plugin-typefest users.",
+                    blogSidebarCount: "ALL",
+                    blogSidebarTitle: "All posts",
+                    blogTitle: "eslint-plugin-typefest Blog",
+                    editUrl: `https://github.com/${organizationName}/${projectName}/tree/main/docs/docusaurus/blog/`,
+                    feedOptions: {
+                        type: ["rss", "atom"],
+                        xslt: true,
+                    },
+                    onInlineAuthors: "warn",
+                    onInlineTags: "warn",
+                    onUntruncatedBlogPosts: "warn",
+                    path: "blog",
+                    postsPerPage: 10,
+                    routeBasePath: "blog",
+                    showReadingTime: true,
+                },
                 docs: {
                     breadcrumbs: true,
                     editUrl: `https://github.com/${organizationName}/${projectName}/tree/main/`,
@@ -242,8 +260,19 @@ const config: Config = {
     tagline:
         "Type-safe ESLint rules for preferring type-fest and ts-extras patterns.",
     themeConfig: {
-        copyright: footerCopyright,
+        colorMode: {
+            defaultMode: "dark",
+            disableSwitch: false,
+            respectPrefersColorScheme: true,
+        },
+        metadata: [
+            {
+                content: "eslint-plugin-typefest",
+                name: "keywords",
+            },
+        ],
         footer: {
+            copyright: footerCopyright,
             links: [
                 {
                     items: [
@@ -340,6 +369,11 @@ const config: Config = {
                     to: "/docs/rules/presets",
                 },
                 {
+                    label: "📰 Blog",
+                    position: "left",
+                    to: "/blog",
+                },
+                {
                     label: "🛠️ Dev",
                     position: "right",
                     to: "/docs/developer",
@@ -369,6 +403,10 @@ const config: Config = {
             darkTheme: prismThemes.dracula,
             defaultLanguage: "typescript",
             theme: prismThemes.github,
+        },
+        tableOfContents: {
+            maxHeadingLevel: 4,
+            minHeadingLevel: 2,
         },
         zoom: {
             background: {

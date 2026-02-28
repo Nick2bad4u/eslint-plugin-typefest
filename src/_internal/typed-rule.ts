@@ -210,8 +210,8 @@ export const createTypedRule: ReturnType<
  * @returns Parser services and type checker references bound to the current
  *   program.
  *
- * @throws {Error} Throws when `parserServices.program` is unavailable, which
- *   indicates the current lint run is not configured for type-aware analysis.
+ * @throws Throws when `parserServices.program` is unavailable, which indicates
+ *   the current lint run is not configured for type-aware analysis.
  */
 export const getTypedRuleServices = (
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>

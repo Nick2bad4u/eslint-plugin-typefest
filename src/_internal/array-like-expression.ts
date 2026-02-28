@@ -7,11 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 /**
- * Determines how union member types are evaluated for array-likeness.
- */
-type UnionArrayLikeMatchMode = "every" | "some";
-
-/**
  * Shared inputs required to evaluate whether an ESTree expression is array-like
  * using TypeScript type information.
  */
@@ -49,6 +44,11 @@ type TypeCheckerWithArrayHelpers = ts.TypeChecker & {
     isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
     isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
 };
+
+/**
+ * Determines how union member types are evaluated for array-likeness.
+ */
+type UnionArrayLikeMatchMode = "every" | "some";
 
 /**
  * Determine whether a TypeScript type resolves to an array-like shape.

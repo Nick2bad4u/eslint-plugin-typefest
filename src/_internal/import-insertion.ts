@@ -29,8 +29,8 @@ const collectProgramImportDeclarations = (
 };
 
 /**
- * Check whether a Program statement is part of the directive prologue (`"use
- * strict"`, etc.).
+ * Check whether a Program statement is part of the directive prologue (for
+ * example, `"use strict"`).
  */
 const isDirectiveExpressionStatement = (
     statement: Readonly<TSESTree.ProgramStatement>

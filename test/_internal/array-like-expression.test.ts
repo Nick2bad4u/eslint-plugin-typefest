@@ -9,8 +9,10 @@ import {
     isWriteTargetMemberExpression,
 } from "../../src/_internal/array-like-expression";
 
-/** Create a lightweight mock `ts.Type` with configurable union/intersection
-traits. */
+/**
+ * Create a lightweight mock `ts.Type` with configurable union/intersection
+ * traits.
+ */
 const createFakeType = ({
     isIntersection = false,
     isUnion = false,

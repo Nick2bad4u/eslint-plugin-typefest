@@ -27,21 +27,15 @@ const heroBadges = [
 const heroStats = [
     {
         description: "Type-safe patterns from type-fest and ts-extras.",
-        icon: "📏",
-        label: "Rules",
-        value: "70+",
+        headline: "📏 70+ Rules",
     },
     {
         description: "Start small, then scale to stricter coverage.",
-        icon: "🎛️",
-        label: "Presets",
-        value: "6",
+        headline: "🎛️ 6 Presets",
     },
     {
         description: "Safe rewrites where semantics are preserved.",
-        icon: "✨",
-        label: "Autofix & suggestions",
-        value: "DX-first",
+        headline: "✨ DX-first Autofix & Suggestions",
     },
 ];
 
@@ -153,17 +147,11 @@ export default function Home() {
                     <div className={styles.heroStats}>
                         {heroStats.map((stat) => (
                             <article
-                                key={stat.label}
+                                key={stat.headline}
                                 className={styles.heroStatCard}
                             >
-                                <p className={styles.heroStatIcon}>
-                                    {stat.icon}
-                                </p>
-                                <p className={styles.heroStatValue}>
-                                    {stat.value}
-                                </p>
-                                <p className={styles.heroStatLabel}>
-                                    {stat.label}
+                                <p className={styles.heroStatHeading}>
+                                    {stat.headline}
                                 </p>
                                 <p className={styles.heroStatDescription}>
                                     {stat.description}

@@ -5,6 +5,7 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
+
 import { describe, expect, it } from "vitest";
 
 import {

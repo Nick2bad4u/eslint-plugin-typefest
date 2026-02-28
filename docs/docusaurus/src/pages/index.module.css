@@ -9,7 +9,7 @@
 .heroBanner {
     position: relative;
     overflow: clip;
-    padding: 5.8rem 0 5.1rem;
+    padding: 4.45rem 0 3.65rem;
     background:
         radial-gradient(
             circle at 86% 12%,
@@ -60,6 +60,22 @@
     inset: auto -12% -46% auto;
 }
 
+@keyframes hero-panel-shimmer {
+    0% {
+        opacity: 0;
+        transform: translateX(-60%) rotate(14deg);
+    }
+
+    30% {
+        opacity: 0.48;
+    }
+
+    100% {
+        opacity: 0.82;
+        transform: translateX(54%) rotate(14deg);
+    }
+}
+
 .heroContent {
     position: relative;
 }
@@ -67,7 +83,7 @@
 .heroGrid {
     display: grid;
     align-items: start;
-    gap: clamp(1rem, 2vi, 1.3rem);
+    gap: clamp(0.85rem, 1.7vi, 1.15rem);
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
 }
 
@@ -96,7 +112,7 @@
     margin: 0;
     color: rgb(239 246 255);
     font-size: 1.08rem;
-    line-height: 1.625;
+    line-height: 1.5;
     max-inline-size: 39rem;
 }
 
@@ -104,7 +120,7 @@
     display: grid;
     gap: 0.75rem;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    margin-block-start: 1.12rem;
+    margin-block-start: 0.82rem;
 }
 
 .heroBadge {
@@ -148,11 +164,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-block-start: 1.35rem;
+    margin-block-start: 0.9rem;
 }
 
 .heroPanel {
+    position: relative;
     display: flex;
+    overflow: hidden;
     align-items: center;
     align-self: stretch;
     justify-content: center;
@@ -167,7 +185,32 @@
     box-shadow:
         0 20px 30px -26px rgb(15 23 42 / 85%),
         inset 0 1px 0 rgb(255 255 255 / 15%);
-    min-block-size: 12rem;
+    isolation: isolate;
+    min-block-size: 11rem;
+}
+
+.heroPanel::before {
+    position: absolute;
+    background: linear-gradient(
+        112deg,
+        transparent 34%,
+        rgb(255 255 255 / 42%) 50%,
+        transparent 66%
+    );
+    content: "";
+    inset: -55% -120%;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-60%) rotate(14deg);
+    transition:
+        opacity 220ms ease,
+        transform 620ms ease;
+}
+
+.heroPanel:hover::before,
+.heroPanel:focus-within::before {
+    opacity: 0.82;
+    transform: translateX(54%) rotate(14deg);
 }
 
 .heroPanelLogo {
@@ -175,10 +218,19 @@
     block-size: auto;
     filter: drop-shadow(0 10px 18px rgb(15 23 42 / 45%));
     inline-size: clamp(11.5rem, 24vi, 17rem);
+    transition:
+        filter 210ms ease,
+        transform 210ms ease;
+
+    .heroPanel:hover &,
+    .heroPanel:focus-within & {
+        filter: drop-shadow(0 14px 22px rgb(15 23 42 / 52%)) brightness(1.05);
+        transform: translateY(-2px) scale(1.01);
+    }
 }
 
 .heroLiveBadges {
-    margin-block-start: 1rem;
+    margin-block-start: 0.6rem;
     max-inline-size: 100%;
 }
 
@@ -186,59 +238,38 @@
     display: grid;
     gap: 0.85rem;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-block-start: 1.3rem;
+    margin-block-start: 0.82rem;
 }
 
 .heroStatCard {
     display: grid;
     align-items: start;
-    padding: 0.85rem 0.95rem;
+    padding: 0.78rem 0.9rem;
     border: 1px solid rgb(255 255 255 / 24%);
     border-radius: 0.8rem;
     backdrop-filter: blur(8px);
     background: rgb(15 23 42 / 26%);
-    gap: 0.08rem 0.65rem;
-    grid-template-columns: auto 1fr;
-    min-block-size: 7.15rem;
+    gap: 0.22rem;
+    min-block-size: 6.1rem;
 }
 
-.heroStatIcon {
+.heroStatHeading {
     margin: 0;
-    font-size: 1.12rem;
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    line-height: 1.25;
-}
-
-.heroStatValue {
-    margin: 0;
-    font-size: 1.24rem;
+    font-size: 1.04rem;
     font-weight: 800;
-    grid-column: 2;
-    grid-row: 1;
     letter-spacing: 0.01em;
     line-height: 1.25;
 }
 
-.heroStatLabel {
-    margin: 0;
-    color: rgb(219 234 254);
-    font-size: 0.86rem;
-    grid-column: 2;
-    grid-row: 2;
-}
-
 .heroStatDescription {
-    margin: 0.35rem 0 0;
+    margin: 0;
     color: rgb(224 242 254);
     font-size: 0.74rem;
-    grid-column: 1 / -1;
-    grid-row: 3;
-    line-height: 1.375;
+    line-height: 1.5;
 }
 
 .mainContent {
-    padding: 2.85rem 0 4rem;
+    padding: 1.75rem 0 3rem;
 }
 
 .sectionTitle {
@@ -414,7 +445,7 @@
 
 @media (width <= 640px) {
     .heroBanner {
-        padding-block: 4.1rem 3.8rem;
+        padding-block: 3.2rem 2.85rem;
     }
 
     .heroGrid {
@@ -449,11 +480,18 @@
 
     .heroLiveBadges {
         gap: 0.5rem;
-        margin-block-start: 0.9rem;
+        margin-block-start: 0.72rem;
     }
 
     .liveBadgeImage {
         block-size: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .heroPanel:hover::before,
+    .heroPanel:focus-within::before {
+        animation: hero-panel-shimmer 760ms ease-out;
     }
 }
 

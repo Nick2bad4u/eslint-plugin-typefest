@@ -73,6 +73,26 @@ const sidebars: SidebarsConfig = {
                             label: "ADR 0007 · rule footer guide links",
                             type: "doc",
                         },
+                        {
+                            id: "developer/adr/typedoc-generation-ci-local-strategy",
+                            label: "ADR 0008 · typedoc CI/local strategy",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/plugin-blog-as-docs-channel",
+                            label: "ADR 0009 · blog docs channel",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/autofix-governance-and-global-kill-switch",
+                            label: "ADR 0010 · autofix governance",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/adr/type-aware-rule-contract-and-fail-fast-behavior",
+                            label: "ADR 0011 · typed-rule contract",
+                            type: "doc",
+                        },
                     ],
                     label: "🧭 Architecture Decisions",
                     link: {

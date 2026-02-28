@@ -113,7 +113,7 @@ const extractInfinityKind = (
  * @param context - Rule context used to resolve global identifiers.
  * @param expression - Expression candidate.
  *
- * @returns Normalized comparison data when the expression matches `<value> ===
+ * @returns Normalized comparison data when the expression matches `value ===
  *   Infinity` style checks; otherwise `null`.
  */
 const extractInfinityComparison = (

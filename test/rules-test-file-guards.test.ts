@@ -4,6 +4,7 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
+
 import { describe, expect, it, vi } from "vitest";
 
 import typefestPlugin from "../src/plugin";
