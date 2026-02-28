@@ -9,6 +9,8 @@ import {
     isWriteTargetMemberExpression,
 } from "../../src/_internal/array-like-expression";
 
+/** Create a lightweight mock `ts.Type` with configurable union/intersection
+traits. */
 const createFakeType = ({
     isIntersection = false,
     isUnion = false,
@@ -24,6 +26,9 @@ const createFakeType = ({
         types,
     }) as unknown as ts.Type;
 
+/**
+ * Build a focused `ts.TypeChecker` stub for array-like detection test branches.
+ */
 const createChecker = ({
     apparentTypeByType,
     baseConstraintByType,

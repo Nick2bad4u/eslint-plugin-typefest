@@ -159,6 +159,15 @@ export const collectDirectNamedValueImportsFromSource = (
     );
 };
 
+/**
+ * Finds a variable binding by name starting at a scope and walking outward.
+ *
+ * @param scope - Initial scope for lookup.
+ * @param variableName - Identifier name to resolve.
+ *
+ * @returns Matched variable binding from the nearest scope chain; otherwise
+ *   `null`.
+ */
 function getVariableInScopeChain(
     scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
@@ -177,6 +186,18 @@ function getVariableInScopeChain(
     return null;
 }
 
+/**
+ * Verify that a local identifier resolves to an import binding from the
+ * expected module at a specific reference location.
+ *
+ * @param sourceCode - SourceCode instance for scope resolution.
+ * @param referenceNode - AST node where the identifier will be referenced.
+ * @param localName - Candidate local alias name.
+ * @param sourceModuleName - Expected source module for the import binding.
+ *
+ * @returns `true` when the resolved local name is a matching import binding
+ *   from the expected module.
+ */
 function isLocalNameBoundToExpectedImport(
     sourceCode: Readonly<TSESLint.SourceCode>,
     referenceNode: Readonly<TSESTree.Node>,
@@ -208,6 +229,15 @@ function isLocalNameBoundToExpectedImport(
     });
 }
 
+/**
+ * Determine whether using the direct imported symbol name is safe at a
+ * reference node without colliding with non-import bindings.
+ *
+ * @param options - Resolution inputs used to test direct-name safety.
+ *
+ * @returns `true` when using the bare imported symbol name would resolve to the
+ *   expected import binding at the reference location.
+ */
 const canUseDirectImportedNameSafely = ({
     context,
     importedName,
@@ -251,6 +281,15 @@ const canUseDirectImportedNameSafely = ({
     });
 };
 
+/**
+ * Create a fixer that inserts a missing named value import for the target
+ * module.
+ *
+ * @param options - Fixer context and import metadata.
+ *
+ * @returns Import insertion fix when a safe insertion point is found; otherwise
+ *   `null`.
+ */
 const createInsertNamedValueImportFix = ({
     fixer,
     importedName,
@@ -274,6 +313,8 @@ const createInsertNamedValueImportFix = ({
 /**
  * Resolve a local alias that is safely bound to the expected import at a
  * reference node.
+ *
+ * @param options - Context and import metadata for local-name resolution.
  *
  * @returns Local alias when safely resolved; otherwise `null`.
  */
@@ -305,6 +346,16 @@ export const getSafeLocalNameForImportedValue = ({
     return null;
 };
 
+/**
+ * Resolve a safe replacement symbol and corresponding optional import-insert
+ * factory for value replacements.
+ *
+ * @param options - Context and import metadata used to resolve a safe
+ *   replacement name.
+ *
+ * @returns Replacement metadata with optional import-fix factory when safe;
+ *   otherwise `null`.
+ */
 const getSafeReplacementNameAndImportFixFactory = ({
     context,
     importedName,
@@ -361,6 +412,16 @@ const getSafeReplacementNameAndImportFixFactory = ({
     };
 };
 
+/**
+ * Compose replacement and optional import insertion fixes into a single fix
+ * array for `context.report` callbacks.
+ *
+ * @param options - Replacement-fix callback, fixer instance, and optional
+ *   import-fix metadata.
+ *
+ * @returns Combined fix array when all required fixes are available; otherwise
+ *   `null`.
+ */
 const createImportAwareFixes = ({
     createReplacementFix,
     fixer,
@@ -390,6 +451,15 @@ const createImportAwareFixes = ({
     return importFix ? [importFix, replacementFix] : [replacementFix];
 };
 
+/**
+ * Serialize a call argument node to text, preserving sequence-expression
+ * semantics with parentheses when required.
+ *
+ * @param options - Argument node and source-code accessor.
+ *
+ * @returns Trimmed argument text suitable for function-call insertion, or
+ *   `null` when no text can be produced.
+ */
 const getFunctionCallArgumentText = ({
     argumentNode,
     sourceCode,
@@ -416,6 +486,8 @@ const getFunctionCallArgumentText = ({
 /**
  * Create a fixer that safely replaces a target node with a resolved local
  * import alias.
+ *
+ * @param options - Inputs used to resolve replacement/import insertion safety.
  *
  * @returns A report fixer when safe; otherwise `null`.
  */
@@ -454,6 +526,9 @@ export const createSafeValueReferenceReplacementFix = ({
 /**
  * Create a fixer that safely rewrites a target node using custom replacement
  * text derived from a resolved helper local name.
+ *
+ * @param options - Inputs for safe helper-name resolution and replacement-text
+ *   generation.
  *
  * @returns A report fixer when safe; otherwise `null`.
  */
@@ -495,6 +570,8 @@ export const createSafeValueNodeTextReplacementFix = ({
 /**
  * Create a fixer that rewrites `receiver.method(args...)` to
  * `importedFn(receiver, args...)`.
+ *
+ * @param options - Call-expression context and import metadata.
  *
  * @returns A report fixer when safe; otherwise `null`.
  */
@@ -549,6 +626,8 @@ export const createMethodToFunctionCallFix = ({
 /**
  * Create a fixer that rewrites `receiver[member]` to `importedFn(receiver)`.
  *
+ * @param options - Member-expression context and import metadata.
+ *
  * @returns A report fixer when safe; otherwise `null`.
  */
 export const createMemberToFunctionCallFix = ({
@@ -589,6 +668,9 @@ export const createMemberToFunctionCallFix = ({
 
 /**
  * Create a fixer that rewrites a target node to an imported helper invocation.
+ *
+ * @param options - Target/argument nodes and import metadata for call
+ *   replacement.
  *
  * @returns A report fixer when safe; otherwise `null`.
  */

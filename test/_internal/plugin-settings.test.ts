@@ -8,6 +8,7 @@ import {
     registerProgramSettingsForContext,
 } from "../../src/_internal/plugin-settings";
 
+/** Create an empty Program node used as a stable cache-key fixture. */
 const createProgramNode = (): TSESTree.Program =>
     ({
         body: [],
@@ -18,6 +19,7 @@ const createProgramNode = (): TSESTree.Program =>
         type: "Program",
     }) as unknown as TSESTree.Program;
 
+/** Build a minimal RuleContext fixture with caller-controlled settings. */
 const createContext = ({
     program,
     settings,
@@ -43,6 +45,7 @@ const createContext = ({
         },
     }) as unknown as TSESLint.RuleContext<string, UnknownArray>;
 
+/** Create a generic AST node anchored to a specific program root. */
 const createNodeInProgram = (program: TSESTree.Program): TSESTree.Node =>
     ({
         parent: program,

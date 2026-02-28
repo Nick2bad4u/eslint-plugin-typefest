@@ -18,11 +18,13 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is ignored type annotation.
+ * Checks whether a type assertion target should be excluded from `safeCastTo`
+ * suggestions.
  *
- * @param typeAnnotation - Value to inspect.
+ * @param typeAnnotation - Asserted type annotation to inspect.
  *
- * @returns `true` when the value is ignored type annotation; otherwise `false`.
+ * @returns `true` for broad or intentionally unsafe targets (`any`, `unknown`,
+ *   `never`, and `const` assertions) where replacement is not desirable.
  */
 
 const isIgnoredTypeAnnotation = (
@@ -56,6 +58,10 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
 
             const { checker, parserServices } = getTypedRuleServices(context);
 
+            /**
+             * Report assertions that can be replaced by `safeCastTo<T>(value)`
+             * without changing assignability behavior.
+             */
             const reportIfSafeCastCandidate = ({
                 expression,
                 node,

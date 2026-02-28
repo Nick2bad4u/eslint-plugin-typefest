@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createImportInsertionFix } from "../../src/_internal/import-insertion";
 import { registerProgramSettingsForContext } from "../../src/_internal/plugin-settings";
 
+/** Build a minimal ESTree Program node with a caller-defined statement list. */
 const createProgram = (
     body: readonly Readonly<TSESTree.ProgramStatement>[]
 ): TSESTree.Program =>
@@ -18,6 +19,7 @@ const createProgram = (
         type: "Program",
     }) as unknown as TSESTree.Program;
 
+/** Create a RuleContext-like object backed by a specific program/settings pair. */
 const createContext = ({
     program,
     settings,

@@ -1,16 +1,16 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
 /**
  * @packageDocumentation
  * Verifies every registered rule short-circuits in test-file paths.
  */
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 import { describe, expect, it, vi } from "vitest";
 
 import typefestPlugin from "../src/plugin";
 
 type GenericRuleModule = TSESLint.RuleModule<string, Readonly<UnknownArray>>;
 
+/** Rule ids expected to guard against test-file execution paths. */
 const guardedRuleIds = [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -89,6 +89,7 @@ const guardedRuleIds = [
     "prefer-type-fest-writable-deep",
 ] as const;
 
+/** Build a minimal Program AST node for rule listener execution in tests. */
 const createProgramNode = (): TSESTree.Program =>
     ({
         body: [],
@@ -99,6 +100,7 @@ const createProgramNode = (): TSESTree.Program =>
         type: "Program",
     }) as unknown as TSESTree.Program;
 
+/** Build a minimal RuleContext fixture with a test-file filename. */
 const createRuleContext = (): TSESLint.RuleContext<string, readonly []> =>
     ({
         filename: "src/example.test.ts",

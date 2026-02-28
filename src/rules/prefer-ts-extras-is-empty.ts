@@ -16,23 +16,23 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is zero literal.
+ * Checks whether an expression is the numeric literal `0`.
  *
- * @param node - Value to inspect.
+ * @param node - Expression node to inspect.
  *
- * @returns `true` when the value is zero literal; otherwise `false`.
+ * @returns `true` when the node is a `Literal` whose value is `0`.
  */
 
 const isZeroLiteral = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Literal" && node.value === 0;
 
 /**
- * Check whether the input is length member expression.
+ * Narrows expressions to direct `.length` member access.
  *
- * @param node - Value to inspect.
+ * @param node - Expression node to inspect.
  *
- * @returns `true` when the value is length member expression; otherwise
- *   `false`.
+ * @returns `true` when the node is a non-computed member expression whose
+ *   property identifier is `length`.
  */
 
 const isLengthMemberExpression = (

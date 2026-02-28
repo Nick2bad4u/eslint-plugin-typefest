@@ -15,24 +15,34 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Parsed infinity comparison extracted from a binary expression.
+ */
 type InfinityComparison = Readonly<{
     comparedExpression: TSESTree.Expression;
     kind: InfinityKind;
     operator: "==" | "===";
 }>;
 
+/**
+ * Infinity polarity represented by a reference expression.
+ */
 type InfinityKind = "negative" | "positive";
 
+/**
+ * Concrete rule context type derived from `createTypedRule`.
+ */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
 /**
- * Check whether the input is infinity reference.
+ * Checks whether an expression references positive or negative infinity.
  *
- * @param node - Value to inspect.
+ * @param options - Rule context plus expression node to inspect.
  *
- * @returns `true` when the value is infinity reference; otherwise `false`.
+ * @returns `true` when the expression resolves to the global `Infinity` or a
+ *   supported `Number.*_INFINITY` member reference.
  */
 const isInfinityReference = ({
     context,
@@ -58,11 +68,14 @@ const isInfinityReference = ({
 };
 
 /**
- * ExtractInfinityKind helper.
+ * Classifies an expression as positive or negative infinity.
  *
- * @param node - Value to inspect.
+ * @param context - Rule context used to validate global `Infinity`/`Number`
+ *   bindings.
+ * @param node - Expression to inspect.
  *
- * @returns ExtractInfinityKind helper result.
+ * @returns The infinity kind when the expression is a supported infinity
+ *   reference; otherwise `null`.
  */
 const extractInfinityKind = (
     context: RuleContext,
@@ -95,11 +108,13 @@ const extractInfinityKind = (
 };
 
 /**
- * ExtractInfinityComparison helper.
+ * Extracts a comparison where exactly one side references infinity.
  *
- * @param expression - Value to inspect.
+ * @param context - Rule context used to resolve global identifiers.
+ * @param expression - Expression candidate.
  *
- * @returns ExtractInfinityComparison helper result.
+ * @returns Normalized comparison data when the expression matches `<value> ===
+ *   Infinity` style checks; otherwise `null`.
  */
 const extractInfinityComparison = (
     context: RuleContext,
@@ -135,12 +150,14 @@ const extractInfinityComparison = (
 };
 
 /**
- * ExtractSafeInfinityDisjunctionTarget helper.
+ * Extracts the shared target from strict disjunction checks against both
+ * positive and negative infinity.
  *
- * @param node - Value to inspect.
- * @param sourceCode - Value to inspect.
+ * @param context - Rule context used during infinity comparison extraction.
+ * @param node - Logical expression candidate.
  *
- * @returns ExtractSafeInfinityDisjunctionTarget helper result.
+ * @returns The compared expression from `value === Infinity || value ===
+ *   Number.NEGATIVE_INFINITY` style patterns; otherwise `null`.
  */
 const extractSafeInfinityDisjunctionTarget = (
     context: RuleContext,

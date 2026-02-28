@@ -19,11 +19,11 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is zero property.
+ * Checks whether a computed member property represents index `0`.
  *
- * @param node - Value to inspect.
+ * @param node - Member property node candidate.
  *
- * @returns `true` when the value is zero property; otherwise `false`.
+ * @returns `true` for numeric `0` and string literal `"0"` property nodes.
  */
 
 const isZeroProperty = (

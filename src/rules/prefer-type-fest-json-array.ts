@@ -11,49 +11,45 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Built-in generic array type name. */
 const ARRAY_TYPE_NAME = "Array";
+
+/** TypeFest JSON value alias used by supported union patterns. */
 const JSON_VALUE_TYPE_NAME = "JsonValue";
+
+/** Built-in readonly generic array type name. */
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
 
 /**
- * Check whether the input is identifier type reference.
+ * Checks whether a node references `JsonValue`.
  *
- * @param node - Value to inspect.
- * @param expectedTypeName - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is identifier type reference; otherwise
- *   `false`.
- */
-
-/**
- * Check whether the input is json value type.
- *
- * @param node - Value to inspect.
- *
- * @returns `true` when the value is json value type; otherwise `false`.
+ * @returns `true` when the node is the identifier type reference `JsonValue`.
  */
 
 const isJsonValueType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
- * Check whether the input is json value array type.
+ * Checks whether a node is `JsonValue[]`.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is json value array type; otherwise `false`.
+ * @returns `true` when the node is an array type whose element type is
+ *   `JsonValue`.
  */
 
 const isJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === "TSArrayType" && isJsonValueType(node.elementType);
 
 /**
- * Check whether the input is readonly json value array type.
+ * Checks whether a node is `readonly JsonValue[]`.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is readonly json value array type; otherwise
- *   `false`.
+ * @returns `true` when the node is a readonly type operator wrapping a
+ *   `JsonValue[]` array.
  */
 
 const isReadonlyJsonValueArrayType = (
@@ -72,12 +68,12 @@ const isReadonlyJsonValueArrayType = (
 };
 
 /**
- * Check whether the input is generic json value array type.
+ * Checks whether a node is `Array<JsonValue>`.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is generic json value array type; otherwise
- *   `false`.
+ * @returns `true` when the node is the generic `Array` reference with
+ *   `JsonValue` as its single type argument.
  */
 
 const isGenericJsonValueArrayType = (
@@ -98,12 +94,12 @@ const isGenericJsonValueArrayType = (
 };
 
 /**
- * Check whether the input is generic readonly json value array type.
+ * Checks whether a node is `ReadonlyArray<JsonValue>`.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is generic readonly json value array type;
- *   otherwise `false`.
+ * @returns `true` when the node is the generic `ReadonlyArray` reference with
+ *   `JsonValue` as its single type argument.
  */
 
 const isGenericReadonlyJsonValueArrayType = (
@@ -124,11 +120,13 @@ const isGenericReadonlyJsonValueArrayType = (
 };
 
 /**
- * Check whether has json array union shape.
+ * Determines whether a union matches one of the explicit JSON array forms this
+ * rule can replace.
  *
- * @param node - Value to inspect.
+ * @param node - Union node to inspect.
  *
- * @returns `true` when has json array union shape; otherwise `false`.
+ * @returns `true` for two-member unions equivalent to `JsonValue[] | readonly
+ *   JsonValue[]` or `Array<JsonValue> | ReadonlyArray<JsonValue>`.
  */
 
 const hasJsonArrayUnionShape = (

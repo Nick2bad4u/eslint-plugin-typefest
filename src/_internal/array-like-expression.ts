@@ -1,3 +1,8 @@
+/**
+ * @packageDocumentation
+ * Helpers for determining whether expressions/types are array-like in typed
+ * rule analysis.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
@@ -6,6 +11,10 @@ import type ts from "typescript";
  */
 type UnionArrayLikeMatchMode = "every" | "some";
 
+/**
+ * Shared inputs required to evaluate whether an ESTree expression is array-like
+ * using TypeScript type information.
+ */
 interface ArrayLikeExpressionCheckerOptions {
     /**
      * TypeScript checker instance used for type resolution.
@@ -29,6 +38,10 @@ interface ArrayLikeExpressionCheckerOptions {
     readonly unionMatchMode?: UnionArrayLikeMatchMode;
 }
 
+/**
+ * TypeChecker shape with optional helper APIs available across TypeScript
+ * versions.
+ */
 type TypeCheckerWithArrayHelpers = ts.TypeChecker & {
     getBaseConstraintOfType?: (
         candidateType: Readonly<ts.Type>

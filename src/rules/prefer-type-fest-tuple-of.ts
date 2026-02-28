@@ -12,11 +12,24 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Legacy tuple aliases this rule normalizes to `TupleOf` forms.
+ */
 const tupleOfAliasReplacements = {
     ReadonlyTuple: "Readonly<TupleOf<Length, Element>>",
     Tuple: "TupleOf<Length, Element>",
 } as const;
 
+/**
+ * Builds replacement text that preserves readonly semantics for legacy tuple
+ * aliases.
+ *
+ * @param importedAliasName - Alias name detected in source.
+ * @param lengthTypeText - Serialized tuple length type argument.
+ * @param elementTypeText - Serialized tuple element type argument.
+ *
+ * @returns Replacement text using canonical `TupleOf` syntax.
+ */
 const createTupleOfReplacementText = (
     importedAliasName: string,
     lengthTypeText: string,
@@ -26,6 +39,13 @@ const createTupleOfReplacementText = (
         ? `Readonly<TupleOf<${lengthTypeText}, ${elementTypeText}>>`
         : `TupleOf<${lengthTypeText}, ${elementTypeText}>`;
 
+/**
+ * ESLint rule definition for `prefer-type-fest-tuple-of`.
+ *
+ * @remarks
+ * Defines metadata, diagnostics, and fixes for replacing legacy tuple aliases
+ * with canonical `TupleOf` forms.
+ */
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -139,4 +159,7 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
         name: "prefer-type-fest-tuple-of",
     });
 
+/**
+ * Default export for the `prefer-type-fest-tuple-of` rule module.
+ */
 export default preferTypeFestTupleOfRule;

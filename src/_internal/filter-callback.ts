@@ -1,15 +1,26 @@
+/**
+ * @packageDocumentation
+ * Utilities for detecting nodes that live inside `.filter(...)` callbacks.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import { getParentNode } from "./ast-node.js";
 
+/** Target method name used for callback-context detection. */
 const FILTER_METHOD_NAME = "filter";
 
+/**
+ * Narrows nodes to function-like callback expressions.
+ */
 const isFunctionCallbackNode = (
     node: Readonly<TSESTree.Node>
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
     node.type === "ArrowFunctionExpression" ||
     node.type === "FunctionExpression";
 
+/**
+ * Narrows call expressions to direct `.filter(...)` calls.
+ */
 const isFilterCall = (
     expression: Readonly<TSESTree.CallExpression>
 ): expression is TSESTree.CallExpression & {
@@ -24,8 +35,8 @@ const isFilterCall = (
     expression.callee.property.name === FILTER_METHOD_NAME;
 
 /**
- * Check whether a node appears inside a callback passed directly to
- * `Array.prototype.filter`.
+ * Checks whether a node appears inside a callback passed as the first argument
+ * to a direct `.filter(...)` call.
  *
  * @param node - Node to inspect.
  *

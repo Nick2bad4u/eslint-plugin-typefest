@@ -1,9 +1,9 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
 /**
  * @packageDocumentation
- * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
+ * Property-based and unit tests for shared typed-rule internals.
  */
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 import type ts from "typescript";
 
 import fc from "fast-check";
@@ -35,11 +35,11 @@ const knownTestSuffixes = [
 ] as const;
 
 /**
- * Helper utility for assert known suffixes property.
+ * Property-based assertion that known `*.test` / `*.spec` suffixes are
+ * recognized case-insensitively.
  *
- * @returns AssertKnownSuffixesProperty helper result.
+ * @returns Nothing. Fails the test when a generated case does not match.
  */
-
 const assertKnownSuffixesProperty = (): void => {
     fc.assert(
         fc.property(
@@ -58,11 +58,11 @@ const assertKnownSuffixesProperty = (): void => {
 };
 
 /**
- * Helper utility for assert tests directory property.
+ * Property-based assertion that `tests` / `__tests__` path segments are
+ * recognized across separators and casing.
  *
- * @returns AssertTestsDirectoryProperty helper result.
+ * @returns Nothing. Fails the test when a generated case does not match.
  */
-
 const assertTestsDirectoryProperty = (): void => {
     fc.assert(
         fc.property(
@@ -90,11 +90,10 @@ const assertTestsDirectoryProperty = (): void => {
 };
 
 /**
- * Helper utility for assert non test paths.
+ * Assertion suite covering representative non-test paths.
  *
- * @returns AssertNonTestPaths helper result.
+ * @returns Nothing. Fails when non-test paths are incorrectly classified.
  */
-
 const assertNonTestPaths = (): void => {
     expect(
         isTestFilePath("src/rules/prefer-type-fest-json-value.ts")
@@ -106,6 +105,7 @@ const assertNonTestPaths = (): void => {
     expect(isTestFilePath("src/tests-helper.ts")).toBeFalsy();
 };
 
+/** Minimal parser-services shape consumed by typed-rule helper tests. */
 interface ParserServicesLike {
     esTreeNodeToTSNodeMap: WeakMap<object, object>;
     program: null | ts.Program;
@@ -113,13 +113,13 @@ interface ParserServicesLike {
 }
 
 /**
- * CreateTypedRuleContext helper.
+ * Build a minimal typed-rule context fixture with caller-supplied parser
+ * services.
  *
- * @param parserServices - Value to inspect.
+ * @param parserServices - Parser services payload injected into sourceCode.
  *
- * @returns CreateTypedRuleContext helper result.
+ * @returns Minimal context-like object accepted by tested helpers.
  */
-
 const createTypedRuleContext = (
     parserServices: Readonly<ParserServicesLike>
 ) => ({
@@ -136,13 +136,12 @@ const createTypedRuleContext = (
 });
 
 /**
- * CreateParserServices helper.
+ * Build parser-services test doubles with deterministic map instances.
  *
- * @param program - Value to inspect.
+ * @param program - Optional TypeScript program under test.
  *
- * @returns CreateParserServices helper result.
+ * @returns Parser-services-like fixture for helper tests.
  */
-
 const createParserServices = (
     program: Readonly<null | ts.Program>
 ): ParserServicesLike => ({

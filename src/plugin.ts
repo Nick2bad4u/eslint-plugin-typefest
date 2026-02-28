@@ -87,16 +87,23 @@ import preferTypeFestWritableDeepRule from "./rules/prefer-type-fest-writable-de
 import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
 /**
- * ESLint plugin for TypeFest and ts-extras utilities. Provides rules to
- * encourage usage of type-safe utilities from these libraries.
+ * CommonJS `require` bridge used to load package metadata and optional parser
+ * dependencies from this ESM entrypoint.
  */
 const require = createRequire(import.meta.url);
 
+/** ESLint severity used by generated preset rule maps. */
 const ERROR_SEVERITY = "error" as const;
+
+/** Default file globs targeted by plugin presets when `files` is omitted. */
 const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
 
 /**
- * Available preset keys exposed through plugin `configs`.
+ * Canonical flat-config preset keys exposed through `plugin.configs`.
+ *
+ * @remarks
+ * These names are used by consumers when composing presets in ESLint flat
+ * config arrays.
  */
 export type TypefestConfigName =
     | "all"
@@ -107,14 +114,26 @@ export type TypefestConfigName =
     | "type-fest/types";
 
 /**
- * Flat config preset shape produced by this plugin.
+ * Flat-config preset shape produced by this plugin.
+ *
+ * @remarks
+ * The `rules` map is required so preset composition can always merge concrete
+ * rule severity entries without additional null checks.
  */
 export type TypefestPresetConfig = Linter.Config & {
     rules: NonNullable<Linter.Config["rules"]>;
 };
+
+/** Internal alias for flat config objects handled by preset builders. */
 type FlatConfig = Linter.Config;
+
+/** Normalized language-options shape for preset composition helpers. */
 type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
+
+/** Rule-map type used by preset rule-list expansion helpers. */
 type RulesConfig = TypefestPresetConfig["rules"];
+
+/** Rule module shape extended with optional docs metadata. */
 type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
     meta?: {
         docs?: {
@@ -122,7 +141,11 @@ type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
         };
     };
 };
+
+/** Contract for the `configs` object exported by this plugin. */
 type TypefestConfigsContract = Record<TypefestConfigName, TypefestPresetConfig>;
+
+/** Fully assembled plugin contract used by the runtime default export. */
 type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
     configs: TypefestConfigsContract;
     meta: {
@@ -133,6 +156,8 @@ type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
     processors: NonNullable<ESLint.Plugin["processors"]>;
     rules: NonNullable<ESLint.Plugin["rules"]> & typeof typefestRules;
 };
+
+/** Optional parser module shape accepted for runtime parser wiring. */
 type TypeScriptParser = {
     parse?: (...parameters: UnknownArray) => unknown;
     parseForESLint?: (...parameters: UnknownArray) => unknown;
@@ -163,12 +188,14 @@ function loadTypeScriptParser(): null | TypeScriptParser {
     }
 }
 
+/** Package metadata used to populate plugin runtime `meta.version`. */
 const packageJson = require("../package.json") as PackageJson;
 
+/** Optional parser module instance reused across preset construction. */
 const typeScriptParser = loadTypeScriptParser();
 
 /**
- * Map of all rule modules exported by eslint-plugin-typefest.
+ * Rule names included in the `type-fest/types` preset family.
  */
 const typeFestTypesRuleNames = [
     "prefer-type-fest-abstract-constructor",
@@ -215,6 +242,7 @@ const typeFestTypesRuleNames = [
     "prefer-type-fest-writable-deep",
 ] as const;
 
+/** Rules grouped under the `ts-extras/type-guards` preset. */
 const tsExtrasTypeGuardRuleNames = [
     "prefer-ts-extras-array-includes",
     "prefer-ts-extras-assert-defined",
@@ -237,6 +265,7 @@ const tsExtrasTypeGuardRuleNames = [
     "prefer-ts-extras-set-has",
 ] as const;
 
+/** Rules grouped under ts-extras utility-focused presets. */
 const tsExtrasUtilityRuleNames = [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -251,6 +280,7 @@ const tsExtrasUtilityRuleNames = [
     "prefer-ts-extras-string-split",
 ] as const;
 
+/** Experimental rules enabled only by the `all` preset. */
 const tsExtrasExperimentalRuleNames = [
     "prefer-ts-extras-array-find",
     "prefer-ts-extras-array-find-last",
@@ -258,6 +288,7 @@ const tsExtrasExperimentalRuleNames = [
     "prefer-ts-extras-is-equal-type",
 ] as const;
 
+/** Minimal baseline preset focused on broad, low-risk value/type helpers. */
 const minimalRuleNames = [
     "prefer-type-fest-arrayable",
     "prefer-type-fest-except",
@@ -273,7 +304,11 @@ const minimalRuleNames = [
 ] as const;
 
 /**
- * Unqualified rule name.
+ * Unqualified rule name supported by `eslint-plugin-typefest`.
+ *
+ * @remarks
+ * These names intentionally omit the `typefest/` namespace and are used for
+ * internal rule map typing.
  */
 export type TypefestRuleName =
     | (typeof tsExtrasExperimentalRuleNames)[number]
@@ -281,6 +316,9 @@ export type TypefestRuleName =
     | (typeof tsExtrasUtilityRuleNames)[number]
     | (typeof typeFestTypesRuleNames)[number];
 
+/**
+ * Runtime map of all rule modules keyed by unqualified rule name.
+ */
 const typefestRules: Readonly<Record<TypefestRuleName, RuleWithDocs>> = {
     "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
     "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
@@ -366,9 +404,16 @@ const typefestRules: Readonly<Record<TypefestRuleName, RuleWithDocs>> = {
 
 /**
  * Fully-qualified ESLint rule id used by this plugin.
+ *
+ * @remarks
+ * Consumers typically use this when building strongly typed rule maps or helper
+ * utilities that require namespaced rule identifiers.
  */
 export type TypefestRuleId = `typefest/${TypefestRuleName}`;
 
+/**
+ * ESLint-compatible rule map view of the strongly typed internal rule record.
+ */
 const typefestEslintRules = typefestRules as unknown as NonNullable<
     ESLint.Plugin["rules"]
 > &
@@ -410,16 +455,19 @@ function uniqueRuleNames(
     return [...new Set(ruleNames)];
 }
 
+/** Recommended preset rule list after duplicate elimination. */
 const recommendedRuleNames = uniqueRuleNames([
     ...typeFestTypesRuleNames,
     ...tsExtrasTypeGuardRuleNames,
 ]);
 
+/** Strict preset extends `recommended` with ts-extras utility rules. */
 const strictRuleNames = uniqueRuleNames([
     ...recommendedRuleNames,
     ...tsExtrasUtilityRuleNames,
 ]);
 
+/** All preset extends `strict` with experimental rules. */
 const allRuleNames = uniqueRuleNames([
     ...strictRuleNames,
     ...tsExtrasExperimentalRuleNames,
@@ -473,6 +521,7 @@ function withTypefestPlugin(
     };
 }
 
+/** Minimal plugin object used when assembling flat-config presets. */
 const pluginForConfigs: ESLint.Plugin = {
     rules: typefestEslintRules,
 };
@@ -525,10 +574,15 @@ const typefestConfigsDefinition = {
     ),
 } satisfies TypefestConfigsContract;
 
+/** Finalized typed view of all exported preset configurations. */
 const typefestConfigs: TypefestConfigsContract = typefestConfigsDefinition;
 
 /**
- * Runtime type for {@link typefestConfigs}.
+ * Runtime type for the plugin's generated config presets.
+ *
+ * @remarks
+ * Mirrors `plugin.configs` and is useful when composing typed preset-aware
+ * tooling in external integrations.
  */
 export type TypefestConfigs = typeof typefestConfigs;
 
@@ -547,7 +601,11 @@ const typefestPlugin: TypefestPluginContract = {
 };
 
 /**
- * Runtime type for the plugin default export.
+ * Runtime type for the plugin object exported as default.
+ *
+ * @remarks
+ * Includes resolved `meta`, `rules`, and `configs` contracts after plugin
+ * assembly.
  */
 export type TypefestPlugin = typeof typefestPlugin;
 

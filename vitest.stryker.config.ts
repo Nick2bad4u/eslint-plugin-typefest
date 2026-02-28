@@ -1,5 +1,12 @@
 import { defineConfig } from "vitest/config";
 
+/**
+ * Vitest configuration used exclusively by Stryker mutation testing.
+ *
+ * @remarks
+ * This profile intentionally disables file parallelism and forces a single
+ * worker to keep mutant execution deterministic and resource-bounded.
+ */
 export default defineConfig({
     test: {
         css: false,

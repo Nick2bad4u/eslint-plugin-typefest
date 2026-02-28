@@ -20,12 +20,12 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * IsLastIndexPattern helper.
+ * Detects direct last-element index access (`value[value.length - 1]`).
  *
- * @param node - Value to inspect.
- * @param sourceCode - Value to inspect.
+ * @param node - Member expression to inspect.
  *
- * @returns IsLastIndexPattern helper result.
+ * @returns `true` when the member expression uses a computed `length - 1` index
+ *   derived from the same object.
  */
 const isLastIndexPattern = (
     node: Readonly<TSESTree.MemberExpression>

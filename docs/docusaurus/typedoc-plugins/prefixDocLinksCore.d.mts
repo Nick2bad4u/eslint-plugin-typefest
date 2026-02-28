@@ -8,6 +8,10 @@
 
 /**
  * Prefixes bare intra-doc Markdown file links with `./`.
+ *
+ * @param input - Markdown source to normalize for relative link resolution.
+ *
+ * @returns Markdown with unresolved bare file links prefixed by `./`.
  */
 export declare function prefixBareMarkdownFileLinksInMarkdown(
     input: string

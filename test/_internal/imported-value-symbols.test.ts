@@ -1,3 +1,8 @@
+/**
+ * @packageDocumentation
+ * Unit tests for imported-value helper discovery and import-aware replacement
+ * fixers.
+ */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
@@ -12,10 +17,12 @@ import {
     getSafeLocalNameForImportedValue,
 } from "../../src/_internal/imported-value-symbols";
 
+/** Rule context shape required by value-fixer helper tests. */
 type RuleContext = Parameters<
     typeof createMethodToFunctionCallFix
 >[0]["context"];
 
+/** Build a minimal SourceCode-like fixture from an AST body list. */
 const createSourceCode = (
     body: Readonly<UnknownArray>
 ): Parameters<typeof collectDirectNamedValueImportsFromSource>[0] =>
@@ -27,6 +34,7 @@ const createSourceCode = (
         typeof collectDirectNamedValueImportsFromSource
     >[0];
 
+/** Create an import specifier test node with configurable import kind. */
 const createImportSpecifier = (
     importedName: string,
     localName: string,
@@ -44,6 +52,7 @@ const createImportSpecifier = (
     type: "ImportSpecifier",
 });
 
+/** Create an import declaration test node for a given module source. */
 const createImportDeclaration = (
     sourceValue: string,
     specifiers: Readonly<UnknownArray>,
@@ -102,6 +111,7 @@ const getNodeTextFromSyntheticNode = (node: unknown): string => {
     return "";
 };
 
+/** Create a single-scope rule context fixture with supplied bindings. */
 const createRuleContextWithVariables = (
     variablesByName: Readonly<ReadonlyMap<string, unknown>>
 ): RuleContext => {
@@ -118,6 +128,7 @@ const createRuleContextWithVariables = (
     } as unknown as RuleContext;
 };
 
+/** Create a nested-scope context fixture for shadowing tests. */
 const createRuleContextWithNestedScopes = (
     innerVariablesByName: Readonly<ReadonlyMap<string, unknown>>,
     outerVariablesByName: Readonly<ReadonlyMap<string, unknown>>
@@ -141,6 +152,7 @@ const createRuleContextWithNestedScopes = (
     } as unknown as RuleContext;
 };
 
+/** Create a context fixture that declares one imported value binding. */
 const createRuleContext = (
     importedName: string,
     sourceModuleName: string
@@ -158,12 +170,14 @@ const createRuleContext = (
     return createRuleContextWithVariables(new Map([[importedName, variable]]));
 };
 
+/** Build a map of imported symbol to local alias set. */
 const createImportsMap = (
     importedName: string,
     ...localNames: readonly string[]
 ): ReadonlyMap<string, ReadonlySet<string>> =>
     new Map([[importedName, new Set(localNames)]]);
 
+/** Execute a report-fix callback and collect emitted replacement text values. */
 const invokeFix = (
     fix: null | TSESLint.ReportFixFunction
 ): readonly string[] => {

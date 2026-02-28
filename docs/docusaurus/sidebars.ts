@@ -1,5 +1,10 @@
+/**
+ * @packageDocumentation
+ * Sidebar structure for the primary documentation section under `docs/`.
+ */
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
+/** Main sidebar configuration for the default docs plugin instance. */
 const sidebars: SidebarsConfig = {
     docs: [
         {

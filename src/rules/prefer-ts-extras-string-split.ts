@@ -42,6 +42,10 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             const stringPrimitiveType =
                 checkerWithStringHelpers.getStringType?.();
 
+            /**
+             * Determine whether a type behaves like a string, traversing
+             * unions/intersections and apparent types while guarding cycles.
+             */
             const isStringLikeType = (
                 type: Readonly<ReturnType<typeof checker.getTypeAtLocation>>
             ): boolean => {

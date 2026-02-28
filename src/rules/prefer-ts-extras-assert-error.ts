@@ -16,14 +16,13 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is throw only consequent.
+ * Determines whether an `if` consequent only throws.
  *
- * @param context - Rule context used for global identifier resolution.
- * @param expression - Value to inspect.
+ * @param node - Consequent statement from an `IfStatement`.
  *
- * @returns `true` when the value is throw only consequent; otherwise `false`.
+ * @returns `true` when the consequent is either a `throw` statement directly or
+ *   a block containing exactly one `throw` statement.
  */
-
 const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
@@ -41,14 +40,15 @@ const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
 };
 
 /**
- * Check whether the input is error instanceof expression.
+ * Checks whether an expression is `<value> instanceof Error`.
  *
- * @param node - Value to inspect.
+ * @param context - Rule context used to verify that `Error` resolves to the
+ *   global constructor.
+ * @param expression - Expression to inspect.
  *
- * @returns `true` when the value is error instanceof expression; otherwise
- *   `false`.
+ * @returns `true` when the expression is an `instanceof` check against the
+ *   global `Error` symbol.
  */
-
 const isErrorInstanceofExpression = (
     context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
     expression: Readonly<TSESTree.Expression>
@@ -69,14 +69,14 @@ const isErrorInstanceofExpression = (
 };
 
 /**
- * ExtractAssertErrorTarget helper.
+ * Extracts the guarded value from `!(value instanceof Error)` checks.
  *
  * @param context - Rule context used for global identifier resolution.
- * @param test - Value to inspect.
+ * @param test - `IfStatement.test` expression to inspect.
  *
- * @returns ExtractAssertErrorTarget helper result.
+ * @returns The left-hand expression from `value instanceof Error` when the test
+ *   shape is compatible with `assertError`; otherwise `null`.
  */
-
 const extractAssertErrorTarget = (
     context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
     test: Readonly<TSESTree.Expression>

@@ -38,6 +38,11 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
             };
 
+            /**
+             * Determine whether a type resolves to `Set`/`ReadonlySet`,
+             * traversing unions, intersections, apparent types, and base
+             * interfaces.
+             */
             const isSetType = (type: Readonly<ts.Type>): boolean => {
                 const seenTypes = new Set<ts.Type>();
 

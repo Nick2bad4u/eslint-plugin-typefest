@@ -14,26 +14,39 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
+/**
+ * Normalized metadata extracted from a supported undefined inequality guard.
+ */
 type UndefinedInequalityMatch = {
     readonly comparedExpression: TSESTree.Expression;
     readonly operator: "!=" | "!==";
 };
 
+/**
+ * Narrow a node to an Identifier with an expected name.
+ */
 const isIdentifierWithName = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
 ): node is TSESTree.Identifier =>
     node.type === "Identifier" && node.name === name;
 
+/**
+ * Narrow a node to the string literal `"undefined"`.
+ */
 const isUndefinedStringLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: "undefined" } =>
     node.type === "Literal" && node.value === "undefined";
 
+/**
+ * Narrow an expression to `typeof <parameterName>`.
+ */
 const isTypeofParameter = (
     node: Readonly<TSESTree.Expression>,
     parameterName: string
@@ -42,6 +55,9 @@ const isTypeofParameter = (
     node.operator === "typeof" &&
     isIdentifierWithName(node.argument, parameterName);
 
+/**
+ * Match supported undefined-inequality patterns used in `filter` callbacks.
+ */
 const getUndefinedInequalityMatch = (
     context: RuleContext,
     body: Readonly<TSESTree.Expression>,
@@ -101,15 +117,14 @@ const getUndefinedInequalityMatch = (
 };
 
 /**
- * Check whether the input is undefined filter guard body.
+ * Check whether a callback body is a supported undefined guard expression.
  *
- * @param body - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param body - Callback body expression to inspect.
+ * @param parameterName - Callback parameter name.
  *
- * @returns `true` when the value is undefined filter guard body; otherwise
- *   `false`.
+ * @returns `true` when the body can be replaced with `isDefined`.
  */
-
 const isUndefinedFilterGuardBody = (
     context: RuleContext,
     body: Readonly<TSESTree.Expression>,

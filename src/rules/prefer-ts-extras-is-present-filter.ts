@@ -16,13 +16,13 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * FlattenLogicalAndTerms helper.
+ * Flatten a left-associative `&&` expression tree into a linear term list.
  *
- * @param expression - Value to inspect.
+ * @param expression - Expression to inspect.
  *
- * @returns FlattenLogicalAndTerms helper result.
+ * @returns Individual conjunction terms, or a single-item array when the
+ *   expression is not a logical-and chain.
  */
-
 const flattenLogicalAndTerms = (
     expression: Readonly<TSESTree.Expression>
 ): readonly TSESTree.Expression[] => {
@@ -40,32 +40,48 @@ const flattenLogicalAndTerms = (
     ];
 };
 
+/**
+ * Normalized metadata for one nullish inequality comparison part.
+ */
 type NullishInequalityPart = {
     readonly expression: TSESTree.Expression;
     readonly kind: "null" | "undefined";
     readonly operator: "!=" | "!==";
 };
 
+/** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
+/**
+ * Narrow a node to an Identifier with an expected name.
+ */
 const isIdentifierWithName = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
     name: string
 ): node is TSESTree.Identifier =>
     node.type === "Identifier" && node.name === name;
 
+/**
+ * Narrow a node to the `null` literal.
+ */
 const isNullLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: null } =>
     node.type === "Literal" && node.value === null;
 
+/**
+ * Narrow a node to the string literal `"undefined"`.
+ */
 const isUndefinedStringLiteral = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Literal & { value: "undefined" } =>
     node.type === "Literal" && node.value === "undefined";
 
+/**
+ * Narrow an expression to `typeof <parameterName>`.
+ */
 const isTypeofParameter = (
     node: Readonly<TSESTree.Expression>,
     parameterName: string
@@ -75,12 +91,13 @@ const isTypeofParameter = (
     isIdentifierWithName(node.argument, parameterName);
 
 /**
- * ExtractNullishInequalityPart helper.
+ * Extract one nullish inequality comparison part from an expression.
  *
- * @param expression - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param expression - Expression to inspect.
+ * @param parameterName - Callback parameter name.
  *
- * @returns ExtractNullishInequalityPart helper result.
+ * @returns Comparison metadata when matched; otherwise `null`.
  */
 const extractNullishInequalityPart = (
     context: RuleContext,
@@ -163,14 +180,15 @@ const extractNullishInequalityPart = (
 };
 
 /**
- * Check whether the input is null comparison.
+ * Check whether an expression contains a supported null-inequality comparison
+ * part for the callback parameter.
  *
- * @param node - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param node - Expression to inspect.
+ * @param parameterName - Callback parameter name.
  *
- * @returns `true` when the value is null comparison; otherwise `false`.
+ * @returns `true` when the expression represents a null comparison.
  */
-
 const isNullComparison = (
     context: RuleContext,
     node: Readonly<TSESTree.Expression>,
@@ -186,14 +204,15 @@ const isNullComparison = (
 };
 
 /**
- * Check whether the input is undefined comparison.
+ * Check whether an expression contains a supported undefined-inequality
+ * comparison part for the callback parameter.
  *
- * @param node - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param node - Expression to inspect.
+ * @param parameterName - Callback parameter name.
  *
- * @returns `true` when the value is undefined comparison; otherwise `false`.
+ * @returns `true` when the expression represents an undefined comparison.
  */
-
 const isUndefinedComparison = (
     context: RuleContext,
     node: Readonly<TSESTree.Expression>,
@@ -209,15 +228,15 @@ const isUndefinedComparison = (
 };
 
 /**
- * Check whether the input is nullish filter guard body.
+ * Check whether a filter callback body is a supported nullish guard pattern.
  *
- * @param callback - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param callback - Arrow callback to inspect.
+ * @param parameterName - Callback parameter name.
  *
- * @returns `true` when the value is nullish filter guard body; otherwise
- *   `false`.
+ * @returns `true` when the callback can be replaced by `isPresent` (with
+ *   possible suggestion fallback based on strictness of operators).
  */
-
 const isNullishFilterGuardBody = (
     context: RuleContext,
     callback: Readonly<
@@ -252,9 +271,9 @@ const isNullishFilterGuardBody = (
 /**
  * Check whether the callback is safe to auto-fix directly to `isPresent`.
  *
- * @param callback - Value to inspect.
- * @param parameterName - Value to inspect.
- * @param sourceCode - Value to inspect.
+ * @param callback - Arrow callback to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param parameterName - Callback parameter name.
  *
  * @returns `true` when the callback is safely auto-fixable; otherwise `false`.
  */

@@ -11,11 +11,12 @@ import {
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is record string unknown.
+ * Detects `Record<string, unknown>` references.
  *
- * @param node - Value to inspect.
+ * @param node - Type reference candidate.
  *
- * @returns `true` when the value is record string unknown; otherwise `false`.
+ * @returns `true` when the node is a two-argument `Record` with `string` keys
+ *   and `unknown` values.
  */
 
 const isRecordStringUnknown = (

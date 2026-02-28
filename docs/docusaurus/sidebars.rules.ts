@@ -1,21 +1,31 @@
+/**
+ * @packageDocumentation
+ * Dynamic sidebar generation for plugin rule documentation sections.
+ */
 import { readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
+/** Minimal document item shape used by generated rule categories. */
 type SidebarDocItem = {
     readonly id: string;
     readonly type: "doc";
 };
 
+/** Directory containing this sidebar module. */
 const sidebarDirectoryPath = dirname(fileURLToPath(import.meta.url));
+/** Directory containing generated rule docs consumed by the sidebar. */
 const rulesDirectoryPath = join(sidebarDirectoryPath, "..", "rules");
 
+/** Check whether a directory entry name is a markdown file. */
 const isMarkdownFile = (fileName: string): boolean => fileName.endsWith(".md");
 
+/** Convert a markdown filename (e.g. `foo.md`) to a Docusaurus doc id. */
 const toRuleDocId = (fileName: string): string => fileName.slice(0, -3);
 
+/** Sorted rule-doc ids discovered from `docs/rules/*.md`. */
 const allRuleDocIds = readdirSync(rulesDirectoryPath, {
     withFileTypes: true,
 })
@@ -23,6 +33,7 @@ const allRuleDocIds = readdirSync(rulesDirectoryPath, {
     .map((entry) => toRuleDocId(entry.name))
     .sort((left, right) => left.localeCompare(right));
 
+/** Build sidebar doc items for rule docs matching a given filename prefix. */
 const createRuleItemsByPrefix = (prefix: string): SidebarDocItem[] =>
     allRuleDocIds
         .filter((ruleDocId) => ruleDocId.startsWith(prefix))
@@ -31,9 +42,12 @@ const createRuleItemsByPrefix = (prefix: string): SidebarDocItem[] =>
             type: "doc",
         }));
 
+/** Sidebar entries for `prefer-ts-extras-*` rule docs. */
 const tsExtrasRuleItems = createRuleItemsByPrefix("prefer-ts-extras-");
+/** Sidebar entries for `prefer-type-fest-*` rule docs. */
 const typeFestRuleItems = createRuleItemsByPrefix("prefer-type-fest-");
 
+/** Complete sidebar structure for docs site navigation. */
 const sidebars: SidebarsConfig = {
     rules: [
         {

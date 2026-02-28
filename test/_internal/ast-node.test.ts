@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { getParentNode, getProgramNode } from "../../src/_internal/ast-node";
 
+/** Create a minimal Program node used as the root parent in traversal tests. */
 const createProgramNode = (): TSESTree.Program =>
     ({
         body: [],

@@ -15,13 +15,12 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const ARRAY_TYPE_NAME = "Array";
 
 /**
- * GetArrayTypeReferenceElementType helper.
+ * Extract the element type from `Array<T>` type references.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns GetArrayTypeReferenceElementType helper result.
+ * @returns Element type when the node is `Array<T>`; otherwise `null`.
  */
-
 const getArrayTypeReferenceElementType = (
     node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {
@@ -38,6 +37,14 @@ const getArrayTypeReferenceElementType = (
     return firstTypeArgument ?? null;
 };
 
+/**
+ * Extract the scalar element type from `T | T[]` or `T | Array<T>` unions.
+ *
+ * @param node - Union type node to inspect.
+ *
+ * @returns The scalar `T` when the union matches an Arrayable pattern;
+ *   otherwise `null`.
+ */
 const getArrayableElementType = (
     node: Readonly<TSESTree.TSUnionType>
 ): null | TSESTree.TypeNode => {

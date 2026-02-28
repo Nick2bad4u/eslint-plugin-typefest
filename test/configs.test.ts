@@ -20,12 +20,12 @@ interface FlatConfigLike {
 }
 
 /**
- * GetConfig helper.
+ * Resolve a named plugin preset config from a dynamic `plugin.configs` map.
  *
- * @param configs - Value to inspect.
- * @param configName - Value to inspect.
+ * @param configs - Dynamic plugin configs record.
+ * @param configName - Preset key to resolve.
  *
- * @returns GetConfig helper result.
+ * @returns Parsed flat-config-like preset when present and object-shaped.
  */
 function getConfig(
     configs: Readonly<null | UnknownRecord>,
@@ -37,14 +37,13 @@ function getConfig(
 }
 
 /**
- * GetConfigRules helper.
+ * Resolve the `rules` object for a named plugin preset.
  *
- * @param configs - Value to inspect.
- * @param configName - Value to inspect.
+ * @param configs - Dynamic plugin configs record.
+ * @param configName - Preset key to resolve.
  *
- * @returns GetConfigRules helper result.
+ * @returns Rules map when present and object-shaped; otherwise `null`.
  */
-
 function getConfigRules(
     configs: Readonly<null | UnknownRecord>,
     configName: string
@@ -63,13 +62,12 @@ function getConfigRules(
 }
 
 /**
- * GetPluginConfigs helper.
+ * Extract the `configs` export from a dynamic plugin value.
  *
- * @param pluginValue - Value to inspect.
+ * @param pluginValue - Dynamic plugin module value.
  *
- * @returns GetPluginConfigs helper result.
+ * @returns Config map when available; otherwise `null`.
  */
-
 function getPluginConfigs(pluginValue: unknown): null | UnknownRecord {
     if (!isObject(pluginValue)) {
         return null;
@@ -84,13 +82,12 @@ function getPluginConfigs(pluginValue: unknown): null | UnknownRecord {
 }
 
 /**
- * GetPluginRules helper.
+ * Extract the `rules` export from a dynamic plugin value.
  *
- * @param pluginValue - Value to inspect.
+ * @param pluginValue - Dynamic plugin module value.
  *
- * @returns GetPluginRules helper result.
+ * @returns Rules map when available; otherwise `null`.
  */
-
 function getPluginRules(pluginValue: unknown): null | UnknownRecord {
     if (!isObject(pluginValue)) {
         return null;
@@ -105,13 +102,12 @@ function getPluginRules(pluginValue: unknown): null | UnknownRecord {
 }
 
 /**
- * Check whether the input is object.
+ * Check whether a dynamic value is an object-like record.
  *
- * @param value - Value to inspect.
+ * @param value - Runtime value under inspection.
  *
- * @returns `true` when the value is object; otherwise `false`.
+ * @returns `true` when value is object-like and non-null.
  */
-
 function isObject(value: unknown): value is UnknownRecord {
     return typeof value === "object" && value !== null;
 }

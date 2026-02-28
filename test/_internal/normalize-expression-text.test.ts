@@ -9,6 +9,7 @@ import {
     areEquivalentTypeNodes,
 } from "../../src/_internal/normalize-expression-text";
 
+/** Parse an expression and return the initializer from `const value = ...`. */
 const getInitializerExpression = (
     expressionText: string
 ): TSESTree.Expression => {
@@ -35,6 +36,7 @@ const getInitializerExpression = (
     return declarator.init;
 };
 
+/** Parse a `type Value = ...` declaration and return its type annotation node. */
 const getAliasTypeAnnotation = (annotationText: string): TSESTree.TypeNode => {
     const parsedResult = parser.parseForESLint(
         `type Value = ${annotationText};`,

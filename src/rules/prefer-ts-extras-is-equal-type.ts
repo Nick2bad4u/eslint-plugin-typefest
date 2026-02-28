@@ -43,6 +43,10 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 TS_EXTRAS_PACKAGE_NAME
             );
 
+            /**
+             * Resolve `IsEqual<...>` type references from direct or namespace
+             * imports.
+             */
             const getIsEqualTypeReference = (
                 node: Readonly<TSESTree.TypeNode>
             ): null | TSESTree.TSTypeReference => {

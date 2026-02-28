@@ -9,6 +9,7 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Deprecated `If*` aliases mapped to preferred `Is*` counterparts. */
 const ifAliasReplacements = {
     IfAny: "IsAny",
     IfEmptyObject: "IsEmptyObject",

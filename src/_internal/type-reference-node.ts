@@ -1,12 +1,18 @@
+/**
+ * @packageDocumentation
+ * Predicate helpers for narrowing `TSTypeReference` nodes by identifier name.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 /**
- * Check whether a type reference points to a specific identifier name.
+ * Checks whether a type node is an identifier-based type reference with a
+ * specific symbol name.
  *
- * @param node - Type reference node.
- * @param identifierName - Expected identifier name.
+ * @param node - Type node candidate.
+ * @param identifierName - Expected referenced identifier name.
  *
- * @returns `true` when the type reference matches; otherwise `false`.
+ * @returns `true` when the node is `TSTypeReference` and the referenced
+ *   `typeName` identifier matches exactly.
  */
 export const isIdentifierTypeReference = (
     node: Readonly<TSESTree.TypeNode>,

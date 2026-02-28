@@ -9,14 +9,28 @@ import * as path from "node:path";
 
 import { applySharedRuleTesterRunBehavior, repoPath } from "./ruleTester";
 
+/**
+ * Narrowed view of the shared run-behavior patcher used by typed tests.
+ */
 const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
     tester: Readonly<RuleTester>
 ) => RuleTester;
 
+/** Absolute root directory for typed test fixtures. */
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");
+/** Canonical line ending expected by RuleTester snapshots on Windows CI. */
 const carriageReturnAndLineFeed = "\r\n";
+/** Regex matching LF/CRLF line breaks for normalization. */
 const lineFeedPattern = /\r?\n/gv;
 
+/**
+ * Normalize fixture source to CRLF line endings for stable RuleTester output
+ * comparisons across platforms.
+ *
+ * @param fixtureSource - Raw fixture file contents.
+ *
+ * @returns Fixture source with normalized line endings.
+ */
 const normalizeLineEndingsForRuleTester = (fixtureSource: string): string =>
     fixtureSource.replaceAll(lineFeedPattern, carriageReturnAndLineFeed);
 

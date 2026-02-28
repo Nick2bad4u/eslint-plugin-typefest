@@ -11,24 +11,18 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Built-in set alias targeted by this rule. */
 const READONLY_SET_TYPE_NAME = "ReadonlySet";
+
+/** Preferred TypeFest alias for readonly sets of unknown values. */
 const UNKNOWN_SET_TYPE_NAME = "UnknownSet";
 
 /**
- * Check whether the input is identifier type reference.
+ * Checks whether a generic type reference has exactly one `unknown` argument.
  *
- * @param node - Value to inspect.
- * @param expectedTypeName - Value to inspect.
+ * @param node - Type reference candidate.
  *
- * @returns `true` when the value is identifier type reference; otherwise
- *   `false`.
- */
-/**
- * Check whether has single unknown type argument.
- *
- * @param node - Value to inspect.
- *
- * @returns `true` when has single unknown type argument; otherwise `false`.
+ * @returns `true` when the reference shape is `<unknown>`.
  */
 
 const hasSingleUnknownTypeArgument = (

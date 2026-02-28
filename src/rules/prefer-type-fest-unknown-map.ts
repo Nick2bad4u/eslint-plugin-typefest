@@ -11,17 +11,19 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Built-in map alias targeted by this rule. */
 const READONLY_MAP_TYPE_NAME = "ReadonlyMap";
+
+/** Preferred TypeFest alias for readonly unknown-key/unknown-value maps. */
 const UNKNOWN_MAP_TYPE_NAME = "UnknownMap";
 
 /**
- * Check whether has unknown map type arguments.
+ * Checks whether a map type reference is parameterized as `<unknown, unknown>`.
  *
- * @param node - Value to inspect.
+ * @param node - Type reference candidate.
  *
- * @returns `true` when has unknown map type arguments; otherwise `false`.
+ * @returns `true` when both map type arguments are `unknown`.
  */
-
 const hasUnknownMapTypeArguments = (
     node: Readonly<TSESTree.TSTypeReference>
 ): boolean => {

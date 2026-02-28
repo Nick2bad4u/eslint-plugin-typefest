@@ -16,29 +16,29 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
 /**
- * Check whether the input is null expression.
+ * Determine whether an expression is the `null` literal.
  *
- * @param node - Value to inspect.
+ * @param node - Expression to inspect.
  *
- * @returns `true` when the value is null expression; otherwise `false`.
+ * @returns `true` when the expression is `null`.
  */
-
 const isNullExpression = (node: Readonly<TSESTree.Expression>): boolean =>
     node.type === "Literal" && node.value === null;
 
 /**
- * Check whether the input is undefined expression.
+ * Determine whether an expression references the global `undefined` value.
  *
- * @param node - Value to inspect.
+ * @param context - Active rule context for scope resolution.
+ * @param node - Expression to inspect.
  *
- * @returns `true` when the value is undefined expression; otherwise `false`.
+ * @returns `true` when the expression is an unshadowed `undefined` identifier.
  */
-
 const isUndefinedExpression = ({
     context,
     node,
@@ -54,13 +54,12 @@ const isUndefinedExpression = ({
 };
 
 /**
- * Check whether the input is throw only consequent.
+ * Check whether an `if` consequent contains only a throw statement.
  *
- * @param node - Value to inspect.
+ * @param node - Consequent statement to inspect.
  *
- * @returns `true` when the value is throw only consequent; otherwise `false`.
+ * @returns `true` for `throw ...` and `{ throw ... }` shapes.
  */
-
 const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
@@ -73,6 +72,13 @@ const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     );
 };
 
+/**
+ * Extract the throw statement from a throw-only consequent.
+ *
+ * @param node - Consequent statement to inspect.
+ *
+ * @returns Throw statement when present; otherwise `null`.
+ */
 const getThrowStatementFromConsequent = (
     node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
@@ -91,6 +97,10 @@ const getThrowStatementFromConsequent = (
     return null;
 };
 
+/**
+ * Check whether a throw branch matches the canonical `assertPresent`-equivalent
+ * TypeError template shape.
+ */
 const isCanonicalAssertPresentThrow = ({
     context,
     guardExpression,
@@ -146,13 +156,12 @@ const isCanonicalAssertPresentThrow = ({
 };
 
 /**
- * ExtractEqNullGuardExpression helper.
+ * Extract the guarded expression from `x == null` / `null == x` checks.
  *
- * @param test - Value to inspect.
+ * @param test - Test expression to inspect.
  *
- * @returns ExtractEqNullGuardExpression helper result.
+ * @returns Guarded expression when the check is supported; otherwise `null`.
  */
-
 const extractEqNullGuardExpression = (
     test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
@@ -172,13 +181,13 @@ const extractEqNullGuardExpression = (
 };
 
 /**
- * ExtractNullishEqualityPart helper.
+ * Extract one nullish-equality comparison part from a binary expression.
  *
- * @param expression - Value to inspect.
+ * @param expression - Candidate comparison expression.
+ * @param context - Active rule context for global-binding checks.
  *
- * @returns ExtractNullishEqualityPart helper result.
+ * @returns Matched comparison metadata; otherwise `null`.
  */
-
 const extractNullishEqualityPart = (
     expression: Readonly<TSESTree.Expression>,
     context: RuleContext
@@ -253,6 +262,15 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 "ts-extras"
             );
 
+            /**
+             * Extracts the guarded expression from supported nullish-present
+             * checks used before throwing.
+             *
+             * @param test - If-statement test expression.
+             *
+             * @returns Guarded expression when the test matches `x == null` or
+             *   split null/undefined disjunction patterns; otherwise `null`.
+             */
             const extractPresentGuardExpression = (
                 test: Readonly<TSESTree.Expression>
             ): null | TSESTree.Expression => {

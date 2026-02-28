@@ -10,8 +10,14 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Primitive families supported by TypeFest `LiteralUnion`.
+ */
 type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
 
+/**
+ * Ordered family candidates evaluated when scanning union members.
+ */
 const literalUnionFamilies = [
     "bigint",
     "boolean",
@@ -20,12 +26,12 @@ const literalUnionFamilies = [
 ] as const satisfies readonly LiteralUnionFamily[];
 
 /**
- * Check whether the input is keyword member for family.
+ * Checks whether a union member is the primitive keyword for a family.
  *
- * @param node - Value to inspect.
- * @param family - Expected literal union family.
+ * @param node - Member node to inspect.
+ * @param family - Primitive family currently being matched.
  *
- * @returns `true` when the value is matching keyword member.
+ * @returns `true` when the node is the corresponding keyword type.
  */
 const isKeywordMemberForFamily = (
     node: Readonly<TSESTree.TypeNode>,
@@ -47,12 +53,13 @@ const isKeywordMemberForFamily = (
 };
 
 /**
- * Check whether the input is literal member for family.
+ * Checks whether a union member is a literal of the requested primitive family.
  *
- * @param node - Value to inspect.
- * @param family - Expected literal union family.
+ * @param node - Member node to inspect.
+ * @param family - Primitive family currently being matched.
  *
- * @returns `true` when the value is matching literal member.
+ * @returns `true` when the node is a literal member compatible with the family
+ *   (including bigint parser variants).
  */
 const isLiteralMemberForFamily = (
     node: Readonly<TSESTree.TypeNode>,
@@ -86,11 +93,13 @@ const isLiteralMemberForFamily = (
 };
 
 /**
- * Check whether has literal union shape.
+ * Determines whether a union is structurally replaceable with
+ * `LiteralUnion<...>`.
  *
- * @param node - Value to inspect.
+ * @param node - Union node to inspect.
  *
- * @returns `true` when has literal union shape; otherwise `false`.
+ * @returns `true` when all members belong to a single primitive family and the
+ *   union includes at least one keyword member plus one literal member.
  */
 const hasLiteralUnionShape = (
     node: Readonly<TSESTree.TSUnionType>
@@ -127,6 +136,14 @@ const hasLiteralUnionShape = (
     return false;
 };
 
+/**
+ * Resolves which primitive family a replaceable literal union belongs to.
+ *
+ * @param node - Union node to inspect.
+ *
+ * @returns The matching family when the union has a `LiteralUnion`-compatible
+ *   shape; otherwise `null`.
+ */
 const getLiteralUnionFamily = (
     node: Readonly<TSESTree.TSUnionType>
 ): LiteralUnionFamily | null => {
@@ -162,6 +179,18 @@ const getLiteralUnionFamily = (
     return null;
 };
 
+/**
+ * Builds `LiteralUnion<...>` text for a matched family.
+ *
+ * @param sourceCode - Source code instance used to preserve original literal
+ *   formatting.
+ * @param node - Union node being replaced.
+ * @param family - Primitive family for the replacement's second generic
+ *   argument.
+ *
+ * @returns Replacement text when at least one literal member exists; otherwise
+ *   `null`.
+ */
 const getLiteralUnionReplacementText = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     node: Readonly<TSESTree.TSUnionType>,

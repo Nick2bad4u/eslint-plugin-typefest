@@ -11,22 +11,25 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Property keys commonly used in ad-hoc branded intersections. */
 const BRAND_PROPERTY_NAMES = new Set([
     "__brand",
     "__tag",
     "brand",
 ]);
+/** Legacy alias names normalized by this rule to `Tagged`. */
 const taggedAliasReplacements = {
     Branded: "Tagged",
     Opaque: "Tagged",
 } as const;
 
 /**
- * Check whether has ad hoc brand literal.
+ * Detects intersection members that use object-literal branding fields.
  *
- * @param typeNode - Value to inspect.
+ * @param typeNode - Type node to inspect.
  *
- * @returns `true` when has ad hoc brand literal; otherwise `false`.
+ * @returns `true` when an intersection includes a `TSTypeLiteral` with a
+ *   brand-like property key.
  */
 
 const hasAdHocBrandLiteral = (
@@ -55,11 +58,12 @@ const hasAdHocBrandLiteral = (
 };
 
 /**
- * Helper utility for type contains tagged reference.
+ * Recursively checks whether a type already references `Tagged`.
  *
- * @param typeNode - Value to inspect.
+ * @param typeNode - Type node to inspect.
  *
- * @returns `true` when type contains tagged reference; otherwise `false`.
+ * @returns `true` when the node or any nested union/intersection member is a
+ *   `Tagged` type reference.
  */
 
 const typeContainsTaggedReference = (

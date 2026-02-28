@@ -7,6 +7,13 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
+/**
+ * Collects import declarations from a program body in source order.
+ *
+ * @param programNode - Program node to inspect.
+ *
+ * @returns Ordered import declaration list from the program body.
+ */
 const collectProgramImportDeclarations = (
     programNode: Readonly<TSESTree.Program>
 ): readonly Readonly<TSESTree.ImportDeclaration>[] => {
@@ -21,12 +28,24 @@ const collectProgramImportDeclarations = (
     return importDeclarations;
 };
 
+/**
+ * Check whether a Program statement is part of the directive prologue (`"use
+ * strict"`, etc.).
+ */
 const isDirectiveExpressionStatement = (
     statement: Readonly<TSESTree.ProgramStatement>
 ): statement is TSESTree.ExpressionStatement & { directive: string } =>
     statement.type === "ExpressionStatement" &&
     typeof statement.directive === "string";
 
+/**
+ * Resolve the last directive statement in the file prologue.
+ *
+ * @param programNode - Program node to inspect.
+ *
+ * @returns Final directive statement before non-directive code; otherwise
+ *   `null`.
+ */
 const getLastDirectivePrologueStatement = (
     programNode: Readonly<TSESTree.Program>
 ): null | Readonly<TSESTree.ExpressionStatement> => {
@@ -44,6 +63,13 @@ const getLastDirectivePrologueStatement = (
     return lastDirectiveStatement;
 };
 
+/**
+ * Read the numeric start offset from an ESTree node range tuple.
+ *
+ * @param node - Node whose start offset should be extracted.
+ *
+ * @returns Numeric start offset when available; otherwise `null`.
+ */
 const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
     const nodeRange = (node as Readonly<TSESTree.Node> & { range?: unknown })
         .range;
@@ -55,6 +81,13 @@ const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
     return nodeRange[0];
 };
 
+/**
+ * Read and validate the Program end offset from its range tuple.
+ *
+ * @param programNode - Program node whose range end should be read.
+ *
+ * @returns Valid end offset when available; otherwise `null`.
+ */
 const getProgramRangeEnd = (
     programNode: Readonly<TSESTree.Program>
 ): null | number => {

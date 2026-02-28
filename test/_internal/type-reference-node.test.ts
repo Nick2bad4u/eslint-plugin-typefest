@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { isIdentifierTypeReference } from "../../src/_internal/type-reference-node";
 
+/** Contract tests for identifier-only `TSTypeReference` detection. */
 describe(isIdentifierTypeReference, () => {
     it("returns true for matching identifier type references", () => {
         const node = {

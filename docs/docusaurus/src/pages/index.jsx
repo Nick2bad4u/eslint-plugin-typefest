@@ -1,4 +1,5 @@
 import Link from "@docusaurus/Link";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
 import GitHubStats from "../components/GitHubStats";
@@ -21,12 +22,6 @@ const heroBadges = [
         icon: "🛠️",
         label: "Actionable rule docs",
     },
-];
-
-const heroChecklist = [
-    "Phase adoption with focused presets.",
-    "Keep migration practical and predictable.",
-    "Improve consistency without boilerplate.",
 ];
 
 const heroStats = [
@@ -75,6 +70,8 @@ const homeCards = [
 ];
 
 export default function Home() {
+    const logoSrc = useBaseUrl("/img/logo.svg");
+
     return (
         <Layout
             title="eslint-plugin-typefest docs"
@@ -139,31 +136,19 @@ export default function Home() {
                         </div>
 
                         <aside className={styles.heroPanel}>
-                            <p className={styles.heroPanelKicker}>
-                                Built for adoption
-                            </p>
-                            <Heading as="h2" className={styles.heroPanelTitle}>
-                                Ship safer patterns without slowing teams down
-                            </Heading>
-                            <ul className={styles.heroChecklist}>
-                                {heroChecklist.map((item) => (
-                                    <li
-                                        key={item}
-                                        className={styles.heroChecklistItem}
-                                    >
-                                        <span aria-hidden="true">✅</span>
-                                        <span>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link
-                                className={styles.heroPanelLink}
-                                to="/docs/rules"
-                            >
-                                Explore all rules →
-                            </Link>
+                            <img
+                                alt="eslint-plugin-typefest logo"
+                                className={styles.heroPanelLogo}
+                                decoding="async"
+                                height="240"
+                                loading="eager"
+                                src={logoSrc}
+                                width="240"
+                            />
                         </aside>
                     </div>
+
+                    <GitHubStats className={styles.heroLiveBadges} />
 
                     <div className={styles.heroStats}>
                         {heroStats.map((stat) => (
@@ -191,14 +176,6 @@ export default function Home() {
 
             <main className={styles.mainContent}>
                 <section className="container">
-                    <Heading as="h2" className={styles.sectionTitle}>
-                        Start where your team is today
-                    </Heading>
-                    <p className={styles.sectionSubtitle}>
-                        Pick the path you need right now—quick onboarding,
-                        preset comparison, or full rule-by-rule migration.
-                    </p>
-                    <GitHubStats />
                     <div className={styles.cardGrid}>
                         {homeCards.map((card) => (
                             <article key={card.title} className={styles.card}>

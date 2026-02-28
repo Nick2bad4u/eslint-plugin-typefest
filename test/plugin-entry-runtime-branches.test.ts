@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+/** Reset module cache/mocks so each runtime-branch assertion is isolated. */
 const resetPluginEntryMocks = (): void => {
     vi.resetModules();
     vi.doUnmock("../dist/plugin.js");

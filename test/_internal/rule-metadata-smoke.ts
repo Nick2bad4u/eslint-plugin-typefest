@@ -2,6 +2,10 @@ import type { UnknownArray } from "type-fest";
 
 import { describe, expect, it, vi } from "vitest";
 
+/**
+ * Minimal shape read from dynamically imported rule modules for metadata
+ * assertions.
+ */
 interface RuleMetadataSnapshot {
     create: (context: unknown) => unknown;
     defaultOptions?: UnknownArray;
@@ -18,6 +22,9 @@ interface RuleMetadataSnapshot {
     name?: string;
 }
 
+/**
+ * Optional expectation overrides used by shared rule-metadata smoke tests.
+ */
 interface TypeFestRuleMetadataExpectations {
     readonly defaultOptions?: UnknownArray;
     readonly docsDescription?: string;
@@ -26,9 +33,17 @@ interface TypeFestRuleMetadataExpectations {
     readonly name?: string;
 }
 
+/** Canonical documentation URL base used by rule metadata assertions. */
 const docsBaseUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
+/**
+ * Import a rule module by id from `src/rules`.
+ *
+ * @param ruleId - Unqualified rule module id.
+ *
+ * @returns Imported rule module default export.
+ */
 const importRuleModule = async (
     ruleId: string
 ): Promise<{ default: RuleMetadataSnapshot }> => {
@@ -44,6 +59,9 @@ const importRuleModule = async (
  * Registers shared metadata/fallback tests that kill recurring Stryker
  * survivors in rule modules that use `createTypedRule` and the function
  * `context.filename ?? ""`.
+ *
+ * @param ruleId - Rule module id under `src/rules`.
+ * @param expectations - Optional expected metadata overrides.
  */
 export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     ruleId: string,

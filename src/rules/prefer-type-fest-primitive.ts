@@ -10,6 +10,7 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Canonical primitive keyword node types required by `Primitive`. */
 const primitiveKeywordTypes = [
     AST_NODE_TYPES.TSBigIntKeyword,
     AST_NODE_TYPES.TSBooleanKeyword,
@@ -20,20 +21,26 @@ const primitiveKeywordTypes = [
     AST_NODE_TYPES.TSUndefinedKeyword,
 ] as const;
 
+/** Union of primitive keyword node type literals. */
 type PrimitiveKeywordType = (typeof primitiveKeywordTypes)[number];
 
+/** Lookup set used to validate primitive-keyword union members quickly. */
 const primitiveKeywordTypeSet = new Set<string>(primitiveKeywordTypes);
 
+/**
+ * Check whether a node type string is one of the primitive keyword literals.
+ */
 const isPrimitiveKeywordType = (
     candidate: string
 ): candidate is PrimitiveKeywordType => primitiveKeywordTypeSet.has(candidate);
 
 /**
- * Check whether has primitive union shape.
+ * Detects explicit unions equivalent to the TypeFest `Primitive` alias.
  *
- * @param node - Value to inspect.
+ * @param node - Union node to inspect.
  *
- * @returns `true` when has primitive union shape; otherwise `false`.
+ * @returns `true` when the union contains each primitive keyword type exactly
+ *   once, independent of order.
  */
 
 const hasPrimitiveUnionShape = (

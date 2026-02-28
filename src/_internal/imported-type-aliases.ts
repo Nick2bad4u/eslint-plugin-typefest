@@ -7,9 +7,15 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { getParentNode } from "./ast-node.js";
 import { createImportInsertionFix } from "./import-insertion.js";
 
+/** Default module source used for type-fest replacement imports. */
 const TYPE_FEST_MODULE_NAME = "type-fest";
+
+/** Utility wrapper used to preserve explicit readonly semantics in fixes. */
 const READONLY_UTILITY_TYPE_NAME = "Readonly";
 
+/**
+ * Container type references that semantically encode readonly wrappers.
+ */
 const READONLY_CONTAINER_TYPE_NAMES = new Set([
     "ReadonlyArray",
     "ReadonlyMap",
@@ -222,6 +228,14 @@ export const collectNamespaceImportLocalNamesFromSource = (
     return localNames;
 };
 
+/**
+ * Builds an import-insertion fix for missing named type replacements.
+ *
+ * @param options - Fixer context and replacement import metadata.
+ *
+ * @returns Import insertion fix when a safe insertion point is found; otherwise
+ *   `null`.
+ */
 const getInsertionFixForMissingNamedTypeImport = ({
     fixer,
     node,
@@ -242,6 +256,15 @@ const getInsertionFixForMissingNamedTypeImport = ({
     });
 };
 
+/**
+ * Checks whether an ancestor node declares a type parameter with a specific
+ * name.
+ *
+ * @param ancestor - Ancestor node to inspect.
+ * @param parameterName - Type parameter name to detect.
+ *
+ * @returns `true` when the ancestor declares a matching type parameter.
+ */
 const ancestorDefinesTypeParameterNamed = (
     ancestor: Readonly<TSESTree.Node>,
     parameterName: string
@@ -260,6 +283,15 @@ const ancestorDefinesTypeParameterNamed = (
     );
 };
 
+/**
+ * Determine whether a type parameter name is shadowed by any enclosing generic
+ * declaration.
+ *
+ * @param node - Node used as the starting point for ancestor traversal.
+ * @param parameterName - Type parameter name to detect.
+ *
+ * @returns `true` when an ancestor declares a matching type parameter.
+ */
 export function isTypeParameterNameShadowed(
     node: Readonly<TSESTree.Node>,
     parameterName: string
@@ -277,6 +309,14 @@ export function isTypeParameterNameShadowed(
     return false;
 }
 
+/**
+ * Build a replacement fixer that optionally inserts a missing named type import
+ * before applying the replacement.
+ *
+ * @param options - Replacement strategy plus import/scope safety inputs.
+ *
+ * @returns Report fixer when replacement is scope-safe; otherwise `null`.
+ */
 const createTypeReplacementFix = ({
     applyReplacement,
     availableReplacementNames,
@@ -323,8 +363,10 @@ const createTypeReplacementFix = ({
  * @param replacementName - Replacement identifier text.
  * @param availableReplacementNames - Available direct imported replacement
  *   names.
+ * @param sourceModuleName - Module source used when validating/adding imports.
  *
- * @returns Fix function when replacement is safe; otherwise `null`.
+ * @returns Fix function when replacement/import insertion is scope-safe;
+ *   otherwise `null`.
  */
 export const createSafeTypeReferenceReplacementFix = (
     node: Readonly<TSESTree.TSTypeReference>,
@@ -355,8 +397,10 @@ export const createSafeTypeReferenceReplacementFix = (
  * @param replacementText - Final replacement text to emit.
  * @param availableReplacementNames - Available direct imported replacement
  *   names.
+ * @param sourceModuleName - Module source used when validating/adding imports.
  *
- * @returns Fix function when replacement is safe; otherwise `null`.
+ * @returns Fix function when replacement/import insertion is scope-safe;
+ *   otherwise `null`.
  */
 export const createSafeTypeNodeTextReplacementFix = (
     node: Readonly<TSESTree.Node>,
@@ -380,8 +424,10 @@ export const createSafeTypeNodeTextReplacementFix = (
  * @param replacementName - Replacement identifier text.
  * @param availableReplacementNames - Available direct imported replacement
  *   names.
+ * @param sourceModuleName - Module source used when validating/adding imports.
  *
- * @returns Fix function when replacement is safe; otherwise `null`.
+ * @returns Fix function when replacement/import insertion is scope-safe;
+ *   otherwise `null`.
  */
 export const createSafeTypeNodeReplacementFix = (
     node: Readonly<TSESTree.Node>,
@@ -397,6 +443,14 @@ export const createSafeTypeNodeReplacementFix = (
         sourceModuleName
     );
 
+/**
+ * Detects type nodes that explicitly encode readonly semantics.
+ *
+ * @param node - Type node to inspect.
+ *
+ * @returns `true` for `readonly` type operators and known readonly container
+ *   references.
+ */
 const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
     if (node.type === "TSTypeOperator") {
         return node.operator === "readonly";
@@ -412,9 +466,15 @@ const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
     return READONLY_CONTAINER_TYPE_NAMES.has(node.typeName.name);
 };
 
+/**
+ * Checks whether replacement text is already wrapped with `Readonly<...>`.
+ */
 const isReadonlyUtilityWrappedText = (replacementText: string): boolean =>
     replacementText.trimStart().startsWith(`${READONLY_UTILITY_TYPE_NAME}<`);
 
+/**
+ * Wraps replacement text in `Readonly<...>`.
+ */
 const toReadonlyUtilityWrappedText = (replacementText: string): string =>
     `${READONLY_UTILITY_TYPE_NAME}<${replacementText}>`;
 
@@ -429,8 +489,10 @@ const toReadonlyUtilityWrappedText = (replacementText: string): string =>
  *   adjustment.
  * @param availableReplacementNames - Available direct imported replacement
  *   names.
+ * @param sourceModuleName - Module source used when validating/adding imports.
  *
- * @returns Fix function when replacement is safe; otherwise `null`.
+ * @returns Fix function when replacement/import insertion is scope-safe;
+ *   otherwise `null`.
  */
 export const createSafeTypeNodeTextReplacementFixPreservingReadonly = (
     node: Readonly<TSESTree.Node>,
@@ -462,8 +524,10 @@ export const createSafeTypeNodeTextReplacementFixPreservingReadonly = (
  * @param replacementName - Replacement identifier text.
  * @param availableReplacementNames - Available direct imported replacement
  *   names.
+ * @param sourceModuleName - Module source used when validating/adding imports.
  *
- * @returns Fix function when replacement is safe; otherwise `null`.
+ * @returns Fix function when replacement/import insertion is scope-safe;
+ *   otherwise `null`.
  */
 export const createSafeTypeNodeReplacementFixPreservingReadonly = (
     node: Readonly<TSESTree.Node>,

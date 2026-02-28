@@ -1,18 +1,27 @@
+/**
+ * @packageDocumentation
+ * Integrity tests for required rule metadata across all registered rules.
+ */
 import { describe, expect, it } from "vitest";
 
 import typefestPlugin from "../src/plugin";
 
+/** Allowed ESLint `meta.type` values for plugin rules. */
 const expectedRuleTypes = new Set([
     "layout",
     "problem",
     "suggestion",
 ]);
 
+/** Check whether a value is a non-empty trimmed string. */
 const isNonEmptyString = (value: unknown): value is string =>
     typeof value === "string" && value.trim().length > 0;
 
+/** Entry tuple type returned by `Object.entries(typefestPlugin.rules)`. */
 type RuleEntry = readonly [RuleName, RuleModule];
+/** Individual rule module type from plugin rule registry. */
 type RuleModule = (typeof typefestPlugin.rules)[RuleName];
+/** Registered plugin rule-name union. */
 type RuleName = keyof typeof typefestPlugin.rules;
 
 describe("rule metadata integrity", () => {

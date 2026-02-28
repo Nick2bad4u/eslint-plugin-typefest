@@ -16,11 +16,12 @@ import {
 } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is reflect has call.
+ * Detects `Reflect.has(...)` calls that resolve to the global `Reflect` object.
  *
- * @param node - Value to inspect.
+ * @param options - Rule context and call expression candidate.
  *
- * @returns `true` when the value is reflect has call; otherwise `false`.
+ * @returns `true` when the call is a non-computed `Reflect.has` invocation
+ *   against the global symbol.
  */
 
 const isReflectHasCall = ({

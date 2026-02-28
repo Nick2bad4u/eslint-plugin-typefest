@@ -8,20 +8,26 @@ import {
     defineConfig,
 } from "vitest/config";
 
+/** `true` when running under CI where worker parallelism should be bounded. */
 const isCiEnvironment = process.env["CI"] === "true";
+/** Raw worker-count input from environment or CI/local defaults. */
 const configuredMaxWorkers =
     process.env["MAX_THREADS"] ?? (isCiEnvironment ? "1" : "8");
+/** Parsed integer worker count prior to validation. */
 const parsedMaxWorkers = Number.parseInt(configuredMaxWorkers, 10);
+/** Safe positive worker-count used by Vitest thread pool settings. */
 const maxWorkerCount =
     Number.isFinite(parsedMaxWorkers) && parsedMaxWorkers > 0
         ? parsedMaxWorkers
         : 1;
+/** Shared glob exclusions for generated/cache directories. */
 const testExcludePatterns = [
     "**/.cache/**",
     "**/coverage/**",
     "**/dist/**",
     "**/node_modules/**",
 ];
+/** Canonical test file include patterns for unit/integration suites. */
 const testFilePatterns = ["test/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}"];
 
 /**

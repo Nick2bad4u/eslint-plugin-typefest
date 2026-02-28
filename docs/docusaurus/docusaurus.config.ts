@@ -5,33 +5,45 @@ import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-do
 import type * as Preset from "@docusaurus/preset-classic";
 import { fileURLToPath } from "node:url";
 
+/** Canonical site origin used for sitemap/canonical URL generation. */
 const siteUrl =
     process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
+/** Route base path where docs site is deployed (GitHub Pages project path). */
 const baseUrl =
     process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
+/** Opt-in flag for experimental Docusaurus performance features. */
 const enableExperimentalFaster =
     process.env["DOCUSAURUS_ENABLE_EXPERIMENTAL"] === "true";
 
+/** GitHub organization used for edit links and project metadata. */
 const organizationName = "Nick2bad4u";
+/** Repository name used for edit links and project metadata. */
 const projectName = "eslint-plugin-typefest";
+/** Client module path for runtime DOM enhancement bootstrap script. */
 const modernEnhancementsClientModule = fileURLToPath(
     new URL("src/js/modernEnhancements.ts", import.meta.url)
 );
 
+/** PWA theme-color meta value for Chromium-based browsers. */
 const pwaThemeColor = "#2E2A33";
+/** Windows tile color for pinned-site metadata. */
 const pwaTileColor = "#2E2A33";
+/** Safari pinned-tab mask icon color. */
 const pwaMaskIconColor = "#71B041";
+/** Footer copyright HTML used by the site theme config. */
 const footerCopyright =
     `© ${new Date().getFullYear()} ` +
     '<a href="https://github.com/Nick2bad4u/" target="_blank" rel="noopener noreferrer">Nick2bad4u</a> 💻 Built with ' +
     '<a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">🦖 Docusaurus</a>.';
 
+/** Obfuscated key for the v4 legacy post-build head attribute removal flag. */
 const removeHeadAttrFlagKey = [
     "remove",
     "Le",
     "gacyPostBuildHeadAttribute",
 ].join("");
 
+/** Docusaurus future flags, including optional experimental fast path. */
 const futureConfig = {
     ...(enableExperimentalFaster
         ? {
@@ -53,6 +65,7 @@ const futureConfig = {
     },
 } satisfies Config["future"];
 
+/** Full Docusaurus site configuration exported to the build/runtime. */
 const config: Config = {
     baseUrl: "/eslint-plugin-typefest/",
     baseUrlIssueBanner: true,
@@ -243,15 +256,36 @@ const config: Config = {
                             to: "/docs/rules/getting-started",
                         },
                         {
-                            label: "📏 Rule Reference",
-                            to: "/docs/rules",
-                        },
-                        {
                             label: "🎛 Presets",
                             to: "/docs/rules/presets",
                         },
+                        {
+                            label: "📏 Rule Reference",
+                            to: "/docs/rules",
+                        },
                     ],
                     title: "📚 Explore",
+                },
+                {
+                    items: [
+                        {
+                            href: `https://github.com/${organizationName}/${projectName}/releases`,
+                            label: "🆕 Releases",
+                        },
+                        {
+                            href: `${siteUrl}${baseUrl}eslint-inspector/`,
+                            label: "🔍 ESLint Inspector",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/ts-extras`,
+                            label: "📦 ts-extras",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/type-fest`,
+                            label: "📦 type-fest",
+                        },
+                    ],
+                    title: "🚀 Project",
                 },
                 {
                     items: [
@@ -264,19 +298,19 @@ const config: Config = {
                             label: "🐛 Report Issues",
                         },
                         {
-                            href: `${siteUrl}${baseUrl}eslint-inspector/`,
-                            label: "🔍 ESLint Inspector",
-                        },
-                        {
                             href: `https://www.npmjs.com/package/${projectName}`,
                             label: "🎁 NPM",
                         },
+                        {
+                            href: `https://github.com/${organizationName}/${projectName}/blob/main/CONTRIBUTING.md`,
+                            label: "🤝 Contributing",
+                        },
                     ],
-                    title: "🚀 Project",
+                    title: "🧰 Support",
                 },
             ],
             logo: {
-                alt: "Uptime Watcher Logo",
+                alt: "eslint-plugin-typefest logo",
                 href: `https://github.com/${organizationName}/${projectName}`,
                 src: "img/logo.svg",
                 width: 60,

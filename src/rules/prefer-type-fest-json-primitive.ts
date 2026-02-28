@@ -11,12 +11,12 @@ import {
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
 /**
- * Check whether the input is json primitive keyword node.
+ * Narrows a type node to JSON-primitive keyword members.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is json primitive keyword node; otherwise
- *   `false`.
+ * @returns `true` when the node is one of `boolean`, `null`, `number`, or
+ *   `string` keyword types.
  */
 
 const isJsonPrimitiveKeywordNode = (
@@ -32,11 +32,13 @@ const isJsonPrimitiveKeywordNode = (
     node.type === "TSStringKeyword";
 
 /**
- * Check whether has json primitive union shape.
+ * Detects explicit JSON primitive unions that can be replaced with
+ * `JsonPrimitive`.
  *
- * @param node - Value to inspect.
+ * @param node - Union node to inspect.
  *
- * @returns `true` when has json primitive union shape; otherwise `false`.
+ * @returns `true` when the union contains exactly the four JSON primitive
+ *   keyword members, regardless of order.
  */
 
 const hasJsonPrimitiveUnionShape = (

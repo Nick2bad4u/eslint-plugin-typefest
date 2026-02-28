@@ -10,12 +10,27 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Checks whether a key type is compatible with string-indexed JSON records.
+ *
+ * @param node - Type node to inspect.
+ *
+ * @returns `true` for `string` keyword and `'string'` literal key aliases.
+ */
 const isStringLikeKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === "TSStringKeyword" ||
     (node.type === "TSLiteralType" &&
         node.literal.type === "Literal" &&
         node.literal.value === "string");
 
+/**
+ * Detects `Record<string, unknown|any>` patterns targeted by this rule.
+ *
+ * @param typeNode - Type reference candidate.
+ *
+ * @returns `true` when the type reference matches a string-keyed record with
+ *   `unknown` or `any` value type.
+ */
 const isRecordLikeUnknownOrAny = (
     typeNode: Readonly<TSESTree.TSTypeReference>
 ): boolean => {

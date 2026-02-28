@@ -11,15 +11,18 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** TypeFest JSON value alias used in equivalent object shapes. */
 const JSON_VALUE_TYPE_NAME = "JsonValue";
+
+/** Built-in object utility type used by explicit JSON object aliases. */
 const RECORD_TYPE_NAME = "Record";
 
 /**
- * Check whether the input is string key type.
+ * Checks whether a type node represents a string index key.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is string key type; otherwise `false`.
+ * @returns `true` for `string` keyword nodes and literal `'string'` aliases.
  */
 
 const isStringKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
@@ -29,23 +32,23 @@ const isStringKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
         node.literal.value === "string");
 
 /**
- * Check whether the input is json value type.
+ * Checks whether a node references `JsonValue`.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns `true` when the value is json value type; otherwise `false`.
+ * @returns `true` when the node is the identifier type reference `JsonValue`.
  */
 
 const isJsonValueType = (node: Readonly<TSESTree.TypeNode>): boolean =>
     isIdentifierTypeReference(node, JSON_VALUE_TYPE_NAME);
 
 /**
- * Check whether the input is record json value reference.
+ * Detects `Record<string, JsonValue>` style aliases.
  *
- * @param node - Value to inspect.
+ * @param node - Type reference to inspect.
  *
- * @returns `true` when the value is record json value reference; otherwise
- *   `false`.
+ * @returns `true` when the node is a two-argument `Record` whose key type is
+ *   string and value type is `JsonValue`.
  */
 
 const isRecordJsonValueReference = (

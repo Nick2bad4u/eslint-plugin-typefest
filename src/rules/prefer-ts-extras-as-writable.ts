@@ -47,6 +47,10 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     TYPE_FEST_PACKAGE_NAME
                 );
 
+            /**
+             * Check whether a type annotation references `Writable` from
+             * `type-fest` (direct import or namespace member).
+             */
             const isWritableTypeReference = (
                 typeAnnotation: Readonly<TSESTree.TypeNode>
             ): boolean => {
@@ -72,6 +76,10 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 );
             };
 
+            /**
+             * Report and optionally autofix `Writable<...>` type assertions to
+             * `asWritable(...)` calls.
+             */
             const reportIfWritableAssertion = (
                 node: Readonly<TSESTree.Node>,
                 expression: Readonly<TSESTree.Expression>,

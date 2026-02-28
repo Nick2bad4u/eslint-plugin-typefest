@@ -3,8 +3,10 @@
  * Subtle client-side interaction enhancements for the Docusaurus site.
  */
 
+/** Teardown callback returned by enhancement initializers. */
 type CleanupFunction = () => void;
 
+/** Mutable holder used to swap active cleanup handlers between route refreshes. */
 type CleanupRef = {
     current: CleanupFunction | null;
 };
@@ -15,6 +17,7 @@ declare global {
     }
 }
 
+/** Delay before re-initializing effects after client-side route transitions. */
 const ROUTE_REFRESH_DELAY_MS = 100;
 
 /**

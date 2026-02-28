@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { isWithinFilterCallback } from "../../src/_internal/filter-callback";
 
+/** Create a minimal Program ancestor used when synthesizing callback chains. */
 const createProgramNode = (): TSESTree.Program =>
     ({
         body: [],

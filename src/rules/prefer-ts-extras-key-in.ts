@@ -1,15 +1,18 @@
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-key-in`.
+ */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-/**
- * @packageDocumentation
- * ESLint rule implementation for `prefer-ts-extras-key-in`.
- */
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/**
+ * Narrow a binary operand to an identifier usable by `keyIn`.
+ */
 const isIdentifierOperand = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Identifier => node.type === "Identifier";
@@ -33,6 +36,10 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                 "ts-extras"
             );
 
+            /**
+             * Build a safe fixer that rewrites `key in object` to
+             * `keyIn(object, key)` when both operands are simple identifiers.
+             */
             const createKeyInFix = (
                 node: Readonly<TSESTree.BinaryExpression>
             ): null | TSESLint.ReportFixFunction => {

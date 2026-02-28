@@ -11,15 +11,19 @@ import {
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Tuple rest annotation node variants accepted by the parser. */
 type RestAnnotation = TSESTree.TSRestType["typeAnnotation"];
+
+/** Individual tuple element node variants used in readonly tuple checks. */
 type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
 
 /**
- * GetRequiredTupleElementType helper.
+ * Extracts the required head element type from a tuple member.
  *
- * @param element - Value to inspect.
+ * @param element - Tuple element candidate.
  *
- * @returns GetRequiredTupleElementType helper result.
+ * @returns The non-optional, non-rest head type node when present; otherwise
+ *   `null`.
  */
 
 const getRequiredTupleElementType = (
@@ -41,11 +45,11 @@ const getRequiredTupleElementType = (
 };
 
 /**
- * UnwrapRestAnnotation helper.
+ * Normalizes rest annotations by unwrapping named tuple members.
  *
- * @param annotation - Value to inspect.
+ * @param annotation - Rest annotation to normalize.
  *
- * @returns UnwrapRestAnnotation helper result.
+ * @returns The underlying type node represented by the annotation.
  */
 
 const unwrapRestAnnotation = (
@@ -59,11 +63,12 @@ const unwrapRestAnnotation = (
 };
 
 /**
- * GetRestArrayElementType helper.
+ * Extracts `T` from rest elements shaped like `...T[]`.
  *
- * @param element - Value to inspect.
+ * @param element - Tuple element candidate.
  *
- * @returns GetRestArrayElementType helper result.
+ * @returns The array element type used by a rest tuple element; otherwise
+ *   `null`.
  */
 
 const getRestArrayElementType = (

@@ -23,6 +23,8 @@ export declare function convertHashLinksToBangLinksInComment(
 
 /**
  * Mutates an array of TypeDoc comment display parts in-place.
+ *
+ * @param parts - Display parts collection whose inline-tag text may be rewritten.
  */
 export declare function convertHashLinksToBangLinksInParts(
     parts: Array<Record<string, unknown>>

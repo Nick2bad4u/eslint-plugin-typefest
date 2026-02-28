@@ -16,24 +16,34 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/**
+ * Normalized view of a nullish equality/inequality comparison.
+ */
 type NullishComparison = {
     readonly comparedExpression: TSESTree.Expression;
     readonly kind: NullishKind;
     readonly operator: "!=" | "!==" | "==" | "===";
 };
 
+/**
+ * Nullish literal kinds that can appear in supported comparisons.
+ */
 type NullishKind = "null" | "undefined";
 
+/**
+ * Concrete rule context type derived from `createTypedRule`.
+ */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
 /**
- * FlattenLogicalTerms helper.
+ * Flattens chained logical expressions that use a single operator.
  *
- * @param value - Value to inspect.
+ * @param options - Expression/operator pair used to collect linear terms.
  *
- * @returns FlattenLogicalTerms helper result.
+ * @returns A left-to-right list of leaf expressions that share the same logical
+ *   operator.
  */
 
 const flattenLogicalTerms = ({
@@ -64,13 +74,13 @@ const flattenLogicalTerms = ({
 };
 
 /**
- * Check whether the input is undefined identifier.
+ * Check whether an expression is the global `undefined` identifier.
  *
- * @param expression - Value to inspect.
+ * @param context - Rule context used for global-identifier resolution.
+ * @param expression - Expression node to inspect.
  *
- * @returns `true` when the value is undefined identifier; otherwise `false`.
+ * @returns `true` when the expression references unshadowed global `undefined`.
  */
-
 const isUndefinedIdentifier = (
     context: RuleContext,
     expression: Readonly<TSESTree.Expression>
@@ -80,11 +90,14 @@ const isUndefinedIdentifier = (
     isGlobalUndefinedIdentifier(context, expression);
 
 /**
- * GetNullishComparison helper.
+ * Converts a binary comparison against `null`/`undefined` into a normalized
+ * structure.
  *
- * @param expression - Value to inspect.
+ * @param context - Rule context used to verify global `undefined` references.
+ * @param expression - Binary expression candidate.
  *
- * @returns GetNullishComparison helper result.
+ * @returns Parsed comparison data when the expression is a supported nullish
+ *   comparison; otherwise `null`.
  */
 
 const getNullishComparison = (
@@ -143,12 +156,11 @@ const getNullishComparison = (
 };
 
 /**
- * Check whether two comparisons share the same compared expression.
+ * Checks whether two expressions are syntactically equivalent targets.
  *
- * @param value - Value to inspect.
+ * @param options - Pair of expressions to compare.
  *
- * @returns `true` when both sides have same compared expression; otherwise
- *   `false`.
+ * @returns `true` when both expressions resolve to the same normalized text.
  */
 
 const haveSameComparedExpression = ({
@@ -160,11 +172,12 @@ const haveSameComparedExpression = ({
 }>): boolean => areEquivalentExpressions(first, second);
 
 /**
- * Check whether the input is strict present check.
+ * Detects the strict two-term present check pattern: `value !== null && value
+ * !== undefined`.
  *
- * @param value - Value to inspect.
+ * @param options - Context plus logical expression to inspect.
  *
- * @returns `true` when the value is strict present check; otherwise `false`.
+ * @returns `true` when the logical expression is a strict present check.
  */
 
 const isStrictPresentCheck = ({
@@ -214,11 +227,12 @@ const isStrictPresentCheck = ({
 };
 
 /**
- * Check whether the input is strict absent check.
+ * Detects the strict two-term absent check pattern: `value === null || value
+ * === undefined`.
  *
- * @param value - Value to inspect.
+ * @param options - Context plus logical expression to inspect.
  *
- * @returns `true` when the value is strict absent check; otherwise `false`.
+ * @returns `true` when the logical expression is a strict absent check.
  */
 
 const isStrictAbsentCheck = ({

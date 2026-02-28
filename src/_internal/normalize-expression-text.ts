@@ -1,8 +1,19 @@
+/**
+ * @packageDocumentation
+ * Structural normalization and equivalence checks for expressions and type
+ * nodes used by safe-fix heuristics.
+ */
 import type { TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject } from "type-fest";
 
+/**
+ * Object-like value that can participate in deep structural comparisons.
+ */
 type ComparableObject = Readonly<JsonObject>;
 
+/**
+ * ESTree metadata keys ignored during structural-equivalence checks.
+ */
 const ignoredPropertyKeys = new Set<string>([
     "end",
     "loc",
@@ -11,9 +22,15 @@ const ignoredPropertyKeys = new Set<string>([
     "start",
 ]);
 
+/**
+ * Check whether a value is object-like for structural comparisons.
+ */
 const isComparableRecord = (value: unknown): value is ComparableObject =>
     typeof value === "object" && value !== null;
 
+/**
+ * Return stable comparable keys after stripping metadata properties.
+ */
 const getComparableKeys = (value: ComparableObject): readonly string[] =>
     Object.keys(value).filter((key) => !ignoredPropertyKeys.has(key));
 
@@ -61,6 +78,16 @@ const unwrapTransparentExpression = (
     }
 };
 
+/**
+ * Records a compared object pair and reports whether that pair was already
+ * visited.
+ *
+ * @param left - Left-side object in the comparison pair.
+ * @param right - Right-side object in the comparison pair.
+ * @param seenPairs - Weakly-held pair-tracking cache for cycle-safe traversal.
+ *
+ * @returns `true` when this exact pair has already been processed.
+ */
 const markAndCheckSeenPair = (
     left: object,
     right: object,
@@ -80,6 +107,17 @@ const markAndCheckSeenPair = (
     return false;
 };
 
+/**
+ * Deep structural comparison that is resilient to cycles and ESTree metadata
+ * fields.
+ *
+ * @param left - Left-side value.
+ * @param right - Right-side value.
+ * @param seenPairs - Pair cache used to break recursive cycles.
+ *
+ * @returns `true` when the values are structurally equivalent after metadata
+ *   normalization.
+ */
 const areEquivalentNodeValues = (
     left: unknown,
     right: unknown,
@@ -145,7 +183,8 @@ const areEquivalentNodeValues = (
 };
 
 /**
- * AreEquivalentExpressions helper.
+ * Compare two expressions for structural equivalence after unwrapping
+ * transparent TypeScript wrappers.
  *
  * @param left - Left-hand expression.
  * @param right - Right-hand expression.
@@ -162,7 +201,7 @@ export const areEquivalentExpressions = (
     );
 
 /**
- * AreEquivalentTypeNodes helper.
+ * Compare two type nodes for structural equivalence.
  *
  * @param left - Left-hand type node.
  * @param right - Right-hand type node.

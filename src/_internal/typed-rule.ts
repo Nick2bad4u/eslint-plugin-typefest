@@ -1,8 +1,9 @@
-import type { UnknownArray } from "type-fest";
 /**
  * @packageDocumentation
- * Internal shared utilities used by eslint-plugin-typefest rule modules and plugin wiring.
+ * Internal shared utilities used by eslint-plugin-typefest rule modules and
+ * plugin wiring.
  */
+import type { UnknownArray } from "type-fest";
 import type ts from "typescript";
 
 import {
@@ -14,6 +15,9 @@ import {
 import { registerProgramSettingsForContext } from "./plugin-settings.js";
 import { createRuleDocsUrl } from "./rule-docs-url.js";
 
+/**
+ * Canonical `context.report` descriptor type for a rule message/options pair.
+ */
 type ReportDescriptor<
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
@@ -54,9 +58,14 @@ type TypefestRuleDocs = {
         | TypefestConfigReference;
 };
 
+/** Path segment matcher used to detect `tests`/`__tests__` directories. */
 const TEST_DIRECTORY_SEGMENT_PATTERN = /(?:^|\/)(?:__tests__|tests)(?:\/|$)/u;
+/** Filename matcher for spec/test suffixes across supported module formats. */
 const TEST_FILE_SUFFIX_PATTERN = /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u;
 
+/**
+ * Resolve a variable binding by searching the current scope and all parents.
+ */
 const getVariableInScopeChain = (
     scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
@@ -75,6 +84,10 @@ const getVariableInScopeChain = (
     return null;
 };
 
+/**
+ * Clone a report descriptor while removing `fix`, preserving other descriptor
+ * properties and property descriptors.
+ */
 const stripFixFromReportDescriptor = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
@@ -119,6 +132,9 @@ const stripFixFromReportDescriptor = <
     return descriptorWithoutFix as ReportDescriptor<MessageIds, Options>;
 };
 
+/**
+ * Wrap a rule context so `context.report` never emits autofixes.
+ */
 const createContextWithoutAutofixes = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
@@ -152,6 +168,20 @@ const baseTypedRuleCreator = ESLintUtils.RuleCreator<TypefestRuleDocs>(
     (ruleName) => createRuleDocsUrl(ruleName)
 );
 
+/**
+ * Rule-creator wrapper used by all plugin rules.
+ *
+ * @remarks
+ * This wrapper automatically registers per-program plugin settings and
+ * transparently strips fixer callbacks when
+ * `settings.typefest.disableAllAutofixes` is enabled for the current lint run.
+ *
+ * @param ruleDefinition - Rule module definition passed to
+ *   `ESLintUtils.RuleCreator`.
+ *
+ * @returns Rule module factory output that auto-registers program settings and
+ *   conditionally strips autofixes.
+ */
 export const createTypedRule: ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
 > = ((ruleDefinition) => {
@@ -177,7 +207,11 @@ export const createTypedRule: ReturnType<
  *
  * @param context - Rule context from the current lint evaluation.
  *
- * @returns Parser services and type checker references.
+ * @returns Parser services and type checker references bound to the current
+ *   program.
+ *
+ * @throws {Error} Throws when `parserServices.program` is unavailable, which
+ *   indicates the current lint run is not configured for type-aware analysis.
  */
 export const getTypedRuleServices = (
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>
@@ -198,6 +232,10 @@ export const getTypedRuleServices = (
 
 /**
  * Determine whether one TypeScript type is assignable to another.
+ *
+ * @remarks
+ * Uses `checker.isTypeAssignableTo` when available and falls back to strict
+ * reference equality if the checker API is unavailable or throws.
  *
  * @param checker - TypeScript type checker.
  * @param sourceType - Candidate source type.

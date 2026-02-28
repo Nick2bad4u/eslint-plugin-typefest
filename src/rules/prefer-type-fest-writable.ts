@@ -12,18 +12,19 @@ import {
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Legacy alias names normalized by this rule to `Writable`. */
 const writableAliasReplacements = {
     Mutable: "Writable",
 } as const;
 
 /**
- * Check whether has writable mapped type shape.
+ * Detects mapped types equivalent to `Writable<T>`.
  *
- * @param node - Value to inspect.
+ * @param node - Mapped type node to inspect.
  *
- * @returns `true` when has writable mapped type shape; otherwise `false`.
+ * @returns `true` when the mapped type removes `readonly` via `-readonly` and
+ *   preserves property optionality and values as `T[K]`.
  */
-
 const hasWritableMappedTypeShape = (
     node: Readonly<TSESTree.TSMappedType>
 ): boolean => {

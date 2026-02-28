@@ -11,15 +11,18 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Built-in readonly array type targeted by this rule. */
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
+
+/** Preferred TypeFest alias for readonly arrays of unknown values. */
 const UNKNOWN_ARRAY_TYPE_NAME = "UnknownArray";
 
 /**
- * Check whether has single unknown type argument.
+ * Checks whether a generic type reference has exactly one `unknown` argument.
  *
- * @param node - Value to inspect.
+ * @param node - Type reference candidate.
  *
- * @returns `true` when has single unknown type argument; otherwise `false`.
+ * @returns `true` when the reference shape is `<unknown>`.
  */
 
 const hasSingleUnknownTypeArgument = (
@@ -36,12 +39,12 @@ const hasSingleUnknownTypeArgument = (
 };
 
 /**
- * Check whether the input is readonly unknown array type.
+ * Detects `readonly unknown[]` type-operator syntax.
  *
- * @param node - Value to inspect.
+ * @param node - Type-operator node to inspect.
  *
- * @returns `true` when the value is readonly unknown array type; otherwise
- *   `false`.
+ * @returns `true` when the node is a readonly operator around an array type
+ *   whose element type is `unknown`.
  */
 
 const isReadonlyUnknownArrayType = (

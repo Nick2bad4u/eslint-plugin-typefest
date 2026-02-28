@@ -38,46 +38,35 @@ const liveBadges = [
 /**
  * Renders live repository and package badges powered by badgen.net.
  *
+ * @param {{ className?: string }} [props] - Optional list class override.
+ *
  * @returns {JSX.Element} Badge strip with links to package/repository metadata.
  */
-export default function GitHubStats() {
-    return (
-        <section className={styles.liveStatsSection}>
-            <div className={styles.liveStatsHeader}>
-                <p className={styles.liveStatsKicker}>Live project health</p>
-                <p className={styles.liveStatsDescription}>
-                    Real-time repository and package stats for this plugin.
-                </p>
-                <Link
-                    className={styles.liveStatsLink}
-                    href="https://github.com/Nick2bad4u/eslint-plugin-typefest"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Open on GitHub →
-                </Link>
-            </div>
+export default function GitHubStats({ className = "" } = {}) {
+    const badgeListClassName = [styles.liveBadgeList, className]
+        .filter(Boolean)
+        .join(" ");
 
-            <ul className={styles.liveBadgeList}>
-                {liveBadges.map((badge) => (
-                    <li key={badge.src} className={styles.liveBadgeListItem}>
-                        <Link
-                            className={styles.liveBadgeAnchor}
-                            href={badge.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <img
-                                alt={badge.alt}
-                                className={styles.liveBadgeImage}
-                                src={badge.src}
-                                loading="lazy"
-                                decoding="async"
-                            />
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </section>
+    return (
+        <ul className={badgeListClassName}>
+            {liveBadges.map((badge) => (
+                <li key={badge.src} className={styles.liveBadgeListItem}>
+                    <Link
+                        className={styles.liveBadgeAnchor}
+                        href={badge.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <img
+                            alt={badge.alt}
+                            className={styles.liveBadgeImage}
+                            src={badge.src}
+                            loading="lazy"
+                            decoding="async"
+                        />
+                    </Link>
+                </li>
+            ))}
+        </ul>
     );
 }

@@ -1,11 +1,15 @@
 /**
+ * @packageDocumentation
+ * URL-construction helpers for linking rule metadata to hosted documentation.
+ */
+/**
  * Canonical Docusaurus route prefix for rule documentation pages.
  */
 const DEFAULT_RULE_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 /**
- * CreateRuleDocsUrl helper.
+ * Build the canonical documentation URL for a plugin rule.
  *
  * @param ruleName - Rule identifier without plugin prefix.
  *

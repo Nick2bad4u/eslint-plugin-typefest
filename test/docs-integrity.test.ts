@@ -59,14 +59,6 @@ const unlinkedTopSummaryPattern =
     /^(?:Prefer|Require) `[^`]+` from `(?:ts-extras|type-fest)`/mv;
 
 /**
- * Check whether the input is rule with meta.
- *
- * @param value - Value to inspect.
- *
- * @returns `true` when the value is rule with meta; otherwise `false`.
- */
-
-/**
  * Assert canonical heading presence/order and core placement constraints.
  *
  * @param headings - Parsed H2 heading names.
@@ -156,14 +148,6 @@ function assertOptionalDetailHeadingPlacement(markdown: string): void {
 }
 
 /**
- * Parse H2 headings from Markdown content.
- *
- * @param markdown - Rule documentation markdown.
- *
- * @returns Ordered H2 heading names.
- */
-
-/**
  * Assert package documentation label by rule family.
  *
  * @param fileName - Rule docs file name.
@@ -179,6 +163,14 @@ function assertPackageLabel(fileName: string, markdown: string): void {
     }
 }
 
+/**
+ * Narrow a dynamic plugin rule value to a shape that includes `meta.docs`.
+ *
+ * @param value - Dynamic rule module candidate.
+ *
+ * @returns `true` when the value is object-like and can be inspected for
+ *   documentation metadata.
+ */
 function isRuleWithMeta(value: unknown): value is RuleWithMeta {
     return typeof value === "object" && value !== null;
 }
@@ -197,6 +189,13 @@ function parseH1Headings(markdown: string): string[] {
         .map((line) => line.slice(2).trim());
 }
 
+/**
+ * Parse H2 headings from Markdown content.
+ *
+ * @param markdown - Rule documentation markdown.
+ *
+ * @returns Ordered H2 heading names.
+ */
 function parseH2Headings(markdown: string): string[] {
     return markdown
         .split(/\r?\n/v)

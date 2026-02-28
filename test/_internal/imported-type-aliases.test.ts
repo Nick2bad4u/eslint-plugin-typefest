@@ -1,10 +1,10 @@
-import type { TSESLint } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
 /**
  * @packageDocumentation
- * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
+ * Unit tests for imported-type-alias helper discovery and safe replacement
+ * fixers.
  */
+import type { TSESLint } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,8 +18,10 @@ import {
     createSafeTypeReferenceReplacementFix,
 } from "../../src/_internal/imported-type-aliases";
 
+/** Imported names covered by alias replacement tests. */
 type ImportedName = "Branded" | "Expand" | "HomomorphicOmit" | "Opaque";
 
+/** Canonical replacement names expected for deprecated imported aliases. */
 const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
     Branded: "Tagged",
     Expand: "Simplify",
@@ -27,6 +29,7 @@ const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {
     Opaque: "Tagged",
 };
 
+/** Build a minimal SourceCode-like test fixture containing only AST body. */
 const createSourceCode = (
     body: Readonly<UnknownArray>
 ): Parameters<typeof collectImportedTypeAliasMatches>[0] =>
@@ -36,10 +39,12 @@ const createSourceCode = (
         },
     }) as unknown as Parameters<typeof collectImportedTypeAliasMatches>[0];
 
+/** Convert map output to a plain object for stable assertions. */
 const mapToRecord = <TValue>(
     map: Readonly<ReadonlyMap<string, TValue>>
 ): Readonly<Record<string, TValue>> => Object.fromEntries(map);
 
+/** Create an identifier-based import specifier test node. */
 const createIdentifierImportSpecifier = (
     importedName: string,
     localName: string
@@ -54,6 +59,7 @@ const createIdentifierImportSpecifier = (
     type: "ImportSpecifier",
 });
 
+/** Create a non-identifier import specifier for negative-path tests. */
 const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     imported: {
         type: "Literal",
@@ -65,6 +71,7 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     type: "ImportSpecifier",
 });
 
+/** Create an import declaration targeting the fixture source module. */
 const createImportDeclaration = (
     specifiers: Readonly<UnknownArray>
 ): unknown => ({

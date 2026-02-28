@@ -11,15 +11,19 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Built-in utility type used in verbose async return patterns. */
 const AWAITED_TYPE_NAME = "Awaited";
+
+/** Built-in utility type nested inside awaited return compositions. */
 const RETURN_TYPE_NAME = "ReturnType";
 
 /**
- * GetSingleTypeArgument helper.
+ * Extracts a single generic type argument from a type reference.
  *
- * @param node - Value to inspect.
+ * @param node - Type reference node to inspect.
  *
- * @returns GetSingleTypeArgument helper result.
+ * @returns The only type argument when exactly one is present; otherwise
+ *   `null`.
  */
 
 const getSingleTypeArgument = (

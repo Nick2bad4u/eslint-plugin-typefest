@@ -15,18 +15,19 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
 /**
- * Check whether the input is undefined expression.
+ * Determine whether an expression references the global `undefined` value.
  *
- * @param node - Value to inspect.
+ * @param context - Active rule context for scope resolution.
+ * @param node - Expression to inspect.
  *
- * @returns `true` when the value is undefined expression; otherwise `false`.
+ * @returns `true` when the expression is an unshadowed `undefined` identifier.
  */
-
 const isUndefinedExpression = ({
     context,
     node,
@@ -42,13 +43,12 @@ const isUndefinedExpression = ({
 };
 
 /**
- * Check whether the input is throw only consequent.
+ * Check whether an `if` consequent contains only a throw statement.
  *
- * @param node - Value to inspect.
+ * @param node - Consequent statement to inspect.
  *
- * @returns `true` when the value is throw only consequent; otherwise `false`.
+ * @returns `true` for `throw ...` and `{ throw ... }` shapes.
  */
-
 const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     if (node.type === "ThrowStatement") {
         return true;
@@ -61,6 +61,13 @@ const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
     );
 };
 
+/**
+ * Extract the throw statement from a throw-only consequent.
+ *
+ * @param node - Consequent statement to inspect.
+ *
+ * @returns Throw statement when present; otherwise `null`.
+ */
 const getThrowStatementFromConsequent = (
     node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
@@ -79,6 +86,16 @@ const getThrowStatementFromConsequent = (
     return null;
 };
 
+/**
+ * Check whether the throw body matches the canonical `assertDefined`-equivalent
+ * error shape.
+ *
+ * @param context - Active rule context for global-binding checks.
+ * @param throwStatement - Throw statement extracted from the guard branch.
+ *
+ * @returns `true` when the throw is `new TypeError("Expected a defined value,
+ *   got \`undefined`")`.
+ */
 const isCanonicalAssertDefinedThrow = (
     context: RuleContext,
     throwStatement: Readonly<TSESTree.ThrowStatement>
@@ -109,13 +126,15 @@ const isCanonicalAssertDefinedThrow = (
 };
 
 /**
- * ExtractDefinedGuardExpression helper.
+ * Extract the guarded expression from `x == undefined` / `undefined === x`
+ * checks.
  *
- * @param test - Value to inspect.
+ * @param test - Conditional test expression to inspect.
+ * @param context - Active rule context for global-binding checks.
  *
- * @returns ExtractDefinedGuardExpression helper result.
+ * @returns Guarded expression when the test is a supported undefined
+ *   comparison; otherwise `null`.
  */
-
 const extractDefinedGuardExpression = (
     test: Readonly<TSESTree.Expression>,
     context: RuleContext

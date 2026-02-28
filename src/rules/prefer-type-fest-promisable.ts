@@ -12,20 +12,24 @@ import {
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Canonical TypeFest alias preferred by this rule. */
 const PROMISABLE_TYPE_NAME = "Promisable";
+
+/** Built-in promise type name used for union normalization checks. */
 const PROMISE_TYPE_NAME = "Promise";
+
+/** Legacy alias names that should be normalized to `Promisable`. */
 const promisableAliasReplacements = {
     MaybePromise: "Promisable",
 } as const;
 
 /**
- * GetPromiseInnerType helper.
+ * Extracts the type argument from `Promise<T>` references.
  *
- * @param node - Value to inspect.
+ * @param node - Type node to inspect.
  *
- * @returns GetPromiseInnerType helper result.
+ * @returns The inner `T` node from `Promise<T>`; otherwise `null`.
  */
-
 const getPromiseInnerType = (
     node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {

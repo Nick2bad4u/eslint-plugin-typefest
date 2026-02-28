@@ -15,26 +15,43 @@ import {
     isTestFilePath,
 } from "../_internal/typed-rule.js";
 
+/** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
+/**
+ * Matched undefined-comparison metadata used to produce the replacement.
+ */
 type UndefinedComparisonMatch = {
     readonly comparedExpression: TSESTree.Expression;
     readonly prefersNegatedHelper: boolean;
 };
 
+/**
+ * Narrow an expression to an Identifier with an expected name.
+ */
 const isIdentifierWithName = (
     expression: Readonly<TSESTree.Expression>,
     name: string
 ): expression is TSESTree.Identifier =>
     expression.type === "Identifier" && expression.name === name;
 
+/**
+ * Narrow an expression to a `typeof ...` unary expression.
+ */
 const isTypeofExpression = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
     expression.type === "UnaryExpression" && expression.operator === "typeof";
 
+/**
+ * Check whether an identifier expression resolves to a bound symbol in scope.
+ *
+ * @remarks
+ * This prevents rewriting `typeof` checks where the identifier would be treated
+ * as an unbound global reference.
+ */
 const isBoundIdentifierReference = (
     context: RuleContext,
     expression: Readonly<TSESTree.Expression>
@@ -62,19 +79,22 @@ const isBoundIdentifierReference = (
     return false;
 };
 
+/**
+ * Narrow an expression to the string literal `"undefined"`.
+ */
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined" } =>
     expression.type === "Literal" && expression.value === "undefined";
 
 /**
- * Check whether the input is undefined identifier.
+ * Determine whether an expression references the global `undefined` binding.
  *
- * @param expression - Value to inspect.
+ * @param context - Active rule context for scope resolution.
+ * @param expression - Expression node to inspect.
  *
- * @returns `true` when the value is undefined identifier; otherwise `false`.
+ * @returns `true` when the expression is an unshadowed `undefined` identifier.
  */
-
 const isUndefinedIdentifier = (
     context: RuleContext,
     expression: Readonly<TSESTree.Expression>
@@ -83,13 +103,14 @@ const isUndefinedIdentifier = (
     isGlobalUndefinedIdentifier(context, expression);
 
 /**
- * GetUndefinedComparisonMatch helper.
+ * Match supported undefined-comparison patterns used by this rule.
  *
- * @param node - Value to inspect.
+ * @param context - Active rule context for global-binding checks.
+ * @param node - Binary expression to inspect.
  *
- * @returns GetUndefinedComparisonMatch helper result.
+ * @returns Comparison metadata when the expression is supported; otherwise
+ *   `null`.
  */
-
 const getUndefinedComparisonMatch = (
     context: RuleContext,
     node: Readonly<TSESTree.BinaryExpression>

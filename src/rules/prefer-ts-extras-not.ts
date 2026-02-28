@@ -10,14 +10,16 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 
+/** Array-like method targeted by this rule's callback analysis. */
 const FILTER_METHOD_NAME = "filter";
 
 /**
- * Check whether the input is filter call.
+ * Narrows call expressions to direct `.filter(...)` invocations.
  *
- * @param node - Value to inspect.
+ * @param node - Call expression to inspect.
  *
- * @returns `true` when the value is filter call; otherwise `false`.
+ * @returns `true` when the callee is a non-computed member expression named
+ *   `filter`.
  */
 
 const isFilterCall = (
@@ -34,13 +36,13 @@ const isFilterCall = (
     node.callee.property.name === FILTER_METHOD_NAME;
 
 /**
- * Check whether the input is target callback parameter.
+ * Checks whether a call argument refers to the callback parameter identifier.
  *
- * @param argument - Value to inspect.
- * @param parameterName - Value to inspect.
+ * @param argument - Predicate call argument candidate.
+ * @param parameterName - Callback parameter name expected by the rule.
  *
- * @returns `true` when the value is target callback parameter; otherwise
- *   `false`.
+ * @returns `true` when the argument is the same identifier as the callback's
+ *   sole parameter.
  */
 
 const isTargetCallbackParameter = (
@@ -49,11 +51,13 @@ const isTargetCallbackParameter = (
 ): boolean => argument.type === "Identifier" && argument.name === parameterName;
 
 /**
- * GetNegatedPredicateCall helper.
+ * Extracts predicate calls from callbacks shaped like `value =>
+ * !predicate(value)`.
  *
- * @param callback - Value to inspect.
+ * @param callback - Filter callback candidate.
  *
- * @returns GetNegatedPredicateCall helper result.
+ * @returns The inner predicate call when callback structure is compatible with
+ *   `not(predicate)` replacement; otherwise `null`.
  */
 
 const getNegatedPredicateCall = (
@@ -110,6 +114,10 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                 "ts-extras"
             );
 
+            /**
+             * Create a safe replacement fix that rewrites `value =>
+             * !predicate(value)` into `not(predicate)`.
+             */
             const createNotFilterCallbackFix = ({
                 callbackNode,
                 predicateCall,
