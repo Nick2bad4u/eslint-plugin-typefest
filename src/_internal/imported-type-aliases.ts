@@ -32,7 +32,7 @@ const isImportDeclarationFromSource = (
 /**
  * Matched imported type alias that can be replaced with a canonical name.
  */
-export type ImportedTypeAliasMatch = {
+type ImportedTypeAliasMatch = {
     importedName: string;
     replacementName: string;
     sourceValue: string;

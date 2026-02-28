@@ -1,3 +1,4 @@
+// @ts-nocheck -- ESlint plugins always have wrong or outdated types
 /**
  * Optimized ESLint configuration
  *
@@ -199,11 +200,15 @@ const fileProgressOverridesConfig = {
         progress: {
             detailedSuccess: true, // Show multi-line final summary (duration, file count, exit code)
             failureMark: "✖", // Custom mark used for failure completion
+            fileNameOnNewLine: true, // Show file names on a new line for better readability
             hide: IS_CI || DISABLE_PROGRESS, // Hide progress output (useful in CI)
+            hideDirectoryNames: false, // Show only the filename (no directory path segments)
             hideFileName: HIDE_PROGRESS_FILENAMES, // Show generic "Linting..." instead of file names
+            hidePrefix: false, // Hide plugin prefix text before progress/summary output
             prefixMark: "•", // Marker after plugin name prefix in progress lines
             spinnerStyle: "dots", // Line | dots | arc | bounce | clock
             successMark: "✔", // Custom mark used for success completion
+            successMessage: "Linting complete!", // Custom message on successful completion
         },
     },
 };

@@ -4,7 +4,7 @@ import type ts from "typescript";
 /**
  * Determines how union member types are evaluated for array-likeness.
  */
-export type UnionArrayLikeMatchMode = "every" | "some";
+type UnionArrayLikeMatchMode = "every" | "some";
 
 interface ArrayLikeExpressionCheckerOptions {
     /**

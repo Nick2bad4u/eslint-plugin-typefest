@@ -11,7 +11,7 @@ import { createImportInsertionFix } from "./import-insertion.js";
  * Immutable mapping of imported symbol names to directly imported local
  * aliases.
  */
-export type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
+type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
 
 /**
  * Parameters for creating a safe member-expression to function-call fixer.

@@ -43,7 +43,6 @@
                     "@softonus/prettier-plugin-duplicate-remover",
                     "prettier-plugin-jsdoc",
                     "prettier-plugin-multiline-arrays",
-                    "prettier-plugin-tailwindcss",
                     "prettier-plugin-merge"
                 ],
                 "tsdoc": true
