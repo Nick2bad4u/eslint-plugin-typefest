@@ -70,7 +70,7 @@
         "@docusaurus/preset-classic": "^3.9.2",
         "@docusaurus/theme-mermaid": "^3.9.2",
         "@docusaurus/types": "^3.9.2",
-        "@easyops-cn/docusaurus-search-local": "^0.55.0",
+        "@easyops-cn/docusaurus-search-local": "^0.55.1",
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1"
     },
@@ -89,7 +89,7 @@
         "typedoc": "^0.28.17",
         "typedoc-docusaurus-theme": "^1.4.2",
         "typedoc-plugin-coverage": "^4.0.2",
-        "typedoc-plugin-dt-links": "^2.0.43",
+        "typedoc-plugin-dt-links": "^2.0.44",
         "typedoc-plugin-external-package-links": "^0.2.0",
         "typedoc-plugin-markdown": "^4.10.0",
         "typedoc-plugin-mdn-links": "^5.1.1",
