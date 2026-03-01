@@ -48,14 +48,38 @@ const inlineInvalidWithoutFixOutputCode = [
     "type EnvironmentName = LiteralUnion<'dev' | 'prod', string>;",
 ].join("\n");
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { LiteralUnion } from "type-fest";\n${invalidFixtureCode.replace(
-    '"dev" | "prod" | string',
-    'LiteralUnion<"dev" | "prod", string>'
+const replaceOrThrow = ({
+    sourceText,
+    replacement,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected literal-union fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { LiteralUnion } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: 'LiteralUnion<"dev" | "prod", string>',
+        sourceText: invalidFixtureCode,
+        target: '"dev" | "prod" | string',
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "200 | 404 | number",
-    "LiteralUnion<200 | 404, number>"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "LiteralUnion<200 | 404, number>",
+    sourceText: fixtureFixableOutputCode,
+    target: "200 | 404 | number",
+});
 const inlineFixableCode = [
     'import type { LiteralUnion } from "type-fest";',
     "",
@@ -1015,4 +1039,3 @@ ruleTester.run(
         ],
     }
 );
-

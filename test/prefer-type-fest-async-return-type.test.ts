@@ -2,12 +2,16 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -22,14 +26,38 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-async-return-type.valid.ts";
 const invalidFixtureName = "prefer-type-fest-async-return-type.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { AsyncReturnType } from "type-fest";\n${invalidFixtureCode.replace(
-    "Awaited<ReturnType<MonitorProbe>>",
-    "AsyncReturnType<MonitorProbe>"
+const replaceOrThrow = ({
+    sourceText,
+    replacement,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected async-return-type fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { AsyncReturnType } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "AsyncReturnType<MonitorProbe>",
+        sourceText: invalidFixtureCode,
+        target: "Awaited<ReturnType<MonitorProbe>>",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "Awaited<ReturnType<typeof loadMonitorSummary>>",
-    "AsyncReturnType<typeof loadMonitorSummary>"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "AsyncReturnType<typeof loadMonitorSummary>",
+    sourceText: fixtureFixableOutputCode,
+    target: "Awaited<ReturnType<typeof loadMonitorSummary>>",
+});
 const inlineInvalidCode =
     "type Result = Awaited<ReturnType<() => Promise<string>>>;";
 const inlineInvalidOutput = [
@@ -70,6 +98,74 @@ const inlineFixableOutput = [
     "",
     "type Result = AsyncReturnType<() => Promise<string>>;",
 ].join("\n");
+
+type AsyncReturnTypeReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const returnTypeTargetArbitrary = fc.constantFrom(
+    "() => Promise<string>",
+    "(...args: readonly string[]) => Promise<number>",
+    "() => Promise<{ readonly status: 'ok' }>",
+    "(value: number) => Promise<ReadonlyArray<number>>"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseAwaitedTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    awaitedTypeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return {
+                ast: parsed.ast,
+                awaitedTypeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an Awaited<ReturnType<...>> type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-async-return-type",
@@ -177,6 +273,104 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
             listenerMap.TSTypeReference?.(awaitedReferenceNode);
 
             expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: AsyncReturnType replacement text remains parseable for Awaited<ReturnType<...>> inputs", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeTextReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix:
+                    createSafeTypeNodeTextReplacementFixMock,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-async-return-type")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(returnTypeTargetArbitrary, (returnTypeTarget) => {
+                    createSafeTypeNodeTextReplacementFixMock.mockClear();
+
+                    const code = [
+                        "declare const marker: unique symbol;",
+                        `type Candidate = Awaited<ReturnType<${returnTypeTarget}>>;`,
+                        "void marker;",
+                    ].join("\n");
+
+                    const { ast, awaitedTypeReference } =
+                        parseAwaitedTypeReferenceFromCode(code);
+                    const reportCalls: AsyncReturnTypeReportDescriptor[] = [];
+
+                    const listeners = undecoratedRuleModule.default.create({
+                        filename:
+                            "fixtures/typed/prefer-type-fest-async-return-type.invalid.ts",
+                        report: (
+                            descriptor: AsyncReturnTypeReportDescriptor
+                        ) => {
+                            reportCalls.push(descriptor);
+                        },
+                        sourceCode: {
+                            ast,
+                            getText(node: unknown): string {
+                                return getSourceTextForNode({ code, node });
+                            },
+                        },
+                    });
+
+                    listeners.TSTypeReference?.(awaitedTypeReference);
+
+                    expect(reportCalls).toHaveLength(1);
+                    expect(reportCalls[0]).toMatchObject({
+                        fix: "FIX",
+                        messageId: "preferAsyncReturnType",
+                    });
+                    expect(
+                        createSafeTypeNodeTextReplacementFixMock
+                    ).toHaveBeenCalledTimes(1);
+
+                    const replacementText =
+                        createSafeTypeNodeTextReplacementFixMock.mock
+                            .calls[0]?.[2];
+
+                    expect(typeof replacementText).toBe("string");
+
+                    if (typeof replacementText !== "string") {
+                        throw new TypeError(
+                            "Expected AsyncReturnType replacement text to be a string"
+                        );
+                    }
+
+                    const fixedCode = `${code.slice(0, awaitedTypeReference.range[0])}${replacementText}${code.slice(awaitedTypeReference.range[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

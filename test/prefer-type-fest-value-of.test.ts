@@ -3,6 +3,14 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-value-of.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -105,6 +113,178 @@ const inlineValidReadonlyTypeOperatorCode = [
     "};",
     "type Output = Input[readonly Input];",
 ].join("\n");
+
+type ValueOfReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const objectTypeExpressionArbitrary = fc.constantFrom(
+    "Input",
+    "{ readonly alpha: string; readonly beta: number }",
+    "Record<string, number>",
+    "Map<string, number>"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseIndexedAccessTypeFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    indexedAccessType: TSESTree.TSIndexedAccessType;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSIndexedAccessType
+        ) {
+            return {
+                ast: parsed.ast,
+                indexedAccessType: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an indexed-access type"
+    );
+};
+
+describe("prefer-type-fest-value-of source assertions", () => {
+    it("fast-check: ValueOf replacement text remains parseable for keyed indexed-access matches", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeTextReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
+                areEquivalentTypeNodes: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix:
+                    createSafeTypeNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-value-of")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSIndexedAccessType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    objectTypeExpressionArbitrary,
+                    (objectTypeExpression) => {
+                        createSafeTypeNodeTextReplacementFixMock.mockClear();
+
+                        const code = [
+                            "type Input = { alpha: string; beta: number };",
+                            `type Candidate = ${objectTypeExpression}[keyof ${objectTypeExpression}];`,
+                        ].join("\n");
+
+                        const { ast, indexedAccessType } =
+                            parseIndexedAccessTypeFromCode(code);
+                        const reportCalls: ValueOfReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (descriptor: ValueOfReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSIndexedAccessType?.(indexedAccessType);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferValueOf",
+                        });
+                        expect(
+                            createSafeTypeNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const replacementText =
+                            createSafeTypeNodeTextReplacementFixMock.mock
+                                .calls[0]?.[2];
+
+                        expect(typeof replacementText).toBe("string");
+
+                        if (typeof replacementText !== "string") {
+                            throw new TypeError(
+                                "Expected ValueOf replacement text to be a string"
+                            );
+                        }
+
+                        const fixedCode = `${code.slice(0, indexedAccessType.range[0])}${replacementText}${code.slice(indexedAccessType.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/normalize-expression-text.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],

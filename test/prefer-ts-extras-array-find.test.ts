@@ -2,6 +2,14 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -72,6 +80,218 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const found = arrayFind(sample, (value) => value === 2);",
 ].join("\n");
+
+type ArrayFindReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const receiverExpressionArbitrary = fc.constantFrom(
+    "values",
+    "getValues()",
+    "matrix[index]",
+    "values ?? fallbackValues",
+    "candidate?.items ?? values"
+);
+
+const argumentExpressionArbitrary = fc.constantFrom(
+    "(value) => value > 0",
+    "predicate",
+    "(value, index) => index >= startIndex",
+    "createPredicate()",
+    "undefined"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseFindCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    return {
+                        ast: parsed.ast,
+                        callExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from an Array.find call"
+    );
+};
+
+describe("prefer-ts-extras-array-find source assertions", () => {
+    it("fast-check: .find() autofixes remain parseable across receiver/argument shapes", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createMethodToFunctionCallFixMock = vi.fn(() => "FIX");
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/array-like-expression.js", () => ({
+                createIsArrayLikeExpressionChecker: () => () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Map(),
+                createMethodToFunctionCallFix:
+                    createMethodToFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-array-find")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    receiverExpressionArbitrary,
+                    fc.array(argumentExpressionArbitrary, {
+                        maxLength: 2,
+                    }),
+                    (receiverExpression, argumentExpressions) => {
+                        createMethodToFunctionCallFixMock.mockClear();
+
+                        const argumentListText = argumentExpressions.join(", ");
+                        const callText =
+                            argumentListText.length > 0
+                                ? `(${receiverExpression}).find(${argumentListText})`
+                                : `(${receiverExpression}).find()`;
+                        const code = [
+                            "declare const values: readonly number[];",
+                            "declare const fallbackValues: readonly number[];",
+                            "declare const matrix: readonly (readonly number[])[];",
+                            "declare const index: number;",
+                            "declare const startIndex: number;",
+                            "declare const predicate: (value: number, index: number) => boolean;",
+                            "declare const candidate: { readonly items?: readonly number[] } | null;",
+                            "declare function getValues(): readonly number[];",
+                            "declare function createPredicate(): (value: number, index: number) => boolean;",
+                            `const result = ${callText};`,
+                            "void result;",
+                        ].join("\n");
+
+                        const { ast, callExpression } =
+                            parseFindCallFromCode(code);
+                        const reportCalls: ArrayFindReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (descriptor: ArrayFindReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasArrayFind",
+                        });
+                        expect(
+                            createMethodToFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        if (callExpression.callee.type !== "MemberExpression") {
+                            throw new TypeError(
+                                "Expected generated call expression callee to be a member expression"
+                            );
+                        }
+
+                        const receiverText = getSourceTextForNode({
+                            code,
+                            node: callExpression.callee.object,
+                        });
+                        const argumentTexts = callExpression.arguments.map(
+                            (argument) =>
+                                getSourceTextForNode({
+                                    code,
+                                    node: argument,
+                                })
+                        );
+                        const replacementText =
+                            argumentTexts.length > 0
+                                ? `arrayFind(${receiverText}, ${argumentTexts.join(", ")})`
+                                : `arrayFind(${receiverText})`;
+
+                        const callRange = callExpression.range;
+                        const fixedCode = `${code.slice(0, callRange[0])}${replacementText}${code.slice(callRange[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/array-like-expression.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 ruleTester.run(
     "prefer-ts-extras-array-find",

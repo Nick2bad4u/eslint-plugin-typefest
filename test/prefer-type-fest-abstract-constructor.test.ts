@@ -3,6 +3,14 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-abstract-constructor.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -20,10 +28,25 @@ const preferAbstractConstructorSignatureMessage =
 const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { AbstractConstructor } from "type-fest";\n${invalidFixtureCode.replace(
-    "abstract new (\r\n    queueName: string,\r\n    retryCount: number\r\n) => QueueClient",
-    "AbstractConstructor<QueueClient, [queueName: string, retryCount: number]>"
-)}`;
+const createFixtureFixableOutputCode = (sourceText: string): string => {
+    const constructorSignaturePattern =
+        /abstract\s+new\s*\(\s*queueName: string,\s*retryCount: number\s*\)\s*=>\s*QueueClient/u;
+    const replacedText = sourceText.replace(
+        constructorSignaturePattern,
+        "AbstractConstructor<QueueClient, [queueName: string, retryCount: number]>"
+    );
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            "Expected abstract-constructor fixture to contain a replaceable `abstract new (...) => QueueClient` signature"
+        );
+    }
+
+    return `import type { AbstractConstructor } from "type-fest";\n${replacedText}`;
+};
+
+const fixtureFixableOutputCode =
+    createFixtureFixableOutputCode(invalidFixtureCode);
 const inlineInvalidNoFilenameCode =
     "type AbstractCtor = abstract new (...args: readonly unknown[]) => object;";
 const inlineInvalidNoFilenameOutput = [
@@ -45,6 +68,185 @@ const inlineNoFixGenericAbstractCtorCode = [
     "",
     "type GenericAbstractCtor = abstract new <T>(value: T) => T;",
 ].join("\n");
+
+type AbstractConstructorReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const constructorParameterListArbitrary = fc.constantFrom(
+    "name: string",
+    "name: string, retryCount: number",
+    "...args: readonly string[]",
+    "id: string | number, options?: { readonly force: boolean }"
+);
+
+const constructorReturnTypeArbitrary = fc.constantFrom(
+    "object",
+    "Promise<string>",
+    "ReadonlyArray<number>",
+    "{ readonly id: string; readonly retries: number }"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseAbstractConstructorTypeFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    constructorType: TSESTree.TSConstructorType;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSConstructorType
+        ) {
+            return {
+                ast: parsed.ast,
+                constructorType: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an abstract constructor type"
+    );
+};
+
+describe("prefer-type-fest-abstract-constructor source assertions", () => {
+    it("fast-check: abstract constructor autofix replacement text remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeTextReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix:
+                    createSafeTypeNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-abstract-constructor")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSConstructorType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    constructorParameterListArbitrary,
+                    constructorReturnTypeArbitrary,
+                    (parameterListText, returnTypeText) => {
+                        createSafeTypeNodeTextReplacementFixMock.mockClear();
+
+                        const code = [
+                            "declare const seed: unique symbol;",
+                            `type Candidate = abstract new (${parameterListText}) => ${returnTypeText};`,
+                            "void seed;",
+                        ].join("\n");
+
+                        const { ast, constructorType } =
+                            parseAbstractConstructorTypeFromCode(code);
+                        const reportCalls: AbstractConstructorReportDescriptor[] =
+                            [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: AbstractConstructorReportDescriptor
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSConstructorType?.(constructorType);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferAbstractConstructorSignature",
+                        });
+                        expect(
+                            createSafeTypeNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const replacementText =
+                            createSafeTypeNodeTextReplacementFixMock.mock
+                                .calls[0]?.[2];
+
+                        expect(typeof replacementText).toBe("string");
+
+                        if (typeof replacementText !== "string") {
+                            throw new TypeError(
+                                "Expected abstract constructor replacement text to be a string"
+                            );
+                        }
+
+                        const fixedCode = `${code.slice(0, constructorType.range[0])}${replacementText}${code.slice(constructorType.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],

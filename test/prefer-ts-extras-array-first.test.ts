@@ -2,6 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-array-first.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -65,6 +73,191 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const first = arrayFirst(sample);",
 ].join("\n");
+
+type ArrayFirstReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const receiverExpressionArbitrary = fc.constantFrom(
+    "values",
+    "getValues()",
+    "matrix[index]",
+    "values ?? fallbackValues",
+    "candidate?.items ?? values"
+);
+
+const indexExpressionArbitrary = fc.constantFrom("0", '"0"');
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseIndexZeroMemberFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    memberExpression: TSESTree.MemberExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.MemberExpression
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        memberExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from index access"
+    );
+};
+
+describe("prefer-ts-extras-array-first source assertions", () => {
+    it("fast-check: [0] autofixes remain parseable across receiver/index literal shapes", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createMemberToFunctionCallFixMock = vi.fn(() => "FIX");
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/array-like-expression.js", () => ({
+                createIsArrayLikeExpressionChecker: () => () => true,
+                isWriteTargetMemberExpression: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Map(),
+                createMemberToFunctionCallFix:
+                    createMemberToFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-array-first")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            MemberExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    receiverExpressionArbitrary,
+                    indexExpressionArbitrary,
+                    (receiverExpression, indexExpression) => {
+                        createMemberToFunctionCallFixMock.mockClear();
+
+                        const indexAccessText = `(${receiverExpression})[${indexExpression}]`;
+                        const code = [
+                            "declare const values: readonly number[];",
+                            "declare const fallbackValues: readonly number[];",
+                            "declare const matrix: readonly (readonly number[])[];",
+                            "declare const index: number;",
+                            "declare const candidate: { readonly items?: readonly number[] } | null;",
+                            "declare function getValues(): readonly number[];",
+                            `const firstValue = ${indexAccessText};`,
+                            "void firstValue;",
+                        ].join("\n");
+
+                        const { ast, memberExpression } =
+                            parseIndexZeroMemberFromCode(code);
+                        const reportCalls: ArrayFirstReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: ArrayFirstReportDescriptor
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.MemberExpression?.(memberExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasArrayFirst",
+                        });
+                        expect(
+                            createMemberToFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const receiverText = getSourceTextForNode({
+                            code,
+                            node: memberExpression.object,
+                        });
+                        const replacementText = `arrayFirst(${receiverText})`;
+                        const memberRange = memberExpression.range;
+                        const fixedCode = `${code.slice(0, memberRange[0])}${replacementText}${code.slice(memberRange[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/array-like-expression.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-array-first",

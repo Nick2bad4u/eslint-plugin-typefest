@@ -3,9 +3,15 @@
  * Unit tests for imported-value helper discovery and import-aware replacement
  * fixers.
  */
-import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import parser from "@typescript-eslint/parser";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,6 +22,7 @@ import {
     createSafeValueReferenceReplacementFix,
     getSafeLocalNameForImportedValue,
 } from "../../src/_internal/imported-value-symbols";
+import { fastCheckRunConfig } from "./fast-check";
 
 /** Rule context shape required by value-fixer helper tests. */
 type RuleContext = Parameters<
@@ -191,6 +198,57 @@ const invokeFix = (
 
     return replacements;
 };
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const parseSingleCallExpressionFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    return {
+                        ast: parsed.ast,
+                        callExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from a call expression"
+    );
+};
+
+const methodReceiverExpressionArbitrary = fc.constantFrom(
+    "values",
+    "getValues()",
+    "matrix[index]",
+    "values ?? fallbackValues",
+    "(left, right)",
+    "({ value: 1 })"
+);
+
+const methodArgumentExpressionArbitrary = fc.constantFrom(
+    "needle",
+    "startIndex",
+    "undefined",
+    "候補値",
+    "computeNeedle()",
+    "{ key: 'value' }"
+);
 
 describe(collectDirectNamedValueImportsFromSource, () => {
     it("ignores type-only import declarations and type-only import specifiers", () => {
@@ -633,6 +691,116 @@ describe(createMethodToFunctionCallFix, () => {
         });
 
         expect(invokeFix(fix)).toStrictEqual(["arrayIncludes(values)"]);
+    });
+
+    it("fast-check: emits parseable replacements across diverse receiver and argument expressions", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                methodReceiverExpressionArbitrary,
+                fc.array(methodArgumentExpressionArbitrary, {
+                    maxLength: 3,
+                }),
+                (receiverExpression, argumentExpressions) => {
+                    const argumentListText = argumentExpressions.join(", ");
+                    const callText =
+                        argumentListText.length > 0
+                            ? `(${receiverExpression}).includes(${argumentListText})`
+                            : `(${receiverExpression}).includes()`;
+                    const code = [
+                        "declare const values: readonly unknown[];",
+                        "declare const fallbackValues: readonly unknown[];",
+                        "declare const matrix: readonly (readonly unknown[])[];",
+                        "declare const index: number;",
+                        "declare const left: unknown;",
+                        "declare const right: unknown;",
+                        "declare const needle: unknown;",
+                        "declare const startIndex: number;",
+                        "declare const 候補値: unknown;",
+                        "declare function getValues(): readonly unknown[];",
+                        "declare function computeNeedle(): unknown;",
+                        `const result = ${callText};`,
+                        "void result;",
+                    ].join("\n");
+
+                    const { ast, callExpression } =
+                        parseSingleCallExpressionFromCode(code);
+
+                    const variable = {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayIncludes",
+                                "arrayIncludes",
+                                "ts-extras"
+                            ),
+                        ],
+                    };
+                    const scope = {
+                        set: new Map([["arrayIncludes", variable]]),
+                        upper: null,
+                    };
+
+                    const context = {
+                        sourceCode: {
+                            ast,
+                            getScope: () =>
+                                scope as unknown as Readonly<TSESLint.Scope.Scope>,
+                            getText(node: unknown): string {
+                                if (
+                                    typeof node !== "object" ||
+                                    node === null ||
+                                    !("range" in node)
+                                ) {
+                                    return "";
+                                }
+
+                                const nodeRange = (
+                                    node as Readonly<{
+                                        range?: readonly [number, number];
+                                    }>
+                                ).range;
+
+                                if (nodeRange === undefined) {
+                                    return "";
+                                }
+
+                                return code.slice(nodeRange[0], nodeRange[1]);
+                            },
+                        },
+                    } as unknown as RuleContext;
+
+                    const fix = createMethodToFunctionCallFix({
+                        callNode: callExpression,
+                        context,
+                        importedName: "arrayIncludes",
+                        imports: createImportsMap(
+                            "arrayIncludes",
+                            "arrayIncludes"
+                        ),
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    expect(fix).not.toBeNull();
+
+                    const replacementTexts = invokeFix(fix);
+
+                    expect(replacementTexts).toHaveLength(1);
+
+                    const replacementText = replacementTexts[0];
+
+                    expect(replacementText).toBeTruthy();
+
+                    const callRange = callExpression.range;
+                    const fixedCode = `${code.slice(0, callRange[0])}${replacementText}${code.slice(callRange[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

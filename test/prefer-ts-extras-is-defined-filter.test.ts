@@ -1,5 +1,9 @@
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
@@ -183,6 +187,110 @@ const inlineFixableOutput = [
     "String(definedValues);",
 ].join("\n");
 
+type UndefinedGuardTemplateId =
+    | "looseLeft"
+    | "looseRight"
+    | "strictLeft"
+    | "strictRight"
+    | "typeofLeft"
+    | "typeofRight";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const callbackParameterNameArbitrary = fc.constantFrom(
+    "value",
+    "entry",
+    "candidate"
+);
+
+const undefinedGuardTemplateIdArbitrary =
+    fc.constantFrom<UndefinedGuardTemplateId>(
+        "looseLeft",
+        "looseRight",
+        "strictLeft",
+        "strictRight",
+        "typeofLeft",
+        "typeofRight"
+    );
+
+const formatUndefinedGuardExpression = (
+    templateId: UndefinedGuardTemplateId,
+    parameterName: string
+): string => {
+    if (templateId === "looseLeft") {
+        return `${parameterName} != undefined`;
+    }
+
+    if (templateId === "looseRight") {
+        return `undefined != ${parameterName}`;
+    }
+
+    if (templateId === "strictLeft") {
+        return `${parameterName} !== undefined`;
+    }
+
+    if (templateId === "strictRight") {
+        return `undefined !== ${parameterName}`;
+    }
+
+    if (templateId === "typeofLeft") {
+        return `typeof ${parameterName} !== "undefined"`;
+    }
+
+    return `"undefined" !== typeof ${parameterName}`;
+};
+
+const parseFilterCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callbackRange: readonly [number, number];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+    let callExpression: null | TSESTree.CallExpression = null;
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    callExpression = declaration.init;
+                    break;
+                }
+            }
+        }
+
+        if (callExpression !== null) {
+            break;
+        }
+    }
+
+    if (callExpression === null) {
+        throw new Error(
+            "Expected generated source text to initialize from a filter call"
+        );
+    }
+
+    const callback = callExpression.arguments[0];
+
+    if (callback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
+        throw new Error(
+            "Expected generated filter call to include an arrow-function callback"
+        );
+    }
+
+    return {
+        ast: parsed.ast,
+        callbackRange: callback.range,
+        callExpression,
+    };
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -289,6 +397,138 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
             callExpressionListener?.(nonCallbackFirstArgumentCallNode);
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: supported undefined guard callbacks report and remain parseable after autofix", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueReferenceReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () => new Map(),
+                createSafeValueReferenceReplacementFix:
+                    createSafeValueReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-defined-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    undefinedGuardTemplateIdArbitrary,
+                    (parameterName, templateId) => {
+                        createSafeValueReferenceReplacementFixMock.mockClear();
+
+                        const guardExpression = formatUndefinedGuardExpression(
+                            templateId,
+                            parameterName
+                        );
+
+                        const code = [
+                            "declare const values: readonly (number | undefined)[];",
+                            "",
+                            `const definedValues = values.filter((${parameterName}) => ${guardExpression});`,
+                            "",
+                            "String(definedValues.length);",
+                        ].join("\n");
+
+                        const { ast, callbackRange, callExpression } =
+                            parseFilterCallFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const nodeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (nodeRange === undefined) {
+                                        return "";
+                                    }
+
+                                    return code.slice(
+                                        nodeRange[0],
+                                        nodeRange[1]
+                                    );
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasIsDefinedFilter",
+                        });
+                        expect(
+                            createSafeValueReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixedCode = `${code.slice(
+                            0,
+                            callbackRange[0]
+                        )}isDefined${code.slice(callbackRange[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
