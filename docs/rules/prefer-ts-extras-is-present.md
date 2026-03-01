@@ -4,18 +4,19 @@ Require [`isPresent`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule scopes matching to direct nullish-check expressions outside `.filter(...)` callbacks.
 
-- Direct `Array.prototype.filter` syntax in its canonical AST form.
-- Direct `value != null` syntax in its canonical AST form.
-- Direct `value == null` syntax in its canonical AST form.
-- Direct `value !== null && value !== undefined` syntax in its canonical AST form.
-- Direct `value === null || value === undefined` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Direct nullish checks outside `Array.prototype.filter` callbacks:
+- `value != null`
+- `value == null`
+- `value !== null && value !== undefined`
+- `value === null || value === undefined`
+
+Filter callbacks are handled by the dedicated filter rule; larger boolean expressions are only matched when they keep these shapes.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports direct nullish comparisons that should use `isPresent(...)` helpers.
 
 - Direct nullish checks outside `Array.prototype.filter` callbacks:
 - `value != null`

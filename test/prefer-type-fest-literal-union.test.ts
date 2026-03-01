@@ -646,7 +646,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
@@ -713,7 +713,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                         expect(reports).toHaveLength(0);
                     }
                 ),
-                fastCheckRunConfig.runs60
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
@@ -1015,3 +1015,4 @@ ruleTester.run(
         ],
     }
 );
+

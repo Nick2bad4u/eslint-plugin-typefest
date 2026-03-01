@@ -2,6 +2,14 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -68,6 +76,149 @@ const inlineFixableOutput = [
     "const hasValue = arrayIncludes(sample, 2);",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type ArrayIncludesFixFactoryArguments = Readonly<{
+    callNode: unknown;
+}>;
+
+type ArrayIncludesReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+type ArrayIncludesTemplate = Readonly<{
+    declarations: readonly string[];
+    objectText: string;
+}>;
+
+type ArrayIncludesTemplateId =
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier";
+
+const arrayIncludesTemplateIdArbitrary =
+    fc.constantFrom<ArrayIncludesTemplateId>(
+        "identifier",
+        "memberExpression",
+        "callExpression",
+        "parenthesizedIdentifier"
+    );
+
+const buildArrayIncludesTemplate = (
+    templateId: ArrayIncludesTemplateId
+): ArrayIncludesTemplate => {
+    if (templateId === "identifier") {
+        return {
+            declarations: [],
+            objectText: "values",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "const holder = { values } as const satisfies Readonly<{ readonly values: readonly string[] }>;",
+            ],
+            objectText: "holder.values",
+        };
+    }
+
+    if (templateId === "callExpression") {
+        return {
+            declarations: [
+                "const getValues = (): readonly string[] => values;",
+            ],
+            objectText: "getValues()",
+        };
+    }
+
+    return {
+        declarations: [],
+        objectText: "(values)",
+    };
+};
+
+const buildArrayIncludesPatternCode = (options: {
+    readonly includeUnicodeBanner: boolean;
+    readonly includeValueImport: boolean;
+    readonly templateId: ArrayIncludesTemplateId;
+}): string => {
+    const template = buildArrayIncludesTemplate(options.templateId);
+
+    const codeLines = [
+        options.includeValueImport
+            ? 'import { arrayIncludes } from "ts-extras";'
+            : "",
+        "const values = ['down', 'up', 'stable'] as const;",
+        ...template.declarations,
+        options.includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+            : "",
+        "const candidate = 'up' as string;",
+        `const hasValue = ${template.objectText}.includes(candidate);`,
+        "String(hasValue);",
+    ];
+
+    return codeLines.filter((line) => line.length > 0).join("\n");
+};
+
+const getSourceTextForNode = (options: {
+    readonly code: string;
+    readonly node: unknown;
+}): string => {
+    if (typeof options.node !== "object" || options.node === null) {
+        return "";
+    }
+
+    const maybeRange = (
+        options.node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (!maybeRange) {
+        return "";
+    }
+
+    return options.code.slice(maybeRange[0], maybeRange[1]);
+};
+
+const parseIncludesCallExpressionFromCode = (
+    code: string
+): Readonly<{
+    ast: TSESTree.Program;
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const ast = parser.parseForESLint(code, parserOptions)
+        .ast as TSESTree.Program;
+
+    for (const statement of ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.name === "hasValue" &&
+                    declaration.init?.type === AST_NODE_TYPES.CallExpression
+                ) {
+                    return {
+                        ast,
+                        callExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error("Expected a hasValue call expression in generated code");
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-array-includes",
     {
@@ -82,6 +233,155 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         name: "prefer-ts-extras-array-includes",
     }
 );
+
+describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
+    it("fast-check: includes call patterns report and produce parseable arrayIncludes replacements", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createMethodToFunctionCallFixMock = vi.fn(
+                (options: ArrayIncludesFixFactoryArguments): string => {
+                    if (typeof options.callNode !== "object") {
+                        throw new TypeError(
+                            "Expected callNode to be an object-like node"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/array-like-expression.js", () => ({
+                createIsArrayLikeExpressionChecker: () => () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createMethodToFunctionCallFix:
+                    createMethodToFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-array-includes")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    arrayIncludesTemplateIdArbitrary,
+                    fc.boolean(),
+                    fc.boolean(),
+                    (templateId, includeUnicodeBanner, includeValueImport) => {
+                        createMethodToFunctionCallFixMock.mockClear();
+
+                        const code = buildArrayIncludesPatternCode({
+                            includeUnicodeBanner,
+                            includeValueImport,
+                            templateId,
+                        });
+                        const { ast, callExpression } =
+                            parseIncludesCallExpressionFromCode(code);
+                        const reportCalls: ArrayIncludesReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: ArrayIncludesReportDescriptor
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasArrayIncludes",
+                        });
+                        expect(
+                            createMethodToFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixArguments =
+                            createMethodToFunctionCallFixMock.mock
+                                .calls[0]?.[0] ?? null;
+
+                        expect(fixArguments).not.toBeNull();
+
+                        const fixedCallExpression = (
+                            fixArguments as ArrayIncludesFixFactoryArguments
+                        ).callNode as Readonly<{
+                            arguments?: readonly unknown[];
+                            callee?: Readonly<{
+                                object?: unknown;
+                            }>;
+                        }>;
+
+                        const objectText = getSourceTextForNode({
+                            code,
+                            node: fixedCallExpression.callee?.object,
+                        });
+                        const argumentText = getSourceTextForNode({
+                            code,
+                            node: fixedCallExpression.arguments?.[0],
+                        });
+                        const replacementText = `arrayIncludes(${objectText}, ${argumentText})`;
+
+                        expect(replacementText).toBeTruthy();
+
+                        const callRange = callExpression.range;
+
+                        expect(callRange).toBeDefined();
+
+                        if (callRange === undefined) {
+                            throw new Error(
+                                "Expected call expression to expose source range"
+                            );
+                        }
+
+                        const fixedCode =
+                            code.slice(0, callRange[0]) +
+                            replacementText +
+                            code.slice(callRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/array-like-expression.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 ruleTester.run(
     "prefer-ts-extras-array-includes",

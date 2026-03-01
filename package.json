@@ -516,7 +516,7 @@
         "yamllint-js": "^0.2.4"
     },
     "peerDependencies": {
-        "eslint": "^10.0.2",
+        "eslint": "^9.0.0 || ^10.0.2",
         "typescript": ">=5.9.3"
     },
     "packageManager": "npm@11.11.0",

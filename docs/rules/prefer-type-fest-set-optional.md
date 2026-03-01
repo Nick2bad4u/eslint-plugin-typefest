@@ -4,14 +4,15 @@ Require TypeFest `SetOptional<T, Keys>` over imported aliases like `PartialBy`.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule scopes matching to imported legacy aliases that model the same semantics as `SetOptional<T, Keys>`.
 
-- Direct `PartialBy` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Type references that resolve to imported `PartialBy` aliases.
+
+Locally defined lookalikes or unrelated type references are excluded unless they resolve to the targeted imported alias.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports imported alias usages that should migrate to `SetOptional<T, Keys>`.
 
 - Type references that resolve to imported `PartialBy` aliases.
 

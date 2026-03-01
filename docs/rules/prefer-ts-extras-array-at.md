@@ -6,14 +6,15 @@ Prefer [`arrayAt`](https://github.com/sindresorhus/ts-extras/blob/main/source/ar
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `array.at(index)` calls that can be migrated to `arrayAt(array, index)` with deterministic fixes.
 
-- Direct `array.at(index)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `array.at(index)` call sites that can use `arrayAt(array, index)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayAt(array, index)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `array.at(index)` call sites when `arrayAt(array, index)` is the intended replacement.
 
 - `array.at(index)` call sites that can use `arrayAt(array, index)`.
 

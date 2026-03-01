@@ -4,14 +4,15 @@ Require [`arrayFirst`](https://github.com/sindresorhus/ts-extras/blob/main/sourc
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches direct first-element index access (`receiver[0]`) where the receiver expression can be reused unchanged in `arrayFirst(receiver)`.
 
-- Direct `array[0]` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Direct first-element access using index form (`array[0]`).
+
+Syntactically similar alternatives are intentionally out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports direct `receiver[0]` access sites that can be safely replaced with `arrayFirst(receiver)`.
 
 - Direct first-element access using index form (`array[0]`).
 

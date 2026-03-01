@@ -4,14 +4,15 @@ Require [`arrayLast`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches direct last-element index access (`receiver[receiver.length - 1]`) where the receiver expression can be reused unchanged in `arrayLast(receiver)`.
 
-- Direct `array[array.length - 1]` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Direct last-element index patterns (`array[array.length - 1]`).
+
+Syntactically similar alternatives are intentionally out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports direct `receiver[receiver.length - 1]` access sites that can be safely replaced with `arrayLast(receiver)`.
 
 - Direct last-element index patterns (`array[array.length - 1]`).
 

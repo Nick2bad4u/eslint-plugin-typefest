@@ -4,15 +4,16 @@ Require [`not`](https://github.com/sindresorhus/ts-extras/blob/main/source/not.t
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `.filter(...)` callbacks that negate a predicate and can be migrated to `not(predicate)` with deterministic fixes.
 
-- Direct `.filter(...)` syntax in its canonical AST form.
-- Direct `array.filter((value) => !predicate(value))` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Inline negated predicate callbacks in `.filter(...)` that can use `not(predicate)`.
+- `array.filter((value) => !predicate(value))`
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `not(predicate)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `.filter(...)` call sites when `not(predicate)` is the intended replacement.
 
 - Inline negated predicate callbacks in `.filter(...)` that can use `not(predicate)`.
 - `array.filter((value) => !predicate(value))`

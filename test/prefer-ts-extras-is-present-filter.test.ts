@@ -817,7 +817,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -919,7 +919,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                         ).not.toHaveBeenCalled();
                     }
                 ),
-                fastCheckRunConfig.runs60
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -1130,3 +1130,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

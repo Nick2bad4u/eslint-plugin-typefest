@@ -6,14 +6,15 @@ Prefer [`objectKeys`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `Object.keys(value)` calls that can be migrated to `objectKeys(value)` with deterministic fixes.
 
-- Direct `Object.keys(value)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Object.keys(value)` call sites that can use `objectKeys(value)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `objectKeys(value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Object.keys(value)` call sites when `objectKeys(value)` is the intended replacement.
 
 - `Object.keys(value)` call sites that can use `objectKeys(value)`.
 

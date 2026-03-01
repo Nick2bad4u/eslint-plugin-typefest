@@ -4,16 +4,17 @@ Require TypeFest `IterableElement<T>` over imported aliases like `SetElement`, `
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on imported legacy iterable helper aliases that TypeFest now models via `IterableElement`.
 
-- Direct `SetElement` syntax in its canonical AST form.
-- Direct `SetEntry` syntax in its canonical AST form.
-- Direct `SetValues` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Type references that resolve to imported `SetElement` aliases.
+- Type references that resolve to imported `SetEntry` aliases.
+- Type references that resolve to imported `SetValues` aliases.
+
+Unrelated type references and aliases from non-targeted imports are intentionally left untouched.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports imported iterable helper aliases that should be consolidated to `IterableElement`.
 
 - Type references that resolve to imported `SetElement` aliases.
 - Type references that resolve to imported `SetEntry` aliases.

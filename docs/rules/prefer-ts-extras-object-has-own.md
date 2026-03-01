@@ -4,14 +4,15 @@ Require [`objectHasOwn`](https://github.com/sindresorhus/ts-extras/blob/main/sou
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches direct `Object.hasOwn(object, key)` calls where both arguments can be forwarded unchanged to `objectHasOwn(object, key)`.
 
-- Direct `Object.hasOwn(...)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Calls to `Object.hasOwn(...)` in runtime source files and typed rule fixtures.
+
+Syntactically similar alternatives are intentionally out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Object.hasOwn(object, key)` calls that can be replaced with `objectHasOwn(object, key)`.
 
 - Calls to `Object.hasOwn(...)` in runtime source files and typed rule fixtures.
 

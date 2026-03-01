@@ -4,14 +4,15 @@ Require TypeFest `JsonPrimitive` over explicit JSON primitive keyword unions.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule narrows matching to explicit primitive-union spellings that TypeFest captures as `JsonPrimitive`.
 
-- Direct `boolean | null | number | string` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `boolean | null | number | string` unions (in any order)
+
+Non-primitive additions and alias-expanded unions are out of scope unless they exactly preserve the primitive set.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports primitive-only unions that should be rewritten as `JsonPrimitive`.
 
 - `boolean | null | number | string` unions (in any order)
 

@@ -6,14 +6,15 @@ Prefer [`keyIn`](https://github.com/sindresorhus/ts-extras/blob/main/source/key-
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `key in object` expressions that can be migrated to `keyIn(key, object)` with deterministic fixes.
 
-- Direct `key in object` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Native `key in object` expressions that can use `keyIn(key, object)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `keyIn(key, object)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `key in object` expressions when `keyIn(key, object)` is the intended replacement.
 
 - Native `key in object` expressions that can use `keyIn(key, object)`.
 

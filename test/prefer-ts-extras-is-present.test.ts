@@ -1020,7 +1020,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                         shouldReport ? expectedMessageId : undefined
                     );
                 }),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -1166,7 +1166,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                         parser.parseForESLint(fixedCode, parserOptions);
                     }).not.toThrowError();
                 }),
-                fastCheckRunConfig.runs100
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -1286,7 +1286,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                         ).not.toHaveBeenCalled();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -1510,3 +1510,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

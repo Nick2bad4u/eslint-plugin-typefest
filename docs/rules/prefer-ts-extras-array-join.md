@@ -6,14 +6,15 @@ Prefer [`arrayJoin`](https://github.com/sindresorhus/ts-extras/blob/main/source/
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `array.join(separator)` calls that can be migrated to `arrayJoin(array, separator)` with deterministic fixes.
 
-- Direct `array.join(separator)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `array.join(separator)` call sites that can use `arrayJoin(array, separator)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayJoin(array, separator)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `array.join(separator)` call sites when `arrayJoin(array, separator)` is the intended replacement.
 
 - `array.join(separator)` call sites that can use `arrayJoin(array, separator)`.
 

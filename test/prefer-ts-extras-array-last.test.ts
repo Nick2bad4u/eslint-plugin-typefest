@@ -377,7 +377,7 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/array-like-expression.js");
@@ -460,3 +460,4 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
         },
     ],
 });
+

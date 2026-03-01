@@ -6,14 +6,15 @@ Prefer [`arrayFind`](https://github.com/sindresorhus/ts-extras/blob/main/source/
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `array.find(predicate)` calls that can be migrated to `arrayFind(array, predicate)` with deterministic fixes.
 
-- Direct `array.find(predicate)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `array.find(predicate)` call sites that can use `arrayFind(array, predicate)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayFind(array, predicate)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `array.find(predicate)` call sites when `arrayFind(array, predicate)` is the intended replacement.
 
 - `array.find(predicate)` call sites that can use `arrayFind(array, predicate)`.
 

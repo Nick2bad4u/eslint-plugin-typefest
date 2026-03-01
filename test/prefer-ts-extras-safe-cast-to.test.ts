@@ -549,7 +549,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -667,7 +667,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         ).not.toHaveBeenCalled();
                     }
                 ),
-                fastCheckRunConfig.runs50
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -738,3 +738,4 @@ ruleTester.run(
         ],
     }
 );
+

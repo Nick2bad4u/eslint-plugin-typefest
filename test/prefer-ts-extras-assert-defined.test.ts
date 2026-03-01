@@ -818,7 +818,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -977,7 +977,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -1200,3 +1200,4 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
         },
     ],
 });
+

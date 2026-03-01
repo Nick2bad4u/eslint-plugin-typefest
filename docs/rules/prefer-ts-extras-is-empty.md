@@ -4,16 +4,17 @@ Require [`isEmpty`](https://github.com/sindresorhus/ts-extras/blob/main/source/i
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches strict zero-length comparisons against `.length` that can be rewritten as `isEmpty(array)`.
 
-- Direct syntax form: Direct empty-array checks using length equality:
-- Direct `array.length === 0` syntax in its canonical AST form.
-- Direct `0 === array.length` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Direct empty-array checks using length equality:
+- `array.length === 0`
+- `0 === array.length`
+
+Syntactically similar alternatives are intentionally out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports strict empty-check comparisons that can be replaced with `isEmpty(array)`.
 
 - Direct empty-array checks using length equality:
 - `array.length === 0`

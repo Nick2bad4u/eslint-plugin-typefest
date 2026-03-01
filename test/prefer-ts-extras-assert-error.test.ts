@@ -609,7 +609,7 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -762,3 +762,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

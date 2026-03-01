@@ -6,14 +6,15 @@ Prefer [`stringSplit`](https://github.com/sindresorhus/ts-extras/blob/main/sourc
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `string.split(separator)` calls that can be migrated to `stringSplit(string, separator)` with deterministic fixes.
 
-- Direct `string.split(separator)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `string.split(separator)` call sites that can use `stringSplit(string, separator)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `stringSplit(string, separator)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `string.split(separator)` call sites when `stringSplit(string, separator)` is the intended replacement.
 
 - `string.split(separator)` call sites that can use `stringSplit(string, separator)`.
 

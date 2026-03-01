@@ -6,14 +6,15 @@ Prefer [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `set.has(value)` calls that can be migrated to `setHas(set, value)` with deterministic fixes.
 
-- Direct `set.has(value)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `set.has(value)` call sites that can use `setHas(set, value)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `setHas(set, value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `set.has(value)` call sites when `setHas(set, value)` is the intended replacement.
 
 - `set.has(value)` call sites that can use `setHas(set, value)`.
 

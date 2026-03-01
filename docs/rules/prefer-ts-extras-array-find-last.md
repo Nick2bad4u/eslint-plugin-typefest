@@ -6,14 +6,15 @@ Prefer [`arrayFindLast`](https://github.com/sindresorhus/ts-extras/blob/main/sou
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `array.findLast(predicate)` calls that can be migrated to `arrayFindLast(array, predicate)` with deterministic fixes.
 
-- Direct `array.findLast(predicate)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `array.findLast(predicate)` call sites that can use `arrayFindLast(array, predicate)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayFindLast(array, predicate)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `array.findLast(predicate)` call sites when `arrayFindLast(array, predicate)` is the intended replacement.
 
 - `array.findLast(predicate)` call sites that can use `arrayFindLast(array, predicate)`.
 

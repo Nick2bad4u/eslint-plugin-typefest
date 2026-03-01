@@ -4,15 +4,16 @@ Require TypeFest `Arrayable<T>` over `T | T[]` and `T | Array<T>` unions.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches the canonical value-or-array union spellings that TypeFest replaces with `Arrayable<T>`.
 
-- Direct `T | T[]` syntax in its canonical AST form.
-- Direct `T | Array<T>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `T | T[]`
+- `T | Array<T>`
+
+Near-miss unions (extra members or mismatched element types) are excluded unless they are exact canonical forms.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports canonical value-or-array unions that should be rewritten as `Arrayable<T>`.
 
 - `T | T[]`
 - `T | Array<T>`

@@ -4,14 +4,15 @@ Require TypeFest `Promisable<T>` for sync-or-async callback contracts currently 
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule narrows matching to strict two-member Promise/base unions where `Promisable<T>` is the canonical replacement.
 
-- Direct `Promise<T> | T` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Type unions shaped like `Promise<T> | T` in architecture-critical runtime layers.
+
+Multi-member unions and Promise-adjacent variants stay out of scope unless they exactly match the authored pair form.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports strict `Promise<T> | T`-shaped unions that should be expressed as `Promisable<T>`.
 
 - Type unions shaped like `Promise<T> | T` in architecture-critical runtime layers.
 

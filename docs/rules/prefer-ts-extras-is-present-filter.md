@@ -4,17 +4,18 @@ Require [`isPresent`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only inspects inline `.filter(...)` predicates that perform explicit nullish checks.
 
-- Direct `.filter(...)` syntax in its canonical AST form.
-- Direct `filter((value) => value != null)` syntax in its canonical AST form.
-- Direct `filter((value): value is T => value !== null)` syntax in its canonical AST form.
-- Direct `filter((value): value is T => value !== null && value !== undefined)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Inline nullish predicates inside `.filter(...)`, including:
+- `filter((value) => value != null)`
+- `filter((value): value is T => value !== null)`
+- `filter((value): value is T => value !== null && value !== undefined)`
+
+Named predicate references and broader callback logic are not matched unless they preserve this nullish-check shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports inline filter predicates that encode nullish checks and can be normalized with `isPresent`.
 
 - Inline nullish predicates inside `.filter(...)`, including:
 - `filter((value) => value != null)`

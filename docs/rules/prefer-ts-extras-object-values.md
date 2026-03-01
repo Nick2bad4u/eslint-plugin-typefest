@@ -6,14 +6,15 @@ Prefer [`objectValues`](https://github.com/sindresorhus/ts-extras/blob/main/sour
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `Object.values(value)` calls that can be migrated to `objectValues(value)` with deterministic fixes.
 
-- Direct `Object.values(value)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Object.values(value)` call sites that can use `objectValues(value)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `objectValues(value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Object.values(value)` call sites when `objectValues(value)` is the intended replacement.
 
 - `Object.values(value)` call sites that can use `objectValues(value)`.
 

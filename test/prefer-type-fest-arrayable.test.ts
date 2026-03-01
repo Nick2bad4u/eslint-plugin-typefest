@@ -629,7 +629,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
@@ -781,3 +781,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

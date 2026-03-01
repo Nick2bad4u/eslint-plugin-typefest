@@ -4,14 +4,15 @@ Require TypeFest `JsonObject` over equivalent explicit `Record<string, JsonValue
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule targets direct `Record<string, JsonValue>` aliases used as JSON object contracts.
 
-- Direct `Record<string, JsonValue>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Record<string, JsonValue>`
+
+Broader record aliases and structurally different object constraints are intentionally left unchanged.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Record<string, JsonValue>` aliases that should use `JsonObject`.
 
 - `Record<string, JsonValue>`
 

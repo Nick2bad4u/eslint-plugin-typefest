@@ -6,14 +6,15 @@ Prefer [`arrayFindLastIndex`](https://github.com/sindresorhus/ts-extras/blob/mai
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `array.findLastIndex(predicate)` calls that can be migrated to `arrayFindLastIndex(array, predicate)` with deterministic fixes.
 
-- Direct `array.findLastIndex(predicate)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayFindLastIndex(array, predicate)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `array.findLastIndex(predicate)` call sites when `arrayFindLastIndex(array, predicate)` is the intended replacement.
 
 - `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
 

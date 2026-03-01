@@ -4,16 +4,17 @@ Prefer [`safeCastTo`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `as T` and `<T>value` assertions that can be migrated to `safeCastTo<T>(value)` when the cast is assignable.
 
-- Direct `as T` syntax in its canonical AST form.
-- Direct `as` syntax in its canonical AST form.
-- Direct syntax form: Only assertions where the source expression type is assignable to the asserted target type.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Type assertions (`as T` and `<T>value`) that are already assignable and can use `safeCastTo<T>(value)`.
+- `as` and angle-bracket (`<T>value`) assertions in runtime source files.
+- Only assertions where the source expression type is assignable to the asserted target type.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `safeCastTo<T>(value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports assignable `as T` and `<T>value` assertion sites when `safeCastTo<T>(value)` is the intended replacement.
 
 - Type assertions (`as T` and `<T>value`) that are already assignable and can use `safeCastTo<T>(value)`.
 - `as` and angle-bracket (`<T>value`) assertions in runtime source files.

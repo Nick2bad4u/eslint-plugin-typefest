@@ -6,14 +6,15 @@ Prefer [`objectFromEntries`](https://github.com/sindresorhus/ts-extras/blob/main
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `Object.fromEntries(entries)` calls that can be migrated to `objectFromEntries(entries)` with deterministic fixes.
 
-- Direct `Object.fromEntries(entries)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Object.fromEntries(entries)` call sites that can use `objectFromEntries(entries)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `objectFromEntries(entries)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Object.fromEntries(entries)` call sites when `objectFromEntries(entries)` is the intended replacement.
 
 - `Object.fromEntries(entries)` call sites that can use `objectFromEntries(entries)`.
 

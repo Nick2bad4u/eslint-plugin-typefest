@@ -878,7 +878,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -969,3 +969,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

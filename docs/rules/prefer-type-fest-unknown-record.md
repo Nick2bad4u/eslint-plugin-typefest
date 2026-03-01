@@ -4,14 +4,15 @@ Prefers `UnknownRecord` from TypeFest over `Record<string, unknown>` in architec
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule targets explicit unknown-record spellings that TypeFest standardizes as `UnknownRecord`.
 
-- Direct `Record<string, unknown>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Record<string, unknown>` type references in configured boundary paths (for example shared contracts and IPC-adjacent layers).
+
+Other collection contracts are left alone unless they match the exact unknown collection form listed below.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports unknown-record type forms that should migrate to `UnknownRecord`.
 
 - `Record<string, unknown>` type references in configured boundary paths (for example shared contracts and IPC-adjacent layers).
 

@@ -6,14 +6,15 @@ Prefer [`arrayConcat`](https://github.com/sindresorhus/ts-extras/blob/main/sourc
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `left.concat(right)` calls that can be migrated to `arrayConcat(left, right)` with deterministic fixes.
 
-- Direct `left.concat(right)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `left.concat(right)` call sites that can use `arrayConcat(left, right)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayConcat(left, right)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `left.concat(right)` call sites when `arrayConcat(left, right)` is the intended replacement.
 
 - `left.concat(right)` call sites that can use `arrayConcat(left, right)`.
 

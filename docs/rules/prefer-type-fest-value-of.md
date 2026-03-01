@@ -4,14 +4,15 @@ Require TypeFest `ValueOf<T>` over direct `T[keyof T]` indexed-access unions whe
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule narrows matching to indexed-access type shapes that are semantically equivalent to `ValueOf<T>`.
 
-- Direct `T[keyof T]` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Type-level indexed access patterns shaped like `T[keyof T]`.
+
+Indexed accesses with additional constraints or non-equivalent key domains are intentionally excluded.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `T[keyof T]`-style indexed-access aliases that should use `ValueOf<T>`.
 
 - Type-level indexed access patterns shaped like `T[keyof T]`.
 

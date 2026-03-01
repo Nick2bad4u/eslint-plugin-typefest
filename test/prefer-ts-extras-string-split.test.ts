@@ -738,7 +738,7 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -840,3 +840,4 @@ ruleTester.run(
         ],
     }
 );
+

@@ -6,14 +6,15 @@ Prefer [`objectEntries`](https://github.com/sindresorhus/ts-extras/blob/main/sou
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `Object.entries(value)` calls that can be migrated to `objectEntries(value)` with deterministic fixes.
 
-- Direct `Object.entries(value)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Object.entries(value)` call sites that can use `objectEntries(value)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `objectEntries(value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Object.entries(value)` call sites when `objectEntries(value)` is the intended replacement.
 
 - `Object.entries(value)` call sites that can use `objectEntries(value)`.
 

@@ -647,7 +647,7 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
@@ -731,3 +731,4 @@ ruleTester.run(
         ],
     }
 );
+

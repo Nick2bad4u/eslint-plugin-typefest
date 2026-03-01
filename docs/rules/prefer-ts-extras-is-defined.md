@@ -4,18 +4,19 @@ Require [`isDefined`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule scopes matching to direct undefined-check expressions outside `.filter(...)` callbacks.
 
-- Direct `Array.prototype.filter` syntax in its canonical AST form.
-- Direct `value !== undefined` syntax in its canonical AST form.
-- Direct `undefined !== value` syntax in its canonical AST form.
-- Direct `typeof value !== "undefined"` syntax in its canonical AST form.
-- Direct `value === undefined` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Direct undefined checks outside `Array.prototype.filter` callbacks:
+- `value !== undefined`
+- `undefined !== value`
+- `typeof value !== "undefined"`
+- `value === undefined`
+
+Filter callbacks are handled by the dedicated filter rule; broader boolean expressions are only matched when they keep these forms.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports direct undefined comparisons that should use `isDefined(...)` helpers.
 
 - Direct undefined checks outside `Array.prototype.filter` callbacks:
 - `value !== undefined`

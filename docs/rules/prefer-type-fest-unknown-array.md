@@ -4,15 +4,16 @@ Require TypeFest `UnknownArray` over `readonly unknown[]` and `ReadonlyArray<unk
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule targets explicit unknown-array spellings that TypeFest standardizes as `UnknownArray`.
 
-- Direct `readonly unknown[]` syntax in its canonical AST form.
-- Direct `ReadonlyArray<unknown>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `readonly unknown[]`
+- `ReadonlyArray<unknown>`
+
+Other collection contracts are left alone unless they match the exact unknown collection form listed below.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports unknown-array type forms that should migrate to `UnknownArray`.
 
 - `readonly unknown[]`
 - `ReadonlyArray<unknown>`

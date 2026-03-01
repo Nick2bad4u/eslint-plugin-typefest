@@ -4,14 +4,15 @@ Require [`objectHasIn`](https://github.com/sindresorhus/ts-extras/blob/main/sour
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only matches direct `Reflect.has(object, key)` calls where both arguments can be forwarded unchanged to `objectHasIn(object, key)`.
 
-- Direct `Reflect.has(object, key)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Reflect.has(object, key)` calls.
+
+Syntactically similar alternatives are intentionally out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Reflect.has(object, key)` calls that can be replaced with `objectHasIn(object, key)`.
 
 - `Reflect.has(object, key)` calls.
 

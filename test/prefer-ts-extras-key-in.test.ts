@@ -395,7 +395,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs80
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -500,7 +500,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         ).not.toHaveBeenCalled();
                     }
                 ),
-                fastCheckRunConfig.runs60
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
@@ -598,3 +598,4 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
+

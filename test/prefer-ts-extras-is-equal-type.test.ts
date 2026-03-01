@@ -729,7 +729,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                         }).not.toThrowError();
                     }
                 ),
-                fastCheckRunConfig.runs70
+                fastCheckRunConfig.default
             );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
@@ -932,3 +932,4 @@ ruleTester.run(
         ],
     }
 );
+

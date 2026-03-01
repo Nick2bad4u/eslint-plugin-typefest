@@ -627,7 +627,7 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                     ).not.toThrowError();
                 }
             ),
-            fastCheckRunConfig.runs60
+            fastCheckRunConfig.default
         );
     });
 
@@ -685,7 +685,7 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                     ).not.toThrowError();
                 }
             ),
-            fastCheckRunConfig.runs60
+            fastCheckRunConfig.default
         );
     });
 });
@@ -921,3 +921,4 @@ ruleTester.run(
         ],
     }
 );
+

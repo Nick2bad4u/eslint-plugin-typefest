@@ -4,14 +4,15 @@ Require TypeFest `UnknownSet` over `ReadonlySet<unknown>`.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule targets explicit unknown-set spellings that TypeFest standardizes as `UnknownSet`.
 
-- Direct `ReadonlySet<unknown>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `ReadonlySet<unknown>` type references.
+
+Other collection contracts are left alone unless they match the exact unknown collection form listed below.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports unknown-set type forms that should migrate to `UnknownSet`.
 
 - `ReadonlySet<unknown>` type references.
 

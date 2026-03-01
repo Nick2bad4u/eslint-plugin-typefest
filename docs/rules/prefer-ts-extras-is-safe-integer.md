@@ -6,14 +6,15 @@ This keeps predicate usage consistent with other `ts-extras` narrowing helpers.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule focuses on direct `Number.isSafeInteger(value)` calls that can be migrated to `isSafeInteger(value)` with deterministic fixes.
 
-- Direct `Number.isSafeInteger(value)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `Number.isSafeInteger(value)` call sites that can use `isSafeInteger(value)`.
+
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `isSafeInteger(value)` migrations safe.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports `Number.isSafeInteger(value)` call sites when `isSafeInteger(value)` is the intended replacement.
 
 - `Number.isSafeInteger(value)` call sites that can use `isSafeInteger(value)`.
 

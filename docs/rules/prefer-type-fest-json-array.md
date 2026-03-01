@@ -4,15 +4,16 @@ Require TypeFest `JsonArray` over explicit `JsonValue` array-union aliases.
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule matches explicit JSON array alias spellings where `JsonArray` communicates intent directly.
 
-- Direct `JsonValue[] | readonly JsonValue[]` syntax in its canonical AST form.
-- Direct `Array<JsonValue> | ReadonlyArray<JsonValue>` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- `JsonValue[] | readonly JsonValue[]`
+- `Array<JsonValue> | ReadonlyArray<JsonValue>`
+
+This rule intentionally excludes other array aliases and non-JSON payload array forms.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports explicit `JsonValue` array alias forms that should use `JsonArray`.
 
 - `JsonValue[] | readonly JsonValue[]`
 - `Array<JsonValue> | ReadonlyArray<JsonValue>`

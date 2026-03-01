@@ -4,17 +4,18 @@ Require [`isDefined`](https://github.com/sindresorhus/ts-extras/blob/main/source
 
 ## Targeted pattern scope
 
-This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+This rule only inspects inline `.filter(...)` predicates that perform explicit undefined checks.
 
-- Direct `.filter(...)` syntax in its canonical AST form.
-- Direct `filter((value) => value !== undefined)` syntax in its canonical AST form.
-- Direct `filter((value) => typeof value !== "undefined")` syntax in its canonical AST form.
-- Direct `filter((value): value is T => value !== undefined)` syntax in its canonical AST form.
-- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+- Inline undefined predicates inside `.filter(...)`, including:
+- `filter((value) => value !== undefined)`
+- `filter((value) => typeof value !== "undefined")`
+- `filter((value): value is T => value !== undefined)`
+
+Named predicate references and broader callback logic are not matched unless they keep this exact inline-check structure.
 
 ## What this rule reports
 
-This rule reports every occurrence of the matched pattern(s) below:
+This rule reports inline filter predicates that encode undefined checks and can be normalized with `isDefined`.
 
 - Inline undefined predicates inside `.filter(...)`, including:
 - `filter((value) => value !== undefined)`
