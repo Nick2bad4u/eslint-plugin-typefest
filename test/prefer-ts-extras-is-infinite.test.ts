@@ -2,10 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-infinite.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -175,6 +179,254 @@ const inlineParenthesizedDisjunctionOutput = [
     "String(hasInfiniteMetric);",
 ].join("\n");
 
+type ComparedExpressionTemplateId =
+    | "callExpression"
+    | "computedMemberExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier"
+    | "typeAssertion";
+
+type ComparisonOrientation = "expressionOnLeft" | "expressionOnRight";
+
+type PositiveInfinityReferenceKind =
+    | "globalInfinity"
+    | "numberPositiveInfinity";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+/* eslint-disable total-functions/no-hidden-type-assertions -- fast-check tuple composition depends on inferred literal generics to retain case-shape precision. */
+const generatedFixableDisjunctionCaseArbitrary = fc
+    .tuple(
+        fc.constantFrom(
+            "callExpression",
+            "computedMemberExpression",
+            "identifier",
+            "memberExpression",
+            "parenthesizedIdentifier",
+            "typeAssertion"
+        ),
+        fc.constantFrom("globalInfinity", "numberPositiveInfinity"),
+        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
+        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
+        fc.boolean(),
+        fc.boolean()
+    )
+    .map(
+        ([
+            templateId,
+            positiveInfinityReferenceKind,
+            positiveOrientation,
+            negativeOrientation,
+            reverseOrder,
+            includeUnicodeLine,
+        ]) => ({
+            includeUnicodeLine,
+            negativeOrientation,
+            positiveInfinityReferenceKind,
+            positiveOrientation,
+            reverseOrder,
+            templateId,
+        })
+    );
+
+const generatedMismatchedDisjunctionCaseArbitrary = fc
+    .tuple(
+        fc.constantFrom("globalInfinity", "numberPositiveInfinity"),
+        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
+        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
+        fc.boolean(),
+        fc.boolean()
+    )
+    .map(
+        ([
+            positiveInfinityReferenceKind,
+            firstOrientation,
+            secondOrientation,
+            reverseOrder,
+            includeUnicodeLine,
+        ]) => ({
+            firstOrientation,
+            includeUnicodeLine,
+            positiveInfinityReferenceKind,
+            reverseOrder,
+            secondOrientation,
+        })
+    );
+/* eslint-enable total-functions/no-hidden-type-assertions -- restore default lint behavior after tuple-based arbitrary construction. */
+
+const comparedExpressionTemplates: Readonly<
+    Record<
+        ComparedExpressionTemplateId,
+        Readonly<{
+            declarations: readonly string[];
+            expressionText: string;
+        }>
+    >
+> = {
+    callExpression: {
+        declarations: ["declare function readMetric(): number;"],
+        expressionText: "readMetric()",
+    },
+    computedMemberExpression: {
+        declarations: [
+            "declare const metrics: readonly number[];",
+            "declare const metricIndex: number;",
+        ],
+        expressionText: "metrics[metricIndex]",
+    },
+    identifier: {
+        declarations: ["declare const metric: number;"],
+        expressionText: "metric",
+    },
+    memberExpression: {
+        declarations: [
+            "declare const metricHolder: { readonly current: number };",
+        ],
+        expressionText: "metricHolder.current",
+    },
+    parenthesizedIdentifier: {
+        declarations: ["declare const metric: number;"],
+        expressionText: "(metric)",
+    },
+    typeAssertion: {
+        declarations: ["declare const metricValue: unknown;"],
+        expressionText: "(metricValue as number)",
+    },
+};
+
+const buildComparedExpressionTemplate = (
+    templateId: ComparedExpressionTemplateId
+): Readonly<{
+    declarations: readonly string[];
+    expressionText: string;
+}> => comparedExpressionTemplates[templateId];
+
+const getPositiveInfinityReferenceText = (
+    positiveInfinityReferenceKind: PositiveInfinityReferenceKind
+): string =>
+    positiveInfinityReferenceKind === "globalInfinity"
+        ? "Infinity"
+        : "Number.POSITIVE_INFINITY";
+
+const buildStrictInfinityComparisonText = ({
+    comparedExpressionText,
+    infinityReferenceText,
+    orientation,
+}: Readonly<{
+    comparedExpressionText: string;
+    infinityReferenceText: string;
+    orientation: ComparisonOrientation;
+}>): string =>
+    orientation === "expressionOnLeft"
+        ? `${comparedExpressionText} === ${infinityReferenceText}`
+        : `${infinityReferenceText} === ${comparedExpressionText}`;
+
+const isInfinityReferenceNode = (
+    node: Readonly<TSESTree.Expression>
+): boolean => {
+    if (node.type === AST_NODE_TYPES.Identifier && node.name === "Infinity") {
+        return true;
+    }
+
+    return (
+        node.type === AST_NODE_TYPES.MemberExpression &&
+        !node.computed &&
+        node.object.type === AST_NODE_TYPES.Identifier &&
+        node.object.name === "Number" &&
+        node.property.type === AST_NODE_TYPES.Identifier &&
+        (node.property.name === "NEGATIVE_INFINITY" ||
+            node.property.name === "POSITIVE_INFINITY")
+    );
+};
+
+const isBinaryComparableExpression = (
+    node: Readonly<TSESTree.BinaryExpression["left"]>
+): node is TSESTree.Expression =>
+    node.type !== AST_NODE_TYPES.PrivateIdentifier;
+
+const getLogicalExpressionInitializerFromStatement = (
+    statement: Readonly<TSESTree.ProgramStatement>
+): null | TSESTree.LogicalExpression => {
+    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+        return null;
+    }
+
+    for (const declaration of statement.declarations) {
+        if (declaration.init?.type === AST_NODE_TYPES.LogicalExpression) {
+            return declaration.init;
+        }
+    }
+
+    return null;
+};
+
+const parseLogicalDisjunctionFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    comparedExpressionText: string;
+    logicalExpression: TSESTree.LogicalExpression;
+    logicalRange: readonly [number, number];
+}> => {
+    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
+    let logicalExpression: null | TSESTree.LogicalExpression = null;
+
+    for (const statement of parsedResult.ast.body) {
+        logicalExpression =
+            getLogicalExpressionInitializerFromStatement(statement);
+
+        if (logicalExpression !== null) {
+            break;
+        }
+    }
+
+    if (!logicalExpression) {
+        throw new Error(
+            "Expected generated code to include a logical disjunction initializer"
+        );
+    }
+
+    if (
+        logicalExpression.operator !== "||" ||
+        logicalExpression.left.type !== AST_NODE_TYPES.BinaryExpression
+    ) {
+        throw new Error(
+            "Expected generated logical expression to be a disjunction with binary left term"
+        );
+    }
+
+    const leftBinary = logicalExpression.left;
+
+    if (
+        !isBinaryComparableExpression(leftBinary.left) ||
+        !isBinaryComparableExpression(leftBinary.right)
+    ) {
+        throw new Error(
+            "Expected generated binary comparisons to use expression operands"
+        );
+    }
+
+    const comparedExpression = isInfinityReferenceNode(leftBinary.left)
+        ? leftBinary.right
+        : leftBinary.left;
+    const comparedExpressionRange = comparedExpression.range;
+
+    return {
+        ast: parsedResult.ast,
+        comparedExpressionText: sourceText
+            .slice(comparedExpressionRange[0], comparedExpressionRange[1])
+            .trim(),
+        logicalExpression,
+        logicalRange: logicalExpression.range,
+    };
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-is-infinite",
     {
@@ -315,6 +567,273 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
             });
 
             expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: strict dual-sign disjunctions report with parseable isInfinite replacement", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    node: Readonly<{ name?: string; type?: string }>,
+                    name: string
+                ) => node.type === "Identifier" && node.name === name,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix:
+                    createSafeValueArgumentFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-infinite")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    generatedFixableDisjunctionCaseArbitrary,
+                    (generatedCase) => {
+                        createSafeValueArgumentFunctionCallFixMock.mockClear();
+
+                        const template = buildComparedExpressionTemplate(
+                            generatedCase.templateId
+                        );
+                        const positiveComparisonText =
+                            buildStrictInfinityComparisonText({
+                                comparedExpressionText: template.expressionText,
+                                infinityReferenceText:
+                                    getPositiveInfinityReferenceText(
+                                        generatedCase.positiveInfinityReferenceKind
+                                    ),
+                                orientation: generatedCase.positiveOrientation,
+                            });
+                        const negativeComparisonText =
+                            buildStrictInfinityComparisonText({
+                                comparedExpressionText: template.expressionText,
+                                infinityReferenceText:
+                                    "Number.NEGATIVE_INFINITY",
+                                orientation: generatedCase.negativeOrientation,
+                            });
+
+                        const disjunctionTerms = generatedCase.reverseOrder
+                            ? [negativeComparisonText, positiveComparisonText]
+                            : [positiveComparisonText, negativeComparisonText];
+
+                        const code = [
+                            ...template.declarations,
+                            generatedCase.includeUnicodeLine
+                                ? 'const marker = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                                : "",
+                            `const isInfiniteMetric = ${disjunctionTerms[0]} || ${disjunctionTerms[1]};`,
+                            "String(isInfiniteMetric);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const {
+                            ast,
+                            comparedExpressionText,
+                            logicalExpression,
+                            logicalRange,
+                        } = parseLogicalDisjunctionFromCode(code);
+                        const reports: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const maybeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!maybeRange) {
+                                        return "";
+                                    }
+
+                                    return code.slice(
+                                        maybeRange[0],
+                                        maybeRange[1]
+                                    );
+                                },
+                            },
+                        });
+
+                        listeners.LogicalExpression?.(logicalExpression);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasIsInfinite",
+                        });
+                        expect(
+                            createSafeValueArgumentFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const replacementText = `isInfinite(${comparedExpressionText})`;
+                        const fixedCode =
+                            code.slice(0, logicalRange[0]) +
+                            replacementText +
+                            code.slice(logicalRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: disjunctions with different compared expressions never use the logical-expression fix", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    node: Readonly<{ name?: string; type?: string }>,
+                    name: string
+                ) => node.type === "Identifier" && node.name === name,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix:
+                    createSafeValueArgumentFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-infinite")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    generatedMismatchedDisjunctionCaseArbitrary,
+                    (generatedCase) => {
+                        createSafeValueArgumentFunctionCallFixMock.mockClear();
+
+                        const firstComparisonText =
+                            buildStrictInfinityComparisonText({
+                                comparedExpressionText: "firstMetric",
+                                infinityReferenceText:
+                                    getPositiveInfinityReferenceText(
+                                        generatedCase.positiveInfinityReferenceKind
+                                    ),
+                                orientation: generatedCase.firstOrientation,
+                            });
+                        const secondComparisonText =
+                            buildStrictInfinityComparisonText({
+                                comparedExpressionText: "secondMetric",
+                                infinityReferenceText:
+                                    "Number.NEGATIVE_INFINITY",
+                                orientation: generatedCase.secondOrientation,
+                            });
+
+                        const disjunctionTerms = generatedCase.reverseOrder
+                            ? [secondComparisonText, firstComparisonText]
+                            : [firstComparisonText, secondComparisonText];
+
+                        const code = [
+                            "declare const firstMetric: number;",
+                            "declare const secondMetric: number;",
+                            generatedCase.includeUnicodeLine
+                                ? 'const marker = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                                : "",
+                            `const isInfiniteMetric = ${disjunctionTerms[0]} || ${disjunctionTerms[1]};`,
+                            "String(isInfiniteMetric);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, logicalExpression } =
+                            parseLogicalDisjunctionFromCode(code);
+                        const reports: Readonly<{ messageId?: string }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{ messageId?: string }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText: () => code,
+                            },
+                        });
+
+                        listeners.LogicalExpression?.(logicalExpression);
+
+                        expect(reports).toHaveLength(0);
+                        expect(
+                            createSafeValueArgumentFunctionCallFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs60
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

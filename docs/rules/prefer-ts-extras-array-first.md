@@ -4,20 +4,14 @@ Require [`arrayFirst`](https://github.com/sindresorhus/ts-extras/blob/main/sourc
 
 ## Targeted pattern scope
 
-This rule targets direct first-element index access patterns that map to `arrayFirst(array)`.
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
 
-### Matched patterns
-
-- Direct first-element access using index form (`array[0]`).
-
-### Detection boundaries
-
-- ✅ Reports direct first-element index access.
-- ❌ Optional chaining around index access (`array?.[0]`) should be reviewed manually during migration.
-
-These boundaries keep reporting and migration behavior deterministic.
+- Direct `array[0]` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - Direct first-element access using index form (`array[0]`).
 

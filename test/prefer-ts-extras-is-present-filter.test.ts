@@ -1,9 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
-
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present-filter.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -293,6 +299,154 @@ const inlineValidShadowedUndefinedBindingCode = [
     "String(presentValues.length);",
 ].join("\n");
 
+type AutoFixableTemplateId =
+    | "looseNull"
+    | "looseNullReversed"
+    | "looseTypeofUndefined"
+    | "looseTypeofUndefinedReversed"
+    | "looseUndefined"
+    | "looseUndefinedReversed"
+    | "strictNullAndUndefined"
+    | "strictUndefinedAndNull";
+
+type StrictPredicateTemplateId =
+    | "strictNull"
+    | "strictNullReversed"
+    | "strictUndefined"
+    | "strictUndefinedReversed";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const callbackParameterNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate));
+
+const autoFixableTemplateIdArbitrary = fc.constantFrom<AutoFixableTemplateId>(
+    "looseNull",
+    "looseNullReversed",
+    "looseUndefined",
+    "looseUndefinedReversed",
+    "looseTypeofUndefined",
+    "looseTypeofUndefinedReversed",
+    "strictNullAndUndefined",
+    "strictUndefinedAndNull"
+);
+
+const strictPredicateTemplateIdArbitrary =
+    fc.constantFrom<StrictPredicateTemplateId>(
+        "strictNull",
+        "strictNullReversed",
+        "strictUndefined",
+        "strictUndefinedReversed"
+    );
+
+const formatAutoFixableGuardExpression = (
+    templateId: AutoFixableTemplateId,
+    parameterName: string
+): string => {
+    if (templateId === "looseNull") {
+        return `${parameterName} != null`;
+    }
+
+    if (templateId === "looseNullReversed") {
+        return `null != ${parameterName}`;
+    }
+
+    if (templateId === "looseUndefined") {
+        return `${parameterName} != undefined`;
+    }
+
+    if (templateId === "looseUndefinedReversed") {
+        return `undefined != ${parameterName}`;
+    }
+
+    if (templateId === "looseTypeofUndefined") {
+        return `typeof ${parameterName} != "undefined"`;
+    }
+
+    if (templateId === "looseTypeofUndefinedReversed") {
+        return `"undefined" != typeof ${parameterName}`;
+    }
+
+    if (templateId === "strictNullAndUndefined") {
+        return `${parameterName} !== null && ${parameterName} !== undefined`;
+    }
+
+    return `${parameterName} !== undefined && ${parameterName} !== null`;
+};
+
+const formatStrictPredicateExpression = (
+    templateId: StrictPredicateTemplateId,
+    parameterName: string
+): string => {
+    if (templateId === "strictNull") {
+        return `${parameterName} !== null`;
+    }
+
+    if (templateId === "strictNullReversed") {
+        return `null !== ${parameterName}`;
+    }
+
+    if (templateId === "strictUndefined") {
+        return `${parameterName} !== undefined`;
+    }
+
+    return `undefined !== ${parameterName}`;
+};
+
+const parseFilterCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callbackRange: readonly [number, number];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+    let callExpression: null | TSESTree.CallExpression = null;
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    callExpression = declaration.init;
+                    break;
+                }
+            }
+        }
+
+        if (callExpression) {
+            break;
+        }
+    }
+
+    if (!callExpression) {
+        throw new Error(
+            "Expected generated declaration to initialize from filter call"
+        );
+    }
+
+    const callback = callExpression.arguments[0];
+
+    if (callback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
+        throw new Error(
+            "Expected generated filter call to include an arrow-function callback"
+        );
+    }
+
+    const callbackRange = callback.range;
+
+    return {
+        ast: parsed.ast,
+        callbackRange,
+        callExpression,
+    };
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -533,6 +687,240 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
             });
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: autofixable filter guards report and allow parseable callback replacement", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueReferenceReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueReferenceReplacementFix:
+                    createSafeValueReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    autoFixableTemplateIdArbitrary,
+                    (parameterName, templateId) => {
+                        createSafeValueReferenceReplacementFixMock.mockClear();
+
+                        const guardExpression =
+                            formatAutoFixableGuardExpression(
+                                templateId,
+                                parameterName
+                            );
+                        const code = [
+                            "declare const values: readonly (null | string | undefined)[];",
+                            "",
+                            `const presentValues = values.filter((${parameterName}) => ${guardExpression});`,
+                            "",
+                            "String(presentValues.length);",
+                        ].join("\n");
+
+                        const { ast, callbackRange, callExpression } =
+                            parseFilterCallFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const nodeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!nodeRange) {
+                                        return "";
+                                    }
+
+                                    const [start, end] = nodeRange;
+                                    return code.slice(start, end);
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasIsPresentFilter",
+                        });
+                        expect(
+                            createSafeValueReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const [callbackStart, callbackEnd] = callbackRange;
+                        const fixedCode = `${code.slice(
+                            0,
+                            callbackStart
+                        )}isPresent${code.slice(callbackEnd)}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: strict single-part predicate guards report without autofix", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueReferenceReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueReferenceReplacementFix:
+                    createSafeValueReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    strictPredicateTemplateIdArbitrary,
+                    (parameterName, templateId) => {
+                        createSafeValueReferenceReplacementFixMock.mockClear();
+
+                        const guardExpression = formatStrictPredicateExpression(
+                            templateId,
+                            parameterName
+                        );
+                        const code = [
+                            "declare const values: readonly (null | string | undefined)[];",
+                            "",
+                            "const presentValues = values.filter(",
+                            `    (${parameterName}): ${parameterName} is string => ${guardExpression}`,
+                            ");",
+                            "",
+                            "String(presentValues.length);",
+                        ].join("\n");
+
+                        const { ast, callExpression } =
+                            parseFilterCallFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText: () => parameterName,
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: null,
+                            messageId: "preferTsExtrasIsPresentFilter",
+                        });
+                        expect(
+                            createSafeValueReferenceReplacementFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs60
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

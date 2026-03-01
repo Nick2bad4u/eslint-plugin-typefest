@@ -16,7 +16,7 @@ This rule focuses on mutation-intent type assertions that map directly to `asWri
 - ✅ Reports `Writable`-based type assertions that are direct helper replacements.
 - ❌ Does not report unrelated `as` assertions with non-`Writable` target types.
 
-These boundaries keep reporting and migration behavior deterministic.
+These boundaries keep matching deterministic and avoid broad semantic overreach during migration.
 
 ## What this rule reports
 

@@ -21,7 +21,7 @@ reported.
 - ❌ Does not report checks against custom error classes in this rule.
 - ❌ Does not auto-fix.
 
-These boundaries keep reporting and migration behavior deterministic.
+These boundaries keep matching deterministic and avoid broad semantic overreach during migration.
 
 ## What this rule reports
 

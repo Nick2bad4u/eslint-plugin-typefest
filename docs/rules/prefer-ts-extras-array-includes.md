@@ -6,13 +6,14 @@ Prefer [`arrayIncludes`](https://github.com/sindresorhus/ts-extras/blob/main/sou
 
 ## Targeted pattern scope
 
-This rule focuses on a narrow, deterministic set of syntactic forms:
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
 
-- `array.includes(value)` call sites that can use `arrayIncludes(array, value)`.
-
-These boundaries keep reporting and migration behavior deterministic.
+- Direct `array.includes(value)` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - `array.includes(value)` call sites that can use `arrayIncludes(array, value)`.
 

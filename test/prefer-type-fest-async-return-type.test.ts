@@ -2,10 +2,10 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-async-return-type.test` behavior.
  */
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { readFileSync } from "node:fs";
+import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -155,9 +155,13 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
                 );
             }
 
-            awaitedReferenceNode.typeArguments.params = [
-                undefined,
-            ] as unknown as typeof awaitedReferenceNode.typeArguments.params;
+            Object.defineProperty(
+                awaitedReferenceNode.typeArguments,
+                "params",
+                {
+                    value: [undefined],
+                }
+            );
 
             const report = vi.fn();
             const listenerMap = undecoratedRuleModule.default.create({

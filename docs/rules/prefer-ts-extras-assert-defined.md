@@ -23,7 +23,7 @@ reported.
 - ❌ Does not report `typeof value === "undefined"` patterns.
 - ❌ Does not auto-fix.
 
-These boundaries keep reporting and migration behavior deterministic.
+These boundaries keep matching deterministic and avoid broad semantic overreach during migration.
 
 ## What this rule reports
 

@@ -2,6 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-array-last.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -85,6 +93,147 @@ const inlineParenthesizedObjectOutput = [
     "String(lastStatus);",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type ArrayLastFixFactoryArguments = Readonly<{
+    memberNode: unknown;
+}>;
+
+type ArrayLastReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+type ArrayLastTemplate = Readonly<{
+    declarations: readonly string[];
+    objectText: string;
+}>;
+
+type ArrayLastTemplateId =
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier";
+
+const arrayLastTemplateIdArbitrary = fc.constantFrom<ArrayLastTemplateId>(
+    "identifier",
+    "memberExpression",
+    "callExpression",
+    "parenthesizedIdentifier"
+);
+
+const buildArrayLastTemplate = (
+    templateId: ArrayLastTemplateId
+): ArrayLastTemplate => {
+    if (templateId === "identifier") {
+        return {
+            declarations: [],
+            objectText: "values",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "const holder = { values } as const satisfies Readonly<{ readonly values: readonly string[] }>;",
+            ],
+            objectText: "holder.values",
+        };
+    }
+
+    if (templateId === "callExpression") {
+        return {
+            declarations: [
+                "const getValues = (): readonly string[] => values;",
+            ],
+            objectText: "getValues()",
+        };
+    }
+
+    return {
+        declarations: [],
+        objectText: "(values)",
+    };
+};
+
+const buildArrayLastPatternCode = (options: {
+    readonly includeUnicodeBanner: boolean;
+    readonly includeValueImport: boolean;
+    readonly templateId: ArrayLastTemplateId;
+}): string => {
+    const template = buildArrayLastTemplate(options.templateId);
+
+    const codeLines = [
+        options.includeValueImport
+            ? 'import { arrayLast } from "ts-extras";'
+            : "",
+        "const values = ['down', 'up', 'stable'] as const;",
+        ...template.declarations,
+        options.includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+            : "",
+        `const lastValue = ${template.objectText}[${template.objectText}.length - 1];`,
+        "String(lastValue);",
+    ];
+
+    return codeLines.filter((line) => line.length > 0).join("\n");
+};
+
+const getSourceTextForNode = (options: {
+    readonly code: string;
+    readonly node: unknown;
+}): string => {
+    if (typeof options.node !== "object" || options.node === null) {
+        return "";
+    }
+
+    const maybeRange = (
+        options.node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (!maybeRange) {
+        return "";
+    }
+
+    return options.code.slice(maybeRange[0], maybeRange[1]);
+};
+
+const parseLastIndexMemberExpressionFromCode = (
+    code: string
+): Readonly<{
+    ast: TSESTree.Program;
+    memberExpression: TSESTree.MemberExpression;
+}> => {
+    const ast = parser.parseForESLint(code, parserOptions)
+        .ast as TSESTree.Program;
+
+    for (const statement of ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.name === "lastValue" &&
+                    declaration.init?.type === AST_NODE_TYPES.MemberExpression
+                ) {
+                    return {
+                        ast,
+                        memberExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error("Expected a lastValue member expression in generated code");
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-array-last", {
     defaultOptions: [],
     docsDescription:
@@ -95,6 +244,148 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-array-last", {
             "Prefer `arrayLast` from `ts-extras` over direct last-index access.",
     },
     name: "prefer-ts-extras-array-last",
+});
+
+describe("prefer-ts-extras-array-last fast-check fix safety", () => {
+    it("fast-check: last-index patterns report and produce parseable arrayLast replacements", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createMemberToFunctionCallFixMock = vi.fn(
+                (options: ArrayLastFixFactoryArguments): string => {
+                    if (typeof options.memberNode !== "object") {
+                        throw new TypeError(
+                            "Expected memberNode to be an object-like node"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/array-like-expression.js", () => ({
+                createIsArrayLikeExpressionChecker: () => () => true,
+                isWriteTargetMemberExpression: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createMemberToFunctionCallFix:
+                    createMemberToFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-array-last")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            MemberExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    arrayLastTemplateIdArbitrary,
+                    fc.boolean(),
+                    fc.boolean(),
+                    (templateId, includeUnicodeBanner, includeValueImport) => {
+                        createMemberToFunctionCallFixMock.mockClear();
+
+                        const code = buildArrayLastPatternCode({
+                            includeUnicodeBanner,
+                            includeValueImport,
+                            templateId,
+                        });
+                        const { ast, memberExpression } =
+                            parseLastIndexMemberExpressionFromCode(code);
+                        const reportCalls: ArrayLastReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (descriptor: ArrayLastReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.MemberExpression?.(memberExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasArrayLast",
+                        });
+                        expect(
+                            createMemberToFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixArguments =
+                            createMemberToFunctionCallFixMock.mock
+                                .calls[0]?.[0] ?? null;
+
+                        expect(fixArguments).not.toBeNull();
+
+                        const fixedMemberExpression = (
+                            fixArguments as ArrayLastFixFactoryArguments
+                        ).memberNode;
+                        const objectText = getSourceTextForNode({
+                            code,
+                            node: (
+                                fixedMemberExpression as Readonly<{
+                                    object?: unknown;
+                                }>
+                            ).object,
+                        });
+                        const replacementText = `arrayLast(${objectText})`;
+
+                        expect(replacementText).toBeTruthy();
+
+                        const memberRange = memberExpression.range;
+
+                        expect(memberRange).toBeDefined();
+
+                        if (memberRange === undefined) {
+                            throw new Error(
+                                "Expected member expression to expose source range"
+                            );
+                        }
+
+                        const fixedCode =
+                            code.slice(0, memberRange[0]) +
+                            replacementText +
+                            code.slice(memberRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/array-like-expression.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run("prefer-ts-extras-array-last", rule, {

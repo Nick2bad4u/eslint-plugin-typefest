@@ -4,10 +4,12 @@
  */
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -143,6 +145,158 @@ const mismatchedBigIntLiteralFamilyValidCode =
 const keywordLiteralCrossFamilyValidCode = "type SessionToken = string | 1;";
 const templateLiteralAndStringKeywordValidCode =
     "type EnvironmentName = `dev` | string;";
+
+type GeneratedLiteralUnionCase = Readonly<{
+    family: LiteralUnionFamily;
+    literalMembers: readonly string[];
+}>;
+
+type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
+
+const familyKeywordByFamily: Readonly<Record<LiteralUnionFamily, string>> = {
+    bigint: "bigint",
+    boolean: "boolean",
+    number: "number",
+    string: "string",
+};
+
+const generatedStringFamilyCaseArbitrary = fc
+    .uniqueArray(fc.string({ maxLength: 6, minLength: 1 }), {
+        maxLength: 3,
+        minLength: 1,
+    })
+    .map(
+        (members): GeneratedLiteralUnionCase => ({
+            family: "string",
+            literalMembers: members.map((member) => JSON.stringify(member)),
+        })
+    );
+
+const generatedNumberFamilyCaseArbitrary = fc
+    .uniqueArray(fc.integer({ max: 20, min: 0 }), {
+        maxLength: 3,
+        minLength: 1,
+    })
+    .map(
+        (members): GeneratedLiteralUnionCase => ({
+            family: "number",
+            literalMembers: members.map(String),
+        })
+    );
+
+const generatedBooleanFamilyCaseArbitrary = fc
+    .uniqueArray(fc.boolean(), {
+        maxLength: 2,
+        minLength: 1,
+    })
+    .map(
+        (members): GeneratedLiteralUnionCase => ({
+            family: "boolean",
+            literalMembers: members.map((member) =>
+                member ? "true" : "false"
+            ),
+        })
+    );
+
+const generatedBigIntFamilyCaseArbitrary = fc
+    .uniqueArray(fc.bigInt({ max: 20n, min: 0n }), {
+        maxLength: 3,
+        minLength: 1,
+    })
+    .map(
+        (members): GeneratedLiteralUnionCase => ({
+            family: "bigint",
+            literalMembers: members.map((member) => `${String(member)}n`),
+        })
+    );
+
+const generatedLiteralUnionCaseArbitrary = fc.oneof(
+    generatedStringFamilyCaseArbitrary,
+    generatedNumberFamilyCaseArbitrary,
+    generatedBooleanFamilyCaseArbitrary,
+    generatedBigIntFamilyCaseArbitrary
+);
+
+const generatedCrossFamilyCaseArbitrary =
+    generatedLiteralUnionCaseArbitrary.chain((literalCase) => {
+        const keywordFamilyArbitrary = (() => {
+            switch (literalCase.family) {
+                case "bigint": {
+                    return fc.constantFrom("boolean", "number", "string");
+                }
+
+                case "boolean": {
+                    return fc.constantFrom("bigint", "number", "string");
+                }
+
+                case "number": {
+                    return fc.constantFrom("bigint", "boolean", "string");
+                }
+
+                case "string": {
+                    return fc.constantFrom("bigint", "boolean", "number");
+                }
+
+                /* v8 ignore next */
+                default: {
+                    throw new Error("Unexpected literal union family");
+                }
+            }
+        })();
+
+        return keywordFamilyArbitrary.map((keywordFamily) => ({
+            keywordFamily,
+            literalCase,
+        }));
+    });
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const buildGeneratedTypeAlias = ({
+    keywordFamily,
+    literalMembers,
+}: Readonly<{
+    keywordFamily: LiteralUnionFamily;
+    literalMembers: readonly string[];
+}>): string =>
+    `type Generated = ${[...literalMembers, familyKeywordByFamily[keywordFamily]].join(" | ")};`;
+
+const parseUnionAliasAnnotation = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    unionType: Extract<
+        ReturnType<typeof parser.parseForESLint>["ast"]["body"][number],
+        {
+            type: "TSTypeAliasDeclaration";
+        }
+    >["typeAnnotation"];
+}> => {
+    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
+    const [firstStatement] = parsedResult.ast.body;
+
+    if (firstStatement?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+        throw new Error(
+            "Expected the generated program to start with a type alias declaration"
+        );
+    }
+
+    if (firstStatement.typeAnnotation.type !== AST_NODE_TYPES.TSUnionType) {
+        throw new Error(
+            "Expected generated type alias annotation to be a TSUnionType"
+        );
+    }
+
+    return {
+        ast: parsedResult.ast,
+        unionType: firstStatement.typeAnnotation,
+    };
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-literal-union",
@@ -378,6 +532,196 @@ describe("prefer-type-fest-literal-union source assertions", () => {
         }
     });
 
+    it("fast-check: reports same-family unions and produces parseable replacement text", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const capturedReplacementTexts: string[] = [];
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix: (
+                    _targetNode: unknown,
+                    _importedName: unknown,
+                    replacementText: unknown
+                ) => {
+                    if (typeof replacementText === "string") {
+                        capturedReplacementTexts.push(replacementText);
+                    }
+
+                    return null;
+                },
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-literal-union")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    generatedLiteralUnionCaseArbitrary,
+                    (generatedCase: GeneratedLiteralUnionCase) => {
+                        const sourceText = buildGeneratedTypeAlias({
+                            keywordFamily: generatedCase.family,
+                            literalMembers: generatedCase.literalMembers,
+                        });
+                        const { ast, unionType } =
+                            parseUnionAliasAnnotation(sourceText);
+
+                        const reports: Readonly<{ messageId?: string }>[] = [];
+
+                        const listeners = undecoratedRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-literal-union.invalid.ts",
+                            report: (
+                                descriptor: Readonly<{ messageId?: string }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const nodeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!nodeRange) {
+                                        return "";
+                                    }
+
+                                    const [start, end] = nodeRange;
+                                    return sourceText.slice(start, end);
+                                },
+                            },
+                        });
+
+                        listeners.TSUnionType?.(unionType);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            messageId: "preferLiteralUnion",
+                        });
+
+                        const replacementText = capturedReplacementTexts.at(-1);
+
+                        expect(replacementText).toBeDefined();
+
+                        if (replacementText === undefined) {
+                            throw new Error(
+                                "Expected replacement text captured from fixer helper"
+                            );
+                        }
+
+                        expectTypeOf(replacementText).toBeString();
+
+                        expect(replacementText).toContain("LiteralUnion<");
+
+                        expect(() => {
+                            parser.parseForESLint(
+                                `type Output = ${replacementText};`,
+                                parserOptions
+                            );
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: ignores generated cross-family unions", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFix: () => null,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-literal-union")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    generatedCrossFamilyCaseArbitrary,
+                    (generatedCase) => {
+                        const sourceText = buildGeneratedTypeAlias({
+                            keywordFamily: generatedCase.keywordFamily,
+                            literalMembers:
+                                generatedCase.literalCase.literalMembers,
+                        });
+                        const { ast, unionType } =
+                            parseUnionAliasAnnotation(sourceText);
+
+                        const reports: Readonly<{ messageId?: string }>[] = [];
+
+                        const listeners = undecoratedRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-literal-union.valid.ts",
+                            report: (
+                                descriptor: Readonly<{ messageId?: string }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText: () => "",
+                            },
+                        });
+
+                        listeners.TSUnionType?.(unionType);
+
+                        expect(reports).toHaveLength(0);
+                    }
+                ),
+                fastCheckRunConfig.runs60
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
     it("handles defensive fallback branches when union members change across successive reads", async () => {
         const createBigIntKeywordMember = () => ({
             type: "TSBigIntKeyword",
@@ -385,7 +729,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
         const createBigIntLiteralMember = () => ({
             literal: {
                 type: "Literal",
-                value: BigInt(1),
+                value: 1n,
             },
             type: "TSLiteralType",
         });
@@ -434,6 +778,7 @@ describe("prefer-type-fest-literal-union source assertions", () => {
 
             let familyFallbackReadCount = 0;
             const familyFallbackNode = {
+                type: "TSUnionType",
                 get types() {
                     familyFallbackReadCount += 1;
 
@@ -449,11 +794,11 @@ describe("prefer-type-fest-literal-union source assertions", () => {
                         createNumberLiteralMember(),
                     ];
                 },
-                type: "TSUnionType",
             };
 
             let replacementFallbackReadCount = 0;
             const replacementFallbackNode = {
+                type: "TSUnionType",
                 get types() {
                     replacementFallbackReadCount += 1;
 
@@ -466,7 +811,6 @@ describe("prefer-type-fest-literal-union source assertions", () => {
 
                     return [createBigIntKeywordMember()];
                 },
-                type: "TSUnionType",
             };
 
             listenerMap.TSUnionType?.(familyFallbackNode);

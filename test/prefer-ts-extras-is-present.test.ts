@@ -1,9 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
-
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -326,6 +332,291 @@ const inlineInvalidStrictAbsentWithUndefinedOnLeftCode = [
     "}",
 ].join("\n");
 
+type ComparedExpressionTemplateId =
+    | "computedMemberExpression"
+    | "functionCall"
+    | "identifier"
+    | "memberExpression"
+    | "sequenceExpression"
+    | "typeAssertion";
+
+type ComparisonOrientation =
+    | "comparedExpressionOnLeft"
+    | "comparedExpressionOnRight";
+
+type NullishKind = "null" | "undefined";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type GeneratedLooseBinaryCase = Readonly<{
+    comparedExpressionTemplateId: ComparedExpressionTemplateId;
+    hasUnicodeNoiseLine: boolean;
+    nullishKind: NullishKind;
+    operator: "!=" | "==";
+    orientation: ComparisonOrientation;
+}>;
+
+type StrictLogicalCase = Readonly<{
+    checkKind: "absent" | "present";
+    leftKind: NullishKind;
+    leftOrientation: ComparisonOrientation;
+    rightComparedExpression: "maybeValue" | "otherValue";
+    rightOrientation: ComparisonOrientation;
+}>;
+
+const strictLogicalCases: StrictLogicalCase[] = [];
+
+const strictCheckKinds: readonly StrictLogicalCase["checkKind"][] = [
+    "absent",
+    "present",
+];
+
+const strictRightComparedExpressionKinds: readonly StrictLogicalCase["rightComparedExpression"][] =
+    ["maybeValue", "otherValue"];
+
+const nullishKinds: readonly NullishKind[] = ["null", "undefined"];
+
+const comparisonOrientations: readonly ComparisonOrientation[] = [
+    "comparedExpressionOnLeft",
+    "comparedExpressionOnRight",
+];
+
+const comparedExpressionTemplateIds: readonly ComparedExpressionTemplateId[] = [
+    "identifier",
+    "memberExpression",
+    "computedMemberExpression",
+    "functionCall",
+    "typeAssertion",
+    "sequenceExpression",
+];
+
+const looseOperators: readonly GeneratedLooseBinaryCase["operator"][] = [
+    "!=",
+    "==",
+];
+
+const unicodeNoiseOptions: readonly boolean[] = [false, true];
+
+for (const checkKind of strictCheckKinds) {
+    for (const leftKind of nullishKinds) {
+        for (const leftOrientation of comparisonOrientations) {
+            for (const rightComparedExpression of strictRightComparedExpressionKinds) {
+                for (const rightOrientation of comparisonOrientations) {
+                    strictLogicalCases.push({
+                        checkKind,
+                        leftKind,
+                        leftOrientation,
+                        rightComparedExpression,
+                        rightOrientation,
+                    });
+                }
+            }
+        }
+    }
+}
+
+const strictLogicalCaseArbitrary = fc.constantFrom(...strictLogicalCases);
+
+const createGeneratedLooseBinaryCases = (
+    nullishKind: NullishKind
+): readonly GeneratedLooseBinaryCase[] => {
+    const generatedCases: GeneratedLooseBinaryCase[] = [];
+
+    for (const comparedExpressionTemplateId of comparedExpressionTemplateIds) {
+        for (const hasUnicodeNoiseLine of unicodeNoiseOptions) {
+            for (const operator of looseOperators) {
+                for (const orientation of comparisonOrientations) {
+                    generatedCases.push({
+                        comparedExpressionTemplateId,
+                        hasUnicodeNoiseLine,
+                        nullishKind,
+                        operator,
+                        orientation,
+                    });
+                }
+            }
+        }
+    }
+
+    return generatedCases;
+};
+
+const binaryLooseNullCaseArbitrary = fc.constantFrom(
+    ...createGeneratedLooseBinaryCases("null")
+);
+
+const binaryLooseUndefinedCaseArbitrary = fc.constantFrom(
+    ...createGeneratedLooseBinaryCases("undefined")
+);
+
+const getComparedExpressionTemplate = (
+    templateId: ComparedExpressionTemplateId
+): Readonly<{
+    declarations: readonly string[];
+    expressionText: string;
+}> => {
+    if (templateId === "identifier") {
+        return {
+            declarations: [
+                "declare const maybeValue: null | string | undefined;",
+            ],
+            expressionText: "maybeValue",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "declare const maybeContainer: { readonly current: null | string | undefined };",
+            ],
+            expressionText: "maybeContainer.current",
+        };
+    }
+
+    if (templateId === "computedMemberExpression") {
+        return {
+            declarations: [
+                "declare const maybeValues: readonly (null | string | undefined)[];",
+                "declare const index: number;",
+            ],
+            expressionText: "maybeValues[index]",
+        };
+    }
+
+    if (templateId === "functionCall") {
+        return {
+            declarations: [
+                "declare function getMaybeValue(): null | string | undefined;",
+            ],
+            expressionText: "getMaybeValue()",
+        };
+    }
+
+    if (templateId === "typeAssertion") {
+        return {
+            declarations: ["declare const maybeValue: unknown;"],
+            expressionText: "(maybeValue as null | string | undefined)",
+        };
+    }
+
+    return {
+        declarations: [
+            "declare function sideEffect(): void;",
+            "declare const maybeValue: null | string | undefined;",
+        ],
+        expressionText: "(sideEffect(), maybeValue)",
+    };
+};
+
+const getOppositeNullishKind = (nullishKind: NullishKind): NullishKind =>
+    nullishKind === "null" ? "undefined" : "null";
+
+const formatNullishLiteralText = (nullishKind: NullishKind): string =>
+    nullishKind === "null" ? "null" : "undefined";
+
+const formatNullishComparisonText = ({
+    comparedExpression,
+    kind,
+    operator,
+    orientation,
+}: Readonly<{
+    comparedExpression: "maybeValue" | "otherValue";
+    kind: NullishKind;
+    operator: "!==" | "===";
+    orientation: ComparisonOrientation;
+}>): string => {
+    const nullishLiteralText = formatNullishLiteralText(kind);
+
+    return orientation === "comparedExpressionOnLeft"
+        ? `${comparedExpression} ${operator} ${nullishLiteralText}`
+        : `${nullishLiteralText} ${operator} ${comparedExpression}`;
+};
+
+const parseIfLogicalExpression = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    logicalExpression: TSESTree.Expression;
+}> => {
+    const parsed = parser.parseForESLint(code, parserOptions);
+    let ifStatement: null | TSESTree.IfStatement = null;
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.IfStatement) {
+            ifStatement = statement;
+            break;
+        }
+    }
+
+    if (!ifStatement) {
+        throw new Error("Expected generated code to include an if statement");
+    }
+
+    return {
+        ast: parsed.ast,
+        logicalExpression: ifStatement.test,
+    };
+};
+
+const parseVariableBinaryExpression = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    binaryExpression: TSESTree.BinaryExpression;
+    binaryRange: readonly [number, number];
+    comparedExpressionText: string;
+}> => {
+    const parsed = parser.parseForESLint(code, parserOptions);
+    let binaryExpression: null | TSESTree.BinaryExpression = null;
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.BinaryExpression
+                ) {
+                    binaryExpression = declaration.init;
+                    break;
+                }
+            }
+        }
+
+        if (binaryExpression) {
+            break;
+        }
+    }
+
+    if (!binaryExpression) {
+        throw new Error(
+            "Expected generated code to include a variable binary expression"
+        );
+    }
+
+    const comparedExpression =
+        binaryExpression.left.type === AST_NODE_TYPES.Literal ||
+        (binaryExpression.left.type === AST_NODE_TYPES.Identifier &&
+            binaryExpression.left.name === "undefined")
+            ? binaryExpression.right
+            : binaryExpression.left;
+
+    const binaryRange = binaryExpression.range;
+    const comparedExpressionRange = comparedExpression.range;
+
+    return {
+        ast: parsed.ast,
+        binaryExpression,
+        binaryRange,
+        comparedExpressionText: code
+            .slice(comparedExpressionRange[0], comparedExpressionRange[1])
+            .trim(),
+    };
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -612,6 +903,397 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.resetModules();
         }
     });
+
+    it("fast-check: reports only strict present/absent checks over the same compared expression", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(strictLogicalCaseArbitrary, (generatedCase) => {
+                    const comparisonOperator =
+                        generatedCase.checkKind === "present" ? "!==" : "===";
+                    const logicalOperator =
+                        generatedCase.checkKind === "present" ? "&&" : "||";
+                    const rightKind = getOppositeNullishKind(
+                        generatedCase.leftKind
+                    );
+                    const firstComparisonText = formatNullishComparisonText({
+                        comparedExpression: "maybeValue",
+                        kind: generatedCase.leftKind,
+                        operator: comparisonOperator,
+                        orientation: generatedCase.leftOrientation,
+                    });
+                    const secondComparisonText = formatNullishComparisonText({
+                        comparedExpression:
+                            generatedCase.rightComparedExpression,
+                        kind: rightKind,
+                        operator: comparisonOperator,
+                        orientation: generatedCase.rightOrientation,
+                    });
+
+                    const code = [
+                        "declare const maybeValue: null | string | undefined;",
+                        "declare const otherValue: null | string | undefined;",
+                        "",
+                        `if (${firstComparisonText} ${logicalOperator} ${secondComparisonText}) {`,
+                        "    String(maybeValue);",
+                        "}",
+                    ].join("\n");
+
+                    const { ast, logicalExpression } =
+                        parseIfLogicalExpression(code);
+                    const reportCalls: Readonly<{ messageId?: string }>[] = [];
+
+                    const listeners = authoredRuleModule.default.create({
+                        filename: "src/example.ts",
+                        report: (
+                            descriptor: Readonly<{ messageId?: string }>
+                        ) => {
+                            reportCalls.push(descriptor);
+                        },
+                        sourceCode: {
+                            ast,
+                            getText(node: unknown): string {
+                                if (
+                                    typeof node !== "object" ||
+                                    node === null ||
+                                    !("range" in node)
+                                ) {
+                                    return "";
+                                }
+
+                                const nodeRange = (
+                                    node as Readonly<{
+                                        range?: readonly [number, number];
+                                    }>
+                                ).range;
+
+                                if (!nodeRange) {
+                                    return "";
+                                }
+
+                                const [start, end] = nodeRange;
+                                return code.slice(start, end);
+                            },
+                        },
+                    });
+
+                    listeners.LogicalExpression?.(logicalExpression);
+
+                    const shouldReport =
+                        generatedCase.rightComparedExpression === "maybeValue";
+                    const expectedMessageId =
+                        generatedCase.checkKind === "present"
+                            ? "preferTsExtrasIsPresent"
+                            : "preferTsExtrasIsPresentNegated";
+
+                    expect(reportCalls).toHaveLength(shouldReport ? 1 : 0);
+                    expect(reportCalls[0]?.messageId).toBe(
+                        shouldReport ? expectedMessageId : undefined
+                    );
+                }),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: loose null comparisons report with parseable isPresent replacement text", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map<string, ReadonlySet<string>>(),
+                createSafeValueArgumentFunctionCallFix:
+                    createSafeValueArgumentFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                    createSafeValueArgumentFunctionCallFixMock.mockClear();
+
+                    const template = getComparedExpressionTemplate(
+                        generatedCase.comparedExpressionTemplateId
+                    );
+                    const nullishLiteralText = formatNullishLiteralText(
+                        generatedCase.nullishKind
+                    );
+                    const comparisonText =
+                        generatedCase.orientation === "comparedExpressionOnLeft"
+                            ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                            : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+                    const code = [
+                        ...template.declarations,
+                        generatedCase.hasUnicodeNoiseLine
+                            ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                            : "",
+                        `const evaluation = ${comparisonText};`,
+                        "String(evaluation);",
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const {
+                        ast,
+                        binaryExpression,
+                        binaryRange,
+                        comparedExpressionText,
+                    } = parseVariableBinaryExpression(code);
+                    const reportCalls: Readonly<{
+                        fix?: unknown;
+                        messageId?: string;
+                    }>[] = [];
+
+                    const listeners = authoredRuleModule.default.create({
+                        filename: "src/example.ts",
+                        report: (
+                            descriptor: Readonly<{
+                                fix?: unknown;
+                                messageId?: string;
+                            }>
+                        ) => {
+                            reportCalls.push(descriptor);
+                        },
+                        sourceCode: {
+                            ast,
+                            getText(node: unknown): string {
+                                if (
+                                    typeof node !== "object" ||
+                                    node === null ||
+                                    !("range" in node)
+                                ) {
+                                    return "";
+                                }
+
+                                const nodeRange = (
+                                    node as Readonly<{
+                                        range?: readonly [number, number];
+                                    }>
+                                ).range;
+
+                                if (!nodeRange) {
+                                    return "";
+                                }
+
+                                return code.slice(nodeRange[0], nodeRange[1]);
+                            },
+                        },
+                    });
+
+                    listeners.BinaryExpression?.(binaryExpression);
+
+                    expect(reportCalls).toHaveLength(1);
+                    expect(reportCalls[0]).toMatchObject({
+                        fix: "FIX",
+                        messageId:
+                            generatedCase.operator === "!="
+                                ? "preferTsExtrasIsPresent"
+                                : "preferTsExtrasIsPresentNegated",
+                    });
+                    expect(
+                        createSafeValueArgumentFunctionCallFixMock
+                    ).toHaveBeenCalledTimes(1);
+
+                    const callText = `isPresent(${comparedExpressionText})`;
+                    const replacementText =
+                        generatedCase.operator === "=="
+                            ? `!${callText}`
+                            : callText;
+                    const fixedCode =
+                        code.slice(0, binaryRange[0]) +
+                        replacementText +
+                        code.slice(binaryRange[1]);
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }),
+                fastCheckRunConfig.runs100
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: loose undefined binary comparisons do not trigger isPresent fixes", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map<string, ReadonlySet<string>>(),
+                createSafeValueArgumentFunctionCallFix:
+                    createSafeValueArgumentFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    binaryLooseUndefinedCaseArbitrary,
+                    (generatedCase) => {
+                        createSafeValueArgumentFunctionCallFixMock.mockClear();
+
+                        const template = getComparedExpressionTemplate(
+                            generatedCase.comparedExpressionTemplateId
+                        );
+                        const comparisonText =
+                            generatedCase.orientation ===
+                            "comparedExpressionOnLeft"
+                                ? `${template.expressionText} ${generatedCase.operator} undefined`
+                                : `undefined ${generatedCase.operator} ${template.expressionText}`;
+                        const code = [
+                            ...template.declarations,
+                            `const evaluation = ${comparisonText};`,
+                            "String(evaluation);",
+                        ].join("\n");
+
+                        const { ast, binaryExpression } =
+                            parseVariableBinaryExpression(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const nodeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!nodeRange) {
+                                        return "";
+                                    }
+
+                                    return code.slice(
+                                        nodeRange[0],
+                                        nodeRange[1]
+                                    );
+                                },
+                            },
+                        });
+
+                        listeners.BinaryExpression?.(binaryExpression);
+
+                        expect(reportCalls).toHaveLength(0);
+                        expect(
+                            createSafeValueArgumentFunctionCallFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(ruleId, rule, {
@@ -627,7 +1309,7 @@ ruleTester.run(ruleId, rule, {
                 { messageId: "preferTsExtrasIsPresentNegated" },
             ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture strict present and absent checks",
+            name: "reports fixture strict present and absent comparisons",
             output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
         },
         {

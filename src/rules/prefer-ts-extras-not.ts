@@ -51,8 +51,8 @@ const isTargetCallbackParameter = (
 ): boolean => argument.type === "Identifier" && argument.name === parameterName;
 
 /**
- * Extracts predicate calls from callbacks shaped like `value =>
- * !predicate(value)`.
+ * Extracts predicate calls from callbacks that negate a predicate call applied
+ * to the callback parameter.
  *
  * @param callback - Filter callback candidate.
  *
@@ -115,8 +115,8 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             );
 
             /**
-             * Create a safe replacement fix that rewrites `value =>
-             * !predicate(value)` into `not(predicate)`.
+             * Create a safe replacement fix that rewrites negated predicate
+             * callbacks into `not(predicate)`.
              */
             const createNotFilterCallbackFix = ({
                 callbackNode,

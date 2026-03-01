@@ -2,10 +2,16 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-as-writable.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -176,6 +182,190 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
             "const mutableByNamespace = asWritable(readonlyRecord);\r\n"
         );
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type AssertionSyntax = "angleBracket" | "as";
+
+type WritableExpressionTemplate = Readonly<{
+    declarations: readonly string[];
+    expressionText: string;
+}>;
+
+type WritableExpressionTemplateId =
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedCall"
+    | "plainCall";
+
+type WritableFixFactoryArguments = Readonly<{
+    replacementTextFactory: (replacementName: string) => string;
+    targetNode: unknown;
+}>;
+
+type WritableReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+type WritableTypeReferenceKind = "namedImport" | "namespaceImport";
+
+const assertionSyntaxArbitrary = fc.constantFrom<AssertionSyntax>(
+    "as",
+    "angleBracket"
+);
+const writableTypeReferenceKindArbitrary =
+    fc.constantFrom<WritableTypeReferenceKind>(
+        "namedImport",
+        "namespaceImport"
+    );
+const writableExpressionTemplateIdArbitrary =
+    fc.constantFrom<WritableExpressionTemplateId>(
+        "identifier",
+        "memberExpression",
+        "plainCall",
+        "parenthesizedCall"
+    );
+
+const buildWritableExpressionTemplate = (
+    templateId: WritableExpressionTemplateId
+): WritableExpressionTemplate => {
+    if (templateId === "identifier") {
+        return {
+            declarations: [],
+            expressionText: "readonlyRecord",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "const holder = { readonlyRecord } as const satisfies Readonly<{ readonly readonlyRecord: ReadonlyRecord }>;",
+            ],
+            expressionText: "holder.readonlyRecord",
+        };
+    }
+
+    if (templateId === "plainCall") {
+        return {
+            declarations: [
+                "const getReadonlyRecord = (): ReadonlyRecord => readonlyRecord;",
+            ],
+            expressionText: "getReadonlyRecord()",
+        };
+    }
+
+    return {
+        declarations: [
+            "const getReadonlyRecord = (): ReadonlyRecord => readonlyRecord;",
+        ],
+        expressionText: "(getReadonlyRecord())",
+    };
+};
+
+const buildWritableAssertionCode = (options: {
+    readonly assertionSyntax: AssertionSyntax;
+    readonly includeUnicodeBanner: boolean;
+    readonly templateId: WritableExpressionTemplateId;
+    readonly writableReferenceKind: WritableTypeReferenceKind;
+}): string => {
+    const expressionTemplate = buildWritableExpressionTemplate(
+        options.templateId
+    );
+    const writableTypeReference =
+        options.writableReferenceKind === "namespaceImport"
+            ? "TypeFest.Writable<ReadonlyRecord>"
+            : "Writable<ReadonlyRecord>";
+    const writableImportLine =
+        options.writableReferenceKind === "namespaceImport"
+            ? 'import type * as TypeFest from "type-fest";'
+            : 'import type { Writable } from "type-fest";';
+    const assertionText =
+        options.assertionSyntax === "as"
+            ? `${expressionTemplate.expressionText} as ${writableTypeReference}`
+            : `<${writableTypeReference}>${expressionTemplate.expressionText}`;
+
+    const codeLines = [
+        writableImportLine,
+        "",
+        "type ReadonlyRecord = {",
+        "    readonly id: number;",
+        "};",
+        "",
+        "declare const readonlyRecord: ReadonlyRecord;",
+        ...expressionTemplate.declarations,
+        options.includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+            : "",
+        `const mutableRecord = ${assertionText};`,
+        "",
+        "String(mutableRecord);",
+    ];
+
+    return codeLines.filter((line) => line.length > 0).join("\n");
+};
+
+const getSourceTextForNode = (options: {
+    readonly code: string;
+    readonly node: unknown;
+}): string => {
+    if (typeof options.node !== "object" || options.node === null) {
+        return "";
+    }
+
+    const maybeRange = (
+        options.node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (!maybeRange) {
+        return "";
+    }
+
+    const [start, end] = maybeRange;
+    return options.code.slice(start, end);
+};
+
+const parseMutableAssertionFromCode = (
+    code: string
+): Readonly<{
+    assertionNode: TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
+    ast: TSESTree.Program;
+}> => {
+    const parsedProgram = parser.parseForESLint(code, parserOptions)
+        .ast as TSESTree.Program;
+
+    for (const statement of parsedProgram.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                const initializer = declaration.init;
+                const hasExpectedIdentifier =
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.name === "mutableRecord";
+                const hasExpectedAssertionType =
+                    initializer?.type === AST_NODE_TYPES.TSAsExpression ||
+                    initializer?.type === AST_NODE_TYPES.TSTypeAssertion;
+
+                if (hasExpectedIdentifier && hasExpectedAssertionType) {
+                    return {
+                        assertionNode: initializer,
+                        ast: parsedProgram,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected a mutableRecord Writable assertion in test input"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-as-writable",
     {
@@ -306,6 +496,159 @@ describe("prefer-ts-extras-as-writable internal listener guards", () => {
             });
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
+    it("fast-check: Writable assertions report and produce parseable asWritable replacements", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                (options: WritableFixFactoryArguments): string => {
+                    if (typeof options.replacementTextFactory !== "function") {
+                        throw new TypeError(
+                            "Expected replacementTextFactory to be callable"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectNamedImportLocalNamesFromSource: () =>
+                    new Set(["Writable"]),
+                collectNamespaceImportLocalNamesFromSource: () =>
+                    new Set(["TypeFest"]),
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-as-writable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                            TSTypeAssertion?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    assertionSyntaxArbitrary,
+                    writableTypeReferenceKindArbitrary,
+                    writableExpressionTemplateIdArbitrary,
+                    fc.boolean(),
+                    (
+                        assertionSyntax,
+                        writableReferenceKind,
+                        templateId,
+                        includeUnicodeBanner
+                    ) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const code = buildWritableAssertionCode({
+                            assertionSyntax,
+                            includeUnicodeBanner,
+                            templateId,
+                            writableReferenceKind,
+                        });
+
+                        const { assertionNode, ast } =
+                            parseMutableAssertionFromCode(code);
+                        const reportCalls: WritableReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (descriptor: WritableReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        if (
+                            assertionNode.type === AST_NODE_TYPES.TSAsExpression
+                        ) {
+                            listeners.TSAsExpression?.(assertionNode);
+                        } else {
+                            listeners.TSTypeAssertion?.(assertionNode);
+                        }
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasAsWritable",
+                        });
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixArguments =
+                            createSafeValueNodeTextReplacementFixMock.mock
+                                .calls[0]?.[0] ?? null;
+
+                        expect(fixArguments).not.toBeNull();
+
+                        const replacementText =
+                            fixArguments?.replacementTextFactory(
+                                "asWritable"
+                            ) ?? "";
+                        const expectedExpressionText = getSourceTextForNode({
+                            code,
+                            node: assertionNode.expression,
+                        });
+
+                        expect(replacementText).toBe(
+                            `asWritable(${expectedExpressionText})`
+                        );
+
+                        const assertionRange = assertionNode.range;
+
+                        expect(assertionRange).toBeDefined();
+
+                        if (assertionRange === undefined) {
+                            throw new Error(
+                                "Expected assertion node to expose source range"
+                            );
+                        }
+
+                        const fixedCode =
+                            code.slice(0, assertionRange[0]) +
+                            replacementText +
+                            code.slice(assertionRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/imported-value-symbols.js");

@@ -2,12 +2,14 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -409,6 +411,203 @@ const inlineInvalidNullishSuggestionOutputCode = [
     "}",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type CanonicalGuardTemplateId =
+    | "eqNull"
+    | "logicalReversedStrict"
+    | "logicalStrict"
+    | "nullEq";
+
+type NonCanonicalThrowTemplateId =
+    | "spreadArgument"
+    | "stringLiteral"
+    | "suffixMismatch";
+
+const canonicalGuardTemplateIdArbitrary = fc.constantFrom(
+    "eqNull",
+    "nullEq",
+    "logicalStrict",
+    "logicalReversedStrict"
+);
+
+const nonCanonicalThrowTemplateIdArbitrary = fc.constantFrom(
+    "stringLiteral",
+    "suffixMismatch",
+    "spreadArgument"
+);
+
+const variableNameArbitrary = fc.constantFrom("value", "input", "候補値");
+
+const buildPresentGuardText = ({
+    guardTemplateId,
+    variableName,
+}: Readonly<{
+    guardTemplateId: CanonicalGuardTemplateId;
+    variableName: string;
+}>): string => {
+    if (guardTemplateId === "eqNull") {
+        return `${variableName} == null`;
+    }
+
+    if (guardTemplateId === "nullEq") {
+        return `null == ${variableName}`;
+    }
+
+    if (guardTemplateId === "logicalStrict") {
+        return `${variableName} === null || ${variableName} === undefined`;
+    }
+
+    return `undefined === ${variableName} || null === ${variableName}`;
+};
+
+const buildCanonicalThrowText = (variableName: string): string =>
+    `throw new TypeError(\`Expected a present value, got $` +
+    `{${variableName}}\`);`;
+
+const buildNonCanonicalThrowText = ({
+    throwTemplateId,
+    variableName,
+}: Readonly<{
+    throwTemplateId: NonCanonicalThrowTemplateId;
+    variableName: string;
+}>): string => {
+    if (throwTemplateId === "stringLiteral") {
+        return 'throw new TypeError("Missing value");';
+    }
+
+    if (throwTemplateId === "suffixMismatch") {
+        return (
+            `throw new TypeError(\`Expected a present value, got $` +
+            `{${variableName}}!\`);`
+        );
+    }
+
+    return "throw new TypeError(...messageParts);";
+};
+
+const buildAssertPresentGuardCode = ({
+    guardTemplateId,
+    includeUnicodeBanner,
+    throwText,
+    variableName,
+    withSpreadMessageParts,
+}: Readonly<{
+    guardTemplateId: CanonicalGuardTemplateId;
+    includeUnicodeBanner: boolean;
+    throwText: string;
+    variableName: string;
+    withSpreadMessageParts: boolean;
+}>): string => {
+    const lines = [
+        includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+            : "",
+        `function ensureValue(${variableName}: string | null | undefined): string {`,
+        withSpreadMessageParts
+            ? '    const messageParts = ["Missing value"];'
+            : "",
+        `    if (${buildPresentGuardText({ guardTemplateId, variableName })}) {`,
+        `        ${throwText}`,
+        "    }",
+        "",
+        `    return ${variableName};`,
+        "}",
+        includeUnicodeBanner ? "String(banner);" : "",
+    ];
+
+    return lines.filter((line) => line.length > 0).join("\n");
+};
+
+const isRangeNode = (
+    value: unknown
+): value is Readonly<{
+    range: readonly [number, number];
+}> => {
+    if (typeof value !== "object" || value === null || !("range" in value)) {
+        return false;
+    }
+
+    const candidateRange = value.range;
+
+    if (!Array.isArray(candidateRange) || candidateRange.length !== 2) {
+        return false;
+    }
+
+    const [start, end] = candidateRange;
+
+    return typeof start === "number" && typeof end === "number";
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (!isRangeNode(node)) {
+        return "";
+    }
+
+    return code.slice(node.range[0], node.range[1]);
+};
+
+const parseEnsureValueIfStatementFromCode = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    ifNode: TSESTree.IfStatement;
+}> => {
+    const parsed = parser.parseForESLint(code, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.FunctionDeclaration &&
+            statement.id?.name === "ensureValue"
+        ) {
+            for (const bodyStatement of statement.body.body) {
+                if (bodyStatement.type === AST_NODE_TYPES.IfStatement) {
+                    return {
+                        ast: parsed.ast,
+                        ifNode: bodyStatement,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error("Expected ensureValue function with an IfStatement guard");
+};
+
+type ReplaceTextOnlyFixer = Readonly<{
+    replaceText: (node: unknown, text: string) => unknown;
+}>;
+
+const assertIsFixFunction: (
+    value: unknown
+) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
+    if (typeof value !== "function") {
+        throw new TypeError("Expected a fixer function");
+    }
+};
+
+type ReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+    suggest?: readonly Readonly<
+        Readonly<{
+            fix?: unknown;
+            messageId?: string;
+        }>
+    >[];
+}>;
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-assert-present",
     {
@@ -503,7 +702,8 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
             const sourceText = [
                 "function ensureValue(value: string | null): string {",
                 "    if (value == null) {",
-                "        throw new TypeError(`Expected a present value, got ${value}`);",
+                "        throw new TypeError(`Expected a present value, got ${" +
+                    "value}`);",
                 "    }",
                 "",
                 "    return value;",
@@ -607,10 +807,7 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
             }
 
             const [firstArgument] = throwStatement.argument.arguments;
-            if (
-                !firstArgument ||
-                firstArgument.type !== AST_NODE_TYPES.TemplateLiteral
-            ) {
+            if (firstArgument?.type !== AST_NODE_TYPES.TemplateLiteral) {
                 throw new Error(
                     "Expected template literal TypeError message argument"
                 );
@@ -629,6 +826,271 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
             expect(
                 (report.mock.calls[1]?.[0] as { suggest?: unknown }).suggest
             ).toBeDefined();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/normalize-expression-text.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
+    it("fast-check: canonical throw guards report direct autofixes that stay parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (): boolean => true,
+                isGlobalUndefinedIdentifier: (): boolean => true,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
+                areEquivalentExpressions: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set(["assertPresent"]),
+                createSafeValueNodeTextReplacementFix:
+                    (
+                        options: Readonly<{
+                            replacementTextFactory: (
+                                replacementName: string
+                            ) => string;
+                            targetNode: unknown;
+                        }>
+                    ) =>
+                    (fixer: ReplaceTextOnlyFixer) =>
+                        fixer.replaceText(
+                            options.targetNode,
+                            options.replacementTextFactory("assertPresent")
+                        ),
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    canonicalGuardTemplateIdArbitrary,
+                    variableNameArbitrary,
+                    fc.boolean(),
+                    (guardTemplateId, variableName, includeUnicodeBanner) => {
+                        const code = buildAssertPresentGuardCode({
+                            guardTemplateId,
+                            includeUnicodeBanner,
+                            throwText: buildCanonicalThrowText(variableName),
+                            variableName,
+                            withSpreadMessageParts: false,
+                        });
+                        const { ast, ifNode } =
+                            parseEnsureValueIfStatementFromCode(code);
+                        const reportCalls: ReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report(descriptor: ReportDescriptor) {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.IfStatement?.(ifNode);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferTsExtrasAssertPresent",
+                        });
+                        expect(reportCalls[0]?.fix).toBeDefined();
+                        expect(reportCalls[0]?.suggest).toBeUndefined();
+
+                        const fixFunction: unknown = reportCalls[0]?.fix;
+                        assertIsFixFunction(fixFunction);
+
+                        let replacementText = "";
+
+                        fixFunction({
+                            replaceText(node, text): unknown {
+                                expect(node).toEqual(ifNode);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        expect(replacementText).toBe(
+                            `assertPresent(${variableName});`
+                        );
+
+                        const fixedCode =
+                            code.slice(0, ifNode.range[0]) +
+                            replacementText +
+                            code.slice(ifNode.range[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs60
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/normalize-expression-text.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: non-canonical throw guards expose parseable assertPresent suggestions", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (): boolean => true,
+                isGlobalUndefinedIdentifier: (): boolean => true,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
+                areEquivalentExpressions: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set(["assertPresent"]),
+                createSafeValueNodeTextReplacementFix:
+                    (
+                        options: Readonly<{
+                            replacementTextFactory: (
+                                replacementName: string
+                            ) => string;
+                            targetNode: unknown;
+                        }>
+                    ) =>
+                    (fixer: ReplaceTextOnlyFixer) =>
+                        fixer.replaceText(
+                            options.targetNode,
+                            options.replacementTextFactory("assertPresent")
+                        ),
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    canonicalGuardTemplateIdArbitrary,
+                    nonCanonicalThrowTemplateIdArbitrary,
+                    variableNameArbitrary,
+                    fc.boolean(),
+                    (
+                        guardTemplateId,
+                        throwTemplateId,
+                        variableName,
+                        includeUnicodeBanner
+                    ) => {
+                        const code = buildAssertPresentGuardCode({
+                            guardTemplateId,
+                            includeUnicodeBanner,
+                            throwText: buildNonCanonicalThrowText({
+                                throwTemplateId,
+                                variableName,
+                            }),
+                            variableName,
+                            withSpreadMessageParts:
+                                throwTemplateId === "spreadArgument",
+                        });
+                        const { ast, ifNode } =
+                            parseEnsureValueIfStatementFromCode(code);
+                        const reportCalls: ReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report(descriptor: ReportDescriptor) {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.IfStatement?.(ifNode);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferTsExtrasAssertPresent",
+                        });
+                        expect(reportCalls[0]?.fix).toBeUndefined();
+
+                        const firstSuggestion = reportCalls[0]?.suggest?.[0];
+
+                        expect(firstSuggestion?.messageId).toBe(
+                            "suggestTsExtrasAssertPresent"
+                        );
+                        expect(firstSuggestion?.fix).toBeDefined();
+
+                        const suggestionFix: unknown = firstSuggestion?.fix;
+                        assertIsFixFunction(suggestionFix);
+
+                        let replacementText = "";
+
+                        suggestionFix({
+                            replaceText(node, text): unknown {
+                                expect(node).toEqual(ifNode);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        expect(replacementText).toBe(
+                            `assertPresent(${variableName});`
+                        );
+
+                        const suggestedCode =
+                            code.slice(0, ifNode.range[0]) +
+                            replacementText +
+                            code.slice(ifNode.range[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(suggestedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/normalize-expression-text.js");

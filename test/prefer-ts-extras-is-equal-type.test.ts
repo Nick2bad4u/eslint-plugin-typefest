@@ -1,13 +1,18 @@
+import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-equal-type.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -177,6 +182,153 @@ const disableAllAutofixesSettings = {
     typefest: {
         disableAllAutofixes: true,
     },
+};
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type IsEqualFixFactoryArguments = Readonly<{
+    replacementTextFactory: (replacementName: string) => string;
+    targetNode: unknown;
+}>;
+type IsEqualImportKind = "namedImport" | "namespaceImport";
+
+type IsEqualPair = Readonly<{
+    leftTypeText: string;
+    rightTypeText: string;
+}>;
+
+type IsEqualPairId = "booleans" | "numbers" | "stringLiterals";
+
+type IsEqualReportDescriptor = Readonly<{
+    messageId?: string;
+    suggest?: readonly Readonly<{
+        fix?: unknown;
+        messageId?: string;
+    }>[];
+}>;
+
+const isEqualImportKindArbitrary = fc.constantFrom<IsEqualImportKind>(
+    "namedImport",
+    "namespaceImport"
+);
+const isEqualPairIdArbitrary = fc.constantFrom<IsEqualPairId>(
+    "booleans",
+    "numbers",
+    "stringLiterals"
+);
+
+const buildIsEqualPair = (pairId: IsEqualPairId): IsEqualPair => {
+    if (pairId === "booleans") {
+        return {
+            leftTypeText: "true",
+            rightTypeText: "boolean",
+        };
+    }
+
+    if (pairId === "numbers") {
+        return {
+            leftTypeText: "number",
+            rightTypeText: "42",
+        };
+    }
+
+    return {
+        leftTypeText: '"alpha"',
+        rightTypeText: '"alpha"',
+    };
+};
+
+const buildIsEqualVariableCode = (options: {
+    readonly importKind: IsEqualImportKind;
+    readonly includeAliasedTsExtrasImport: boolean;
+    readonly includeUnicodeBanner: boolean;
+    readonly initializerValue: boolean;
+    readonly pairId: IsEqualPairId;
+    readonly variableName: string;
+}): string => {
+    const pair = buildIsEqualPair(options.pairId);
+    const isEqualReferenceText =
+        options.importKind === "namespaceImport"
+            ? `TypeFest.IsEqual<${pair.leftTypeText}, ${pair.rightTypeText}>`
+            : `IsEqual<${pair.leftTypeText}, ${pair.rightTypeText}>`;
+    const isEqualImportText =
+        options.importKind === "namespaceImport"
+            ? 'import type * as TypeFest from "type-fest";'
+            : 'import type { IsEqual } from "type-fest";';
+
+    const codeLines = [
+        options.includeAliasedTsExtrasImport
+            ? 'import { isEqualType as isEqualTypeAlias } from "ts-extras";'
+            : "",
+        isEqualImportText,
+        "",
+        options.includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+            : "",
+        `const ${options.variableName}: ${isEqualReferenceText} = ${String(options.initializerValue)};`,
+        "",
+        `Boolean(${options.variableName});`,
+    ];
+
+    return codeLines.filter((line) => line.length > 0).join("\n");
+};
+
+const getSourceTextForNode = (options: {
+    readonly code: string;
+    readonly node: unknown;
+}): string => {
+    if (typeof options.node !== "object" || options.node === null) {
+        return "";
+    }
+
+    const maybeRange = (
+        options.node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (!maybeRange) {
+        return "";
+    }
+
+    return options.code.slice(maybeRange[0], maybeRange[1]);
+};
+
+const parseIsEqualDeclaratorFromCode = (
+    code: string
+): Readonly<{
+    ast: TSESTree.Program;
+    variableDeclarator: TSESTree.VariableDeclarator;
+}> => {
+    const ast = parser.parseForESLint(code, parserOptions)
+        .ast as TSESTree.Program;
+
+    for (const statement of ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.typeAnnotation?.typeAnnotation?.type ===
+                        AST_NODE_TYPES.TSTypeReference &&
+                    declaration.init?.type === AST_NODE_TYPES.Literal
+                ) {
+                    return {
+                        ast,
+                        variableDeclarator: declaration,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected an IsEqual variable declarator in generated code"
+    );
 };
 
 interface IsEqualTypeRuleMetadataSnapshot {
@@ -384,6 +536,201 @@ describe("prefer-ts-extras-is-equal-type internal listener guards", () => {
             });
 
             expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
+    it("fast-check: IsEqual boolean assertions expose parseable isEqualType suggestions", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                (options: IsEqualFixFactoryArguments): string => {
+                    if (typeof options.replacementTextFactory !== "function") {
+                        throw new TypeError(
+                            "Expected replacementTextFactory to be callable"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectNamedImportLocalNamesFromSource: () =>
+                    new Set(["IsEqual"]),
+                collectNamespaceImportLocalNamesFromSource: () =>
+                    new Set(["TypeFest"]),
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            VariableDeclarator?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    isEqualImportKindArbitrary,
+                    isEqualPairIdArbitrary,
+                    fc.boolean(),
+                    fc.boolean(),
+                    fc.constantFrom(
+                        "equalCheck",
+                        "runtimeTypeMatch",
+                        "schemaTypeGuard"
+                    ),
+                    (
+                        importKind,
+                        pairId,
+                        initializerValue,
+                        includeUnicodeBanner,
+                        variableName
+                    ) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const code = buildIsEqualVariableCode({
+                            importKind,
+                            includeAliasedTsExtrasImport: false,
+                            includeUnicodeBanner,
+                            initializerValue,
+                            pairId,
+                            variableName,
+                        });
+                        const { ast, variableDeclarator } =
+                            parseIsEqualDeclaratorFromCode(code);
+                        const reportCalls: IsEqualReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (descriptor: IsEqualReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.VariableDeclarator?.(variableDeclarator);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]?.messageId).toBe(
+                            "preferTsExtrasIsEqualType"
+                        );
+                        expect(reportCalls[0]?.suggest).toHaveLength(1);
+                        expect(reportCalls[0]?.suggest?.[0]?.fix).toBe("FIX");
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const annotationNode =
+                            variableDeclarator.id.typeAnnotation;
+
+                        expect(annotationNode).toBeDefined();
+
+                        if (
+                            annotationNode?.typeAnnotation.type !==
+                            AST_NODE_TYPES.TSTypeReference
+                        ) {
+                            throw new Error(
+                                "Expected variable declarator to use TSTypeReference"
+                            );
+                        }
+
+                        const annotationArguments =
+                            annotationNode.typeAnnotation.typeArguments
+                                ?.params ?? [];
+                        const [leftTypeNode, rightTypeNode] =
+                            annotationArguments;
+
+                        expect(leftTypeNode).toBeDefined();
+                        expect(rightTypeNode).toBeDefined();
+
+                        if (
+                            leftTypeNode === undefined ||
+                            rightTypeNode === undefined
+                        ) {
+                            throw new Error(
+                                "Expected IsEqual type reference to include two type arguments"
+                            );
+                        }
+
+                        const leftTypeText = getSourceTextForNode({
+                            code,
+                            node: leftTypeNode,
+                        });
+                        const rightTypeText = getSourceTextForNode({
+                            code,
+                            node: rightTypeNode,
+                        });
+                        const expectedReplacementName = "isEqualType";
+                        const expectedCallText = `${expectedReplacementName}<${leftTypeText}, ${rightTypeText}>()`;
+                        const expectedRuntimeExpression = initializerValue
+                            ? `${expectedCallText} || true`
+                            : `${expectedCallText} && false`;
+
+                        const fixArguments =
+                            createSafeValueNodeTextReplacementFixMock.mock
+                                .calls[0]?.[0] ?? null;
+
+                        expect(fixArguments).not.toBeNull();
+
+                        const replacementText =
+                            fixArguments?.replacementTextFactory?.(
+                                expectedReplacementName
+                            ) ?? "";
+
+                        expect(replacementText).toBe(
+                            `${variableName} = ${expectedRuntimeExpression}`
+                        );
+
+                        const declaratorRange = variableDeclarator.range;
+
+                        expect(declaratorRange).toBeDefined();
+
+                        if (declaratorRange === undefined) {
+                            throw new Error(
+                                "Expected variable declarator to expose source range"
+                            );
+                        }
+
+                        const fixedCode =
+                            code.slice(0, declaratorRange[0]) +
+                            replacementText +
+                            code.slice(declaratorRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/imported-value-symbols.js");

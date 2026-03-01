@@ -4,13 +4,14 @@ Prefers TypeFest JSON types (`JsonValue`, `JsonObject`) for serialization-bound 
 
 ## Targeted pattern scope
 
-This rule focuses on a narrow, deterministic set of syntactic forms:
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
 
-- Payload/context-like contract aliases using `Record<string, unknown>`/`Record<string, any>` in JSON boundary folders.
-
-These boundaries keep reporting and migration behavior deterministic.
+- Direct `Record<string, unknown>` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - Payload/context-like contract aliases using `Record<string, unknown>`/`Record<string, any>` in JSON boundary folders.
 

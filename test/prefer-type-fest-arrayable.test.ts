@@ -1,11 +1,17 @@
+import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { createSafeTypeNodeTextReplacementFix } from "../src/_internal/imported-type-aliases.js";
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -121,6 +127,200 @@ const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
     'import type { Arrayable } from "type-fest";',
     "type QueryValue = Arrayable<Map<string, number>>;",
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type ArrayableElementTemplateId =
+    | "map"
+    | "object"
+    | "promise"
+    | "string"
+    | "tuple";
+
+type ArrayableUnionTemplateId =
+    | "genericLeft"
+    | "genericRight"
+    | "genericWhitespaceLeft"
+    | "genericWhitespaceRight"
+    | "nativeLeft"
+    | "nativeRight";
+
+const arrayableElementTemplateIdArbitrary = fc.constantFrom(
+    "string",
+    "map",
+    "promise",
+    "tuple",
+    "object"
+);
+
+const arrayableUnionTemplateIdArbitrary = fc.constantFrom(
+    "nativeRight",
+    "nativeLeft",
+    "genericRight",
+    "genericLeft",
+    "genericWhitespaceRight",
+    "genericWhitespaceLeft"
+);
+
+const buildArrayableElementTemplate = (
+    templateId: ArrayableElementTemplateId
+): Readonly<{
+    elementTypeText: string;
+}> => {
+    if (templateId === "map") {
+        return {
+            elementTypeText: "Map<string, number>",
+        };
+    }
+
+    if (templateId === "object") {
+        return {
+            elementTypeText: "{ readonly id: string }",
+        };
+    }
+
+    if (templateId === "promise") {
+        return {
+            elementTypeText: "Promise<string>",
+        };
+    }
+
+    if (templateId === "tuple") {
+        return {
+            elementTypeText: "[string, number]",
+        };
+    }
+
+    return {
+        elementTypeText: "string",
+    };
+};
+
+const buildArrayableUnionTypeText = ({
+    elementTypeText,
+    unionTemplateId,
+}: Readonly<{
+    elementTypeText: string;
+    unionTemplateId: ArrayableUnionTemplateId;
+}>): string => {
+    if (unionTemplateId === "nativeRight") {
+        return `${elementTypeText} | ${elementTypeText}[]`;
+    }
+
+    if (unionTemplateId === "nativeLeft") {
+        return `${elementTypeText}[] | ${elementTypeText}`;
+    }
+
+    if (unionTemplateId === "genericRight") {
+        return `${elementTypeText} | Array<${elementTypeText}>`;
+    }
+
+    if (unionTemplateId === "genericLeft") {
+        return `Array<${elementTypeText}> | ${elementTypeText}`;
+    }
+
+    if (unionTemplateId === "genericWhitespaceRight") {
+        return `${elementTypeText} | Array < ${elementTypeText} >`;
+    }
+
+    return `Array < ${elementTypeText} > | ${elementTypeText}`;
+};
+
+const isArrayTypeReferenceNode = (
+    node: Readonly<TSESTree.TypeNode>
+): node is TSESTree.TSTypeReference => {
+    if (
+        node.type !== AST_NODE_TYPES.TSTypeReference ||
+        node.typeName.type !== AST_NODE_TYPES.Identifier ||
+        node.typeName.name !== "Array"
+    ) {
+        return false;
+    }
+
+    const genericArguments = node.typeArguments?.params ?? [];
+
+    return genericArguments.length === 1;
+};
+
+const parseQueryValueUnionFromCode = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    expectedElementText: string;
+    unionNode: TSESTree.TSUnionType;
+    unionRange: readonly [number, number];
+}> => {
+    const parsedResult = parser.parseForESLint(code, parserOptions);
+
+    for (const statement of parsedResult.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.id.name === "QueryValue" &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSUnionType
+        ) {
+            const [firstType, secondType] = statement.typeAnnotation.types;
+
+            if (!firstType || !secondType) {
+                throw new Error(
+                    "Expected QueryValue union to contain two members"
+                );
+            }
+
+            const expectedElementText =
+                firstType.type === AST_NODE_TYPES.TSArrayType ||
+                isArrayTypeReferenceNode(firstType)
+                    ? code.slice(secondType.range[0], secondType.range[1])
+                    : code.slice(firstType.range[0], firstType.range[1]);
+
+            return {
+                ast: parsedResult.ast,
+                expectedElementText,
+                unionNode: statement.typeAnnotation,
+                unionRange: statement.typeAnnotation.range,
+            };
+        }
+    }
+
+    throw new Error("Expected generated code to include QueryValue union");
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
+        .range;
+
+    if (!nodeRange) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+type ReplaceTextOnlyFixer = Readonly<{
+    replaceText: (node: unknown, text: string) => unknown;
+}>;
+
+const assertIsReplaceFixFunction: (
+    value: unknown
+) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
+    if (typeof value !== "function") {
+        throw new TypeError("Expected report descriptor fix to be a function");
+    }
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -308,6 +508,129 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             expect(replacementFixCalls).toHaveLength(2);
             expect(replacementFixCalls[0]?.[1]).toBe("Arrayable");
             expect(replacementFixCalls[1]?.[1]).toBe("Arrayable");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: arrayable unions report and produce parseable Arrayable replacements", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () =>
+                    new Set(["Arrayable"]),
+                createSafeTypeNodeTextReplacementFix,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-arrayable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    arrayableElementTemplateIdArbitrary,
+                    arrayableUnionTemplateIdArbitrary,
+                    fc.boolean(),
+                    (elementTemplateId, unionTemplateId, includeNoiseLine) => {
+                        const elementTemplate =
+                            buildArrayableElementTemplate(elementTemplateId);
+                        const unionTypeText = buildArrayableUnionTypeText({
+                            elementTypeText: elementTemplate.elementTypeText,
+                            unionTemplateId,
+                        });
+                        const code = [
+                            'import type { Arrayable } from "type-fest";',
+                            includeNoiseLine
+                                ? 'type Noise = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                                : "",
+                            `type QueryValue = ${unionTypeText};`,
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const {
+                            ast,
+                            expectedElementText,
+                            unionNode,
+                            unionRange,
+                        } = parseQueryValueUnionFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSUnionType?.(unionNode);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferArrayable",
+                        });
+                        expect(reportCalls[0]?.fix).toBeDefined();
+
+                        const fixFunction: unknown = reportCalls[0]?.fix;
+                        assertIsReplaceFixFunction(fixFunction);
+
+                        let replacementText = "";
+
+                        fixFunction({
+                            replaceText(node, text): unknown {
+                                expect(node).toBe(unionNode);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        expect(replacementText).toBe(
+                            `Arrayable<${expectedElementText}>`
+                        );
+
+                        const fixedCode =
+                            code.slice(0, unionRange[0]) +
+                            replacementText +
+                            code.slice(unionRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

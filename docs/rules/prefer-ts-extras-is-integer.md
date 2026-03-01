@@ -6,20 +6,14 @@ This keeps predicate usage consistent with other `ts-extras` narrowing helpers.
 
 ## Targeted pattern scope
 
-This rule targets direct integer predicate calls that map to `isInteger(value)`.
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
 
-### Matched patterns
-
-- `Number.isInteger(value)` call sites that can use `isInteger(value)`.
-
-### Detection boundaries
-
-- ✅ Reports direct `Number.isInteger(...)` predicate calls.
-- ❌ Does not attempt to rewrite broader numeric validation chains or surrounding business logic.
-
-These boundaries keep reporting and migration behavior deterministic.
+- Direct `Number.isInteger(value)` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - `Number.isInteger(value)` call sites that can use `isInteger(value)`.
 

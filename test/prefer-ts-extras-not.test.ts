@@ -2,10 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-not.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -173,6 +177,67 @@ const inlineFixableOutput = [
     "String(missingEntries.length);",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const callbackParameterNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate));
+const predicateNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate))
+    .filter((name) => name !== "not");
+
+const parseFilterCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callbackRange: readonly [number, number];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
+    let callExpression: null | TSESTree.CallExpression = null;
+
+    for (const statement of parsedResult.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    callExpression = declaration.init;
+                    break;
+                }
+            }
+        }
+
+        if (callExpression) {
+            break;
+        }
+    }
+
+    if (!callExpression) {
+        throw new Error(
+            "Expected generated code to contain a variable declaration initialized from a call expression"
+        );
+    }
+
+    const callback = callExpression.arguments[0];
+
+    if (callback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
+        throw new Error(
+            "Expected generated filter call to include an arrow function callback"
+        );
+    }
+
+    return {
+        ast: parsedResult.ast,
+        callbackRange: callback.range,
+        callExpression,
+    };
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-not", {
     defaultOptions: [],
     docsDescription:
@@ -213,9 +278,8 @@ describe("prefer-ts-extras-not source assertions", () => {
 
 describe("prefer-ts-extras-not internal listener guards", () => {
     it("reports without a fix when predicate text trims to empty", async () => {
-        const reportCalls: Array<
-            Readonly<{ fix?: unknown; messageId?: string }>
-        > = [];
+        const reportCalls: Readonly<{ fix?: unknown; messageId?: string }>[] =
+            [];
 
         try {
             vi.resetModules();
@@ -296,6 +360,318 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 messageId: "preferTsExtrasNot",
             });
         } finally {
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: identifier predicate callbacks report with fix and parseable replacement", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-not")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    predicateNameArbitrary,
+                    fc.boolean(),
+                    (
+                        callbackParameterName,
+                        predicateName,
+                        includeUnicodeLine
+                    ) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const unicodeLine = includeUnicodeLine
+                            ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                            : "";
+
+                        const generatedCode = [
+                            "declare const nullableEntries: readonly (null | string)[];",
+                            `declare function ${predicateName}<TValue>(value: TValue): boolean;`,
+                            unicodeLine,
+                            `const missingEntries = nullableEntries.filter((${callbackParameterName}) => !${predicateName}(${callbackParameterName}));`,
+                            "String(missingEntries.length);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, callbackRange, callExpression } =
+                            parseFilterCallFromCode(generatedCode);
+
+                        const reports: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const maybeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!maybeRange) {
+                                        return "";
+                                    }
+
+                                    const [start, end] = maybeRange;
+                                    return generatedCode.slice(start, end);
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasNot",
+                        });
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const [callbackStart, callbackEnd] = callbackRange;
+                        const replacedCode = `${generatedCode.slice(
+                            0,
+                            callbackStart
+                        )}not(${predicateName})${generatedCode.slice(
+                            callbackEnd
+                        )}`;
+
+                        expect(() => {
+                            parser.parseForESLint(replacedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: member predicate callbacks report without fix", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-not")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    predicateNameArbitrary,
+                    (callbackParameterName, predicateName) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const generatedCode = [
+                            "declare const nullableEntries: readonly (null | string)[];",
+                            `declare const predicates: { ${predicateName}<TValue>(value: TValue): boolean };`,
+                            `const missingEntries = nullableEntries.filter((${callbackParameterName}) => !predicates.${predicateName}(${callbackParameterName}));`,
+                            "String(missingEntries.length);",
+                        ].join("\n");
+
+                        const { ast, callExpression } =
+                            parseFilterCallFromCode(generatedCode);
+                        const reports: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const maybeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (!maybeRange) {
+                                        return "";
+                                    }
+
+                                    const [start, end] = maybeRange;
+                                    return generatedCode.slice(start, end);
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: null,
+                            messageId: "preferTsExtrasNot",
+                        });
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: optional-call predicate callbacks are ignored", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                () => "FIX"
+            );
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-not")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    callbackParameterNameArbitrary,
+                    predicateNameArbitrary,
+                    (callbackParameterName, predicateName) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const generatedCode = [
+                            "declare const nullableEntries: readonly (null | string)[];",
+                            `declare let ${predicateName}: undefined | ((value: null | string) => boolean);`,
+                            `const missingEntries = nullableEntries.filter((${callbackParameterName}) => !${predicateName}?.(${callbackParameterName}));`,
+                            "String(missingEntries.length);",
+                        ].join("\n");
+
+                        const { ast, callExpression } =
+                            parseFilterCallFromCode(generatedCode);
+                        const reports: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText: () => generatedCode,
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reports).toHaveLength(0);
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs60
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.resetModules();
         }
     });

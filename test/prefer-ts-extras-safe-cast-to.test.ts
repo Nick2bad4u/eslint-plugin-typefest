@@ -2,8 +2,15 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-safe-cast-to.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -92,6 +99,178 @@ const fixtureInvalidSecondPassOutputWithMixedLineEndings =
             "const payloadValue = safeCastTo<Payload>(payloadLiteral);\r\n"
         );
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type AssertionSyntax = "asExpression" | "typeAssertion";
+
+type ExpressionTemplateId =
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier";
+
+type SafeCastFixFactoryArguments = Readonly<{
+    replacementTextFactory: (replacementName: string) => string;
+}>;
+
+type TargetTypeTemplateId =
+    | "partialObject"
+    | "readonlyArray"
+    | "stringKeyword"
+    | "unionLiteral";
+
+const assertionSyntaxArbitrary = fc.constantFrom(
+    "asExpression",
+    "typeAssertion"
+);
+
+const expressionTemplateIdArbitrary = fc.constantFrom(
+    "identifier",
+    "memberExpression",
+    "callExpression",
+    "parenthesizedIdentifier"
+);
+
+const targetTypeTemplateIdArbitrary = fc.constantFrom(
+    "stringKeyword",
+    "partialObject",
+    "readonlyArray",
+    "unionLiteral"
+);
+
+const ignoredKeywordTypeArbitrary = fc.constantFrom("any", "never", "unknown");
+
+const buildExpressionTemplate = (
+    templateId: ExpressionTemplateId
+): Readonly<{
+    declarations: readonly string[];
+    expressionText: string;
+}> => {
+    if (templateId === "identifier") {
+        return {
+            declarations: ['declare const rawValue: "alpha";'],
+            expressionText: "rawValue",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                'declare const holder: { readonly current: "alpha" };',
+            ],
+            expressionText: "holder.current",
+        };
+    }
+
+    if (templateId === "callExpression") {
+        return {
+            declarations: ['declare function readValue(): "alpha";'],
+            expressionText: "readValue()",
+        };
+    }
+
+    return {
+        declarations: ['declare const rawValue: "alpha";'],
+        expressionText: "(rawValue)",
+    };
+};
+
+const buildTargetTypeText = (templateId: TargetTypeTemplateId): string => {
+    if (templateId === "stringKeyword") {
+        return "string";
+    }
+
+    if (templateId === "partialObject") {
+        return "Partial<{ readonly value: string }>";
+    }
+
+    if (templateId === "readonlyArray") {
+        return "ReadonlyArray<string>";
+    }
+
+    return '"alpha" | "beta"';
+};
+
+const buildAssertionInitializerText = ({
+    assertionSyntax,
+    expressionText,
+    targetTypeText,
+}: Readonly<{
+    assertionSyntax: AssertionSyntax;
+    expressionText: string;
+    targetTypeText: string;
+}>): string =>
+    assertionSyntax === "asExpression"
+        ? `${expressionText} as ${targetTypeText}`
+        : `<${targetTypeText}>${expressionText}`;
+
+const parseAssertionFromCode = (
+    sourceText: string
+): Readonly<{
+    annotationText: string;
+    assertionNode: TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
+    assertionRange: readonly [number, number];
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    expressionText: string;
+}> => {
+    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsedResult.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.TSAsExpression ||
+                    declaration.init?.type === AST_NODE_TYPES.TSTypeAssertion
+                ) {
+                    const assertionNode = declaration.init;
+
+                    return {
+                        annotationText: sourceText.slice(
+                            assertionNode.typeAnnotation.range[0],
+                            assertionNode.typeAnnotation.range[1]
+                        ),
+                        assertionNode,
+                        assertionRange: assertionNode.range,
+                        ast: parsedResult.ast,
+                        expressionText: sourceText.slice(
+                            assertionNode.expression.range[0],
+                            assertionNode.expression.range[1]
+                        ),
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error("Expected generated code to include a type assertion");
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
+        .range;
+
+    if (!nodeRange) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-safe-cast-to",
     {
@@ -114,7 +293,7 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
             name: "value",
             type: "Identifier",
         };
-        const typeAnnotationNode = {
+        const annotationNode = {
             type: "TSStringKeyword",
         };
 
@@ -180,10 +359,316 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
             listeners.TSAsExpression?.({
                 expression: expressionNode,
                 type: "TSAsExpression",
-                typeAnnotation: typeAnnotationNode,
+                typeAnnotation: annotationNode,
             });
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
+    it("fast-check: assignable assertions report and generate parseable safeCastTo replacements", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                (options: SafeCastFixFactoryArguments): string => {
+                    if (typeof options.replacementTextFactory !== "function") {
+                        throw new TypeError(
+                            "Expected replacementTextFactory to be callable"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation: () => ({ flags: 0 }),
+                        getTypeFromTypeNode: () => ({ flags: 0 }),
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get(node: unknown) {
+                                const nodeType =
+                                    typeof node === "object" && node !== null
+                                        ? (node as Readonly<{ type?: unknown }>)
+                                              .type
+                                        : undefined;
+
+                                if (
+                                    typeof nodeType === "string" &&
+                                    nodeType.startsWith("TS")
+                                ) {
+                                    return ts.factory.createKeywordTypeNode(
+                                        ts.SyntaxKind.StringKeyword
+                                    );
+                                }
+
+                                return ts.factory.createIdentifier("rawValue");
+                            },
+                        },
+                    },
+                }),
+                isTestFilePath: () => false,
+                isTypeAssignableTo: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map<string, ReadonlySet<string>>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                            TSTypeAssertion?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    assertionSyntaxArbitrary,
+                    expressionTemplateIdArbitrary,
+                    targetTypeTemplateIdArbitrary,
+                    fc.boolean(),
+                    (
+                        assertionSyntax,
+                        expressionTemplateId,
+                        targetTypeTemplateId,
+                        includeUnicodeNoiseLine
+                    ) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const expressionTemplate =
+                            buildExpressionTemplate(expressionTemplateId);
+                        const targetTypeText =
+                            buildTargetTypeText(targetTypeTemplateId);
+                        const assertionInitializerText =
+                            buildAssertionInitializerText({
+                                assertionSyntax,
+                                expressionText:
+                                    expressionTemplate.expressionText,
+                                targetTypeText,
+                            });
+                        const code = [
+                            ...expressionTemplate.declarations,
+                            includeUnicodeNoiseLine
+                                ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                                : "",
+                            `const castValue = ${assertionInitializerText};`,
+                            "String(castValue);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const {
+                            annotationText,
+                            assertionNode,
+                            assertionRange,
+                            ast,
+                            expressionText,
+                        } = parseAssertionFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        if (
+                            assertionNode.type === AST_NODE_TYPES.TSAsExpression
+                        ) {
+                            listeners.TSAsExpression?.(assertionNode);
+                        } else {
+                            listeners.TSTypeAssertion?.(assertionNode);
+                        }
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasSafeCastTo",
+                        });
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixArguments =
+                            createSafeValueNodeTextReplacementFixMock.mock
+                                .calls[0]?.[0];
+
+                        expect(fixArguments).toBeDefined();
+
+                        const replacementText =
+                            fixArguments?.replacementTextFactory(
+                                "safeCastTo"
+                            ) ?? "";
+
+                        expect(replacementText).toBe(
+                            `safeCastTo<${annotationText}>(${expressionText})`
+                        );
+
+                        const fixedCode =
+                            code.slice(0, assertionRange[0]) +
+                            replacementText +
+                            code.slice(assertionRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs80
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: ignored assertion targets do not report or request fixes", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueNodeTextReplacementFixMock = vi.fn(
+                (options: SafeCastFixFactoryArguments): string => {
+                    if (typeof options.replacementTextFactory !== "function") {
+                        throw new TypeError(
+                            "Expected replacementTextFactory to be callable"
+                        );
+                    }
+
+                    return "FIX";
+                }
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation: () => ({ flags: 0 }),
+                        getTypeFromTypeNode: () => ({ flags: 0 }),
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () =>
+                                ts.factory.createKeywordTypeNode(
+                                    ts.SyntaxKind.StringKeyword
+                                ),
+                        },
+                    },
+                }),
+                isTestFilePath: () => false,
+                isTypeAssignableTo: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map<string, ReadonlySet<string>>(),
+                createSafeValueNodeTextReplacementFix:
+                    createSafeValueNodeTextReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    ignoredKeywordTypeArbitrary,
+                    fc.boolean(),
+                    (ignoredAnnotationKeyword, includeUnicodeNoiseLine) => {
+                        createSafeValueNodeTextReplacementFixMock.mockClear();
+
+                        const code = [
+                            'declare const rawValue: "alpha";',
+                            includeUnicodeNoiseLine
+                                ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                                : "",
+                            `const castValue = rawValue as ${ignoredAnnotationKeyword};`,
+                            "String(castValue);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { assertionNode, ast } =
+                            parseAssertionFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        if (
+                            assertionNode.type === AST_NODE_TYPES.TSAsExpression
+                        ) {
+                            listeners.TSAsExpression?.(assertionNode);
+                        }
+
+                        expect(reportCalls).toHaveLength(0);
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).not.toHaveBeenCalled();
+                    }
+                ),
+                fastCheckRunConfig.runs50
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

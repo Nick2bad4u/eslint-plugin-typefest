@@ -36,11 +36,12 @@ describe("plugin runtime edge branches", () => {
 
             expect(plugin.meta.version).toBe("0.0.0");
 
-            const recommendedConfig = plugin.configs.recommended;
-            const languageOptions = recommendedConfig.languageOptions;
+            for (const presetConfig of Object.values(plugin.configs)) {
+                const languageOptions = presetConfig.languageOptions;
 
-            expect(languageOptions?.["parser"]).toBeUndefined();
-            expect(languageOptions?.["parserOptions"]).toBeUndefined();
+                expect(languageOptions?.["parser"]).toBeUndefined();
+                expect(languageOptions?.["parserOptions"]).toBeUndefined();
+            }
         } finally {
             resetRuntimeMocks();
         }

@@ -2,12 +2,17 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -123,6 +128,220 @@ const inlineFixableOutput = [
     "const value = 'a,b';",
     "const parts = stringSplit(value, ',');",
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type SplitArgumentTemplateId =
+    | "empty"
+    | "identifier"
+    | "literal"
+    | "multiple"
+    | "spread";
+
+type SplitReceiverTemplateId =
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier";
+
+const splitArgumentTemplateIdArbitrary = fc.constantFrom(
+    "empty",
+    "identifier",
+    "literal",
+    "multiple",
+    "spread"
+);
+
+const splitReceiverTemplateIdArbitrary = fc.constantFrom(
+    "identifier",
+    "memberExpression",
+    "callExpression",
+    "parenthesizedIdentifier"
+);
+
+const buildSplitArgumentTemplate = (
+    templateId: SplitArgumentTemplateId
+): Readonly<{
+    argumentsText: string;
+    declarations: readonly string[];
+}> => {
+    if (templateId === "identifier") {
+        return {
+            argumentsText: "separator",
+            declarations: ["declare const separator: string;"],
+        };
+    }
+
+    if (templateId === "literal") {
+        return {
+            argumentsText: "','",
+            declarations: [],
+        };
+    }
+
+    if (templateId === "multiple") {
+        return {
+            argumentsText: "separator, 1",
+            declarations: ["declare const separator: string;"],
+        };
+    }
+
+    if (templateId === "spread") {
+        return {
+            argumentsText: "...separators",
+            declarations: ["declare const separators: string[];"],
+        };
+    }
+
+    return {
+        argumentsText: "",
+        declarations: [],
+    };
+};
+
+const buildSplitReceiverTemplate = (
+    templateId: SplitReceiverTemplateId
+): Readonly<{
+    declarations: readonly string[];
+    receiverText: string;
+}> => {
+    if (templateId === "identifier") {
+        return {
+            declarations: ["declare const value: string;"],
+            receiverText: "value",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "declare const holder: { readonly current: string };",
+            ],
+            receiverText: "holder.current",
+        };
+    }
+
+    if (templateId === "callExpression") {
+        return {
+            declarations: ["declare function readValue(): string;"],
+            receiverText: "readValue()",
+        };
+    }
+
+    return {
+        declarations: ["declare const value: string;"],
+        receiverText: "(value)",
+    };
+};
+
+const getPartsSplitCallExpressionFromDeclarator = (
+    declaration: Readonly<TSESTree.VariableDeclarator>
+): null | TSESTree.CallExpression => {
+    if (
+        declaration.id.type === AST_NODE_TYPES.Identifier &&
+        declaration.id.name === "parts" &&
+        declaration.init?.type === AST_NODE_TYPES.CallExpression
+    ) {
+        return declaration.init;
+    }
+
+    return null;
+};
+
+const getPartsSplitCallExpressionFromStatement = (
+    statement: Readonly<TSESTree.ProgramStatement>
+): null | TSESTree.CallExpression => {
+    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+        return null;
+    }
+
+    for (const declaration of statement.declarations) {
+        const callExpression =
+            getPartsSplitCallExpressionFromDeclarator(declaration);
+
+        if (callExpression) {
+            return callExpression;
+        }
+    }
+
+    return null;
+};
+
+const parseSplitCallExpressionFromCode = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+    callExpressionRange: readonly [number, number];
+    receiverText: string;
+}> => {
+    const parsedResult = parser.parseForESLint(code, parserOptions);
+
+    for (const statement of parsedResult.ast.body) {
+        const callExpression =
+            getPartsSplitCallExpressionFromStatement(statement);
+
+        if (callExpression) {
+            if (
+                callExpression.callee.type !== AST_NODE_TYPES.MemberExpression
+            ) {
+                throw new Error(
+                    "Expected generated parts initializer to use a member-expression callee"
+                );
+            }
+
+            return {
+                ast: parsedResult.ast,
+                callExpression,
+                callExpressionRange: callExpression.range,
+                receiverText: code.slice(
+                    callExpression.callee.object.range[0],
+                    callExpression.callee.object.range[1]
+                ),
+            };
+        }
+    }
+
+    throw new Error("Expected generated code to include parts call expression");
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
+        .range;
+
+    if (!nodeRange) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+type ReplaceTextOnlyFixer = Readonly<{
+    replaceText: (node: unknown, text: string) => unknown;
+}>;
+
+const assertIsReplaceFixFunction: (
+    value: unknown
+) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
+    if (typeof value !== "function") {
+        throw new TypeError("Expected report descriptor fix to be a function");
+    }
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-string-split",
@@ -249,24 +468,24 @@ describe("prefer-ts-extras-string-split source assertions", () => {
         try {
             vi.resetModules();
 
-            const typeA = {
+            const apparentA = {
                 getSymbol: (): undefined => undefined,
                 isIntersection: (): boolean => false,
                 isUnion: (): boolean => false,
             };
-            const typeB = {
+            const apparentB = {
                 getSymbol: (): undefined => undefined,
                 isIntersection: (): boolean => false,
                 isUnion: (): boolean => false,
             };
 
             const getApparentType = vi.fn((candidate: unknown): unknown => {
-                if (candidate === typeA) {
-                    return typeB;
+                if (candidate === apparentA) {
+                    return apparentB;
                 }
 
-                if (candidate === typeB) {
-                    return typeA;
+                if (candidate === apparentB) {
+                    return apparentA;
                 }
 
                 return candidate;
@@ -281,7 +500,7 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                             isIntersection: (): boolean => false,
                             isUnion: (): boolean => false,
                         }),
-                        getTypeAtLocation: () => typeA,
+                        getTypeAtLocation: () => apparentA,
                         typeToString: () => "NonStringLike",
                     },
                     parserServices: {
@@ -347,6 +566,182 @@ describe("prefer-ts-extras-string-split source assertions", () => {
             expect(getApparentType).toHaveBeenCalled();
             expect(report).not.toHaveBeenCalled();
         } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: split() calls report and produce parseable stringSplit replacements", async () => {
+        expect.hasAssertions();
+
+        const stringLikeType = {
+            getSymbol: () => ({
+                getName: () => "String",
+            }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map([["stringSplit", new Set(["stringSplit"])]]),
+                createMethodToFunctionCallFix,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getApparentType: (type: unknown) => type,
+                        getStringType: () => stringLikeType,
+                        getTypeAtLocation: () => stringLikeType,
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                    },
+                }),
+                isTestFilePath: (): boolean => false,
+                isTypeAssignableTo: (): boolean => true,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-string-split")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    splitReceiverTemplateIdArbitrary,
+                    splitArgumentTemplateIdArbitrary,
+                    (receiverTemplateId, argumentTemplateId) => {
+                        const receiverTemplate =
+                            buildSplitReceiverTemplate(receiverTemplateId);
+                        const argumentTemplate =
+                            buildSplitArgumentTemplate(argumentTemplateId);
+                        const splitArguments = argumentTemplate.argumentsText;
+                        const code = [
+                            'import { stringSplit } from "ts-extras";',
+                            ...receiverTemplate.declarations,
+                            ...argumentTemplate.declarations,
+                            "",
+                            `const parts = ${receiverTemplate.receiverText}.split(${splitArguments});`,
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const {
+                            ast,
+                            callExpression,
+                            callExpressionRange,
+                            receiverText,
+                        } = parseSplitCallExpressionFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getScope: () => ({
+                                    set: new Map([
+                                        [
+                                            "stringSplit",
+                                            {
+                                                defs: [
+                                                    {
+                                                        node: {
+                                                            importKind: "value",
+                                                            local: {
+                                                                name: "stringSplit",
+                                                            },
+                                                            parent: {
+                                                                importKind:
+                                                                    "value",
+                                                                source: {
+                                                                    type: "Literal",
+                                                                    value: "ts-extras",
+                                                                },
+                                                                type: "ImportDeclaration",
+                                                            },
+                                                            type: "ImportSpecifier",
+                                                        },
+                                                        type: "ImportBinding",
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    ]),
+                                    upper: null,
+                                }),
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferTsExtrasStringSplit",
+                        });
+                        expect(reportCalls[0]?.fix).toBeDefined();
+
+                        const fixFunction: unknown = reportCalls[0]?.fix;
+                        assertIsReplaceFixFunction(fixFunction);
+
+                        let replacementText = "";
+
+                        fixFunction({
+                            replaceText(node, text): unknown {
+                                expect(node).toBe(callExpression);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        const expectedReplacementText =
+                            splitArguments.length > 0
+                                ? `stringSplit(${receiverText}, ${splitArguments})`
+                                : `stringSplit(${receiverText})`;
+
+                        expect(replacementText).toBe(expectedReplacementText);
+
+                        const fixedCode =
+                            code.slice(0, callExpressionRange[0]) +
+                            replacementText +
+                            code.slice(callExpressionRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }

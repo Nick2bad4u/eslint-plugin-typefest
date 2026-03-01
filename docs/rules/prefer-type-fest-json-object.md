@@ -4,13 +4,14 @@ Require TypeFest `JsonObject` over equivalent explicit `Record<string, JsonValue
 
 ## Targeted pattern scope
 
-This rule focuses on a narrow, deterministic set of syntactic forms:
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
 
-- `Record<string, JsonValue>`
-
-These boundaries keep reporting and migration behavior deterministic.
+- Direct `Record<string, JsonValue>` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
 
 ## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - `Record<string, JsonValue>`
 

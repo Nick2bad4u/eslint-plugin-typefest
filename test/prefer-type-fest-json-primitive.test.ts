@@ -120,11 +120,9 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-json-primitive")) as {
                     default: {
-                        create: (context: unknown) =>
-                            | {}
-                            | {
-                                  TSUnionType?: (node: unknown) => void;
-                              };
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
                     };
                 };
 

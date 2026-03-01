@@ -4,21 +4,22 @@ Require [`isInfinite`](https://github.com/sindresorhus/ts-extras/blob/main/sourc
 
 ## Targeted pattern scope
 
-This rule focuses on a narrow, deterministic set of syntactic forms:
+This rule limits analysis to exact AST patterns and explicit syntactic boundaries:
+
+- Direct syntax form: Direct infinity equality checks:
+- Direct `value === Infinity` syntax in its canonical AST form.
+- Direct `value === Number.POSITIVE_INFINITY` syntax in its canonical AST form.
+- Direct `value === Number.NEGATIVE_INFINITY` syntax in its canonical AST form.
+- Alias indirection, wrapper helpers, and semantically similar variants are out of scope unless they preserve the same AST shape.
+
+## What this rule reports
+
+This rule reports every occurrence of the matched pattern(s) below:
 
 - Direct infinity equality checks:
 - `value === Infinity`
 - `value === Number.POSITIVE_INFINITY`
 - `value === Number.NEGATIVE_INFINITY`
-
-These boundaries keep reporting and migration behavior deterministic.
-
-## What this rule reports
-
-- Direct infinity equality checks:
-  - `value === Infinity`
-  - `value === Number.POSITIVE_INFINITY`
-  - `value === Number.NEGATIVE_INFINITY`
 
 ## Why this rule exists
 

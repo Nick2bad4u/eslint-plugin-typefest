@@ -1,10 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
-import ts from "typescript";
-
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import ts from "typescript";
+import { describe, expect, it, vi } from "vitest";
+
+import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -112,6 +119,222 @@ const inlineFixableOutput = [
     "const hasValue = setHas(values, 2);",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type ArgumentTemplateId =
+    | "empty"
+    | "identifier"
+    | "literal"
+    | "multiple"
+    | "spread";
+
+type ReceiverTemplateId =
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
+    | "parenthesizedIdentifier";
+
+const argumentTemplateIdArbitrary = fc.constantFrom(
+    "empty",
+    "identifier",
+    "literal",
+    "multiple",
+    "spread"
+);
+
+const receiverTemplateIdArbitrary = fc.constantFrom(
+    "identifier",
+    "memberExpression",
+    "callExpression",
+    "parenthesizedIdentifier"
+);
+
+const buildArgumentTemplate = (
+    templateId: ArgumentTemplateId
+): Readonly<{
+    argumentsText: string;
+    declarations: readonly string[];
+}> => {
+    if (templateId === "identifier") {
+        return {
+            argumentsText: "candidate",
+            declarations: ["declare const candidate: number;"],
+        };
+    }
+
+    if (templateId === "literal") {
+        return {
+            argumentsText: "2",
+            declarations: [],
+        };
+    }
+
+    if (templateId === "multiple") {
+        return {
+            argumentsText: "candidate, 2",
+            declarations: ["declare const candidate: number;"],
+        };
+    }
+
+    if (templateId === "spread") {
+        return {
+            argumentsText: "...candidates",
+            declarations: ["declare const candidates: number[];"],
+        };
+    }
+
+    return {
+        argumentsText: "",
+        declarations: [],
+    };
+};
+
+const buildReceiverTemplate = (
+    templateId: ReceiverTemplateId
+): Readonly<{
+    declarations: readonly string[];
+    receiverText: string;
+}> => {
+    if (templateId === "identifier") {
+        return {
+            declarations: ["declare const values: Set<number>;"],
+            receiverText: "values",
+        };
+    }
+
+    if (templateId === "memberExpression") {
+        return {
+            declarations: [
+                "declare const registry: { readonly current: Set<number> };",
+            ],
+            receiverText: "registry.current",
+        };
+    }
+
+    if (templateId === "callExpression") {
+        return {
+            declarations: ["declare function readSet(): Set<number>;"],
+            receiverText: "readSet()",
+        };
+    }
+
+    return {
+        declarations: ["declare const values: Set<number>;"],
+        receiverText: "(values)",
+    };
+};
+
+const getHasValueCallExpressionFromDeclarator = (
+    declaration: Readonly<TSESTree.VariableDeclarator>
+): null | TSESTree.CallExpression => {
+    if (
+        declaration.id.type === AST_NODE_TYPES.Identifier &&
+        declaration.id.name === "hasValue" &&
+        declaration.init?.type === AST_NODE_TYPES.CallExpression
+    ) {
+        return declaration.init;
+    }
+
+    return null;
+};
+
+const getHasValueCallExpressionFromStatement = (
+    statement: Readonly<TSESTree.ProgramStatement>
+): null | TSESTree.CallExpression => {
+    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+        return null;
+    }
+
+    for (const declaration of statement.declarations) {
+        const callExpression =
+            getHasValueCallExpressionFromDeclarator(declaration);
+
+        if (callExpression) {
+            return callExpression;
+        }
+    }
+
+    return null;
+};
+
+const parseCallExpressionFromCode = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+    callExpressionRange: readonly [number, number];
+    receiverText: string;
+}> => {
+    const parsedResult = parser.parseForESLint(code, parserOptions);
+
+    for (const statement of parsedResult.ast.body) {
+        const callExpression =
+            getHasValueCallExpressionFromStatement(statement);
+
+        if (callExpression) {
+            if (
+                callExpression.callee.type !== AST_NODE_TYPES.MemberExpression
+            ) {
+                throw new Error(
+                    "Expected generated hasValue initializer to use a member-expression callee"
+                );
+            }
+
+            return {
+                ast: parsedResult.ast,
+                callExpression,
+                callExpressionRange: callExpression.range,
+                receiverText: code.slice(
+                    callExpression.callee.object.range[0],
+                    callExpression.callee.object.range[1]
+                ),
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated code to include hasValue call expression"
+    );
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
+        .range;
+
+    if (!nodeRange) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+type ReplaceTextOnlyFixer = Readonly<{
+    replaceText: (node: unknown, text: string) => unknown;
+}>;
+
+const assertIsReplaceFixFunction: (
+    value: unknown
+) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
+    if (typeof value !== "function") {
+        throw new TypeError("Expected report descriptor fix to be a function");
+    }
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -138,6 +361,12 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
         try {
             vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Map([["setHas", new Set(["setHas"])]]),
+                createMethodToFunctionCallFix,
+            }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
@@ -479,6 +708,178 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 "preferTsExtrasSetHas",
                 "preferTsExtrasSetHas",
             ]);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-set-has fast-check fix safety", () => {
+    it("fast-check: set.has calls report and produce parseable setHas replacements", async () => {
+        expect.hasAssertions();
+
+        const setLikeType = {
+            getSymbol: () => ({
+                getName: () => "Set",
+            }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getApparentType: (type: unknown) => type,
+                        getBaseTypes: () => [],
+                        getTypeAtLocation: () => setLikeType,
+                        typeToString: () => "Set<number>",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                    },
+                }),
+                isTestFilePath: () => false,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-set-has")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    receiverTemplateIdArbitrary,
+                    argumentTemplateIdArbitrary,
+                    (receiverTemplateId, argumentTemplateId) => {
+                        const receiverTemplate =
+                            buildReceiverTemplate(receiverTemplateId);
+                        const argumentTemplate =
+                            buildArgumentTemplate(argumentTemplateId);
+                        const callArguments = argumentTemplate.argumentsText;
+                        const code = [
+                            'import { setHas } from "ts-extras";',
+                            ...receiverTemplate.declarations,
+                            ...argumentTemplate.declarations,
+                            "",
+                            `const hasValue = ${receiverTemplate.receiverText}.has(${callArguments});`,
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const {
+                            ast,
+                            callExpression,
+                            callExpressionRange,
+                            receiverText,
+                        } = parseCallExpressionFromCode(code);
+                        const reportCalls: Readonly<{
+                            fix?: unknown;
+                            messageId?: string;
+                        }>[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report: (
+                                descriptor: Readonly<{
+                                    fix?: unknown;
+                                    messageId?: string;
+                                }>
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getScope: () => ({
+                                    set: new Map([
+                                        [
+                                            "setHas",
+                                            {
+                                                defs: [
+                                                    {
+                                                        node: {
+                                                            importKind: "value",
+                                                            local: {
+                                                                name: "setHas",
+                                                            },
+                                                            parent: {
+                                                                importKind:
+                                                                    "value",
+                                                                source: {
+                                                                    type: "Literal",
+                                                                    value: "ts-extras",
+                                                                },
+                                                                type: "ImportDeclaration",
+                                                            },
+                                                            type: "ImportSpecifier",
+                                                        },
+                                                        type: "ImportBinding",
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    ]),
+                                    upper: null,
+                                }),
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferTsExtrasSetHas",
+                        });
+                        expect(reportCalls[0]?.fix).toBeDefined();
+
+                        const fixFunction: unknown = reportCalls[0]?.fix;
+                        assertIsReplaceFixFunction(fixFunction);
+
+                        let replacementText = "";
+
+                        fixFunction({
+                            replaceText(node, text): unknown {
+                                expect(node).toBe(callExpression);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        const expectedReplacementText =
+                            callArguments.length > 0
+                                ? `setHas(${receiverText}, ${callArguments})`
+                                : `setHas(${receiverText})`;
+
+                        expect(replacementText).toBe(expectedReplacementText);
+
+                        const fixedCode =
+                            code.slice(0, callExpressionRange[0]) +
+                            replacementText +
+                            code.slice(callExpressionRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

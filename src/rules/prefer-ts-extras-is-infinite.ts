@@ -113,8 +113,8 @@ const extractInfinityKind = (
  * @param context - Rule context used to resolve global identifiers.
  * @param expression - Expression candidate.
  *
- * @returns Normalized comparison data when the expression matches `value ===
- *   Infinity` style checks; otherwise `null`.
+ * @returns Normalized comparison data when the expression matches value ===
+ *   Infinity style checks; otherwise null.
  */
 const extractInfinityComparison = (
     context: RuleContext,
@@ -156,8 +156,8 @@ const extractInfinityComparison = (
  * @param context - Rule context used during infinity comparison extraction.
  * @param node - Logical expression candidate.
  *
- * @returns The compared expression from `value === Infinity || value ===
- *   Number.NEGATIVE_INFINITY` style patterns; otherwise `null`.
+ * @returns The compared expression from value === Infinity || value ===
+ *   Number.NEGATIVE_INFINITY style patterns; otherwise null.
  */
 const extractSafeInfinityDisjunctionTarget = (
     context: RuleContext,

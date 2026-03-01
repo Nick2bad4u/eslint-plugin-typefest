@@ -22,7 +22,7 @@ reported.
 - ❌ Does not report branches that do more than throw.
 - ❌ Does not auto-fix.
 
-These boundaries keep reporting and migration behavior deterministic.
+These boundaries keep matching deterministic and avoid broad semantic overreach during migration.
 
 ## What this rule reports
 

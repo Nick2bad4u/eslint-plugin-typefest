@@ -1,5 +1,9 @@
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-error.test` behavior.
@@ -172,6 +176,169 @@ const privateIdentifierInvalidSuggestionOutputCode = [
     "}",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type ErrorTargetExpressionTemplateId = "identifier" | "member";
+
+const errorTargetExpressionTemplateIdArbitrary = fc.constantFrom(
+    "identifier",
+    "member"
+);
+
+const variableNameArbitrary = fc.constantFrom("value", "errorValue", "候補値");
+
+const buildErrorTargetExpressionTemplate = ({
+    templateId,
+    variableName,
+}: Readonly<{
+    templateId: ErrorTargetExpressionTemplateId;
+    variableName: string;
+}>): Readonly<{
+    expressionText: string;
+    preIfStatements: readonly string[];
+}> => {
+    if (templateId === "member") {
+        return {
+            expressionText: `container.${variableName}`,
+            preIfStatements: [`const container = { ${variableName} };`],
+        };
+    }
+
+    return {
+        expressionText: variableName,
+        preIfStatements: [],
+    };
+};
+
+const buildAssertErrorGuardCode = ({
+    directThrowConsequent,
+    expressionTemplate,
+    includeUnicodeBanner,
+    variableName,
+}: Readonly<{
+    directThrowConsequent: boolean;
+    expressionTemplate: Readonly<{
+        expressionText: string;
+        preIfStatements: readonly string[];
+    }>;
+    includeUnicodeBanner: boolean;
+    variableName: string;
+}>): string => {
+    const ifStatementLines = directThrowConsequent
+        ? [
+              `if (!(${expressionTemplate.expressionText} instanceof Error))`,
+              '        throw new TypeError("Expected Error");',
+          ]
+        : [
+              `if (!(${expressionTemplate.expressionText} instanceof Error)) {`,
+              '        throw new TypeError("Expected Error");',
+              "    }",
+          ];
+
+    const lines = [
+        'import { assertError } from "ts-extras";',
+        includeUnicodeBanner
+            ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+            : "",
+        `function ensureError(${variableName}: unknown): void {`,
+        ...expressionTemplate.preIfStatements.map(
+            (statement) => `    ${statement}`
+        ),
+        ...ifStatementLines.map((line) => `    ${line}`),
+        "}",
+        includeUnicodeBanner ? "String(banner);" : "",
+    ];
+
+    return lines.filter((line) => line.length > 0).join("\n");
+};
+
+const isRangeNode = (
+    value: unknown
+): value is Readonly<{
+    range: readonly [number, number];
+}> => {
+    if (typeof value !== "object" || value === null || !("range" in value)) {
+        return false;
+    }
+
+    const candidateRange = value.range;
+
+    if (!Array.isArray(candidateRange) || candidateRange.length !== 2) {
+        return false;
+    }
+
+    const [start, end] = candidateRange;
+
+    return typeof start === "number" && typeof end === "number";
+};
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (!isRangeNode(node)) {
+        return "";
+    }
+
+    return code.slice(node.range[0], node.range[1]);
+};
+
+const parseEnsureErrorIfStatementFromCode = (
+    code: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    ifNode: TSESTree.IfStatement;
+}> => {
+    const parsed = parser.parseForESLint(code, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.FunctionDeclaration &&
+            statement.id?.name === "ensureError"
+        ) {
+            for (const bodyStatement of statement.body.body) {
+                if (bodyStatement.type === AST_NODE_TYPES.IfStatement) {
+                    return {
+                        ast: parsed.ast,
+                        ifNode: bodyStatement,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error("Expected ensureError function containing an IfStatement");
+};
+
+type ReplaceTextOnlyFixer = Readonly<{
+    replaceText: (node: unknown, text: string) => unknown;
+}>;
+
+const assertIsFixFunction: (
+    value: unknown
+) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
+    if (typeof value !== "function") {
+        throw new TypeError("Expected fixer function");
+    }
+};
+
+type ReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+    suggest?: readonly Readonly<{
+        fix?: unknown;
+        messageId?: string;
+    }>[];
+}>;
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -309,6 +476,141 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
             });
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
+    it("fast-check: instanceof Error guards report parseable assertError suggestions", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (): boolean => true,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set(["assertError"]),
+                createSafeValueNodeTextReplacementFix:
+                    (
+                        options: Readonly<{
+                            replacementTextFactory: (
+                                replacementName: string
+                            ) => string;
+                            targetNode: unknown;
+                        }>
+                    ) =>
+                    (fixer: ReplaceTextOnlyFixer) =>
+                        fixer.replaceText(
+                            options.targetNode,
+                            options.replacementTextFactory("assertError")
+                        ),
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-error")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    errorTargetExpressionTemplateIdArbitrary,
+                    variableNameArbitrary,
+                    fc.boolean(),
+                    fc.boolean(),
+                    (
+                        expressionTemplateId,
+                        variableName,
+                        directThrowConsequent,
+                        includeUnicodeBanner
+                    ) => {
+                        const expressionTemplate =
+                            buildErrorTargetExpressionTemplate({
+                                templateId: expressionTemplateId,
+                                variableName,
+                            });
+                        const code = buildAssertErrorGuardCode({
+                            directThrowConsequent,
+                            expressionTemplate,
+                            includeUnicodeBanner,
+                            variableName,
+                        });
+                        const { ast, ifNode } =
+                            parseEnsureErrorIfStatementFromCode(code);
+                        const reportCalls: ReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename: "src/example.ts",
+                            report(descriptor: ReportDescriptor) {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.IfStatement?.(ifNode);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            messageId: "preferTsExtrasAssertError",
+                        });
+                        expect(reportCalls[0]?.fix).toBeUndefined();
+
+                        const firstSuggestion = reportCalls[0]?.suggest?.[0];
+
+                        expect(firstSuggestion?.messageId).toBe(
+                            "suggestTsExtrasAssertError"
+                        );
+                        expect(firstSuggestion?.fix).toBeDefined();
+
+                        const suggestionFix: unknown = firstSuggestion?.fix;
+                        assertIsFixFunction(suggestionFix);
+
+                        let replacementText = "";
+
+                        suggestionFix({
+                            replaceText(node, text): unknown {
+                                expect(node).toEqual(ifNode);
+
+                                replacementText = text;
+
+                                return text;
+                            },
+                        });
+
+                        expect(replacementText).toBe(
+                            `assertError(${expressionTemplate.expressionText});`
+                        );
+
+                        const suggestedCode =
+                            code.slice(0, ifNode.range[0]) +
+                            replacementText +
+                            code.slice(ifNode.range[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(suggestedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.runs70
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
