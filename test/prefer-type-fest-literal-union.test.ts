@@ -27,6 +27,8 @@ const inlineInvalidNumberLiteralUnionCode =
     "type HttpCode = 200 | 404 | number;";
 const inlineInvalidWithoutFixCode =
     "type EnvironmentName = 'dev' | 'prod' | string;";
+const shadowedReplacementNameInvalidCode =
+    "type Wrapper<LiteralUnion> = 'dev' | 'prod' | string;";
 const inlineInvalidBigIntLiteralUnionOutputCode = [
     'import type { LiteralUnion } from "type-fest";',
     "type SessionNonce = LiteralUnion<1n, bigint>;",
@@ -138,6 +140,7 @@ const literalAndTypeReferenceUnionValidCode =
     "type EnvironmentName = 'dev' | CustomAlias | string;";
 const mismatchedBigIntLiteralFamilyValidCode =
     "type SessionNonce = bigint | 1 | 2;";
+const keywordLiteralCrossFamilyValidCode = "type SessionToken = string | 1;";
 const templateLiteralAndStringKeywordValidCode =
     "type EnvironmentName = `dev` | string;";
 
@@ -340,6 +343,141 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             vi.resetModules();
         }
     });
+
+    it("returns an empty listener map for test-file paths", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => true,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-literal-union")) as {
+                    default: {
+                        create: (context: unknown) => Record<string, unknown>;
+                    };
+                };
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "test/fixtures/literal-union.test.ts",
+                sourceCode: {
+                    ast: {
+                        body: [],
+                        sourceType: "module",
+                        type: "Program",
+                    },
+                },
+            });
+
+            expect(listenerMap).toStrictEqual({});
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("handles defensive fallback branches when union members change across successive reads", async () => {
+        const createBigIntKeywordMember = () => ({
+            type: "TSBigIntKeyword",
+        });
+        const createBigIntLiteralMember = () => ({
+            literal: {
+                type: "Literal",
+                value: BigInt(1),
+            },
+            type: "TSLiteralType",
+        });
+        const createStringKeywordMember = () => ({
+            type: "TSStringKeyword",
+        });
+        const createNumberLiteralMember = () => ({
+            literal: {
+                type: "Literal",
+                value: 1,
+            },
+            type: "TSLiteralType",
+        });
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-literal-union")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const report = vi.fn();
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-type-fest-literal-union.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: {
+                        body: [],
+                        sourceType: "module",
+                        type: "Program",
+                    },
+                    getText: (): string => "'dev'",
+                },
+            });
+
+            let familyFallbackReadCount = 0;
+            const familyFallbackNode = {
+                get types() {
+                    familyFallbackReadCount += 1;
+
+                    if (familyFallbackReadCount === 1) {
+                        return [
+                            createBigIntKeywordMember(),
+                            createBigIntLiteralMember(),
+                        ];
+                    }
+
+                    return [
+                        createStringKeywordMember(),
+                        createNumberLiteralMember(),
+                    ];
+                },
+                type: "TSUnionType",
+            };
+
+            let replacementFallbackReadCount = 0;
+            const replacementFallbackNode = {
+                get types() {
+                    replacementFallbackReadCount += 1;
+
+                    if (replacementFallbackReadCount < 3) {
+                        return [
+                            createBigIntKeywordMember(),
+                            createBigIntLiteralMember(),
+                        ];
+                    }
+
+                    return [createBigIntKeywordMember()];
+                },
+                type: "TSUnionType",
+            };
+
+            listenerMap.TSUnionType?.(familyFallbackNode);
+            listenerMap.TSUnionType?.(replacementFallbackNode);
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(
@@ -391,6 +529,23 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports primitive+literal union without fix when LiteralUnion import is missing",
                 output: inlineInvalidWithoutFixOutputCode,
+            },
+            {
+                code: inlineInvalidWithoutFixCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports without autofix when import-insertion fixes are disabled",
+                settings: {
+                    typefest: {
+                        disableImportInsertionFixes: true,
+                    },
+                },
+            },
+            {
+                code: shadowedReplacementNameInvalidCode,
+                errors: [{ messageId: "preferLiteralUnion" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports without autofix when replacement identifier is shadowed by a type parameter",
             },
             {
                 code: inlineFixableCode,
@@ -502,6 +657,11 @@ ruleTester.run(
                 code: mismatchedBigIntLiteralFamilyValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores bigint unions with numeric (non-bigint) literals",
+            },
+            {
+                code: keywordLiteralCrossFamilyValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores unions where keyword and literal members belong to different primitive families",
             },
             {
                 code: templateLiteralAndStringKeywordValidCode,

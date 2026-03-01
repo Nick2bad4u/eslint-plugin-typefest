@@ -59,6 +59,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = IfAny<string, true, false>;",
     "type Input = IsAny<string, true, false>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { IfAny } from "type-aliases";',
+    "",
+    "type Wrapper<IsAny> = IfAny<string, true, false>;",
+].join("\n");
 
 interface IfRuleMetadataSnapshot {
     create: (context: unknown) => unknown;
@@ -231,6 +236,21 @@ ruleTester.run("prefer-type-fest-if", getPluginRule("prefer-type-fest-if"), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline IfAny alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "IfAny",
+                        replacement: "IsAny",
+                    },
+                    messageId: "preferTypeFestIf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports IfAny alias when replacement identifier is shadowed by a type parameter",
+            output: null,
         },
     ],
     valid: [

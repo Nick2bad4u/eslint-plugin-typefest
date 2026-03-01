@@ -434,6 +434,111 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
             vi.resetModules();
         }
     });
+
+    it("ignores logical-or callback bodies that do not match strict present filter guards", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: () => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueReferenceReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    getText: () => "value",
+                },
+            });
+
+            listeners.CallExpression?.({
+                arguments: [
+                    {
+                        body: {
+                            left: {
+                                left: {
+                                    name: "value",
+                                    type: "Identifier",
+                                },
+                                operator: "!==",
+                                right: {
+                                    type: "Literal",
+                                    value: null,
+                                },
+                                type: "BinaryExpression",
+                            },
+                            operator: "||",
+                            right: {
+                                left: {
+                                    name: "value",
+                                    type: "Identifier",
+                                },
+                                operator: "!==",
+                                right: {
+                                    name: "undefined",
+                                    type: "Identifier",
+                                },
+                                type: "BinaryExpression",
+                            },
+                            type: "LogicalExpression",
+                        },
+                        params: [
+                            {
+                                name: "value",
+                                type: "Identifier",
+                            },
+                        ],
+                        type: "ArrowFunctionExpression",
+                    },
+                ],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            });
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 const fixtureInvalidOutput = [

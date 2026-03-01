@@ -38,6 +38,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
     "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { RemoveIndexSignature } from "type-aliases";',
+    "",
+    "type Wrapper<OmitIndexSignature> = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -80,6 +85,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline RemoveIndexSignature alias",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RemoveIndexSignature",
+                        replacement: "OmitIndexSignature",
+                    },
+                    messageId: "preferOmitIndexSignature",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports RemoveIndexSignature alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

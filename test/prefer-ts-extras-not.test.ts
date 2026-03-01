@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -208,6 +208,96 @@ describe("prefer-ts-extras-not source assertions", () => {
         expect(ruleSource).toMatch(
             /\(firstArgument\.type !== "ArrowFunctionExpression" &&\s+firstArgument\.type !== "FunctionExpression"\)/v
         );
+    });
+});
+
+describe("prefer-ts-extras-not internal listener guards", () => {
+    it("reports without a fix when predicate text trims to empty", async () => {
+        const reportCalls: Array<
+            Readonly<{ fix?: unknown; messageId?: string }>
+        > = [];
+
+        try {
+            vi.resetModules();
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-not")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(
+                    descriptor: Readonly<{ fix?: unknown; messageId?: string }>
+                ) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "   ",
+                },
+            });
+
+            listeners.CallExpression?.({
+                arguments: [
+                    {
+                        body: {
+                            argument: {
+                                arguments: [
+                                    {
+                                        name: "value",
+                                        type: "Identifier",
+                                    },
+                                ],
+                                callee: {
+                                    name: "isPresent",
+                                    type: "Identifier",
+                                },
+                                optional: false,
+                                type: "CallExpression",
+                            },
+                            operator: "!",
+                            prefix: true,
+                            type: "UnaryExpression",
+                        },
+                        params: [
+                            {
+                                name: "value",
+                                type: "Identifier",
+                            },
+                        ],
+                        type: "ArrowFunctionExpression",
+                    },
+                ],
+                callee: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "filter",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            });
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                fix: null,
+                messageId: "preferTsExtrasNot",
+            });
+        } finally {
+            vi.resetModules();
+        }
     });
 });
 

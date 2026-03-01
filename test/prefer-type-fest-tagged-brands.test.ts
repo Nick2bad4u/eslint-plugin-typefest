@@ -36,6 +36,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type UserId = Opaque<string, "UserId">;',
     'type UserId = Tagged<string, "UserId">;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { Opaque } from "type-aliases";',
+    "",
+    'type Wrapper<Tagged> = Opaque<string, "UserId">;',
+].join("\n");
 const inlineInvalidMixedTypeLiteralMembersCode = [
     "type SessionIdentifier = string & {",
     '    readonly __brand: "SessionIdentifier";',
@@ -157,6 +162,21 @@ ruleTester.run(
                 filename: typedFixturePath(importedAliasFixtureName),
                 name: "reports and autofixes imported Opaque alias",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Opaque",
+                            replacement: "Tagged",
+                        },
+                        messageId: "preferTaggedAlias",
+                    },
+                ],
+                filename: typedFixturePath(importedAliasFixtureName),
+                name: "reports imported Opaque alias when replacement identifier is shadowed",
+                output: null,
             },
             {
                 code: inlineInvalidMixedTypeLiteralMembersCode,

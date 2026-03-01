@@ -34,6 +34,15 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type StrictUser = DeepRequired<User>;",
     "type StrictUser = RequiredDeep<User>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { DeepRequired } from "type-aliases";',
+    "",
+    "type User = {",
+    "    id?: string;",
+    "};",
+    "",
+    "type Wrapper<RequiredDeep> = DeepRequired<User>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-required-deep",
@@ -68,6 +77,13 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline DeepRequired alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [{ messageId: "preferRequiredDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports DeepRequired alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

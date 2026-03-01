@@ -43,6 +43,15 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type MutableUser = DeepMutable<User>;",
     "type MutableUser = WritableDeep<User>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { DeepMutable } from "type-aliases";',
+    "",
+    "type User = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "type Wrapper<WritableDeep> = DeepMutable<User>;",
+].join("\n");
 
 ruleTester.run("prefer-type-fest-writable-deep", writableDeepRule, {
     invalid: [
@@ -65,6 +74,13 @@ ruleTester.run("prefer-type-fest-writable-deep", writableDeepRule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline DeepMutable alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [{ messageId: "preferWritableDeep" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports DeepMutable alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

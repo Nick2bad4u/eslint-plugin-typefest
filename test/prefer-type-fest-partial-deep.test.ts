@@ -34,6 +34,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type PartialUser = DeepPartial<User>;",
     "type PartialUser = PartialDeep<User>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { DeepPartial } from "type-aliases";',
+    "",
+    "type Wrapper<PartialDeep extends object> = DeepPartial<PartialDeep>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-partial-deep",
@@ -68,6 +73,13 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline DeepPartial alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [{ messageId: "preferPartialDeep" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports DeepPartial alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

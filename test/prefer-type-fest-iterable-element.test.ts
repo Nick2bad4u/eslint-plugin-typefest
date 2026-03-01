@@ -41,6 +41,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = SetElement<Set<string>>;",
     "type Input = IterableElement<Set<string>>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { SetElement } from "type-aliases";',
+    "",
+    "type Wrapper<IterableElement> = SetElement<Set<string>>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -100,6 +105,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline SetElement alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "SetElement",
+                        replacement: "IterableElement",
+                    },
+                    messageId: "preferIterableElement",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports SetElement alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

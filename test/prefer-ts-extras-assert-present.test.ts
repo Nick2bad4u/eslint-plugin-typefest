@@ -4,7 +4,9 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -113,6 +115,13 @@ const nonEqualityTestValidCode = [
     "    if (!value) {",
     "        throw new TypeError('Missing value');",
     "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const emptyConsequentValidCode = [
+    "function ensureValue(value: string | null): string | null {",
+    "    if (value == null);",
     "",
     "    return value;",
     "}",
@@ -245,6 +254,19 @@ const inlineSuggestableTemplateWrongExpressionCode = [
     "    return value ?? fallback;",
     "}",
 ].join("\n");
+const inlineSuggestableSpreadArgumentCode = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "const messageParts = ['Expected a present value, got `value`'];",
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    if (value == null) {",
+    "        throw new TypeError(...messageParts);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineAutofixableCanonicalCode = [
     'import { assertPresent } from "ts-extras";',
     "",
@@ -350,6 +372,17 @@ const inlineSuggestableTemplateWrongExpressionOutput = [
     "    return value ?? fallback;",
     "}",
 ].join("\n");
+const inlineSuggestableSpreadArgumentOutput = [
+    'import { assertPresent } from "ts-extras";',
+    "",
+    "const messageParts = ['Expected a present value, got `value`'];",
+    "",
+    "function ensureValue(value: string | null): string {",
+    "    assertPresent(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineInvalidNullableSuggestionOutputCode = [
     'import { assertPresent } from "ts-extras";',
     "function ensureValue(value: string | null): string {",
@@ -435,6 +468,173 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
         expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
         expect(ruleSource).toContain('test.operator !== "||"');
         expect(ruleSource).toContain("hasSuggestions: true,");
+    });
+
+    it("handles defensive nullish-guard branches for synthetic AST drift", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set(["assertPresent"]),
+                createSafeValueNodeTextReplacementFix: () => () => [],
+            }));
+
+            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
+                areEquivalentExpressions: () => true,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (): boolean => true,
+                isGlobalUndefinedIdentifier: (): boolean => true,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-present")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const sourceText = [
+                "function ensureValue(value: string | null): string {",
+                "    if (value == null) {",
+                "        throw new TypeError(`Expected a present value, got ${value}`);",
+                "    }",
+                "",
+                "    return value;",
+                "}",
+            ].join("\n");
+
+            const parsed = parser.parseForESLint(sourceText, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
+
+            const [declaration] = parsed.ast.body;
+            if (
+                declaration?.type !== AST_NODE_TYPES.FunctionDeclaration ||
+                declaration.body.body[0]?.type !== AST_NODE_TYPES.IfStatement
+            ) {
+                throw new Error(
+                    "Expected function declaration containing IfStatement"
+                );
+            }
+
+            const driftIfStatementNode = declaration.body.body[0];
+            const originalConsequent = driftIfStatementNode.consequent;
+            let consequentReadCount = 0;
+
+            Object.defineProperty(driftIfStatementNode, "consequent", {
+                configurable: true,
+                get() {
+                    consequentReadCount += 1;
+
+                    if (consequentReadCount === 1) {
+                        return originalConsequent;
+                    }
+
+                    if (
+                        originalConsequent.type !==
+                        AST_NODE_TYPES.BlockStatement
+                    ) {
+                        return originalConsequent;
+                    }
+
+                    return {
+                        ...originalConsequent,
+                        body: [undefined],
+                    };
+                },
+            });
+
+            const report = vi.fn();
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-assert-present.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsed.ast,
+                    getText: () => "value",
+                },
+            });
+
+            listenerMap.IfStatement?.(driftIfStatementNode);
+
+            const parsedCanonical = parser.parseForESLint(sourceText, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
+            const [canonicalDeclaration] = parsedCanonical.ast.body;
+            if (
+                canonicalDeclaration?.type !==
+                    AST_NODE_TYPES.FunctionDeclaration ||
+                canonicalDeclaration.body.body[0]?.type !==
+                    AST_NODE_TYPES.IfStatement
+            ) {
+                throw new Error(
+                    "Expected function declaration containing canonical IfStatement"
+                );
+            }
+
+            const canonicalIfStatementNode = canonicalDeclaration.body.body[0];
+            if (
+                canonicalIfStatementNode.type !== AST_NODE_TYPES.IfStatement ||
+                canonicalIfStatementNode.consequent.type !==
+                    AST_NODE_TYPES.BlockStatement
+            ) {
+                throw new Error(
+                    "Expected block consequent for canonical mutation test"
+                );
+            }
+
+            const throwStatement = canonicalIfStatementNode.consequent.body[0];
+            if (
+                throwStatement?.type !== AST_NODE_TYPES.ThrowStatement ||
+                throwStatement.argument.type !== AST_NODE_TYPES.NewExpression
+            ) {
+                throw new Error(
+                    "Expected throw new TypeError(...) in canonical branch"
+                );
+            }
+
+            const [firstArgument] = throwStatement.argument.arguments;
+            if (
+                !firstArgument ||
+                firstArgument.type !== AST_NODE_TYPES.TemplateLiteral
+            ) {
+                throw new Error(
+                    "Expected template literal TypeError message argument"
+                );
+            }
+
+            firstArgument.expressions = [
+                undefined,
+            ] as unknown as typeof firstArgument.expressions;
+
+            listenerMap.IfStatement?.(canonicalIfStatementNode);
+
+            expect(report).toHaveBeenCalledTimes(2);
+            expect(
+                (report.mock.calls[0]?.[0] as { suggest?: unknown }).suggest
+            ).toBeDefined();
+            expect(
+                (report.mock.calls[1]?.[0] as { suggest?: unknown }).suggest
+            ).toBeDefined();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/normalize-expression-text.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 
@@ -633,6 +833,22 @@ ruleTester.run(
                 name: "suggests replacement when template expression differs from guard subject",
             },
             {
+                code: inlineSuggestableSpreadArgumentCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasAssertPresent",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasAssertPresent",
+                                output: inlineSuggestableSpreadArgumentOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "suggests replacement when TypeError call spreads message arguments",
+            },
+            {
                 code: inlineAutofixableCanonicalCode,
                 errors: [{ messageId: "preferTsExtrasAssertPresent" }],
                 filename: typedFixturePath(invalidFixtureName),
@@ -719,6 +935,11 @@ ruleTester.run(
                 code: nonEqualityTestValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-equality guard expression",
+            },
+            {
+                code: emptyConsequentValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores nullish guard with an empty consequent",
             },
             {
                 code: binaryEqWithoutNullValidCode,

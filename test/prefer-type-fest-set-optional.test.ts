@@ -38,6 +38,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type MaybeUser = PartialBy<User, "id">;',
     'type MaybeUser = SetOptional<User, "id">;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { PartialBy } from "type-aliases";',
+    "",
+    'type Wrapper<SetOptional extends object> = PartialBy<SetOptional, "id">;',
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-set-optional",
@@ -88,6 +93,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline MarkOptional alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "PartialBy",
+                            replacement: "SetOptional",
+                        },
+                        messageId: "preferSetOptional",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports PartialBy alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

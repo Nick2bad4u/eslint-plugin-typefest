@@ -222,6 +222,87 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
             vi.resetModules();
         }
     });
+
+    it("handles unstable synthetic length members without reporting", async () => {
+        const report = vi.fn();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                    },
+                }),
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-empty")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listenerMap = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report,
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            let leftTypeReadCount = 0;
+
+            listenerMap.BinaryExpression?.({
+                left: {
+                    computed: false,
+                    object: {
+                        name: "values",
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "length",
+                        type: "Identifier",
+                    },
+                    get type() {
+                        leftTypeReadCount += 1;
+
+                        return leftTypeReadCount === 1
+                            ? "MemberExpression"
+                            : "Identifier";
+                    },
+                },
+                operator: "===",
+                right: {
+                    type: "Literal",
+                    value: 0,
+                },
+                type: "BinaryExpression",
+            });
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run("prefer-ts-extras-is-empty", rule, {

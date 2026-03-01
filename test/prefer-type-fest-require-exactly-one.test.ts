@@ -37,6 +37,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = OneOf<{ a?: string; b?: number }>;",
     "type Input = RequireExactlyOne<{ a?: string; b?: number }>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { OneOf } from "type-aliases";',
+    "",
+    "type Wrapper<RequireExactlyOne> = OneOf<{ a?: string; b?: number }>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-require-exactly-one",
@@ -97,6 +102,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline OneOf alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "OneOf",
+                            replacement: "RequireExactlyOne",
+                        },
+                        messageId: "preferRequireExactlyOne",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports OneOf alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

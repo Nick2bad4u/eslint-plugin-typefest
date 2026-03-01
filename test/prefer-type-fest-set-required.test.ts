@@ -38,6 +38,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type StrictUser = RequiredBy<User, "id">;',
     'type StrictUser = SetRequired<User, "id">;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { RequiredBy } from "type-aliases";',
+    "",
+    'type Wrapper<SetRequired extends object> = RequiredBy<SetRequired, "id">;',
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-set-required",
@@ -88,6 +93,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline MarkRequired alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "RequiredBy",
+                            replacement: "SetRequired",
+                        },
+                        messageId: "preferSetRequired",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports RequiredBy alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

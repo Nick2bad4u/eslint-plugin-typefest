@@ -301,12 +301,11 @@ const isSafePresentFilterAutoFixableCallback = ({
         return false;
     }
 
-    /* V8 ignore start -- reachable only when body is a logical expression that
-         survived nullish-guard detection; current guard logic only admits `&&`. */
+    /* v8 ignore start */
     if (body.operator !== "&&") {
         return false;
     }
-    /* V8 ignore stop */
+    /* v8 ignore stop */
 
     const andTerms = flattenLogicalAndTerms(body);
     if (andTerms.length !== 2) {

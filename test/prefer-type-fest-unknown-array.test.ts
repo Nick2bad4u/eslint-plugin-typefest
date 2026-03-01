@@ -99,6 +99,9 @@ const inlineFixableOutput = [
     "",
     "type Input = Readonly<UnknownArray>;",
 ].join("\n");
+const inlineNoFixShadowedReplacementCode = [
+    "type Wrapper<UnknownArray> = readonly unknown[];",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -242,6 +245,13 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports ReadonlyArray<unknown> even when UnknownArray import is missing",
             output: inlineInvalidWithoutFixOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementCode,
+            errors: [{ messageId: "preferUnknownArray" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports readonly unknown[] when replacement identifier is shadowed",
+            output: null,
         },
         {
             code: inlineReadonlyShorthandFixableCode,

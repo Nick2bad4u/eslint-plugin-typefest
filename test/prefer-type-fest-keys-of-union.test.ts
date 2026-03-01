@@ -38,6 +38,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AllKeys<{ a: string } | { b: number }>;",
     "type Input = KeysOfUnion<{ a: string } | { b: number }>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { AllKeys } from "type-aliases";',
+    "",
+    "type Wrapper<KeysOfUnion> = AllKeys<{ a: string } | { b: number }>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -80,6 +85,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline AllKeys alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AllKeys",
+                        replacement: "KeysOfUnion",
+                    },
+                    messageId: "preferKeysOfUnion",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports AllKeys alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

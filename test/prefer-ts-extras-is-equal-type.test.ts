@@ -319,6 +319,80 @@ describe("prefer-ts-extras-is-equal-type source assertions", () => {
     });
 });
 
+describe("prefer-ts-extras-is-equal-type internal listener guards", () => {
+    it("ignores IsEqual-like references with malformed non-qualified typeName nodes", async () => {
+        const report = vi.fn();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectNamedImportLocalNamesFromSource: () =>
+                    new Set<string>(["IsEqual"]),
+                collectNamespaceImportLocalNamesFromSource: () =>
+                    new Set<string>(["TypeFest"]),
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            VariableDeclarator?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report,
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "string",
+                },
+            });
+
+            listeners.VariableDeclarator?.({
+                id: {
+                    name: "equalCheck",
+                    type: "Identifier",
+                    typeAnnotation: {
+                        typeAnnotation: {
+                            type: "TSTypeReference",
+                            typeName: {
+                                type: "TSImportType",
+                            },
+                        },
+                    },
+                },
+                init: {
+                    type: "Literal",
+                    value: true,
+                },
+                type: "VariableDeclarator",
+            });
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
 ruleTester.run(
     "prefer-ts-extras-is-equal-type",
     getPluginRule("prefer-ts-extras-is-equal-type"),

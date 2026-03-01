@@ -53,6 +53,8 @@ const inlineFixableOutput = [
     "",
     "type SharedContext = UnknownRecord;",
 ].join("\n");
+const inlineNoFixShadowedReplacementCode =
+    "type Wrapper<UnknownRecord> = Record<string, unknown>;";
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -86,6 +88,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes Record<string, unknown> when UnknownRecord import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixShadowedReplacementCode,
+            errors: [{ messageId: "preferUnknownRecord" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports Record<string, unknown> when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

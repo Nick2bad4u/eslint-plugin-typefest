@@ -45,6 +45,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type MutableUser = Mutable<User>;",
     "type MutableUser = Writable<User>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { Mutable } from "type-aliases";',
+    "",
+    "type Wrapper<Writable extends object> = Mutable<Writable>;",
+].join("\n");
 const mappedPKeyInvalidCode =
     "type WritableLike<T> = { -readonly [P in keyof T]: T[P] };";
 const mappedWhitespaceVariantInvalidCode =
@@ -386,6 +391,21 @@ ruleTester.run(ruleName, rule, {
             filename: typedFixturePath(importedAliasInvalidFixtureName),
             name: "reports and autofixes inline Mutable alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "Mutable",
+                        replacement: "Writable",
+                    },
+                    messageId: "preferWritableAlias",
+                },
+            ],
+            filename: typedFixturePath(importedAliasInvalidFixtureName),
+            name: "reports Mutable alias when replacement identifier is shadowed",
+            output: null,
         },
         {
             code: readTypedFixture(mappedInvalidFixtureName),

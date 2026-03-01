@@ -43,6 +43,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type FrozenUser = ReadonlyBy<User, "id">;',
     'type FrozenUser = SetReadonly<User, "id">;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { ReadonlyBy } from "type-aliases";',
+    "",
+    'type Wrapper<SetReadonly extends object> = ReadonlyBy<SetReadonly, "id">;',
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -85,6 +90,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline MarkReadonly alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "ReadonlyBy",
+                        replacement: "SetReadonly",
+                    },
+                    messageId: "preferSetReadonly",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlyBy alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

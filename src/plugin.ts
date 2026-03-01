@@ -539,6 +539,12 @@ const typefestConfigsDefinition = {
     ),
     minimal: withTypefestPlugin(
         {
+            languageOptions: {
+                parserOptions: {
+                    ecmaVersion: "latest",
+                    sourceType: "module",
+                },
+            },
             name: "typefest:minimal",
             rules: errorRulesFor(minimalRuleNames),
         },

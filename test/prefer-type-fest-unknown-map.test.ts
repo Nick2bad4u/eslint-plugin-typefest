@@ -55,6 +55,8 @@ const inlineFixableOutput = [
     "",
     "type Input = Readonly<UnknownMap>;",
 ].join("\n");
+const inlineNoFixShadowedReplacementCode =
+    "type Wrapper<UnknownMap> = ReadonlyMap<unknown, unknown>;";
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-unknown-map",
@@ -182,6 +184,13 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes ReadonlyMap<unknown, unknown> when UnknownMap import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixShadowedReplacementCode,
+            errors: [{ messageId: "preferUnknownMap" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlyMap<unknown, unknown> when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

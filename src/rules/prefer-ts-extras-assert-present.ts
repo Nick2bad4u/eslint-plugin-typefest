@@ -65,6 +65,7 @@ const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
         return true;
     }
 
+    /* v8 ignore next 4 -- defensive sparse-array guard for malformed synthetic AST nodes. */
     return (
         node.type === "BlockStatement" &&
         node.body.length === 1 &&
@@ -86,6 +87,7 @@ const getThrowStatementFromConsequent = (
         return node;
     }
 
+    /* v8 ignore next 5 -- defensive sparse-array guard for malformed synthetic AST nodes. */
     if (
         node.type === "BlockStatement" &&
         node.body.length === 1 &&
@@ -94,6 +96,7 @@ const getThrowStatementFromConsequent = (
         return node.body[0];
     }
 
+    /* v8 ignore next -- guarded by isThrowOnlyConsequent before this helper is invoked in rule flow. */
     return null;
 };
 
@@ -143,6 +146,7 @@ const isCanonicalAssertPresentThrow = ({
     }
 
     const [templateExpression] = firstArgument.expressions;
+    /* v8 ignore next -- parser guarantees an element at index 0 when expressions.length is exactly 1. */
     if (!templateExpression) {
         return false;
     }

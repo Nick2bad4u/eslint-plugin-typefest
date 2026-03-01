@@ -37,6 +37,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;",
     "type Input = RequireAllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { AllOrNone } from "type-aliases";',
+    "",
+    "type Wrapper<RequireAllOrNone> = AllOrNone<{ a?: string; b?: number }, 'a' | 'b'>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-require-all-or-none",
@@ -97,6 +102,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline AllOrNone alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "AllOrNone",
+                            replacement: "RequireAllOrNone",
+                        },
+                        messageId: "preferRequireAllOrNone",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports AllOrNone alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

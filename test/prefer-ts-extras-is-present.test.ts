@@ -94,6 +94,15 @@ const inlineValidStrictPresentWithUndefinedAliasCode = [
     "",
     "String(isPresentValue);",
 ].join("\n");
+const inlineValidStrictPresentWithNestedOperatorMismatchCode = [
+    "declare const maybeValue: null | string | undefined;",
+    "declare const hasPermission: boolean;",
+    "",
+    "const isPresentValue =",
+    "    maybeValue !== null && (maybeValue !== undefined || hasPermission);",
+    "",
+    "String(isPresentValue);",
+].join("\n");
 const inlineValidStrictPresentDifferentComparedExpressionCode = [
     "declare const maybeValue: null | string | undefined;",
     "declare const otherValue: null | string | undefined;",
@@ -726,6 +735,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidStrictPresentWithUndefinedAliasCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores strict present check using non-undefined identifier alias",
+        },
+        {
+            code: inlineValidStrictPresentWithNestedOperatorMismatchCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores strict present checks with nested opposite logical operators",
         },
         {
             code: inlineValidStrictPresentDifferentComparedExpressionCode,

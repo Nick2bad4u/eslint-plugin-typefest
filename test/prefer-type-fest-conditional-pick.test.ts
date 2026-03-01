@@ -36,6 +36,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = PickByTypes<{ a: string; b: number }, string>;",
     "type Input = ConditionalPick<{ a: string; b: number }, string>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { PickByTypes } from "type-aliases";',
+    "",
+    "type Wrapper<ConditionalPick> = PickByTypes<{ a: string; b: number }, string>;",
+].join("\n");
 
 interface ConditionalPickRuleMetadataSnapshot {
     create: (context: unknown) => unknown;
@@ -179,6 +184,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline PickByTypes alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "PickByTypes",
+                            replacement: "ConditionalPick",
+                        },
+                        messageId: "preferConditionalPick",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports PickByTypes alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

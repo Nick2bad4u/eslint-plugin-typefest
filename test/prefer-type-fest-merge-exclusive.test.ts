@@ -37,6 +37,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type AB = XOR<A, B>;",
     "type AB = MergeExclusive<A, B>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { XOR } from "type-aliases";',
+    "",
+    "type Wrapper<MergeExclusive> = XOR<{ a: string }, { b: string }>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -63,6 +68,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline XOR alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [{ messageId: "preferMergeExclusive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports XOR alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

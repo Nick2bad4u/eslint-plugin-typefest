@@ -97,6 +97,19 @@ const declaredStringObjectInvalidOutput = [
     "const parts = stringSplit(value, ',');",
     "String(parts);",
 ].join("\n");
+const intersectionStringInvalidCode = [
+    "type BrandedString = string & { readonly __brand: 'BrandedString' };",
+    "declare const value: BrandedString;",
+    "const parts = value.split(',');",
+    "String(parts);",
+].join("\n");
+const intersectionStringInvalidOutput = [
+    'import { stringSplit } from "ts-extras";',
+    "type BrandedString = string & { readonly __brand: 'BrandedString' };",
+    "declare const value: BrandedString;",
+    "const parts = stringSplit(value, ',');",
+    "String(parts);",
+].join("\n");
 
 const inlineFixableCode = [
     'import { stringSplit } from "ts-extras";',
@@ -231,6 +244,113 @@ describe("prefer-ts-extras-string-split source assertions", () => {
             vi.resetModules();
         }
     });
+
+    it("guards apparent-type recursion cycles without reporting", async () => {
+        try {
+            vi.resetModules();
+
+            const typeA = {
+                getSymbol: (): undefined => undefined,
+                isIntersection: (): boolean => false,
+                isUnion: (): boolean => false,
+            };
+            const typeB = {
+                getSymbol: (): undefined => undefined,
+                isIntersection: (): boolean => false,
+                isUnion: (): boolean => false,
+            };
+
+            const getApparentType = vi.fn((candidate: unknown): unknown => {
+                if (candidate === typeA) {
+                    return typeB;
+                }
+
+                if (candidate === typeB) {
+                    return typeA;
+                }
+
+                return candidate;
+            });
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getApparentType,
+                        getStringType: () => ({
+                            isIntersection: (): boolean => false,
+                            isUnion: (): boolean => false,
+                        }),
+                        getTypeAtLocation: () => typeA,
+                        typeToString: () => "NonStringLike",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): object => ({
+                                kind: "MockTypeNode",
+                            }),
+                        },
+                    },
+                }),
+                isTestFilePath: (): boolean => false,
+                isTypeAssignableTo: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-string-split")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const parsedResult = parser.parseForESLint(
+                [
+                    "const value = { split(separator: string) { return [separator]; } };",
+                    "const parts = value.split(',');",
+                ].join("\n"),
+                {
+                    ecmaVersion: "latest",
+                    loc: true,
+                    range: true,
+                    sourceType: "module",
+                }
+            );
+
+            const secondStatement = parsedResult.ast.body[1];
+            if (secondStatement?.type !== AST_NODE_TYPES.VariableDeclaration) {
+                throw new Error("Expected variable declaration for split call");
+            }
+
+            const firstDeclarator = secondStatement.declarations[0];
+            if (firstDeclarator?.init?.type !== AST_NODE_TYPES.CallExpression) {
+                throw new Error(
+                    "Expected call expression initializer for split call"
+                );
+            }
+
+            const splitCallExpression = firstDeclarator.init;
+            const report = vi.fn();
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            listenerMap.CallExpression?.(splitCallExpression);
+
+            expect(getApparentType).toHaveBeenCalled();
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(
@@ -285,6 +405,13 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports declared String object split call",
                 output: declaredStringObjectInvalidOutput,
+            },
+            {
+                code: intersectionStringInvalidCode,
+                errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports string intersections that preserve string split semantics",
+                output: intersectionStringInvalidOutput,
             },
             {
                 code: inlineFixableCode,

@@ -55,6 +55,11 @@ const inlineNoFixWithoutExceptImportOutputCode =
             'type UserWithoutId = HomomorphicOmit<User, "id">;',
             'type UserWithoutId = Except<User, "id">;'
         );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { HomomorphicOmit } from "type-aliases";',
+    "",
+    'type Wrapper<Except extends object> = HomomorphicOmit<Except, "id">;',
+].join("\n");
 const inlineValidNamespaceAliasCode = [
     'import type * as TypeAliases from "type-aliases";',
     "",
@@ -188,6 +193,13 @@ ruleTester.run("prefer-type-fest-except", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports alias usage without available Except import fix",
             output: inlineNoFixWithoutExceptImportOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [{ messageId: "preferExcept" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports HomomorphicOmit alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

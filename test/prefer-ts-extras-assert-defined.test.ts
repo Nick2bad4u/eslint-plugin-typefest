@@ -4,7 +4,9 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -103,6 +105,13 @@ const nonBinaryGuardValidCode = [
     "    return value;",
     "}",
 ].join("\n");
+const emptyConsequentValidCode = [
+    "function ensureValue(value: string | undefined): string | undefined {",
+    "    if (value === undefined);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const shadowedUndefinedBindingValidCode = [
     "function ensureValue(value: string | undefined): string {",
     "    const undefined = 'sentinel';",
@@ -147,6 +156,19 @@ const inlineSuggestableTooManyArgsCode = [
     "    return value;",
     "}",
 ].join("\n");
+const inlineSuggestableSpreadArgumentCode = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "const messageParts = ['Expected a defined value, got `undefined`'];",
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    if (value === undefined) {",
+    "        throw new TypeError(...messageParts);",
+    "    }",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
 const inlineAutofixableDirectThrowCanonicalCode = [
     'import { assertDefined } from "ts-extras";',
     "",
@@ -182,6 +204,17 @@ const shadowedTypeErrorSuggestableOutput = [
 ].join("\n");
 const inlineSuggestableOutput = [
     'import { assertDefined } from "ts-extras";',
+    "",
+    "function ensureValue(value: string | undefined): string {",
+    "    assertDefined(value);",
+    "",
+    "    return value;",
+    "}",
+].join("\n");
+const inlineSuggestableSpreadArgumentOutput = [
+    'import { assertDefined } from "ts-extras";',
+    "",
+    "const messageParts = ['Expected a defined value, got `undefined`'];",
     "",
     "function ensureValue(value: string | undefined): string {",
     "    assertDefined(value);",
@@ -322,6 +355,110 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
             "Replace this manual guard with `assertDefined(...)` from `ts-extras`."
         );
     });
+
+    it("handles defensive consequent re-evaluation branch when synthetic AST nodes drift across reads", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set(["assertDefined"]),
+                createSafeValueNodeTextReplacementFix: () => () => [],
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (): boolean => true,
+                isGlobalUndefinedIdentifier: (): boolean => true,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-defined")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const sourceText = [
+                "function ensureValue(value: string | undefined): string {",
+                "    if (value === undefined) {",
+                "        throw new TypeError('Expected a defined value, got `undefined`');",
+                "    }",
+                "",
+                "    return value;",
+                "}",
+            ].join("\n");
+
+            const parsed = parser.parseForESLint(sourceText, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
+
+            const [declaration] = parsed.ast.body;
+            if (
+                declaration?.type !== AST_NODE_TYPES.FunctionDeclaration ||
+                declaration.body.body[0]?.type !== AST_NODE_TYPES.IfStatement
+            ) {
+                throw new Error(
+                    "Expected function declaration containing IfStatement"
+                );
+            }
+
+            const ifStatementNode = declaration.body.body[0];
+            const originalConsequent = ifStatementNode.consequent;
+            let consequentReadCount = 0;
+
+            Object.defineProperty(ifStatementNode, "consequent", {
+                configurable: true,
+                get() {
+                    consequentReadCount += 1;
+
+                    if (consequentReadCount === 1) {
+                        return originalConsequent;
+                    }
+
+                    if (
+                        originalConsequent.type !==
+                        AST_NODE_TYPES.BlockStatement
+                    ) {
+                        return originalConsequent;
+                    }
+
+                    return {
+                        ...originalConsequent,
+                        body: [undefined],
+                    };
+                },
+            });
+
+            const report = vi.fn();
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-assert-defined.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsed.ast,
+                    getText: () => "value",
+                },
+            });
+
+            listenerMap.IfStatement?.(ifStatementNode);
+
+            expect(report).toHaveBeenCalledTimes(1);
+            expect(
+                (report.mock.calls[0]?.[0] as { suggest?: unknown }).suggest
+            ).toBeDefined();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
@@ -420,6 +557,22 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             name: "suggests replacement when TypeError call has multiple arguments",
         },
         {
+            code: inlineSuggestableSpreadArgumentCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasAssertDefined",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasAssertDefined",
+                            output: inlineSuggestableSpreadArgumentOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "suggests replacement when TypeError call spreads message arguments",
+        },
+        {
             code: inlineSuggestableCode,
             errors: [
                 {
@@ -508,6 +661,11 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
             code: nonBinaryGuardValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-binary guard expression",
+        },
+        {
+            code: emptyConsequentValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores undefined guard with an empty consequent",
         },
         {
             code: shadowedUndefinedBindingValidCode,

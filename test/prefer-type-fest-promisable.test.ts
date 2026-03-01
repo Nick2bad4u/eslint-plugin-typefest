@@ -201,6 +201,81 @@ describe("prefer-type-fest-promisable source assertions", () => {
     });
 });
 
+describe("prefer-type-fest-promisable internal listener guards", () => {
+    it("handles missing alias fixes and malformed two-member unions", async () => {
+        const reportCalls: Array<Readonly<{ messageId?: string }>> = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                collectImportedTypeAliasMatches: () =>
+                    new Map([
+                        ["MaybePromise", { replacementName: "Promisable" }],
+                    ]),
+                createSafeTypeReferenceReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-promisable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "string",
+                },
+            });
+
+            listeners.TSTypeReference?.({
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [{ type: "TSStringKeyword" }],
+                },
+                typeName: {
+                    name: "MaybePromise",
+                    type: "Identifier",
+                },
+            });
+
+            listeners.TSUnionType?.({
+                type: "TSUnionType",
+                types: [{ type: "TSStringKeyword" }, undefined],
+            });
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferPromisable",
+            });
+            expect(reportCalls[0]).not.toMatchObject({
+                fix: expect.anything(),
+            });
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
 ruleTester.run(
     "prefer-type-fest-promisable",
     getPluginRule("prefer-type-fest-promisable"),

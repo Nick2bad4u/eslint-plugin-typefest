@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -241,6 +241,77 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
         expect(ruleSource).toContain(
             "require ts-extras asWritable over Writable<T> style assertions from type-fest."
         );
+    });
+});
+
+describe("prefer-ts-extras-as-writable internal listener guards", () => {
+    it("ignores malformed non-qualified Writable type-name nodes", async () => {
+        const reportCalls: unknown[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectNamedImportLocalNamesFromSource: () =>
+                    new Set<string>(["Writable"]),
+                collectNamespaceImportLocalNamesFromSource: () =>
+                    new Set<string>(["TypeFest"]),
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-as-writable")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report: (descriptor: unknown) => {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "value",
+                },
+            });
+
+            listeners.TSAsExpression?.({
+                expression: {
+                    name: "value",
+                    type: "Identifier",
+                },
+                type: "TSAsExpression",
+                typeAnnotation: {
+                    type: "TSTypeReference",
+                    typeName: {
+                        type: "TSImportType",
+                    },
+                },
+            });
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

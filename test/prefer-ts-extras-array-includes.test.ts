@@ -2,6 +2,7 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -66,6 +67,21 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const hasValue = arrayIncludes(sample, 2);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-array-includes",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasArrayIncludes:
+                "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+        },
+        name: "prefer-ts-extras-array-includes",
+    }
+);
 
 ruleTester.run(
     "prefer-ts-extras-array-includes",

@@ -51,6 +51,8 @@ const inlineFixableOutput = [
     "",
     "type Input = Readonly<UnknownSet>;",
 ].join("\n");
+const inlineNoFixShadowedReplacementCode =
+    "type Wrapper<UnknownSet> = ReadonlySet<unknown>;";
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-unknown-set",
@@ -171,6 +173,13 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes ReadonlySet<unknown> when UnknownSet import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixShadowedReplacementCode,
+            errors: [{ messageId: "preferUnknownSet" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports ReadonlySet<unknown> when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

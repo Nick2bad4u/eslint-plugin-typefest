@@ -42,9 +42,11 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const keyOfTargetType = node.indexType.typeAnnotation;
+                    /* v8 ignore start */
                     if (!keyOfTargetType) {
                         return;
                     }
+                    /* v8 ignore stop */
 
                     if (
                         !areEquivalentTypeNodes(

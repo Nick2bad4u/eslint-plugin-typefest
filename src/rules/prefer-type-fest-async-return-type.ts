@@ -36,6 +36,7 @@ const getSingleTypeArgument = (
     }
 
     const [onlyTypeArgument] = typeArguments;
+    /* v8 ignore next -- defensive fallback for malformed synthetic AST arrays containing holes. */
     return onlyTypeArgument ?? null;
 };
 
@@ -80,14 +81,10 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (getSingleTypeArgument(awaitedInnerType) === null) {
-                        return;
-                    }
-
                     const returnTypeArgument =
                         getSingleTypeArgument(awaitedInnerType);
 
-                    if (!returnTypeArgument) {
+                    if (returnTypeArgument === null) {
                         return;
                     }
 

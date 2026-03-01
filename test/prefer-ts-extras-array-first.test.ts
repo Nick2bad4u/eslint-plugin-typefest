@@ -2,6 +2,7 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-array-first.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -64,6 +65,21 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const first = arrayFirst(sample);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests(
+    "prefer-ts-extras-array-first",
+    {
+        defaultOptions: [],
+        docsDescription:
+            "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
+        enforceRuleShape: true,
+        messages: {
+            preferTsExtrasArrayFirst:
+                "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
+        },
+        name: "prefer-ts-extras-array-first",
+    }
+);
 
 ruleTester.run("prefer-ts-extras-array-first", rule, {
     invalid: [

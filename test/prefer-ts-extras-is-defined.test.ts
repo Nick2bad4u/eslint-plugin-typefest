@@ -93,6 +93,18 @@ const inlineTypeofReverseInvalidCode = [
     "declare const maybeValue: string | undefined;",
     'const hasValue = "undefined" !== typeof maybeValue;',
 ].join("\n");
+const inlineTypeofNonIdentifierInvalidCode = [
+    'import { isDefined } from "ts-extras";',
+    "",
+    "declare const maybeValue: string | undefined;",
+    'const hasValue = typeof (maybeValue ?? "fallback") !== "undefined";',
+].join("\n");
+const inlineTypeofNonIdentifierInvalidOutput = [
+    'import { isDefined } from "ts-extras";',
+    "",
+    "declare const maybeValue: string | undefined;",
+    'const hasValue = isDefined(maybeValue ?? "fallback");',
+].join("\n");
 const inlineTypeofReverseInvalidOutput = [
     'import { isDefined } from "ts-extras";',
     "",
@@ -221,6 +233,77 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             vi.resetModules();
         }
     });
+
+    it("gracefully skips typeof comparisons when scope lookup throws", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ) =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-defined")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-is-defined.invalid.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    getScope: (): never => {
+                        throw new Error("scope unavailable");
+                    },
+                    getText: () => "maybeValue",
+                },
+            });
+
+            listeners.BinaryExpression?.({
+                left: {
+                    argument: {
+                        name: "maybeValue",
+                        type: "Identifier",
+                    },
+                    operator: "typeof",
+                    type: "UnaryExpression",
+                },
+                operator: "!==",
+                right: {
+                    type: "Literal",
+                    value: "undefined",
+                },
+                type: "BinaryExpression",
+            });
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(ruleId, rule, {
@@ -265,6 +348,13 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes reversed typeof undefined inequality",
             output: inlineTypeofReverseInvalidOutput,
+        },
+        {
+            code: inlineTypeofNonIdentifierInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsDefined" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes typeof checks over non-identifier expressions",
+            output: inlineTypeofNonIdentifierInvalidOutput,
         },
     ],
     valid: [

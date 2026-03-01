@@ -66,8 +66,11 @@ const whitespaceNormalizedInvalidOutputCode = [
 ].join("\n");
 const nonArrayRestAnnotationValidCode =
     "type Input = readonly [string, ...rest: ReadonlyArray<string>];";
+const nonRestSecondElementValidCode = "type Input = readonly [string, number];";
 const mismatchedReadonlyValidCode =
     "type Input = readonly [string, ...number[]];";
+const shadowedReplacementNameInvalidCode =
+    "type Wrapper<NonEmptyTuple> = readonly [string, ...string[]];";
 const nonReadonlyOperatorValidCode =
     "type Input = keyof [string, ...string[]];";
 const readonlyNonTupleTypeValidCode = "type Input = readonly string[];";
@@ -175,6 +178,14 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
                     type: "TSTupleType",
                 },
             };
+            const missingRestTupleNode = {
+                operator: "readonly",
+                type: "TSTypeOperator",
+                typeAnnotation: {
+                    elementTypes: [{ type: "TSStringKeyword" }, undefined],
+                    type: "TSTupleType",
+                },
+            };
 
             const report = vi.fn();
             const getText = vi.fn((node: unknown): string => {
@@ -207,9 +218,44 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
 
             listenerMap.TSTypeOperator?.(optionalTupleNode);
             listenerMap.TSTypeOperator?.(restFirstTupleNode);
+            listenerMap.TSTypeOperator?.(missingRestTupleNode);
 
             expect(report).not.toHaveBeenCalled();
             expect(getText).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("returns an empty listener map for test-file paths", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => true,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-non-empty-tuple")) as {
+                    default: {
+                        create: (context: unknown) => Record<string, unknown>;
+                    };
+                };
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename: "test/fixtures/non-empty-tuple.test.ts",
+                sourceCode: {
+                    ast: {
+                        body: [],
+                        sourceType: "module",
+                        type: "Program",
+                    },
+                },
+            });
+
+            expect(listenerMap).toStrictEqual({});
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
@@ -242,6 +288,23 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports readonly tuple with required head element",
             output: inlineInvalidTupleOutputCode,
+        },
+        {
+            code: inlineInvalidTupleCode,
+            errors: [{ messageId: "preferNonEmptyTuple" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without autofix when import-insertion fixes are disabled",
+            settings: {
+                typefest: {
+                    disableImportInsertionFixes: true,
+                },
+            },
+        },
+        {
+            code: shadowedReplacementNameInvalidCode,
+            errors: [{ messageId: "preferNonEmptyTuple" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without autofix when replacement identifier is shadowed by a type parameter",
         },
         {
             code: namedRestInvalidCode,
@@ -317,6 +380,11 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             code: nonArrayRestAnnotationValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores tuple rest annotated as ReadonlyArray",
+        },
+        {
+            code: nonRestSecondElementValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores readonly tuples whose second element is not a rest array",
         },
         {
             code: mismatchedReadonlyValidCode,

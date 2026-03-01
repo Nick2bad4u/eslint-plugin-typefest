@@ -2,6 +2,7 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-array-last.test` behavior.
  */
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -42,6 +43,21 @@ const inlineValidDeleteWriteTargetCode = [
     "delete mutableStatuses[mutableStatuses.length - 1];",
     "String(mutableStatuses);",
 ].join("\n");
+const inlineValidNonLiteralOffsetCode = [
+    "const monitorStatuses = ['down', 'up'];",
+    "const offset = 1;",
+    "const maybeLast = monitorStatuses[monitorStatuses.length - offset];",
+    "String(maybeLast);",
+].join("\n");
+const inlineValidSuperLastIndexCode = [
+    "class StatusHistory extends Array<string> {",
+    "    getLatest(): string | undefined {",
+    "        return super[super.length - 1];",
+    "    }",
+    "}",
+    "const statuses = new StatusHistory('down', 'up');",
+    "String(statuses.getLatest());",
+].join("\n");
 const inlineFixableCode = [
     'import { arrayLast } from "ts-extras";',
     "",
@@ -68,6 +84,18 @@ const inlineParenthesizedObjectOutput = [
     "const lastStatus = arrayLast(monitorStatuses);",
     "String(lastStatus);",
 ].join("\n");
+
+addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-array-last", {
+    defaultOptions: [],
+    docsDescription:
+        "require `arrayLast` from `ts-extras` instead of manual last-index member access.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasArrayLast:
+            "Prefer `arrayLast` from `ts-extras` over direct last-index access.",
+    },
+    name: "prefer-ts-extras-array-last",
+});
 
 ruleTester.run("prefer-ts-extras-array-last", rule, {
     invalid: [
@@ -128,6 +156,16 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             code: inlineValidDeleteWriteTargetCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores delete write-target last index usage",
+        },
+        {
+            code: inlineValidNonLiteralOffsetCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores last-index arithmetic when right operand is not the literal 1",
+        },
+        {
+            code: inlineValidSuperLastIndexCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores super-based last-index reads",
         },
     ],
 });

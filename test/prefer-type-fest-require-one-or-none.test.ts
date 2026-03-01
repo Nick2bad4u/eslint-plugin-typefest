@@ -38,6 +38,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Input = AtMostOne<{ a?: string; b?: number }>;",
     "type Input = RequireOneOrNone<{ a?: string; b?: number }>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { AtMostOne } from "type-aliases";',
+    "",
+    "type Wrapper<RequireOneOrNone> = AtMostOne<{ a?: string; b?: number }>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -80,6 +85,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline AtMostOne alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "AtMostOne",
+                        replacement: "RequireOneOrNone",
+                    },
+                    messageId: "preferRequireOneOrNone",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports AtMostOne alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

@@ -34,6 +34,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type UserId = UnwrapOpaque<{ readonly __brand: "UserId" } & string>;',
     'type UserId = UnwrapTagged<{ readonly __brand: "UserId" } & string>;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { UnwrapOpaque } from "type-aliases";',
+    "",
+    'type Wrapper<UnwrapTagged> = UnwrapOpaque<{ readonly __brand: "UserId" } & string>;',
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-unwrap-tagged",
@@ -82,6 +87,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline UnwrapOpaque alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "UnwrapOpaque",
+                            replacement: "UnwrapTagged",
+                        },
+                        messageId: "preferUnwrapTagged",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports UnwrapOpaque alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

@@ -274,6 +274,18 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                     type: "TSNullKeyword",
                 }
             );
+            const invalidUndefinedUnionMemberNode = createUnionNode(
+                stringKeywordNode,
+                undefined
+            );
+            const invalidUndefinedArrayTypeArgumentNode = createUnionNode(
+                stringKeywordNode,
+                createTypeReferenceNode(
+                    "Array",
+                    [undefined],
+                    "Array<undefined>"
+                )
+            );
 
             unionTypeListener?.(validRightGenericNode);
             unionTypeListener?.(validLeftGenericNode);
@@ -281,6 +293,8 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             unionTypeListener?.(invalidMismatchedLeftGenericNode);
             unionTypeListener?.(invalidMissingGenericArgumentNode);
             unionTypeListener?.(invalidThreeMemberUnionNode);
+            unionTypeListener?.(invalidUndefinedUnionMemberNode);
+            unionTypeListener?.(invalidUndefinedArrayTypeArgumentNode);
 
             expect(reportCalls).toHaveLength(2);
             expect(reportCalls[0]).toMatchObject({

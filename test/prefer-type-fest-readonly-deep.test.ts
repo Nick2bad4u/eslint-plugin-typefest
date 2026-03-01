@@ -39,6 +39,11 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type FrozenUser = DeepReadonly<User>;",
     "type FrozenUser = ReadonlyDeep<User>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { DeepReadonly } from "type-aliases";',
+    "",
+    "type Wrapper<ReadonlyDeep extends object> = DeepReadonly<ReadonlyDeep>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -65,6 +70,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline DeepReadonly alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [{ messageId: "preferReadonlyDeep" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports DeepReadonly alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

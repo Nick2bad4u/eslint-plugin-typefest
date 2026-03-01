@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 /**
  * @packageDocumentation
@@ -236,6 +236,84 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
             } as never)
         ).not.toThrowError();
         expect(reportCalls).toHaveLength(0);
+    });
+
+    it("returns early for bare PrivateIdentifier targets under mocked global Error resolution", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    identifier: Readonly<{ name?: string; type?: string }>,
+                    name: string
+                ) =>
+                    identifier.type === "Identifier" &&
+                    identifier.name === name,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-assert-error")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            IfStatement?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "value",
+                },
+            });
+
+            listeners.IfStatement?.({
+                alternate: null,
+                consequent: {
+                    type: "ThrowStatement",
+                },
+                test: {
+                    argument: {
+                        left: {
+                            name: "#value",
+                            type: "PrivateIdentifier",
+                        },
+                        operator: "instanceof",
+                        right: {
+                            name: "Error",
+                            type: "Identifier",
+                        },
+                        type: "BinaryExpression",
+                    },
+                    operator: "!",
+                    type: "UnaryExpression",
+                },
+                type: "IfStatement",
+            });
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

@@ -320,6 +320,12 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                     createTypeReferenceNode("UnknownValue"),
                 ])
             );
+            const invalidGenericReadonlyIdentifierNode = createUnionNode(
+                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
+                createTypeReferenceNode("ReadonlyArrayLike", [
+                    jsonValueTypeReferenceNode,
+                ])
+            );
             const invalidNonArrayLeftNativeNode = createUnionNode(
                 {
                     operator: "keyof",
@@ -344,6 +350,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             unionTypeListener?.(invalidMissingArrayTypeArgumentNode);
             unionTypeListener?.(invalidMissingReadonlyTypeArgumentNode);
             unionTypeListener?.(invalidOneSidedGenericMatchNode);
+            unionTypeListener?.(invalidGenericReadonlyIdentifierNode);
             unionTypeListener?.(invalidNonArrayLeftNativeNode);
             unionTypeListener?.(invalidThreeMemberUnionNode);
 

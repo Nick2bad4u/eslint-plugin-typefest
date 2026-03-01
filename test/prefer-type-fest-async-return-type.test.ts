@@ -4,7 +4,9 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -37,6 +39,8 @@ const inlineInvalidOutput = [
 const inlineInvalidWithoutFixCode =
     "type Result = Awaited<ReturnType<() => Promise<string>>>;";
 const inlineInvalidWithoutFixOutput = inlineInvalidOutput;
+const shadowedReplacementNameInvalidCode =
+    "type Wrapper<AsyncReturnType extends (...arguments_: never[]) => Promise<string>> = Awaited<ReturnType<AsyncReturnType>>;";
 const awaitedWithoutTypeArgumentValidCode = "type Result = Awaited;";
 const awaitedNonReturnTypeValidCode = "type Result = Awaited<string>;";
 const awaitedExtraTypeArgumentValidCode =
@@ -97,10 +101,83 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
         expect(ruleSource).toContain(
             "if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {"
         );
-        expect(ruleSource).toContain(
-            "if (getSingleTypeArgument(awaitedInnerType) === null) {"
-        );
+        expect(ruleSource).toContain("if (returnTypeArgument === null) {");
         expect(ruleSource).toContain("return;");
+    });
+
+    it("handles defensive malformed-type-argument fallback without reporting", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () =>
+                    new Set(["AsyncReturnType"]),
+                createSafeTypeNodeTextReplacementFix: () => null,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-async-return-type")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const sourceText =
+                "type Result = Awaited<ReturnType<() => Promise<string>>>;";
+            const parsed = parser.parseForESLint(sourceText, {
+                ecmaVersion: "latest",
+                loc: true,
+                range: true,
+                sourceType: "module",
+            });
+
+            const [statement] = parsed.ast.body;
+            if (
+                statement?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                statement.typeAnnotation.type !== AST_NODE_TYPES.TSTypeReference
+            ) {
+                throw new Error(
+                    "Expected Awaited<ReturnType<...>> type alias AST shape"
+                );
+            }
+
+            const awaitedReferenceNode = statement.typeAnnotation;
+            if (awaitedReferenceNode.typeArguments === undefined) {
+                throw new Error(
+                    "Expected Awaited type arguments for malformed-params test"
+                );
+            }
+
+            awaitedReferenceNode.typeArguments.params = [
+                undefined,
+            ] as unknown as typeof awaitedReferenceNode.typeArguments.params;
+
+            const report = vi.fn();
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-type-fest-async-return-type.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsed.ast,
+                    getText: () => "() => Promise<string>",
+                },
+            });
+
+            listenerMap.TSTypeReference?.(awaitedReferenceNode);
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 
@@ -136,6 +213,12 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports Awaited<ReturnType<...>> without fix when AsyncReturnType import is missing",
             output: inlineInvalidWithoutFixOutput,
+        },
+        {
+            code: shadowedReplacementNameInvalidCode,
+            errors: [{ messageId: "preferAsyncReturnType" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without autofix when AsyncReturnType identifier is shadowed by a type parameter",
         },
         {
             code: inlineFixableCode,

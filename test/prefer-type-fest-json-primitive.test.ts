@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -99,6 +99,133 @@ describe("prefer-type-fest-json-primitive source assertions", () => {
             'if (typeNode.type === "TSStringKeyword") {'
         );
         expect(ruleSource).toContain("return false;");
+    });
+});
+
+describe("prefer-type-fest-json-primitive internal listener guards", () => {
+    it("returns no listeners for test file paths", async () => {
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-primitive")) as {
+                    default: {
+                        create: (context: unknown) =>
+                            | {}
+                            | {
+                                  TSUnionType?: (node: unknown) => void;
+                              };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.test.ts",
+                report: () => undefined,
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            expect(listeners).toStrictEqual({});
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("reports without fix when replacement builder returns null", async () => {
+        const reportCalls: unknown[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-primitive")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report: (descriptor: unknown) => {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            listeners.TSUnionType?.({
+                type: "TSUnionType",
+                types: [
+                    { type: "TSBooleanKeyword" },
+                    { type: "TSNullKeyword" },
+                    { type: "TSNumberKeyword" },
+                    { type: "TSStringKeyword" },
+                ],
+            });
+
+            let unstableTypeReadCount = 0;
+            const unstableBooleanLikeNode = {
+                get type() {
+                    unstableTypeReadCount += 1;
+
+                    return unstableTypeReadCount === 1
+                        ? "TSBooleanKeyword"
+                        : "TSNeverKeyword";
+                },
+            };
+
+            listeners.TSUnionType?.({
+                type: "TSUnionType",
+                types: [
+                    unstableBooleanLikeNode,
+                    { type: "TSNullKeyword" },
+                    { type: "TSNumberKeyword" },
+                    { type: "TSStringKeyword" },
+                ],
+            });
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferJsonPrimitive",
+            });
+            expect(reportCalls[0]).not.toMatchObject({
+                fix: expect.anything(),
+            });
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

@@ -70,6 +70,15 @@ const inlineFixablePrettifyOutput = inlineFixablePrettifyCode.replace(
     "type Flattened = Prettify<Payload>;",
     "type Flattened = Simplify<Payload>;"
 );
+const inlineNoFixShadowedReplacementCode = [
+    'import type { Expand } from "type-fest";',
+    "",
+    "type Payload = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Wrapper<Simplify> = Expand<Payload>;",
+].join("\n");
 
 const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type Flattened = Expand<Payload>;",
@@ -162,6 +171,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline Prettify alias import",
                 output: inlineFixablePrettifyOutput,
+            },
+            {
+                code: inlineNoFixShadowedReplacementCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Expand",
+                            replacement: "Simplify",
+                        },
+                        messageId: "preferSimplify",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports Expand alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

@@ -38,6 +38,15 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     'type Normalized = NonNullableBy<User, "id">;',
     'type Normalized = SetNonNullable<User, "id">;'
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { NonNullableBy } from "type-aliases";',
+    "",
+    "type User = {",
+    "    id: string | null;",
+    "};",
+    "",
+    'type Wrapper<SetNonNullable> = NonNullableBy<User, "id">;',
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-set-non-nullable",
@@ -88,6 +97,21 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports and autofixes inline SetComplement alias import",
                 output: inlineFixableOutputCode,
+            },
+            {
+                code: inlineNoFixShadowedReplacementInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "NonNullableBy",
+                            replacement: "SetNonNullable",
+                        },
+                        messageId: "preferSetNonNullable",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports NonNullableBy alias when replacement identifier is shadowed",
+                output: null,
             },
         ],
         valid: [

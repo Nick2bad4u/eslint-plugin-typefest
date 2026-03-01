@@ -42,6 +42,15 @@ const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
     "type UserSchema = RecordDeep<User, number>;",
     "type UserSchema = Schema<User, number>;"
 );
+const inlineNoFixShadowedReplacementInvalidCode = [
+    'import type { RecordDeep } from "type-aliases";',
+    "",
+    "type User = {",
+    "    id: string;",
+    "};",
+    "",
+    "type Wrapper<Schema> = RecordDeep<User, number>;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -84,6 +93,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(invalidFixtureName),
             name: "reports and autofixes inline Jsonify alias import",
             output: inlineFixableOutputCode,
+        },
+        {
+            code: inlineNoFixShadowedReplacementInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "RecordDeep",
+                        replacement: "Schema",
+                    },
+                    messageId: "preferSchema",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports RecordDeep alias when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

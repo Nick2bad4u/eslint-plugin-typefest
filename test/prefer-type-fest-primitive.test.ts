@@ -79,6 +79,10 @@ const inlineFixableOutput = [
     "",
     "type PrimitiveLike = Primitive;",
 ].join("\n");
+const inlineNoFixShadowedReplacementCode = [
+    "type Wrapper<Primitive> =",
+    "    bigint | boolean | null | number | string | symbol | undefined;",
+].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -122,6 +126,13 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes primitive keyword union when Primitive import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineNoFixShadowedReplacementCode,
+            errors: [{ messageId: "preferPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports primitive union when replacement identifier is shadowed",
+            output: null,
         },
     ],
     valid: [

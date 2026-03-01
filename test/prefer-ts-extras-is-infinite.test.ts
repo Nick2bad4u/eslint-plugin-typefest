@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -224,6 +224,102 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
         expect(ruleSource).toContain("areEquivalentExpressions(");
         expect(ruleSource).not.toContain("normalizeExpressionText");
         expect(ruleSource).toContain('parent?.type === "LogicalExpression" &&');
+    });
+});
+
+describe("prefer-ts-extras-is-infinite internal listener guards", () => {
+    it("ignores strict disjunctions when one Number member is non-infinity", async () => {
+        const report = vi.fn();
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    node: Readonly<{ name?: string; type?: string }>,
+                    name: string
+                ) => node.type === "Identifier" && node.name === name,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-infinite")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            LogicalExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report,
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            listeners.LogicalExpression?.({
+                left: {
+                    left: {
+                        name: "metric",
+                        type: "Identifier",
+                    },
+                    operator: "===",
+                    right: {
+                        computed: false,
+                        object: {
+                            name: "Number",
+                            type: "Identifier",
+                        },
+                        property: {
+                            name: "MAX_VALUE",
+                            type: "Identifier",
+                        },
+                        type: "MemberExpression",
+                    },
+                    type: "BinaryExpression",
+                },
+                operator: "||",
+                right: {
+                    left: {
+                        name: "metric",
+                        type: "Identifier",
+                    },
+                    operator: "===",
+                    right: {
+                        computed: false,
+                        object: {
+                            name: "Number",
+                            type: "Identifier",
+                        },
+                        property: {
+                            name: "NEGATIVE_INFINITY",
+                            type: "Identifier",
+                        },
+                        type: "MemberExpression",
+                    },
+                    type: "BinaryExpression",
+                },
+                type: "LogicalExpression",
+            });
+
+            expect(report).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

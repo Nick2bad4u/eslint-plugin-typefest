@@ -2,6 +2,8 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-safe-cast-to.test` behavior.
  */
+import { describe, expect, it, vi } from "vitest";
+
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -104,6 +106,91 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         name: "prefer-ts-extras-safe-cast-to",
     }
 );
+
+describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
+    it("skips reporting when parser services return a non-TypeNode annotation mapping", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+        const expressionNode = {
+            name: "value",
+            type: "Identifier",
+        };
+        const typeAnnotationNode = {
+            type: "TSStringKeyword",
+        };
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation: () => ({ flags: 0 }),
+                        getTypeFromTypeNode: () => ({ flags: 0 }),
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get(node: unknown) {
+                                if (node === expressionNode) {
+                                    return {
+                                        kind: 0,
+                                    };
+                                }
+
+                                return {
+                                    kind: -1,
+                                    notATypeNode: true,
+                                };
+                            },
+                        },
+                    },
+                }),
+                isTestFilePath: () => false,
+                isTypeAssignableTo: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "value",
+                },
+            });
+
+            listeners.TSAsExpression?.({
+                expression: expressionNode,
+                type: "TSAsExpression",
+                typeAnnotation: typeAnnotationNode,
+            });
+
+            expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
 
 ruleTester.run(
     "prefer-ts-extras-safe-cast-to",

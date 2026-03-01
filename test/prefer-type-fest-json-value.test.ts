@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
@@ -97,6 +97,73 @@ describe("prefer-type-fest-json-value metadata", () => {
             };
 
         expect(authoredRuleModule.default.meta?.hasSuggestions).toBeTruthy();
+    });
+});
+
+describe("prefer-type-fest-json-value internal listener guards", () => {
+    it("reports without suggestions when replacement fix is unavailable", async () => {
+        const reportCalls: unknown[] = [];
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-value")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report: (descriptor: unknown) => {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            listeners.TSTypeReference?.({
+                type: "TSTypeReference",
+                typeArguments: {
+                    params: [
+                        { type: "TSStringKeyword" },
+                        { type: "TSUnknownKeyword" },
+                    ],
+                },
+                typeName: {
+                    name: "Record",
+                    type: "Identifier",
+                },
+            });
+
+            expect(reportCalls).toHaveLength(1);
+            expect(reportCalls[0]).toMatchObject({
+                messageId: "preferJsonValue",
+            });
+            expect(reportCalls[0]).not.toMatchObject({
+                suggest: expect.anything(),
+            });
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import ts from "typescript";
 
 /**
  * @packageDocumentation
@@ -329,7 +330,34 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         };
 
         const nonClassLikeType = {
-            getSymbol: () => ({ declarations: [{ kind: -1 }] }),
+            getSymbol: () => ({
+                declarations: [{ kind: -1 }],
+                getName: () => "CustomType",
+            }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const noSymbolLeafType = {
+            getSymbol: () => undefined,
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const classLikeWithoutBaseTypes = {
+            getSymbol: () => ({
+                declarations: [{ kind: ts.SyntaxKind.InterfaceDeclaration }],
+                getName: () => "CustomInterface",
+            }),
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const classLikeSetBaseType = {
+            getSymbol: () => ({
+                declarations: [{ kind: ts.SyntaxKind.ClassDeclaration }],
+                getName: () => "CustomClass",
+            }),
             isIntersection: () => false,
             isUnion: () => false,
         };
@@ -345,7 +373,17 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                     checker: {
                         getApparentType: (type: unknown) =>
                             type === apparentTypeSource ? setLeafType : type,
-                        getBaseTypes: () => [],
+                        getBaseTypes: (type: unknown) => {
+                            if (type === classLikeSetBaseType) {
+                                return [setLeafType];
+                            }
+
+                            if (type === classLikeWithoutBaseTypes) {
+                                return undefined;
+                            }
+
+                            return [];
+                        },
                         getTypeAtLocation: () => currentObjectType,
                         typeToString: () => "Set<number>",
                     },
@@ -416,6 +454,15 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             currentObjectType = nonClassLikeType;
             callExpressionListener?.(identifierHasCallNode);
 
+            currentObjectType = noSymbolLeafType;
+            callExpressionListener?.(identifierHasCallNode);
+
+            currentObjectType = classLikeWithoutBaseTypes;
+            callExpressionListener?.(identifierHasCallNode);
+
+            currentObjectType = classLikeSetBaseType;
+            callExpressionListener?.(identifierHasCallNode);
+
             callExpressionListener?.({
                 callee: {
                     name: "has",
@@ -424,10 +471,14 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 type: "CallExpression",
             });
 
-            expect(reportCalls).toHaveLength(2);
+            expect(reportCalls).toHaveLength(3);
             expect(
                 reportCalls.map((descriptor) => descriptor.messageId)
-            ).toStrictEqual(["preferTsExtrasSetHas", "preferTsExtrasSetHas"]);
+            ).toStrictEqual([
+                "preferTsExtrasSetHas",
+                "preferTsExtrasSetHas",
+                "preferTsExtrasSetHas",
+            ]);
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
