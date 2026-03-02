@@ -10,6 +10,13 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    buildRuntimeLooseNullSourceText,
+    buildRuntimeLooseNullSourceTextWithoutImport,
+    executeRuntimeLooseNullSourceText,
+    isRuntimeLooseNullCase,
+    runtimeLooseNullCaseArbitrary,
+} from "./_internal/prefer-ts-extras-is-present-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -317,27 +324,27 @@ const inlineFixablePresentWithUnicodeAndEmojiCode = [
     "",
     "declare const 候補値: null | string | undefined;",
     'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
-    "const hasValue = 候補値 != null; // keep comment 😅",
+    "const hasValue = 候補値 != null; // keep comment 🚀",
 ].join("\n");
 const inlineFixablePresentWithUnicodeAndEmojiOutput = [
     'import { isPresent } from "ts-extras";',
     "",
     "declare const 候補値: null | string | undefined;",
     'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
-    "const hasValue = isPresent(候補値); // keep comment 😅",
+    "const hasValue = isPresent(候補値); // keep comment 🚀",
 ].join("\n");
 const inlineFixableAbsentWithUnicodeAndEmojiCode = [
     'import { isPresent } from "ts-extras";',
     "",
     "declare const 候補値: null | string | undefined;",
-    "const debugText = `glyphs 🧵 🛰️  `;",
+    "const debugText = `glyphs 🧵 🧠 ☕ 你好`;",
     "const isMissing = 候補値 == null;",
 ].join("\n");
 const inlineFixableAbsentWithUnicodeAndEmojiOutput = [
     'import { isPresent } from "ts-extras";',
     "",
     "declare const 候補値: null | string | undefined;",
-    "const debugText = `glyphs 🧵 🛰️  `;",
+    "const debugText = `glyphs 🧵 🧠 ☕ 你好`;",
     "const isMissing = !isPresent(候補値);",
 ].join("\n");
 const inlineInvalidStrictPresentWithUndefinedOnLeftCode = [
@@ -356,10 +363,14 @@ const inlineInvalidStrictAbsentWithUndefinedOnLeftCode = [
 ].join("\n");
 
 type ComparedExpressionTemplateId =
+    | "awaitExpression"
     | "computedMemberExpression"
+    | "conditionalExpression"
     | "functionCall"
     | "identifier"
     | "memberExpression"
+    | "nestedComplexExpression"
+    | "optionalChainingExpression"
     | "sequenceExpression"
     | "typeAssertion";
 
@@ -410,10 +421,14 @@ const comparisonOrientations: readonly ComparisonOrientation[] = [
 ];
 
 const comparedExpressionTemplateIds: readonly ComparedExpressionTemplateId[] = [
+    "awaitExpression",
+    "conditionalExpression",
     "identifier",
     "memberExpression",
+    "nestedComplexExpression",
     "computedMemberExpression",
     "functionCall",
+    "optionalChainingExpression",
     "typeAssertion",
     "sequenceExpression",
 ];
@@ -473,6 +488,13 @@ const binaryLooseNullCaseArbitrary = fc.constantFrom(
     ...createGeneratedLooseBinaryCases("null")
 );
 
+const binaryLooseSequenceNullCaseArbitrary = fc.constantFrom(
+    ...createGeneratedLooseBinaryCases("null").filter(
+        (generatedCase) =>
+            generatedCase.comparedExpressionTemplateId === "sequenceExpression"
+    )
+);
+
 const binaryLooseUndefinedCaseArbitrary = fc.constantFrom(
     ...createGeneratedLooseBinaryCases("undefined")
 );
@@ -483,12 +505,34 @@ const isPresentImportAliasArbitrary = fc.constantFrom(
     "safeIsPresent"
 );
 
+const hasUseStrictDirectiveArbitrary = fc.constantFrom(false, true);
+
 const getComparedExpressionTemplate = (
     templateId: ComparedExpressionTemplateId
 ): Readonly<{
     declarations: readonly string[];
     expressionText: string;
 }> => {
+    if (templateId === "awaitExpression") {
+        return {
+            declarations: [
+                "declare function getMaybePromiseValue(): Promise<null | string | undefined>;",
+            ],
+            expressionText: "(await getMaybePromiseValue())",
+        };
+    }
+
+    if (templateId === "conditionalExpression") {
+        return {
+            declarations: [
+                "declare const maybeToggle: boolean;",
+                "declare const maybeValue: null | string | undefined;",
+                "declare const otherValue: null | string | undefined;",
+            ],
+            expressionText: "(maybeToggle ? maybeValue : otherValue)",
+        };
+    }
+
     if (templateId === "identifier") {
         return {
             declarations: [
@@ -504,6 +548,19 @@ const getComparedExpressionTemplate = (
                 "declare const maybeContainer: { readonly current: null | string | undefined };",
             ],
             expressionText: "maybeContainer.current",
+        };
+    }
+
+    if (templateId === "nestedComplexExpression") {
+        return {
+            declarations: [
+                "declare const maybeToggle: boolean;",
+                "declare const maybeContainer: { readonly nested?: { readonly value: null | string | undefined } | null } | null;",
+                "declare function getMaybePromiseValue(): Promise<null | string | undefined>;",
+                "declare const fallbackValue: null | string | undefined;",
+            ],
+            expressionText:
+                "((maybeToggle ? maybeContainer?.nested?.value : (await getMaybePromiseValue())) ?? fallbackValue)",
         };
     }
 
@@ -523,6 +580,15 @@ const getComparedExpressionTemplate = (
                 "declare function getMaybeValue(): null | string | undefined;",
             ],
             expressionText: "getMaybeValue()",
+        };
+    }
+
+    if (templateId === "optionalChainingExpression") {
+        return {
+            declarations: [
+                "declare const maybeContainer: { readonly nested?: { readonly value: null | string | undefined } | null } | null;",
+            ],
+            expressionText: "maybeContainer?.nested?.value",
         };
     }
 
@@ -566,6 +632,94 @@ const formatNullishComparisonText = ({
         : `${nullishLiteralText} ${operator} ${comparedExpression}`;
 };
 
+const isAstNodeLike = (value: unknown): value is TSESTree.Node => {
+    if (typeof value !== "object" || value === null || !("type" in value)) {
+        return false;
+    }
+
+    return typeof (value as Readonly<{ type?: unknown }>).type === "string";
+};
+
+const shouldSkipAstTraversalKey = (key: string): boolean =>
+    key === "parent" || key === "tokens" || key === "comments";
+
+const assignAstNodeParent = ({
+    node,
+    parent,
+}: Readonly<{
+    node: TSESTree.Node;
+    parent: null | TSESTree.Node;
+}>): void => {
+    const nodeWithParent = node as { parent?: TSESTree.Node };
+
+    if (parent === null) {
+        delete nodeWithParent.parent;
+    } else {
+        nodeWithParent.parent = parent;
+    }
+};
+
+const traverseAstChildValue = ({
+    parent,
+    value,
+}: Readonly<{
+    parent: TSESTree.Node;
+    value: unknown;
+}>): void => {
+    if (Array.isArray(value)) {
+        for (const arrayItem of value) {
+            if (isAstNodeLike(arrayItem)) {
+                linkAstParentChain({
+                    node: arrayItem,
+                    parent,
+                });
+            }
+        }
+    } else if (isAstNodeLike(value)) {
+        linkAstParentChain({
+            node: value,
+            parent,
+        });
+    }
+};
+
+const linkAstParentChain = ({
+    node,
+    parent,
+}: Readonly<{
+    node: TSESTree.Node;
+    parent: null | TSESTree.Node;
+}>): void => {
+    assignAstNodeParent({
+        node,
+        parent,
+    });
+
+    const nodeRecord = node as unknown as Record<string, unknown>;
+
+    for (const [key, value] of Object.entries(nodeRecord)) {
+        if (!shouldSkipAstTraversalKey(key)) {
+            traverseAstChildValue({
+                parent: node,
+                value,
+            });
+        }
+    }
+};
+
+const attachParentLinksToAst = (
+    ast: Readonly<ReturnType<typeof parser.parseForESLint>["ast"]>
+): ReturnType<typeof parser.parseForESLint>["ast"] => {
+    const writableAst = ast as ReturnType<typeof parser.parseForESLint>["ast"];
+
+    linkAstParentChain({
+        node: writableAst,
+        parent: null,
+    });
+
+    return writableAst;
+};
+
 const parseIfLogicalExpression = (
     code: string
 ): Readonly<{
@@ -573,9 +727,10 @@ const parseIfLogicalExpression = (
     logicalExpression: TSESTree.Expression;
 }> => {
     const parsed = parser.parseForESLint(code, parserOptions);
+    const ast = attachParentLinksToAst(parsed.ast);
     let ifStatement: null | TSESTree.IfStatement = null;
 
-    for (const statement of parsed.ast.body) {
+    for (const statement of ast.body) {
         if (statement.type === AST_NODE_TYPES.IfStatement) {
             ifStatement = statement;
             break;
@@ -587,7 +742,7 @@ const parseIfLogicalExpression = (
     }
 
     return {
-        ast: parsed.ast,
+        ast,
         logicalExpression: ifStatement.test,
     };
 };
@@ -601,9 +756,10 @@ const parseVariableBinaryExpression = (
     comparedExpressionText: string;
 }> => {
     const parsed = parser.parseForESLint(code, parserOptions);
+    const ast = attachParentLinksToAst(parsed.ast);
     let binaryExpression: null | TSESTree.BinaryExpression = null;
 
-    for (const statement of parsed.ast.body) {
+    for (const statement of ast.body) {
         if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
             for (const declaration of statement.declarations) {
                 if (
@@ -637,7 +793,7 @@ const parseVariableBinaryExpression = (
     const comparedExpressionRange = comparedExpression.range;
 
     return {
-        ast: parsed.ast,
+        ast,
         binaryExpression,
         binaryRange,
         comparedExpressionText: code
@@ -664,13 +820,14 @@ const parseSingleVariableInitializerExpression = (
     initializer: TSESTree.Expression;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
+    const ast = attachParentLinksToAst(parsed.ast);
 
-    for (const statement of parsed.ast.body) {
+    for (const statement of ast.body) {
         if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
             for (const declaration of statement.declarations) {
                 if (declaration.init !== null) {
                     return {
-                        ast: parsed.ast,
+                        ast,
                         initializer: declaration.init,
                     };
                 }
@@ -694,8 +851,9 @@ const parseVariableInitializerExpressionByName = ({
     initializer: TSESTree.Expression;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
+    const ast = attachParentLinksToAst(parsed.ast);
 
-    for (const statement of parsed.ast.body) {
+    for (const statement of ast.body) {
         if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
             for (const declaration of statement.declarations) {
                 if (
@@ -704,7 +862,7 @@ const parseVariableInitializerExpressionByName = ({
                     declaration.init !== null
                 ) {
                     return {
-                        ast: parsed.ast,
+                        ast,
                         initializer: declaration.init,
                     };
                 }
@@ -825,13 +983,150 @@ const extractRangeFromUnknownNode = (
     return nodeRange;
 };
 
+const addScopeBinding = ({
+    definitionNode,
+    definitionType,
+    name,
+    scopeBindings,
+}: Readonly<{
+    definitionNode: TSESTree.Node;
+    definitionType: string;
+    name: string;
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+}>): void => {
+    if (name.length === 0 || scopeBindings.has(name)) {
+        return;
+    }
+
+    scopeBindings.set(name, {
+        defs: [
+            {
+                node: definitionNode,
+                type: definitionType,
+            },
+        ],
+    } as unknown as TSESLint.Scope.Variable);
+};
+
+const addImportScopeBindings = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.ImportDeclaration;
+}>): void => {
+    for (const specifier of statement.specifiers) {
+        if (specifier.local.type === AST_NODE_TYPES.Identifier) {
+            addScopeBinding({
+                definitionNode: specifier,
+                definitionType: "ImportBinding",
+                name: specifier.local.name,
+                scopeBindings,
+            });
+        }
+    }
+};
+
+const addVariableScopeBindings = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.VariableDeclaration;
+}>): void => {
+    for (const declaration of statement.declarations) {
+        if (declaration.id.type === AST_NODE_TYPES.Identifier) {
+            addScopeBinding({
+                definitionNode: declaration.id,
+                definitionType: "Variable",
+                name: declaration.id.name,
+                scopeBindings,
+            });
+        }
+    }
+};
+
+const addFunctionScopeBinding = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.FunctionDeclaration;
+}>): void => {
+    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
+        addScopeBinding({
+            definitionNode: statement.id,
+            definitionType: "FunctionName",
+            name: statement.id.name,
+            scopeBindings,
+        });
+    }
+};
+
+const addClassScopeBinding = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.ClassDeclaration;
+}>): void => {
+    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
+        addScopeBinding({
+            definitionNode: statement.id,
+            definitionType: "ClassName",
+            name: statement.id.name,
+            scopeBindings,
+        });
+    }
+};
+
+const collectTopLevelRuntimeScopeBindings = (
+    ast: Readonly<ReturnType<typeof parser.parseForESLint>["ast"]>
+): Map<string, TSESLint.Scope.Variable> => {
+    const scopeBindings = new Map<string, TSESLint.Scope.Variable>();
+
+    for (const statement of ast.body) {
+        if (statement.type === AST_NODE_TYPES.ImportDeclaration) {
+            addImportScopeBindings({
+                scopeBindings,
+                statement,
+            });
+        }
+
+        if (statement.type === AST_NODE_TYPES.FunctionDeclaration) {
+            addFunctionScopeBinding({
+                scopeBindings,
+                statement,
+            });
+        }
+
+        if (statement.type === AST_NODE_TYPES.ClassDeclaration) {
+            addClassScopeBinding({
+                scopeBindings,
+                statement,
+            });
+        }
+
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            addVariableScopeBindings({
+                scopeBindings,
+                statement,
+            });
+        }
+    }
+
+    return scopeBindings;
+};
+
 const createRuleContextForSource = ({
     ast,
     reportCalls,
+    settings,
     sourceText,
 }: Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
     reportCalls: RuleReportDescriptor[];
+    settings?: unknown;
     sourceText: string;
 }>): Parameters<typeof rule.create>[0] => {
     const importSpecifier = findNamedImportSpecifier({
@@ -840,7 +1135,7 @@ const createRuleContextForSource = ({
         sourceModuleName: "ts-extras",
     });
 
-    const scopeBindings = new Map<string, TSESLint.Scope.Variable>();
+    const scopeBindings = collectTopLevelRuntimeScopeBindings(ast);
 
     if (
         importSpecifier?.local.type === AST_NODE_TYPES.Identifier &&
@@ -866,6 +1161,7 @@ const createRuleContextForSource = ({
         report: (descriptor: RuleReportDescriptor) => {
             reportCalls.push(descriptor);
         },
+        settings,
         sourceCode: {
             ast,
             getScope: () => scope as unknown as Readonly<TSESLint.Scope.Scope>,
@@ -1811,6 +2107,170 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
         );
     });
 
+    it("fast-check: rule-level loose null autofix inserts missing import once and remains second-pass stable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                binaryLooseNullCaseArbitrary,
+                hasUseStrictDirectiveArbitrary,
+                (generatedCase, hasUseStrictDirective) => {
+                    const template = getComparedExpressionTemplate(
+                        generatedCase.comparedExpressionTemplateId
+                    );
+                    const nullishLiteralText = formatNullishLiteralText(
+                        generatedCase.nullishKind
+                    );
+                    const comparisonText =
+                        generatedCase.orientation === "comparedExpressionOnLeft"
+                            ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                            : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                    const sourceText = [
+                        hasUseStrictDirective ? '"use strict";' : "",
+                        ...template.declarations,
+                        generatedCase.hasUnicodeNoiseLine
+                            ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                            : "",
+                        `const evaluation = ${comparisonText};`,
+                        "String(evaluation);",
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const { ast: firstPassAst, binaryExpression } =
+                        parseVariableBinaryExpression(sourceText);
+                    const firstPassReports: RuleReportDescriptor[] = [];
+
+                    const firstPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: firstPassAst,
+                            reportCalls: firstPassReports,
+                            sourceText,
+                        })
+                    );
+
+                    firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                    expect(firstPassReports).toHaveLength(1);
+
+                    const firstPassFix = firstPassReports[0]?.fix;
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    if (firstPassFix === undefined) {
+                        throw new Error(
+                            "Expected first-pass report to include a fixer"
+                        );
+                    }
+
+                    const firstPassTextEdits =
+                        invokeReportFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    expect(
+                        countNamedImportSpecifiersInSource({
+                            importedName: "isPresent",
+                            sourceModuleName: "ts-extras",
+                            sourceText: firstPassFixedCode,
+                        })
+                    ).toBe(1);
+
+                    const fixedAst = parser.parseForESLint(
+                        firstPassFixedCode,
+                        parserOptions
+                    ).ast;
+
+                    if (hasUseStrictDirective) {
+                        const firstStatement = fixedAst.body[0];
+                        const secondStatement = fixedAst.body[1];
+
+                        expect(firstStatement?.type).toBe(
+                            AST_NODE_TYPES.ExpressionStatement
+                        );
+                        expect(secondStatement?.type).toBe(
+                            AST_NODE_TYPES.ImportDeclaration
+                        );
+
+                        if (
+                            firstStatement?.type !==
+                            AST_NODE_TYPES.ExpressionStatement
+                        ) {
+                            throw new TypeError(
+                                "Expected first statement to remain a directive expression"
+                            );
+                        }
+
+                        expect(firstStatement.directive).toBe("use strict");
+                    }
+
+                    const {
+                        ast: secondPassAst,
+                        initializer: secondPassInitializer,
+                    } = parseVariableInitializerExpressionByName({
+                        sourceText: firstPassFixedCode,
+                        variableName: "evaluation",
+                    });
+
+                    const replacementCallExpression =
+                        extractCallExpressionFromInitializer(
+                            secondPassInitializer
+                        );
+
+                    expect(replacementCallExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        replacementCallExpression.callee.type !==
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        throw new TypeError(
+                            "Expected replacement call to use an identifier callee"
+                        );
+                    }
+
+                    expect(replacementCallExpression.callee.name).toBe(
+                        "isPresent"
+                    );
+
+                    expect(secondPassInitializer.type).not.toBe(
+                        AST_NODE_TYPES.BinaryExpression
+                    );
+
+                    const secondPassReports: RuleReportDescriptor[] = [];
+                    const secondPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: secondPassAst,
+                            reportCalls: secondPassReports,
+                            sourceText: firstPassFixedCode,
+                        })
+                    );
+
+                    if (
+                        secondPassInitializer.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        secondPassListeners.BinaryExpression?.(
+                            secondPassInitializer
+                        );
+                    }
+
+                    expect(secondPassReports).toHaveLength(0);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
     it("fast-check: loose undefined binary comparisons do not trigger isPresent fixes", async () => {
         expect.hasAssertions();
 
@@ -1929,6 +2389,841 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+});
+
+describe("prefer-ts-extras-is-present sequence expression autofix guard", () => {
+    it("fast-check: sequence-expression loose null autofix preserves sequence argument structure and remains second-pass stable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                binaryLooseSequenceNullCaseArbitrary,
+                (generatedCase) => {
+                    const template = getComparedExpressionTemplate(
+                        generatedCase.comparedExpressionTemplateId
+                    );
+                    const nullishLiteralText = formatNullishLiteralText(
+                        generatedCase.nullishKind
+                    );
+                    const comparisonText =
+                        generatedCase.orientation === "comparedExpressionOnLeft"
+                            ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                            : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                    const sourceText = [
+                        'import { isPresent } from "ts-extras";',
+                        ...template.declarations,
+                        generatedCase.hasUnicodeNoiseLine
+                            ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                            : "",
+                        `const evaluation = ${comparisonText};`,
+                        "String(evaluation);",
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const { ast: firstPassAst, binaryExpression } =
+                        parseVariableBinaryExpression(sourceText);
+                    const firstPassReports: RuleReportDescriptor[] = [];
+
+                    const firstPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: firstPassAst,
+                            reportCalls: firstPassReports,
+                            sourceText,
+                        })
+                    );
+
+                    firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                    expect(firstPassReports).toHaveLength(1);
+
+                    const firstPassFix = firstPassReports[0]?.fix;
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    if (firstPassFix === undefined) {
+                        throw new Error(
+                            "Expected first-pass report to include a fixer"
+                        );
+                    }
+
+                    const firstPassTextEdits =
+                        invokeReportFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(1);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    expect(() => {
+                        parser.parseForESLint(
+                            firstPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrowError();
+
+                    const {
+                        ast: secondPassAst,
+                        initializer: secondPassInitializer,
+                    } = parseVariableInitializerExpressionByName({
+                        sourceText: firstPassFixedCode,
+                        variableName: "evaluation",
+                    });
+
+                    const replacementCallExpression =
+                        extractCallExpressionFromInitializer(
+                            secondPassInitializer
+                        );
+
+                    const [firstArgument] = replacementCallExpression.arguments;
+
+                    expect(firstArgument?.type).toBe(
+                        AST_NODE_TYPES.SequenceExpression
+                    );
+
+                    if (
+                        firstArgument?.type !==
+                        AST_NODE_TYPES.SequenceExpression
+                    ) {
+                        throw new TypeError(
+                            "Expected replacement call argument to remain a SequenceExpression"
+                        );
+                    }
+
+                    expect(firstArgument.expressions).toHaveLength(2);
+
+                    const [firstSequenceOperand, secondSequenceOperand] =
+                        firstArgument.expressions;
+
+                    expect(firstSequenceOperand?.type).toBe(
+                        AST_NODE_TYPES.CallExpression
+                    );
+                    expect(secondSequenceOperand?.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        secondSequenceOperand?.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(secondSequenceOperand.name).toBe("maybeValue");
+                    }
+
+                    expect(secondPassInitializer.type).not.toBe(
+                        AST_NODE_TYPES.BinaryExpression
+                    );
+
+                    const secondPassReports: RuleReportDescriptor[] = [];
+                    const secondPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: secondPassAst,
+                            reportCalls: secondPassReports,
+                            sourceText: firstPassFixedCode,
+                        })
+                    );
+
+                    if (
+                        secondPassInitializer.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        secondPassListeners.BinaryExpression?.(
+                            secondPassInitializer
+                        );
+                    }
+
+                    expect(secondPassReports).toHaveLength(0);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+});
+
+describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
+    it("fast-check: loose nullish comparison handling preserves runtime behavior and undefined ignore semantics for executable compared-expression templates", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(runtimeLooseNullCaseArbitrary, (generatedCase) => {
+                if (!isRuntimeLooseNullCase(generatedCase)) {
+                    throw new TypeError(
+                        "Expected runtime loose null fast-check case to match RuntimeLooseNullCase"
+                    );
+                }
+
+                const sourceText =
+                    buildRuntimeLooseNullSourceText(generatedCase);
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                if (generatedCase.nullishKind === "undefined") {
+                    expect(firstPassReports).toHaveLength(0);
+
+                    return;
+                }
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassFix = firstPassReports[0]?.fix;
+
+                expect(firstPassFix).toBeTypeOf("function");
+
+                if (firstPassFix === undefined) {
+                    throw new Error(
+                        "Expected runtime equivalence report to include a fixer"
+                    );
+                }
+
+                const firstPassTextEdits =
+                    invokeReportFixToTextEdits(firstPassFix);
+
+                expect(firstPassTextEdits).toHaveLength(1);
+
+                assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                const firstPassFixedCode = applyTextEdits({
+                    sourceText,
+                    textEdits: firstPassTextEdits,
+                });
+
+                expect(() => {
+                    parser.parseForESLint(firstPassFixedCode, parserOptions);
+                }).not.toThrowError();
+
+                expect(
+                    countNamedImportSpecifiersInSource({
+                        importedName: "isPresent",
+                        sourceModuleName: "ts-extras",
+                        sourceText: firstPassFixedCode,
+                    })
+                ).toBe(1);
+
+                const originalExecutionSnapshot =
+                    executeRuntimeLooseNullSourceText(sourceText);
+                const fixedExecutionSnapshot =
+                    executeRuntimeLooseNullSourceText(firstPassFixedCode);
+
+                expect(fixedExecutionSnapshot).toStrictEqual(
+                    originalExecutionSnapshot
+                );
+
+                const {
+                    ast: secondPassAst,
+                    initializer: secondPassInitializer,
+                } = parseVariableInitializerExpressionByName({
+                    sourceText: firstPassFixedCode,
+                    variableName: "evaluation",
+                });
+
+                const secondPassReports: RuleReportDescriptor[] = [];
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        sourceText: firstPassFixedCode,
+                    })
+                );
+
+                if (
+                    secondPassInitializer.type ===
+                    AST_NODE_TYPES.BinaryExpression
+                ) {
+                    secondPassListeners.BinaryExpression?.(
+                        secondPassInitializer
+                    );
+                }
+
+                expect(secondPassReports).toHaveLength(0);
+            }),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: missing ts-extras import autofix preserves runtime behavior and remains second-pass stable for executable templates", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                runtimeLooseNullCaseArbitrary,
+                hasUseStrictDirectiveArbitrary,
+                (generatedCase, hasUseStrictDirective) => {
+                    if (!isRuntimeLooseNullCase(generatedCase)) {
+                        throw new TypeError(
+                            "Expected runtime loose null fast-check case to match RuntimeLooseNullCase"
+                        );
+                    }
+
+                    const sourceText =
+                        buildRuntimeLooseNullSourceTextWithoutImport({
+                            generatedCase,
+                            hasUseStrictDirective,
+                        });
+                    const { ast: firstPassAst, binaryExpression } =
+                        parseVariableBinaryExpression(sourceText);
+                    const firstPassReports: RuleReportDescriptor[] = [];
+
+                    const firstPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: firstPassAst,
+                            reportCalls: firstPassReports,
+                            sourceText,
+                        })
+                    );
+
+                    firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                    if (generatedCase.nullishKind === "undefined") {
+                        expect(firstPassReports).toHaveLength(0);
+                        expect(
+                            countNamedImportSpecifiersInSource({
+                                importedName: "isPresent",
+                                sourceModuleName: "ts-extras",
+                                sourceText,
+                            })
+                        ).toBe(0);
+
+                        return;
+                    }
+
+                    expect(firstPassReports).toHaveLength(1);
+
+                    const firstPassFix = firstPassReports[0]?.fix;
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    if (firstPassFix === undefined) {
+                        throw new Error(
+                            "Expected runtime import-insertion report to include a fixer"
+                        );
+                    }
+
+                    const firstPassTextEdits =
+                        invokeReportFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    expect(() => {
+                        parser.parseForESLint(
+                            firstPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrowError();
+
+                    expect(
+                        countNamedImportSpecifiersInSource({
+                            importedName: "isPresent",
+                            sourceModuleName: "ts-extras",
+                            sourceText: firstPassFixedCode,
+                        })
+                    ).toBe(1);
+
+                    if (hasUseStrictDirective) {
+                        const fixedAst = parser.parseForESLint(
+                            firstPassFixedCode,
+                            parserOptions
+                        ).ast;
+                        const firstStatement = fixedAst.body[0];
+                        const secondStatement = fixedAst.body[1];
+
+                        expect(firstStatement?.type).toBe(
+                            AST_NODE_TYPES.ExpressionStatement
+                        );
+                        expect(secondStatement?.type).toBe(
+                            AST_NODE_TYPES.ImportDeclaration
+                        );
+
+                        if (
+                            firstStatement?.type !==
+                            AST_NODE_TYPES.ExpressionStatement
+                        ) {
+                            throw new TypeError(
+                                "Expected first statement to remain a directive expression"
+                            );
+                        }
+
+                        expect(firstStatement.directive).toBe("use strict");
+                    }
+
+                    const originalExecutionSnapshot =
+                        executeRuntimeLooseNullSourceText(sourceText);
+                    const fixedExecutionSnapshot =
+                        executeRuntimeLooseNullSourceText(firstPassFixedCode);
+
+                    expect(fixedExecutionSnapshot).toStrictEqual(
+                        originalExecutionSnapshot
+                    );
+
+                    const {
+                        ast: secondPassAst,
+                        initializer: secondPassInitializer,
+                    } = parseVariableInitializerExpressionByName({
+                        sourceText: firstPassFixedCode,
+                        variableName: "evaluation",
+                    });
+
+                    const secondPassReports: RuleReportDescriptor[] = [];
+                    const secondPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: secondPassAst,
+                            reportCalls: secondPassReports,
+                            sourceText: firstPassFixedCode,
+                        })
+                    );
+
+                    if (
+                        secondPassInitializer.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        secondPassListeners.BinaryExpression?.(
+                            secondPassInitializer
+                        );
+                    }
+
+                    expect(secondPassReports).toHaveLength(0);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+});
+
+describe("prefer-ts-extras-is-present local isPresent shadowing", () => {
+    it("fast-check: rule-level loose null reports but emits no unsafe fixer when local isPresent binding exists", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                const template = getComparedExpressionTemplate(
+                    generatedCase.comparedExpressionTemplateId
+                );
+                const nullishLiteralText = formatNullishLiteralText(
+                    generatedCase.nullishKind
+                );
+                const comparisonText =
+                    generatedCase.orientation === "comparedExpressionOnLeft"
+                        ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                        : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                const sourceText = [
+                    "const isPresent = (value: unknown): boolean => Boolean(value);",
+                    ...template.declarations,
+                    generatedCase.hasUnicodeNoiseLine
+                        ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                        : "",
+                    `const evaluation = ${comparisonText};`,
+                    "String(evaluation);",
+                ]
+                    .filter((line) => line.length > 0)
+                    .join("\n");
+
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassReport = firstPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(firstPassReport.fix ?? undefined).toBeUndefined();
+
+                expect(() => {
+                    parser.parseForESLint(sourceText, parserOptions);
+                }).not.toThrowError();
+
+                const { ast: secondPassAst, binaryExpression: secondBinary } =
+                    parseVariableBinaryExpression(sourceText);
+                const secondPassReports: RuleReportDescriptor[] = [];
+
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        sourceText,
+                    })
+                );
+
+                secondPassListeners.BinaryExpression?.(secondBinary);
+
+                expect(secondPassReports).toHaveLength(1);
+                expect(secondPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const secondPassReport = secondPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(secondPassReport.fix ?? undefined).toBeUndefined();
+            }),
+            fastCheckRunConfig.default
+        );
+    });
+});
+
+describe("prefer-ts-extras-is-present non-ts-extras isPresent import guard", () => {
+    it("fast-check: rule-level loose null reports but emits no unsafe fixer when isPresent comes from a different module", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                const template = getComparedExpressionTemplate(
+                    generatedCase.comparedExpressionTemplateId
+                );
+                const nullishLiteralText = formatNullishLiteralText(
+                    generatedCase.nullishKind
+                );
+                const comparisonText =
+                    generatedCase.orientation === "comparedExpressionOnLeft"
+                        ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                        : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                const sourceText = [
+                    'import { isPresent } from "external-runtime-helpers";',
+                    ...template.declarations,
+                    generatedCase.hasUnicodeNoiseLine
+                        ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                        : "",
+                    `const evaluation = ${comparisonText};`,
+                    "String(evaluation);",
+                ]
+                    .filter((line) => line.length > 0)
+                    .join("\n");
+
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassReport = firstPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(firstPassReport.fix ?? undefined).toBeUndefined();
+
+                expect(() => {
+                    parser.parseForESLint(sourceText, parserOptions);
+                }).not.toThrowError();
+
+                const { ast: secondPassAst, binaryExpression: secondBinary } =
+                    parseVariableBinaryExpression(sourceText);
+                const secondPassReports: RuleReportDescriptor[] = [];
+
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        sourceText,
+                    })
+                );
+
+                secondPassListeners.BinaryExpression?.(secondBinary);
+
+                expect(secondPassReports).toHaveLength(1);
+                expect(secondPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const secondPassReport = secondPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(secondPassReport.fix ?? undefined).toBeUndefined();
+            }),
+            fastCheckRunConfig.default
+        );
+    });
+});
+
+describe("prefer-ts-extras-is-present import insertion setting guard", () => {
+    it("fast-check: with disableImportInsertionFixes, loose null reports and yields no fix edits when isPresent import is missing", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                const template = getComparedExpressionTemplate(
+                    generatedCase.comparedExpressionTemplateId
+                );
+                const nullishLiteralText = formatNullishLiteralText(
+                    generatedCase.nullishKind
+                );
+                const comparisonText =
+                    generatedCase.orientation === "comparedExpressionOnLeft"
+                        ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                        : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                const sourceText = [
+                    ...template.declarations,
+                    generatedCase.hasUnicodeNoiseLine
+                        ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                        : "",
+                    `const evaluation = ${comparisonText};`,
+                    "String(evaluation);",
+                ]
+                    .filter((line) => line.length > 0)
+                    .join("\n");
+
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        settings: {
+                            typefest: {
+                                disableImportInsertionFixes: true,
+                            },
+                        },
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassReport = firstPassReports[0] as Readonly<{
+                    fix?: null | TSESLint.ReportFixFunction;
+                }>;
+                const firstPassFix = firstPassReport.fix;
+
+                expect(firstPassFix).toBeTypeOf("function");
+
+                if (firstPassFix === undefined || firstPassFix === null) {
+                    throw new TypeError(
+                        "Expected first-pass report to provide a fix function"
+                    );
+                }
+
+                const firstPassTextEdits =
+                    invokeReportFixToTextEdits(firstPassFix);
+
+                expect(firstPassTextEdits).toHaveLength(0);
+
+                expect(() => {
+                    parser.parseForESLint(sourceText, parserOptions);
+                }).not.toThrowError();
+
+                const { ast: secondPassAst, binaryExpression: secondBinary } =
+                    parseVariableBinaryExpression(sourceText);
+                const secondPassReports: RuleReportDescriptor[] = [];
+
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        settings: {
+                            typefest: {
+                                disableImportInsertionFixes: true,
+                            },
+                        },
+                        sourceText,
+                    })
+                );
+
+                secondPassListeners.BinaryExpression?.(secondBinary);
+
+                expect(secondPassReports).toHaveLength(1);
+                expect(secondPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const secondPassReport = secondPassReports[0] as Readonly<{
+                    fix?: null | TSESLint.ReportFixFunction;
+                }>;
+                const secondPassFix = secondPassReport.fix;
+
+                expect(secondPassFix).toBeTypeOf("function");
+
+                if (secondPassFix === undefined || secondPassFix === null) {
+                    throw new TypeError(
+                        "Expected second-pass report to provide a fix function"
+                    );
+                }
+
+                const secondPassTextEdits =
+                    invokeReportFixToTextEdits(secondPassFix);
+
+                expect(secondPassTextEdits).toHaveLength(0);
+            }),
+            fastCheckRunConfig.default
+        );
+    });
+});
+
+describe("prefer-ts-extras-is-present global autofix-off setting guard", () => {
+    it("fast-check: with disableAllAutofixes, loose null reports without exposing fix callbacks", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                const template = getComparedExpressionTemplate(
+                    generatedCase.comparedExpressionTemplateId
+                );
+                const nullishLiteralText = formatNullishLiteralText(
+                    generatedCase.nullishKind
+                );
+                const comparisonText =
+                    generatedCase.orientation === "comparedExpressionOnLeft"
+                        ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                        : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                const sourceText = [
+                    'import { isPresent } from "ts-extras";',
+                    ...template.declarations,
+                    generatedCase.hasUnicodeNoiseLine
+                        ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                        : "",
+                    `const evaluation = ${comparisonText};`,
+                    "String(evaluation);",
+                ]
+                    .filter((line) => line.length > 0)
+                    .join("\n");
+
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        settings: {
+                            typefest: {
+                                disableAllAutofixes: true,
+                            },
+                        },
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassReport = firstPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(firstPassReport.fix ?? undefined).toBeUndefined();
+
+                expect(() => {
+                    parser.parseForESLint(sourceText, parserOptions);
+                }).not.toThrowError();
+
+                const { ast: secondPassAst, binaryExpression: secondBinary } =
+                    parseVariableBinaryExpression(sourceText);
+                const secondPassReports: RuleReportDescriptor[] = [];
+
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        settings: {
+                            typefest: {
+                                disableAllAutofixes: true,
+                            },
+                        },
+                        sourceText,
+                    })
+                );
+
+                secondPassListeners.BinaryExpression?.(secondBinary);
+
+                expect(secondPassReports).toHaveLength(1);
+                expect(secondPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const secondPassReport = secondPassReports[0] as Readonly<{
+                    fix?: unknown;
+                }>;
+
+                expect(secondPassReport.fix ?? undefined).toBeUndefined();
+            }),
+            fastCheckRunConfig.default
+        );
     });
 });
 

@@ -12,6 +12,25 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    computedAccessValidCode,
+    declaredUnionSetInvalidCode,
+    declaredUnionSetInvalidOutput,
+    inlineFixableCode,
+    inlineFixableOutput,
+    invalidFixtureName,
+    mixedUnionInvalidCode,
+    mixedUnionInvalidOutput,
+    nonSetReceiverValidCode,
+    readonlySetInvalidCode,
+    readonlySetInvalidOutput,
+    reversedMixedUnionInvalidCode,
+    reversedMixedUnionInvalidOutput,
+    setDifferentMethodValidCode,
+    unionSetInvalidCode,
+    unionSetInvalidOutput,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-set-has-cases";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -29,95 +48,6 @@ const preferTsExtrasSetHasMessage =
     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.";
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-ts-extras-set-has.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-set-has.invalid.ts";
-const computedAccessValidCode = [
-    "const values = new Set([1, 2, 3]);",
-    'const hasValue = values["has"](2);',
-    "String(hasValue);",
-].join("\n");
-const nonSetReceiverValidCode = [
-    "const helper = {",
-    "    has(value: number): boolean {",
-    "        return value === 1;",
-    "    },",
-    "};",
-    "const hasValue = helper.has(1);",
-    "String(hasValue);",
-].join("\n");
-const setDifferentMethodValidCode = [
-    "const values = new Set([1, 2, 3]);",
-    "values.clear();",
-    "String(values.size);",
-].join("\n");
-const unionSetInvalidCode = [
-    "const values: Set<number> | ReadonlySet<number> = new Set([1, 2]);",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-const readonlySetInvalidCode = [
-    "const values: ReadonlySet<number> = new Set([1, 2]);",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-const readonlySetInvalidOutput = [
-    'import { setHas } from "ts-extras";',
-    "const values: ReadonlySet<number> = new Set([1, 2]);",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-const unionSetInvalidOutput = [
-    'import { setHas } from "ts-extras";',
-    "const values: Set<number> | ReadonlySet<number> = new Set([1, 2]);",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-const mixedUnionInvalidCode = [
-    "declare const values: Set<number> | Map<number, number>;",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-const mixedUnionInvalidOutput = [
-    'import { setHas } from "ts-extras";',
-    "declare const values: Set<number> | Map<number, number>;",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-const reversedMixedUnionInvalidCode = [
-    "declare const values: Map<number, number> | Set<number>;",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-const reversedMixedUnionInvalidOutput = [
-    'import { setHas } from "ts-extras";',
-    "declare const values: Map<number, number> | Set<number>;",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-const declaredUnionSetInvalidCode = [
-    "declare const values: Set<number> | ReadonlySet<number>;",
-    "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-const declaredUnionSetInvalidOutput = [
-    'import { setHas } from "ts-extras";',
-    "declare const values: Set<number> | ReadonlySet<number>;",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-const inlineFixableCode = [
-    'import { setHas } from "ts-extras";',
-    "",
-    "const values = new Set([1, 2, 3]);",
-    "const hasValue = values.has(2);",
-].join("\n");
-const inlineFixableOutput = [
-    'import { setHas } from "ts-extras";',
-    "",
-    "const values = new Set([1, 2, 3]);",
-    "const hasValue = setHas(values, 2);",
-].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",

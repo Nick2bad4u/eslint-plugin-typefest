@@ -15,111 +15,48 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
+    alreadyPromisableUnionValidCode,
+    customWrapperValidCode,
+    doublePromiseUnionValidCode,
+    inlineFixableInvalidCode,
+    inlineFixableOutputCode,
+    inlineInvalidWithoutFixCode,
+    inlineInvalidWithoutFixOutputCode,
+    invalidFixtureName,
+    nestedPromisableUnionValidCode,
+    neverFirstPromiseSecondValidCode,
+    nullFirstPromiseSecondValidCode,
+    promiseFirstInvalidCode,
+    promiseFourMemberLeadingPairValidCode,
+    promiseFourMemberLeadingReversePairValidCode,
+    promiseLikeValidCode,
+    promiseMismatchValidCode,
+    promiseNeverInnerMatchValidCode,
+    promiseNeverValidCode,
+    promiseNoTypeArgumentsValidCode,
+    promiseNullInnerMatchValidCode,
+    promiseNullValidCode,
+    promiseSecondInvalidCode,
+    promiseThreeMemberLeadingPairValidCode,
+    promiseThreeMemberLeadingReversePairValidCode,
+    promiseThreeMemberUnionValidCode,
+    promiseUndefinedInnerMatchValidCode,
+    promiseUndefinedUnionValidCode,
+    promiseUndefinedValidCode,
+    qualifiedPromiseValidCode,
+    reverseNestedPromisableUnionValidCode,
+    threeMemberPromisableUnionValidCode,
+    undefinedFirstPromiseSecondValidCode,
+    validFixtureName,
+} from "./_internal/prefer-type-fest-promisable-cases";
+import {
     createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
-const invalidFixtureName = "prefer-type-fest-promisable.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-type-fest-promisable fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const inlineFixableInvalidCode = [
-    'import type { MaybePromise } from "type-aliases";',
-    'import type { Promisable } from "type-fest";',
-    "",
-    "type JobResult = MaybePromise<string>;",
-].join("\n");
-
-const inlineFixableOutputCode = replaceOrThrow({
-    replacement: "type JobResult = Promisable<string>;",
-    sourceText: inlineFixableInvalidCode,
-    target: "type JobResult = MaybePromise<string>;",
-});
-const inlineInvalidWithoutFixCode = [
-    'import type { MaybePromise } from "type-aliases";',
-    "",
-    "type JobResult = MaybePromise<string>;",
-].join("\n");
-const inlineInvalidWithoutFixOutputCode = [
-    'import type { MaybePromise } from "type-aliases";',
-    'import type { Promisable } from "type-fest";',
-    "",
-    "type JobResult = Promisable<string>;",
-].join("\n");
-const promiseFirstInvalidCode = "type Result = Promise<string> | string;";
-const promiseSecondInvalidCode = "type Result = string | Promise<string>;";
-const promiseLikeValidCode = "type Result = PromiseLike<string> | string;";
-const promiseNoTypeArgumentsValidCode = "type Result = Promise | string;";
-const promiseNullValidCode = "type Result = Promise<string> | null;";
-const promiseUndefinedUnionValidCode =
-    "type Result = Promise<string> | undefined;";
-const promiseUndefinedValidCode =
-    "type Result = PromiseLike<string> | undefined;";
-const promiseNeverValidCode = "type Result = Promise<string> | never;";
-const promiseNullInnerMatchValidCode = "type Result = Promise<null> | null;";
-const promiseUndefinedInnerMatchValidCode =
-    "type Result = Promise<undefined> | undefined;";
-const promiseNeverInnerMatchValidCode = "type Result = Promise<never> | never;";
-const doublePromiseUnionValidCode =
-    "type Result = Promise<string> | Promise<string>;";
-const promiseMismatchValidCode = "type Result = Promise<string> | number;";
-const promiseThreeMemberUnionValidCode =
-    "type Result = Promise<string> | number | string;";
-const promiseThreeMemberLeadingPairValidCode =
-    "type Result = Promise<string> | string | boolean;";
-const promiseThreeMemberLeadingReversePairValidCode =
-    "type Result = string | Promise<string> | boolean;";
-const promiseFourMemberLeadingPairValidCode =
-    "type Result = Promise<string> | string | boolean | number;";
-const promiseFourMemberLeadingReversePairValidCode =
-    "type Result = string | Promise<string> | boolean | number;";
-const nullFirstPromiseSecondValidCode = "type Result = null | Promise<string>;";
-const undefinedFirstPromiseSecondValidCode =
-    "type Result = undefined | Promise<string>;";
-const neverFirstPromiseSecondValidCode =
-    "type Result = never | Promise<string>;";
-const alreadyPromisableUnionValidCode = [
-    'import type { Promisable } from "type-fest";',
-    "type Result = Promise<string> | Promisable<string>;",
-].join("\n");
-const nestedPromisableUnionValidCode = [
-    'import type { Promisable } from "type-fest";',
-    "type Result = Promise<Promisable<string>> | Promisable<string>;",
-].join("\n");
-const reverseNestedPromisableUnionValidCode = [
-    'import type { Promisable } from "type-fest";',
-    "type Result = Promisable<string> | Promise<Promisable<string>>;",
-].join("\n");
-const threeMemberPromisableUnionValidCode = [
-    'import type { Promisable } from "type-fest";',
-    "type Result = Promise<Promisable<string>> | Promisable<string> | boolean;",
-].join("\n");
-const qualifiedPromiseValidCode =
-    "type Result = globalThis.Promise<string> | string;";
-const customWrapperValidCode = [
-    "type MaybePromise<T> = Promise<T>;",
-    "type Result = MaybePromise<string> | string;",
-].join("\n");
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
     defaultOptions: [],

@@ -227,8 +227,8 @@ const isStrictPresentCheck = ({
 };
 
 /**
- * Detects the strict two-term absent check pattern: `value === null || value
- * === undefined`.
+ * Detects the strict two-term absent check pattern: value === null || value ===
+ * undefined.
  *
  * @param options - Context plus logical expression to inspect.
  *

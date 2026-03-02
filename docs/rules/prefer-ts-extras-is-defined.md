@@ -12,6 +12,8 @@ This rule scopes matching to direct undefined-check expressions outside `.filter
 - `typeof value !== "undefined"`
 - `value === undefined`
 
+Loose comparisons (`==` / `!=`) are intentionally ignored because they also match `null`, which is not equivalent to `isDefined(...)`.
+
 Filter callbacks are handled by the dedicated filter rule; broader boolean expressions are only matched when they keep these forms.
 
 ## What this rule reports
@@ -60,6 +62,7 @@ if (!isDefined(value)) {
 
 - `isDefined(value)` is equivalent to `value !== undefined`.
 - `!isDefined(value)` is equivalent to `value === undefined`.
+- Loose `value != undefined` and `value == undefined` checks are not auto-fixed by this rule because replacing them with `isDefined` would change runtime behavior for `null`.
 - Filter-specific patterns are intentionally covered by `prefer-ts-extras-is-defined-filter`.
 
 ## Additional examples

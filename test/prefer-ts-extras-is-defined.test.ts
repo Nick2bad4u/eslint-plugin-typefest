@@ -1,4 +1,4 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
@@ -13,6 +13,12 @@ import {
     fastCheckRunConfig,
     isSafeGeneratedIdentifier,
 } from "./_internal/fast-check";
+import {
+    buildRuntimeIsDefinedSourceText,
+    executeRuntimeIsDefinedSourceText,
+    isRuntimeIsDefinedCase,
+    runtimeIsDefinedCaseArbitrary,
+} from "./_internal/prefer-ts-extras-is-defined-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -33,6 +39,7 @@ const preferTsExtrasIsDefinedNegatedMessage =
 
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
+type RuleCreateContext = Readonly<Parameters<typeof rule.create>[0]>;
 
 const validFixtureName = "prefer-ts-extras-is-defined.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-defined.invalid.ts";
@@ -171,6 +178,16 @@ const shadowedUndefinedBindingValidCode = [
     "const hasValue = maybeValue !== undefined;",
     "String(hasValue);",
 ].join("\n");
+const looseUndefinedInequalityValidCode = [
+    "declare const maybeValue: string | null | undefined;",
+    "const hasValue = maybeValue != undefined;",
+    "String(hasValue);",
+].join("\n");
+const looseUndefinedEqualityValidCode = [
+    "declare const maybeValue: string | null | undefined;",
+    "const isMissing = maybeValue == undefined;",
+    "String(isMissing);",
+].join("\n");
 const undeclaredTypeofInequalityValidCode = [
     'const hasValue = typeof maybeUndeclared !== "undefined";',
     "String(hasValue);",
@@ -183,6 +200,16 @@ const undeclaredTypeofEqualityValidCode = [
 type IsDefinedReportDescriptor = Readonly<{
     fix?: unknown;
     messageId?: string;
+}>;
+
+type IsDefinedRuleReportDescriptor = Readonly<{
+    fix?: TSESLint.ReportFixFunction;
+    messageId?: string;
+}>;
+
+type TextEdit = Readonly<{
+    range: readonly [number, number];
+    text: string;
 }>;
 
 type UndefinedComparisonPattern =
@@ -270,6 +297,383 @@ const parseUndefinedComparisonFromCode = (
     throw new Error(
         "Expected generated source text to contain a binary expression variable initializer"
     );
+};
+
+const parseVariableInitializerExpressionByName = ({
+    sourceText,
+    variableName,
+}: Readonly<{
+    sourceText: string;
+    variableName: string;
+}>): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    initializer: TSESTree.Expression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.name === variableName &&
+                    declaration.init !== null
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        initializer: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        `Expected generated source text to declare \`${variableName}\` with an initializer expression`
+    );
+};
+
+const addScopeBinding = ({
+    definitionNode,
+    definitionType,
+    name,
+    scopeBindings,
+}: Readonly<{
+    definitionNode: TSESTree.Node;
+    definitionType: string;
+    name: string;
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+}>): void => {
+    if (name.length === 0 || scopeBindings.has(name)) {
+        return;
+    }
+
+    scopeBindings.set(name, {
+        defs: [
+            {
+                node: definitionNode,
+                type: definitionType,
+            },
+        ],
+    } as unknown as TSESLint.Scope.Variable);
+};
+
+const addImportScopeBindings = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.ImportDeclaration;
+}>): void => {
+    for (const specifier of statement.specifiers) {
+        if ((specifier as { parent?: unknown }).parent === undefined) {
+            (
+                specifier as unknown as {
+                    parent: Readonly<TSESTree.ImportDeclaration>;
+                }
+            ).parent = statement;
+        }
+
+        if (specifier.local.type === AST_NODE_TYPES.Identifier) {
+            addScopeBinding({
+                definitionNode: specifier,
+                definitionType: "ImportBinding",
+                name: specifier.local.name,
+                scopeBindings,
+            });
+        }
+    }
+};
+
+const addFunctionScopeBinding = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.FunctionDeclaration;
+}>): void => {
+    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
+        addScopeBinding({
+            definitionNode: statement.id,
+            definitionType: "FunctionName",
+            name: statement.id.name,
+            scopeBindings,
+        });
+    }
+};
+
+const addClassScopeBinding = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.ClassDeclaration;
+}>): void => {
+    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
+        addScopeBinding({
+            definitionNode: statement.id,
+            definitionType: "ClassName",
+            name: statement.id.name,
+            scopeBindings,
+        });
+    }
+};
+
+const addVariableScopeBindings = ({
+    scopeBindings,
+    statement,
+}: Readonly<{
+    scopeBindings: Map<string, TSESLint.Scope.Variable>;
+    statement: TSESTree.VariableDeclaration;
+}>): void => {
+    for (const declaration of statement.declarations) {
+        if (declaration.id.type === AST_NODE_TYPES.Identifier) {
+            addScopeBinding({
+                definitionNode: declaration.id,
+                definitionType: "Variable",
+                name: declaration.id.name,
+                scopeBindings,
+            });
+        }
+    }
+};
+
+type ScopeBindingStatement = Extract<
+    TopLevelProgramStatement,
+    | TSESTree.ClassDeclaration
+    | TSESTree.FunctionDeclaration
+    | TSESTree.ImportDeclaration
+    | TSESTree.VariableDeclaration
+>;
+
+type TopLevelProgramStatement = ReturnType<
+    typeof parser.parseForESLint
+>["ast"]["body"][number];
+
+const isScopeBindingStatement = (
+    statement: Readonly<TopLevelProgramStatement>
+): statement is ScopeBindingStatement =>
+    statement.type === AST_NODE_TYPES.ClassDeclaration ||
+    statement.type === AST_NODE_TYPES.FunctionDeclaration ||
+    statement.type === AST_NODE_TYPES.ImportDeclaration ||
+    statement.type === AST_NODE_TYPES.VariableDeclaration;
+
+const collectTopLevelScopeBindings = (
+    ast: Readonly<ReturnType<typeof parser.parseForESLint>["ast"]>
+): Map<string, TSESLint.Scope.Variable> => {
+    const scopeBindings = new Map<string, TSESLint.Scope.Variable>();
+
+    for (const statement of ast.body) {
+        if (isScopeBindingStatement(statement)) {
+            switch (statement.type) {
+                case AST_NODE_TYPES.ClassDeclaration: {
+                    addClassScopeBinding({
+                        scopeBindings,
+                        statement,
+                    });
+                    break;
+                }
+
+                case AST_NODE_TYPES.FunctionDeclaration: {
+                    addFunctionScopeBinding({
+                        scopeBindings,
+                        statement,
+                    });
+                    break;
+                }
+
+                case AST_NODE_TYPES.ImportDeclaration: {
+                    addImportScopeBindings({
+                        scopeBindings,
+                        statement,
+                    });
+                    break;
+                }
+
+                case AST_NODE_TYPES.VariableDeclaration: {
+                    addVariableScopeBindings({
+                        scopeBindings,
+                        statement,
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    return scopeBindings;
+};
+
+const createRuleContextForSource = ({
+    ast,
+    reportCalls,
+    sourceText,
+}: Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    reportCalls: IsDefinedRuleReportDescriptor[];
+    sourceText: string;
+}>): RuleCreateContext => {
+    const scopeBindings = collectTopLevelScopeBindings(ast);
+    const scope = {
+        set: scopeBindings,
+        upper: null,
+    };
+
+    return {
+        filename: "src/example.ts",
+        report(descriptor: IsDefinedRuleReportDescriptor): void {
+            reportCalls.push(descriptor);
+        },
+        sourceCode: {
+            ast,
+            getScope: (): Readonly<TSESLint.Scope.Scope> =>
+                scope as unknown as Readonly<TSESLint.Scope.Scope>,
+            getText(node: unknown): string {
+                if (
+                    typeof node !== "object" ||
+                    node === null ||
+                    !("range" in node)
+                ) {
+                    return "";
+                }
+
+                const nodeRange = (
+                    node as Readonly<{
+                        range?: readonly [number, number];
+                    }>
+                ).range;
+
+                if (nodeRange === undefined) {
+                    return "";
+                }
+
+                return sourceText.slice(nodeRange[0], nodeRange[1]);
+            },
+        },
+    } as unknown as RuleCreateContext;
+};
+
+const normalizeFixResultToArray = (
+    fixResult:
+        | Iterable<Readonly<TSESLint.RuleFix>>
+        | null
+        | Readonly<TSESLint.RuleFix>
+): readonly Readonly<TSESLint.RuleFix>[] => {
+    if (fixResult === null) {
+        return [];
+    }
+
+    if (
+        typeof fixResult === "object" &&
+        fixResult !== null &&
+        Symbol.iterator in fixResult
+    ) {
+        return [...fixResult];
+    }
+
+    return [fixResult];
+};
+
+const invokeReportFixToTextEdits = (
+    reportFix: TSESLint.ReportFixFunction
+): readonly TextEdit[] => {
+    const getNodeRange = (
+        node: Readonly<TSESTree.Node>
+    ): readonly [number, number] => node.range;
+
+    const fixer = {
+        insertTextAfter(node: Readonly<TSESTree.Node>, text: string) {
+            const nodeRange = getNodeRange(node);
+
+            return {
+                range: [nodeRange[1], nodeRange[1]],
+                text,
+            } as const;
+        },
+        insertTextBeforeRange(range: readonly [number, number], text: string) {
+            return {
+                range,
+                text,
+            } as const;
+        },
+        replaceText(node: Readonly<TSESTree.Node>, text: string) {
+            return {
+                range: getNodeRange(node),
+                text,
+            } as const;
+        },
+        replaceTextRange(
+            range: readonly [number, number],
+            text: string
+        ): Readonly<TSESLint.RuleFix> {
+            return {
+                range,
+                text,
+            };
+        },
+    } as unknown as Readonly<TSESLint.RuleFixer>;
+
+    const fixResult = reportFix(fixer);
+
+    return normalizeFixResultToArray(fixResult).map(
+        (fix): TextEdit => ({
+            range: fix.range,
+            text: fix.text,
+        })
+    );
+};
+
+const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
+    for (const [firstIndex, firstEdit] of textEdits.entries()) {
+        for (const [secondIndex, secondEdit] of textEdits.entries()) {
+            if (firstIndex < secondIndex) {
+                const doNotOverlap =
+                    firstEdit.range[1] <= secondEdit.range[0] ||
+                    secondEdit.range[1] <= firstEdit.range[0];
+
+                expect(doNotOverlap).toBeTruthy();
+            }
+        }
+    }
+};
+
+const applyTextEdits = ({
+    sourceText,
+    textEdits,
+}: Readonly<{
+    sourceText: string;
+    textEdits: readonly TextEdit[];
+}>): string => {
+    let nextSourceText = sourceText;
+    const remainingTextEdits = [...textEdits];
+
+    while (remainingTextEdits.length > 0) {
+        let greatestIndex = 0;
+
+        for (let index = 1; index < remainingTextEdits.length; index += 1) {
+            const currentEdit = remainingTextEdits[index];
+            const greatestEdit = remainingTextEdits[greatestIndex];
+
+            if (
+                currentEdit !== undefined &&
+                greatestEdit !== undefined &&
+                currentEdit.range[0] > greatestEdit.range[0]
+            ) {
+                greatestIndex = index;
+            }
+        }
+
+        const [selectedTextEdit] = remainingTextEdits.splice(greatestIndex, 1);
+
+        if (selectedTextEdit !== undefined) {
+            nextSourceText =
+                nextSourceText.slice(0, selectedTextEdit.range[0]) +
+                selectedTextEdit.text +
+                nextSourceText.slice(selectedTextEdit.range[1]);
+        }
+    }
+
+    return nextSourceText;
 };
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
@@ -570,9 +974,20 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
                         listeners.BinaryExpression?.(binaryExpression);
 
-                        const isNegatedExpected =
-                            comparisonOperator === "==" ||
+                        const isStrictComparisonOperator =
+                            comparisonOperator === "!==" ||
                             comparisonOperator === "===";
+
+                        if (!isStrictComparisonOperator) {
+                            expect(reports).toHaveLength(0);
+                            expect(
+                                createSafeValueArgumentFunctionCallFixMock
+                            ).not.toHaveBeenCalled();
+
+                            return;
+                        }
+
+                        const isNegatedExpected = comparisonOperator === "===";
                         const expectedMessageId = isNegatedExpected
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined";
@@ -614,6 +1029,119 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+
+    it("fast-check: executable undefined comparison autofix preserves runtime behavior and remains second-pass stable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(runtimeIsDefinedCaseArbitrary, (generatedCase) => {
+                if (!isRuntimeIsDefinedCase(generatedCase)) {
+                    throw new TypeError(
+                        "Expected runtime isDefined fast-check case to match RuntimeIsDefinedCase"
+                    );
+                }
+
+                const sourceText =
+                    buildRuntimeIsDefinedSourceText(generatedCase);
+                const { ast: firstPassAst, binaryExpression } =
+                    parseUndefinedComparisonFromCode(sourceText);
+                const firstPassReports: IsDefinedRuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                const isStrictComparisonOperator =
+                    generatedCase.operator === "!==" ||
+                    generatedCase.operator === "===";
+
+                if (!isStrictComparisonOperator) {
+                    expect(firstPassReports).toHaveLength(0);
+
+                    return;
+                }
+
+                const expectsNegatedHelper = generatedCase.operator === "===";
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    expectsNegatedHelper
+                        ? "preferTsExtrasIsDefinedNegated"
+                        : "preferTsExtrasIsDefined"
+                );
+
+                const firstPassFix = firstPassReports[0]?.fix;
+
+                expect(firstPassFix).toBeTypeOf("function");
+
+                if (firstPassFix === undefined) {
+                    throw new Error(
+                        "Expected runtime equivalence report to include a fixer"
+                    );
+                }
+
+                const firstPassTextEdits =
+                    invokeReportFixToTextEdits(firstPassFix);
+
+                expect(firstPassTextEdits).toHaveLength(1);
+
+                assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                const firstPassFixedCode = applyTextEdits({
+                    sourceText,
+                    textEdits: firstPassTextEdits,
+                });
+
+                expect(() => {
+                    parser.parseForESLint(firstPassFixedCode, parserOptions);
+                }).not.toThrowError();
+
+                const originalExecutionSnapshot =
+                    executeRuntimeIsDefinedSourceText(sourceText);
+                const fixedExecutionSnapshot =
+                    executeRuntimeIsDefinedSourceText(firstPassFixedCode);
+
+                expect(fixedExecutionSnapshot).toStrictEqual(
+                    originalExecutionSnapshot
+                );
+
+                const {
+                    ast: secondPassAst,
+                    initializer: secondPassInitializer,
+                } = parseVariableInitializerExpressionByName({
+                    sourceText: firstPassFixedCode,
+                    variableName: "evaluation",
+                });
+
+                const secondPassReports: IsDefinedRuleReportDescriptor[] = [];
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        sourceText: firstPassFixedCode,
+                    })
+                );
+
+                if (
+                    secondPassInitializer.type ===
+                    AST_NODE_TYPES.BinaryExpression
+                ) {
+                    secondPassListeners.BinaryExpression?.(
+                        secondPassInitializer
+                    );
+                }
+
+                expect(secondPassReports).toHaveLength(0);
+            }),
+            fastCheckRunConfig.default
+        );
     });
 });
 
@@ -698,6 +1226,16 @@ ruleTester.run(ruleId, rule, {
             code: shadowedUndefinedBindingValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores comparisons against shadowed undefined bindings",
+        },
+        {
+            code: looseUndefinedInequalityValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores loose undefined inequality comparisons",
+        },
+        {
+            code: looseUndefinedEqualityValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores loose undefined equality comparisons",
         },
         {
             code: undeclaredTypeofInequalityValidCode,

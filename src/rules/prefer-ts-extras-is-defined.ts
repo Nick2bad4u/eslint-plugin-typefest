@@ -115,10 +115,8 @@ const getUndefinedComparisonMatch = (
     context: RuleContext,
     node: Readonly<TSESTree.BinaryExpression>
 ): null | UndefinedComparisonMatch => {
-    const isPositiveComparison =
-        node.operator === "!=" || node.operator === "!==";
-    const isNegativeComparison =
-        node.operator === "==" || node.operator === "===";
+    const isPositiveComparison = node.operator === "!==";
+    const isNegativeComparison = node.operator === "===";
 
     if (!isPositiveComparison && !isNegativeComparison) {
         return null;
