@@ -125,8 +125,8 @@ const isGenericReadonlyJsonValueArrayType = (
  *
  * @param node - Union node to inspect.
  *
- * @returns `true` for two-member unions equivalent to `JsonValue[] | readonly
- *   JsonValue[]` or `Array<JsonValue> | ReadonlyArray<JsonValue>`.
+ * @returns `true` for two-member unions equivalent to either JsonValue[] |
+ *   readonly JsonValue[]`or`Array<JsonValue> | ReadonlyArray<JsonValue>.
  */
 
 const hasJsonArrayUnionShape = (

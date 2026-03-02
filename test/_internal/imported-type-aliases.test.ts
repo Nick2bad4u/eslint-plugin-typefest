@@ -1,12 +1,16 @@
+import type { UnknownArray } from "type-fest";
+
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Unit tests for imported-type-alias helper discovery and safe replacement
  * fixers.
  */
-import type { TSESLint } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
-import parser from "@typescript-eslint/parser";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
@@ -250,8 +254,521 @@ const createReadonlyTypeOperatorNode = (): Parameters<
 
 const parserOptions = {
     ecmaVersion: "latest",
+    loc: true,
+    range: true,
     sourceType: "module",
 } as const;
+
+type ReplacementInsertionMode =
+    | "after-directive"
+    | "after-existing-import"
+    | "before-first-statement";
+
+type ReplacementPrologueCase = Readonly<{
+    expectedInsertionMode: ReplacementInsertionMode;
+    prefixLines: readonly string[];
+}>;
+
+type TextEdit = Readonly<{
+    end: number;
+    start: number;
+    text: string;
+}>;
+
+const replacementPrologueArbitrary = fc.constantFrom<ReplacementPrologueCase>(
+    {
+        expectedInsertionMode: "after-directive",
+        prefixLines: ['"use client";', '"use strict";'],
+    },
+    {
+        expectedInsertionMode: "after-existing-import",
+        prefixLines: ['import type { ExistingAlias } from "type-fest";'],
+    },
+    {
+        expectedInsertionMode: "after-existing-import",
+        prefixLines: [
+            '"use client";',
+            'import type { ExistingAlias } from "type-fest";',
+        ],
+    },
+    {
+        expectedInsertionMode: "before-first-statement",
+        prefixLines: [],
+    }
+);
+
+const referenceArgumentTextArbitrary = fc.constantFrom(
+    "string",
+    "number",
+    "ReadonlyArray<string>",
+    "{ readonly id: number }",
+    "Tagged<'Brand'>"
+);
+
+type ReplacementSpec = Readonly<{
+    replacementName: string;
+    replacementText: string;
+}>;
+
+const replacementSpecArbitrary = fc.constantFrom<ReplacementSpec>(
+    {
+        replacementName: "UnknownArray",
+        replacementText: "UnknownArray",
+    },
+    {
+        replacementName: "UnknownMap",
+        replacementText: "UnknownMap<string, number>",
+    },
+    {
+        replacementName: "Tagged",
+        replacementText: "Tagged<'Brand'>",
+    },
+    {
+        replacementName: "UnknownArray",
+        replacementText: "Readonly<UnknownArray>",
+    },
+    {
+        replacementName: "UnknownArray",
+        replacementText: "Promise<UnknownArray>",
+    }
+);
+
+const isTextEdit = (value: unknown): value is TextEdit =>
+    typeof value === "object" &&
+    value !== null &&
+    "end" in value &&
+    typeof (value as { end: unknown }).end === "number" &&
+    "start" in value &&
+    typeof (value as { start: unknown }).start === "number" &&
+    "text" in value &&
+    typeof (value as { text: unknown }).text === "string";
+
+const isRuleFixIterable = (
+    value: unknown
+): value is Iterable<TSESLint.RuleFix> =>
+    typeof value === "object" &&
+    value !== null &&
+    Symbol.iterator in value &&
+    !Array.isArray(value);
+
+const invokeFixToTextEdits = (
+    fix: null | TSESLint.ReportFixFunction
+): readonly Readonly<TextEdit>[] => {
+    if (!fix) {
+        return [];
+    }
+
+    const fixes = fix({
+        insertTextAfter(target: unknown, text: string): TextEdit {
+            if (
+                typeof target !== "object" ||
+                target === null ||
+                !("range" in target)
+            ) {
+                throw new TypeError("insertTextAfter target is missing range");
+            }
+
+            const targetRange = (
+                target as Readonly<{ range?: readonly [number, number] }>
+            ).range;
+
+            if (targetRange === undefined) {
+                throw new TypeError(
+                    "insertTextAfter target range is undefined"
+                );
+            }
+
+            return {
+                end: targetRange[1],
+                start: targetRange[1],
+                text,
+            };
+        },
+        insertTextBeforeRange(
+            range: readonly [number, number],
+            text: string
+        ): TextEdit {
+            return {
+                end: range[1],
+                start: range[0],
+                text,
+            };
+        },
+        replaceText(target: unknown, text: string): TextEdit {
+            if (
+                typeof target !== "object" ||
+                target === null ||
+                !("range" in target)
+            ) {
+                throw new TypeError("replaceText target is missing range");
+            }
+
+            const targetRange = (
+                target as Readonly<{ range?: readonly [number, number] }>
+            ).range;
+
+            if (targetRange === undefined) {
+                throw new TypeError("replaceText target range is undefined");
+            }
+
+            return {
+                end: targetRange[1],
+                start: targetRange[0],
+                text,
+            };
+        },
+    } as unknown as TSESLint.RuleFixer);
+
+    const normalizedFixes: unknown[] = [];
+
+    if (Array.isArray(fixes)) {
+        for (const arrayFix of fixes) {
+            normalizedFixes.push(arrayFix);
+        }
+    } else if (isRuleFixIterable(fixes)) {
+        for (const iterableFix of fixes) {
+            normalizedFixes.push(iterableFix);
+        }
+    } else if (fixes) {
+        normalizedFixes.push(fixes);
+    }
+
+    const textEdits: TextEdit[] = [];
+
+    for (const candidateFix of normalizedFixes) {
+        if (!isTextEdit(candidateFix)) {
+            throw new TypeError(
+                "Expected all fix entries to be text edits in this synthetic test harness"
+            );
+        }
+
+        textEdits.push(candidateFix);
+    }
+
+    return textEdits;
+};
+
+const applyTextEdits = ({
+    sourceText,
+    textEdits,
+}: Readonly<{
+    sourceText: string;
+    textEdits: readonly Readonly<TextEdit>[];
+}>): string => {
+    const sortedDescendingEdits = textEdits.toSorted(
+        (left, right) => right.start - left.start
+    );
+
+    let updatedSourceText = sourceText;
+
+    for (const textEdit of sortedDescendingEdits) {
+        updatedSourceText = `${updatedSourceText.slice(0, textEdit.start)}${textEdit.text}${updatedSourceText.slice(textEdit.end)}`;
+    }
+
+    return updatedSourceText;
+};
+
+const assertTextEditsDoNotOverlap = (
+    textEdits: readonly Readonly<TextEdit>[]
+): void => {
+    const sortedAscendingEdits = textEdits.toSorted(
+        (left, right) => left.start - right.start
+    );
+
+    for (let index = 1; index < sortedAscendingEdits.length; index += 1) {
+        const previousEdit = sortedAscendingEdits[index - 1];
+        const currentEdit = sortedAscendingEdits[index];
+
+        if (previousEdit === undefined || currentEdit === undefined) {
+            throw new Error(
+                "Expected adjacent text edits while checking overlap"
+            );
+        }
+
+        expect(previousEdit.end).toBeLessThanOrEqual(currentEdit.start);
+    }
+};
+
+const parseSingleTypeReferenceFromTypeAliasCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    referenceNode: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            const annotation = statement.typeAnnotation;
+
+            if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
+                return {
+                    ast: parsed.ast,
+                    referenceNode: annotation,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias with a TSTypeReference annotation"
+    );
+};
+
+const parseSingleTypeAliasAnnotationNodeFromCode = (
+    sourceText: string
+): Readonly<{
+    annotationNode: TSESTree.TypeNode;
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            return {
+                annotationNode: statement.typeAnnotation,
+                ast: parsed.ast,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias declaration"
+    );
+};
+
+const countNamedTypeImportSpecifiersInSource = ({
+    importedName,
+    sourceModuleName,
+    sourceText,
+}: Readonly<{
+    importedName: string;
+    sourceModuleName: string;
+    sourceText: string;
+}>): number => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+    let importSpecifierCount = 0;
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.ImportDeclaration &&
+            statement.source.value === sourceModuleName
+        ) {
+            for (const specifier of statement.specifiers) {
+                if (
+                    specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                    specifier.imported.type === AST_NODE_TYPES.Identifier &&
+                    specifier.imported.name === importedName
+                ) {
+                    importSpecifierCount += 1;
+                }
+            }
+        }
+    }
+
+    return importSpecifierCount;
+};
+
+const readonlyContainerAnnotationByName = {
+    ReadonlyArray: "ReadonlyArray<Expand<string>>",
+    ReadonlyMap: "ReadonlyMap<string, Expand<number>>",
+    ReadonlySet: "ReadonlySet<Expand<string>>",
+} as const;
+
+const getTypeImportDeclarationText = (replacementName: string): string =>
+    `import type { ${replacementName} } from "type-fest";`;
+
+const getReadonlyVariantAnnotationText = ({
+    containerTypeName,
+    readonlyNodeVariant,
+}: Readonly<{
+    containerTypeName: string;
+    readonlyNodeVariant: string;
+}>): string => {
+    if (readonlyNodeVariant === "readonly-container") {
+        const annotationText =
+            readonlyContainerAnnotationByName[
+                containerTypeName as keyof typeof readonlyContainerAnnotationByName
+            ];
+
+        if (annotationText === undefined) {
+            throw new Error(
+                `Unsupported readonly container type: ${containerTypeName}`
+            );
+        }
+
+        return annotationText;
+    }
+
+    if (readonlyNodeVariant === "readonly-operator") {
+        return "readonly Expand<string>[]";
+    }
+
+    return "Expand<string>";
+};
+
+const findImportDeclarationStatementIndex = ({
+    ast,
+    importedName,
+    sourceModuleName,
+}: Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    importedName: string;
+    sourceModuleName: string;
+}>): null | number => {
+    for (let index = 0; index < ast.body.length; index += 1) {
+        const statement = ast.body[index];
+        if (
+            statement?.type === AST_NODE_TYPES.ImportDeclaration &&
+            statement.source.value === sourceModuleName
+        ) {
+            for (const specifier of statement.specifiers) {
+                if (
+                    specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                    specifier.imported.type === AST_NODE_TYPES.Identifier &&
+                    specifier.imported.name === importedName
+                ) {
+                    return index;
+                }
+            }
+        }
+    }
+
+    return null;
+};
+
+const findLastDirectiveStatementIndex = (
+    ast: Readonly<ReturnType<typeof parser.parseForESLint>["ast"]>
+): null | number => {
+    let lastDirectiveStatementIndex: null | number = null;
+
+    for (let index = 0; index < ast.body.length; index += 1) {
+        const statement = ast.body[index];
+
+        if (
+            statement?.type === AST_NODE_TYPES.ExpressionStatement &&
+            typeof statement.directive === "string"
+        ) {
+            lastDirectiveStatementIndex = index;
+        }
+    }
+
+    return lastDirectiveStatementIndex;
+};
+
+const findTypeAliasStatementIndex = ({
+    aliasName,
+    ast,
+}: Readonly<{
+    aliasName: string;
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+}>): null | number => {
+    for (let index = 0; index < ast.body.length; index += 1) {
+        const statement = ast.body[index];
+
+        if (
+            statement?.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.id.name === aliasName
+        ) {
+            return index;
+        }
+    }
+
+    return null;
+};
+
+const assertTypeReplacementImportOrdering = ({
+    fixedCode,
+    insertionMode,
+    replacementName,
+}: Readonly<{
+    fixedCode: string;
+    insertionMode: ReplacementInsertionMode;
+    replacementName: string;
+}>): void => {
+    const ast = parser.parseForESLint(fixedCode, parserOptions).ast;
+    const replacementImportStatementIndex = findImportDeclarationStatementIndex(
+        {
+            ast,
+            importedName: replacementName,
+            sourceModuleName: "type-fest",
+        }
+    );
+
+    expect(replacementImportStatementIndex).not.toBeNull();
+
+    if (replacementImportStatementIndex === null) {
+        throw new Error(
+            `Expected replacement import for ${replacementName} to exist in fixed source`
+        );
+    }
+
+    switch (insertionMode) {
+        case "after-directive": {
+            const lastDirectiveStatementIndex =
+                findLastDirectiveStatementIndex(ast);
+
+            expect(lastDirectiveStatementIndex).not.toBeNull();
+
+            if (lastDirectiveStatementIndex === null) {
+                throw new Error(
+                    "Expected directive prologue statement for after-directive insertion mode"
+                );
+            }
+
+            expect(lastDirectiveStatementIndex).toBeLessThan(
+                replacementImportStatementIndex
+            );
+
+            break;
+        }
+
+        case "after-existing-import": {
+            const existingImportStatementIndex =
+                findImportDeclarationStatementIndex({
+                    ast,
+                    importedName: "ExistingAlias",
+                    sourceModuleName: "type-fest",
+                });
+
+            expect(existingImportStatementIndex).not.toBeNull();
+
+            if (existingImportStatementIndex === null) {
+                throw new Error(
+                    "Expected ExistingAlias import statement for after-existing-import insertion mode"
+                );
+            }
+
+            expect(existingImportStatementIndex).toBeLessThan(
+                replacementImportStatementIndex
+            );
+
+            break;
+        }
+
+        case "before-first-statement": {
+            const candidateTypeAliasStatementIndex =
+                findTypeAliasStatementIndex({
+                    aliasName: "Candidate",
+                    ast,
+                });
+
+            expect(candidateTypeAliasStatementIndex).not.toBeNull();
+
+            if (candidateTypeAliasStatementIndex === null) {
+                throw new Error(
+                    "Expected Candidate type-alias statement for before-first-statement insertion mode"
+                );
+            }
+
+            expect(replacementImportStatementIndex).toBeLessThan(
+                candidateTypeAliasStatementIndex
+            );
+
+            break;
+        }
+    }
+};
 
 const readonlyNodeVariantArbitrary = fc.constantFrom(
     "plain",
@@ -609,6 +1126,236 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
 
         expect(fixer).toBeNull();
     });
+
+    it("fast-check: applies combined import insertion and type-reference replacement with parseable output", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                referenceArgumentTextArbitrary,
+                ({ expectedInsertionMode, prefixLines }, argumentText) => {
+                    const sourceLines = [
+                        ...prefixLines,
+                        `type Candidate = Expand<${argumentText}>;`,
+                    ];
+                    const sourceText = sourceLines.join("\n");
+
+                    const { ast, referenceNode } =
+                        parseSingleTypeReferenceFromTypeAliasCode(sourceText);
+                    (referenceNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix = createSafeTypeReferenceReplacementFixFn(
+                        referenceNode,
+                        "Simplify",
+                        new Set<string>()
+                    );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(textEdits);
+
+                    const fixedCode = applyTextEdits({ sourceText, textEdits });
+
+                    expect(fixedCode).toContain(
+                        'import type { Simplify } from "type-fest";'
+                    );
+                    expect(fixedCode).toContain(
+                        `type Candidate = Simplify<${argumentText}>;`
+                    );
+
+                    assertTypeReplacementImportOrdering({
+                        fixedCode,
+                        insertionMode: expectedInsertionMode,
+                        replacementName: "Simplify",
+                    });
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: avoids duplicate replacement imports when replacement type is already in scope", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                referenceArgumentTextArbitrary,
+                ({ prefixLines }, argumentText) => {
+                    const sourceLines = [
+                        ...prefixLines,
+                        'import type { Simplify } from "type-fest";',
+                        `type Candidate = Expand<${argumentText}>;`,
+                    ];
+                    const sourceText = sourceLines.join("\n");
+
+                    const { ast, referenceNode } =
+                        parseSingleTypeReferenceFromTypeAliasCode(sourceText);
+                    (referenceNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix = createSafeTypeReferenceReplacementFixFn(
+                        referenceNode,
+                        "Simplify",
+                        new Set(["Simplify"])
+                    );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(1);
+
+                    const onlyTextEdit = textEdits[0];
+                    if (onlyTextEdit === undefined) {
+                        throw new Error(
+                            "Expected a single replacement text edit"
+                        );
+                    }
+
+                    expect(onlyTextEdit.start).toBeLessThan(onlyTextEdit.end);
+
+                    const fixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits,
+                    });
+
+                    expect(fixedCode).toContain(
+                        `type Candidate = Simplify<${argumentText}>;`
+                    );
+
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: "Simplify",
+                            sourceModuleName: "type-fest",
+                            sourceText: fixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: second pass remains stable after type-reference replacement and does not add duplicate imports", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                referenceArgumentTextArbitrary,
+                ({ prefixLines }, argumentText) => {
+                    const sourceText = [
+                        ...prefixLines,
+                        `type Candidate = Expand<${argumentText}>;`,
+                    ].join("\n");
+
+                    const { ast: firstAst, referenceNode: firstReferenceNode } =
+                        parseSingleTypeReferenceFromTypeAliasCode(sourceText);
+                    (
+                        firstReferenceNode as {
+                            parent?: TSESTree.Program;
+                        }
+                    ).parent = firstAst;
+
+                    const firstPassFix =
+                        createSafeTypeReferenceReplacementFixFn(
+                            firstReferenceNode,
+                            "Simplify",
+                            new Set<string>()
+                        );
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    const firstPassTextEdits =
+                        invokeFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    const {
+                        ast: secondAst,
+                        referenceNode: secondReferenceNode,
+                    } =
+                        parseSingleTypeReferenceFromTypeAliasCode(
+                            firstPassFixedCode
+                        );
+                    (
+                        secondReferenceNode as {
+                            parent?: TSESTree.Program;
+                        }
+                    ).parent = secondAst;
+
+                    const secondPassFix =
+                        createSafeTypeReferenceReplacementFixFn(
+                            secondReferenceNode,
+                            "Simplify",
+                            new Set(["Simplify"])
+                        );
+
+                    expect(secondPassFix).toBeTypeOf("function");
+
+                    const secondPassTextEdits =
+                        invokeFixToTextEdits(secondPassFix);
+
+                    expect(secondPassTextEdits).toHaveLength(1);
+
+                    const secondPassOnlyEdit = secondPassTextEdits[0];
+                    if (secondPassOnlyEdit === undefined) {
+                        throw new Error(
+                            "Expected exactly one replacement edit on second pass"
+                        );
+                    }
+
+                    expect(secondPassOnlyEdit.start).toBeLessThan(
+                        secondPassOnlyEdit.end
+                    );
+
+                    const secondPassFixedCode = applyTextEdits({
+                        sourceText: firstPassFixedCode,
+                        textEdits: secondPassTextEdits,
+                    });
+
+                    expect(secondPassFixedCode).toBe(firstPassFixedCode);
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: "Simplify",
+                            sourceModuleName: "type-fest",
+                            sourceText: secondPassFixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(
+                            secondPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 function createSafeTypeNodeReplacementFixGroup(): void {
@@ -820,6 +1567,254 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
             },
         ]);
     });
+
+    it("fast-check: applies combined import insertion + custom type-node replacement with parseable output", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                replacementSpecArbitrary,
+                ({ expectedInsertionMode, prefixLines }, replacementSpec) => {
+                    const sourceText = [
+                        ...prefixLines,
+                        "type Candidate = Expand<string>;",
+                    ].join("\n");
+
+                    const { annotationNode, ast } =
+                        parseSingleTypeAliasAnnotationNodeFromCode(sourceText);
+                    (annotationNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix = createSafeTypeNodeTextReplacementFixFn(
+                        annotationNode,
+                        replacementSpec.replacementName,
+                        replacementSpec.replacementText,
+                        new Set<string>()
+                    );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(textEdits);
+
+                    const fixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits,
+                    });
+
+                    expect(fixedCode).toContain(
+                        getTypeImportDeclarationText(
+                            replacementSpec.replacementName
+                        )
+                    );
+                    expect(fixedCode).toContain(
+                        `type Candidate = ${replacementSpec.replacementText};`
+                    );
+
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: replacementSpec.replacementName,
+                            sourceModuleName: "type-fest",
+                            sourceText: fixedCode,
+                        })
+                    ).toBe(1);
+
+                    assertTypeReplacementImportOrdering({
+                        fixedCode,
+                        insertionMode: expectedInsertionMode,
+                        replacementName: replacementSpec.replacementName,
+                    });
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: avoids duplicate replacement imports for custom type-node replacement when helper import already exists", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                replacementSpecArbitrary,
+                ({ prefixLines }, replacementSpec) => {
+                    const sourceText = [
+                        ...prefixLines,
+                        getTypeImportDeclarationText(
+                            replacementSpec.replacementName
+                        ),
+                        "type Candidate = Expand<string>;",
+                    ].join("\n");
+
+                    const { annotationNode, ast } =
+                        parseSingleTypeAliasAnnotationNodeFromCode(sourceText);
+                    (annotationNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix = createSafeTypeNodeTextReplacementFixFn(
+                        annotationNode,
+                        replacementSpec.replacementName,
+                        replacementSpec.replacementText,
+                        new Set([replacementSpec.replacementName])
+                    );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(1);
+
+                    const onlyTextEdit = textEdits[0];
+                    if (onlyTextEdit === undefined) {
+                        throw new Error(
+                            "Expected exactly one replacement edit"
+                        );
+                    }
+
+                    expect(onlyTextEdit.start).toBeLessThan(onlyTextEdit.end);
+
+                    const fixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits,
+                    });
+
+                    expect(fixedCode).toContain(
+                        `type Candidate = ${replacementSpec.replacementText};`
+                    );
+
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: replacementSpec.replacementName,
+                            sourceModuleName: "type-fest",
+                            sourceText: fixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: second pass remains stable after custom type-node replacement and does not add duplicate imports", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                replacementSpecArbitrary,
+                ({ prefixLines }, replacementSpec) => {
+                    const sourceText = [
+                        ...prefixLines,
+                        "type Candidate = Expand<string>;",
+                    ].join("\n");
+
+                    const {
+                        annotationNode: firstAnnotationNode,
+                        ast: firstAst,
+                    } = parseSingleTypeAliasAnnotationNodeFromCode(sourceText);
+                    (
+                        firstAnnotationNode as {
+                            parent?: TSESTree.Program;
+                        }
+                    ).parent = firstAst;
+
+                    const firstPassFix = createSafeTypeNodeTextReplacementFixFn(
+                        firstAnnotationNode,
+                        replacementSpec.replacementName,
+                        replacementSpec.replacementText,
+                        new Set<string>()
+                    );
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    const firstPassTextEdits =
+                        invokeFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(2);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    const {
+                        annotationNode: secondAnnotationNode,
+                        ast: secondAst,
+                    } =
+                        parseSingleTypeAliasAnnotationNodeFromCode(
+                            firstPassFixedCode
+                        );
+                    (
+                        secondAnnotationNode as {
+                            parent?: TSESTree.Program;
+                        }
+                    ).parent = secondAst;
+
+                    const secondPassFix =
+                        createSafeTypeNodeTextReplacementFixFn(
+                            secondAnnotationNode,
+                            replacementSpec.replacementName,
+                            replacementSpec.replacementText,
+                            new Set([replacementSpec.replacementName])
+                        );
+
+                    expect(secondPassFix).toBeTypeOf("function");
+
+                    const secondPassTextEdits =
+                        invokeFixToTextEdits(secondPassFix);
+
+                    expect(secondPassTextEdits).toHaveLength(1);
+
+                    const secondPassOnlyEdit = secondPassTextEdits[0];
+                    if (secondPassOnlyEdit === undefined) {
+                        throw new Error(
+                            "Expected exactly one replacement edit on second pass"
+                        );
+                    }
+
+                    expect(secondPassOnlyEdit.start).toBeLessThan(
+                        secondPassOnlyEdit.end
+                    );
+
+                    const secondPassFixedCode = applyTextEdits({
+                        sourceText: firstPassFixedCode,
+                        textEdits: secondPassTextEdits,
+                    });
+
+                    expect(secondPassFixedCode).toBe(firstPassFixedCode);
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: replacementSpec.replacementName,
+                            sourceModuleName: "type-fest",
+                            sourceText: secondPassFixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(
+                            secondPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 function createSafeTypeNodeReplacementFixPreservingReadonlyGroup(): void {
@@ -1000,6 +1995,179 @@ describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
                     expect(replacementOutputText).toBe(expectedReplacementText);
 
                     const fixedCode = `type Candidate = ${replacementOutputText};`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: avoids duplicate type imports when preserving readonly semantics with an in-scope replacement import", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                readonlyNodeVariantArbitrary,
+                readonlyContainerTypeNameArbitrary,
+                replacementSpecArbitrary,
+                (
+                    prologueCase,
+                    readonlyNodeVariant,
+                    containerTypeName,
+                    replacementSpec
+                ) => {
+                    const annotationText = getReadonlyVariantAnnotationText({
+                        containerTypeName,
+                        readonlyNodeVariant,
+                    });
+                    const sourceText = [
+                        ...prologueCase.prefixLines,
+                        `import type { ${replacementSpec.replacementName} } from "type-fest";`,
+                        `type Candidate = ${annotationText};`,
+                    ].join("\n");
+
+                    const { annotationNode, ast } =
+                        parseSingleTypeAliasAnnotationNodeFromCode(sourceText);
+                    (annotationNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyFn(
+                            annotationNode,
+                            replacementSpec.replacementName,
+                            replacementSpec.replacementText,
+                            new Set([replacementSpec.replacementName])
+                        );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(1);
+
+                    const onlyTextEdit = textEdits[0];
+                    if (onlyTextEdit === undefined) {
+                        throw new Error(
+                            "Expected a single replacement text edit"
+                        );
+                    }
+
+                    expect(onlyTextEdit.start).toBeLessThan(onlyTextEdit.end);
+
+                    const fixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits,
+                    });
+
+                    const shouldWrapReadonly =
+                        readonlyNodeVariant !== "plain" &&
+                        !replacementSpec.replacementText
+                            .trimStart()
+                            .startsWith("Readonly<");
+                    const expectedReplacementText = shouldWrapReadonly
+                        ? `Readonly<${replacementSpec.replacementText}>`
+                        : replacementSpec.replacementText;
+
+                    expect(fixedCode).toContain(
+                        `type Candidate = ${expectedReplacementText};`
+                    );
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: replacementSpec.replacementName,
+                            sourceModuleName: "type-fest",
+                            sourceText: fixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: preserves readonly semantics with combined import insertion + node replacement edits", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                replacementPrologueArbitrary,
+                readonlyNodeVariantArbitrary,
+                readonlyContainerTypeNameArbitrary,
+                replacementSpecArbitrary,
+                (
+                    prologueCase,
+                    readonlyNodeVariant,
+                    containerTypeName,
+                    replacementSpec
+                ) => {
+                    const annotationText = getReadonlyVariantAnnotationText({
+                        containerTypeName,
+                        readonlyNodeVariant,
+                    });
+                    const sourceText = [
+                        ...prologueCase.prefixLines,
+                        `type Candidate = ${annotationText};`,
+                    ].join("\n");
+
+                    const { annotationNode, ast } =
+                        parseSingleTypeAliasAnnotationNodeFromCode(sourceText);
+                    (annotationNode as { parent?: TSESTree.Program }).parent =
+                        ast;
+
+                    const fix =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyFn(
+                            annotationNode,
+                            replacementSpec.replacementName,
+                            replacementSpec.replacementText,
+                            new Set<string>()
+                        );
+
+                    expect(fix).toBeTypeOf("function");
+
+                    const textEdits = invokeFixToTextEdits(fix);
+
+                    expect(textEdits).toHaveLength(2);
+
+                    const fixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits,
+                    });
+
+                    const shouldWrapReadonly =
+                        readonlyNodeVariant !== "plain" &&
+                        !replacementSpec.replacementText
+                            .trimStart()
+                            .startsWith("Readonly<");
+                    const expectedReplacementText = shouldWrapReadonly
+                        ? `Readonly<${replacementSpec.replacementText}>`
+                        : replacementSpec.replacementText;
+
+                    expect(fixedCode).toContain(
+                        `type Candidate = ${expectedReplacementText};`
+                    );
+                    expect(fixedCode).toContain(
+                        `import type { ${replacementSpec.replacementName} } from "type-fest";`
+                    );
+                    expect(
+                        countNamedTypeImportSpecifiersInSource({
+                            importedName: replacementSpec.replacementName,
+                            sourceModuleName: "type-fest",
+                            sourceText: fixedCode,
+                        })
+                    ).toBe(1);
+
+                    assertTypeReplacementImportOrdering({
+                        fixedCode,
+                        insertionMode: prologueCase.expectedInsertionMode,
+                        replacementName: replacementSpec.replacementName,
+                    });
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);

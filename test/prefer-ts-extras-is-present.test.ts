@@ -2,7 +2,7 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
@@ -477,6 +477,12 @@ const binaryLooseUndefinedCaseArbitrary = fc.constantFrom(
     ...createGeneratedLooseBinaryCases("undefined")
 );
 
+const isPresentImportAliasArbitrary = fc.constantFrom(
+    "isPresentAlias",
+    "presentValue",
+    "safeIsPresent"
+);
+
 const getComparedExpressionTemplate = (
     templateId: ComparedExpressionTemplateId
 ): Readonly<{
@@ -638,6 +644,351 @@ const parseVariableBinaryExpression = (
             .slice(comparedExpressionRange[0], comparedExpressionRange[1])
             .trim(),
     };
+};
+
+type RuleReportDescriptor = Readonly<{
+    fix?: TSESLint.ReportFixFunction;
+    messageId?: string;
+}>;
+
+type TextEdit = Readonly<{
+    end: number;
+    start: number;
+    text: string;
+}>;
+
+const parseSingleVariableInitializerExpression = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    initializer: TSESTree.Expression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init !== null) {
+                    return {
+                        ast: parsed.ast,
+                        initializer: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable declarator initializer"
+    );
+};
+
+const parseVariableInitializerExpressionByName = ({
+    sourceText,
+    variableName,
+}: Readonly<{
+    sourceText: string;
+    variableName: string;
+}>): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    initializer: TSESTree.Expression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.id.type === AST_NODE_TYPES.Identifier &&
+                    declaration.id.name === variableName &&
+                    declaration.init !== null
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        initializer: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        `Expected generated source text to include initializer for variable: ${variableName}`
+    );
+};
+
+const extractCallExpressionFromInitializer = (
+    initializer: Readonly<TSESTree.Expression>
+): TSESTree.CallExpression => {
+    if (initializer.type === AST_NODE_TYPES.CallExpression) {
+        return initializer;
+    }
+
+    if (
+        initializer.type === AST_NODE_TYPES.UnaryExpression &&
+        initializer.operator === "!" &&
+        initializer.argument.type === AST_NODE_TYPES.CallExpression
+    ) {
+        return initializer.argument;
+    }
+
+    throw new TypeError(
+        "Expected initializer to be a call expression or a negated call expression"
+    );
+};
+
+const findNamedImportSpecifier = ({
+    ast,
+    importedName,
+    sourceModuleName,
+}: Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    importedName: string;
+    sourceModuleName: string;
+}>): null | TSESTree.ImportSpecifier => {
+    for (const statement of ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.ImportDeclaration &&
+            statement.source.value === sourceModuleName
+        ) {
+            for (const specifier of statement.specifiers) {
+                if (
+                    specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                    specifier.imported.type === AST_NODE_TYPES.Identifier &&
+                    specifier.imported.name === importedName &&
+                    specifier.local.type === AST_NODE_TYPES.Identifier
+                ) {
+                    (
+                        specifier as {
+                            parent?: TSESTree.ImportDeclaration;
+                        }
+                    ).parent = statement;
+                    return specifier;
+                }
+            }
+        }
+    }
+
+    return null;
+};
+
+const countNamedImportSpecifiersInSource = ({
+    importedName,
+    sourceModuleName,
+    sourceText,
+}: Readonly<{
+    importedName: string;
+    sourceModuleName: string;
+    sourceText: string;
+}>): number => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+    let importSpecifierCount = 0;
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.ImportDeclaration &&
+            statement.source.value === sourceModuleName
+        ) {
+            for (const specifier of statement.specifiers) {
+                if (
+                    specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                    specifier.imported.type === AST_NODE_TYPES.Identifier &&
+                    specifier.imported.name === importedName
+                ) {
+                    importSpecifierCount += 1;
+                }
+            }
+        }
+    }
+
+    return importSpecifierCount;
+};
+
+const extractRangeFromUnknownNode = (
+    node: unknown
+): null | readonly [number, number] => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return null;
+    }
+
+    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
+        .range;
+
+    if (
+        nodeRange === undefined ||
+        typeof nodeRange[0] !== "number" ||
+        typeof nodeRange[1] !== "number"
+    ) {
+        return null;
+    }
+
+    return nodeRange;
+};
+
+const createRuleContextForSource = ({
+    ast,
+    reportCalls,
+    sourceText,
+}: Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    reportCalls: RuleReportDescriptor[];
+    sourceText: string;
+}>): Parameters<typeof rule.create>[0] => {
+    const importSpecifier = findNamedImportSpecifier({
+        ast,
+        importedName: "isPresent",
+        sourceModuleName: "ts-extras",
+    });
+
+    const scopeBindings = new Map<string, TSESLint.Scope.Variable>();
+
+    if (
+        importSpecifier?.local.type === AST_NODE_TYPES.Identifier &&
+        importSpecifier.local.name.length > 0
+    ) {
+        scopeBindings.set(importSpecifier.local.name, {
+            defs: [
+                {
+                    node: importSpecifier,
+                    type: "ImportBinding",
+                },
+            ],
+        } as unknown as TSESLint.Scope.Variable);
+    }
+
+    const scope = {
+        set: scopeBindings,
+        upper: null,
+    };
+
+    return {
+        filename: "src/example.ts",
+        report: (descriptor: RuleReportDescriptor) => {
+            reportCalls.push(descriptor);
+        },
+        sourceCode: {
+            ast,
+            getScope: () => scope as unknown as Readonly<TSESLint.Scope.Scope>,
+            getText(node: unknown): string {
+                const nodeRange = extractRangeFromUnknownNode(node);
+
+                if (nodeRange === null) {
+                    return "";
+                }
+
+                return sourceText.slice(nodeRange[0], nodeRange[1]);
+            },
+        },
+    } as unknown as Parameters<typeof rule.create>[0];
+};
+
+const normalizeRuleFixes = (
+    fixResult: unknown
+): readonly Readonly<TSESLint.RuleFix>[] => {
+    if (fixResult === null || fixResult === undefined) {
+        return [];
+    }
+
+    if (Array.isArray(fixResult)) {
+        return fixResult as readonly Readonly<TSESLint.RuleFix>[];
+    }
+
+    return [fixResult as Readonly<TSESLint.RuleFix>];
+};
+
+const invokeReportFixToTextEdits = (
+    reportFix: TSESLint.ReportFixFunction
+): readonly TextEdit[] => {
+    const fixer = {
+        insertTextAfter(node: Readonly<TSESTree.Node>, text: string) {
+            const nodeRange = node.range;
+
+            return {
+                range: [nodeRange[1], nodeRange[1]],
+                text,
+            } as const;
+        },
+        insertTextBeforeRange(range: readonly [number, number], text: string) {
+            return {
+                range,
+                text,
+            } as const;
+        },
+        replaceText(node: Readonly<TSESTree.Node>, text: string) {
+            return {
+                range: node.range,
+                text,
+            } as const;
+        },
+    } as unknown as Readonly<TSESLint.RuleFixer>;
+
+    const fixResult = reportFix(fixer);
+    const normalizedFixes = normalizeRuleFixes(fixResult);
+
+    return normalizedFixes.map((fix) => ({
+        end: fix.range[1],
+        start: fix.range[0],
+        text: fix.text,
+    }));
+};
+
+const assertTextEditsDoNotOverlap = (
+    textEdits: readonly Readonly<TextEdit>[]
+): void => {
+    for (const [firstIndex, firstEdit] of textEdits.entries()) {
+        for (const [secondIndex, secondEdit] of textEdits.entries()) {
+            if (firstIndex < secondIndex) {
+                const doNotOverlap =
+                    firstEdit.end <= secondEdit.start ||
+                    secondEdit.end <= firstEdit.start;
+
+                expect(doNotOverlap).toBeTruthy();
+            }
+        }
+    }
+};
+
+const applyTextEdits = ({
+    sourceText,
+    textEdits,
+}: Readonly<{
+    sourceText: string;
+    textEdits: readonly Readonly<TextEdit>[];
+}>): string => {
+    let updatedSourceText = sourceText;
+
+    const remainingTextEdits = [...textEdits];
+
+    while (remainingTextEdits.length > 0) {
+        let greatestIndex = 0;
+
+        for (let index = 1; index < remainingTextEdits.length; index += 1) {
+            const currentEdit = remainingTextEdits[index];
+            const greatestEdit = remainingTextEdits[greatestIndex];
+
+            if (
+                currentEdit !== undefined &&
+                greatestEdit !== undefined &&
+                (currentEdit.start > greatestEdit.start ||
+                    (currentEdit.start === greatestEdit.start &&
+                        currentEdit.end > greatestEdit.end))
+            ) {
+                greatestIndex = index;
+            }
+        }
+
+        const [textEdit] = remainingTextEdits.splice(greatestIndex, 1);
+        if (textEdit === undefined) {
+            throw new TypeError("Expected a text edit while applying fixes");
+        }
+
+        updatedSourceText =
+            updatedSourceText.slice(0, textEdit.start) +
+            textEdit.text +
+            updatedSourceText.slice(textEdit.end);
+    }
+
+    return updatedSourceText;
 };
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
@@ -1196,6 +1547,268 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+
+    it("fast-check: rule-level loose null autofix remains parseable and emits no second-pass binary reports", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(binaryLooseNullCaseArbitrary, (generatedCase) => {
+                const template = getComparedExpressionTemplate(
+                    generatedCase.comparedExpressionTemplateId
+                );
+                const nullishLiteralText = formatNullishLiteralText(
+                    generatedCase.nullishKind
+                );
+                const comparisonText =
+                    generatedCase.orientation === "comparedExpressionOnLeft"
+                        ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                        : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                const sourceText = [
+                    'import { isPresent } from "ts-extras";',
+                    ...template.declarations,
+                    generatedCase.hasUnicodeNoiseLine
+                        ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                        : "",
+                    `const evaluation = ${comparisonText};`,
+                    "String(evaluation);",
+                ]
+                    .filter((line) => line.length > 0)
+                    .join("\n");
+
+                const { ast: firstPassAst, binaryExpression } =
+                    parseVariableBinaryExpression(sourceText);
+                const firstPassReports: RuleReportDescriptor[] = [];
+
+                const firstPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: firstPassAst,
+                        reportCalls: firstPassReports,
+                        sourceText,
+                    })
+                );
+
+                firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                expect(firstPassReports).toHaveLength(1);
+                expect(firstPassReports[0]?.messageId).toBe(
+                    generatedCase.operator === "!="
+                        ? "preferTsExtrasIsPresent"
+                        : "preferTsExtrasIsPresentNegated"
+                );
+
+                const firstPassFix = firstPassReports[0]?.fix;
+
+                expect(firstPassFix).toBeTypeOf("function");
+
+                if (firstPassFix === undefined) {
+                    throw new Error(
+                        "Expected first-pass report to include a fixer"
+                    );
+                }
+
+                const firstPassTextEdits =
+                    invokeReportFixToTextEdits(firstPassFix);
+
+                expect(firstPassTextEdits).toHaveLength(1);
+
+                assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                const firstPassFixedCode = applyTextEdits({
+                    sourceText,
+                    textEdits: firstPassTextEdits,
+                });
+
+                expect(
+                    countNamedImportSpecifiersInSource({
+                        importedName: "isPresent",
+                        sourceModuleName: "ts-extras",
+                        sourceText: firstPassFixedCode,
+                    })
+                ).toBe(1);
+
+                expect(() => {
+                    parser.parseForESLint(firstPassFixedCode, parserOptions);
+                }).not.toThrowError();
+
+                const {
+                    ast: secondPassAst,
+                    initializer: secondPassInitializer,
+                } =
+                    parseSingleVariableInitializerExpression(
+                        firstPassFixedCode
+                    );
+
+                expect(secondPassInitializer.type).not.toBe(
+                    AST_NODE_TYPES.BinaryExpression
+                );
+
+                const secondPassReports: RuleReportDescriptor[] = [];
+                const secondPassListeners = rule.create(
+                    createRuleContextForSource({
+                        ast: secondPassAst,
+                        reportCalls: secondPassReports,
+                        sourceText: firstPassFixedCode,
+                    })
+                );
+
+                if (
+                    secondPassInitializer.type ===
+                    AST_NODE_TYPES.BinaryExpression
+                ) {
+                    secondPassListeners.BinaryExpression?.(
+                        secondPassInitializer
+                    );
+                }
+
+                expect(secondPassReports).toHaveLength(0);
+            }),
+            fastCheckRunConfig.default
+        );
+    });
+
+    it("fast-check: rule-level loose null autofix preserves aliased isPresent imports and remains second-pass stable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                binaryLooseNullCaseArbitrary,
+                isPresentImportAliasArbitrary,
+                (generatedCase, localAlias) => {
+                    const template = getComparedExpressionTemplate(
+                        generatedCase.comparedExpressionTemplateId
+                    );
+                    const nullishLiteralText = formatNullishLiteralText(
+                        generatedCase.nullishKind
+                    );
+                    const comparisonText =
+                        generatedCase.orientation === "comparedExpressionOnLeft"
+                            ? `${template.expressionText} ${generatedCase.operator} ${nullishLiteralText}`
+                            : `${nullishLiteralText} ${generatedCase.operator} ${template.expressionText}`;
+
+                    const sourceText = [
+                        `import { isPresent as ${localAlias} } from "ts-extras";`,
+                        ...template.declarations,
+                        generatedCase.hasUnicodeNoiseLine
+                            ? 'const debugText = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
+                            : "",
+                        `const evaluation = ${comparisonText};`,
+                        "String(evaluation);",
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const { ast: firstPassAst, binaryExpression } =
+                        parseVariableBinaryExpression(sourceText);
+                    const firstPassReports: RuleReportDescriptor[] = [];
+
+                    const firstPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: firstPassAst,
+                            reportCalls: firstPassReports,
+                            sourceText,
+                        })
+                    );
+
+                    firstPassListeners.BinaryExpression?.(binaryExpression);
+
+                    expect(firstPassReports).toHaveLength(1);
+
+                    const firstPassFix = firstPassReports[0]?.fix;
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    if (firstPassFix === undefined) {
+                        throw new Error(
+                            "Expected first-pass report to include a fixer"
+                        );
+                    }
+
+                    const firstPassTextEdits =
+                        invokeReportFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(1);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
+                        sourceText,
+                        textEdits: firstPassTextEdits,
+                    });
+
+                    expect(
+                        countNamedImportSpecifiersInSource({
+                            importedName: "isPresent",
+                            sourceModuleName: "ts-extras",
+                            sourceText: firstPassFixedCode,
+                        })
+                    ).toBe(1);
+
+                    expect(() => {
+                        parser.parseForESLint(
+                            firstPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrowError();
+
+                    const {
+                        ast: secondPassAst,
+                        initializer: secondPassInitializer,
+                    } = parseVariableInitializerExpressionByName({
+                        sourceText: firstPassFixedCode,
+                        variableName: "evaluation",
+                    });
+
+                    const replacementCallExpression =
+                        extractCallExpressionFromInitializer(
+                            secondPassInitializer
+                        );
+
+                    expect(replacementCallExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        replacementCallExpression.callee.type !==
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        throw new TypeError(
+                            "Expected replacement call to use an identifier callee"
+                        );
+                    }
+
+                    expect(replacementCallExpression.callee.name).toBe(
+                        localAlias
+                    );
+
+                    expect(secondPassInitializer.type).not.toBe(
+                        AST_NODE_TYPES.BinaryExpression
+                    );
+
+                    const secondPassReports: RuleReportDescriptor[] = [];
+                    const secondPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: secondPassAst,
+                            reportCalls: secondPassReports,
+                            sourceText: firstPassFixedCode,
+                        })
+                    );
+
+                    if (
+                        secondPassInitializer.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        secondPassListeners.BinaryExpression?.(
+                            secondPassInitializer
+                        );
+                    }
+
+                    expect(secondPassReports).toHaveLength(0);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 
     it("fast-check: loose undefined binary comparisons do not trigger isPresent fixes", async () => {

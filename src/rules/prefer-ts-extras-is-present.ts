@@ -172,8 +172,8 @@ const haveSameComparedExpression = ({
 }>): boolean => areEquivalentExpressions(first, second);
 
 /**
- * Detects the strict two-term present check pattern: `value !== null && value
- * !== undefined`.
+ * Detects the strict two-term present check pattern: value !== null && value
+ * !== undefined.
  *
  * @param options - Context plus logical expression to inspect.
  *

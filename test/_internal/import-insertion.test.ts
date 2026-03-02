@@ -1,10 +1,272 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import parser from "@typescript-eslint/parser";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { createImportInsertionFix } from "../../src/_internal/import-insertion";
 import { registerProgramSettingsForContext } from "../../src/_internal/plugin-settings";
+import { fastCheckRunConfig } from "./fast-check";
+
+type InsertionEdit = Readonly<{
+    end: number;
+    start: number;
+    text: string;
+}>;
+
+const isInsertionEdit = (value: unknown): value is InsertionEdit =>
+    typeof value === "object" &&
+    value !== null &&
+    "end" in value &&
+    typeof (value as { end: unknown }).end === "number" &&
+    "start" in value &&
+    typeof (value as { start: unknown }).start === "number" &&
+    "text" in value &&
+    typeof (value as { text: unknown }).text === "string";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+type InsertionScenario = Readonly<{
+    expectedMode:
+        | "after-directive"
+        | "after-import"
+        | "at-program-end"
+        | "before-first-statement";
+    sourceText: string;
+}>;
+
+const insertionScenarios: readonly InsertionScenario[] = [
+    {
+        expectedMode: "after-import",
+        sourceText: [
+            'import { existingA } from "existing-a";',
+            'import type { ExistingB } from "existing-b";',
+            "const value = 1;",
+        ].join("\n"),
+    },
+    {
+        expectedMode: "after-directive",
+        sourceText: [
+            '"use client";',
+            '"use strict";',
+            "const value = 1;",
+        ].join("\n"),
+    },
+    {
+        expectedMode: "after-directive",
+        sourceText: ['"use server";'].join("\n"),
+    },
+    {
+        expectedMode: "before-first-statement",
+        sourceText: ["const value = 1;", "void value;"].join("\n"),
+    },
+    {
+        expectedMode: "at-program-end",
+        sourceText: "",
+    },
+];
+
+const insertionScenarioArbitrary = fc.constantFrom(...insertionScenarios);
+
+const importInsertionTextArbitrary = fc.constantFrom(
+    'import type { InsertedAlias } from "type-fest";',
+    '  import type { InsertedAlias } from "type-fest";  ',
+    '\nimport type { InsertedAlias } from "type-fest";\n'
+);
+
+const applyInsertionEdit = ({
+    edit,
+    sourceText,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    sourceText: string;
+}>): string =>
+    `${sourceText.slice(0, edit.start)}${edit.text}${sourceText.slice(edit.end)}`;
+
+const getNodeRange = (
+    node: Readonly<TSESTree.Node>
+): null | readonly [number, number] => {
+    if (!Array.isArray(node.range)) {
+        return null;
+    }
+
+    const [start, end] = node.range;
+
+    if (typeof start !== "number" || typeof end !== "number") {
+        return null;
+    }
+
+    return [start, end];
+};
+
+const getLastImportDeclaration = (
+    program: Readonly<TSESTree.Program>
+): null | Readonly<TSESTree.ImportDeclaration> => {
+    let lastImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
+        null;
+
+    for (const statement of program.body) {
+        if (statement.type === AST_NODE_TYPES.ImportDeclaration) {
+            lastImportDeclaration = statement;
+        }
+    }
+
+    return lastImportDeclaration;
+};
+
+const getLastDirectiveStatement = (
+    program: Readonly<TSESTree.Program>
+): null | Readonly<TSESTree.ExpressionStatement> => {
+    let lastDirectiveStatement: null | Readonly<TSESTree.ExpressionStatement> =
+        null;
+
+    for (const statement of program.body) {
+        if (
+            statement.type === AST_NODE_TYPES.ExpressionStatement &&
+            typeof statement.directive === "string"
+        ) {
+            lastDirectiveStatement = statement;
+        }
+    }
+
+    return lastDirectiveStatement;
+};
+
+const assertEditAfterImportStart = ({
+    edit,
+    program,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    program: Readonly<TSESTree.Program>;
+}>): void => {
+    const lastImportDeclaration = getLastImportDeclaration(program);
+
+    expect(lastImportDeclaration).toBeTruthy();
+
+    if (lastImportDeclaration !== null) {
+        const lastImportRange = getNodeRange(lastImportDeclaration);
+
+        expect(lastImportRange).toBeTruthy();
+
+        if (lastImportRange !== null) {
+            expect(edit.start).toBe(lastImportRange[1]);
+        }
+    }
+};
+
+const assertEditAfterDirectiveStart = ({
+    edit,
+    program,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    program: Readonly<TSESTree.Program>;
+}>): void => {
+    const lastDirectiveStatement = getLastDirectiveStatement(program);
+
+    expect(lastDirectiveStatement).toBeTruthy();
+
+    if (lastDirectiveStatement !== null) {
+        const lastDirectiveRange = getNodeRange(lastDirectiveStatement);
+
+        expect(lastDirectiveRange).toBeTruthy();
+
+        if (lastDirectiveRange !== null) {
+            expect(edit.start).toBe(lastDirectiveRange[1]);
+        }
+    }
+};
+
+const assertEditBeforeFirstStatementStart = ({
+    edit,
+    program,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    program: Readonly<TSESTree.Program>;
+}>): void => {
+    const firstStatement = program.body[0];
+
+    expect(firstStatement).toBeTruthy();
+
+    if (firstStatement !== undefined) {
+        const firstStatementRange = getNodeRange(firstStatement);
+
+        expect(firstStatementRange).toBeTruthy();
+
+        if (firstStatementRange !== null) {
+            expect(edit.start).toBe(firstStatementRange[0]);
+        }
+    }
+};
+
+const assertEditAtProgramEndStart = ({
+    edit,
+    program,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    program: Readonly<TSESTree.Program>;
+}>): void => {
+    const programRange = getNodeRange(program);
+
+    expect(programRange).toBeTruthy();
+
+    if (programRange !== null) {
+        expect(edit.start).toBe(programRange[1]);
+    }
+};
+
+const assertEditStartMatchesScenario = ({
+    edit,
+    program,
+    scenario,
+}: Readonly<{
+    edit: Readonly<InsertionEdit>;
+    program: Readonly<TSESTree.Program>;
+    scenario: Readonly<InsertionScenario>;
+}>): void => {
+    switch (scenario.expectedMode) {
+        case "after-directive": {
+            assertEditAfterDirectiveStart({
+                edit,
+                program,
+            });
+            break;
+        }
+
+        case "after-import": {
+            assertEditAfterImportStart({
+                edit,
+                program,
+            });
+            break;
+        }
+
+        case "at-program-end": {
+            assertEditAtProgramEndStart({
+                edit,
+                program,
+            });
+            break;
+        }
+
+        case "before-first-statement": {
+            assertEditBeforeFirstStatementStart({
+                edit,
+                program,
+            });
+            break;
+        }
+    }
+};
 
 /** Build a minimal ESTree Program node with a caller-defined statement list. */
 const createProgram = (
@@ -388,5 +650,105 @@ describe(createImportInsertionFix, () => {
         });
 
         expect(fix).toBeNull();
+    });
+
+    it("fast-check: import insertion edits preserve parseability across prologue/import scenarios", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                insertionScenarioArbitrary,
+                importInsertionTextArbitrary,
+                (scenario: InsertionScenario, importInsertionText) => {
+                    const parsed = parser.parseForESLint(
+                        scenario.sourceText,
+                        parserOptions
+                    );
+                    const program = parsed.ast as TSESTree.Program;
+
+                    const referenceNode = {
+                        parent: program,
+                        type: "Identifier",
+                    } as unknown as TSESTree.Node;
+
+                    const fakeFixer = {
+                        insertTextAfter(target: unknown, text: string) {
+                            if (
+                                typeof target !== "object" ||
+                                target === null ||
+                                !("range" in target)
+                            ) {
+                                throw new TypeError(
+                                    "insertTextAfter target is missing range"
+                                );
+                            }
+
+                            const targetRange = (
+                                target as Readonly<{
+                                    range?: readonly [number, number];
+                                }>
+                            ).range;
+                            if (targetRange === undefined) {
+                                throw new TypeError(
+                                    "insertTextAfter target range is undefined"
+                                );
+                            }
+
+                            return {
+                                end: targetRange[1],
+                                start: targetRange[1],
+                                text,
+                            } as const;
+                        },
+                        insertTextBeforeRange(
+                            range: readonly [number, number],
+                            text: string
+                        ) {
+                            return {
+                                end: range[1],
+                                start: range[0],
+                                text,
+                            } as const;
+                        },
+                    } as unknown as TSESLint.RuleFixer;
+
+                    const fix = createImportInsertionFix({
+                        fixer: fakeFixer,
+                        importDeclarationText: importInsertionText,
+                        referenceNode,
+                    });
+
+                    expect(fix).not.toBeNull();
+
+                    if (!isInsertionEdit(fix)) {
+                        throw new TypeError(
+                            "Expected createImportInsertionFix to emit a single text edit"
+                        );
+                    }
+
+                    const edit = fix;
+                    const trimmedImportInsertionText =
+                        importInsertionText.trim();
+
+                    expect(edit.text).toContain(trimmedImportInsertionText);
+
+                    assertEditStartMatchesScenario({
+                        edit,
+                        program,
+                        scenario,
+                    });
+
+                    const fixedSourceText = applyInsertionEdit({
+                        edit,
+                        sourceText: scenario.sourceText,
+                    });
+
+                    expect(() => {
+                        parser.parseForESLint(fixedSourceText, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
