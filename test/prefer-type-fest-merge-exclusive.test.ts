@@ -80,7 +80,7 @@ const parserOptions = {
     sourceType: "module",
 } as const;
 
-const typeNameArbitrary = fc.constantFrom(
+const candidateNameArbitrary = fc.constantFrom(
     "Alpha",
     "Beta",
     "UserQuery",
@@ -121,8 +121,8 @@ describe("prefer-type-fest-merge-exclusive parse-safety guards", () => {
 
         fc.assert(
             fc.property(
-                typeNameArbitrary,
-                typeNameArbitrary,
+                candidateNameArbitrary,
+                candidateNameArbitrary,
                 (leftType, rightType) => {
                     const generatedCode = [
                         'import type { MergeExclusive } from "type-fest";',
@@ -135,18 +135,17 @@ describe("prefer-type-fest-merge-exclusive parse-safety guards", () => {
                         target: `XOR<${leftType}, ${rightType}>`,
                     });
 
-                    const typeReference =
+                    const tsReference =
                         parseMergeExclusiveTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe(
+                        expect(tsReference.typeName.name).toBe(
                             "MergeExclusive"
                         );
                     }

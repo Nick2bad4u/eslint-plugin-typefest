@@ -189,10 +189,10 @@ const parserOptions = {
 
 const callbackParameterNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier);
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate));
 const predicateNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier)
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate))
     .filter((name) => name !== "not");
 
 const parseFilterCallFromCode = (

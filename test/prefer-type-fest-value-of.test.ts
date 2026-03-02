@@ -7,7 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -215,7 +215,8 @@ describe("prefer-type-fest-value-of source assertions", () => {
             vi.resetModules();
 
             const createSafeTypeNodeTextReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -284,8 +285,6 @@ describe("prefer-type-fest-value-of source assertions", () => {
                         const replacementText =
                             createSafeTypeNodeTextReplacementFixMock.mock
                                 .calls[0]?.[2];
-
-                        expectTypeOf(replacementText).toBeString();
 
                         if (typeof replacementText !== "string") {
                             throw new TypeError(

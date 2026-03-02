@@ -976,4 +976,3 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
         },
     ],
 });
-

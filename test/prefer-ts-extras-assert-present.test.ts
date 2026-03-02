@@ -1431,4 +1431,3 @@ ruleTester.run(
         ],
     }
 );
-

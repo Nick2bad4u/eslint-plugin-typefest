@@ -142,7 +142,7 @@ const parsePrimitiveTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -154,7 +154,7 @@ const parsePrimitiveTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -201,18 +201,17 @@ describe("prefer-type-fest-primitive parse-safety guards", () => {
                         target: primitiveUnion,
                     });
 
-                    const { typeReference } =
+                    const { tsReference } =
                         parsePrimitiveTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("Primitive");
+                        expect(tsReference.typeName.name).toBe("Primitive");
                     }
                 }
             ),

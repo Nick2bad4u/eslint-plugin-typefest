@@ -460,4 +460,3 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
         },
     ],
 });
-

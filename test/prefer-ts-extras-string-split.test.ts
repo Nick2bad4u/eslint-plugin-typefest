@@ -840,4 +840,3 @@ ruleTester.run(
         ],
     }
 );
-

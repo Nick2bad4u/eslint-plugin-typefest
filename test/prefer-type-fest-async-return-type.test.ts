@@ -9,7 +9,7 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -287,7 +287,8 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
             vi.resetModules();
 
             const createSafeTypeNodeTextReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -354,8 +355,6 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
                     const replacementText =
                         createSafeTypeNodeTextReplacementFixMock.mock
                             .calls[0]?.[2];
-
-                    expectTypeOf(replacementText).toBeString();
 
                     if (typeof replacementText !== "string") {
                         throw new TypeError(

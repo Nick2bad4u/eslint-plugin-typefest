@@ -327,7 +327,7 @@ const parserOptions = {
 
 const callbackParameterNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier);
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate));
 
 const autoFixableTemplateIdArbitrary = fc.constantFrom<AutoFixableTemplateId>(
     "looseNull",

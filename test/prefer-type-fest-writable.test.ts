@@ -317,28 +317,28 @@ describe(ruleName, () => {
         expect.hasAssertions();
 
         fc.assert(
-            fc.property(generatedTypeNameArbitrary, (typeName) => {
+            fc.property(generatedTypeNameArbitrary, (valueTypeName) => {
                 const generatedCode = [
                     'import type { Mutable } from "type-aliases";',
                     'import type { Writable } from "type-fest";',
-                    `type MutableAlias = Mutable<${typeName}>;`,
+                    `type MutableAlias = Mutable<${valueTypeName}>;`,
                 ].join("\n");
 
                 const replacedCode = replaceOrThrow({
-                    replacement: `Writable<${typeName}>`,
+                    replacement: `Writable<${valueTypeName}>`,
                     sourceText: generatedCode,
-                    target: `Mutable<${typeName}>`,
+                    target: `Mutable<${valueTypeName}>`,
                 });
 
-                const typeReference =
+                const tsReference =
                     parseWritableAliasTypeReferenceFromCode(replacedCode);
 
-                expect(typeReference.typeName.type).toBe(
+                expect(tsReference.typeName.type).toBe(
                     AST_NODE_TYPES.Identifier
                 );
 
-                if (typeReference.typeName.type === AST_NODE_TYPES.Identifier) {
-                    expect(typeReference.typeName.name).toBe("Writable");
+                if (tsReference.typeName.type === AST_NODE_TYPES.Identifier) {
+                    expect(tsReference.typeName.name).toBe("Writable");
                 }
             }),
             fastCheckRunConfig.default

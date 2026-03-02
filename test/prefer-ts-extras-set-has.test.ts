@@ -969,4 +969,3 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
-

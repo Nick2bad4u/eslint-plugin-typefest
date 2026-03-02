@@ -114,7 +114,7 @@ const parseRequireAllOrNoneTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -126,7 +126,7 @@ const parseRequireAllOrNoneTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -180,20 +180,19 @@ describe("prefer-type-fest-require-all-or-none parse-safety guards", () => {
                         target: `${legacyAlias}<{`,
                     });
 
-                    const { typeReference } =
+                    const { tsReference } =
                         parseRequireAllOrNoneTypeReferenceFromCode(
                             replacedCode
                         );
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe(
+                        expect(tsReference.typeName.name).toBe(
                             "RequireAllOrNone"
                         );
                     }

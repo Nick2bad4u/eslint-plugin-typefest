@@ -6,6 +6,8 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import parser from "@typescript-eslint/parser";
+import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,6 +20,7 @@ import {
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
     createSafeTypeReferenceReplacementFix,
 } from "../../src/_internal/imported-type-aliases";
+import { fastCheckRunConfig } from "./fast-check";
 
 /** Imported names covered by alias replacement tests. */
 type ImportedName = "Branded" | "Expand" | "HomomorphicOmit" | "Opaque";
@@ -244,6 +247,32 @@ const createReadonlyTypeOperatorNode = (): Parameters<
             type: "TSArrayType",
         },
     }) as unknown as Parameters<typeof createSafeTypeNodeTextReplacementFix>[0];
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    sourceType: "module",
+} as const;
+
+const readonlyNodeVariantArbitrary = fc.constantFrom(
+    "plain",
+    "readonly-container",
+    "readonly-operator"
+);
+
+const readonlyContainerTypeNameArbitrary = fc.constantFrom(
+    "ReadonlyArray",
+    "ReadonlyMap",
+    "ReadonlySet"
+);
+
+const replacementTypeTextArbitrary = fc.constantFrom(
+    "UnknownArray",
+    "UnknownMap<string, number>",
+    "Tagged<'Brand'>",
+    "Readonly<UnknownArray>",
+    " Readonly<UnknownSet<string>>",
+    "Promise<UnknownArray>"
+);
 
 describe(collectImportedTypeAliasMatches, () => {
     it("collects canonical named imports that are not renamed", () => {
@@ -896,5 +925,88 @@ describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
 
         expect(fixOutput).toBe("Readonly<UnknownArray>");
         expect(replacementTexts).toStrictEqual(["Readonly<UnknownArray>"]);
+    });
+
+    it("fast-check: preserves readonly wrapping semantics while producing parseable replacement text", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                readonlyNodeVariantArbitrary,
+                readonlyContainerTypeNameArbitrary,
+                replacementTypeTextArbitrary,
+                (
+                    readonlyNodeVariant,
+                    containerTypeName,
+                    replacementTypeText
+                ) => {
+                    let node = createTypeNode();
+
+                    if (readonlyNodeVariant === "readonly-operator") {
+                        node = createReadonlyTypeOperatorNode();
+                    }
+
+                    if (readonlyNodeVariant === "readonly-container") {
+                        node =
+                            createReadonlyContainerTypeReferenceNode(
+                                containerTypeName
+                            );
+                    }
+
+                    const fixer =
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyFn(
+                            node,
+                            "UnknownArray",
+                            replacementTypeText,
+                            new Set(["UnknownArray"])
+                        );
+
+                    expect(fixer).toBeTypeOf("function");
+
+                    const replacementTexts: string[] = [];
+                    const fakeFixer = {
+                        insertTextAfterRange: (): string => "",
+                        replaceText: (
+                            _targetNode: unknown,
+                            replacementText: string
+                        ): string => {
+                            replacementTexts.push(replacementText);
+
+                            return replacementText;
+                        },
+                    };
+
+                    const fixOutput = fixer?.(
+                        fakeFixer as unknown as Parameters<typeof fixer>[0]
+                    );
+
+                    expect(replacementTexts).toHaveLength(1);
+                    expect(fixOutput).toBeTypeOf("string");
+
+                    const replacementOutputText = replacementTexts[0];
+                    if (replacementOutputText === undefined) {
+                        throw new Error("Expected replacement text output");
+                    }
+
+                    const shouldWrapReadonly =
+                        readonlyNodeVariant !== "plain" &&
+                        !replacementTypeText
+                            .trimStart()
+                            .startsWith("Readonly<");
+                    const expectedReplacementText = shouldWrapReadonly
+                        ? `Readonly<${replacementTypeText}>`
+                        : replacementTypeText;
+
+                    expect(replacementOutputText).toBe(expectedReplacementText);
+
+                    const fixedCode = `type Candidate = ${replacementOutputText};`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });

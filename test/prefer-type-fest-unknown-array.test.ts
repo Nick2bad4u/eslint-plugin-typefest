@@ -160,22 +160,24 @@ const parseUnknownArrayCandidateFromCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            continue;
-        }
+        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            if (
+                statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator
+            ) {
+                return {
+                    ast: parsed.ast,
+                    candidateNode: statement.typeAnnotation,
+                };
+            }
 
-        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator) {
-            return {
-                ast: parsed.ast,
-                candidateNode: statement.typeAnnotation,
-            };
-        }
-
-        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
-            return {
-                ast: parsed.ast,
-                candidateNode: statement.typeAnnotation,
-            };
+            if (
+                statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+            ) {
+                return {
+                    ast: parsed.ast,
+                    candidateNode: statement.typeAnnotation,
+                };
+            }
         }
     }
 
@@ -293,7 +295,9 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             vi.resetModules();
 
             const createSafeTypeNodeReplacementFixPreservingReadonlyMock =
-                vi.fn((..._args: readonly unknown[]) => "FIX");
+                vi.fn((...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+                );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
@@ -323,7 +327,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                     (variant, includeUnicodeLine) => {
                         createSafeTypeNodeReplacementFixPreservingReadonlyMock.mockClear();
 
-                        const typeExpression =
+                        const candidateTypeExpression =
                             variant === "readonlyArrayShorthand"
                                 ? "readonly unknown[]"
                                 : "ReadonlyArray<unknown>";
@@ -332,7 +336,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                             : "";
                         const generatedCode = [
                             unicodeLine,
-                            `type Input = ${typeExpression};`,
+                            `type Input = ${candidateTypeExpression};`,
                         ]
                             .filter((line) => line.length > 0)
                             .join("\n");

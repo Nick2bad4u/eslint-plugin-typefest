@@ -120,18 +120,18 @@ const parseExceptTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
         if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            const typeAnnotation = statement.typeAnnotation;
+            const tsAnnotation = statement.typeAnnotation;
 
-            if (typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            if (tsAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
                 return {
                     ast: parsed.ast,
-                    typeReference: typeAnnotation,
+                    tsReference: tsAnnotation,
                 };
             }
         }
@@ -258,21 +258,20 @@ describe("prefer-type-fest-except parse-safety guards", () => {
                         target: originalAliasStatement,
                     });
 
-                    const { typeReference } =
+                    const { tsReference } =
                         parseExceptTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("Except");
+                        expect(tsReference.typeName.name).toBe("Except");
                     }
 
-                    expect(typeReference.typeArguments?.params).toHaveLength(2);
+                    expect(tsReference.typeArguments?.params).toHaveLength(2);
                 }
             ),
             fastCheckRunConfig.default

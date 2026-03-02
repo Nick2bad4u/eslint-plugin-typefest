@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
@@ -27,10 +27,17 @@ function getConfigFileName(cliArgs) {
             continue;
         }
 
-        const nextValue = cliArgs[index + 1];
-        if (typeof nextValue === "string" && nextValue.length > 0) {
-            return nextValue;
+        const nextIndex = index + 1;
+        if (nextIndex >= cliArgs.length) {
+            throw new Error(`Missing value for CLI argument: ${argument}`);
         }
+
+        const nextValue = cliArgs[nextIndex];
+        if (typeof nextValue !== "string" || nextValue.length === 0) {
+            throw new Error(`Missing value for CLI argument: ${argument}`);
+        }
+
+        return nextValue;
     }
 
     return "typedoc.config.json";
@@ -130,9 +137,15 @@ function getTemporaryDriveLetter() {
  * bugs on Windows.
  *
  * @param {string} repositoryRoot - Absolute repository root directory.
+ * @param {string} docsWorkspaceRelativePath - Docs workspace relative path from
+ *   the repository root.
  * @param {string} configFile - TypeDoc options file name to use.
  */
-function runViaTemporaryDrive(repositoryRoot, configFile) {
+function runViaTemporaryDrive(
+    repositoryRoot,
+    docsWorkspaceRelativePath,
+    configFile
+) {
     const driveLetter = getTemporaryDriveLetter();
     const driveRoot = `${driveLetter}:`;
 
@@ -141,7 +154,11 @@ function runViaTemporaryDrive(repositoryRoot, configFile) {
     });
 
     try {
-        runTypedoc(`${driveRoot}\\docs\\docusaurus`, configFile);
+        const mappedDocsWorkspaceDirectory = resolve(
+            `${driveRoot}\\`,
+            docsWorkspaceRelativePath
+        );
+        runTypedoc(mappedDocsWorkspaceDirectory, configFile);
     } finally {
         execFileSync("subst", [driveRoot, "/d"], {
             stdio: "ignore",
@@ -152,10 +169,14 @@ function runViaTemporaryDrive(repositoryRoot, configFile) {
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, "..");
 const docsWorkspaceDirectory = resolve(repositoryRoot, "docs", "docusaurus");
+const docsWorkspaceRelativePath = relative(
+    repositoryRoot,
+    docsWorkspaceDirectory
+);
 const configFile = getConfigFileName(process.argv.slice(2));
 
 if (process.platform === "win32" && /[()]/u.test(repositoryRoot)) {
-    runViaTemporaryDrive(repositoryRoot, configFile);
+    runViaTemporaryDrive(repositoryRoot, docsWorkspaceRelativePath, configFile);
 } else {
     runTypedoc(docsWorkspaceDirectory, configFile);
 }

@@ -303,7 +303,8 @@ const methodArgumentExpressionArbitrary = fc.constantFrom(
     "undefined",
     "候補値",
     "computeNeedle()",
-    "{ key: 'value' }"
+    "{ key: 'value' }",
+    "(left, right)"
 );
 
 const binaryNullishOperatorArbitrary = fc.constantFrom(
@@ -765,6 +766,46 @@ describe(createMethodToFunctionCallFix, () => {
         expect(invokeFix(fix)).toStrictEqual(["arrayIncludes(values)"]);
     });
 
+    it("wraps sequence-expression arguments to preserve argument boundaries", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayIncludes", "ts-extras");
+        const fix = createMethodToFunctionCallFix({
+            callNode: {
+                arguments: [
+                    {
+                        _text: "left, right",
+                        type: "SequenceExpression",
+                    },
+                ],
+                callee: {
+                    object: {
+                        _text: "values",
+                        type: "Identifier",
+                    },
+                    optional: false,
+                    property: {
+                        name: "includes",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                optional: false,
+                type: "CallExpression",
+            } as unknown as Parameters<
+                typeof createMethodToFunctionCallFix
+            >[0]["callNode"],
+            context,
+            importedName: "arrayIncludes",
+            imports: createImportsMap("arrayIncludes", "arrayIncludes"),
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(invokeFix(fix)).toStrictEqual([
+            "arrayIncludes(values, (left, right))",
+        ]);
+    });
+
     it("fast-check: emits parseable replacements across diverse receiver and argument expressions", () => {
         expect.hasAssertions();
 
@@ -866,9 +907,32 @@ describe(createMethodToFunctionCallFix, () => {
                     const callRange = callExpression.range;
                     const fixedCode = `${code.slice(0, callRange[0])}${replacementText}${code.slice(callRange[1])}`;
 
-                    expect(() => {
-                        parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    const fixedParseResult = parser.parseForESLint(
+                        fixedCode,
+                        parserOptions
+                    );
+
+                    expect(fixedParseResult).toBeTruthy();
+
+                    const { callExpression: fixedCallExpression } =
+                        parseSingleCallExpressionFromCode(fixedCode);
+
+                    expect(fixedCallExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        fixedCallExpression.callee.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(fixedCallExpression.callee.name).toBe(
+                            "arrayIncludes"
+                        );
+                    }
+
+                    expect(fixedCallExpression.arguments).toHaveLength(
+                        callExpression.arguments.length + 1
+                    );
                 }
             ),
             fastCheckRunConfig.default
@@ -933,6 +997,35 @@ describe(createMemberToFunctionCallFix, () => {
         });
 
         expect(invokeFix(fix)).toStrictEqual(["arrayFirst(values)"]);
+    });
+
+    it("wraps sequence-expression receivers to preserve single-argument semantics", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayFirst", "ts-extras");
+        const fix = createMemberToFunctionCallFix({
+            context,
+            importedName: "arrayFirst",
+            imports: createImportsMap("arrayFirst", "arrayFirst"),
+            memberNode: {
+                computed: true,
+                object: {
+                    _text: "left, right",
+                    type: "SequenceExpression",
+                },
+                optional: false,
+                property: {
+                    type: "Literal",
+                    value: 0,
+                },
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createMemberToFunctionCallFix
+            >[0]["memberNode"],
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(invokeFix(fix)).toStrictEqual(["arrayFirst((left, right))"]);
     });
 
     it("fast-check: emits parseable replacements across diverse member receivers", () => {
@@ -1029,9 +1122,30 @@ describe(createMemberToFunctionCallFix, () => {
                     const memberRange = memberExpression.range;
                     const fixedCode = `${code.slice(0, memberRange[0])}${replacementText}${code.slice(memberRange[1])}`;
 
-                    expect(() => {
-                        parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    const fixedParseResult = parser.parseForESLint(
+                        fixedCode,
+                        parserOptions
+                    );
+
+                    expect(fixedParseResult).toBeTruthy();
+
+                    const { callExpression: fixedCallExpression } =
+                        parseSingleCallExpressionFromCode(fixedCode);
+
+                    expect(fixedCallExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        fixedCallExpression.callee.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(fixedCallExpression.callee.name).toBe(
+                            "arrayFirst"
+                        );
+                    }
+
+                    expect(fixedCallExpression.arguments).toHaveLength(1);
                 }
             ),
             fastCheckRunConfig.default

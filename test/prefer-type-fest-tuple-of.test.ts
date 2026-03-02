@@ -7,7 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -190,7 +190,7 @@ const parseTupleAliasTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -201,7 +201,7 @@ const parseTupleAliasTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -229,7 +229,8 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
             vi.resetModules();
 
             const createSafeTypeNodeTextReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -287,7 +288,7 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                             "void marker;",
                         ].join("\n");
 
-                        const { ast, typeReference } =
+                        const { ast, tsReference } =
                             parseTupleAliasTypeReferenceFromCode(code);
                         const reportCalls: TupleOfReportDescriptor[] = [];
 
@@ -305,7 +306,7 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                             },
                         });
 
-                        listeners.TSTypeReference?.(typeReference);
+                        listeners.TSTypeReference?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
@@ -320,15 +321,13 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                             createSafeTypeNodeTextReplacementFixMock.mock
                                 .calls[0]?.[2];
 
-                        expectTypeOf(replacementText).toBeString();
-
                         if (typeof replacementText !== "string") {
                             throw new TypeError(
                                 "Expected TupleOf replacement text to be a string"
                             );
                         }
 
-                        const fixedCode = `${code.slice(0, typeReference.range[0])}${replacementText}${code.slice(typeReference.range[1])}`;
+                        const fixedCode = `${code.slice(0, tsReference.range[0])}${replacementText}${code.slice(tsReference.range[1])}`;
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);

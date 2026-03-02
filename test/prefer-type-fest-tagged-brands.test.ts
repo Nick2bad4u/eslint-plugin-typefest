@@ -152,43 +152,69 @@ const taggedBrandsAliasArbitrary = fc.constantFrom<TaggedBrandsAlias>(
     "Branded"
 );
 
+const uppercaseIdentifierCharacters = Array.from({ length: 26 }, (_, index) =>
+    String.fromCodePoint(65 + index)
+);
+const lowercaseIdentifierCharacters = Array.from({ length: 26 }, (_, index) =>
+    String.fromCodePoint(97 + index)
+);
+const numericIdentifierCharacters = Array.from({ length: 10 }, (_, index) =>
+    String(index)
+);
 const identifierHeadCharacters = [
-    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_",
+    ...uppercaseIdentifierCharacters,
+    ...lowercaseIdentifierCharacters,
+    "_",
 ];
 const identifierTailCharacters = [
-    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789",
+    ...identifierHeadCharacters,
+    ...numericIdentifierCharacters,
 ];
-const identifierHeadArbitrary = fc.constantFrom(...identifierHeadCharacters);
-const identifierTailArbitrary = fc
-    .array(fc.constantFrom(...identifierTailCharacters), {
-        maxLength: 8,
+const identifierHeadArbitrary = fc
+    .integer({
+        max: identifierHeadCharacters.length - 1,
+        min: 0,
     })
+    .map((index) => identifierHeadCharacters[index] ?? "_");
+const identifierTailArbitrary = fc
+    .array(
+        fc
+            .integer({
+                max: identifierTailCharacters.length - 1,
+                min: 0,
+            })
+            .map((index) => identifierTailCharacters[index] ?? "_"),
+        {
+            maxLength: 8,
+        }
+    )
     .map((characters) => characters.join(""));
+// eslint-disable-next-line total-functions/no-hidden-type-assertions -- Fast-check generic inference is intentional for this local arbitrary composition.
 const generatedIdentifierArbitrary = fc
-    .tuple(identifierHeadArbitrary, identifierTailArbitrary)
-    .map(([head, tail]) => `${head}${tail}`)
-    .filter(isSafeGeneratedIdentifier);
+    .record({
+        head: identifierHeadArbitrary,
+        tail: identifierTailArbitrary,
+    })
+    .map(({ head, tail }) => `${head}${tail}`)
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate));
 
 const parseTaggedTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    taggedReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            continue;
-        }
-
         if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
             statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
             statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                taggedReference: statement.typeAnnotation,
             };
         }
     }
@@ -225,7 +251,7 @@ describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
                 fc.boolean(),
                 (
                     legacyAlias,
-                    typeIdentifier,
+                    valueIdentifier,
                     tagIdentifier,
                     includeUnicodeLine
                 ) => {
@@ -236,7 +262,7 @@ describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
                         unicodeLine,
                         `import type { ${legacyAlias} } from "ts-essentials";`,
                         'import type { Tagged } from "type-fest";',
-                        `type UserId = ${legacyAlias}<${typeIdentifier}, "${tagIdentifier}">;`,
+                        `type UserId = ${legacyAlias}<${valueIdentifier}, "${tagIdentifier}">;`,
                     ]
                         .filter((line) => line.length > 0)
                         .join("\n");
@@ -247,18 +273,18 @@ describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
                         target: `${legacyAlias}<`,
                     });
 
-                    const { typeReference } =
+                    const { taggedReference } =
                         parseTaggedTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(taggedReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
+                        taggedReference.typeName.type ===
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("Tagged");
+                        expect(taggedReference.typeName.name).toBe("Tagged");
                     }
                 }
             ),

@@ -115,11 +115,10 @@ const parseReadonlyUnknownMapTypeReferenceFromCode = (sourceText: string) => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            continue;
-        }
-
-        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
             return statement.typeAnnotation;
         }
     }
@@ -247,20 +246,19 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
                         target: `ReadonlyMap<${keyPair.firstKey}, ${keyPair.secondKey}>`,
                     });
 
-                    const typeReference =
+                    const tsReference =
                         parseReadonlyUnknownMapTypeReferenceFromCode(
                             replacedCode
                         );
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("Readonly");
+                        expect(tsReference.typeName.name).toBe("Readonly");
                     }
                 }
             ),

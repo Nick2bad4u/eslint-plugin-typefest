@@ -102,7 +102,7 @@ const parsePartialDeepTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -114,7 +114,7 @@ const parsePartialDeepTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -169,18 +169,17 @@ describe("prefer-type-fest-partial-deep parse-safety guards", () => {
                         target: "DeepPartial<",
                     });
 
-                    const { typeReference } =
+                    const { tsReference } =
                         parsePartialDeepTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("PartialDeep");
+                        expect(tsReference.typeName.name).toBe("PartialDeep");
                     }
                 }
             ),

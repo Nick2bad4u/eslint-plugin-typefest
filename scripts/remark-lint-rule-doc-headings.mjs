@@ -307,12 +307,18 @@ export default function remarkLintRuleDocHeadings() {
         const whatThisRuleReportsIndex = headingNames.indexOf(
             "What this rule reports"
         );
+        /** @param {number} index */
+        const getH2HeadingNodeAt = (index) =>
+            index >= 0 && index < h2Headings.length
+                ? h2Headings[index]
+                : undefined;
+        const firstH2HeadingNode = h2Headings[0];
 
         if (targetedPatternScopeIndex !== 0) {
             const targetedPatternScopeHeading =
-                targetedPatternScopeIndex === -1
-                    ? h2Headings[0]
-                    : h2Headings[targetedPatternScopeIndex];
+                getH2HeadingNodeAt(targetedPatternScopeIndex) ??
+                getH2HeadingNodeAt(whatThisRuleReportsIndex) ??
+                firstH2HeadingNode;
 
             file.message(
                 "`## Targeted pattern scope` must be the first H2 section.",
@@ -323,9 +329,9 @@ export default function remarkLintRuleDocHeadings() {
 
         if (whatThisRuleReportsIndex !== targetedPatternScopeIndex + 1) {
             const targetedPatternScopeHeading =
-                targetedPatternScopeIndex === -1
-                    ? h2Headings[0]
-                    : h2Headings[targetedPatternScopeIndex];
+                getH2HeadingNodeAt(whatThisRuleReportsIndex) ??
+                getH2HeadingNodeAt(targetedPatternScopeIndex) ??
+                firstH2HeadingNode;
 
             file.message(
                 "`## What this rule reports` must immediately follow `## Targeted pattern scope`.",

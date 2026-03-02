@@ -18,14 +18,32 @@ import pc from "picocolors";
 const argv = process.argv.slice(2);
 const isVerbose = argv.includes("--verbose") || argv.includes("-v");
 const failFast = argv.includes("--fail-fast") || argv.includes("-f");
-const maxPathDisplayArg = argv.find((a) => a.startsWith("--max-path="));
-const maxPathDisplay = maxPathDisplayArg
-    ? Number(maxPathDisplayArg.split("=")[1])
-    : 50;
-const concurrencyArg = argv.find((a) => a.startsWith("--concurrency="));
-const CONCURRENCY = concurrencyArg
-    ? Math.max(1, Number(concurrencyArg.split("=")[1]))
-    : 50;
+
+/**
+ * @param {string} argumentPrefix
+ * @param {number} fallbackValue
+ *
+ * @returns {number}
+ */
+const parsePositiveIntegerFlag = (argumentPrefix, fallbackValue) => {
+    const argument = argv.find((candidate) =>
+        candidate.startsWith(argumentPrefix)
+    );
+
+    if (argument === undefined) {
+        return fallbackValue;
+    }
+
+    const numericPortion = argument.slice(argumentPrefix.length);
+    const parsedValue = Number.parseInt(numericPortion, 10);
+
+    return Number.isNaN(parsedValue) || parsedValue < 1
+        ? fallbackValue
+        : parsedValue;
+};
+
+const maxPathDisplay = parsePositiveIntegerFlag("--max-path=", 50);
+const CONCURRENCY = parsePositiveIntegerFlag("--concurrency=", 50);
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirectoryPath = dirname(currentFilePath);
@@ -264,19 +282,19 @@ async function validateLink(markdownPath, link, issues, issueSet, metrics) {
 /**
  * @param {import("node:fs").PathLike
  *     | import("node:fs/promises").FileHandle} markdownPath
- * @param {any[]} issues
- * @param {Set<any>} issueSet
+ * @param {{ file: string; link: string; resolvedPath: string }[]} issues
+ * @param {Set<string>} issueSet
  * @param {{
- *     totalFilesChecked?: number;
- *     totalLinksChecked?: number;
- *     brokenLinks?: number;
- *     externalLinksIgnored?: number;
- *     anchorsIgnored?: number;
- *     appRouteLinksIgnored?: number;
- *     imageLinksIgnored: any;
- *     emptyLinks?: number;
- *     filesWithLinks: any;
- *     filesWithNoLinks: any;
+ *     totalFilesChecked: number;
+ *     totalLinksChecked: number;
+ *     brokenLinks: number;
+ *     externalLinksIgnored: number;
+ *     anchorsIgnored: number;
+ *     appRouteLinksIgnored: number;
+ *     imageLinksIgnored: number;
+ *     emptyLinks: number;
+ *     filesWithLinks: number;
+ *     filesWithNoLinks: number;
  * }} metrics
  */
 async function checkFile(markdownPath, issues, issueSet, metrics) {
@@ -298,16 +316,6 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
         metrics.filesWithLinks++;
     }
 
-    // Ensure metrics object has all required properties for validateLink
-    const validateMetrics = {
-        totalLinksChecked: metrics.totalLinksChecked || 0,
-        emptyLinks: metrics.emptyLinks || 0,
-        anchorsIgnored: metrics.anchorsIgnored || 0,
-        externalLinksIgnored: metrics.externalLinksIgnored || 0,
-        appRouteLinksIgnored: metrics.appRouteLinksIgnored || 0,
-        brokenLinks: metrics.brokenLinks || 0,
-    };
-
     for (const match of matches) {
         const fullMatch = match[0];
         const link = match[1];
@@ -316,21 +324,13 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
             continue;
         }
         if (link) {
-            // Pass validateMetrics to validateLink, then sync back to metrics
             const broken = await validateLink(
                 markdownPath,
                 link,
                 issues,
                 issueSet,
-                validateMetrics
+                metrics
             );
-            // Sync updated values back to metrics
-            metrics.totalLinksChecked = validateMetrics.totalLinksChecked;
-            metrics.emptyLinks = validateMetrics.emptyLinks;
-            metrics.anchorsIgnored = validateMetrics.anchorsIgnored;
-            metrics.externalLinksIgnored = validateMetrics.externalLinksIgnored;
-            metrics.appRouteLinksIgnored = validateMetrics.appRouteLinksIgnored;
-            metrics.brokenLinks = validateMetrics.brokenLinks;
             if (broken && failFast) {
                 throw new Error("Fail-fast triggered due to broken link");
             }
@@ -341,8 +341,10 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
 /**
  * Split array into batches
  *
- * @param {string | any[]} array
+ * @param {readonly string[]} array
  * @param {number} size
+ *
+ * @returns {string[][]}
  */
 function batches(array, size) {
     const out = [];
@@ -429,16 +431,9 @@ async function main() {
 
         // Process files in batches to limit concurrency
         for (const batch of batches(markdownFiles, CONCURRENCY)) {
-            if (Array.isArray(batch)) {
-                await Promise.all(
-                    batch.map((/** @type {any} */ file) =>
-                        checkFile(file, issues, issueSet, metrics)
-                    )
-                );
-            } else {
-                // Defensive: if batch is not an array, skip or handle as needed
-                continue;
-            }
+            await Promise.all(
+                batch.map((file) => checkFile(file, issues, issueSet, metrics))
+            );
         }
     }
 

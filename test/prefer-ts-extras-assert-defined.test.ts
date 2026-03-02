@@ -1200,4 +1200,3 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
         },
     ],
 });
-

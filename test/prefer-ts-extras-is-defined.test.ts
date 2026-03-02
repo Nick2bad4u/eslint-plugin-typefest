@@ -215,7 +215,7 @@ const undefinedComparisonOperatorArbitrary = fc.constantFrom(
 
 const identifierNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier)
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate))
     .filter(
         (candidate) => candidate !== "undefined" && candidate !== "isDefined"
     );
@@ -238,7 +238,7 @@ const buildUndefinedComparisonExpression = ({
     }
 
     if (pattern === "typeofUndefinedLeft") {
-        return `"undefined" ${  operator  } typeof ${identifierName}`;
+        return `"undefined" ${operator} typeof ${identifierName}`;
     }
 
     return `typeof ${identifierName} ${operator} "undefined"`;
@@ -253,16 +253,16 @@ const parseUndefinedComparisonFromCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
-            continue;
-        }
-
-        for (const declaration of statement.declarations) {
-            if (declaration.init?.type === AST_NODE_TYPES.BinaryExpression) {
-                return {
-                    ast: parsed.ast,
-                    binaryExpression: declaration.init,
-                };
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.BinaryExpression
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        binaryExpression: declaration.init,
+                    };
+                }
             }
         }
     }
@@ -436,7 +436,8 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             vi.resetModules();
 
             const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({

@@ -598,4 +598,3 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
-

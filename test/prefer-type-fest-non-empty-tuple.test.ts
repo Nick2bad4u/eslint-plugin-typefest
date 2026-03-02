@@ -163,12 +163,12 @@ const parseReadonlyTupleOperatorFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeOperator: TSESTree.TSTypeOperator;
+    readonlyOperator: TSESTree.TSTypeOperator;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        const typeOperatorTypeAnnotation =
+        const operatorTypeAnnotation =
             statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
             statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator
                 ? statement.typeAnnotation.typeAnnotation
@@ -178,11 +178,11 @@ const parseReadonlyTupleOperatorFromCode = (
             statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
             statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator &&
             statement.typeAnnotation.operator === "readonly" &&
-            typeOperatorTypeAnnotation?.type === AST_NODE_TYPES.TSTupleType
+            operatorTypeAnnotation?.type === AST_NODE_TYPES.TSTupleType
         ) {
             return {
                 ast: parsed.ast,
-                typeOperator: statement.typeAnnotation,
+                readonlyOperator: statement.typeAnnotation,
             };
         }
     }
@@ -374,7 +374,9 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
             vi.resetModules();
 
             const createSafeTypeNodeTextReplacementFixPreservingReadonlyMock =
-                vi.fn((..._args: readonly unknown[]) => "FIX");
+                vi.fn((...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+                );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
@@ -406,7 +408,7 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
                         "void seed;",
                     ].join("\n");
 
-                    const { ast, typeOperator } =
+                    const { ast, readonlyOperator } =
                         parseReadonlyTupleOperatorFromCode(code);
                     const reportCalls: NonEmptyTupleReportDescriptor[] = [];
 
@@ -424,7 +426,7 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
                         },
                     });
 
-                    listeners.TSTypeOperator?.(typeOperator);
+                    listeners.TSTypeOperator?.(readonlyOperator);
 
                     expect(reportCalls).toHaveLength(1);
                     expect(reportCalls[0]).toMatchObject({
@@ -444,7 +446,7 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
                             .mock.calls[0]?.[2]
                     ).toBe(`NonEmptyTuple<${tupleHeadTypeText}>`);
 
-                    const fixedCode = `${code.slice(0, typeOperator.range[0])}Readonly<NonEmptyTuple<${tupleHeadTypeText}>>${code.slice(typeOperator.range[1])}`;
+                    const fixedCode = `${code.slice(0, readonlyOperator.range[0])}Readonly<NonEmptyTuple<${tupleHeadTypeText}>>${code.slice(readonlyOperator.range[1])}`;
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);

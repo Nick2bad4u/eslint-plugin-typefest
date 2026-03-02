@@ -32,7 +32,7 @@ const typedFixturePath = path.resolve(
     repositoryRootPath,
     "test/fixtures/typed/prefer-ts-extras-safe-cast-to.invalid.ts"
 );
-const nonTypedFixturePath = path.resolve(
+const arrayableFixturePath = path.resolve(
     repositoryRootPath,
     "test/fixtures/typed/prefer-type-fest-arrayable.invalid.ts"
 );
@@ -61,10 +61,17 @@ const parseExpectedEslintMajor = (argv) => {
         return undefined;
     }
 
-    const majorValue = Number.parseInt(
-        matchingArgument.slice(expectedEslintMajorArgumentPrefix.length),
-        10
+    const majorString = matchingArgument.slice(
+        expectedEslintMajorArgumentPrefix.length
     );
+
+    if (majorString.length === 0) {
+        throw new Error(
+            `Missing ESLint major value in argument: ${matchingArgument}`
+        );
+    }
+
+    const majorValue = Number.parseInt(majorString, 10);
 
     if (Number.isNaN(majorValue)) {
         throw new Error(
@@ -80,7 +87,22 @@ const parseExpectedEslintMajor = (argv) => {
  */
 const assertEslintMajor = (expectedMajor) => {
     const runtimeVersion = ESLint.version;
-    const runtimeMajor = Number.parseInt(runtimeVersion.split(".")[0], 10);
+
+    if (typeof runtimeVersion !== "string" || runtimeVersion.length === 0) {
+        throw new Error(
+            `Unable to determine ESLint runtime version: ${String(runtimeVersion)}`
+        );
+    }
+
+    const [runtimeMajorText] = runtimeVersion.split(".", 1);
+
+    if (runtimeMajorText === undefined || runtimeMajorText.length === 0) {
+        throw new Error(
+            `Unable to parse ESLint runtime version: ${runtimeVersion}`
+        );
+    }
+
+    const runtimeMajor = Number.parseInt(runtimeMajorText, 10);
 
     if (Number.isNaN(runtimeMajor)) {
         throw new Error(
@@ -264,7 +286,7 @@ const scenarios = /** @type {const} */ ([
     {
         expectedMinimumMessages: 1,
         fix: false,
-        fixturePath: nonTypedFixturePath,
+        fixturePath: arrayableFixturePath,
         name: "non-typed-detection",
         ruleId: "typefest/prefer-type-fest-arrayable",
         typed: false,

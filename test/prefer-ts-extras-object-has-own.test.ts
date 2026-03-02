@@ -135,7 +135,7 @@ const parserOptions = {
 
 const objectIdentifierArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier)
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate))
     .filter(
         (candidate) =>
             !new Set([
@@ -157,16 +157,14 @@ const parseObjectHasOwnCallFromCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
-            continue;
-        }
-
-        for (const declaration of statement.declarations) {
-            if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
-                return {
-                    ast: parsed.ast,
-                    callExpression: declaration.init,
-                };
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                    return {
+                        ast: parsed.ast,
+                        callExpression: declaration.init,
+                    };
+                }
             }
         }
     }
@@ -216,7 +214,8 @@ describe("prefer-ts-extras-object-has-own source assertions", () => {
             vi.resetModules();
 
             const createSafeValueReferenceReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({

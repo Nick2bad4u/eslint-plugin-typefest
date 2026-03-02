@@ -173,7 +173,7 @@ const parseSimplifyTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -184,7 +184,7 @@ const parseSimplifyTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -214,7 +214,8 @@ describe("prefer-type-fest-simplify source assertions", () => {
             vi.resetModules();
 
             const createSafeTypeReferenceReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -267,7 +268,7 @@ describe("prefer-type-fest-simplify source assertions", () => {
                             "void seed;",
                         ].join("\n");
 
-                        const { ast, typeReference } =
+                        const { ast, tsReference } =
                             parseSimplifyTypeReferenceFromCode(code);
                         const reportCalls: SimplifyReportDescriptor[] = [];
 
@@ -285,7 +286,7 @@ describe("prefer-type-fest-simplify source assertions", () => {
                             },
                         });
 
-                        listeners.TSTypeReference?.(typeReference);
+                        listeners.TSTypeReference?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
@@ -307,7 +308,7 @@ describe("prefer-type-fest-simplify source assertions", () => {
 
                         expect(calledReplacementName).toBe("Simplify");
 
-                        const fixedCode = `${code.slice(0, typeReference.range[0])}Simplify<${operandTypeText}>${code.slice(typeReference.range[1])}`;
+                        const fixedCode = `${code.slice(0, tsReference.range[0])}Simplify<${operandTypeText}>${code.slice(tsReference.range[1])}`;
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);

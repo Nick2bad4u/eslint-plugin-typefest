@@ -154,7 +154,7 @@ const parserOptions = {
 const keyTypeArbitrary = fc.constantFrom("string", '"string"');
 const aliasNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter(isSafeGeneratedIdentifier)
+    .filter((candidate) => isSafeGeneratedIdentifier(candidate))
     .filter(
         (candidate) => candidate !== "JsonObject" && candidate !== "JsonValue"
     );
@@ -187,7 +187,7 @@ const parseRecordTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    typeReference: TSESTree.TSTypeReference;
+    tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -198,7 +198,7 @@ const parseRecordTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
-                typeReference: statement.typeAnnotation,
+                tsReference: statement.typeAnnotation,
             };
         }
     }
@@ -372,7 +372,8 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             vi.resetModules();
 
             const createSafeTypeNodeReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -409,7 +410,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                             "void seed;",
                         ].join("\n");
 
-                        const { ast, typeReference } =
+                        const { ast, tsReference } =
                             parseRecordTypeReferenceFromCode(code);
                         const reportCalls: JsonObjectReportDescriptor[] = [];
 
@@ -429,7 +430,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                             },
                         });
 
-                        listeners.TSTypeReference?.(typeReference);
+                        listeners.TSTypeReference?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
@@ -445,7 +446,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                                 .calls[0]?.[1]
                         ).toBe("JsonObject");
 
-                        const fixedCode = `${code.slice(0, typeReference.range[0])}JsonObject${code.slice(typeReference.range[1])}`;
+                        const fixedCode = `${code.slice(0, tsReference.range[0])}JsonObject${code.slice(tsReference.range[1])}`;
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);

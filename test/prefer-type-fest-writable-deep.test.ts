@@ -164,32 +164,29 @@ describe("prefer-type-fest-writable-deep parse-safety guards", () => {
             fc.property(
                 writableDeepAliasArbitrary,
                 writableDeepTypeNameArbitrary,
-                (aliasName, typeName) => {
+                (aliasName, valueTypeName) => {
                     const generatedCode = [
                         'import type { WritableDeep } from "type-fest";',
-                        `type Candidate = ${aliasName}<${typeName}>;`,
+                        `type Candidate = ${aliasName}<${valueTypeName}>;`,
                     ].join("\n");
 
                     const replacedCode = replaceOrThrow({
-                        replacement: `WritableDeep<${typeName}>`,
+                        replacement: `WritableDeep<${valueTypeName}>`,
                         sourceText: generatedCode,
-                        target: `${aliasName}<${typeName}>`,
+                        target: `${aliasName}<${valueTypeName}>`,
                     });
 
-                    const typeReference =
+                    const tsReference =
                         parseWritableDeepTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe(
-                            "WritableDeep"
-                        );
+                        expect(tsReference.typeName.name).toBe("WritableDeep");
                     }
                 }
             ),

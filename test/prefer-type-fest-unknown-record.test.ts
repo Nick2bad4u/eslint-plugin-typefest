@@ -104,11 +104,10 @@ const parseUnknownRecordTypeReferenceFromCode = (sourceText: string) => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            continue;
-        }
-
-        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
             return statement.typeAnnotation;
         }
     }
@@ -155,20 +154,17 @@ describe("prefer-type-fest-unknown-record parse-safety guards", () => {
                         target: "Record<string, unknown>",
                     });
 
-                    const typeReference =
+                    const tsReference =
                         parseUnknownRecordTypeReferenceFromCode(replacedCode);
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe(
-                            "UnknownRecord"
-                        );
+                        expect(tsReference.typeName.name).toBe("UnknownRecord");
                     }
                 }
             ),

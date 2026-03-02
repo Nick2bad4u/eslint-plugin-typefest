@@ -310,7 +310,8 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
             vi.resetModules();
 
             const createSafeTypeNodeReplacementFixMock = vi.fn(
-                (..._args: readonly unknown[]) => "FIX"
+                (...args: readonly unknown[]) =>
+                    args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({

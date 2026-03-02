@@ -99,11 +99,10 @@ const parseReadonlyUnknownSetTypeReferenceFromCode = (sourceText: string) => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            continue;
-        }
-
-        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
             return statement.typeAnnotation;
         }
     }
@@ -206,14 +205,14 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
             fc.property(
                 generatedIdentifierArbitrary,
                 fc.boolean(),
-                (typeName, includeUnicodeLine) => {
+                (valueTypeName, includeUnicodeLine) => {
                     const unicodeLine = includeUnicodeLine
                         ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
                         : "";
                     const generatedCode = [
                         unicodeLine,
                         'import type { UnknownSet } from "type-fest";',
-                        `type Input = ReadonlySet<${typeName}>;`,
+                        `type Input = ReadonlySet<${valueTypeName}>;`,
                     ]
                         .filter((line) => line.length > 0)
                         .join("\n");
@@ -221,23 +220,22 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
                     const replacedCode = replaceOrThrow({
                         replacement: "Readonly<UnknownSet>",
                         sourceText: generatedCode,
-                        target: `ReadonlySet<${typeName}>`,
+                        target: `ReadonlySet<${valueTypeName}>`,
                     });
 
-                    const typeReference =
+                    const tsReference =
                         parseReadonlyUnknownSetTypeReferenceFromCode(
                             replacedCode
                         );
 
-                    expect(typeReference.typeName.type).toBe(
+                    expect(tsReference.typeName.type).toBe(
                         AST_NODE_TYPES.Identifier
                     );
 
                     if (
-                        typeReference.typeName.type ===
-                        AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
                     ) {
-                        expect(typeReference.typeName.name).toBe("Readonly");
+                        expect(tsReference.typeName.name).toBe("Readonly");
                     }
                 }
             ),

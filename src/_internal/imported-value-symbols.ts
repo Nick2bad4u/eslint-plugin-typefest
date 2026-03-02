@@ -604,10 +604,30 @@ export const createMethodToFunctionCallFix = ({
     }
 
     const { sourceCode } = context;
-    const receiverText = sourceCode.getText(callNode.callee.object);
-    const argumentText = callNode.arguments
-        .map((argument) => sourceCode.getText(argument))
-        .join(", ");
+    const receiverText = getFunctionCallArgumentText({
+        argumentNode: callNode.callee.object,
+        sourceCode,
+    });
+    if (receiverText === null) {
+        return null;
+    }
+
+    const argumentTexts: string[] = [];
+
+    for (const argument of callNode.arguments) {
+        const argumentText = getFunctionCallArgumentText({
+            argumentNode: argument,
+            sourceCode,
+        });
+
+        if (argumentText === null) {
+            return null;
+        }
+
+        argumentTexts.push(argumentText);
+    }
+
+    const argumentText = argumentTexts.join(", ");
 
     const replacementText =
         argumentText.length > 0
@@ -654,7 +674,14 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    const receiverText = context.sourceCode.getText(memberNode.object);
+    const receiverText = getFunctionCallArgumentText({
+        argumentNode: memberNode.object,
+        sourceCode: context.sourceCode,
+    });
+    if (receiverText === null) {
+        return null;
+    }
+
     const replacementText = `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
     return (fixer) =>

@@ -255,7 +255,10 @@ describe("prefer-ts-extras-array-at source assertions", () => {
                             createMethodToFunctionCallFixMock
                         ).toHaveBeenCalledTimes(1);
 
-                        if (callExpression.callee.type !== "MemberExpression") {
+                        if (
+                            callExpression.callee.type !==
+                            AST_NODE_TYPES.MemberExpression
+                        ) {
                             throw new TypeError(
                                 "Expected generated call expression callee to be a member expression"
                             );
