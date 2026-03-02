@@ -1,8 +1,19 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-iterable-element.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -22,30 +33,122 @@ const namespaceValidFixtureName =
     "prefer-type-fest-iterable-element.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-iterable-element.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'from "type-aliases";\r\n',
-        'from "type-aliases";\nimport type { IterableElement } from "type-fest";\r\n'
-    )
-    .replace("SetElement<", "IterableElement<");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode
-    .replace("SetEntry<", "IterableElement<")
-    .replace("SetValues<", "IterableElement<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-iterable-element fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "IterableElement<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'from "type-aliases";\nimport type { IterableElement } from "type-fest";\r\n',
+        sourceText: invalidFixtureCode,
+        target: 'from "type-aliases";\r\n',
+    }),
+    target: "SetElement<",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "IterableElement<",
+    sourceText: replaceOrThrow({
+        replacement: "IterableElement<",
+        sourceText: fixtureFixableOutputCode,
+        target: "SetEntry<",
+    }),
+    target: "SetValues<",
+});
 const inlineFixableInvalidCode = [
     'import type { SetElement } from "type-aliases";',
     'import type { IterableElement } from "type-fest";',
     "",
     "type Input = SetElement<Set<string>>;",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Input = SetElement<Set<string>>;",
-    "type Input = IterableElement<Set<string>>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type Input = IterableElement<Set<string>>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Input = SetElement<Set<string>>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { SetElement } from "type-aliases";',
     "",
     "type Wrapper<IterableElement> = SetElement<Set<string>>;",
 ].join("\n");
+
+type IterableElementAlias = "SetElement" | "SetEntry" | "SetValues";
+
+type IterableElementReportDescriptor = Readonly<{
+    data?: {
+        alias?: string;
+        replacement?: string;
+    };
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const iterableAliasArbitrary = fc.constantFrom<IterableElementAlias>(
+    "SetElement",
+    "SetEntry",
+    "SetValues"
+);
+
+const iterableTypeNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter(isSafeGeneratedIdentifier)
+    .filter((candidate) => candidate !== "IterableElement");
+
+const iterableContainerArbitrary = fc.constantFrom(
+    "Set<string>",
+    "ReadonlySet<number>",
+    "Map<string, number>",
+    "Array<{ readonly id: string }>"
+);
+
+const parseTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an iterable alias type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -55,6 +158,129 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferIterableElement: preferIterableElementMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-iterable-element source assertions", () => {
+    it("fast-check: IterableElement replacement remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeReferenceReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                collectImportedTypeAliasMatches: () =>
+                    new Map([
+                        [
+                            "SetElement",
+                            {
+                                importedName: "SetElement",
+                                replacementName: "IterableElement",
+                            },
+                        ],
+                        [
+                            "SetEntry",
+                            {
+                                importedName: "SetEntry",
+                                replacementName: "IterableElement",
+                            },
+                        ],
+                        [
+                            "SetValues",
+                            {
+                                importedName: "SetValues",
+                                replacementName: "IterableElement",
+                            },
+                        ],
+                    ]),
+                createSafeTypeReferenceReplacementFix:
+                    createSafeTypeReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-iterable-element")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    iterableAliasArbitrary,
+                    iterableTypeNameArbitrary,
+                    iterableContainerArbitrary,
+                    (aliasName, typeName, containerTypeText) => {
+                        createSafeTypeReferenceReplacementFixMock.mockClear();
+
+                        const code = [
+                            `import type { ${aliasName} } from "type-aliases";`,
+                            `type ${typeName} = ${aliasName}<${containerTypeText}>;`,
+                        ].join("\n");
+
+                        const { ast, typeReference } =
+                            parseTypeReferenceFromCode(code);
+                        const reportCalls: IterableElementReportDescriptor[] =
+                            [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-iterable-element.invalid.ts",
+                            report: (
+                                descriptor: IterableElementReportDescriptor
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                            },
+                        });
+
+                        listeners.TSTypeReference?.(typeReference);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            data: {
+                                alias: aliasName,
+                                replacement: "IterableElement",
+                            },
+                            fix: "FIX",
+                            messageId: "preferIterableElement",
+                        });
+
+                        expect(
+                            createSafeTypeReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+                        expect(
+                            createSafeTypeReferenceReplacementFixMock.mock
+                                .calls[0]?.[1]
+                        ).toBe("IterableElement");
+
+                        const fixedCode = `${code.slice(0, typeReference.range[0])}IterableElement<${containerTypeText}>${code.slice(typeReference.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {

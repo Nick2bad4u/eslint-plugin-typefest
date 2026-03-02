@@ -1,9 +1,15 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-entries` behavior.
  */
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -61,6 +67,107 @@ const shadowedObjectBindingValidCode = [
     "};",
     "const pairs = Object.entries({ alpha: 1 });",
 ].join("\n");
+
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-object-entries text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const objectEntriesArgumentKindArbitrary = fc.constantFrom<
+    "callExpression" | "identifier" | "memberExpression" | "objectLiteral"
+>("callExpression", "identifier", "memberExpression", "objectLiteral");
+
+const buildObjectEntriesArgumentTemplate = (
+    kind: "callExpression" | "identifier" | "memberExpression" | "objectLiteral"
+): Readonly<{
+    argumentExpression: string;
+    declarations: readonly string[];
+}> => {
+    if (kind === "identifier") {
+        return {
+            argumentExpression: "record",
+            declarations: ["const record = { alpha: 1 } as const;"],
+        };
+    }
+
+    if (kind === "memberExpression") {
+        return {
+            argumentExpression: "holder.record",
+            declarations: [
+                "const holder = { record: { alpha: 1 } } as const satisfies Readonly<{ readonly record: { readonly alpha: number } }>;",
+            ],
+        };
+    }
+
+    if (kind === "callExpression") {
+        return {
+            argumentExpression: "buildRecord()",
+            declarations: [
+                "const buildRecord = (): Readonly<{ alpha: number }> => ({ alpha: 1 });",
+            ],
+        };
+    }
+
+    return {
+        argumentExpression: "{ alpha: 1 }",
+        declarations: [],
+    };
+};
+
+const parseObjectEntriesCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.VariableDeclaration &&
+            statement.declarations.length === 1
+        ) {
+            const declaration = statement.declarations[0];
+            if (
+                declaration?.type === AST_NODE_TYPES.VariableDeclarator &&
+                declaration.init !== null &&
+                declaration.init.type === AST_NODE_TYPES.CallExpression
+            ) {
+                return {
+                    ast: parsed.ast,
+                    callExpression: declaration.init,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from an objectEntries call"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -152,6 +259,56 @@ describe("prefer-ts-extras-object-entries internal listener guards", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+});
+
+describe("prefer-ts-extras-object-entries parse-safety guards", () => {
+    it("fast-check: objectEntries replacement remains parseable across argument expression variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                objectEntriesArgumentKindArbitrary,
+                includeUnicodeBannerArbitrary,
+                (argumentKind, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const argumentTemplate =
+                        buildObjectEntriesArgumentTemplate(argumentKind);
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import { objectEntries } from "ts-extras";',
+                        ...argumentTemplate.declarations,
+                        `const pairs = Object.entries(${argumentTemplate.argumentExpression});`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "objectEntries",
+                        sourceText: generatedCode,
+                        target: "Object.entries",
+                    });
+
+                    const { callExpression } =
+                        parseObjectEntriesCallFromCode(replacedCode);
+
+                    expect(callExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(callExpression.callee.name).toBe(
+                            "objectEntries"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

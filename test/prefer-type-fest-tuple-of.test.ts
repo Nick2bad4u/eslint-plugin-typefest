@@ -1,4 +1,3 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-tuple-of.test` behavior.
@@ -8,9 +7,10 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -30,35 +30,42 @@ const namespaceValidFixtureName =
     "prefer-type-fest-tuple-of.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-tuple-of.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-tuple-of fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
 const createFixtureFixableOutputCode = (sourceText: string): string => {
     const sourceLineEnding = sourceText.includes("\r\n") ? "\r\n" : "\n";
-    const importPattern =
-        /import\s+type\s*\{\s*ReadonlyTuple\s*\}\s+from\s+"type-aliases";\r?\n/u;
+
     // The fixer currently emits an LF between the existing import and inserted import,
     // then keeps native source newlines for the rest of the file. Mirror that output here.
-    const withTypeFestImport = sourceText.replace(
-        importPattern,
-        `import type { ReadonlyTuple } from "type-aliases";\nimport type { TupleOf } from "type-fest";${sourceLineEnding}`
-    );
+    const withTypeFestImport = replaceOrThrow({
+        replacement: `import type { ReadonlyTuple } from "type-aliases";\nimport type { TupleOf } from "type-fest";${sourceLineEnding}`,
+        sourceText,
+        target: `import type { ReadonlyTuple } from "type-aliases";${sourceLineEnding}`,
+    });
 
-    if (withTypeFestImport === sourceText) {
-        throw new TypeError(
-            "Expected tuple-of fixture to include a replaceable ReadonlyTuple import declaration"
-        );
-    }
-
-    const withTupleReplacement = withTypeFestImport.replace(
-        /type\s+MonitorTuple\s*=\s*ReadonlyTuple<string,\s*3>;/u,
-        "type MonitorTuple = Readonly<TupleOf<3, string>>;"
-    );
-
-    if (withTupleReplacement === withTypeFestImport) {
-        throw new TypeError(
-            "Expected tuple-of fixture to include a replaceable ReadonlyTuple type alias"
-        );
-    }
-
-    return withTupleReplacement;
+    return replaceOrThrow({
+        replacement: "type MonitorTuple = Readonly<TupleOf<3, string>>;",
+        sourceText: withTypeFestImport,
+        target: "type MonitorTuple = ReadonlyTuple<string, 3>;",
+    });
 };
 
 const fixtureFixableOutputCode =
@@ -70,11 +77,11 @@ const inlineFixableReadonlyTupleInvalidCode = [
     "type Values = ReadonlyTuple<string, 3>;",
 ].join("\n");
 
-const inlineFixableReadonlyTupleOutputCode =
-    inlineFixableReadonlyTupleInvalidCode.replace(
-        "type Values = ReadonlyTuple<string, 3>;",
-        "type Values = Readonly<TupleOf<3, string>>;"
-    );
+const inlineFixableReadonlyTupleOutputCode = replaceOrThrow({
+    replacement: "type Values = Readonly<TupleOf<3, string>>;",
+    sourceText: inlineFixableReadonlyTupleInvalidCode,
+    target: "type Values = ReadonlyTuple<string, 3>;",
+});
 
 const inlineFixableTupleInvalidCode = [
     'import type { Tuple } from "type-aliases";',
@@ -83,10 +90,11 @@ const inlineFixableTupleInvalidCode = [
     "type Values = Tuple<string, 3>;",
 ].join("\n");
 
-const inlineFixableTupleOutputCode = inlineFixableTupleInvalidCode.replace(
-    "type Values = Tuple<string, 3>;",
-    "type Values = TupleOf<3, string>;"
-);
+const inlineFixableTupleOutputCode = replaceOrThrow({
+    replacement: "type Values = TupleOf<3, string>;",
+    sourceText: inlineFixableTupleInvalidCode,
+    target: "type Values = Tuple<string, 3>;",
+});
 
 const inlineNoFixShadowedTupleOfInvalidCode = [
     'import type { ReadonlyTuple } from "type-aliases";',
@@ -116,11 +124,11 @@ const inlineFixTupleWhenReadonlyShadowedInvalidCode = [
     "type Box<Readonly> = Tuple<string, 3>;",
 ].join("\n");
 
-const inlineFixTupleWhenReadonlyShadowedOutputCode =
-    inlineFixTupleWhenReadonlyShadowedInvalidCode.replace(
-        "type Box<Readonly> = Tuple<string, 3>;",
-        "type Box<Readonly> = TupleOf<3, string>;"
-    );
+const inlineFixTupleWhenReadonlyShadowedOutputCode = replaceOrThrow({
+    replacement: "type Box<Readonly> = TupleOf<3, string>;",
+    sourceText: inlineFixTupleWhenReadonlyShadowedInvalidCode,
+    target: "type Box<Readonly> = Tuple<string, 3>;",
+});
 
 type TupleOfReportDescriptor = Readonly<{
     data?: {
@@ -234,19 +242,19 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                 collectImportedTypeAliasMatches: () =>
                     new Map([
                         [
-                            "Tuple",
-                            {
-                                importedName: "Tuple",
-                                replacementName: "TupleOf<Length, Element>",
-                                sourceValue: "type-aliases",
-                            },
-                        ],
-                        [
                             "ReadonlyTuple",
                             {
                                 importedName: "ReadonlyTuple",
                                 replacementName:
                                     "Readonly<TupleOf<Length, Element>>",
+                                sourceValue: "type-aliases",
+                            },
+                        ],
+                        [
+                            "Tuple",
+                            {
+                                importedName: "Tuple",
+                                replacementName: "TupleOf<Length, Element>",
                                 sourceValue: "type-aliases",
                             },
                         ],
@@ -312,7 +320,7 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                             createSafeTypeNodeTextReplacementFixMock.mock
                                 .calls[0]?.[2];
 
-                        expect(typeof replacementText).toBe("string");
+                        expectTypeOf(replacementText).toBeString();
 
                         if (typeof replacementText !== "string") {
                             throw new TypeError(

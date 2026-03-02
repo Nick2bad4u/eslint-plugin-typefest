@@ -1,4 +1,3 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-value-of.test` behavior.
@@ -8,9 +7,10 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -29,19 +29,43 @@ const preferValueOfMessage =
 const invalidFixtureName = "prefer-type-fest-value-of.invalid.ts";
 const validFixtureName = "prefer-type-fest-value-of.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { ValueOf } from "type-fest";\n${invalidFixtureCode.replace(
-    "T[keyof T]",
-    "ValueOf<T>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-value-of fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { ValueOf } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "ValueOf<T>",
+        sourceText: invalidFixtureCode,
+        target: "T[keyof T]",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "SiteEventPayloadMap[keyof SiteEventPayloadMap]",
-    "ValueOf<SiteEventPayloadMap>"
-);
-const fixtureFixableThirdPassOutputCode =
-    fixtureFixableSecondPassOutputCode.replace(
-        "TemplateVariableMap[keyof TemplateVariableMap]",
-        "ValueOf<TemplateVariableMap>"
-    );
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "ValueOf<SiteEventPayloadMap>",
+    sourceText: fixtureFixableOutputCode,
+    target: "SiteEventPayloadMap[keyof SiteEventPayloadMap]",
+});
+const fixtureFixableThirdPassOutputCode = replaceOrThrow({
+    replacement: "ValueOf<TemplateVariableMap>",
+    sourceText: fixtureFixableSecondPassOutputCode,
+    target: "TemplateVariableMap[keyof TemplateVariableMap]",
+});
 const inlineInvalidCode = [
     "type Input = {",
     "    alpha: string;",
@@ -72,10 +96,11 @@ const inlineFixableInvalidCode = [
     "};",
     "type Output = Input[keyof Input];",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Output = Input[keyof Input];",
-    "type Output = ValueOf<Input>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type Output = ValueOf<Input>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Output = Input[keyof Input];",
+});
 const inlineInvalidWhitespaceFormattedLiteralCode = [
     "type Output = { alpha: string; beta: number; }[",
     "    keyof {",
@@ -260,7 +285,7 @@ describe("prefer-type-fest-value-of source assertions", () => {
                             createSafeTypeNodeTextReplacementFixMock.mock
                                 .calls[0]?.[2];
 
-                        expect(typeof replacementText).toBe("string");
+                        expectTypeOf(replacementText).toBeString();
 
                         if (typeof replacementText !== "string") {
                             throw new TypeError(

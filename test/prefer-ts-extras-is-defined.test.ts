@@ -1,9 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-defined.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -28,27 +37,50 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-is-defined.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-defined.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureInvalidOutput = `import { isDefined } from "ts-extras";\n${invalidFixtureCode.replace(
-    "if (maybeValue !== undefined) {\r\n",
-    "if (isDefined(maybeValue)) {\r\n"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-is-defined fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidOutput = `import { isDefined } from "ts-extras";\n${replaceOrThrow(
+    {
+        replacement: "if (isDefined(maybeValue)) {\r\n",
+        sourceText: invalidFixtureCode,
+        target: "if (maybeValue !== undefined) {\r\n",
+    }
 )}`;
-const fixtureInvalidSecondPassOutput = fixtureInvalidOutput
-    .replace(
-        "if (undefined !== maybeValue) {\r\n",
-        "if (isDefined(maybeValue)) {\r\n"
-    )
-    .replace(
-        'if (typeof maybeValue !== "undefined") {\r\n',
-        "if (isDefined(maybeValue)) {\r\n"
-    )
-    .replace(
-        "if (maybeValue === undefined) {\r\n",
-        "if (!isDefined(maybeValue)) {\r\n"
-    )
-    .replace(
-        'if ("undefined" === typeof maybeValue) {\r\n',
-        "if (!isDefined(maybeValue)) {\r\n"
-    );
+const fixtureInvalidSecondPassOutput = replaceOrThrow({
+    replacement: "if (!isDefined(maybeValue)) {\r\n",
+    sourceText: replaceOrThrow({
+        replacement: "if (!isDefined(maybeValue)) {\r\n",
+        sourceText: replaceOrThrow({
+            replacement: "if (isDefined(maybeValue)) {\r\n",
+            sourceText: replaceOrThrow({
+                replacement: "if (isDefined(maybeValue)) {\r\n",
+                sourceText: fixtureInvalidOutput,
+                target: "if (undefined !== maybeValue) {\r\n",
+            }),
+            target: 'if (typeof maybeValue !== "undefined") {\r\n',
+        }),
+        target: "if (maybeValue === undefined) {\r\n",
+    }),
+    target: 'if ("undefined" === typeof maybeValue) {\r\n',
+});
 const inlineFixableDefinedCode = [
     'import { isDefined } from "ts-extras";',
     "",
@@ -147,6 +179,98 @@ const undeclaredTypeofEqualityValidCode = [
     'const isMissing = "undefined" === typeof maybeUndeclared;',
     "String(isMissing);",
 ].join("\n");
+
+type IsDefinedReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+type UndefinedComparisonPattern =
+    | "directUndefinedLeft"
+    | "directUndefinedRight"
+    | "typeofUndefinedLeft"
+    | "typeofUndefinedRight";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const undefinedComparisonPatternArbitrary =
+    fc.constantFrom<UndefinedComparisonPattern>(
+        "directUndefinedLeft",
+        "directUndefinedRight",
+        "typeofUndefinedLeft",
+        "typeofUndefinedRight"
+    );
+
+const undefinedComparisonOperatorArbitrary = fc.constantFrom(
+    "!=",
+    "!==",
+    "==",
+    "==="
+);
+
+const identifierNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter(isSafeGeneratedIdentifier)
+    .filter(
+        (candidate) => candidate !== "undefined" && candidate !== "isDefined"
+    );
+
+const buildUndefinedComparisonExpression = ({
+    identifierName,
+    operator,
+    pattern,
+}: Readonly<{
+    identifierName: string;
+    operator: "!=" | "!==" | "==" | "===";
+    pattern: UndefinedComparisonPattern;
+}>): string => {
+    if (pattern === "directUndefinedLeft") {
+        return `undefined ${operator} ${identifierName}`;
+    }
+
+    if (pattern === "directUndefinedRight") {
+        return `${identifierName} ${operator} undefined`;
+    }
+
+    if (pattern === "typeofUndefinedLeft") {
+        return `"undefined" ${  operator  } typeof ${identifierName}`;
+    }
+
+    return `typeof ${identifierName} ${operator} "undefined"`;
+};
+
+const parseUndefinedComparisonFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    binaryExpression: TSESTree.BinaryExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+            continue;
+        }
+
+        for (const declaration of statement.declarations) {
+            if (declaration.init?.type === AST_NODE_TYPES.BinaryExpression) {
+                return {
+                    ast: parsed.ast,
+                    binaryExpression: declaration.init,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to contain a binary expression variable initializer"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -298,6 +422,192 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             });
 
             expect(reportCalls).toHaveLength(0);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: undefined comparisons report and produce parseable isDefined rewrites", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalUndefinedIdentifier: (
+                    _context: unknown,
+                    expression: Readonly<{ name?: string; type: string }>
+                ): boolean =>
+                    expression.type === "Identifier" &&
+                    expression.name === "undefined",
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueArgumentFunctionCallFix:
+                    createSafeValueArgumentFunctionCallFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-is-defined")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            BinaryExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    identifierNameArbitrary,
+                    undefinedComparisonPatternArbitrary,
+                    undefinedComparisonOperatorArbitrary,
+                    fc.boolean(),
+                    (
+                        identifierName,
+                        comparisonPattern,
+                        comparisonOperator,
+                        includeUnicodeLine
+                    ) => {
+                        createSafeValueArgumentFunctionCallFixMock.mockClear();
+
+                        const comparisonExpression =
+                            buildUndefinedComparisonExpression({
+                                identifierName,
+                                operator: comparisonOperator,
+                                pattern: comparisonPattern,
+                            });
+                        const unicodeLine = includeUnicodeLine
+                            ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                            : "";
+                        const generatedCode = [
+                            `declare let ${identifierName}: string | undefined;`,
+                            unicodeLine,
+                            `const comparisonResult = ${comparisonExpression};`,
+                            "String(comparisonResult);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, binaryExpression } =
+                            parseUndefinedComparisonFromCode(generatedCode);
+                        const reports: IsDefinedReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-ts-extras-is-defined.invalid.ts",
+                            report: (descriptor: IsDefinedReportDescriptor) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getScope(node: unknown): unknown {
+                                    const identifierNameFromNode =
+                                        typeof node === "object" &&
+                                        node !== null &&
+                                        "name" in node
+                                            ? (
+                                                  node as Readonly<{
+                                                      name?: unknown;
+                                                  }>
+                                              ).name
+                                            : undefined;
+
+                                    const normalizedIdentifierName =
+                                        typeof identifierNameFromNode ===
+                                        "string"
+                                            ? identifierNameFromNode
+                                            : "";
+
+                                    return {
+                                        set: new Map([
+                                            [
+                                                normalizedIdentifierName,
+                                                {
+                                                    defs: [{}],
+                                                },
+                                            ],
+                                        ]),
+                                        upper: null,
+                                    };
+                                },
+                                getText(node: unknown): string {
+                                    if (
+                                        typeof node !== "object" ||
+                                        node === null ||
+                                        !("range" in node)
+                                    ) {
+                                        return "";
+                                    }
+
+                                    const nodeRange = (
+                                        node as Readonly<{
+                                            range?: readonly [number, number];
+                                        }>
+                                    ).range;
+
+                                    if (nodeRange === undefined) {
+                                        return "";
+                                    }
+
+                                    return generatedCode.slice(
+                                        nodeRange[0],
+                                        nodeRange[1]
+                                    );
+                                },
+                            },
+                        });
+
+                        listeners.BinaryExpression?.(binaryExpression);
+
+                        const isNegatedExpected =
+                            comparisonOperator === "==" ||
+                            comparisonOperator === "===";
+                        const expectedMessageId = isNegatedExpected
+                            ? "preferTsExtrasIsDefinedNegated"
+                            : "preferTsExtrasIsDefined";
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: expectedMessageId,
+                        });
+
+                        expect(
+                            createSafeValueArgumentFunctionCallFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixDescriptor =
+                            createSafeValueArgumentFunctionCallFixMock.mock
+                                .calls[0]?.[0] as
+                                | undefined
+                                | {
+                                      negated?: boolean;
+                                  };
+
+                        expect(fixDescriptor?.negated).toBe(isNegatedExpected);
+
+                        const replacementText = isNegatedExpected
+                            ? `!isDefined(${identifierName})`
+                            : `isDefined(${identifierName})`;
+                        const fixedCode = `${generatedCode.slice(0, binaryExpression.range[0])}${replacementText}${generatedCode.slice(binaryExpression.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

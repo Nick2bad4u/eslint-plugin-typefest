@@ -562,16 +562,36 @@ const fixtureInvalidOutput = [
     'export const __typedFixtureModule = "typed-fixture-module";',
 ].join("\r\n");
 const fixtureInvalidOutputWithMixedLineEndings = `import { isDefined } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
-const fixtureInvalidSecondPassOutputWithMixedLineEndings =
-    fixtureInvalidOutputWithMixedLineEndings
-        .replace(
-            "const monitors = maybeMonitors.filter(\r\n    (monitor): monitor is MonitorRecord => monitor !== undefined\r\n);\r\n",
-            "const monitors = maybeMonitors.filter(\r\n    isDefined\r\n);\r\n"
-        )
-        .replace(
-            "const strings = maybeStrings.filter((entry) => entry !== undefined);\r\n",
-            "const strings = maybeStrings.filter(isDefined);\r\n"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-is-defined-filter fixture text to contain replaceable segment: ${target}`
         );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidSecondPassOutputWithMixedLineEndings = replaceOrThrow({
+    replacement: "const strings = maybeStrings.filter(isDefined);\r\n",
+    sourceText: replaceOrThrow({
+        replacement:
+            "const monitors = maybeMonitors.filter(\r\n    isDefined\r\n);\r\n",
+        sourceText: fixtureInvalidOutputWithMixedLineEndings,
+        target: "const monitors = maybeMonitors.filter(\r\n    (monitor): monitor is MonitorRecord => monitor !== undefined\r\n);\r\n",
+    }),
+    target: "const strings = maybeStrings.filter((entry) => entry !== undefined);\r\n",
+});
 
 ruleTester.run(ruleId, rule, {
     invalid: [

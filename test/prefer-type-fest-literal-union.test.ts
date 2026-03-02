@@ -49,8 +49,8 @@ const inlineInvalidWithoutFixOutputCode = [
 ].join("\n");
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const replaceOrThrow = ({
-    sourceText,
     replacement,
+    sourceText,
     target,
 }: Readonly<{
     replacement: string;

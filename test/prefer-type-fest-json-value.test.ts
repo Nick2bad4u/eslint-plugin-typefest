@@ -1,5 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -26,9 +32,32 @@ const rule = getPluginRule(ruleId);
 const invalidFixtureName = "prefer-type-fest-json-value.invalid.ts";
 const validFixtureName = "prefer-type-fest-json-value.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const invalidFixtureSuggestionOutput = `import type { JsonObject } from "type-fest";\n${invalidFixtureCode.replace(
-    "Record<string, unknown>",
-    "JsonObject"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-json-value fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const invalidFixtureSuggestionOutput = `import type { JsonObject } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "JsonObject",
+        sourceText: invalidFixtureCode,
+        target: "Record<string, unknown>",
+    }
 )}`;
 const inlineInvalidAnyPayloadCode = "type IpcPayload = Record<string, any>;";
 const inlineInvalidAnyPayloadSuggestionOutput = [
@@ -74,6 +103,55 @@ const inlineValidLiteralNonStringKeyCode =
 const inlineValidNonUnknownValueCode =
     "type IpcPayload = Record<string, string>;";
 const inlineValidMapCode = "type IpcPayload = Map<string, unknown>;";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const recordKeyTypeArbitrary = fc.constantFrom<"keyword" | "stringLiteralKey">(
+    "keyword",
+    "stringLiteralKey"
+);
+const recordValueTypeArbitrary = fc.constantFrom<"any" | "unknown">(
+    "unknown",
+    "any"
+);
+
+const buildRecordKeyType = (keyType: "keyword" | "stringLiteralKey"): string =>
+    keyType === "keyword" ? "string" : '"string"';
+
+const buildRecordValueType = (valueType: "any" | "unknown"): string =>
+    valueType === "unknown" ? "unknown" : "any";
+
+const parseJsonObjectTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a JsonObject type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -164,6 +242,56 @@ describe("prefer-type-fest-json-value internal listener guards", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+});
+
+describe("prefer-type-fest-json-value parse-safety guards", () => {
+    it("fast-check: JsonObject suggestion replacement remains parseable across Record key/value variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                recordKeyTypeArbitrary,
+                recordValueTypeArbitrary,
+                includeUnicodeBannerArbitrary,
+                (recordKeyType, recordValueType, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const keyType = buildRecordKeyType(recordKeyType);
+                    const valueType = buildRecordValueType(recordValueType);
+                    const recordTypeText = `Record<${keyType}, ${valueType}>`;
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import type { JsonObject } from "type-fest";',
+                        `type IpcPayload = ${recordTypeText};`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "JsonObject",
+                        sourceText: generatedCode,
+                        target: recordTypeText,
+                    });
+
+                    const { typeReference } =
+                        parseJsonObjectTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("JsonObject");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

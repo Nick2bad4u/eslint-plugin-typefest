@@ -88,16 +88,37 @@ const fixtureInvalidOutput = [
     'export const __typedFixtureModule = "typed-fixture-module";',
 ].join("\r\n");
 const fixtureInvalidOutputWithMixedLineEndings = `import { safeCastTo } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
-const fixtureInvalidSecondPassOutputWithMixedLineEndings =
-    fixtureInvalidOutputWithMixedLineEndings
-        .replace(
-            "const numberValue = <number>numberLiteral;\r\n",
-            "const numberValue = safeCastTo<number>(numberLiteral);\r\n"
-        )
-        .replace(
-            "const payloadValue = payloadLiteral as Payload;\r\n",
-            "const payloadValue = safeCastTo<Payload>(payloadLiteral);\r\n"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-safe-cast-to fixture text to contain replaceable segment: ${target}`
         );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidSecondPassOutputWithMixedLineEndings = replaceOrThrow({
+    replacement:
+        "const payloadValue = safeCastTo<Payload>(payloadLiteral);\r\n",
+    sourceText: replaceOrThrow({
+        replacement:
+            "const numberValue = safeCastTo<number>(numberLiteral);\r\n",
+        sourceText: fixtureInvalidOutputWithMixedLineEndings,
+        target: "const numberValue = <number>numberLiteral;\r\n",
+    }),
+    target: "const payloadValue = payloadLiteral as Payload;\r\n",
+});
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -738,4 +759,3 @@ ruleTester.run(
         ],
     }
 );
-

@@ -1,7 +1,12 @@
+import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -26,14 +31,38 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-unknown-array.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-array.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { UnknownArray } from "type-fest";\n${invalidFixtureCode.replace(
-    "readonly unknown[]",
-    "Readonly<UnknownArray>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-unknown-array fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { UnknownArray } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "Readonly<UnknownArray>",
+        sourceText: invalidFixtureCode,
+        target: "readonly unknown[]",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "ReadonlyArray<unknown>",
-    "Readonly<UnknownArray>"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "Readonly<UnknownArray>",
+    sourceText: fixtureFixableOutputCode,
+    target: "ReadonlyArray<unknown>",
+});
 const inlineInvalidReadonlyArrayCode = "type Input = readonly unknown[];";
 const inlineInvalidReadonlyArrayOutputCode = [
     'import type { UnknownArray } from "type-fest";',
@@ -102,6 +131,58 @@ const inlineFixableOutput = [
 const inlineNoFixShadowedReplacementCode = [
     "type Wrapper<UnknownArray> = readonly unknown[];",
 ].join("\n");
+
+type UnknownArrayReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+type UnknownArrayVariant = "readonlyArrayShorthand" | "readonlyArrayTypeRef";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const unknownArrayVariantArbitrary = fc.constantFrom<UnknownArrayVariant>(
+    "readonlyArrayShorthand",
+    "readonlyArrayTypeRef"
+);
+
+const parseUnknownArrayCandidateFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    candidateNode: TSESTree.TSTypeOperator | TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
+
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator) {
+            return {
+                ast: parsed.ast,
+                candidateNode: statement.typeAnnotation,
+            };
+        }
+
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return {
+                ast: parsed.ast,
+                candidateNode: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias for readonly unknown array candidate"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -198,6 +279,113 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             });
             expect(replacementFixCalls).toHaveLength(1);
             expect(replacementFixCalls[0]?.[1]).toBe("UnknownArray");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: Readonly<UnknownArray> replacement remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeReplacementFixPreservingReadonlyMock =
+                vi.fn((..._args: readonly unknown[]) => "FIX");
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFixPreservingReadonly:
+                    createSafeTypeNodeReplacementFixPreservingReadonlyMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-unknown-array")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeOperator?: (node: unknown) => void;
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    unknownArrayVariantArbitrary,
+                    fc.boolean(),
+                    (variant, includeUnicodeLine) => {
+                        createSafeTypeNodeReplacementFixPreservingReadonlyMock.mockClear();
+
+                        const typeExpression =
+                            variant === "readonlyArrayShorthand"
+                                ? "readonly unknown[]"
+                                : "ReadonlyArray<unknown>";
+                        const unicodeLine = includeUnicodeLine
+                            ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                            : "";
+                        const generatedCode = [
+                            unicodeLine,
+                            `type Input = ${typeExpression};`,
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, candidateNode } =
+                            parseUnknownArrayCandidateFromCode(generatedCode);
+                        const reports: UnknownArrayReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-unknown-array.invalid.ts",
+                            report: (
+                                descriptor: UnknownArrayReportDescriptor
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                            },
+                        });
+
+                        if (
+                            candidateNode.type === AST_NODE_TYPES.TSTypeOperator
+                        ) {
+                            listeners.TSTypeOperator?.(candidateNode);
+                        } else {
+                            listeners.TSTypeReference?.(candidateNode);
+                        }
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferUnknownArray",
+                        });
+
+                        expect(
+                            createSafeTypeNodeReplacementFixPreservingReadonlyMock
+                        ).toHaveBeenCalledTimes(1);
+                        expect(
+                            createSafeTypeNodeReplacementFixPreservingReadonlyMock
+                                .mock.calls[0]?.[1]
+                        ).toBe("UnknownArray");
+
+                        const nodeRange = candidateNode.range;
+                        const fixedCode = `${generatedCode.slice(0, nodeRange[0])}Readonly<UnknownArray>${generatedCode.slice(nodeRange[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

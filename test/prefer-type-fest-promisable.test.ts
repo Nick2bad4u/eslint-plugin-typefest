@@ -23,6 +23,25 @@ import {
 const ruleTester = createTypedRuleTester();
 const invalidFixtureName = "prefer-type-fest-promisable.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-promisable fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
 
 const inlineFixableInvalidCode = [
     'import type { MaybePromise } from "type-aliases";',
@@ -31,10 +50,11 @@ const inlineFixableInvalidCode = [
     "type JobResult = MaybePromise<string>;",
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type JobResult = MaybePromise<string>;",
-    "type JobResult = Promisable<string>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type JobResult = Promisable<string>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type JobResult = MaybePromise<string>;",
+});
 const inlineInvalidWithoutFixCode = [
     'import type { MaybePromise } from "type-aliases";',
     "",
@@ -921,4 +941,3 @@ ruleTester.run(
         ],
     }
 );
-

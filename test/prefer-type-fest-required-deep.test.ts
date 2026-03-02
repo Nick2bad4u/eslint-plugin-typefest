@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -15,9 +23,32 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-required-deep.valid.ts";
 const invalidFixtureName = "prefer-type-fest-required-deep.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { RequiredDeep } from "type-fest";\n${invalidFixtureCode.replace(
-    "DeepRequired<TeamConfig>",
-    "RequiredDeep<TeamConfig>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-required-deep fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { RequiredDeep } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "RequiredDeep<TeamConfig>",
+        sourceText: invalidFixtureCode,
+        target: "DeepRequired<TeamConfig>",
+    }
 )}`;
 const inlineFixableInvalidCode = [
     'import type { DeepRequired } from "type-aliases";',
@@ -30,10 +61,11 @@ const inlineFixableInvalidCode = [
     "type StrictUser = DeepRequired<User>;",
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type StrictUser = DeepRequired<User>;",
-    "type StrictUser = RequiredDeep<User>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type StrictUser = RequiredDeep<User>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type StrictUser = DeepRequired<User>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { DeepRequired } from "type-aliases";',
     "",
@@ -43,6 +75,58 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     "",
     "type Wrapper<RequiredDeep> = DeepRequired<User>;",
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const requiredDeepSubjectArbitrary = fc.constantFrom<
+    "nestedObject" | "readonlyArray" | "singleProperty"
+>("singleProperty", "nestedObject", "readonlyArray");
+
+const buildRequiredDeepSubjectType = (
+    subjectKind: "nestedObject" | "readonlyArray" | "singleProperty"
+): string => {
+    if (subjectKind === "singleProperty") {
+        return "{ id?: string }";
+    }
+
+    if (subjectKind === "nestedObject") {
+        return "{ profile?: { email?: string; phone?: string } }";
+    }
+
+    return "{ members?: readonly { id?: string }[] }";
+};
+
+const parseRequiredDeepTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a RequiredDeep type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-required-deep",
@@ -58,6 +142,58 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         name: "prefer-type-fest-required-deep",
     }
 );
+
+describe("prefer-type-fest-required-deep parse-safety guards", () => {
+    it("fast-check: RequiredDeep replacement remains parseable across deep-structure variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                requiredDeepSubjectArbitrary,
+                includeUnicodeBannerArbitrary,
+                (subjectKind, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const subjectType =
+                        buildRequiredDeepSubjectType(subjectKind);
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import type { DeepRequired } from "type-aliases";',
+                        'import type { RequiredDeep } from "type-fest";',
+                        `type Subject = ${subjectType};`,
+                        "type StrictSubject = DeepRequired<Subject>;",
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "RequiredDeep<",
+                        sourceText: generatedCode,
+                        target: "DeepRequired<",
+                    });
+
+                    const { typeReference } =
+                        parseRequiredDeepTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe(
+                            "RequiredDeep"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+});
 
 ruleTester.run(
     "prefer-type-fest-required-deep",

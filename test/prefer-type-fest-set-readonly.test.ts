@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -22,12 +30,37 @@ const namespaceValidFixtureName =
     "prefer-type-fest-set-readonly.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-set-readonly.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { ReadonlyBy } from "type-aliases";\r\n',
-        'import type { ReadonlyBy } from "type-aliases";\nimport type { SetReadonly } from "type-fest";\r\n'
-    )
-    .replace("ReadonlyBy<", "SetReadonly<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-set-readonly fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement:
+        'import type { ReadonlyBy } from "type-aliases";\nimport type { SetReadonly } from "type-fest";\r\n',
+    sourceText: invalidFixtureCode,
+    target: 'import type { ReadonlyBy } from "type-aliases";\r\n',
+});
+const fixtureFixableAliasOutputCode = replaceOrThrow({
+    replacement: "SetReadonly<",
+    sourceText: fixtureFixableOutputCode,
+    target: "ReadonlyBy<",
+});
 const inlineFixableInvalidCode = [
     'import type { ReadonlyBy } from "type-aliases";',
     'import type { SetReadonly } from "type-fest";',
@@ -39,15 +72,69 @@ const inlineFixableInvalidCode = [
     'type FrozenUser = ReadonlyBy<User, "id">;',
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    'type FrozenUser = ReadonlyBy<User, "id">;',
-    'type FrozenUser = SetReadonly<User, "id">;'
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: 'type FrozenUser = SetReadonly<User, "id">;',
+    sourceText: inlineFixableInvalidCode,
+    target: 'type FrozenUser = ReadonlyBy<User, "id">;',
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { ReadonlyBy } from "type-aliases";',
     "",
     'type Wrapper<SetReadonly extends object> = ReadonlyBy<SetReadonly, "id">;',
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const keyNamePairArbitrary = fc
+    .shuffledSubarray(
+        [
+            "alpha",
+            "beta",
+            "firstName",
+            "lastName",
+            "userId",
+            "tenantId",
+        ],
+        {
+            maxLength: 2,
+            minLength: 2,
+        }
+    )
+    .map(([firstKey, secondKey]) => ({
+        firstKey,
+        secondKey,
+    }));
+
+const parseSetReadonlyTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a SetReadonly type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -57,6 +144,54 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferSetReadonly: preferSetReadonlyMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-set-readonly parse-safety guards", () => {
+    it("fast-check: SetReadonly replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                keyNamePairArbitrary,
+                fc.boolean(),
+                (keyPair, includeUnicodeLine) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedTypeReference = `ReadonlyBy<{ ${keyPair.firstKey}: string; ${keyPair.secondKey}: number }, "${keyPair.firstKey}">`;
+                    const generatedCode = [
+                        unicodeLine,
+                        'import type { ReadonlyBy } from "type-aliases";',
+                        'import type { SetReadonly } from "type-fest";',
+                        `type FrozenUser = ${generatedTypeReference};`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "SetReadonly<{",
+                        sourceText: generatedCode,
+                        target: "ReadonlyBy<{",
+                    });
+
+                    const { typeReference } =
+                        parseSetReadonlyTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("SetReadonly");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {
@@ -74,7 +209,7 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture MarkReadonly and ReadonlyBy aliases",
-            output: fixtureFixableOutputCode,
+            output: fixtureFixableAliasOutputCode,
         },
         {
             code: inlineFixableInvalidCode,

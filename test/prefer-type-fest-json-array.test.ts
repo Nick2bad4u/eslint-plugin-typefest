@@ -1,5 +1,5 @@
-import type { UnknownArray } from "type-fest";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -10,8 +10,8 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -71,36 +71,46 @@ const inlineInvalidReversedNativeUnionCode = [
     "",
     "type ReversedNative = readonly JsonValue[] | JsonValue[];",
 ].join("\n");
-const inlineInvalidReversedNativeUnionOutputCode =
-    inlineInvalidReversedNativeUnionCode
-        .replace(
-            'import type { JsonValue } from "type-fest";',
-            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
-        )
-        .replace("readonly JsonValue[] | JsonValue[]", "JsonArray");
+const inlineInvalidReversedNativeUnionOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";',
+        sourceText: inlineInvalidReversedNativeUnionCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "readonly JsonValue[] | JsonValue[]",
+});
 const inlineInvalidReversedGenericUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type ReversedGeneric = ReadonlyArray<JsonValue> | Array<JsonValue>;",
 ].join("\n");
-const inlineInvalidReversedGenericUnionOutputCode =
-    inlineInvalidReversedGenericUnionCode
-        .replace(
-            'import type { JsonValue } from "type-fest";',
-            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
-        )
-        .replace("ReadonlyArray<JsonValue> | Array<JsonValue>", "JsonArray");
+const inlineInvalidReversedGenericUnionOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";',
+        sourceText: inlineInvalidReversedGenericUnionCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "ReadonlyArray<JsonValue> | Array<JsonValue>",
+});
 const inlineInvalidGenericUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type GenericPair = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
-const inlineInvalidGenericUnionOutputCode = inlineInvalidGenericUnionCode
-    .replace(
-        'import type { JsonValue } from "type-fest";',
-        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
-    )
-    .replace("Array<JsonValue> | ReadonlyArray<JsonValue>", "JsonArray");
+const inlineInvalidGenericUnionOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";',
+        sourceText: inlineInvalidGenericUnionCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "Array<JsonValue> | ReadonlyArray<JsonValue>",
+});
 const inlineValidMismatchedNativeAndGenericCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -149,24 +159,31 @@ const inlineInvalidWithoutFixCode = [
     "",
     "type Payload = JsonValue[] | readonly JsonValue[];",
 ].join("\n");
-const inlineInvalidWithoutFixOutputCode = inlineInvalidWithoutFixCode
-    .replace(
-        'import type { JsonValue } from "type-fest";',
-        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
-    )
-    .replace("JsonValue[] | readonly JsonValue[]", "JsonArray");
+const inlineInvalidWithoutFixOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";',
+        sourceText: inlineInvalidWithoutFixCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "JsonValue[] | readonly JsonValue[]",
+});
 const inlineInvalidGenericWithoutFixCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     "type Payload = Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
-const inlineInvalidGenericWithoutFixOutputCode =
-    inlineInvalidGenericWithoutFixCode
-        .replace(
-            'import type { JsonValue } from "type-fest";',
-            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";'
-        )
-        .replace("Array<JsonValue> | ReadonlyArray<JsonValue>", "JsonArray");
+const inlineInvalidGenericWithoutFixOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";',
+        sourceText: inlineInvalidGenericWithoutFixCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "Array<JsonValue> | ReadonlyArray<JsonValue>",
+});
 const inlineFixableReversedNativeCode = [
     'import type { JsonArray, JsonValue } from "type-fest";',
     "",

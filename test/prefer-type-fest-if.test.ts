@@ -1,5 +1,5 @@
-import type { UnknownArray } from "type-fest";
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -100,15 +100,25 @@ const inlineFixableInvalidCode = [
     "",
     "type Input = IfAny<string, true, false>;",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Input = IfAny<string, true, false>;",
-    "type Input = IsAny<string, true, false>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type Input = IsAny<string, true, false>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Input = IfAny<string, true, false>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { IfAny } from "type-aliases";',
     "",
     "type Wrapper<IsAny> = IfAny<string, true, false>;",
 ].join("\n");
+
+type IfReportDescriptor = Readonly<{
+    data?: {
+        alias?: string;
+        replacement?: string;
+    };
+    fix?: unknown;
+    messageId?: string;
+}>;
 
 interface IfRuleMetadataSnapshot {
     create: (context: unknown) => unknown;
@@ -122,15 +132,6 @@ interface IfRuleMetadataSnapshot {
     };
     name?: string;
 }
-
-type IfReportDescriptor = Readonly<{
-    data?: {
-        alias?: string;
-        replacement?: string;
-    };
-    fix?: unknown;
-    messageId?: string;
-}>;
 
 const parserOptions = {
     ecmaVersion: "latest",

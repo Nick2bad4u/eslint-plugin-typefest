@@ -1,3 +1,9 @@
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -20,9 +26,32 @@ const preferUnknownRecordMessage =
 const invalidFixtureName = "prefer-type-fest-unknown-record.invalid.ts";
 const validFixtureName = "prefer-type-fest-unknown-record.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { UnknownRecord } from "type-fest";\n${invalidFixtureCode.replace(
-    "Record<string, unknown>",
-    "UnknownRecord"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-unknown-record fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { UnknownRecord } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "UnknownRecord",
+        sourceText: invalidFixtureCode,
+        target: "Record<string, unknown>",
+    }
 )}`;
 const inlineValidGlobalRecordCode =
     "type SharedContext = globalThis.Record<string, unknown>;";
@@ -56,6 +85,39 @@ const inlineFixableOutput = [
 const inlineNoFixShadowedReplacementCode =
     "type Wrapper<UnknownRecord> = Record<string, unknown>;";
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const generatedIdentifierArbitrary = fc.constantFrom(
+    "alpha",
+    "beta",
+    "tenant",
+    "scope",
+    "featureFlag"
+);
+
+const parseUnknownRecordTypeReferenceFromCode = (sourceText: string) => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
+
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return statement.typeAnnotation;
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from UnknownRecord"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -64,6 +126,55 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferUnknownRecord: preferUnknownRecordMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-unknown-record parse-safety guards", () => {
+    it("fast-check: UnknownRecord replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                generatedIdentifierArbitrary,
+                fc.boolean(),
+                (keyName, includeUnicodeLine) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedCode = [
+                        unicodeLine,
+                        'import type { UnknownRecord } from "type-fest";',
+                        `type SharedContext = Record<string, unknown>;`,
+                        `type _Key = "${keyName}";`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "UnknownRecord",
+                        sourceText: generatedCode,
+                        target: "Record<string, unknown>",
+                    });
+
+                    const typeReference =
+                        parseUnknownRecordTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe(
+                            "UnknownRecord"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {

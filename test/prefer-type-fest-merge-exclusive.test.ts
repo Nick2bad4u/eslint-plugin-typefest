@@ -1,8 +1,14 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-merge-exclusive.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -19,9 +25,32 @@ const preferMergeExclusiveMessage =
 const validFixtureName = "prefer-type-fest-merge-exclusive.valid.ts";
 const invalidFixtureName = "prefer-type-fest-merge-exclusive.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { MergeExclusive } from "type-fest";\n${invalidFixtureCode.replace(
-    "XOR<UserQuery, UserLookup>",
-    "MergeExclusive<UserQuery, UserLookup>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-merge-exclusive fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { MergeExclusive } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "MergeExclusive<UserQuery, UserLookup>",
+        sourceText: invalidFixtureCode,
+        target: "XOR<UserQuery, UserLookup>",
+    }
 )}`;
 const inlineFixableInvalidCode = [
     'import type { XOR } from "type-aliases";',
@@ -33,15 +62,48 @@ const inlineFixableInvalidCode = [
     "type AB = XOR<A, B>;",
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type AB = XOR<A, B>;",
-    "type AB = MergeExclusive<A, B>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type AB = MergeExclusive<A, B>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type AB = XOR<A, B>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { XOR } from "type-aliases";',
     "",
     "type Wrapper<MergeExclusive> = XOR<{ a: string }, { b: string }>;",
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const typeNameArbitrary = fc.constantFrom(
+    "Alpha",
+    "Beta",
+    "UserQuery",
+    "UserLookup",
+    "Payload"
+);
+
+const parseMergeExclusiveTypeReferenceFromCode = (sourceText: string) => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return statement.typeAnnotation;
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from MergeExclusive<TLeft, TRight>"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -51,6 +113,48 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferMergeExclusive: preferMergeExclusiveMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-merge-exclusive parse-safety guards", () => {
+    it("fast-check: MergeExclusive replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                typeNameArbitrary,
+                typeNameArbitrary,
+                (leftType, rightType) => {
+                    const generatedCode = [
+                        'import type { MergeExclusive } from "type-fest";',
+                        `type Candidate = XOR<${leftType}, ${rightType}>;`,
+                    ].join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: `MergeExclusive<${leftType}, ${rightType}>`,
+                        sourceText: generatedCode,
+                        target: `XOR<${leftType}, ${rightType}>`,
+                    });
+
+                    const typeReference =
+                        parseMergeExclusiveTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe(
+                            "MergeExclusive"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {

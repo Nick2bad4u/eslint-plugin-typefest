@@ -2,10 +2,16 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-has-in.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -102,6 +108,107 @@ const shadowedReflectBindingValidCode = [
     "String(hasStatus);",
 ].join("\n");
 
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-object-has-in text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const reflectHasArgumentKindArbitrary = fc.constantFrom<
+    "callExpression" | "identifier" | "memberExpression" | "objectLiteral"
+>("callExpression", "identifier", "memberExpression", "objectLiteral");
+
+const buildReflectHasArgumentTemplate = (
+    kind: "callExpression" | "identifier" | "memberExpression" | "objectLiteral"
+): Readonly<{
+    argumentExpression: string;
+    declarations: readonly string[];
+}> => {
+    if (kind === "identifier") {
+        return {
+            argumentExpression: "record",
+            declarations: ["const record = { alpha: 1 } as const;"],
+        };
+    }
+
+    if (kind === "memberExpression") {
+        return {
+            argumentExpression: "holder.record",
+            declarations: [
+                "const holder = { record: { alpha: 1 } } as const satisfies Readonly<{ readonly record: { readonly alpha: number } }>;",
+            ],
+        };
+    }
+
+    if (kind === "callExpression") {
+        return {
+            argumentExpression: "buildRecord()",
+            declarations: [
+                "const buildRecord = (): Readonly<{ alpha: number }> => ({ alpha: 1 });",
+            ],
+        };
+    }
+
+    return {
+        argumentExpression: "{ alpha: 1 }",
+        declarations: [],
+    };
+};
+
+const parseObjectHasInCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.VariableDeclaration &&
+            statement.declarations.length === 1
+        ) {
+            const declaration = statement.declarations[0];
+            if (
+                declaration?.type === AST_NODE_TYPES.VariableDeclarator &&
+                declaration.init !== null &&
+                declaration.init.type === AST_NODE_TYPES.CallExpression
+            ) {
+                return {
+                    ast: parsed.ast,
+                    callExpression: declaration.init,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from an objectHasIn call"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-object-has-in",
     {
@@ -138,6 +245,54 @@ describe("prefer-ts-extras-object-has-in source assertions", () => {
             'node.callee.property.type === "Identifier" &&'
         );
         expect(ruleSource).toContain('node.callee.property.name === "has"');
+    });
+});
+
+describe("prefer-ts-extras-object-has-in parse-safety guards", () => {
+    it("fast-check: objectHasIn replacement remains parseable across Reflect.has argument variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                reflectHasArgumentKindArbitrary,
+                includeUnicodeBannerArbitrary,
+                (argumentKind, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const argumentTemplate =
+                        buildReflectHasArgumentTemplate(argumentKind);
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import { objectHasIn } from "ts-extras";',
+                        ...argumentTemplate.declarations,
+                        `const hasAlpha = Reflect.has(${argumentTemplate.argumentExpression}, "alpha");`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "objectHasIn",
+                        sourceText: generatedCode,
+                        target: "Reflect.has",
+                    });
+
+                    const { callExpression } =
+                        parseObjectHasInCallFromCode(replacedCode);
+
+                    expect(callExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(callExpression.callee.name).toBe("objectHasIn");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

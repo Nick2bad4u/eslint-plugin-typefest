@@ -2,12 +2,16 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -94,6 +98,137 @@ const inlineFixableOutput = [
     "const values = [1, 2, 3] as const;",
     "const empty = isEmpty(values);",
 ].join("\n");
+
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-is-empty text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const arrayExpressionKindArbitrary = fc.constantFrom<
+    "arrayLiteral" | "callExpression" | "identifier" | "memberExpression"
+>("arrayLiteral", "callExpression", "identifier", "memberExpression");
+const comparisonOperatorFormArbitrary = fc.constantFrom<
+    "leftLoose" | "leftStrict" | "rightLoose" | "rightStrict"
+>("leftLoose", "leftStrict", "rightLoose", "rightStrict");
+
+const buildArrayExpressionTemplate = (
+    kind: "arrayLiteral" | "callExpression" | "identifier" | "memberExpression"
+): Readonly<{
+    declarations: readonly string[];
+    expressionText: string;
+}> => {
+    if (kind === "identifier") {
+        return {
+            declarations: ["const values = [1, 2, 3] as const;"],
+            expressionText: "values",
+        };
+    }
+
+    if (kind === "memberExpression") {
+        return {
+            declarations: [
+                "const holder = { values: [1, 2, 3] as const } as const;",
+            ],
+            expressionText: "holder.values",
+        };
+    }
+
+    if (kind === "callExpression") {
+        return {
+            declarations: [
+                "const getValues = (): ReadonlyArray<number> => [1, 2, 3];",
+            ],
+            expressionText: "getValues()",
+        };
+    }
+
+    return {
+        declarations: [],
+        expressionText: "[1, 2, 3]",
+    };
+};
+
+const buildLengthComparisonExpression = ({
+    arrayExpressionText,
+    comparisonOperatorForm,
+}: Readonly<{
+    arrayExpressionText: string;
+    comparisonOperatorForm:
+        | "leftLoose"
+        | "leftStrict"
+        | "rightLoose"
+        | "rightStrict";
+}>): string => {
+    if (comparisonOperatorForm === "leftStrict") {
+        return `0 === ${arrayExpressionText}.length`;
+    }
+
+    if (comparisonOperatorForm === "rightLoose") {
+        return `${arrayExpressionText}.length == 0`;
+    }
+
+    if (comparisonOperatorForm === "rightStrict") {
+        return `${arrayExpressionText}.length === 0`;
+    }
+
+    return `0 == ${arrayExpressionText}.length`;
+};
+
+const parseIsEmptyCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.VariableDeclaration &&
+            statement.declarations.length === 1
+        ) {
+            const declaration = statement.declarations[0];
+
+            if (
+                declaration?.type === AST_NODE_TYPES.VariableDeclarator &&
+                declaration.init !== null &&
+                declaration.init.type === AST_NODE_TYPES.CallExpression
+            ) {
+                return {
+                    ast: parsed.ast,
+                    callExpression: declaration.init,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from an isEmpty call"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
     defaultOptions: [],
@@ -302,6 +437,69 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+});
+
+describe("prefer-ts-extras-is-empty parse-safety guards", () => {
+    it("fast-check: isEmpty replacement remains parseable across length-comparison variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                arrayExpressionKindArbitrary,
+                comparisonOperatorFormArbitrary,
+                includeUnicodeBannerArbitrary,
+                (
+                    arrayExpressionKind,
+                    comparisonOperatorForm,
+                    includeUnicodeBanner
+                ) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const arrayExpressionTemplate =
+                        buildArrayExpressionTemplate(arrayExpressionKind);
+                    const comparisonExpression =
+                        buildLengthComparisonExpression({
+                            arrayExpressionText:
+                                arrayExpressionTemplate.expressionText,
+                            comparisonOperatorForm,
+                        });
+                    const originalCheckStatement = `const empty = ${comparisonExpression};`;
+                    const replacementCheckStatement = `const empty = isEmpty(${arrayExpressionTemplate.expressionText});`;
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import { isEmpty } from "ts-extras";',
+                        ...arrayExpressionTemplate.declarations,
+                        originalCheckStatement,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: replacementCheckStatement,
+                        sourceText: generatedCode,
+                        target: originalCheckStatement,
+                    });
+
+                    const { callExpression } =
+                        parseIsEmptyCallFromCode(replacedCode);
+
+                    expect(callExpression.callee.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(callExpression.callee.name).toBe("isEmpty");
+                    }
+
+                    expect(callExpression.arguments).toHaveLength(1);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

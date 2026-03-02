@@ -2,12 +2,16 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-non-empty-tuple.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -22,14 +26,39 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-non-empty-tuple.valid.ts";
 const invalidFixtureName = "prefer-type-fest-non-empty-tuple.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { NonEmptyTuple } from "type-fest";\n${invalidFixtureCode.replace(
-    "type NamedNonEmptyTuple = readonly [first: number, ...rest: number[]];",
-    "type NamedNonEmptyTuple = Readonly<NonEmptyTuple<number>>;"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-non-empty-tuple fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { NonEmptyTuple } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement:
+            "type NamedNonEmptyTuple = Readonly<NonEmptyTuple<number>>;",
+        sourceText: invalidFixtureCode,
+        target: "type NamedNonEmptyTuple = readonly [first: number, ...rest: number[]];",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "type VerboseNonEmptyTuple = readonly [string, ...string[]];",
-    "type VerboseNonEmptyTuple = Readonly<NonEmptyTuple<string>>;"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "type VerboseNonEmptyTuple = Readonly<NonEmptyTuple<string>>;",
+    sourceText: fixtureFixableOutputCode,
+    target: "type VerboseNonEmptyTuple = readonly [string, ...string[]];",
+});
 const inlineInvalidTupleCode = "type Input = readonly [string, ...string[]];";
 const inlineInvalidTupleOutputCode = [
     'import type { NonEmptyTuple } from "type-fest";',
@@ -86,6 +115,82 @@ const inlineFixableOutput = [
     "",
     "type Input = Readonly<NonEmptyTuple<string>>;",
 ].join("\n");
+
+type NonEmptyTupleReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const tupleHeadTypeArbitrary = fc.constantFrom(
+    "string",
+    "number",
+    "{ readonly id: string }",
+    "Map < string , number >"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseReadonlyTupleOperatorFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeOperator: TSESTree.TSTypeOperator;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        const typeOperatorTypeAnnotation =
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator
+                ? statement.typeAnnotation.typeAnnotation
+                : undefined;
+
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator &&
+            statement.typeAnnotation.operator === "readonly" &&
+            typeOperatorTypeAnnotation?.type === AST_NODE_TYPES.TSTupleType
+        ) {
+            return {
+                ast: parsed.ast,
+                typeOperator: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a readonly tuple type operator"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-non-empty-tuple",
@@ -257,6 +362,98 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
 
             expect(listenerMap).toStrictEqual({});
         } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: Readonly<NonEmptyTuple<T>> replacement remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeTextReplacementFixPreservingReadonlyMock =
+                vi.fn((..._args: readonly unknown[]) => "FIX");
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeTextReplacementFixPreservingReadonly:
+                    createSafeTypeNodeTextReplacementFixPreservingReadonlyMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-non-empty-tuple")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeOperator?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(tupleHeadTypeArbitrary, (tupleHeadTypeText) => {
+                    createSafeTypeNodeTextReplacementFixPreservingReadonlyMock.mockClear();
+
+                    const code = [
+                        "declare const seed: unique symbol;",
+                        `type Input = readonly [${tupleHeadTypeText}, ...${tupleHeadTypeText}[]];`,
+                        "void seed;",
+                    ].join("\n");
+
+                    const { ast, typeOperator } =
+                        parseReadonlyTupleOperatorFromCode(code);
+                    const reportCalls: NonEmptyTupleReportDescriptor[] = [];
+
+                    const listeners = authoredRuleModule.default.create({
+                        filename:
+                            "fixtures/typed/prefer-type-fest-non-empty-tuple.invalid.ts",
+                        report: (descriptor: NonEmptyTupleReportDescriptor) => {
+                            reportCalls.push(descriptor);
+                        },
+                        sourceCode: {
+                            ast,
+                            getText(node: unknown): string {
+                                return getSourceTextForNode({ code, node });
+                            },
+                        },
+                    });
+
+                    listeners.TSTypeOperator?.(typeOperator);
+
+                    expect(reportCalls).toHaveLength(1);
+                    expect(reportCalls[0]).toMatchObject({
+                        fix: "FIX",
+                        messageId: "preferNonEmptyTuple",
+                    });
+
+                    expect(
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyMock
+                    ).toHaveBeenCalledTimes(1);
+                    expect(
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyMock
+                            .mock.calls[0]?.[1]
+                    ).toBe("NonEmptyTuple");
+                    expect(
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyMock
+                            .mock.calls[0]?.[2]
+                    ).toBe(`NonEmptyTuple<${tupleHeadTypeText}>`);
+
+                    const fixedCode = `${code.slice(0, typeOperator.range[0])}Readonly<NonEmptyTuple<${tupleHeadTypeText}>>${code.slice(typeOperator.range[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }

@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -23,14 +31,40 @@ const validFixtureName = "prefer-type-fest-primitive.valid.ts";
 const partialValidFixtureName = "prefer-type-fest-primitive.partial.valid.ts";
 const invalidFixtureName = "prefer-type-fest-primitive.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { Primitive } from "type-fest";\n${invalidFixtureCode.replace(
-    "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined",
-    "    Primitive"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-primitive fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const primitiveUnionFixtureSegment =
+    "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined";
+const fixtureFixableOutputCode = `import type { Primitive } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "    Primitive",
+        sourceText: invalidFixtureCode,
+        target: primitiveUnionFixtureSegment,
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "    | bigint\r\n    | boolean\r\n    | null\r\n    | number\r\n    | string\r\n    | symbol\r\n    | undefined",
-    "    Primitive"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "    Primitive",
+    sourceText: fixtureFixableOutputCode,
+    target: primitiveUnionFixtureSegment,
+});
 const nonPrimitiveKeywordUnionValidCode =
     "type PrimitiveLike = bigint | boolean | null | number | string | symbol | object;";
 const duplicatePrimitiveMemberValidCode =
@@ -84,6 +118,52 @@ const inlineNoFixShadowedReplacementCode = [
     "    bigint | boolean | null | number | string | symbol | undefined;",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const primitiveUnionMemberArbitrary = fc.shuffledSubarray(
+    [
+        "bigint",
+        "boolean",
+        "null",
+        "number",
+        "string",
+        "symbol",
+        "undefined",
+    ],
+    { maxLength: 7, minLength: 7 }
+);
+
+const parsePrimitiveTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a Primitive type reference"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -92,6 +172,53 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferPrimitive: preferPrimitiveMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-primitive parse-safety guards", () => {
+    it("fast-check: Primitive replacement remains parseable across union ordering", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                primitiveUnionMemberArbitrary,
+                fc.boolean(),
+                (unionMembers, includeUnicodeLine) => {
+                    const primitiveUnion = unionMembers.join(" | ");
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedCode = [
+                        unicodeLine,
+                        'import type { Primitive } from "type-fest";',
+                        `type PrimitiveLike = ${primitiveUnion};`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "Primitive",
+                        sourceText: generatedCode,
+                        target: primitiveUnion,
+                    });
+
+                    const { typeReference } =
+                        parsePrimitiveTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("Primitive");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, rule, {

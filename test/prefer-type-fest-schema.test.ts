@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -21,12 +29,43 @@ const validFixtureName = "prefer-type-fest-schema.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-schema.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-schema.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { RecordDeep } from "type-aliases";\r\n',
-        'import type { RecordDeep } from "type-aliases";\nimport type { Schema } from "type-fest";\r\n'
-    )
-    .replace("RecordDeep<", "Schema<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-schema fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const insertSchemaImportAfterRecordDeepImport = (
+    sourceText: string
+): string => {
+    const sourceLineEnding = sourceText.includes("\r\n") ? "\r\n" : "\n";
+
+    return replaceOrThrow({
+        replacement: `import type { RecordDeep } from "type-aliases";\nimport type { Schema } from "type-fest";${sourceLineEnding}`,
+        sourceText,
+        target: `import type { RecordDeep } from "type-aliases";${sourceLineEnding}`,
+    });
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "Schema<",
+    sourceText: insertSchemaImportAfterRecordDeepImport(invalidFixtureCode),
+    target: "RecordDeep<",
+});
 const inlineFixableInvalidCode = [
     'import type { RecordDeep } from "type-aliases";',
     'import type { Schema } from "type-fest";',
@@ -38,10 +77,11 @@ const inlineFixableInvalidCode = [
     "type UserSchema = RecordDeep<User, number>;",
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type UserSchema = RecordDeep<User, number>;",
-    "type UserSchema = Schema<User, number>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type UserSchema = Schema<User, number>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type UserSchema = RecordDeep<User, number>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { RecordDeep } from "type-aliases";',
     "",
@@ -52,6 +92,58 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     "type Wrapper<Schema> = RecordDeep<User, number>;",
 ].join("\n");
 
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const schemaValueTypeArbitrary = fc.constantFrom<
+    "number" | "readonlyStringArray" | "unionLiteral"
+>("number", "readonlyStringArray", "unionLiteral");
+
+const buildSchemaValueType = (
+    valueTypeKind: "number" | "readonlyStringArray" | "unionLiteral"
+): string => {
+    if (valueTypeKind === "number") {
+        return "number";
+    }
+
+    if (valueTypeKind === "readonlyStringArray") {
+        return "readonly string[]";
+    }
+
+    return '"enabled" | "disabled"';
+};
+
+const parseSchemaTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a Schema type reference"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
     docsDescription,
@@ -60,6 +152,55 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferSchema: preferSchemaMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-schema parse-safety guards", () => {
+    it("fast-check: Schema replacement remains parseable across generic argument variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                schemaValueTypeArbitrary,
+                includeUnicodeBannerArbitrary,
+                (valueTypeKind, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'const unicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const valueType = buildSchemaValueType(valueTypeKind);
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import type { RecordDeep } from "type-aliases";',
+                        'import type { Schema } from "type-fest";',
+                        "type User = { id: string };",
+                        `type UserSchema = RecordDeep<User, ${valueType}>;`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "Schema<",
+                        sourceText: generatedCode,
+                        target: "RecordDeep<",
+                    });
+
+                    const { typeReference } =
+                        parseSchemaTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("Schema");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {
@@ -76,7 +217,7 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture Jsonify alias usage",
+            name: "reports fixture RecordDeep alias usage",
             output: fixtureFixableOutputCode,
         },
         {
@@ -91,7 +232,7 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports and autofixes inline Jsonify alias import",
+            name: "reports and autofixes inline RecordDeep alias import",
             output: inlineFixableOutputCode,
         },
         {

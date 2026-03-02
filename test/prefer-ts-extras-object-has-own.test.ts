@@ -2,10 +2,19 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-has-own.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -19,24 +28,46 @@ const ruleTester = createTypedRuleTester();
 const invalidFixtureName = "prefer-ts-extras-object-has-own.invalid.ts";
 const validFixtureName = "prefer-ts-extras-object-has-own.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        "declare const candidate: unknown;\r\n",
-        'import { objectHasOwn } from "ts-extras";\ndeclare const candidate: unknown;\r\n'
-    )
-    .replace(
-        'Object.hasOwn(candidate, "status")',
-        'objectHasOwn(candidate, "status")'
-    );
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "Object.hasOwn(variants, propertyName)",
-    "objectHasOwn(variants, propertyName)"
-);
-const fixtureFixableThirdPassOutputCode =
-    fixtureFixableSecondPassOutputCode.replace(
-        'Object.hasOwn(variants, "success")',
-        'objectHasOwn(variants, "success")'
-    );
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-object-has-own fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: 'objectHasOwn(candidate, "status")',
+    sourceText: replaceOrThrow({
+        replacement:
+            'import { objectHasOwn } from "ts-extras";\ndeclare const candidate: unknown;\r\n',
+        sourceText: invalidFixtureCode,
+        target: "declare const candidate: unknown;\r\n",
+    }),
+    target: 'Object.hasOwn(candidate, "status")',
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "objectHasOwn(variants, propertyName)",
+    sourceText: fixtureFixableOutputCode,
+    target: "Object.hasOwn(variants, propertyName)",
+});
+const fixtureFixableThirdPassOutputCode = replaceOrThrow({
+    replacement: 'objectHasOwn(variants, "success")',
+    sourceText: fixtureFixableSecondPassOutputCode,
+    target: 'Object.hasOwn(variants, "success")',
+});
 const inlineFixableCode = [
     'import { objectHasOwn } from "ts-extras";',
     "",
@@ -88,6 +119,63 @@ const shadowedObjectBindingValidCode = [
     "String(hasStatus);",
 ].join("\n");
 
+type ObjectHasOwnKeyExpression = "identifier" | "stringLiteral";
+
+type ObjectHasOwnReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const objectIdentifierArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter(isSafeGeneratedIdentifier)
+    .filter(
+        (candidate) =>
+            !new Set([
+                "Object",
+                "objectHasOwn",
+                "propertyName",
+            ]).has(candidate)
+    );
+
+const objectHasOwnKeyExpressionArbitrary =
+    fc.constantFrom<ObjectHasOwnKeyExpression>("identifier", "stringLiteral");
+
+const parseObjectHasOwnCallFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    callExpression: TSESTree.CallExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+            continue;
+        }
+
+        for (const declaration of statement.declarations) {
+            if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
+                return {
+                    ast: parsed.ast,
+                    callExpression: declaration.init,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable declaration initialized from an Object.hasOwn call"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-object-has-own",
     {
@@ -119,6 +207,143 @@ describe("prefer-ts-extras-object-has-own source assertions", () => {
             'callee.property.type !== "Identifier" ||'
         );
         expect(ruleSource).toContain('callee.property.name !== "hasOwn"');
+    });
+
+    it("fast-check: objectHasOwn replacement remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeValueReferenceReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isGlobalIdentifierNamed: (
+                    _context: unknown,
+                    node: Readonly<{ name?: string; type: string }>,
+                    expectedName: string
+                ): boolean =>
+                    node.type === "Identifier" && node.name === expectedName,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueReferenceReplacementFix:
+                    createSafeValueReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-object-has-own")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    objectIdentifierArbitrary,
+                    objectHasOwnKeyExpressionArbitrary,
+                    fc.boolean(),
+                    (
+                        objectIdentifier,
+                        keyExpressionKind,
+                        includeUnicodeLine
+                    ) => {
+                        createSafeValueReferenceReplacementFixMock.mockClear();
+
+                        const keyExpression =
+                            keyExpressionKind === "identifier"
+                                ? "propertyName"
+                                : '"status"';
+                        const unicodeLine = includeUnicodeLine
+                            ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                            : "";
+
+                        const generatedCode = [
+                            `const ${objectIdentifier} = { status: true } as const;`,
+                            'const propertyName = "status" as const;',
+                            unicodeLine,
+                            `const hasStatus = Object.hasOwn(${objectIdentifier}, ${keyExpression});`,
+                            "String(hasStatus);",
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, callExpression } =
+                            parseObjectHasOwnCallFromCode(generatedCode);
+                        const reports: ObjectHasOwnReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-ts-extras-object-has-own.invalid.ts",
+                            report: (
+                                descriptor: ObjectHasOwnReportDescriptor
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                            },
+                        });
+
+                        listeners.CallExpression?.(callExpression);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferTsExtrasObjectHasOwn",
+                        });
+
+                        expect(
+                            createSafeValueReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixDescriptor =
+                            createSafeValueReferenceReplacementFixMock.mock
+                                .calls[0]?.[0] as
+                                | undefined
+                                | {
+                                      importedName?: string;
+                                      targetNode?: Readonly<{
+                                          range?: readonly [number, number];
+                                      }>;
+                                  };
+
+                        expect(fixDescriptor?.importedName).toBe(
+                            "objectHasOwn"
+                        );
+
+                        const calleeRange = fixDescriptor?.targetNode?.range;
+
+                        expect(calleeRange).toBeDefined();
+
+                        if (calleeRange === undefined) {
+                            throw new Error(
+                                "Expected objectHasOwn replacement target range"
+                            );
+                        }
+
+                        const fixedCode = `${generatedCode.slice(0, calleeRange[0])}objectHasOwn${generatedCode.slice(calleeRange[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
     });
 });
 

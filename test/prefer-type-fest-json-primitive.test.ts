@@ -2,10 +2,16 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-primitive.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -22,14 +28,38 @@ const partialValidFixtureName =
     "prefer-type-fest-json-primitive.partial.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-primitive.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { JsonPrimitive } from "type-fest";\n${invalidFixtureCode.replace(
-    "boolean | null | number | string",
-    "JsonPrimitive"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-json-primitive fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { JsonPrimitive } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "JsonPrimitive",
+        sourceText: invalidFixtureCode,
+        target: "boolean | null | number | string",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "boolean | null | number | string",
-    "JsonPrimitive"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "JsonPrimitive",
+    sourceText: fixtureFixableOutputCode,
+    target: "boolean | null | number | string",
+});
 const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";
 const duplicatePrimitiveUnionValidCode =
@@ -60,6 +90,53 @@ const inlineFixableOutput = [
     "",
     "type Payload = JsonPrimitive;",
 ].join("\n");
+
+type JsonPrimitiveReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const jsonPrimitiveUnionMemberArbitrary = fc.shuffledSubarray(
+    [
+        "boolean",
+        "null",
+        "number",
+        "string",
+    ],
+    { maxLength: 4, minLength: 4 }
+);
+
+const parseUnionTypeFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    unionType: TSESTree.TSUnionType;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSUnionType
+        ) {
+            return {
+                ast: parsed.ast,
+                unionType: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a JSON primitive union"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-json-primitive",
@@ -219,6 +296,102 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
             expect(reportCalls[0]).not.toMatchObject({
                 fix: expect.anything(),
             });
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: JsonPrimitive replacement remains parseable across union ordering", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix:
+                    createSafeTypeNodeReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-primitive")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    jsonPrimitiveUnionMemberArbitrary,
+                    fc.boolean(),
+                    (unionMembers, includeUnicodeLine) => {
+                        createSafeTypeNodeReplacementFixMock.mockClear();
+
+                        const unicodeLine = includeUnicodeLine
+                            ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                            : "";
+                        const generatedCode = [
+                            unicodeLine,
+                            `type Payload = ${unionMembers.join(" | ")};`,
+                        ]
+                            .filter((line) => line.length > 0)
+                            .join("\n");
+
+                        const { ast, unionType } =
+                            parseUnionTypeFromCode(generatedCode);
+                        const reports: JsonPrimitiveReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-json-primitive.invalid.ts",
+                            report: (
+                                descriptor: JsonPrimitiveReportDescriptor
+                            ) => {
+                                reports.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                            },
+                        });
+
+                        listeners.TSUnionType?.(unionType);
+
+                        expect(reports).toHaveLength(1);
+                        expect(reports[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferJsonPrimitive",
+                        });
+
+                        expect(
+                            createSafeTypeNodeReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+                        expect(
+                            createSafeTypeNodeReplacementFixMock.mock
+                                .calls[0]?.[1]
+                        ).toBe("JsonPrimitive");
+
+                        const fixedCode = `${generatedCode.slice(0, unionType.range[0])}JsonPrimitive${generatedCode.slice(unionType.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

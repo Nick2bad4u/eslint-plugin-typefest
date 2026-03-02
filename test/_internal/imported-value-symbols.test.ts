@@ -232,6 +232,62 @@ const parseSingleCallExpressionFromCode = (
     );
 };
 
+const parseSingleMemberExpressionFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    memberExpression: TSESTree.MemberExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.MemberExpression
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        memberExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from a member expression"
+    );
+};
+
+const parseSingleBinaryExpressionFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    binaryExpression: TSESTree.BinaryExpression;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+            for (const declaration of statement.declarations) {
+                if (
+                    declaration.init?.type === AST_NODE_TYPES.BinaryExpression
+                ) {
+                    return {
+                        ast: parsed.ast,
+                        binaryExpression: declaration.init,
+                    };
+                }
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a variable initialized from a binary expression"
+    );
+};
+
 const methodReceiverExpressionArbitrary = fc.constantFrom(
     "values",
     "getValues()",
@@ -248,6 +304,22 @@ const methodArgumentExpressionArbitrary = fc.constantFrom(
     "候補値",
     "computeNeedle()",
     "{ key: 'value' }"
+);
+
+const binaryNullishOperatorArbitrary = fc.constantFrom(
+    "!=",
+    "!==",
+    "==",
+    "==="
+);
+
+const binaryComparedExpressionArbitrary = fc.constantFrom(
+    "candidate",
+    "candidate?.value",
+    "getValues()",
+    "候補値",
+    "(left, right)",
+    "({ value: 1 })"
 );
 
 describe(collectDirectNamedValueImportsFromSource, () => {
@@ -833,6 +905,138 @@ describe(createMemberToFunctionCallFix, () => {
 
         expect(fix).toBeNull();
     });
+
+    it("rewrites member expressions to helper calls", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayFirst", "ts-extras");
+        const fix = createMemberToFunctionCallFix({
+            context,
+            importedName: "arrayFirst",
+            imports: createImportsMap("arrayFirst", "arrayFirst"),
+            memberNode: {
+                computed: true,
+                object: {
+                    _text: "values",
+                    type: "Identifier",
+                },
+                optional: false,
+                property: {
+                    type: "Literal",
+                    value: 0,
+                },
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createMemberToFunctionCallFix
+            >[0]["memberNode"],
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(invokeFix(fix)).toStrictEqual(["arrayFirst(values)"]);
+    });
+
+    it("fast-check: emits parseable replacements across diverse member receivers", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                methodReceiverExpressionArbitrary,
+                (receiverExpression) => {
+                    const code = [
+                        "declare const values: readonly unknown[];",
+                        "declare const fallbackValues: readonly unknown[];",
+                        "declare const matrix: readonly (readonly unknown[])[];",
+                        "declare const index: number;",
+                        "declare const left: unknown;",
+                        "declare const right: unknown;",
+                        "declare const 候補値: unknown;",
+                        "declare function getValues(): readonly unknown[];",
+                        `const result = (${receiverExpression})[0];`,
+                        "void result;",
+                    ].join("\n");
+
+                    const { ast, memberExpression } =
+                        parseSingleMemberExpressionFromCode(code);
+
+                    const variable = {
+                        defs: [
+                            createImportBindingDefinition(
+                                "arrayFirst",
+                                "arrayFirst",
+                                "ts-extras"
+                            ),
+                        ],
+                    };
+                    const scope = {
+                        set: new Map([["arrayFirst", variable]]),
+                        upper: null,
+                    };
+
+                    const context = {
+                        sourceCode: {
+                            ast,
+                            getScope: () =>
+                                scope as unknown as Readonly<TSESLint.Scope.Scope>,
+                            getText(node: unknown): string {
+                                if (
+                                    typeof node !== "object" ||
+                                    node === null ||
+                                    !("range" in node)
+                                ) {
+                                    return "";
+                                }
+
+                                const nodeRange = (
+                                    node as Readonly<{
+                                        range?: readonly [number, number];
+                                    }>
+                                ).range;
+
+                                if (nodeRange === undefined) {
+                                    return "";
+                                }
+
+                                return code.slice(nodeRange[0], nodeRange[1]);
+                            },
+                        },
+                    } as unknown as RuleContext;
+
+                    const fix = createMemberToFunctionCallFix({
+                        context,
+                        importedName: "arrayFirst",
+                        imports: createImportsMap("arrayFirst", "arrayFirst"),
+                        memberNode: memberExpression,
+                        sourceModuleName: "ts-extras",
+                    });
+
+                    expect(fix).not.toBeNull();
+
+                    const replacementTexts = invokeFix(fix);
+
+                    expect(replacementTexts).toHaveLength(1);
+
+                    const replacementText = replacementTexts[0];
+                    if (replacementText === undefined) {
+                        throw new Error(
+                            "Expected exactly one replacement text"
+                        );
+                    }
+
+                    expect(
+                        replacementText.startsWith("arrayFirst(")
+                    ).toBeTruthy();
+
+                    const memberRange = memberExpression.range;
+                    const fixedCode = `${code.slice(0, memberRange[0])}${replacementText}${code.slice(memberRange[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 describe(createSafeValueArgumentFunctionCallFix, () => {
@@ -993,6 +1197,122 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         });
 
         expect(invokeFix(fix)).toStrictEqual(["isPresent(候補?.name)"]);
+    });
+
+    it("fast-check: emits parseable replacements across argument and negation variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                binaryComparedExpressionArbitrary,
+                binaryNullishOperatorArbitrary,
+                fc.boolean(),
+                (comparedExpression, operator, negated) => {
+                    const code = [
+                        "declare const candidate: unknown;",
+                        "declare const left: unknown;",
+                        "declare const right: unknown;",
+                        "declare const 候補値: unknown;",
+                        "declare function getValues(): unknown;",
+                        `const check = ${comparedExpression} ${operator} null;`,
+                        "void check;",
+                    ].join("\n");
+
+                    const { ast, binaryExpression } =
+                        parseSingleBinaryExpressionFromCode(code);
+
+                    const comparedNode = binaryExpression.left;
+                    if (
+                        comparedNode.type === AST_NODE_TYPES.PrivateIdentifier
+                    ) {
+                        throw new Error(
+                            "Expected compared node to be a standard expression"
+                        );
+                    }
+
+                    const variable = {
+                        defs: [
+                            createImportBindingDefinition(
+                                "isPresent",
+                                "isPresent",
+                                "ts-extras"
+                            ),
+                        ],
+                    };
+                    const scope = {
+                        set: new Map([["isPresent", variable]]),
+                        upper: null,
+                    };
+
+                    const context = {
+                        sourceCode: {
+                            ast,
+                            getScope: () =>
+                                scope as unknown as Readonly<TSESLint.Scope.Scope>,
+                            getText(node: unknown): string {
+                                if (
+                                    typeof node !== "object" ||
+                                    node === null ||
+                                    !("range" in node)
+                                ) {
+                                    return "";
+                                }
+
+                                const nodeRange = (
+                                    node as Readonly<{
+                                        range?: readonly [number, number];
+                                    }>
+                                ).range;
+
+                                if (nodeRange === undefined) {
+                                    return "";
+                                }
+
+                                return code.slice(nodeRange[0], nodeRange[1]);
+                            },
+                        },
+                    } as unknown as RuleContext;
+
+                    const fix = createSafeValueArgumentFunctionCallFix({
+                        argumentNode: comparedNode,
+                        context,
+                        importedName: "isPresent",
+                        imports: createImportsMap("isPresent", "isPresent"),
+                        negated,
+                        sourceModuleName: "ts-extras",
+                        targetNode: binaryExpression,
+                    });
+
+                    expect(fix).not.toBeNull();
+
+                    const replacementTexts = invokeFix(fix);
+
+                    expect(replacementTexts).toHaveLength(1);
+
+                    const replacementText = replacementTexts[0];
+                    if (replacementText === undefined) {
+                        throw new Error(
+                            "Expected exactly one replacement text"
+                        );
+                    }
+                    const expectedPrefix = negated
+                        ? "!isPresent("
+                        : "isPresent(";
+
+                    expect(
+                        replacementText.startsWith(expectedPrefix)
+                    ).toBeTruthy();
+
+                    const binaryRange = binaryExpression.range;
+                    const fixedCode = `${code.slice(0, binaryRange[0])}${replacementText}${code.slice(binaryRange[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

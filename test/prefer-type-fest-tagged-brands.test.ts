@@ -1,3 +1,14 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -17,14 +28,43 @@ const invalidFixtureName = "prefer-type-fest-tagged-brands.invalid.ts";
 const importedAliasFixtureName =
     "prefer-type-fest-tagged-brands-imported-alias.invalid.ts";
 const importedAliasFixtureCode = readTypedFixture(importedAliasFixtureName);
-const importedAliasFixtureOutputCode = importedAliasFixtureCode
-    .replace(
-        'from "ts-essentials";\r\n',
-        'from "ts-essentials";\nimport type { Tagged } from "type-fest";\r\n'
-    )
-    .replace("Opaque<", "Tagged<");
-const importedAliasFixtureSecondPassOutputCode =
-    importedAliasFixtureOutputCode.replace("Branded<", "Tagged<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-tagged-brands fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const importedAliasFixtureOutputCode = replaceOrThrow({
+    replacement:
+        'from "ts-essentials";\nimport type { Tagged } from "type-fest";\r\n',
+    sourceText: importedAliasFixtureCode,
+    target: 'from "ts-essentials";\r\n',
+});
+
+const importedAliasFixtureFirstPassOutputCode = replaceOrThrow({
+    replacement: "Tagged<",
+    sourceText: importedAliasFixtureOutputCode,
+    target: "Opaque<",
+});
+const importedAliasFixtureSecondPassOutputCode = replaceOrThrow({
+    replacement: "Tagged<",
+    sourceText: importedAliasFixtureFirstPassOutputCode,
+    target: "Branded<",
+});
 const inlineFixableInvalidCode = [
     'import type { Opaque } from "type-aliases";',
     'import type { Tagged } from "type-fest";',
@@ -32,10 +72,11 @@ const inlineFixableInvalidCode = [
     'type UserId = Opaque<string, "UserId">;',
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    'type UserId = Opaque<string, "UserId">;',
-    'type UserId = Tagged<string, "UserId">;'
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: 'type UserId = Tagged<string, "UserId">;',
+    sourceText: inlineFixableInvalidCode,
+    target: 'type UserId = Opaque<string, "UserId">;',
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { Opaque } from "type-aliases";',
     "",
@@ -97,6 +138,66 @@ const inlineValidNestedTaggedReferenceCode = [
     "};",
 ].join("\n");
 
+type TaggedBrandsAlias = "Branded" | "Opaque";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const taggedBrandsAliasArbitrary = fc.constantFrom<TaggedBrandsAlias>(
+    "Opaque",
+    "Branded"
+);
+
+const identifierHeadCharacters = [
+    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_",
+];
+const identifierTailCharacters = [
+    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789",
+];
+const identifierHeadArbitrary = fc.constantFrom(...identifierHeadCharacters);
+const identifierTailArbitrary = fc
+    .array(fc.constantFrom(...identifierTailCharacters), {
+        maxLength: 8,
+    })
+    .map((characters) => characters.join(""));
+const generatedIdentifierArbitrary = fc
+    .tuple(identifierHeadArbitrary, identifierTailArbitrary)
+    .map(([head, tail]) => `${head}${tail}`)
+    .filter(isSafeGeneratedIdentifier);
+
+const parseTaggedTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
+
+        if (
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a tagged brand type reference"
+    );
+};
+
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-tagged-brands",
     {
@@ -111,6 +212,60 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         },
     }
 );
+
+describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
+    it("fast-check: Tagged replacement remains parseable for imported alias references", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                taggedBrandsAliasArbitrary,
+                generatedIdentifierArbitrary,
+                generatedIdentifierArbitrary,
+                fc.boolean(),
+                (
+                    legacyAlias,
+                    typeIdentifier,
+                    tagIdentifier,
+                    includeUnicodeLine
+                ) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedCode = [
+                        unicodeLine,
+                        `import type { ${legacyAlias} } from "ts-essentials";`,
+                        'import type { Tagged } from "type-fest";',
+                        `type UserId = ${legacyAlias}<${typeIdentifier}, "${tagIdentifier}">;`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "Tagged<",
+                        sourceText: generatedCode,
+                        target: `${legacyAlias}<`,
+                    });
+
+                    const { typeReference } =
+                        parseTaggedTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("Tagged");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+});
 
 ruleTester.run(
     "prefer-type-fest-tagged-brands",
@@ -144,7 +299,7 @@ ruleTester.run(
                 filename: typedFixturePath(importedAliasFixtureName),
                 name: "reports imported opaque and branded aliases",
                 output: [
-                    importedAliasFixtureOutputCode,
+                    importedAliasFixtureFirstPassOutputCode,
                     importedAliasFixtureSecondPassOutputCode,
                 ],
             },

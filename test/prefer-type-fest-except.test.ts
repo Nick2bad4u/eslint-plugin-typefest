@@ -2,10 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-except.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -19,6 +23,26 @@ const ruleTester = createTypedRuleTester();
 
 const validFixtureName = "prefer-type-fest-except.valid.ts";
 const invalidFixtureName = "prefer-type-fest-except.invalid.ts";
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-except fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
 const inlineFixableInvalidCode = [
     'import type { HomomorphicOmit } from "type-aliases";',
     'import type { Except } from "type-fest";',
@@ -31,10 +55,11 @@ const inlineFixableInvalidCode = [
     'type UserWithoutId = HomomorphicOmit<User, "id">;',
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    'type UserWithoutId = HomomorphicOmit<User, "id">;',
-    'type UserWithoutId = Except<User, "id">;'
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: 'type UserWithoutId = Except<User, "id">;',
+    sourceText: inlineFixableInvalidCode,
+    target: 'type UserWithoutId = HomomorphicOmit<User, "id">;',
+});
 const inlineNoFixWithoutExceptImportCode = [
     'import type { HomomorphicOmit } from "type-aliases";',
     "",
@@ -45,16 +70,16 @@ const inlineNoFixWithoutExceptImportCode = [
     "",
     'type UserWithoutId = HomomorphicOmit<User, "id">;',
 ].join("\n");
-const inlineNoFixWithoutExceptImportOutputCode =
-    inlineNoFixWithoutExceptImportCode
-        .replace(
-            'import type { HomomorphicOmit } from "type-aliases";',
-            'import type { HomomorphicOmit } from "type-aliases";\nimport type { Except } from "type-fest";'
-        )
-        .replace(
-            'type UserWithoutId = HomomorphicOmit<User, "id">;',
-            'type UserWithoutId = Except<User, "id">;'
-        );
+const inlineNoFixWithoutExceptImportOutputCode = replaceOrThrow({
+    replacement: 'type UserWithoutId = Except<User, "id">;',
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { HomomorphicOmit } from "type-aliases";\nimport type { Except } from "type-fest";',
+        sourceText: inlineNoFixWithoutExceptImportCode,
+        target: 'import type { HomomorphicOmit } from "type-aliases";',
+    }),
+    target: 'type UserWithoutId = HomomorphicOmit<User, "id">;',
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { HomomorphicOmit } from "type-aliases";',
     "",
@@ -79,6 +104,43 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
     "type UserWithoutId = Omit<User>;",
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const includeUnicodeBannerArbitrary = fc.boolean();
+const subjectTypeNameArbitrary = fc.constantFrom("Account", "Payload", "User");
+const omittedKeyLiteralArbitrary = fc.constantFrom('"id"', '"name"', '"value"');
+
+const parseExceptTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            const typeAnnotation = statement.typeAnnotation;
+
+            if (typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+                return {
+                    ast: parsed.ast,
+                    typeReference: typeAnnotation,
+                };
+            }
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias with a type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except", {
     defaultOptions: [],
@@ -162,6 +224,59 @@ describe("prefer-type-fest-except source assertions", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+});
+
+describe("prefer-type-fest-except parse-safety guards", () => {
+    it("fast-check: Except replacement remains parseable across alias variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                subjectTypeNameArbitrary,
+                omittedKeyLiteralArbitrary,
+                includeUnicodeBannerArbitrary,
+                (subjectTypeName, omittedKeyLiteral, includeUnicodeBanner) => {
+                    const unicodeBanner = includeUnicodeBanner
+                        ? 'type UnicodeBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const originalAliasStatement = `type SubjectWithoutKey = HomomorphicOmit<${subjectTypeName}, ${omittedKeyLiteral}>;`;
+                    const replacementAliasStatement = `type SubjectWithoutKey = Except<${subjectTypeName}, ${omittedKeyLiteral}>;`;
+                    const generatedCode = [
+                        unicodeBanner,
+                        'import type { HomomorphicOmit } from "type-aliases";',
+                        'import type { Except } from "type-fest";',
+                        `type ${subjectTypeName} = { id: string; name: string; value: number };`,
+                        originalAliasStatement,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: replacementAliasStatement,
+                        sourceText: generatedCode,
+                        target: originalAliasStatement,
+                    });
+
+                    const { typeReference } =
+                        parseExceptTypeReferenceFromCode(replacedCode);
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("Except");
+                    }
+
+                    expect(typeReference.typeArguments?.params).toHaveLength(2);
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

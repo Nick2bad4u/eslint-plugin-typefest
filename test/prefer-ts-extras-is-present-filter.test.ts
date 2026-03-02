@@ -9,7 +9,10 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
-import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -324,7 +327,7 @@ const parserOptions = {
 
 const callbackParameterNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate));
+    .filter(isSafeGeneratedIdentifier);
 
 const autoFixableTemplateIdArbitrary = fc.constantFrom<AutoFixableTemplateId>(
     "looseNull",
@@ -953,11 +956,31 @@ const fixtureInvalidOutput = [
     'export const __typedFixtureModule = "typed-fixture-module";',
 ].join("\r\n");
 const fixtureInvalidOutputWithMixedLineEndings = `import { isPresent } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
-const fixtureInvalidSecondPassOutputWithMixedLineEndings =
-    fixtureInvalidOutputWithMixedLineEndings.replace(
-        "const numbers = maybeNumbers.filter((value) => value != undefined);\r\n",
-        "const numbers = maybeNumbers.filter(isPresent);\r\n"
-    );
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-is-present-filter fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidSecondPassOutputWithMixedLineEndings = replaceOrThrow({
+    replacement: "const numbers = maybeNumbers.filter(isPresent);\r\n",
+    sourceText: fixtureInvalidOutputWithMixedLineEndings,
+    target: "const numbers = maybeNumbers.filter((value) => value != undefined);\r\n",
+});
 
 ruleTester.run(ruleId, rule, {
     invalid: [
@@ -1130,4 +1153,3 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
-

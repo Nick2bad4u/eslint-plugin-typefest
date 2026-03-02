@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -22,27 +30,107 @@ const namespaceValidFixtureName =
     "prefer-type-fest-omit-index-signature.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-omit-index-signature.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { RemoveIndexSignature } from "type-aliases";\r\n',
-        'import type { RemoveIndexSignature } from "type-aliases";\nimport type { OmitIndexSignature } from "type-fest";\r\n'
-    )
-    .replace("RemoveIndexSignature<", "OmitIndexSignature<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-omit-index-signature fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement:
+        'import type { RemoveIndexSignature } from "type-aliases";\nimport type { OmitIndexSignature } from "type-fest";\r\n',
+    sourceText: invalidFixtureCode,
+    target: 'import type { RemoveIndexSignature } from "type-aliases";\r\n',
+});
+const fixtureFixableAliasOutputCode = replaceOrThrow({
+    replacement: "OmitIndexSignature<",
+    sourceText: fixtureFixableOutputCode,
+    target: "RemoveIndexSignature<",
+});
 const inlineFixableInvalidCode = [
     'import type { RemoveIndexSignature } from "type-aliases";',
     'import type { OmitIndexSignature } from "type-fest";',
     "",
     "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
-    "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement:
+        "type Input = OmitIndexSignature<{ a: string; [key: string]: unknown }>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Input = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { RemoveIndexSignature } from "type-aliases";',
     "",
     "type Wrapper<OmitIndexSignature> = RemoveIndexSignature<{ a: string; [key: string]: unknown }>;",
 ].join("\n");
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const keyNamePairArbitrary = fc
+    .shuffledSubarray(
+        [
+            "alpha",
+            "beta",
+            "firstName",
+            "lastName",
+            "userId",
+            "tenantId",
+        ],
+        {
+            maxLength: 2,
+            minLength: 2,
+        }
+    )
+    .map(([firstKey, secondKey]) => ({
+        firstKey,
+        secondKey,
+    }));
+
+const parseOmitIndexSignatureTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an OmitIndexSignature type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -52,6 +140,58 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
         preferOmitIndexSignature: preferOmitIndexSignatureMessage,
     },
     name: ruleId,
+});
+
+describe("prefer-type-fest-omit-index-signature parse-safety guards", () => {
+    it("fast-check: OmitIndexSignature replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                keyNamePairArbitrary,
+                fc.boolean(),
+                (keyPair, includeUnicodeLine) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedTypeReference = `RemoveIndexSignature<{ ${keyPair.firstKey}: string; [${keyPair.secondKey}: string]: unknown }>`;
+                    const generatedCode = [
+                        unicodeLine,
+                        'import type { RemoveIndexSignature } from "type-aliases";',
+                        'import type { OmitIndexSignature } from "type-fest";',
+                        `type Input = ${generatedTypeReference};`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "OmitIndexSignature<{",
+                        sourceText: generatedCode,
+                        target: "RemoveIndexSignature<{",
+                    });
+
+                    const { typeReference } =
+                        parseOmitIndexSignatureTypeReferenceFromCode(
+                            replacedCode
+                        );
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe(
+                            "OmitIndexSignature"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
 });
 
 ruleTester.run(ruleId, getPluginRule(ruleId), {
@@ -69,7 +209,7 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture RemoveIndexSignature alias usage",
-            output: fixtureFixableOutputCode,
+            output: fixtureFixableAliasOutputCode,
         },
         {
             code: inlineFixableInvalidCode,

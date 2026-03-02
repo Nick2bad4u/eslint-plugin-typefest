@@ -95,14 +95,38 @@ const inlineGenericFixableReversedOutput = [
     "type QueryValue = Arrayable<string>;",
 ].join("\n");
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { Arrayable } from "type-fest";\n${invalidFixtureCode.replace(
-    "Array<number> | number",
-    "Arrayable<number>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-arrayable fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { Arrayable } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "Arrayable<number>",
+        sourceText: invalidFixtureCode,
+        target: "Array<number> | number",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "string | string[]",
-    "Arrayable<string>"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "Arrayable<string>",
+    sourceText: fixtureFixableOutputCode,
+    target: "string | string[]",
+});
 const inlineInvalidOutputCode = [
     'import type { Arrayable } from "type-fest";',
     "type QueryValue = Arrayable<string>;",
@@ -781,4 +805,3 @@ ruleTester.run(ruleId, rule, {
         },
     ],
 });
-

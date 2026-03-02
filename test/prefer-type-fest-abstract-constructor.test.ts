@@ -1,4 +1,3 @@
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-abstract-constructor.test` behavior.
@@ -8,9 +7,10 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -28,19 +28,41 @@ const preferAbstractConstructorSignatureMessage =
 const validFixtureName = "prefer-type-fest-abstract-constructor.valid.ts";
 const invalidFixtureName = "prefer-type-fest-abstract-constructor.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const createFixtureFixableOutputCode = (sourceText: string): string => {
-    const constructorSignaturePattern =
-        /abstract\s+new\s*\(\s*queueName: string,\s*retryCount: number\s*\)\s*=>\s*QueueClient/u;
-    const replacedText = sourceText.replace(
-        constructorSignaturePattern,
-        "AbstractConstructor<QueueClient, [queueName: string, retryCount: number]>"
-    );
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
 
     if (replacedText === sourceText) {
         throw new TypeError(
-            "Expected abstract-constructor fixture to contain a replaceable `abstract new (...) => QueueClient` signature"
+            `Expected prefer-type-fest-abstract-constructor fixture text to contain replaceable segment: ${target}`
         );
     }
+
+    return replacedText;
+};
+
+const createFixtureFixableOutputCode = (sourceText: string): string => {
+    const sourceLineEnding = sourceText.includes("\r\n") ? "\r\n" : "\n";
+    const constructorSignatureText = [
+        "abstract new (",
+        "    queueName: string,",
+        "    retryCount: number",
+        ") => QueueClient",
+    ].join(sourceLineEnding);
+
+    const replacedText = replaceOrThrow({
+        replacement:
+            "AbstractConstructor<QueueClient, [queueName: string, retryCount: number]>",
+        sourceText,
+        target: constructorSignatureText,
+    });
 
     return `import type { AbstractConstructor } from "type-fest";\n${replacedText}`;
 };
@@ -223,7 +245,7 @@ describe("prefer-type-fest-abstract-constructor source assertions", () => {
                             createSafeTypeNodeTextReplacementFixMock.mock
                                 .calls[0]?.[2];
 
-                        expect(typeof replacementText).toBe("string");
+                        expectTypeOf(replacementText).toBeString();
 
                         if (typeof replacementText !== "string") {
                             throw new TypeError(

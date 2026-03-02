@@ -9,7 +9,10 @@ import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
-import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -186,10 +189,10 @@ const parserOptions = {
 
 const callbackParameterNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate));
+    .filter(isSafeGeneratedIdentifier);
 const predicateNameArbitrary = fc
     .string({ maxLength: 9, minLength: 1 })
-    .filter((candidate) => /^[A-Z_a-z]\w{0,8}$/v.test(candidate))
+    .filter(isSafeGeneratedIdentifier)
     .filter((name) => name !== "not");
 
 const parseFilterCallFromCode = (
@@ -782,4 +785,3 @@ ruleTester.run("prefer-ts-extras-not", rule, {
         },
     ],
 });
-

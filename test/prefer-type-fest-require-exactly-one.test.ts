@@ -1,3 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
@@ -17,31 +25,115 @@ const namespaceValidFixtureName =
     "prefer-type-fest-require-exactly-one.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-require-exactly-one.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'from "type-aliases";\r\n',
-        'from "type-aliases";\nimport type { RequireExactlyOne } from "type-fest";\r\n'
-    )
-    .replace("OneOf<", "RequireExactlyOne<");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "RequireOnlyOne<",
-    "RequireExactlyOne<"
-);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-require-exactly-one fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement:
+        'from "type-aliases";\nimport type { RequireExactlyOne } from "type-fest";\r\n',
+    sourceText: invalidFixtureCode,
+    target: 'from "type-aliases";\r\n',
+});
+const fixtureFixableFirstPassOutputCode = replaceOrThrow({
+    replacement: "RequireExactlyOne<",
+    sourceText: fixtureFixableOutputCode,
+    target: "OneOf<",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "RequireExactlyOne<",
+    sourceText: fixtureFixableFirstPassOutputCode,
+    target: "RequireOnlyOne<",
+});
 const inlineFixableInvalidCode = [
     'import type { OneOf } from "type-aliases";',
     'import type { RequireExactlyOne } from "type-fest";',
     "",
     "type Input = OneOf<{ a?: string; b?: number }>;",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Input = OneOf<{ a?: string; b?: number }>;",
-    "type Input = RequireExactlyOne<{ a?: string; b?: number }>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type Input = RequireExactlyOne<{ a?: string; b?: number }>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Input = OneOf<{ a?: string; b?: number }>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { OneOf } from "type-aliases";',
     "",
     "type Wrapper<RequireExactlyOne> = OneOf<{ a?: string; b?: number }>;",
 ].join("\n");
+
+type RequireExactlyOneLegacyAlias = "OneOf" | "RequireOnlyOne";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const requireExactlyOneLegacyAliasArbitrary =
+    fc.constantFrom<RequireExactlyOneLegacyAlias>("OneOf", "RequireOnlyOne");
+const keyNamePairArbitrary = fc
+    .shuffledSubarray(
+        [
+            "alpha",
+            "beta",
+            "firstName",
+            "lastName",
+            "userId",
+            "tenantId",
+        ],
+        {
+            maxLength: 2,
+            minLength: 2,
+        }
+    )
+    .map(([firstKey, secondKey]) => ({
+        firstKey,
+        secondKey,
+    }));
+
+const parseRequireExactlyOneTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            statement.typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a RequireExactlyOne type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-require-exactly-one",
@@ -57,6 +149,59 @@ addTypeFestRuleMetadataAndFilenameFallbackTests(
         name: "prefer-type-fest-require-exactly-one",
     }
 );
+
+describe("prefer-type-fest-require-exactly-one parse-safety guards", () => {
+    it("fast-check: RequireExactlyOne replacement remains parseable across alias variants", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                requireExactlyOneLegacyAliasArbitrary,
+                keyNamePairArbitrary,
+                fc.boolean(),
+                (legacyAlias, keyPair, includeUnicodeLine) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedTypeReference = `${legacyAlias}<{ ${keyPair.firstKey}?: string; ${keyPair.secondKey}?: number }>`;
+                    const generatedCode = [
+                        unicodeLine,
+                        `import type { ${legacyAlias} } from "type-aliases";`,
+                        'import type { RequireExactlyOne } from "type-fest";',
+                        `type Input = ${generatedTypeReference};`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "RequireExactlyOne<{",
+                        sourceText: generatedCode,
+                        target: `${legacyAlias}<{`,
+                    });
+
+                    const { typeReference } =
+                        parseRequireExactlyOneTypeReferenceFromCode(
+                            replacedCode
+                        );
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe(
+                            "RequireExactlyOne"
+                        );
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
+    });
+});
 
 ruleTester.run(
     "prefer-type-fest-require-exactly-one",
@@ -84,7 +229,7 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture OneOf and RequireOnlyOne alias usage",
                 output: [
-                    fixtureFixableOutputCode,
+                    fixtureFixableFirstPassOutputCode,
                     fixtureFixableSecondPassOutputCode,
                 ],
             },

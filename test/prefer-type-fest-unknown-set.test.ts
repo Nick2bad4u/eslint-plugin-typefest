@@ -4,8 +4,10 @@
  */
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -20,14 +22,38 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-unknown-set.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-set.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = `import type { UnknownSet } from "type-fest";\n${invalidFixtureCode.replace(
-    "ReadonlySet<unknown>",
-    "Readonly<UnknownSet>"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-unknown-set fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = `import type { UnknownSet } from "type-fest";\n${replaceOrThrow(
+    {
+        replacement: "Readonly<UnknownSet>",
+        sourceText: invalidFixtureCode,
+        target: "ReadonlySet<unknown>",
+    }
 )}`;
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "ReadonlySet<unknown>",
-    "Readonly<UnknownSet>"
-);
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "Readonly<UnknownSet>",
+    sourceText: fixtureFixableOutputCode,
+    target: "ReadonlySet<unknown>",
+});
 const inlineInvalidSetCode = "type Input = Set<unknown>;";
 const inlineInvalidReadonlySetCode = "type Input = ReadonlySet<unknown>;";
 const inlineInvalidReadonlySetOutputCode = [
@@ -53,6 +79,39 @@ const inlineFixableOutput = [
 ].join("\n");
 const inlineNoFixShadowedReplacementCode =
     "type Wrapper<UnknownSet> = ReadonlySet<unknown>;";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const generatedIdentifierArbitrary = fc.constantFrom(
+    "alpha",
+    "beta",
+    "token",
+    "tenant",
+    "scope"
+);
+
+const parseReadonlyUnknownSetTypeReferenceFromCode = (sourceText: string) => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
+
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return statement.typeAnnotation;
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from Readonly<UnknownSet>"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-unknown-set",
@@ -138,6 +197,52 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+
+    it("fast-check: Readonly<UnknownSet> replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(
+                generatedIdentifierArbitrary,
+                fc.boolean(),
+                (typeName, includeUnicodeLine) => {
+                    const unicodeLine = includeUnicodeLine
+                        ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
+                        : "";
+                    const generatedCode = [
+                        unicodeLine,
+                        'import type { UnknownSet } from "type-fest";',
+                        `type Input = ReadonlySet<${typeName}>;`,
+                    ]
+                        .filter((line) => line.length > 0)
+                        .join("\n");
+
+                    const replacedCode = replaceOrThrow({
+                        replacement: "Readonly<UnknownSet>",
+                        sourceText: generatedCode,
+                        target: `ReadonlySet<${typeName}>`,
+                    });
+
+                    const typeReference =
+                        parseReadonlyUnknownSetTypeReferenceFromCode(
+                            replacedCode
+                        );
+
+                    expect(typeReference.typeName.type).toBe(
+                        AST_NODE_TYPES.Identifier
+                    );
+
+                    if (
+                        typeReference.typeName.type ===
+                        AST_NODE_TYPES.Identifier
+                    ) {
+                        expect(typeReference.typeName.name).toBe("Readonly");
+                    }
+                }
+            ),
+            fastCheckRunConfig.default
+        );
     });
 });
 

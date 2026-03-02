@@ -1,11 +1,19 @@
+import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-object.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    fastCheckRunConfig,
+    isSafeGeneratedIdentifier,
+} from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -26,28 +34,56 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-json-object.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-object.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { JsonValue } from "type-fest";\r\n',
-        'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";\r\n'
-    )
-    .replace("Record<string, JsonValue>", "JsonObject");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "Record<string, JsonValue>",
-    "JsonObject"
-);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-json-object fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "JsonObject",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";\r\n',
+        sourceText: invalidFixtureCode,
+        target: 'import type { JsonValue } from "type-fest";\r\n',
+    }),
+    target: "Record<string, JsonValue>",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "JsonObject",
+    sourceText: fixtureFixableOutputCode,
+    target: "Record<string, JsonValue>",
+});
 const inlineInvalidLiteralStringKeyCode = [
     'import type { JsonValue } from "type-fest";',
     "",
     'type MonitorJsonShape = Record<"string", JsonValue>;',
 ].join("\n");
-const inlineInvalidLiteralStringKeyOutputCode =
-    inlineInvalidLiteralStringKeyCode
-        .replace(
-            'import type { JsonValue } from "type-fest";',
-            'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";'
-        )
-        .replace('Record<"string", JsonValue>', "JsonObject");
+const inlineInvalidLiteralStringKeyOutputCode = replaceOrThrow({
+    replacement: "JsonObject",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";',
+        sourceText: inlineInvalidLiteralStringKeyCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: 'Record<"string", JsonValue>',
+});
 const inlineValidGlobalRecordCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -77,12 +113,16 @@ const inlineInvalidWithoutFixCode = [
     "",
     "type MonitorJsonShape = Record<string, JsonValue>;",
 ].join("\n");
-const inlineInvalidWithoutFixOutputCode = inlineInvalidWithoutFixCode
-    .replace(
-        'import type { JsonValue } from "type-fest";',
-        'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";'
-    )
-    .replace("Record<string, JsonValue>", "JsonObject");
+const inlineInvalidWithoutFixOutputCode = replaceOrThrow({
+    replacement: "JsonObject",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonObject } from "type-fest";',
+        sourceText: inlineInvalidWithoutFixCode,
+        target: 'import type { JsonValue } from "type-fest";',
+    }),
+    target: "Record<string, JsonValue>",
+});
 const inlineFixableCode = [
     'import type { JsonObject, JsonValue } from "type-fest";',
     "",
@@ -97,6 +137,75 @@ const disableImportInsertionSettings = {
     typefest: {
         disableImportInsertionFixes: true,
     },
+};
+
+type JsonObjectReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const keyTypeArbitrary = fc.constantFrom("string", '"string"');
+const aliasNameArbitrary = fc
+    .string({ maxLength: 9, minLength: 1 })
+    .filter(isSafeGeneratedIdentifier)
+    .filter(
+        (candidate) => candidate !== "JsonObject" && candidate !== "JsonValue"
+    );
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseRecordTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a Record<..., JsonValue> type reference"
+    );
 };
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
@@ -249,6 +358,102 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             });
             expect(replacementFixCalls).toHaveLength(1);
             expect(replacementFixCalls[0]?.[1]).toBe("JsonObject");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: JsonObject replacement remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix:
+                    createSafeTypeNodeReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-object")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    aliasNameArbitrary,
+                    keyTypeArbitrary,
+                    (aliasName, keyTypeText) => {
+                        createSafeTypeNodeReplacementFixMock.mockClear();
+
+                        const code = [
+                            'import type { JsonValue } from "type-fest";',
+                            `type ${aliasName} = Record<${keyTypeText}, JsonValue>;`,
+                            "declare const seed: unique symbol;",
+                            "void seed;",
+                        ].join("\n");
+
+                        const { ast, typeReference } =
+                            parseRecordTypeReferenceFromCode(code);
+                        const reportCalls: JsonObjectReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-json-object.invalid.ts",
+                            report: (
+                                descriptor: JsonObjectReportDescriptor
+                            ) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSTypeReference?.(typeReference);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            fix: "FIX",
+                            messageId: "preferJsonObject",
+                        });
+
+                        expect(
+                            createSafeTypeNodeReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+                        expect(
+                            createSafeTypeNodeReplacementFixMock.mock
+                                .calls[0]?.[1]
+                        ).toBe("JsonObject");
+
+                        const fixedCode = `${code.slice(0, typeReference.range[0])}JsonObject${code.slice(typeReference.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

@@ -171,16 +171,36 @@ const fixtureInvalidOutputWithMixedLineEndings =
     'import type { Writable, Writable as MutableAlias } from "type-fest";\r\n' +
     'import type * as TypeFest from "type-fest";\n' +
     `${fixtureInvalidOutput}\r\n`;
-const fixtureInvalidSecondPassOutputWithMixedLineEndings =
-    fixtureInvalidOutputWithMixedLineEndings
-        .replace(
-            "const mutableByAliasedImport = readonlyRecord as MutableAlias<ReadonlyRecord>;\r\n",
-            "const mutableByAliasedImport = asWritable(readonlyRecord);\r\n"
-        )
-        .replace(
-            "const mutableByNamespace = readonlyRecord as TypeFest.Writable<ReadonlyRecord>;\r\n",
-            "const mutableByNamespace = asWritable(readonlyRecord);\r\n"
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-as-writable fixture text to contain replaceable segment: ${target}`
         );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidSecondPassOutputWithMixedLineEndings = replaceOrThrow({
+    replacement: "const mutableByNamespace = asWritable(readonlyRecord);\r\n",
+    sourceText: replaceOrThrow({
+        replacement:
+            "const mutableByAliasedImport = asWritable(readonlyRecord);\r\n",
+        sourceText: fixtureInvalidOutputWithMixedLineEndings,
+        target: "const mutableByAliasedImport = readonlyRecord as MutableAlias<ReadonlyRecord>;\r\n",
+    }),
+    target: "const mutableByNamespace = readonlyRecord as TypeFest.Writable<ReadonlyRecord>;\r\n",
+});
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -731,4 +751,3 @@ ruleTester.run(
         ],
     }
 );
-

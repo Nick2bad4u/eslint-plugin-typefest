@@ -9,7 +9,7 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
@@ -27,8 +27,8 @@ const validFixtureName = "prefer-type-fest-async-return-type.valid.ts";
 const invalidFixtureName = "prefer-type-fest-async-return-type.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const replaceOrThrow = ({
-    sourceText,
     replacement,
+    sourceText,
     target,
 }: Readonly<{
     replacement: string;
@@ -355,7 +355,7 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
                         createSafeTypeNodeTextReplacementFixMock.mock
                             .calls[0]?.[2];
 
-                    expect(typeof replacementText).toBe("string");
+                    expectTypeOf(replacementText).toBeString();
 
                     if (typeof replacementText !== "string") {
                         throw new TypeError(

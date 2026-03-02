@@ -1,6 +1,9 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import * as fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,6 +11,7 @@ import { describe, expect, it, vi } from "vitest";
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-writable` behavior.
  */
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule, repoPath } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -25,12 +29,45 @@ const importedAliasInvalidFixtureName =
 const importedAliasInvalidFixtureCode = readTypedFixture(
     importedAliasInvalidFixtureName
 );
-const importedAliasFixtureFixableOutputCode = importedAliasInvalidFixtureCode
-    .replace(
-        'import type { Mutable } from "type-aliases";\r\n',
-        'import type { Mutable } from "type-aliases";\nimport type { Writable } from "type-fest";\r\n'
-    )
-    .replace("Mutable<", "Writable<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-writable fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const insertTypeFestWritableImportAfterMutableImport = (
+    sourceText: string
+): string => {
+    const sourceLineEnding = sourceText.includes("\r\n") ? "\r\n" : "\n";
+
+    return replaceOrThrow({
+        replacement: `import type { Mutable } from "type-aliases";\nimport type { Writable } from "type-fest";${sourceLineEnding}`,
+        sourceText,
+        target: `import type { Mutable } from "type-aliases";${sourceLineEnding}`,
+    });
+};
+
+const importedAliasFixtureFixableOutputCode = replaceOrThrow({
+    replacement: "Writable<",
+    sourceText: insertTypeFestWritableImportAfterMutableImport(
+        importedAliasInvalidFixtureCode
+    ),
+    target: "Mutable<",
+});
 const inlineFixableInvalidCode = [
     'import type { Mutable } from "type-aliases";',
     'import type { Writable } from "type-fest";',
@@ -41,10 +78,11 @@ const inlineFixableInvalidCode = [
     "",
     "type MutableUser = Mutable<User>;",
 ].join("\n");
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type MutableUser = Mutable<User>;",
-    "type MutableUser = Writable<User>;"
-);
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type MutableUser = Writable<User>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type MutableUser = Mutable<User>;",
+});
 const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { Mutable } from "type-aliases";',
     "",
@@ -86,6 +124,38 @@ const mappedNamespaceAliasValidCode = [
     "type MutableUser = Aliases.Mutable<User>;",
 ].join("\n");
 const validFixtureName = "prefer-type-fest-writable.valid.ts";
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const generatedTypeNameArbitrary = fc.constantFrom(
+    "User",
+    "ReadonlyMonitor",
+    "Config",
+    "FeatureFlags",
+    "Payload"
+);
+
+const parseWritableAliasTypeReferenceFromCode = (sourceText: string) => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return statement.typeAnnotation;
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from Writable<T>"
+    );
+};
 
 interface WritableRuleMetadataSnapshot {
     defaultOptions?: Readonly<UnknownArray>;
@@ -241,6 +311,38 @@ describe(ruleName, () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
+    });
+
+    it("fast-check: Mutable alias replacement remains parseable", () => {
+        expect.hasAssertions();
+
+        fc.assert(
+            fc.property(generatedTypeNameArbitrary, (typeName) => {
+                const generatedCode = [
+                    'import type { Mutable } from "type-aliases";',
+                    'import type { Writable } from "type-fest";',
+                    `type MutableAlias = Mutable<${typeName}>;`,
+                ].join("\n");
+
+                const replacedCode = replaceOrThrow({
+                    replacement: `Writable<${typeName}>`,
+                    sourceText: generatedCode,
+                    target: `Mutable<${typeName}>`,
+                });
+
+                const typeReference =
+                    parseWritableAliasTypeReferenceFromCode(replacedCode);
+
+                expect(typeReference.typeName.type).toBe(
+                    AST_NODE_TYPES.Identifier
+                );
+
+                if (typeReference.typeName.type === AST_NODE_TYPES.Identifier) {
+                    expect(typeReference.typeName.name).toBe("Writable");
+                }
+            }),
+            fastCheckRunConfig.default
+        );
     });
 
     it("does not throw when mapped constraint is missing", () => {
