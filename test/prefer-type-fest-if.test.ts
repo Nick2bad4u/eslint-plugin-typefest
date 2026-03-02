@@ -1,11 +1,16 @@
 import type { UnknownArray } from "type-fest";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-if.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -19,36 +24,76 @@ const validFixtureName = "prefer-type-fest-if.valid.ts";
 const namespaceValidFixtureName = "prefer-type-fest-if.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-if.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        '} from "type-aliases";\r\n',
-        '} from "type-aliases";\nimport type { IsAny } from "type-fest";\r\n'
-    )
-    .replace("IfAny<", "IsAny<");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode
-    .replace(
-        'import type { IsAny } from "type-fest";\r\n',
-        'import type { IsAny } from "type-fest";\nimport type { IsEmptyObject } from "type-fest";\r\n'
-    )
-    .replace("IfEmptyObject<", "IsEmptyObject<");
-const fixtureFixableThirdPassOutputCode = fixtureFixableSecondPassOutputCode
-    .replace(
-        'import type { IsEmptyObject } from "type-fest";\r\n',
-        'import type { IsEmptyObject } from "type-fest";\nimport type { IsNever } from "type-fest";\r\n'
-    )
-    .replace("IfNever<", "IsNever<");
-const fixtureFixableFourthPassOutputCode = fixtureFixableThirdPassOutputCode
-    .replace(
-        'import type { IsNever } from "type-fest";\r\n',
-        'import type { IsNever } from "type-fest";\nimport type { IsNull } from "type-fest";\r\n'
-    )
-    .replace("IfNull<", "IsNull<");
-const fixtureFixableFifthPassOutputCode = fixtureFixableFourthPassOutputCode
-    .replace(
-        'import type { IsNull } from "type-fest";\r\n',
-        'import type { IsNull } from "type-fest";\nimport type { IsUnknown } from "type-fest";\r\n'
-    )
-    .replace("IfUnknown<", "IsUnknown<");
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-if fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "IsAny<",
+    sourceText: replaceOrThrow({
+        replacement:
+            '} from "type-aliases";\nimport type { IsAny } from "type-fest";\r\n',
+        sourceText: invalidFixtureCode,
+        target: '} from "type-aliases";\r\n',
+    }),
+    target: "IfAny<",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "IsEmptyObject<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { IsAny } from "type-fest";\nimport type { IsEmptyObject } from "type-fest";\r\n',
+        sourceText: fixtureFixableOutputCode,
+        target: 'import type { IsAny } from "type-fest";\r\n',
+    }),
+    target: "IfEmptyObject<",
+});
+const fixtureFixableThirdPassOutputCode = replaceOrThrow({
+    replacement: "IsNever<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { IsEmptyObject } from "type-fest";\nimport type { IsNever } from "type-fest";\r\n',
+        sourceText: fixtureFixableSecondPassOutputCode,
+        target: 'import type { IsEmptyObject } from "type-fest";\r\n',
+    }),
+    target: "IfNever<",
+});
+const fixtureFixableFourthPassOutputCode = replaceOrThrow({
+    replacement: "IsNull<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { IsNever } from "type-fest";\nimport type { IsNull } from "type-fest";\r\n',
+        sourceText: fixtureFixableThirdPassOutputCode,
+        target: 'import type { IsNever } from "type-fest";\r\n',
+    }),
+    target: "IfNull<",
+});
+const fixtureFixableFifthPassOutputCode = replaceOrThrow({
+    replacement: "IsUnknown<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { IsNull } from "type-fest";\nimport type { IsUnknown } from "type-fest";\r\n',
+        sourceText: fixtureFixableFourthPassOutputCode,
+        target: 'import type { IsNull } from "type-fest";\r\n',
+    }),
+    target: "IfUnknown<",
+});
 const inlineFixableInvalidCode = [
     'import type { IfAny } from "type-aliases";',
     'import type { IsAny } from "type-fest";',
@@ -77,6 +122,95 @@ interface IfRuleMetadataSnapshot {
     };
     name?: string;
 }
+
+type IfReportDescriptor = Readonly<{
+    data?: {
+        alias?: string;
+        replacement?: string;
+    };
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const ifAliasToReplacement = {
+    IfAny: "IsAny",
+    IfEmptyObject: "IsEmptyObject",
+    IfNever: "IsNever",
+    IfNull: "IsNull",
+    IfUnknown: "IsUnknown",
+} as const;
+
+const ifAliasArbitrary = fc.constantFrom(...Object.keys(ifAliasToReplacement));
+
+const conditionalTypeOperandArbitrary = fc.constantFrom(
+    "unknown",
+    "never",
+    "string | number",
+    "{ readonly id: string }"
+);
+
+const conditionalTypeBranchArbitrary = fc.constantFrom(
+    "true",
+    "false",
+    "'ok'",
+    "ReadonlyArray<number>"
+);
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseIfTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from an If* type reference"
+    );
+};
 
 const loadIfRuleMetadata = async (): Promise<IfRuleMetadataSnapshot> => {
     vi.resetModules();
@@ -163,6 +297,126 @@ describe("prefer-type-fest-if metadata", () => {
             undecoratedModule.default.create({});
 
             expect(capturedPaths).toStrictEqual([""]);
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+});
+
+describe("prefer-type-fest-if source assertions", () => {
+    it("fast-check: If* replacement text remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeReferenceReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                collectImportedTypeAliasMatches: () =>
+                    new Map(
+                        Object.entries(ifAliasToReplacement).map(
+                            ([importedName, replacementName]) => [
+                                importedName,
+                                { importedName, replacementName },
+                            ]
+                        )
+                    ),
+                createSafeTypeReferenceReplacementFix:
+                    createSafeTypeReferenceReplacementFixMock,
+            }));
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-type-fest-if")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    ifAliasArbitrary,
+                    conditionalTypeOperandArbitrary,
+                    conditionalTypeBranchArbitrary,
+                    conditionalTypeBranchArbitrary,
+                    (
+                        aliasName,
+                        conditionTypeText,
+                        truthyBranchTypeText,
+                        falsyBranchTypeText
+                    ) => {
+                        createSafeTypeReferenceReplacementFixMock.mockClear();
+
+                        const replacementName =
+                            ifAliasToReplacement[
+                                aliasName as keyof typeof ifAliasToReplacement
+                            ];
+                        const code = [
+                            "declare const seed: unique symbol;",
+                            `type Candidate = ${aliasName}<${conditionTypeText}, ${truthyBranchTypeText}, ${falsyBranchTypeText}>;`,
+                            "void seed;",
+                        ].join("\n");
+
+                        const { ast, typeReference } =
+                            parseIfTypeReferenceFromCode(code);
+                        const reportCalls: IfReportDescriptor[] = [];
+
+                        const listeners = undecoratedRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-if.invalid.ts",
+                            report: (descriptor: IfReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSTypeReference?.(typeReference);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            data: {
+                                alias: aliasName,
+                                replacement: replacementName,
+                            },
+                            fix: "FIX",
+                            messageId: "preferTypeFestIf",
+                        });
+                        expect(
+                            createSafeTypeReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const calledReplacementName =
+                            createSafeTypeReferenceReplacementFixMock.mock
+                                .calls[0]?.[1];
+
+                        expect(calledReplacementName).toBe(replacementName);
+
+                        const fixedCode = `${code.slice(0, typeReference.range[0])}${replacementName}<${conditionTypeText}, ${truthyBranchTypeText}, ${falsyBranchTypeText}>${code.slice(typeReference.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");

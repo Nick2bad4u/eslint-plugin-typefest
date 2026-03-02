@@ -3,6 +3,14 @@ import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rul
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-simplify.test` behavior.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
+import { describe, expect, it, vi } from "vitest";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -17,16 +25,41 @@ const namespaceValidFixtureName =
     "prefer-type-fest-simplify.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-simplify.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { Expand, Prettify } from "type-fest";\r\n',
-        'import type { Expand, Prettify } from "type-fest";\nimport type { Simplify } from "type-fest";\r\n'
-    )
-    .replace("Expand<", "Simplify<");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "Prettify<",
-    "Simplify<"
-);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-simplify fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "Simplify<",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { Expand, Prettify } from "type-fest";\nimport type { Simplify } from "type-fest";\r\n',
+        sourceText: invalidFixtureCode,
+        target: 'import type { Expand, Prettify } from "type-fest";\r\n',
+    }),
+    target: "Expand<",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "Simplify<",
+    sourceText: fixtureFixableOutputCode,
+    target: "Prettify<",
+});
 const inlineFixableInvalidCode = [
     'import type { Expand, Simplify } from "type-fest";',
     "",
@@ -66,10 +99,11 @@ const inlineFixablePrettifyCode = [
     "",
     "type Flattened = Prettify<Payload>;",
 ].join("\n");
-const inlineFixablePrettifyOutput = inlineFixablePrettifyCode.replace(
-    "type Flattened = Prettify<Payload>;",
-    "type Flattened = Simplify<Payload>;"
-);
+const inlineFixablePrettifyOutput = replaceOrThrow({
+    replacement: "type Flattened = Simplify<Payload>;",
+    sourceText: inlineFixablePrettifyCode,
+    target: "type Flattened = Prettify<Payload>;",
+});
 const inlineNoFixShadowedReplacementCode = [
     'import type { Expand } from "type-fest";',
     "",
@@ -80,10 +114,85 @@ const inlineNoFixShadowedReplacementCode = [
     "type Wrapper<Simplify> = Expand<Payload>;",
 ].join("\n");
 
-const inlineFixableOutputCode = inlineFixableInvalidCode.replace(
-    "type Flattened = Expand<Payload>;",
-    "type Flattened = Simplify<Payload>;"
+const inlineFixableOutputCode = replaceOrThrow({
+    replacement: "type Flattened = Simplify<Payload>;",
+    sourceText: inlineFixableInvalidCode,
+    target: "type Flattened = Expand<Payload>;",
+});
+
+type SimplifyReportDescriptor = Readonly<{
+    data?: {
+        alias?: string;
+        replacement?: string;
+    };
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const simplifyAliasArbitrary = fc.constantFrom("Expand", "Prettify");
+
+const simplifyOperandArbitrary = fc.constantFrom(
+    "{ readonly id: string }",
+    "{ alpha: string; beta: number } & { gamma?: boolean }",
+    "ReadonlyArray<{ id: string }>",
+    "Promise<{ readonly done: true }>"
 );
+
+const getSourceTextForNode = ({
+    code,
+    node,
+}: Readonly<{
+    code: string;
+    node: unknown;
+}>): string => {
+    if (typeof node !== "object" || node === null || !("range" in node)) {
+        return "";
+    }
+
+    const nodeRange = (
+        node as Readonly<{
+            range?: readonly [number, number];
+        }>
+    ).range;
+
+    if (nodeRange === undefined) {
+        return "";
+    }
+
+    return code.slice(nodeRange[0], nodeRange[1]);
+};
+
+const parseSimplifyTypeReferenceFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    typeReference: TSESTree.TSTypeReference;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
+        ) {
+            return {
+                ast: parsed.ast,
+                typeReference: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a simplify candidate type reference"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
     defaultOptions: [],
@@ -95,6 +204,124 @@ addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-simplify", {
             "Prefer `{{replacement}}` from type-fest to flatten resolved object and intersection types instead of legacy alias `{{alias}}`.",
     },
     name: "prefer-type-fest-simplify",
+});
+
+describe("prefer-type-fest-simplify source assertions", () => {
+    it("fast-check: Simplify replacement text remains parseable", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeReferenceReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                collectImportedTypeAliasMatches: () =>
+                    new Map([
+                        [
+                            "Expand",
+                            {
+                                importedName: "Expand",
+                                replacementName: "Simplify",
+                            },
+                        ],
+                        [
+                            "Prettify",
+                            {
+                                importedName: "Prettify",
+                                replacementName: "Simplify",
+                            },
+                        ],
+                    ]),
+                createSafeTypeReferenceReplacementFix:
+                    createSafeTypeReferenceReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-simplify")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSTypeReference?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(
+                    simplifyAliasArbitrary,
+                    simplifyOperandArbitrary,
+                    (aliasName, operandTypeText) => {
+                        createSafeTypeReferenceReplacementFixMock.mockClear();
+
+                        const code = [
+                            "declare const seed: unique symbol;",
+                            `type Candidate = ${aliasName}<${operandTypeText}>;`,
+                            "void seed;",
+                        ].join("\n");
+
+                        const { ast, typeReference } =
+                            parseSimplifyTypeReferenceFromCode(code);
+                        const reportCalls: SimplifyReportDescriptor[] = [];
+
+                        const listeners = authoredRuleModule.default.create({
+                            filename:
+                                "fixtures/typed/prefer-type-fest-simplify.invalid.ts",
+                            report: (descriptor: SimplifyReportDescriptor) => {
+                                reportCalls.push(descriptor);
+                            },
+                            sourceCode: {
+                                ast,
+                                getText(node: unknown): string {
+                                    return getSourceTextForNode({ code, node });
+                                },
+                            },
+                        });
+
+                        listeners.TSTypeReference?.(typeReference);
+
+                        expect(reportCalls).toHaveLength(1);
+                        expect(reportCalls[0]).toMatchObject({
+                            data: {
+                                alias: aliasName,
+                                replacement: "Simplify",
+                            },
+                            fix: "FIX",
+                            messageId: "preferSimplify",
+                        });
+
+                        expect(
+                            createSafeTypeReferenceReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
+
+                        const calledReplacementName =
+                            createSafeTypeReferenceReplacementFixMock.mock
+                                .calls[0]?.[1];
+
+                        expect(calledReplacementName).toBe("Simplify");
+
+                        const fixedCode = `${code.slice(0, typeReference.range[0])}Simplify<${operandTypeText}>${code.slice(typeReference.range[1])}`;
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
+                    }
+                ),
+                fastCheckRunConfig.default
+            );
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 ruleTester.run(

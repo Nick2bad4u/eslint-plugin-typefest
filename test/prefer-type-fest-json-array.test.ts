@@ -1,12 +1,17 @@
 import type { UnknownArray } from "type-fest";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-array.test` behavior.
  */
+import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -26,16 +31,41 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-type-fest-json-array.valid.ts";
 const invalidFixtureName = "prefer-type-fest-json-array.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const fixtureFixableOutputCode = invalidFixtureCode
-    .replace(
-        'import type { JsonValue } from "type-fest";\r\n',
-        'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";\r\n'
-    )
-    .replace("JsonValue[] | readonly JsonValue[]", "JsonArray");
-const fixtureFixableSecondPassOutputCode = fixtureFixableOutputCode.replace(
-    "    | Array<JsonValue>\r\n    | ReadonlyArray<JsonValue>",
-    "    JsonArray"
-);
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-type-fest-json-array fixture text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureFixableOutputCode = replaceOrThrow({
+    replacement: "JsonArray",
+    sourceText: replaceOrThrow({
+        replacement:
+            'import type { JsonValue } from "type-fest";\nimport type { JsonArray } from "type-fest";\r\n',
+        sourceText: invalidFixtureCode,
+        target: 'import type { JsonValue } from "type-fest";\r\n',
+    }),
+    target: "JsonValue[] | readonly JsonValue[]",
+});
+const fixtureFixableSecondPassOutputCode = replaceOrThrow({
+    replacement: "    JsonArray",
+    sourceText: fixtureFixableOutputCode,
+    target: "    | Array<JsonValue>\r\n    | ReadonlyArray<JsonValue>",
+});
 const inlineInvalidReversedNativeUnionCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -186,6 +216,50 @@ const inlineValidQualifiedJsonValueTypeReferenceCode = [
     "",
     "type NotJsonArray = Array<TypeFest.JsonValue> | ReadonlyArray<TypeFest.JsonValue>;",
 ].join("\n");
+
+type JsonArrayReportDescriptor = Readonly<{
+    fix?: unknown;
+    messageId?: string;
+}>;
+
+const parserOptions = {
+    ecmaVersion: "latest",
+    loc: true,
+    range: true,
+    sourceType: "module",
+} as const;
+
+const jsonArrayUnionArbitrary = fc.constantFrom(
+    "JsonValue[] | readonly JsonValue[]",
+    "readonly JsonValue[] | JsonValue[]",
+    "Array<JsonValue> | ReadonlyArray<JsonValue>",
+    "ReadonlyArray<JsonValue> | Array<JsonValue>"
+);
+
+const parseUnionTypeFromCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    unionType: TSESTree.TSUnionType;
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+
+    for (const statement of parsed.ast.body) {
+        if (
+            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
+            statement.typeAnnotation.type === AST_NODE_TYPES.TSUnionType
+        ) {
+            return {
+                ast: parsed.ast,
+                unionType: statement.typeAnnotation,
+            };
+        }
+    }
+
+    throw new Error(
+        "Expected generated source text to include a type alias assigned from a TSUnionType"
+    );
+};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -366,6 +440,90 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             expect(replacementFixCalls).toHaveLength(2);
             expect(replacementFixCalls[0]?.[1]).toBe("JsonArray");
             expect(replacementFixCalls[1]?.[1]).toBe("JsonArray");
+        } finally {
+            vi.doUnmock("../src/_internal/imported-type-aliases.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
+    it("fast-check: JsonArray replacement text remains parseable for supported unions", async () => {
+        expect.hasAssertions();
+
+        try {
+            vi.resetModules();
+
+            const createSafeTypeNodeReplacementFixMock = vi.fn(
+                (..._args: readonly unknown[]) => "FIX"
+            );
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                isTestFilePath: (): boolean => false,
+            }));
+
+            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
+                collectDirectNamedImportsFromSource: () => new Set<string>(),
+                createSafeTypeNodeReplacementFix:
+                    createSafeTypeNodeReplacementFixMock,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-type-fest-json-array")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSUnionType?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            fc.assert(
+                fc.property(jsonArrayUnionArbitrary, (jsonArrayUnionText) => {
+                    createSafeTypeNodeReplacementFixMock.mockClear();
+
+                    const code = [
+                        'import type { JsonArray, JsonValue } from "type-fest";',
+                        `type Candidate = ${jsonArrayUnionText};`,
+                    ].join("\n");
+
+                    const { ast, unionType } = parseUnionTypeFromCode(code);
+                    const reportCalls: JsonArrayReportDescriptor[] = [];
+
+                    const listeners = authoredRuleModule.default.create({
+                        filename:
+                            "fixtures/typed/prefer-type-fest-json-array.invalid.ts",
+                        report: (descriptor: JsonArrayReportDescriptor) => {
+                            reportCalls.push(descriptor);
+                        },
+                        sourceCode: {
+                            ast,
+                        },
+                    });
+
+                    listeners.TSUnionType?.(unionType);
+
+                    expect(reportCalls).toHaveLength(1);
+                    expect(reportCalls[0]).toMatchObject({
+                        fix: "FIX",
+                        messageId: "preferJsonArray",
+                    });
+                    expect(
+                        createSafeTypeNodeReplacementFixMock
+                    ).toHaveBeenCalledTimes(1);
+
+                    const calledReplacementName =
+                        createSafeTypeNodeReplacementFixMock.mock.calls[0]?.[1];
+
+                    expect(calledReplacementName).toBe("JsonArray");
+
+                    const fixedCode = `${code.slice(0, unionType.range[0])}JsonArray${code.slice(unionType.range[1])}`;
+
+                    expect(() => {
+                        parser.parseForESLint(fixedCode, parserOptions);
+                    }).not.toThrowError();
+                }),
+                fastCheckRunConfig.default
+            );
         } finally {
             vi.doUnmock("../src/_internal/imported-type-aliases.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
