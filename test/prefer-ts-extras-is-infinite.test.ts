@@ -3,13 +3,45 @@
  * Vitest coverage for `prefer-ts-extras-is-infinite.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    inlineFixableDualSignCode,
+    inlineFixableDualSignOutput,
+    inlineFixableInfinityIdentifierDualSignCode,
+    inlineFixableInfinityIdentifierDualSignOutput,
+    inlineInvalidDifferentComparedExpressionsCode,
+    inlineInvalidLeftInfinityCode,
+    inlineInvalidLogicalAndDualSignCode,
+    inlineInvalidMathNegativeInfinityDisjunctionCode,
+    inlineInvalidMixedStrictnessDualSignCode,
+    inlineInvalidPositiveInfinityCode,
+    inlineInvalidSameSignStrictDisjunctionCode,
+    inlineParenthesizedDisjunctionCode,
+    inlineParenthesizedDisjunctionOutput,
+    inlineValidComputedInfinityMemberCode,
+    inlineValidNonEqualityOperatorCode,
+    inlineValidNonInfinityNumberPropertyCode,
+    inlineValidOtherObjectInfinityMemberCode,
+    inlineValidShadowedInfinityBindingCode,
+    inlineValidShadowedNumberBindingCode,
+    inlineValidWithoutInfinityReferenceCode,
+    invalidFixtureName,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-is-infinite-cases";
+import {
+    buildComparedExpressionTemplate,
+    buildStrictInfinityComparisonText,
+    generatedFixableDisjunctionCaseArbitrary,
+    generatedMismatchedDisjunctionCaseArbitrary,
+    getPositiveInfinityReferenceText,
+    parseLogicalDisjunctionFromCode,
+    parserOptions,
+} from "./_internal/prefer-ts-extras-is-infinite-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -20,412 +52,6 @@ import {
 
 const rule = getPluginRule("prefer-ts-extras-is-infinite");
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-ts-extras-is-infinite.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-is-infinite.invalid.ts";
-const inlineInvalidPositiveInfinityCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric == Number.POSITIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidLeftInfinityCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = Infinity === metric;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidNonEqualityOperatorCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric > Infinity;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidWithoutInfinityReferenceCode = [
-    "declare const metric: number;",
-    "declare const fallbackMetric: number;",
-    "",
-    "const hasSameMetric = metric === fallbackMetric;",
-    "",
-    "String(hasSameMetric);",
-].join("\n");
-const inlineValidComputedInfinityMemberCode = [
-    "declare const metric: number;",
-    "",
-    'const isInfiniteMetric = metric === Number["POSITIVE_INFINITY"];',
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidOtherObjectInfinityMemberCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Math.POSITIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidNonInfinityNumberPropertyCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Number.MAX_VALUE;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidShadowedInfinityBindingCode = [
-    "declare const metric: number;",
-    "const Infinity = Number.NaN;",
-    "",
-    "const isInfiniteMetric = metric === Infinity;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineValidShadowedNumberBindingCode = [
-    "declare const metric: number;",
-    "const Number = { POSITIVE_INFINITY: 1, NEGATIVE_INFINITY: -1 };",
-    "",
-    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineFixableDualSignCode = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY || metric === Number.NEGATIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineFixableDualSignOutput = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = isInfinite(metric);",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineFixableInfinityIdentifierDualSignCode = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = Infinity === metric || Number.NEGATIVE_INFINITY === metric;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineFixableInfinityIdentifierDualSignOutput = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = isInfinite(metric);",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidMixedStrictnessDualSignCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric == Number.POSITIVE_INFINITY || metric === Number.NEGATIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidSameSignStrictDisjunctionCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY || metric === Infinity;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidDifferentComparedExpressionsCode = [
-    "declare const firstMetric: number;",
-    "declare const secondMetric: number;",
-    "",
-    "const isInfiniteMetric = firstMetric === Number.POSITIVE_INFINITY || secondMetric === Number.NEGATIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidLogicalAndDualSignCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY && metric === Number.NEGATIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineInvalidMathNegativeInfinityDisjunctionCode = [
-    "declare const metric: number;",
-    "",
-    "const isInfiniteMetric = metric === Number.POSITIVE_INFINITY || metric === Math.NEGATIVE_INFINITY;",
-    "",
-    "String(isInfiniteMetric);",
-].join("\n");
-const inlineParenthesizedDisjunctionCode = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "const metric = Number.POSITIVE_INFINITY;",
-    "const hasInfiniteMetric =",
-    "    (metric) === Number.POSITIVE_INFINITY ||",
-    "    Number.NEGATIVE_INFINITY === metric;",
-    "String(hasInfiniteMetric);",
-].join("\n");
-const inlineParenthesizedDisjunctionOutput = [
-    'import { isInfinite } from "ts-extras";',
-    "",
-    "const metric = Number.POSITIVE_INFINITY;",
-    "const hasInfiniteMetric =",
-    "    isInfinite(metric);",
-    "String(hasInfiniteMetric);",
-].join("\n");
-
-type ComparedExpressionTemplateId =
-    | "callExpression"
-    | "computedMemberExpression"
-    | "identifier"
-    | "memberExpression"
-    | "parenthesizedIdentifier"
-    | "typeAssertion";
-
-type ComparisonOrientation = "expressionOnLeft" | "expressionOnRight";
-
-type PositiveInfinityReferenceKind =
-    | "globalInfinity"
-    | "numberPositiveInfinity";
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
-/* eslint-disable total-functions/no-hidden-type-assertions -- fast-check tuple composition depends on inferred literal generics to retain case-shape precision. */
-const generatedFixableDisjunctionCaseArbitrary = fc
-    .tuple(
-        fc.constantFrom(
-            "callExpression",
-            "computedMemberExpression",
-            "identifier",
-            "memberExpression",
-            "parenthesizedIdentifier",
-            "typeAssertion"
-        ),
-        fc.constantFrom("globalInfinity", "numberPositiveInfinity"),
-        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
-        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
-        fc.boolean(),
-        fc.boolean()
-    )
-    .map(
-        ([
-            templateId,
-            positiveInfinityReferenceKind,
-            positiveOrientation,
-            negativeOrientation,
-            reverseOrder,
-            includeUnicodeLine,
-        ]) => ({
-            includeUnicodeLine,
-            negativeOrientation,
-            positiveInfinityReferenceKind,
-            positiveOrientation,
-            reverseOrder,
-            templateId,
-        })
-    );
-
-const generatedMismatchedDisjunctionCaseArbitrary = fc
-    .tuple(
-        fc.constantFrom("globalInfinity", "numberPositiveInfinity"),
-        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
-        fc.constantFrom("expressionOnLeft", "expressionOnRight"),
-        fc.boolean(),
-        fc.boolean()
-    )
-    .map(
-        ([
-            positiveInfinityReferenceKind,
-            firstOrientation,
-            secondOrientation,
-            reverseOrder,
-            includeUnicodeLine,
-        ]) => ({
-            firstOrientation,
-            includeUnicodeLine,
-            positiveInfinityReferenceKind,
-            reverseOrder,
-            secondOrientation,
-        })
-    );
-/* eslint-enable total-functions/no-hidden-type-assertions -- restore default lint behavior after tuple-based arbitrary construction. */
-
-const comparedExpressionTemplates: Readonly<
-    Record<
-        ComparedExpressionTemplateId,
-        Readonly<{
-            declarations: readonly string[];
-            expressionText: string;
-        }>
-    >
-> = {
-    callExpression: {
-        declarations: ["declare function readMetric(): number;"],
-        expressionText: "readMetric()",
-    },
-    computedMemberExpression: {
-        declarations: [
-            "declare const metrics: readonly number[];",
-            "declare const metricIndex: number;",
-        ],
-        expressionText: "metrics[metricIndex]",
-    },
-    identifier: {
-        declarations: ["declare const metric: number;"],
-        expressionText: "metric",
-    },
-    memberExpression: {
-        declarations: [
-            "declare const metricHolder: { readonly current: number };",
-        ],
-        expressionText: "metricHolder.current",
-    },
-    parenthesizedIdentifier: {
-        declarations: ["declare const metric: number;"],
-        expressionText: "(metric)",
-    },
-    typeAssertion: {
-        declarations: ["declare const metricValue: unknown;"],
-        expressionText: "(metricValue as number)",
-    },
-};
-
-const buildComparedExpressionTemplate = (
-    templateId: ComparedExpressionTemplateId
-): Readonly<{
-    declarations: readonly string[];
-    expressionText: string;
-}> => comparedExpressionTemplates[templateId];
-
-const getPositiveInfinityReferenceText = (
-    positiveInfinityReferenceKind: PositiveInfinityReferenceKind
-): string =>
-    positiveInfinityReferenceKind === "globalInfinity"
-        ? "Infinity"
-        : "Number.POSITIVE_INFINITY";
-
-const buildStrictInfinityComparisonText = ({
-    comparedExpressionText,
-    infinityReferenceText,
-    orientation,
-}: Readonly<{
-    comparedExpressionText: string;
-    infinityReferenceText: string;
-    orientation: ComparisonOrientation;
-}>): string =>
-    orientation === "expressionOnLeft"
-        ? `${comparedExpressionText} === ${infinityReferenceText}`
-        : `${infinityReferenceText} === ${comparedExpressionText}`;
-
-const isInfinityReferenceNode = (
-    node: Readonly<TSESTree.Expression>
-): boolean => {
-    if (node.type === AST_NODE_TYPES.Identifier && node.name === "Infinity") {
-        return true;
-    }
-
-    return (
-        node.type === AST_NODE_TYPES.MemberExpression &&
-        !node.computed &&
-        node.object.type === AST_NODE_TYPES.Identifier &&
-        node.object.name === "Number" &&
-        node.property.type === AST_NODE_TYPES.Identifier &&
-        (node.property.name === "NEGATIVE_INFINITY" ||
-            node.property.name === "POSITIVE_INFINITY")
-    );
-};
-
-const isBinaryComparableExpression = (
-    node: Readonly<TSESTree.BinaryExpression["left"]>
-): node is TSESTree.Expression =>
-    node.type !== AST_NODE_TYPES.PrivateIdentifier;
-
-const getLogicalExpressionInitializerFromStatement = (
-    statement: Readonly<TSESTree.ProgramStatement>
-): null | TSESTree.LogicalExpression => {
-    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
-        return null;
-    }
-
-    for (const declaration of statement.declarations) {
-        if (declaration.init?.type === AST_NODE_TYPES.LogicalExpression) {
-            return declaration.init;
-        }
-    }
-
-    return null;
-};
-
-const parseLogicalDisjunctionFromCode = (
-    sourceText: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    comparedExpressionText: string;
-    logicalExpression: TSESTree.LogicalExpression;
-    logicalRange: readonly [number, number];
-}> => {
-    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
-    let logicalExpression: null | TSESTree.LogicalExpression = null;
-
-    for (const statement of parsedResult.ast.body) {
-        logicalExpression =
-            getLogicalExpressionInitializerFromStatement(statement);
-
-        if (logicalExpression !== null) {
-            break;
-        }
-    }
-
-    if (!logicalExpression) {
-        throw new Error(
-            "Expected generated code to include a logical disjunction initializer"
-        );
-    }
-
-    if (
-        logicalExpression.operator !== "||" ||
-        logicalExpression.left.type !== AST_NODE_TYPES.BinaryExpression
-    ) {
-        throw new Error(
-            "Expected generated logical expression to be a disjunction with binary left term"
-        );
-    }
-
-    const leftBinary = logicalExpression.left;
-
-    if (
-        !isBinaryComparableExpression(leftBinary.left) ||
-        !isBinaryComparableExpression(leftBinary.right)
-    ) {
-        throw new Error(
-            "Expected generated binary comparisons to use expression operands"
-        );
-    }
-
-    const comparedExpression = isInfinityReferenceNode(leftBinary.left)
-        ? leftBinary.right
-        : leftBinary.left;
-    const comparedExpressionRange = comparedExpression.range;
-
-    return {
-        ast: parsedResult.ast,
-        comparedExpressionText: sourceText
-            .slice(comparedExpressionRange[0], comparedExpressionRange[1])
-            .trim(),
-        logicalExpression,
-        logicalRange: logicalExpression.range,
-    };
-};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-is-infinite",

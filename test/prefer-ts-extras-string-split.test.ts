@@ -13,6 +13,27 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    computedAccessValidCode,
+    declaredStringObjectInvalidCode,
+    declaredStringObjectInvalidOutput,
+    declaredStringUnionInvalidCode,
+    declaredStringUnionInvalidOutput,
+    differentStringMethodValidCode,
+    inlineFixableCode,
+    inlineFixableOutput,
+    inlineInvalidCode,
+    inlineInvalidOutput,
+    intersectionStringInvalidCode,
+    intersectionStringInvalidOutput,
+    invalidFixtureName,
+    mixedUnionInvalidCode,
+    mixedUnionInvalidOutput,
+    nonStringReceiverValidCode,
+    unionStringInvalidCode,
+    unionStringInvalidOutput,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-string-split-cases";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -22,112 +43,6 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-ts-extras-string-split.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-string-split.invalid.ts";
-
-const inlineInvalidCode = [
-    "const value = 'a,b';",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const inlineInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "const value = 'a,b';",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-
-const computedAccessValidCode = [
-    "const value = 'a,b';",
-    'const parts = value["split"](",");',
-    "String(parts);",
-].join("\n");
-
-const nonStringReceiverValidCode = [
-    "const helper = {",
-    "    split(separator: string): readonly string[] {",
-    "        return [separator];",
-    "    },",
-    "};",
-    "const parts = helper.split(',');",
-    "String(parts);",
-].join("\n");
-const differentStringMethodValidCode = [
-    "const value = 'a,b';",
-    "const normalized = value.toUpperCase();",
-    "String(normalized);",
-].join("\n");
-const unionStringInvalidCode = [
-    "const value: 'a,b' | 'c,d' = 'a,b';",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const unionStringInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "const value: 'a,b' | 'c,d' = 'a,b';",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-const mixedUnionInvalidCode = [
-    "declare const value: string | { split(separator: string): readonly string[] };",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const mixedUnionInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "declare const value: string | { split(separator: string): readonly string[] };",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-const declaredStringUnionInvalidCode = [
-    "declare const value: string | String;",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const declaredStringUnionInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "declare const value: string | String;",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-const declaredStringObjectInvalidCode = [
-    "declare const value: String;",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const declaredStringObjectInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "declare const value: String;",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-const intersectionStringInvalidCode = [
-    "type BrandedString = string & { readonly __brand: 'BrandedString' };",
-    "declare const value: BrandedString;",
-    "const parts = value.split(',');",
-    "String(parts);",
-].join("\n");
-const intersectionStringInvalidOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "type BrandedString = string & { readonly __brand: 'BrandedString' };",
-    "declare const value: BrandedString;",
-    "const parts = stringSplit(value, ',');",
-    "String(parts);",
-].join("\n");
-
-const inlineFixableCode = [
-    'import { stringSplit } from "ts-extras";',
-    "",
-    "const value = 'a,b';",
-    "const parts = value.split(',');",
-].join("\n");
-const inlineFixableOutput = [
-    'import { stringSplit } from "ts-extras";',
-    "",
-    "const value = 'a,b';",
-    "const parts = stringSplit(value, ',');",
-].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",

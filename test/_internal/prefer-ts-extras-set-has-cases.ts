@@ -3,8 +3,8 @@
  * Shared code fixtures for `prefer-ts-extras-set-has` tests.
  */
 
-export const validFixtureName: string = "prefer-ts-extras-set-has.valid.ts";
-export const invalidFixtureName: string = "prefer-ts-extras-set-has.invalid.ts";
+export const validFixtureName = "prefer-ts-extras-set-has.valid.ts";
+export const invalidFixtureName = "prefer-ts-extras-set-has.invalid.ts";
 
 export const computedAccessValidCode: string = [
     "const values = new Set([1, 2, 3]);",

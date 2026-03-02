@@ -2,8 +2,6 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-defined.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
@@ -12,482 +10,61 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    alternateValidCode,
+    emptyConsequentValidCode,
+    inlineAutofixableCanonicalCode,
+    inlineAutofixableCanonicalOutput,
+    inlineAutofixableCanonicalUnicodeRichCode,
+    inlineAutofixableCanonicalUnicodeRichOutput,
+    inlineAutofixableDirectThrowCanonicalCode,
+    inlineInvalidDirectThrowConsequentCode,
+    inlineInvalidSuggestionOutputCode,
+    inlineSuggestableCode,
+    inlineSuggestableOutput,
+    inlineSuggestableSpreadArgumentCode,
+    inlineSuggestableSpreadArgumentOutput,
+    inlineSuggestableTooManyArgsCode,
+    inlineSuggestableWrongConstructorCode,
+    invalidFixtureCode,
+    invalidFixtureName,
+    looseEqualityInvalidCode,
+    nonBinaryGuardValidCode,
+    nonThrowOnlyValidCode,
+    nonThrowSingleStatementBlockValidCode,
+    nonUndefinedValidCode,
+    shadowedTypeErrorSuggestableCode,
+    shadowedTypeErrorSuggestableOutput,
+    shadowedUndefinedBindingValidCode,
+    throwThenSideEffectValidCode,
+    undefinedOnLeftInvalidCode,
+    validFixtureCode,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-assert-defined-cases";
+import {
+    buildGuardExpressionTemplate,
+    buildNonCanonicalThrowText,
+    buildUndefinedComparisonText,
+    getSourceTextForNode,
+    guardComparisonOrientationArbitrary,
+    guardExpressionTemplateIdArbitrary,
+    nonCanonicalThrowTemplateIdArbitrary,
+    parseIfStatementFromCode,
+    parserOptions,
+} from "./_internal/prefer-ts-extras-assert-defined-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
-    readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
 const rule = getPluginRule("prefer-ts-extras-assert-defined");
 const ruleTester = createTypedRuleTester();
 
-const validFixtureName = "prefer-ts-extras-assert-defined.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-assert-defined.invalid.ts";
-const undefinedOnLeftInvalidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (undefined === value) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const looseEqualityInvalidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value == undefined) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineInvalidDirectThrowConsequentCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined)",
-    "        throw new TypeError('Missing value');",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const nonUndefinedValidCode = [
-    "function ensureValue(value: string | undefined): string | undefined {",
-    "    if (value === null) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const nonThrowOnlyValidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        String(value);",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const nonThrowSingleStatementBlockValidCode = [
-    "function ensureValue(value: string | undefined): string | undefined {",
-    "    if (value === undefined) {",
-    "        String(value);",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const throwThenSideEffectValidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Missing value');",
-    "        String(value);",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const alternateValidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Missing value');",
-    "    } else {",
-    "        String(value);",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const nonBinaryGuardValidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    if (!value) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const emptyConsequentValidCode = [
-    "function ensureValue(value: string | undefined): string | undefined {",
-    "    if (value === undefined);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const shadowedUndefinedBindingValidCode = [
-    "function ensureValue(value: string | undefined): string {",
-    "    const undefined = 'sentinel';",
-    "",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Missing value');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableWrongConstructorCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new Error('Expected a defined value, got `undefined`');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableTooManyArgsCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Expected a defined value, got `undefined`', value);",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableSpreadArgumentCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "const messageParts = ['Expected a defined value, got `undefined`'];",
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError(...messageParts);",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineAutofixableDirectThrowCanonicalCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) throw new TypeError('Expected a defined value, got `undefined`');",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const shadowedTypeErrorSuggestableCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "class TypeError extends Error {}",
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Expected a defined value, got `undefined`');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const shadowedTypeErrorSuggestableOutput = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "class TypeError extends Error {}",
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    assertDefined(value);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableOutput = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    assertDefined(value);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineSuggestableSpreadArgumentOutput = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "const messageParts = ['Expected a defined value, got `undefined`'];",
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    assertDefined(value);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineAutofixableCanonicalCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    if (value === undefined) {",
-    "        throw new TypeError('Expected a defined value, got `undefined`');",
-    "    }",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineAutofixableCanonicalOutput = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    "function ensureValue(value: string | undefined): string {",
-    "    assertDefined(value);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-const inlineAutofixableCanonicalUnicodeRichCode = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
-    "",
-    "function ensureValue(候補値: string | undefined): string {",
-    "    if (候補値 === undefined) {",
-    "        throw new TypeError('Expected a defined value, got `undefined`');",
-    "    }",
-    "",
-    "    return 候補値;",
-    "}",
-    "",
-    "String(glyphBanner);",
-].join("\n");
-const inlineAutofixableCanonicalUnicodeRichOutput = [
-    'import { assertDefined } from "ts-extras";',
-    "",
-    'const glyphBanner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";',
-    "",
-    "function ensureValue(候補値: string | undefined): string {",
-    "    assertDefined(候補値);",
-    "",
-    "    return 候補値;",
-    "}",
-    "",
-    "String(glyphBanner);",
-].join("\n");
-const inlineInvalidSuggestionOutputCode = [
-    'import { assertDefined } from "ts-extras";',
-    "function ensureValue(value: string | undefined): string {",
-    "    assertDefined(value);",
-    "",
-    "    return value;",
-    "}",
-].join("\n");
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
 type AssertDefinedFixFactoryArgs = Readonly<{
     replacementTextFactory: (replacementName: string) => string;
 }>;
-
-type GuardComparisonOrientation =
-    | "guardExpressionOnLeft"
-    | "guardExpressionOnRight";
-
-type GuardExpressionTemplateId =
-    | "callExpression"
-    | "identifier"
-    | "memberExpression"
-    | "parenthesizedIdentifier";
-
-type NonCanonicalThrowTemplateId =
-    | "errorConstructor"
-    | "extraArgument"
-    | "wrongMessage";
-
-const guardComparisonOrientationArbitrary = fc.constantFrom(
-    "guardExpressionOnLeft",
-    "guardExpressionOnRight"
-);
-
-const guardExpressionTemplateIdArbitrary = fc.constantFrom(
-    "identifier",
-    "memberExpression",
-    "callExpression",
-    "parenthesizedIdentifier"
-);
-
-const nonCanonicalThrowTemplateIdArbitrary = fc.constantFrom(
-    "wrongMessage",
-    "errorConstructor",
-    "extraArgument"
-);
-
-const buildGuardExpressionTemplate = (
-    templateId: GuardExpressionTemplateId
-): Readonly<{
-    declarations: readonly string[];
-    expressionText: string;
-}> => {
-    if (templateId === "identifier") {
-        return {
-            declarations: ["declare const maybeValue: string | undefined;"],
-            expressionText: "maybeValue",
-        };
-    }
-
-    if (templateId === "memberExpression") {
-        return {
-            declarations: [
-                "declare const holder: { readonly current: string | undefined };",
-            ],
-            expressionText: "holder.current",
-        };
-    }
-
-    if (templateId === "callExpression") {
-        return {
-            declarations: [
-                "declare function readMaybeValue(): string | undefined;",
-            ],
-            expressionText: "readMaybeValue()",
-        };
-    }
-
-    return {
-        declarations: ["declare const maybeValue: string | undefined;"],
-        expressionText: "(maybeValue)",
-    };
-};
-
-const buildUndefinedComparisonText = ({
-    expressionText,
-    operator,
-    orientation,
-}: Readonly<{
-    expressionText: string;
-    operator: "==" | "===";
-    orientation: GuardComparisonOrientation;
-}>): string =>
-    orientation === "guardExpressionOnLeft"
-        ? `${expressionText} ${operator} undefined`
-        : `undefined ${operator} ${expressionText}`;
-
-const buildNonCanonicalThrowText = (
-    templateId: NonCanonicalThrowTemplateId
-): string => {
-    if (templateId === "errorConstructor") {
-        return "throw new Error('Expected a defined value, got `undefined`');";
-    }
-
-    if (templateId === "extraArgument") {
-        return "throw new TypeError('Expected a defined value, got `undefined`', maybeValue);";
-    }
-
-    return "throw new TypeError('Missing value');";
-};
-
-const selectFirstFunctionDeclaration = (
-    astBody: readonly Readonly<TSESTree.ProgramStatement>[]
-): TSESTree.FunctionDeclarationWithName => {
-    for (const statement of astBody) {
-        if (statement.type === AST_NODE_TYPES.FunctionDeclaration) {
-            return statement;
-        }
-    }
-
-    throw new Error("Expected generated code to include a function");
-};
-
-const selectFirstIfStatement = (
-    functionDeclaration: Readonly<TSESTree.FunctionDeclarationWithName>
-): TSESTree.IfStatement => {
-    for (const statement of functionDeclaration.body.body) {
-        if (statement.type === AST_NODE_TYPES.IfStatement) {
-            return statement;
-        }
-    }
-
-    throw new Error("Expected generated code to include an IfStatement");
-};
-
-const selectGuardExpressionFromBinaryUndefinedComparison = (
-    binaryExpression: Readonly<TSESTree.BinaryExpression>
-): TSESTree.Expression => {
-    const candidateGuardExpression =
-        binaryExpression.left.type === AST_NODE_TYPES.Identifier &&
-        binaryExpression.left.name === "undefined"
-            ? binaryExpression.right
-            : binaryExpression.left;
-
-    if (candidateGuardExpression.type === AST_NODE_TYPES.PrivateIdentifier) {
-        throw new Error(
-            "Expected generated comparison guard expression to be an expression"
-        );
-    }
-
-    return candidateGuardExpression;
-};
-
-const parseIfStatementFromCode = (
-    sourceText: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    guardExpressionText: string;
-    ifStatement: TSESTree.IfStatement;
-    ifStatementRange: readonly [number, number];
-}> => {
-    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
-    const functionDeclaration = selectFirstFunctionDeclaration(
-        parsedResult.ast.body
-    );
-    const ifStatement = selectFirstIfStatement(functionDeclaration);
-    const ifTestExpression = ifStatement.test;
-
-    if (ifTestExpression.type !== AST_NODE_TYPES.BinaryExpression) {
-        throw new Error(
-            "Expected generated if statement to use a binary undefined comparison"
-        );
-    }
-
-    const guardExpression =
-        selectGuardExpressionFromBinaryUndefinedComparison(ifTestExpression);
-
-    return {
-        ast: parsedResult.ast,
-        guardExpressionText: sourceText.slice(
-            guardExpression.range[0],
-            guardExpression.range[1]
-        ),
-        ifStatement,
-        ifStatementRange: ifStatement.range,
-    };
-};
-
-const getSourceTextForNode = ({
-    code,
-    node,
-}: Readonly<{
-    code: string;
-    node: unknown;
-}>): string => {
-    if (typeof node !== "object" || node === null || !("range" in node)) {
-        return "";
-    }
-
-    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
-        .range;
-
-    if (!nodeRange) {
-        return "";
-    }
-
-    return code.slice(nodeRange[0], nodeRange[1]);
-};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-ts-extras-assert-defined",
@@ -990,7 +567,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: invalidFixtureCode,
             errors: [
                 {
                     messageId: "preferTsExtrasAssertDefined",
@@ -1154,7 +731,7 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     ],
     valid: [
         {
-            code: readTypedFixture(validFixtureName),
+            code: validFixtureCode,
             filename: typedFixturePath(validFixtureName),
             name: "accepts fixture-safe patterns",
         },

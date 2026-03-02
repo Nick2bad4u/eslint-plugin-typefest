@@ -1,5 +1,3 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-defined.test` behavior.
@@ -9,10 +7,50 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import type {
+    IsDefinedRuleReportDescriptor,
+    TextEdit,
+} from "./_internal/prefer-ts-extras-is-defined-rule-harness";
+
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
-    fastCheckRunConfig,
-    isSafeGeneratedIdentifier,
-} from "./_internal/fast-check";
+    filterArrowCallbackValidCode,
+    filterFunctionCallbackValidCode,
+    fixtureInvalidOutput,
+    fixtureInvalidSecondPassOutput,
+    inlineFixableDefinedCode,
+    inlineFixableDefinedOutput,
+    inlineFixableNegatedCode,
+    inlineFixableNegatedOutput,
+    inlineMapCallbackInvalidCode,
+    inlineMapCallbackInvalidOutput,
+    inlineTypeofNonIdentifierInvalidCode,
+    inlineTypeofNonIdentifierInvalidOutput,
+    inlineTypeofReverseInvalidCode,
+    inlineTypeofReverseInvalidOutput,
+    invalidFixtureCode,
+    invalidFixtureName,
+    looseUndefinedEqualityValidCode,
+    looseUndefinedInequalityValidCode,
+    reversedTypeofWithNonTypeofOperatorValidCode,
+    shadowedUndefinedBindingValidCode,
+    typeofWithNonTypeofOperatorValidCode,
+    undeclaredTypeofEqualityValidCode,
+    undeclaredTypeofInequalityValidCode,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-is-defined-cases";
+import {
+    applyTextEdits,
+    buildUndefinedComparisonExpression,
+    createRuleContextForSource,
+    identifierNameArbitrary,
+    invokeReportFixToTextEdits,
+    parserOptions,
+    parseUndefinedComparisonFromCode,
+    parseVariableInitializerExpressionByName,
+    undefinedComparisonOperatorArbitrary,
+    undefinedComparisonPatternArbitrary,
+} from "./_internal/prefer-ts-extras-is-defined-rule-harness";
 import {
     buildRuntimeIsDefinedSourceText,
     executeRuntimeIsDefinedSourceText,
@@ -39,589 +77,12 @@ const preferTsExtrasIsDefinedNegatedMessage =
 
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
-type RuleCreateContext = Readonly<Parameters<typeof rule.create>[0]>;
-
-const validFixtureName = "prefer-ts-extras-is-defined.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-is-defined.invalid.ts";
-const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-ts-extras-is-defined fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const fixtureInvalidOutput = `import { isDefined } from "ts-extras";\n${replaceOrThrow(
-    {
-        replacement: "if (isDefined(maybeValue)) {\r\n",
-        sourceText: invalidFixtureCode,
-        target: "if (maybeValue !== undefined) {\r\n",
-    }
-)}`;
-const fixtureInvalidSecondPassOutput = replaceOrThrow({
-    replacement: "if (!isDefined(maybeValue)) {\r\n",
-    sourceText: replaceOrThrow({
-        replacement: "if (!isDefined(maybeValue)) {\r\n",
-        sourceText: replaceOrThrow({
-            replacement: "if (isDefined(maybeValue)) {\r\n",
-            sourceText: replaceOrThrow({
-                replacement: "if (isDefined(maybeValue)) {\r\n",
-                sourceText: fixtureInvalidOutput,
-                target: "if (undefined !== maybeValue) {\r\n",
-            }),
-            target: 'if (typeof maybeValue !== "undefined") {\r\n',
-        }),
-        target: "if (maybeValue === undefined) {\r\n",
-    }),
-    target: 'if ("undefined" === typeof maybeValue) {\r\n',
-});
-const inlineFixableDefinedCode = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    "const hasValue = maybeValue !== undefined;",
-].join("\n");
-const inlineFixableDefinedOutput = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    "const hasValue = isDefined(maybeValue);",
-].join("\n");
-const inlineFixableNegatedCode = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    "const isMissing = maybeValue === undefined;",
-].join("\n");
-const inlineFixableNegatedOutput = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    "const isMissing = !isDefined(maybeValue);",
-].join("\n");
-const inlineMapCallbackInvalidCode = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const values: Array<string | undefined>;",
-    "const mapped = values.map((value) => value !== undefined);",
-    "String(mapped.length);",
-].join("\n");
-const inlineMapCallbackInvalidOutput = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const values: Array<string | undefined>;",
-    "const mapped = values.map((value) => isDefined(value));",
-    "String(mapped.length);",
-].join("\n");
-const inlineTypeofReverseInvalidCode = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    'const hasValue = "undefined" !== typeof maybeValue;',
-].join("\n");
-const inlineTypeofNonIdentifierInvalidCode = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    'const hasValue = typeof (maybeValue ?? "fallback") !== "undefined";',
-].join("\n");
-const inlineTypeofNonIdentifierInvalidOutput = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    'const hasValue = isDefined(maybeValue ?? "fallback");',
-].join("\n");
-const inlineTypeofReverseInvalidOutput = [
-    'import { isDefined } from "ts-extras";',
-    "",
-    "declare const maybeValue: string | undefined;",
-    "const hasValue = isDefined(maybeValue);",
-].join("\n");
-const filterArrowCallbackValidCode = [
-    "declare const values: Array<string | undefined>;",
-    "const onlyDefined = values.filter((value) => value !== undefined);",
-    "String(onlyDefined.length);",
-].join("\n");
-const filterFunctionCallbackValidCode = [
-    "declare const values: Array<string | undefined>;",
-    "const onlyDefined = values.filter(function (value) {",
-    "    return value !== undefined;",
-    "});",
-    "String(onlyDefined.length);",
-].join("\n");
-const typeofWithNonTypeofOperatorValidCode = [
-    "declare const maybeValue: string | undefined;",
-    'const hasValue = void maybeValue !== "undefined";',
-    "String(hasValue);",
-].join("\n");
-const reversedTypeofWithNonTypeofOperatorValidCode = [
-    "declare const maybeValue: string | undefined;",
-    'const hasValue = "undefined" !== void maybeValue;',
-    "String(hasValue);",
-].join("\n");
-const shadowedUndefinedBindingValidCode = [
-    "declare const maybeValue: string | undefined;",
-    "const undefined = Symbol('undefined');",
-    "const hasValue = maybeValue !== undefined;",
-    "String(hasValue);",
-].join("\n");
-const looseUndefinedInequalityValidCode = [
-    "declare const maybeValue: string | null | undefined;",
-    "const hasValue = maybeValue != undefined;",
-    "String(hasValue);",
-].join("\n");
-const looseUndefinedEqualityValidCode = [
-    "declare const maybeValue: string | null | undefined;",
-    "const isMissing = maybeValue == undefined;",
-    "String(isMissing);",
-].join("\n");
-const undeclaredTypeofInequalityValidCode = [
-    'const hasValue = typeof maybeUndeclared !== "undefined";',
-    "String(hasValue);",
-].join("\n");
-const undeclaredTypeofEqualityValidCode = [
-    'const isMissing = "undefined" === typeof maybeUndeclared;',
-    "String(isMissing);",
-].join("\n");
-
 type IsDefinedReportDescriptor = Readonly<{
     fix?: unknown;
     messageId?: string;
 }>;
 
-type IsDefinedRuleReportDescriptor = Readonly<{
-    fix?: TSESLint.ReportFixFunction;
-    messageId?: string;
-}>;
-
-type TextEdit = Readonly<{
-    range: readonly [number, number];
-    text: string;
-}>;
-
-type UndefinedComparisonPattern =
-    | "directUndefinedLeft"
-    | "directUndefinedRight"
-    | "typeofUndefinedLeft"
-    | "typeofUndefinedRight";
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
-const undefinedComparisonPatternArbitrary =
-    fc.constantFrom<UndefinedComparisonPattern>(
-        "directUndefinedLeft",
-        "directUndefinedRight",
-        "typeofUndefinedLeft",
-        "typeofUndefinedRight"
-    );
-
-const undefinedComparisonOperatorArbitrary = fc.constantFrom(
-    "!=",
-    "!==",
-    "==",
-    "==="
-);
-
-const identifierNameArbitrary = fc
-    .string({ maxLength: 9, minLength: 1 })
-    .filter((candidate) => isSafeGeneratedIdentifier(candidate))
-    .filter(
-        (candidate) => candidate !== "undefined" && candidate !== "isDefined"
-    );
-
-const buildUndefinedComparisonExpression = ({
-    identifierName,
-    operator,
-    pattern,
-}: Readonly<{
-    identifierName: string;
-    operator: "!=" | "!==" | "==" | "===";
-    pattern: UndefinedComparisonPattern;
-}>): string => {
-    if (pattern === "directUndefinedLeft") {
-        return `undefined ${operator} ${identifierName}`;
-    }
-
-    if (pattern === "directUndefinedRight") {
-        return `${identifierName} ${operator} undefined`;
-    }
-
-    if (pattern === "typeofUndefinedLeft") {
-        return `"undefined" ${operator} typeof ${identifierName}`;
-    }
-
-    return `typeof ${identifierName} ${operator} "undefined"`;
-};
-
-const parseUndefinedComparisonFromCode = (
-    sourceText: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    binaryExpression: TSESTree.BinaryExpression;
-}> => {
-    const parsed = parser.parseForESLint(sourceText, parserOptions);
-
-    for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
-            for (const declaration of statement.declarations) {
-                if (
-                    declaration.init?.type === AST_NODE_TYPES.BinaryExpression
-                ) {
-                    return {
-                        ast: parsed.ast,
-                        binaryExpression: declaration.init,
-                    };
-                }
-            }
-        }
-    }
-
-    throw new Error(
-        "Expected generated source text to contain a binary expression variable initializer"
-    );
-};
-
-const parseVariableInitializerExpressionByName = ({
-    sourceText,
-    variableName,
-}: Readonly<{
-    sourceText: string;
-    variableName: string;
-}>): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    initializer: TSESTree.Expression;
-}> => {
-    const parsed = parser.parseForESLint(sourceText, parserOptions);
-
-    for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
-            for (const declaration of statement.declarations) {
-                if (
-                    declaration.id.type === AST_NODE_TYPES.Identifier &&
-                    declaration.id.name === variableName &&
-                    declaration.init !== null
-                ) {
-                    return {
-                        ast: parsed.ast,
-                        initializer: declaration.init,
-                    };
-                }
-            }
-        }
-    }
-
-    throw new Error(
-        `Expected generated source text to declare \`${variableName}\` with an initializer expression`
-    );
-};
-
-const addScopeBinding = ({
-    definitionNode,
-    definitionType,
-    name,
-    scopeBindings,
-}: Readonly<{
-    definitionNode: TSESTree.Node;
-    definitionType: string;
-    name: string;
-    scopeBindings: Map<string, TSESLint.Scope.Variable>;
-}>): void => {
-    if (name.length === 0 || scopeBindings.has(name)) {
-        return;
-    }
-
-    scopeBindings.set(name, {
-        defs: [
-            {
-                node: definitionNode,
-                type: definitionType,
-            },
-        ],
-    } as unknown as TSESLint.Scope.Variable);
-};
-
-const addImportScopeBindings = ({
-    scopeBindings,
-    statement,
-}: Readonly<{
-    scopeBindings: Map<string, TSESLint.Scope.Variable>;
-    statement: TSESTree.ImportDeclaration;
-}>): void => {
-    for (const specifier of statement.specifiers) {
-        if ((specifier as { parent?: unknown }).parent === undefined) {
-            (
-                specifier as unknown as {
-                    parent: Readonly<TSESTree.ImportDeclaration>;
-                }
-            ).parent = statement;
-        }
-
-        if (specifier.local.type === AST_NODE_TYPES.Identifier) {
-            addScopeBinding({
-                definitionNode: specifier,
-                definitionType: "ImportBinding",
-                name: specifier.local.name,
-                scopeBindings,
-            });
-        }
-    }
-};
-
-const addFunctionScopeBinding = ({
-    scopeBindings,
-    statement,
-}: Readonly<{
-    scopeBindings: Map<string, TSESLint.Scope.Variable>;
-    statement: TSESTree.FunctionDeclaration;
-}>): void => {
-    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
-        addScopeBinding({
-            definitionNode: statement.id,
-            definitionType: "FunctionName",
-            name: statement.id.name,
-            scopeBindings,
-        });
-    }
-};
-
-const addClassScopeBinding = ({
-    scopeBindings,
-    statement,
-}: Readonly<{
-    scopeBindings: Map<string, TSESLint.Scope.Variable>;
-    statement: TSESTree.ClassDeclaration;
-}>): void => {
-    if (statement.id?.type === AST_NODE_TYPES.Identifier) {
-        addScopeBinding({
-            definitionNode: statement.id,
-            definitionType: "ClassName",
-            name: statement.id.name,
-            scopeBindings,
-        });
-    }
-};
-
-const addVariableScopeBindings = ({
-    scopeBindings,
-    statement,
-}: Readonly<{
-    scopeBindings: Map<string, TSESLint.Scope.Variable>;
-    statement: TSESTree.VariableDeclaration;
-}>): void => {
-    for (const declaration of statement.declarations) {
-        if (declaration.id.type === AST_NODE_TYPES.Identifier) {
-            addScopeBinding({
-                definitionNode: declaration.id,
-                definitionType: "Variable",
-                name: declaration.id.name,
-                scopeBindings,
-            });
-        }
-    }
-};
-
-type ScopeBindingStatement = Extract<
-    TopLevelProgramStatement,
-    | TSESTree.ClassDeclaration
-    | TSESTree.FunctionDeclaration
-    | TSESTree.ImportDeclaration
-    | TSESTree.VariableDeclaration
->;
-
-type TopLevelProgramStatement = ReturnType<
-    typeof parser.parseForESLint
->["ast"]["body"][number];
-
-const isScopeBindingStatement = (
-    statement: Readonly<TopLevelProgramStatement>
-): statement is ScopeBindingStatement =>
-    statement.type === AST_NODE_TYPES.ClassDeclaration ||
-    statement.type === AST_NODE_TYPES.FunctionDeclaration ||
-    statement.type === AST_NODE_TYPES.ImportDeclaration ||
-    statement.type === AST_NODE_TYPES.VariableDeclaration;
-
-const collectTopLevelScopeBindings = (
-    ast: Readonly<ReturnType<typeof parser.parseForESLint>["ast"]>
-): Map<string, TSESLint.Scope.Variable> => {
-    const scopeBindings = new Map<string, TSESLint.Scope.Variable>();
-
-    for (const statement of ast.body) {
-        if (isScopeBindingStatement(statement)) {
-            switch (statement.type) {
-                case AST_NODE_TYPES.ClassDeclaration: {
-                    addClassScopeBinding({
-                        scopeBindings,
-                        statement,
-                    });
-                    break;
-                }
-
-                case AST_NODE_TYPES.FunctionDeclaration: {
-                    addFunctionScopeBinding({
-                        scopeBindings,
-                        statement,
-                    });
-                    break;
-                }
-
-                case AST_NODE_TYPES.ImportDeclaration: {
-                    addImportScopeBindings({
-                        scopeBindings,
-                        statement,
-                    });
-                    break;
-                }
-
-                case AST_NODE_TYPES.VariableDeclaration: {
-                    addVariableScopeBindings({
-                        scopeBindings,
-                        statement,
-                    });
-                    break;
-                }
-            }
-        }
-    }
-
-    return scopeBindings;
-};
-
-const createRuleContextForSource = ({
-    ast,
-    reportCalls,
-    sourceText,
-}: Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    reportCalls: IsDefinedRuleReportDescriptor[];
-    sourceText: string;
-}>): RuleCreateContext => {
-    const scopeBindings = collectTopLevelScopeBindings(ast);
-    const scope = {
-        set: scopeBindings,
-        upper: null,
-    };
-
-    return {
-        filename: "src/example.ts",
-        report(descriptor: IsDefinedRuleReportDescriptor): void {
-            reportCalls.push(descriptor);
-        },
-        sourceCode: {
-            ast,
-            getScope: (): Readonly<TSESLint.Scope.Scope> =>
-                scope as unknown as Readonly<TSESLint.Scope.Scope>,
-            getText(node: unknown): string {
-                if (
-                    typeof node !== "object" ||
-                    node === null ||
-                    !("range" in node)
-                ) {
-                    return "";
-                }
-
-                const nodeRange = (
-                    node as Readonly<{
-                        range?: readonly [number, number];
-                    }>
-                ).range;
-
-                if (nodeRange === undefined) {
-                    return "";
-                }
-
-                return sourceText.slice(nodeRange[0], nodeRange[1]);
-            },
-        },
-    } as unknown as RuleCreateContext;
-};
-
-const normalizeFixResultToArray = (
-    fixResult:
-        | Iterable<Readonly<TSESLint.RuleFix>>
-        | null
-        | Readonly<TSESLint.RuleFix>
-): readonly Readonly<TSESLint.RuleFix>[] => {
-    if (fixResult === null) {
-        return [];
-    }
-
-    if (
-        typeof fixResult === "object" &&
-        fixResult !== null &&
-        Symbol.iterator in fixResult
-    ) {
-        return [...fixResult];
-    }
-
-    return [fixResult];
-};
-
-const invokeReportFixToTextEdits = (
-    reportFix: TSESLint.ReportFixFunction
-): readonly TextEdit[] => {
-    const getNodeRange = (
-        node: Readonly<TSESTree.Node>
-    ): readonly [number, number] => node.range;
-
-    const fixer = {
-        insertTextAfter(node: Readonly<TSESTree.Node>, text: string) {
-            const nodeRange = getNodeRange(node);
-
-            return {
-                range: [nodeRange[1], nodeRange[1]],
-                text,
-            } as const;
-        },
-        insertTextBeforeRange(range: readonly [number, number], text: string) {
-            return {
-                range,
-                text,
-            } as const;
-        },
-        replaceText(node: Readonly<TSESTree.Node>, text: string) {
-            return {
-                range: getNodeRange(node),
-                text,
-            } as const;
-        },
-        replaceTextRange(
-            range: readonly [number, number],
-            text: string
-        ): Readonly<TSESLint.RuleFix> {
-            return {
-                range,
-                text,
-            };
-        },
-    } as unknown as Readonly<TSESLint.RuleFixer>;
-
-    const fixResult = reportFix(fixer);
-
-    return normalizeFixResultToArray(fixResult).map(
-        (fix): TextEdit => ({
-            range: fix.range,
-            text: fix.text,
-        })
-    );
-};
+type RuleCreateContext = Readonly<Parameters<typeof rule.create>[0]>;
 
 const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
     for (const [firstIndex, firstEdit] of textEdits.entries()) {
@@ -635,45 +96,6 @@ const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
             }
         }
     }
-};
-
-const applyTextEdits = ({
-    sourceText,
-    textEdits,
-}: Readonly<{
-    sourceText: string;
-    textEdits: readonly TextEdit[];
-}>): string => {
-    let nextSourceText = sourceText;
-    const remainingTextEdits = [...textEdits];
-
-    while (remainingTextEdits.length > 0) {
-        let greatestIndex = 0;
-
-        for (let index = 1; index < remainingTextEdits.length; index += 1) {
-            const currentEdit = remainingTextEdits[index];
-            const greatestEdit = remainingTextEdits[greatestIndex];
-
-            if (
-                currentEdit !== undefined &&
-                greatestEdit !== undefined &&
-                currentEdit.range[0] > greatestEdit.range[0]
-            ) {
-                greatestIndex = index;
-            }
-        }
-
-        const [selectedTextEdit] = remainingTextEdits.splice(greatestIndex, 1);
-
-        if (selectedTextEdit !== undefined) {
-            nextSourceText =
-                nextSourceText.slice(0, selectedTextEdit.range[0]) +
-                selectedTextEdit.text +
-                nextSourceText.slice(selectedTextEdit.range[1]);
-        }
-    }
-
-    return nextSourceText;
 };
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
@@ -1053,7 +475,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                         ast: firstPassAst,
                         reportCalls: firstPassReports,
                         sourceText,
-                    })
+                    }) as RuleCreateContext
                 );
 
                 firstPassListeners.BinaryExpression?.(binaryExpression);
@@ -1126,7 +548,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                         ast: secondPassAst,
                         reportCalls: secondPassReports,
                         sourceText: firstPassFixedCode,
-                    })
+                    }) as RuleCreateContext
                 );
 
                 if (

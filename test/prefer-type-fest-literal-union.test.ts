@@ -10,6 +10,57 @@ import * as path from "node:path";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    fixtureFixableOutputCode,
+    fixtureFixableSecondPassOutputCode,
+    inlineFixableBigIntCode,
+    inlineFixableBigIntOutput,
+    inlineFixableBooleanCode,
+    inlineFixableBooleanOutput,
+    inlineFixableCode,
+    inlineFixableNumberCode,
+    inlineFixableNumberOutput,
+    inlineFixableOutput,
+    inlineFixableSingleLiteralBooleanCode,
+    inlineFixableSingleLiteralBooleanOutput,
+    inlineFixableSingleLiteralNumberCode,
+    inlineFixableSingleLiteralNumberOutput,
+    inlineFixableSingleLiteralStringCode,
+    inlineFixableSingleLiteralStringOutput,
+    inlineInvalidBigIntLiteralUnionCode,
+    inlineInvalidBigIntLiteralUnionOutputCode,
+    inlineInvalidBooleanLiteralUnionCode,
+    inlineInvalidBooleanLiteralUnionOutputCode,
+    inlineInvalidNumberLiteralUnionCode,
+    inlineInvalidNumberLiteralUnionOutputCode,
+    inlineInvalidWithoutFixCode,
+    inlineInvalidWithoutFixOutputCode,
+    invalidFixtureCode,
+    invalidFixtureName,
+    keywordLiteralCrossFamilyValidCode,
+    keywordOnlyBigIntUnionValidCode,
+    keywordOnlyBooleanUnionValidCode,
+    keywordOnlyNumberUnionValidCode,
+    keywordOnlyStringUnionValidCode,
+    literalAndTypeReferenceUnionValidCode,
+    literalOnlyBigIntUnionValidCode,
+    literalOnlyBooleanUnionValidCode,
+    literalOnlyUnionValidCode,
+    mismatchedBigIntLiteralFamilyValidCode,
+    mixedFamilyUnionValidCode,
+    mixedLiteralFamiliesValidCode,
+    shadowedReplacementNameInvalidCode,
+    templateLiteralAndStringKeywordValidCode,
+    validFixtureName,
+} from "./_internal/prefer-type-fest-literal-union-cases";
+import {
+    buildGeneratedTypeAlias,
+    generatedCrossFamilyCaseArbitrary,
+    type GeneratedLiteralUnionCase,
+    generatedLiteralUnionCaseArbitrary,
+    parserOptions,
+    parseUnionAliasAnnotation,
+} from "./_internal/prefer-type-fest-literal-union-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -19,308 +70,6 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-type-fest-literal-union.valid.ts";
-const invalidFixtureName = "prefer-type-fest-literal-union.invalid.ts";
-const inlineInvalidBigIntLiteralUnionCode = "type SessionNonce = bigint | 1n;";
-const inlineInvalidBooleanLiteralUnionCode =
-    "type FeatureFlag = true | false | boolean;";
-const inlineInvalidNumberLiteralUnionCode =
-    "type HttpCode = 200 | 404 | number;";
-const inlineInvalidWithoutFixCode =
-    "type EnvironmentName = 'dev' | 'prod' | string;";
-const shadowedReplacementNameInvalidCode =
-    "type Wrapper<LiteralUnion> = 'dev' | 'prod' | string;";
-const inlineInvalidBigIntLiteralUnionOutputCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "type SessionNonce = LiteralUnion<1n, bigint>;",
-].join("\n");
-const inlineInvalidBooleanLiteralUnionOutputCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "type FeatureFlag = LiteralUnion<true | false, boolean>;",
-].join("\n");
-const inlineInvalidNumberLiteralUnionOutputCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "type HttpCode = LiteralUnion<200 | 404, number>;",
-].join("\n");
-const inlineInvalidWithoutFixOutputCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "type EnvironmentName = LiteralUnion<'dev' | 'prod', string>;",
-].join("\n");
-const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected literal-union fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const fixtureFixableOutputCode = `import type { LiteralUnion } from "type-fest";\n${replaceOrThrow(
-    {
-        replacement: 'LiteralUnion<"dev" | "prod", string>',
-        sourceText: invalidFixtureCode,
-        target: '"dev" | "prod" | string',
-    }
-)}`;
-const fixtureFixableSecondPassOutputCode = replaceOrThrow({
-    replacement: "LiteralUnion<200 | 404, number>",
-    sourceText: fixtureFixableOutputCode,
-    target: "200 | 404 | number",
-});
-const inlineFixableCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type EnvironmentName = 'dev' | 'prod' | string;",
-].join("\n");
-const inlineFixableOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type EnvironmentName = LiteralUnion<'dev' | 'prod', string>;",
-].join("\n");
-const inlineFixableBooleanCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type FeatureFlag = true | false | boolean;",
-].join("\n");
-const inlineFixableBooleanOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type FeatureFlag = LiteralUnion<true | false, boolean>;",
-].join("\n");
-const inlineFixableNumberCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type HttpCode = 200 | 404 | number;",
-].join("\n");
-const inlineFixableNumberOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type HttpCode = LiteralUnion<200 | 404, number>;",
-].join("\n");
-const inlineFixableSingleLiteralStringCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type EnvironmentName = 'dev' | string;",
-].join("\n");
-const inlineFixableSingleLiteralStringOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type EnvironmentName = LiteralUnion<'dev', string>;",
-].join("\n");
-const inlineFixableBigIntCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type SessionNonce = bigint | 1n;",
-].join("\n");
-const inlineFixableBigIntOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type SessionNonce = LiteralUnion<1n, bigint>;",
-].join("\n");
-const inlineFixableSingleLiteralBooleanCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type FeatureFlag = true | boolean;",
-].join("\n");
-const inlineFixableSingleLiteralBooleanOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type FeatureFlag = LiteralUnion<true, boolean>;",
-].join("\n");
-const inlineFixableSingleLiteralNumberCode = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type HttpCode = 200 | number;",
-].join("\n");
-const inlineFixableSingleLiteralNumberOutput = [
-    'import type { LiteralUnion } from "type-fest";',
-    "",
-    "type HttpCode = LiteralUnion<200, number>;",
-].join("\n");
-const mixedFamilyUnionValidCode =
-    "type EnvironmentName = 'dev' | number | string;";
-const literalOnlyUnionValidCode = "type EnvironmentName = 'dev' | 'prod';";
-const literalOnlyBooleanUnionValidCode = "type FeatureFlag = true | false;";
-const literalOnlyBigIntUnionValidCode = "type SessionNonce = 1n | 2n;";
-const mixedLiteralFamiliesValidCode = "type Marker = true | 'dev' | string;";
-const keywordOnlyStringUnionValidCode =
-    "type EnvironmentName = string | string;";
-const keywordOnlyNumberUnionValidCode = "type HttpCode = number | number;";
-const keywordOnlyBooleanUnionValidCode =
-    "type FeatureFlag = boolean | boolean;";
-const keywordOnlyBigIntUnionValidCode = "type SessionNonce = bigint | bigint;";
-const literalAndTypeReferenceUnionValidCode =
-    "type EnvironmentName = 'dev' | CustomAlias | string;";
-const mismatchedBigIntLiteralFamilyValidCode =
-    "type SessionNonce = bigint | 1 | 2;";
-const keywordLiteralCrossFamilyValidCode = "type SessionToken = string | 1;";
-const templateLiteralAndStringKeywordValidCode =
-    "type EnvironmentName = `dev` | string;";
-
-type GeneratedLiteralUnionCase = Readonly<{
-    family: LiteralUnionFamily;
-    literalMembers: readonly string[];
-}>;
-
-type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
-
-const familyKeywordByFamily: Readonly<Record<LiteralUnionFamily, string>> = {
-    bigint: "bigint",
-    boolean: "boolean",
-    number: "number",
-    string: "string",
-};
-
-const generatedStringFamilyCaseArbitrary = fc
-    .uniqueArray(fc.string({ maxLength: 6, minLength: 1 }), {
-        maxLength: 3,
-        minLength: 1,
-    })
-    .map(
-        (members): GeneratedLiteralUnionCase => ({
-            family: "string",
-            literalMembers: members.map((member) => JSON.stringify(member)),
-        })
-    );
-
-const generatedNumberFamilyCaseArbitrary = fc
-    .uniqueArray(fc.integer({ max: 20, min: 0 }), {
-        maxLength: 3,
-        minLength: 1,
-    })
-    .map(
-        (members): GeneratedLiteralUnionCase => ({
-            family: "number",
-            literalMembers: members.map(String),
-        })
-    );
-
-const generatedBooleanFamilyCaseArbitrary = fc
-    .uniqueArray(fc.boolean(), {
-        maxLength: 2,
-        minLength: 1,
-    })
-    .map(
-        (members): GeneratedLiteralUnionCase => ({
-            family: "boolean",
-            literalMembers: members.map((member) =>
-                member ? "true" : "false"
-            ),
-        })
-    );
-
-const generatedBigIntFamilyCaseArbitrary = fc
-    .uniqueArray(fc.bigInt({ max: 20n, min: 0n }), {
-        maxLength: 3,
-        minLength: 1,
-    })
-    .map(
-        (members): GeneratedLiteralUnionCase => ({
-            family: "bigint",
-            literalMembers: members.map((member) => `${String(member)}n`),
-        })
-    );
-
-const generatedLiteralUnionCaseArbitrary = fc.oneof(
-    generatedStringFamilyCaseArbitrary,
-    generatedNumberFamilyCaseArbitrary,
-    generatedBooleanFamilyCaseArbitrary,
-    generatedBigIntFamilyCaseArbitrary
-);
-
-const generatedCrossFamilyCaseArbitrary =
-    generatedLiteralUnionCaseArbitrary.chain((literalCase) => {
-        const keywordFamilyArbitrary = (() => {
-            switch (literalCase.family) {
-                case "bigint": {
-                    return fc.constantFrom("boolean", "number", "string");
-                }
-
-                case "boolean": {
-                    return fc.constantFrom("bigint", "number", "string");
-                }
-
-                case "number": {
-                    return fc.constantFrom("bigint", "boolean", "string");
-                }
-
-                case "string": {
-                    return fc.constantFrom("bigint", "boolean", "number");
-                }
-
-                /* v8 ignore next */
-                default: {
-                    throw new Error("Unexpected literal union family");
-                }
-            }
-        })();
-
-        return keywordFamilyArbitrary.map((keywordFamily) => ({
-            keywordFamily,
-            literalCase,
-        }));
-    });
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
-const buildGeneratedTypeAlias = ({
-    keywordFamily,
-    literalMembers,
-}: Readonly<{
-    keywordFamily: LiteralUnionFamily;
-    literalMembers: readonly string[];
-}>): string =>
-    `type Generated = ${[...literalMembers, familyKeywordByFamily[keywordFamily]].join(" | ")};`;
-
-const parseUnionAliasAnnotation = (
-    sourceText: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    unionType: Extract<
-        ReturnType<typeof parser.parseForESLint>["ast"]["body"][number],
-        {
-            type: "TSTypeAliasDeclaration";
-        }
-    >["typeAnnotation"];
-}> => {
-    const parsedResult = parser.parseForESLint(sourceText, parserOptions);
-    const [firstStatement] = parsedResult.ast.body;
-
-    if (firstStatement?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
-        throw new Error(
-            "Expected the generated program to start with a type alias declaration"
-        );
-    }
-
-    if (firstStatement.typeAnnotation.type !== AST_NODE_TYPES.TSUnionType) {
-        throw new Error(
-            "Expected generated type alias annotation to be a TSUnionType"
-        );
-    }
-
-    return {
-        ast: parsedResult.ast,
-        unionType: firstStatement.typeAnnotation,
-    };
-};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(
     "prefer-type-fest-literal-union",

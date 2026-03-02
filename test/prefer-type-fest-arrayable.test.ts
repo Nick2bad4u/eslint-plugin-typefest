@@ -12,6 +12,39 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createSafeTypeNodeTextReplacementFix } from "../src/_internal/imported-type-aliases.js";
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    bothMembersAreNativeArraysValidCode,
+    genericArrayExtraTypeArgumentValidCode,
+    genericArrayMismatchedElementValidCode,
+    genericArrayMissingTypeArgumentValidCode,
+    inlineFixableCode,
+    inlineFixableOutput,
+    inlineGenericFixableCode,
+    inlineGenericFixableOutput,
+    inlineGenericFixableReversedCode,
+    inlineGenericFixableReversedOutput,
+    inlineInvalidCode,
+    inlineInvalidGenericArrayCode,
+    inlineInvalidGenericArrayOutputCode,
+    inlineInvalidGenericArrayReversedCode,
+    inlineInvalidGenericArrayReversedOutputCode,
+    inlineInvalidOutputCode,
+    inlineInvalidReadonlyArrayCode,
+    inlineInvalidReversedCode,
+    inlineInvalidReversedOutputCode,
+    inlineInvalidWhitespaceNormalizedGenericArrayCode,
+    inlineInvalidWhitespaceNormalizedGenericArrayOutputCode,
+    inlineInvalidWhitespaceNormalizedGenericArrayReversedCode,
+    inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode,
+    invalidFixtureName,
+    nonArrayGenericMatchingElementValidCode,
+    nonMatchingUnionValidCode,
+    qualifiedGenericArrayValidCode,
+    reversedGenericArrayMismatchedElementValidCode,
+    singleTypeValidCode,
+    threeMemberUnionValidCode,
+    validFixtureName,
+} from "./_internal/prefer-type-fest-arrayable-cases";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -28,72 +61,6 @@ const preferArrayableMessage =
 
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-type-fest-arrayable.valid.ts";
-const invalidFixtureName = "prefer-type-fest-arrayable.invalid.ts";
-
-const inlineInvalidCode = "type QueryValue = string | string[];";
-const inlineInvalidReversedCode = "type QueryValue = string[] | string;";
-const inlineInvalidReadonlyArrayCode =
-    "type QueryValue = string | readonly string[];";
-const inlineInvalidGenericArrayCode =
-    "type QueryValue = string | Array<string>;";
-const inlineInvalidGenericArrayReversedCode =
-    "type QueryValue = Array<string> | string;";
-const inlineInvalidWhitespaceNormalizedGenericArrayCode =
-    "type QueryValue = Map < string , number > | Array<Map<string, number>>;";
-const inlineInvalidWhitespaceNormalizedGenericArrayReversedCode =
-    "type QueryValue = Array<Map < string , number >> | Map<string, number>;";
-
-const nonMatchingUnionValidCode = "type QueryValue = string | number[];";
-const singleTypeValidCode = "type QueryValue = string;";
-const threeMemberUnionValidCode = "type QueryValue = string | string[] | null;";
-const genericArrayMissingTypeArgumentValidCode =
-    "type QueryValue = string | Array;";
-const genericArrayExtraTypeArgumentValidCode =
-    "type QueryValue = string | Array<string, number>;";
-const genericArrayMismatchedElementValidCode =
-    "type QueryValue = string | Array<number>;";
-const reversedGenericArrayMismatchedElementValidCode =
-    "type QueryValue = Array<number> | string;";
-const qualifiedGenericArrayValidCode =
-    "type QueryValue = string | globalThis.Array<string>;";
-const nonArrayGenericMatchingElementValidCode = [
-    "type Box<T> = T;",
-    "type QueryValue = string | Box<string>;",
-].join("\n");
-const bothMembersAreNativeArraysValidCode =
-    "type QueryValue = string[] | string[];";
-const inlineFixableCode = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = string | string[];",
-].join("\n");
-const inlineFixableOutput = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineGenericFixableCode = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = string | Array<string>;",
-].join("\n");
-const inlineGenericFixableOutput = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineGenericFixableReversedCode = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = Array<string> | string;",
-].join("\n");
-const inlineGenericFixableReversedOutput = [
-    'import type { Arrayable } from "type-fest";',
-    "",
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const replaceOrThrow = ({
     replacement,
@@ -127,30 +94,6 @@ const fixtureFixableSecondPassOutputCode = replaceOrThrow({
     sourceText: fixtureFixableOutputCode,
     target: "string | string[]",
 });
-const inlineInvalidOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineInvalidReversedOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineInvalidGenericArrayOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineInvalidGenericArrayReversedOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<string>;",
-].join("\n");
-const inlineInvalidWhitespaceNormalizedGenericArrayOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<Map < string , number >>;",
-].join("\n");
-const inlineInvalidWhitespaceNormalizedGenericArrayReversedOutputCode = [
-    'import type { Arrayable } from "type-fest";',
-    "type QueryValue = Arrayable<Map<string, number>>;",
-].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",

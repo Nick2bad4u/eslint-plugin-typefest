@@ -2,17 +2,58 @@
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present-filter.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
+import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
-    fastCheckRunConfig,
-    isSafeGeneratedIdentifier,
-} from "./_internal/fast-check";
+    fixtureInvalidOutputWithMixedLineEndings,
+    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+    inlineFixableCode,
+    inlineFixableOutput,
+    inlineInvalidMixedNullishOperatorCode,
+    inlineInvalidPredicateUndefinedStrictCode,
+    inlineInvalidReversedTypeofUndefinedCode,
+    inlineInvalidReversedTypeofUndefinedOutput,
+    inlineInvalidReverseNullLooseCode,
+    inlineInvalidReverseNullLooseOutput,
+    inlineInvalidReverseUndefinedLooseCode,
+    inlineInvalidReverseUndefinedLooseOutput,
+    inlineInvalidTypeofUndefinedGuardCode,
+    inlineInvalidTypeofUndefinedGuardOutput,
+    inlineValidAndNonNullLiteralComparisonCode,
+    inlineValidAndNonParameterNullComparisonCode,
+    inlineValidAndNonParameterUndefinedComparisonCode,
+    inlineValidAndThreeTermNullishGuardCode,
+    inlineValidAndUndefinedAliasComparisonCode,
+    inlineValidAndWithoutUndefinedCheckCode,
+    inlineValidComputedFilterCode,
+    inlineValidDestructuredParameterCode,
+    inlineValidFilterBlockBodyCode,
+    inlineValidFunctionExpressionCode,
+    inlineValidLogicalOrNullishGuardCode,
+    inlineValidMapCallbackCode,
+    inlineValidNoCallbackCode,
+    inlineValidReverseNonUndefinedIdentifierComparisonCode,
+    inlineValidSecondCallbackParameterCode,
+    inlineValidShadowedUndefinedBindingCode,
+    inlineValidStrictNullWithoutPredicateCode,
+    inlineValidStrictUndefinedWithoutPredicateCode,
+    inlineValidUnsupportedNullishOperatorCode,
+    invalidFixtureCode,
+    invalidFixtureName,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-is-present-filter-cases";
+import {
+    autoFixableTemplateIdArbitrary,
+    callbackParameterNameArbitrary,
+    formatAutoFixableGuardExpression,
+    formatStrictPredicateExpression,
+    parseFilterCallFromCode,
+    parserOptions,
+    strictPredicateTemplateIdArbitrary,
+} from "./_internal/prefer-ts-extras-is-present-filter-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -31,424 +72,6 @@ const preferTsExtrasIsPresentFilterMessage =
 
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
-
-const invalidFixtureName = "prefer-ts-extras-is-present-filter.invalid.ts";
-const validFixtureName = "prefer-ts-extras-is-present-filter.valid.ts";
-const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const inlineInvalidPredicateUndefinedStrictCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidTypeofUndefinedGuardCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    '    (value): value is string => value !== null && typeof value !== "undefined"',
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidTypeofUndefinedGuardOutput = [
-    'import { isPresent } from "ts-extras";',
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    isPresent",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReverseNullLooseCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter((value) => null != value);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReverseNullLooseOutput = [
-    'import { isPresent } from "ts-extras";',
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(isPresent);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReverseUndefinedLooseCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter((value) => undefined != value);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReverseUndefinedLooseOutput = [
-    'import { isPresent } from "ts-extras";',
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(isPresent);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidStrictNullWithoutPredicateCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter((value) => value !== null);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidStrictUndefinedWithoutPredicateCode = [
-    "declare const values: readonly (string | undefined)[];",
-    "",
-    "const presentValues = values.filter((value) => value !== undefined);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndWithoutUndefinedCheckCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter((value) => value !== null && value !== '');",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidLogicalOrNullishGuardCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value !== null || value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndThreeTermNullishGuardCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "declare const includeValue: boolean;",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string =>",
-    "        value !== null && value !== undefined && includeValue",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndNonParameterNullComparisonCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "declare const otherValue: null | string;",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => otherValue !== null && value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndNonParameterUndefinedComparisonCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "declare const maybeValue: string | undefined;",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value !== null && maybeValue !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndNonNullLiteralComparisonCode = [
-    "declare const values: readonly (number | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is number => value !== 0 && value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidAndUndefinedAliasComparisonCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "declare const undefinedAlias: undefined;",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value !== null && value !== undefinedAlias",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidReverseNonUndefinedIdentifierComparisonCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "declare const marker: string;",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => marker != value",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidFilterBlockBodyCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter((value) => {",
-    "    return value != null;",
-    "});",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidFunctionExpressionCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter(function (value) {",
-    "    return value != null;",
-    "});",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidComputedFilterCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    'const presentValues = values["filter"]((value) => value != null);',
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidNoCallbackCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter();",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidDestructuredParameterCode = [
-    "declare const values: readonly ({ readonly value: null | string })[];",
-    "",
-    "const presentValues = values.filter(({ value }) => value != null);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidSecondCallbackParameterCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const presentValues = values.filter((value, _index) => value != null);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidMapCallbackCode = [
-    "declare const values: readonly (null | string)[];",
-    "",
-    "const mapped = values.map((value) => value != null);",
-    "",
-    "String(mapped.length);",
-].join("\n");
-const inlineFixableCode = [
-    'import { isPresent } from "ts-extras";',
-    "",
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter((value) => value != null);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineFixableOutput = [
-    'import { isPresent } from "ts-extras";',
-    "",
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(isPresent);",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidMixedNullishOperatorCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value != null && value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReversedTypeofUndefinedCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    '    (value): value is string => value !== null && "undefined" !== typeof value',
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineInvalidReversedTypeofUndefinedOutput = [
-    'import { isPresent } from "ts-extras";',
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    isPresent",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidUnsupportedNullishOperatorCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value === null",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-const inlineValidShadowedUndefinedBindingCode = [
-    "declare const values: readonly (null | string | undefined)[];",
-    "const undefined = Symbol('undefined');",
-    "",
-    "const presentValues = values.filter(",
-    "    (value): value is string => value !== null && value !== undefined",
-    ");",
-    "",
-    "String(presentValues.length);",
-].join("\n");
-
-type AutoFixableTemplateId =
-    | "looseNull"
-    | "looseNullReversed"
-    | "looseTypeofUndefined"
-    | "looseTypeofUndefinedReversed"
-    | "looseUndefined"
-    | "looseUndefinedReversed"
-    | "strictNullAndUndefined"
-    | "strictUndefinedAndNull";
-
-type StrictPredicateTemplateId =
-    | "strictNull"
-    | "strictNullReversed"
-    | "strictUndefined"
-    | "strictUndefinedReversed";
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
-const callbackParameterNameArbitrary = fc
-    .string({ maxLength: 9, minLength: 1 })
-    .filter((candidate) => isSafeGeneratedIdentifier(candidate));
-
-const autoFixableTemplateIdArbitrary = fc.constantFrom<AutoFixableTemplateId>(
-    "looseNull",
-    "looseNullReversed",
-    "looseUndefined",
-    "looseUndefinedReversed",
-    "looseTypeofUndefined",
-    "looseTypeofUndefinedReversed",
-    "strictNullAndUndefined",
-    "strictUndefinedAndNull"
-);
-
-const strictPredicateTemplateIdArbitrary =
-    fc.constantFrom<StrictPredicateTemplateId>(
-        "strictNull",
-        "strictNullReversed",
-        "strictUndefined",
-        "strictUndefinedReversed"
-    );
-
-const formatAutoFixableGuardExpression = (
-    templateId: AutoFixableTemplateId,
-    parameterName: string
-): string => {
-    if (templateId === "looseNull") {
-        return `${parameterName} != null`;
-    }
-
-    if (templateId === "looseNullReversed") {
-        return `null != ${parameterName}`;
-    }
-
-    if (templateId === "looseUndefined") {
-        return `${parameterName} != undefined`;
-    }
-
-    if (templateId === "looseUndefinedReversed") {
-        return `undefined != ${parameterName}`;
-    }
-
-    if (templateId === "looseTypeofUndefined") {
-        return `typeof ${parameterName} != "undefined"`;
-    }
-
-    if (templateId === "looseTypeofUndefinedReversed") {
-        return `"undefined" != typeof ${parameterName}`;
-    }
-
-    if (templateId === "strictNullAndUndefined") {
-        return `${parameterName} !== null && ${parameterName} !== undefined`;
-    }
-
-    return `${parameterName} !== undefined && ${parameterName} !== null`;
-};
-
-const formatStrictPredicateExpression = (
-    templateId: StrictPredicateTemplateId,
-    parameterName: string
-): string => {
-    if (templateId === "strictNull") {
-        return `${parameterName} !== null`;
-    }
-
-    if (templateId === "strictNullReversed") {
-        return `null !== ${parameterName}`;
-    }
-
-    if (templateId === "strictUndefined") {
-        return `${parameterName} !== undefined`;
-    }
-
-    return `undefined !== ${parameterName}`;
-};
-
-const parseFilterCallFromCode = (
-    sourceText: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    callbackRange: readonly [number, number];
-    callExpression: TSESTree.CallExpression;
-}> => {
-    const parsed = parser.parseForESLint(sourceText, parserOptions);
-    let callExpression: null | TSESTree.CallExpression = null;
-
-    for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
-            for (const declaration of statement.declarations) {
-                if (declaration.init?.type === AST_NODE_TYPES.CallExpression) {
-                    callExpression = declaration.init;
-                    break;
-                }
-            }
-        }
-
-        if (callExpression) {
-            break;
-        }
-    }
-
-    if (!callExpression) {
-        throw new Error(
-            "Expected generated declaration to initialize from filter call"
-        );
-    }
-
-    const callback = callExpression.arguments[0];
-
-    if (callback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
-        throw new Error(
-            "Expected generated filter call to include an arrow-function callback"
-        );
-    }
-
-    const callbackRange = callback.range;
-
-    return {
-        ast: parsed.ast,
-        callbackRange,
-        callExpression,
-    };
-};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
@@ -930,56 +553,6 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
             vi.resetModules();
         }
     });
-});
-
-const fixtureInvalidOutput = [
-    "interface MonitorRecord {",
-    "    readonly id: string;",
-    "}",
-    "",
-    "declare const nullableEntries: readonly (MonitorRecord | null)[];",
-    "declare const nullableMonitors: readonly (MonitorRecord | null | undefined)[];",
-    "declare const maybeNumbers: readonly (null | number | undefined)[];",
-    "",
-    "const entries = nullableEntries.filter(",
-    "    (entry): entry is MonitorRecord => entry !== null",
-    ");",
-    "const monitors = nullableMonitors.filter(",
-    "    isPresent",
-    ");",
-    "const numbers = maybeNumbers.filter((value) => value != undefined);",
-    "",
-    "if (entries.length + monitors.length + numbers.length < 0) {",
-    '    throw new TypeError("Unreachable total count");',
-    "}",
-    "",
-    'export const __typedFixtureModule = "typed-fixture-module";',
-].join("\r\n");
-const fixtureInvalidOutputWithMixedLineEndings = `import { isPresent } from "ts-extras";\n${fixtureInvalidOutput}\r\n`;
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-ts-extras-is-present-filter fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const fixtureInvalidSecondPassOutputWithMixedLineEndings = replaceOrThrow({
-    replacement: "const numbers = maybeNumbers.filter(isPresent);\r\n",
-    sourceText: fixtureInvalidOutputWithMixedLineEndings,
-    target: "const numbers = maybeNumbers.filter((value) => value != undefined);\r\n",
 });
 
 ruleTester.run(ruleId, rule, {

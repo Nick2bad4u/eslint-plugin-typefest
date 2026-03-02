@@ -13,6 +13,32 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
+import {
+    disableAllAutofixesSettings,
+    inlineInvalidAliasedImportCode,
+    inlineInvalidAliasedImportSuggestionOutput,
+    inlineInvalidAliasedTsExtrasImportCode,
+    inlineInvalidAliasedTsExtrasImportSuggestionOutput,
+    inlineInvalidSingleTypeArgumentCode,
+    inlineInvalidThreeTypeArgumentsCode,
+    inlineInvalidWithConflictingIsEqualTypeBindingCode,
+    inlineInvalidWithoutTypeArgumentsCode,
+    inlineValidLocalNamespaceIsEqualCode,
+    inlineValidNamedImportBooleanNonIsEqualCode,
+    inlineValidNamespaceBooleanNonIsEqualCode,
+    inlineValidNamespaceNonIsEqualCode,
+    inlineValidNonBooleanInitializerCode,
+    inlineValidNonBooleanLiteralInitializerCode,
+    inlineValidNonTypeFestIsEqualImportCode,
+    inlineValidObjectPatternDeclaratorCode,
+    inlineValidTypeAliasReferenceCode,
+    inlineValidUnionBooleanTypeCode,
+    invalidFixtureDirectEqualSuggestionOutput,
+    invalidFixtureDirectUnequalSuggestionOutput,
+    invalidFixtureName,
+    invalidFixtureNamespaceSuggestionOutput,
+    validFixtureName,
+} from "./_internal/prefer-ts-extras-is-equal-type-cases";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -21,194 +47,7 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
-
-const validFixtureName = "prefer-ts-extras-is-equal-type.valid.ts";
-const invalidFixtureName = "prefer-ts-extras-is-equal-type.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-ts-extras-is-equal-type fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const invalidFixtureCodeWithTsExtrasImport = replaceOrThrow({
-    replacement:
-        'import type { IsEqual } from "type-fest";\nimport { isEqualType } from "ts-extras";\r\n',
-    sourceText: invalidFixtureCode,
-    target: 'import type { IsEqual } from "type-fest";\r\n',
-});
-const invalidFixtureDirectEqualSuggestionOutput = replaceOrThrow({
-    replacement:
-        "const directEqualCheck = isEqualType<string, string>() || true;",
-    sourceText: invalidFixtureCodeWithTsExtrasImport,
-    target: "const directEqualCheck: IsEqual<string, string> = true;",
-});
-const invalidFixtureDirectUnequalSuggestionOutput = replaceOrThrow({
-    replacement:
-        "const directUnequalCheck = isEqualType<number, string>() && false;",
-    sourceText: invalidFixtureCodeWithTsExtrasImport,
-    target: "const directUnequalCheck: IsEqual<number, string> = false;",
-});
-const invalidFixtureNamespaceSuggestionOutput = replaceOrThrow({
-    replacement: 'const namespaceEqualCheck = isEqualType<"a", "a">() || true;',
-    sourceText: invalidFixtureCodeWithTsExtrasImport,
-    target: 'const namespaceEqualCheck: TypeFest.IsEqual<"a", "a"> = true;',
-});
-const inlineInvalidAliasedImportCode = [
-    'import type { IsEqual as IsEqualAlias } from "type-fest";',
-    "",
-    "const aliasedEqualCheck: IsEqualAlias<string, string> = true;",
-    "",
-    "Boolean(aliasedEqualCheck);",
-].join("\n");
-const inlineInvalidAliasedImportSuggestionOutput = replaceOrThrow({
-    replacement:
-        "const aliasedEqualCheck = isEqualType<string, string>() || true;",
-    sourceText: replaceOrThrow({
-        replacement:
-            'import type { IsEqual as IsEqualAlias } from "type-fest";\nimport { isEqualType } from "ts-extras";',
-        sourceText: inlineInvalidAliasedImportCode,
-        target: 'import type { IsEqual as IsEqualAlias } from "type-fest";',
-    }),
-    target: "const aliasedEqualCheck: IsEqualAlias<string, string> = true;",
-});
-const inlineInvalidAliasedTsExtrasImportCode = [
-    'import { isEqualType as isEqualTypeAlias } from "ts-extras";',
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const aliasedRuntimeHelperCheck: IsEqual<string, string> = true;",
-    "",
-    "Boolean(aliasedRuntimeHelperCheck);",
-].join("\n");
-const inlineInvalidAliasedTsExtrasImportSuggestionOutput = replaceOrThrow({
-    replacement:
-        "const aliasedRuntimeHelperCheck = isEqualTypeAlias<string, string>() || true;",
-    sourceText: inlineInvalidAliasedTsExtrasImportCode,
-    target: "const aliasedRuntimeHelperCheck: IsEqual<string, string> = true;",
-});
-const inlineValidTypeAliasReferenceCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "type EqualityFlag = IsEqual<string, string>;",
-    "const equalityFlag: EqualityFlag = true;",
-    "",
-    "Boolean(equalityFlag);",
-].join("\n");
-const inlineValidNonBooleanInitializerCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const equalityFlag: IsEqual<string, string> = true as const;",
-    "",
-    "Boolean(equalityFlag);",
-].join("\n");
-const inlineValidNonBooleanLiteralInitializerCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const nonBooleanLiteralCheck: IsEqual<string, string> = 1;",
-    "",
-    "Boolean(nonBooleanLiteralCheck);",
-].join("\n");
-const inlineValidObjectPatternDeclaratorCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const { equalityFlag }: { equalityFlag: IsEqual<string, string> } = {",
-    "    equalityFlag: true,",
-    "};",
-    "",
-    "Boolean(equalityFlag);",
-].join("\n");
-const inlineValidNamespaceNonIsEqualCode = [
-    'import type * as TypeFest from "type-fest";',
-    "",
-    'const value: TypeFest.Promisable<string> = "monitor";',
-    "",
-    "Boolean(value);",
-].join("\n");
-const inlineInvalidWithoutTypeArgumentsCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const noTypeArgumentsCheck: IsEqual = true;",
-    "",
-    "Boolean(noTypeArgumentsCheck);",
-].join("\n");
-const inlineInvalidSingleTypeArgumentCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const oneTypeArgumentCheck: IsEqual<string> = true;",
-    "",
-    "Boolean(oneTypeArgumentCheck);",
-].join("\n");
-const inlineInvalidThreeTypeArgumentsCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const threeTypeArgumentsCheck: IsEqual<string, string, boolean> = true;",
-    "",
-    "Boolean(threeTypeArgumentsCheck);",
-].join("\n");
-const inlineInvalidWithConflictingIsEqualTypeBindingCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const isEqualType = (left: unknown, right: unknown): boolean => left === right;",
-    "const conflictingBindingCheck: IsEqual<string, string> = true;",
-    "",
-    "Boolean(conflictingBindingCheck);",
-].join("\n");
-const inlineValidUnionBooleanTypeCode = [
-    'import type { IsEqual } from "type-fest";',
-    "",
-    "const unionFlag: false | true = true;",
-    "",
-    "Boolean(unionFlag);",
-].join("\n");
-const inlineValidNamespaceBooleanNonIsEqualCode = [
-    'import type * as TypeFest from "type-fest";',
-    "",
-    "const namespaceBoolean: TypeFest.Promisable<boolean> = true;",
-    "",
-    "Boolean(namespaceBoolean);",
-].join("\n");
-const inlineValidNamedImportBooleanNonIsEqualCode = [
-    'import type { Promisable } from "type-fest";',
-    "",
-    "const namedImportBoolean: Promisable<boolean> = true;",
-    "",
-    "Boolean(namedImportBoolean);",
-].join("\n");
-const inlineValidNonTypeFestIsEqualImportCode = [
-    'import type { IsEqual } from "ts-extras";',
-    "",
-    "const externalEqualCheck: IsEqual<string, string> = true;",
-    "",
-    "Boolean(externalEqualCheck);",
-].join("\n");
-const inlineValidLocalNamespaceIsEqualCode = [
-    "declare namespace LocalTypes {",
-    "    type IsEqual<Left, Right> = boolean;",
-    "}",
-    "",
-    "const localNamespaceCheck: LocalTypes.IsEqual<string, string> = true;",
-    "",
-    "Boolean(localNamespaceCheck);",
-].join("\n");
-const disableAllAutofixesSettings = {
-    typefest: {
-        disableAllAutofixes: true,
-    },
-};
 
 const parserOptions = {
     ecmaVersion: "latest",

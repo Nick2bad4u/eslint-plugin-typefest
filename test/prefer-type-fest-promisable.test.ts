@@ -12,43 +12,19 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
-import { getPluginRule } from "./_internal/ruleTester";
 import {
-    alreadyPromisableUnionValidCode,
-    customWrapperValidCode,
-    doublePromiseUnionValidCode,
+    additionalValidRuleTesterCases,
     inlineFixableInvalidCode,
     inlineFixableOutputCode,
     inlineInvalidWithoutFixCode,
     inlineInvalidWithoutFixOutputCode,
     invalidFixtureName,
-    nestedPromisableUnionValidCode,
-    neverFirstPromiseSecondValidCode,
-    nullFirstPromiseSecondValidCode,
     promiseFirstInvalidCode,
-    promiseFourMemberLeadingPairValidCode,
-    promiseFourMemberLeadingReversePairValidCode,
-    promiseLikeValidCode,
-    promiseMismatchValidCode,
-    promiseNeverInnerMatchValidCode,
-    promiseNeverValidCode,
-    promiseNoTypeArgumentsValidCode,
-    promiseNullInnerMatchValidCode,
-    promiseNullValidCode,
     promiseSecondInvalidCode,
-    promiseThreeMemberLeadingPairValidCode,
-    promiseThreeMemberLeadingReversePairValidCode,
-    promiseThreeMemberUnionValidCode,
-    promiseUndefinedInnerMatchValidCode,
-    promiseUndefinedUnionValidCode,
-    promiseUndefinedValidCode,
-    qualifiedPromiseValidCode,
-    reverseNestedPromisableUnionValidCode,
-    threeMemberPromisableUnionValidCode,
-    undefinedFirstPromiseSecondValidCode,
     validFixtureName,
 } from "./_internal/prefer-type-fest-promisable-cases";
+import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -57,6 +33,8 @@ import {
 
 const ruleTester = createTypedRuleTester();
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
+const invalidFixturePath = typedFixturePath(invalidFixtureName);
+const validFixturePath = typedFixturePath(validFixtureName);
 
 addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
     defaultOptions: [],
@@ -659,222 +637,50 @@ ruleTester.run(
                     { messageId: "preferPromisable" },
                     { messageId: "preferPromisable" },
                 ],
-                filename: typedFixturePath(invalidFixtureName),
+                filename: invalidFixturePath,
                 name: "reports fixture Promise<T> | T unions",
                 output: null,
             },
             {
                 code: promiseFirstInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(invalidFixtureName),
+                filename: invalidFixturePath,
                 name: "reports union with Promise first and value second",
                 output: null,
             },
             {
                 code: promiseSecondInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(invalidFixtureName),
+                filename: invalidFixturePath,
                 name: "reports union with value first and Promise second",
                 output: null,
             },
             {
                 code: inlineFixableInvalidCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(invalidFixtureName),
+                filename: invalidFixturePath,
                 name: "reports and autofixes imported MaybePromise alias",
                 output: inlineFixableOutputCode,
             },
             {
                 code: inlineInvalidWithoutFixCode,
                 errors: [{ messageId: "preferPromisable" }],
-                filename: typedFixturePath(invalidFixtureName),
+                filename: invalidFixturePath,
                 name: "reports alias usage when Promisable import is missing",
                 output: inlineInvalidWithoutFixOutputCode,
             },
         ],
         valid: [
             {
-                code: readTypedFixture("prefer-type-fest-promisable.valid.ts"),
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
+                code: readTypedFixture(validFixtureName),
+                filename: validFixturePath,
                 name: "accepts fixture-safe patterns",
             },
-            {
-                code: promiseNoTypeArgumentsValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise without explicit type arguments",
-            },
-            {
-                code: qualifiedPromiseValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores globalThis.Promise union",
-            },
-            {
-                code: customWrapperValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores custom Promise wrapper alias",
-            },
-            {
-                code: promiseLikeValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores PromiseLike union",
-            },
-            {
-                code: promiseNullValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise union with null",
-            },
-            {
-                code: promiseUndefinedValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores PromiseLike union with undefined",
-            },
-            {
-                code: promiseUndefinedUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise union with undefined",
-            },
-            {
-                code: promiseNeverValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise union with never",
-            },
-            {
-                code: promiseNullInnerMatchValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise<null> union with matching null member",
-            },
-            {
-                code: promiseUndefinedInnerMatchValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise<undefined> union with matching undefined member",
-            },
-            {
-                code: promiseNeverInnerMatchValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise<never> union with matching never member",
-            },
-            {
-                code: doublePromiseUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores union containing only Promise members",
-            },
-            {
-                code: promiseMismatchValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores Promise union with mismatched non-base type",
-            },
-            {
-                code: promiseThreeMemberUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores union containing more than Promise and base pair",
-            },
-            {
-                code: promiseThreeMemberLeadingPairValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores three-member union even when first two members form a Promise pair",
-            },
-            {
-                code: promiseThreeMemberLeadingReversePairValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores three-member union even when first two members form a reverse Promise pair",
-            },
-            {
-                code: promiseFourMemberLeadingPairValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores four-member union even when first two members form a Promise pair",
-            },
-            {
-                code: promiseFourMemberLeadingReversePairValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores four-member union even when first two members form a reverse Promise pair",
-            },
-            {
-                code: nullFirstPromiseSecondValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores null-first union with Promise second",
-            },
-            {
-                code: undefinedFirstPromiseSecondValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores undefined-first union with Promise second",
-            },
-            {
-                code: neverFirstPromiseSecondValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores never-first union with Promise second",
-            },
-            {
-                code: alreadyPromisableUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores union already using Promisable",
-            },
-            {
-                code: nestedPromisableUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores union where Promise inner type is already Promisable",
-            },
-            {
-                code: reverseNestedPromisableUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores reverse-order union where Promise inner type is already Promisable",
-            },
-            {
-                code: threeMemberPromisableUnionValidCode,
-                filename: typedFixturePath(
-                    "prefer-type-fest-promisable.valid.ts"
-                ),
-                name: "ignores multi-member union that already contains Promisable",
-            },
+            ...additionalValidRuleTesterCases.map(({ code, name }) => ({
+                code,
+                filename: validFixturePath,
+                name,
+            })),
         ],
     }
 );

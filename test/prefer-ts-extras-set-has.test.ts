@@ -2,10 +2,8 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
 
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
@@ -31,6 +29,16 @@ import {
     unionSetInvalidOutput,
     validFixtureName,
 } from "./_internal/prefer-ts-extras-set-has-cases";
+import {
+    argumentTemplateIdArbitrary,
+    assertIsReplaceFixFunction,
+    buildArgumentTemplate,
+    buildReceiverTemplate,
+    getSourceTextForNode,
+    parseCallExpressionFromCode,
+    parserOptions,
+    receiverTemplateIdArbitrary,
+} from "./_internal/prefer-ts-extras-set-has-runtime-harness";
 import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -48,222 +56,6 @@ const preferTsExtrasSetHasMessage =
     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.";
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
-
-const parserOptions = {
-    ecmaVersion: "latest",
-    loc: true,
-    range: true,
-    sourceType: "module",
-} as const;
-
-type ArgumentTemplateId =
-    | "empty"
-    | "identifier"
-    | "literal"
-    | "multiple"
-    | "spread";
-
-type ReceiverTemplateId =
-    | "callExpression"
-    | "identifier"
-    | "memberExpression"
-    | "parenthesizedIdentifier";
-
-const argumentTemplateIdArbitrary = fc.constantFrom(
-    "empty",
-    "identifier",
-    "literal",
-    "multiple",
-    "spread"
-);
-
-const receiverTemplateIdArbitrary = fc.constantFrom(
-    "identifier",
-    "memberExpression",
-    "callExpression",
-    "parenthesizedIdentifier"
-);
-
-const buildArgumentTemplate = (
-    templateId: ArgumentTemplateId
-): Readonly<{
-    argumentsText: string;
-    declarations: readonly string[];
-}> => {
-    if (templateId === "identifier") {
-        return {
-            argumentsText: "candidate",
-            declarations: ["declare const candidate: number;"],
-        };
-    }
-
-    if (templateId === "literal") {
-        return {
-            argumentsText: "2",
-            declarations: [],
-        };
-    }
-
-    if (templateId === "multiple") {
-        return {
-            argumentsText: "candidate, 2",
-            declarations: ["declare const candidate: number;"],
-        };
-    }
-
-    if (templateId === "spread") {
-        return {
-            argumentsText: "...candidates",
-            declarations: ["declare const candidates: number[];"],
-        };
-    }
-
-    return {
-        argumentsText: "",
-        declarations: [],
-    };
-};
-
-const buildReceiverTemplate = (
-    templateId: ReceiverTemplateId
-): Readonly<{
-    declarations: readonly string[];
-    receiverText: string;
-}> => {
-    if (templateId === "identifier") {
-        return {
-            declarations: ["declare const values: Set<number>;"],
-            receiverText: "values",
-        };
-    }
-
-    if (templateId === "memberExpression") {
-        return {
-            declarations: [
-                "declare const registry: { readonly current: Set<number> };",
-            ],
-            receiverText: "registry.current",
-        };
-    }
-
-    if (templateId === "callExpression") {
-        return {
-            declarations: ["declare function readSet(): Set<number>;"],
-            receiverText: "readSet()",
-        };
-    }
-
-    return {
-        declarations: ["declare const values: Set<number>;"],
-        receiverText: "(values)",
-    };
-};
-
-const getHasValueCallExpressionFromDeclarator = (
-    declaration: Readonly<TSESTree.VariableDeclarator>
-): null | TSESTree.CallExpression => {
-    if (
-        declaration.id.type === AST_NODE_TYPES.Identifier &&
-        declaration.id.name === "hasValue" &&
-        declaration.init?.type === AST_NODE_TYPES.CallExpression
-    ) {
-        return declaration.init;
-    }
-
-    return null;
-};
-
-const getHasValueCallExpressionFromStatement = (
-    statement: Readonly<TSESTree.ProgramStatement>
-): null | TSESTree.CallExpression => {
-    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
-        return null;
-    }
-
-    for (const declaration of statement.declarations) {
-        const callExpression =
-            getHasValueCallExpressionFromDeclarator(declaration);
-
-        if (callExpression) {
-            return callExpression;
-        }
-    }
-
-    return null;
-};
-
-const parseCallExpressionFromCode = (
-    code: string
-): Readonly<{
-    ast: ReturnType<typeof parser.parseForESLint>["ast"];
-    callExpression: TSESTree.CallExpression;
-    callExpressionRange: readonly [number, number];
-    receiverText: string;
-}> => {
-    const parsedResult = parser.parseForESLint(code, parserOptions);
-
-    for (const statement of parsedResult.ast.body) {
-        const callExpression =
-            getHasValueCallExpressionFromStatement(statement);
-
-        if (callExpression) {
-            if (
-                callExpression.callee.type !== AST_NODE_TYPES.MemberExpression
-            ) {
-                throw new Error(
-                    "Expected generated hasValue initializer to use a member-expression callee"
-                );
-            }
-
-            return {
-                ast: parsedResult.ast,
-                callExpression,
-                callExpressionRange: callExpression.range,
-                receiverText: code.slice(
-                    callExpression.callee.object.range[0],
-                    callExpression.callee.object.range[1]
-                ),
-            };
-        }
-    }
-
-    throw new Error(
-        "Expected generated code to include hasValue call expression"
-    );
-};
-
-const getSourceTextForNode = ({
-    code,
-    node,
-}: Readonly<{
-    code: string;
-    node: unknown;
-}>): string => {
-    if (typeof node !== "object" || node === null || !("range" in node)) {
-        return "";
-    }
-
-    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
-        .range;
-
-    if (!nodeRange) {
-        return "";
-    }
-
-    return code.slice(nodeRange[0], nodeRange[1]);
-};
-
-type ReplaceTextOnlyFixer = Readonly<{
-    replaceText: (node: unknown, text: string) => unknown;
-}>;
-
-const assertIsReplaceFixFunction: (
-    value: unknown
-) => asserts value is (fixer: ReplaceTextOnlyFixer) => unknown = (value) => {
-    if (typeof value !== "function") {
-        throw new TypeError("Expected report descriptor fix to be a function");
-    }
-};
 
 addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
     defaultOptions: [],
