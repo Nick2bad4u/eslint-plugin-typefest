@@ -494,7 +494,7 @@
         "stylelint-order": "^7.0.1",
         "stylelint-plugin-defensive-css": "^2.6.0",
         "stylelint-plugin-logical-css": "^2.0.2",
-        "stylelint-plugin-use-baseline": "^1.2.4",
+        "stylelint-plugin-use-baseline": "^1.2.6",
         "stylelint-prettier": "^5.0.3",
         "stylelint-react-native": "^2.7.0",
         "stylelint-scales": "^5.0.0",
