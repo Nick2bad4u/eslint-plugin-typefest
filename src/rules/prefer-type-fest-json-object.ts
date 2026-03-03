@@ -9,7 +9,7 @@ import {
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** TypeFest JSON value alias used in equivalent object shapes. */
 const JSON_VALUE_TYPE_NAME = "JsonValue";
@@ -80,11 +80,6 @@ const isRecordJsonValueReference = (
 const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
                 "type-fest"

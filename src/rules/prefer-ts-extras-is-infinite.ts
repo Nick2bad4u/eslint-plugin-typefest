@@ -12,7 +12,6 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -193,12 +192,6 @@ const extractSafeInfinityDisjunctionTarget = (
 const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

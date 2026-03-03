@@ -63,6 +63,7 @@ const createIdentifierImportSpecifier = (
     },
     local: {
         name: localName,
+        type: "Identifier",
     },
     type: "ImportSpecifier",
 });
@@ -75,6 +76,7 @@ const createNonIdentifierImportSpecifier = (localName: string): unknown => ({
     },
     local: {
         name: localName,
+        type: "Identifier",
     },
     type: "ImportSpecifier",
 });

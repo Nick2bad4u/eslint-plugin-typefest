@@ -193,46 +193,6 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             vi.resetModules();
         }
     });
-
-    it("falls back to an empty filename before the test-file guard", async () => {
-        const capturedPaths: string[] = [];
-
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map<
-                        string,
-                        { importedName: string; replacementName: string }
-                    >(),
-                createSafeTypeReferenceReplacementFix: () => undefined,
-            }));
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (filePath: string): boolean => {
-                    capturedPaths.push(filePath);
-
-                    return true;
-                },
-            }));
-
-            const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-conditional-pick")) as {
-                    default: ConditionalPickRuleMetadataSnapshot;
-                };
-
-            undecoratedModule.default.create({});
-
-            expect(capturedPaths).toStrictEqual([""]);
-        } finally {
-            vi.doUnmock("../src/_internal/imported-type-aliases.js");
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 describe("prefer-type-fest-conditional-pick parse-safety guards", () => {

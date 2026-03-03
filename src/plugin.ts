@@ -8,7 +8,17 @@ import type { PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
 
+import type {
+    TypefestConfigName as InternalTypefestConfigName,
+    TypefestConfigReference,
+} from "./_internal/typefest-config-references.js";
+
 import { createRuleDocsUrl } from "./_internal/rule-docs-url.js";
+import {
+    defaultRecommendedConfigReferences,
+    isTypefestConfigReference,
+    typefestConfigReferenceToName,
+} from "./_internal/typefest-config-references.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
 import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
@@ -105,13 +115,7 @@ const TYPE_SCRIPT_FILES = ["**/*.{ts,tsx,mts,cts}"] as const;
  * These names are used by consumers when composing presets in ESLint flat
  * config arrays.
  */
-export type TypefestConfigName =
-    | "all"
-    | "minimal"
-    | "recommended"
-    | "strict"
-    | "ts-extras/type-guards"
-    | "type-fest/types";
+export type TypefestConfigName = InternalTypefestConfigName;
 
 /**
  * Flat-config preset shape produced by this plugin.
@@ -137,6 +141,7 @@ type RulesConfig = TypefestPresetConfig["rules"];
 type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
     meta?: {
         docs?: {
+            recommended?: boolean | readonly string[] | string;
             url?: string;
         };
     };
@@ -154,7 +159,7 @@ type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
         version: string;
     };
     processors: NonNullable<ESLint.Plugin["processors"]>;
-    rules: NonNullable<ESLint.Plugin["rules"]> & typeof typefestRules;
+    rules: NonNullable<ESLint.Plugin["rules"]>;
 };
 
 /** Optional parser module shape accepted for runtime parser wiring. */
@@ -175,6 +180,40 @@ function getPackageVersion(pkg: Readonly<PackageJson>): string {
 }
 
 /**
+ * Determine whether a caught `require` error represents a missing module.
+ */
+const hasModuleNotFoundCode = (
+    error: unknown
+): error is Readonly<{ code: "ERR_MODULE_NOT_FOUND" | "MODULE_NOT_FOUND" }> => {
+    if (typeof error !== "object" || error === null) {
+        return false;
+    }
+
+    const candidate = error as Readonly<{ code?: unknown }>;
+
+    return (
+        candidate.code === "MODULE_NOT_FOUND" ||
+        candidate.code === "ERR_MODULE_NOT_FOUND"
+    );
+};
+
+/**
+ * Check whether a parser load failure is the expected optional-dependency miss.
+ */
+const isMissingTypeScriptParserError = (error: unknown): boolean => {
+    if (!hasModuleNotFoundCode(error)) {
+        return false;
+    }
+
+    const candidate = error as Readonly<{ message?: unknown }>;
+
+    return (
+        typeof candidate.message === "string" &&
+        candidate.message.includes("@typescript-eslint/parser")
+    );
+};
+
+/**
  * Load the TypeScript ESLint parser lazily to support optional dependency
  * setups.
  *
@@ -183,7 +222,11 @@ function getPackageVersion(pkg: Readonly<PackageJson>): string {
 function loadTypeScriptParser(): null | TypeScriptParser {
     try {
         return require("@typescript-eslint/parser") as TypeScriptParser;
-    } catch {
+    } catch (error: unknown) {
+        if (!isMissingTypeScriptParserError(error)) {
+            throw error;
+        }
+
         return null;
     }
 }
@@ -194,132 +237,13 @@ const packageJson = require("../package.json") as PackageJson;
 /** Optional parser module instance reused across preset construction. */
 const typeScriptParser = loadTypeScriptParser();
 
-/**
- * Rule names included in the `type-fest/types` preset family.
- */
-const typeFestTypesRuleNames = [
-    "prefer-type-fest-abstract-constructor",
-    "prefer-type-fest-async-return-type",
-    "prefer-type-fest-arrayable",
-    "prefer-type-fest-conditional-pick",
-    "prefer-type-fest-constructor",
-    "prefer-type-fest-except",
-    "prefer-type-fest-if",
-    "prefer-type-fest-iterable-element",
-    "prefer-type-fest-json-array",
-    "prefer-type-fest-json-object",
-    "prefer-type-fest-json-primitive",
-    "prefer-type-fest-json-value",
-    "prefer-type-fest-keys-of-union",
-    "prefer-type-fest-literal-union",
-    "prefer-type-fest-merge-exclusive",
-    "prefer-type-fest-non-empty-tuple",
-    "prefer-type-fest-omit-index-signature",
-    "prefer-type-fest-partial-deep",
-    "prefer-type-fest-primitive",
-    "prefer-type-fest-promisable",
-    "prefer-type-fest-readonly-deep",
-    "prefer-type-fest-require-all-or-none",
-    "prefer-type-fest-require-at-least-one",
-    "prefer-type-fest-require-exactly-one",
-    "prefer-type-fest-require-one-or-none",
-    "prefer-type-fest-required-deep",
-    "prefer-type-fest-schema",
-    "prefer-type-fest-set-non-nullable",
-    "prefer-type-fest-set-optional",
-    "prefer-type-fest-set-readonly",
-    "prefer-type-fest-set-required",
-    "prefer-type-fest-simplify",
-    "prefer-type-fest-tagged-brands",
-    "prefer-type-fest-tuple-of",
-    "prefer-type-fest-unknown-array",
-    "prefer-type-fest-unknown-map",
-    "prefer-type-fest-unknown-record",
-    "prefer-type-fest-unknown-set",
-    "prefer-type-fest-unwrap-tagged",
-    "prefer-type-fest-value-of",
-    "prefer-type-fest-writable",
-    "prefer-type-fest-writable-deep",
-] as const;
-
-/** Rules grouped under the `ts-extras/type-guards` preset. */
-const tsExtrasTypeGuardRuleNames = [
-    "prefer-ts-extras-array-includes",
-    "prefer-ts-extras-assert-defined",
-    "prefer-ts-extras-assert-error",
-    "prefer-ts-extras-assert-present",
-    "prefer-ts-extras-is-defined",
-    "prefer-ts-extras-is-defined-filter",
-    "prefer-ts-extras-is-empty",
-    "prefer-ts-extras-is-finite",
-    "prefer-ts-extras-is-infinite",
-    "prefer-ts-extras-is-integer",
-    "prefer-ts-extras-is-present",
-    "prefer-ts-extras-is-present-filter",
-    "prefer-ts-extras-is-safe-integer",
-    "prefer-ts-extras-key-in",
-    "prefer-ts-extras-not",
-    "prefer-ts-extras-object-has-in",
-    "prefer-ts-extras-object-has-own",
-    "prefer-ts-extras-safe-cast-to",
-    "prefer-ts-extras-set-has",
-] as const;
-
-/** Rules grouped under ts-extras utility-focused presets. */
-const tsExtrasUtilityRuleNames = [
-    "prefer-ts-extras-array-at",
-    "prefer-ts-extras-array-concat",
-    "prefer-ts-extras-array-first",
-    "prefer-ts-extras-array-join",
-    "prefer-ts-extras-array-last",
-    "prefer-ts-extras-as-writable",
-    "prefer-ts-extras-object-entries",
-    "prefer-ts-extras-object-from-entries",
-    "prefer-ts-extras-object-keys",
-    "prefer-ts-extras-object-values",
-    "prefer-ts-extras-string-split",
-] as const;
-
-/** Experimental rules enabled only by the `all` preset. */
-const tsExtrasExperimentalRuleNames = [
-    "prefer-ts-extras-array-find",
-    "prefer-ts-extras-array-find-last",
-    "prefer-ts-extras-array-find-last-index",
-    "prefer-ts-extras-is-equal-type",
-] as const;
-
-/** Minimal baseline preset focused on broad, low-risk value/type helpers. */
-const minimalRuleNames = [
-    "prefer-type-fest-arrayable",
-    "prefer-type-fest-except",
-    "prefer-type-fest-json-array",
-    "prefer-type-fest-json-object",
-    "prefer-type-fest-json-primitive",
-    "prefer-type-fest-json-value",
-    "prefer-type-fest-primitive",
-    "prefer-type-fest-promisable",
-    "prefer-type-fest-unknown-record",
-    "prefer-ts-extras-is-defined-filter",
-    "prefer-ts-extras-is-present-filter",
-] as const;
-
-/**
- * Unqualified rule name supported by `eslint-plugin-typefest`.
- *
- * @remarks
- * These names intentionally omit the `typefest/` namespace and are used for
- * internal rule map typing.
- */
-export type TypefestRuleName =
-    | (typeof tsExtrasExperimentalRuleNames)[number]
-    | (typeof tsExtrasTypeGuardRuleNames)[number]
-    | (typeof tsExtrasUtilityRuleNames)[number]
-    | (typeof typeFestTypesRuleNames)[number];
+/** Pattern for unqualified rule names supported by `eslint-plugin-typefest`. */
+type TypefestRuleNamePattern = `prefer-${string}`;
 
 /**
  * Runtime map of all rule modules keyed by unqualified rule name.
  */
-const typefestRules: Readonly<Record<TypefestRuleName, RuleWithDocs>> = {
+const typefestRules: Readonly<Record<TypefestRuleNamePattern, RuleWithDocs>> = {
     "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
     "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
     "prefer-ts-extras-array-find": preferTsExtrasArrayFindRule,
@@ -411,19 +335,105 @@ const typefestRules: Readonly<Record<TypefestRuleName, RuleWithDocs>> = {
  */
 export type TypefestRuleId = `typefest/${TypefestRuleName}`;
 
+/** Unqualified rule name supported by `eslint-plugin-typefest`. */
+export type TypefestRuleName = keyof typeof typefestRules;
+
 /**
  * ESLint-compatible rule map view of the strongly typed internal rule record.
  */
-const typefestEslintRules = typefestRules as unknown as NonNullable<
+const typefestEslintRules: NonNullable<ESLint.Plugin["rules"]> &
+    typeof typefestRules = typefestRules as NonNullable<
     ESLint.Plugin["rules"]
 > &
     typeof typefestRules;
 
-for (const [ruleName, rule] of Object.entries(typefestRules)) {
+const typefestRuleEntries = Object.entries(
+    typefestRules
+) as readonly (readonly [TypefestRuleName, RuleWithDocs])[];
+
+for (const [ruleName, rule] of typefestRuleEntries) {
     if (rule.meta?.docs) {
         rule.meta.docs.url ??= createRuleDocsUrl(ruleName);
     }
 }
+
+const createEmptyPresetRuleMap = (): Record<
+    TypefestConfigName,
+    TypefestRuleName[]
+> => ({
+    all: [],
+    minimal: [],
+    recommended: [],
+    strict: [],
+    "ts-extras/type-guards": [],
+    "type-fest/types": [],
+});
+
+const normalizeRecommendedConfigReferences = (
+    recommended: RuleWithDocs["meta"] extends { docs?: infer Docs }
+        ? Docs extends { recommended?: infer Value }
+            ? undefined | Value
+            : never
+        : never
+): readonly TypefestConfigReference[] => {
+    if (recommended === true) {
+        return defaultRecommendedConfigReferences;
+    }
+
+    if (typeof recommended === "string") {
+        return isTypefestConfigReference(recommended) ? [recommended] : [];
+    }
+
+    if (!Array.isArray(recommended)) {
+        return [];
+    }
+
+    const references: TypefestConfigReference[] = [];
+
+    for (const candidate of recommended) {
+        if (typeof candidate !== "string") {
+            continue;
+        }
+
+        if (!isTypefestConfigReference(candidate)) {
+            continue;
+        }
+
+        references.push(candidate);
+    }
+
+    return references;
+};
+
+const derivePresetRuleNamesByConfig = (): Readonly<
+    Record<TypefestConfigName, readonly TypefestRuleName[]>
+> => {
+    const presetRuleNamesByConfig = createEmptyPresetRuleMap();
+
+    for (const [ruleName, rule] of typefestRuleEntries) {
+        const references = normalizeRecommendedConfigReferences(
+            rule.meta?.docs?.recommended
+        );
+
+        for (const reference of references) {
+            const configName = typefestConfigReferenceToName[reference];
+            presetRuleNamesByConfig[configName].push(ruleName);
+        }
+    }
+
+    return {
+        all: [...new Set(presetRuleNamesByConfig.all)],
+        minimal: [...new Set(presetRuleNamesByConfig.minimal)],
+        recommended: [...new Set(presetRuleNamesByConfig.recommended)],
+        strict: [...new Set(presetRuleNamesByConfig.strict)],
+        "ts-extras/type-guards": [
+            ...new Set(presetRuleNamesByConfig["ts-extras/type-guards"]),
+        ],
+        "type-fest/types": [
+            ...new Set(presetRuleNamesByConfig["type-fest/types"]),
+        ],
+    };
+};
 
 /**
  * Build an ESLint rules map that enables each provided rule at error level.
@@ -449,29 +459,26 @@ function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
  *
  * @returns Deduplicated rule list.
  */
-function uniqueRuleNames(
-    ruleNames: readonly TypefestRuleName[]
-): TypefestRuleName[] {
-    return [...new Set(ruleNames)];
-}
+const presetRuleNamesByConfig = derivePresetRuleNamesByConfig();
 
-/** Recommended preset rule list after duplicate elimination. */
-const recommendedRuleNames = uniqueRuleNames([
-    ...typeFestTypesRuleNames,
-    ...tsExtrasTypeGuardRuleNames,
-]);
+/** Recommended preset rule list derived from docs metadata. */
+const recommendedRuleNames = presetRuleNamesByConfig.recommended;
 
-/** Strict preset extends `recommended` with ts-extras utility rules. */
-const strictRuleNames = uniqueRuleNames([
-    ...recommendedRuleNames,
-    ...tsExtrasUtilityRuleNames,
-]);
+/** Strict preset rule list derived from docs metadata. */
+const strictRuleNames = presetRuleNamesByConfig.strict;
 
-/** All preset extends `strict` with experimental rules. */
-const allRuleNames = uniqueRuleNames([
-    ...strictRuleNames,
-    ...tsExtrasExperimentalRuleNames,
-]);
+/** All preset rule list derived from docs metadata. */
+const allRuleNames = presetRuleNamesByConfig.all;
+
+/** Minimal preset rule list derived from docs metadata. */
+const minimalRuleNames = presetRuleNamesByConfig.minimal;
+
+/** Ts-extras/type-guards preset rule list derived from docs metadata. */
+const tsExtrasTypeGuardRuleNames =
+    presetRuleNamesByConfig["ts-extras/type-guards"];
+
+/** Type-fest/types preset rule list derived from docs metadata. */
+const typeFestTypesRuleNames = presetRuleNamesByConfig["type-fest/types"];
 
 /**
  * Apply parser and plugin metadata required by all plugin presets.

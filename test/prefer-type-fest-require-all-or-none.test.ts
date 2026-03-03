@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-require-all-or-none.test` behavior.
@@ -136,20 +136,17 @@ const parseRequireAllOrNoneTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-all-or-none",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
-        enforceRuleShape: true,
-        messages: {
-            preferRequireAllOrNone:
-                "Prefer `{{replacement}}` from type-fest to require all-or-none key groups instead of legacy alias `{{alias}}`.",
-        },
-        name: "prefer-type-fest-require-all-or-none",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-require-all-or-none", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
+    enforceRuleShape: true,
+    messages: {
+        preferRequireAllOrNone:
+            "Prefer `{{replacement}}` from type-fest to require all-or-none key groups instead of legacy alias `{{alias}}`.",
+    },
+    name: "prefer-type-fest-require-all-or-none",
+});
 
 describe("prefer-type-fest-require-all-or-none parse-safety guards", () => {
     it("fast-check: RequireAllOrNone replacement remains parseable across alias variants", () => {

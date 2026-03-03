@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -386,20 +386,17 @@ const parseMutableAssertionFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-as-writable",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasAsWritable:
-                "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
-        },
-        name: "prefer-ts-extras-as-writable",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-as-writable", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras asWritable over Writable<T> style assertions from type-fest.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasAsWritable:
+            "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
+    },
+    name: "prefer-ts-extras-as-writable",
+});
 
 describe("prefer-ts-extras-as-writable source assertions", () => {
     it("keeps as-writable import and qualified-name guards in source", () => {
@@ -411,9 +408,6 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'const filePath = context.filename ?? "";'
-        );
         expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
         expect(ruleSource).toContain(
             "collectNamespaceImportLocalNamesFromSource("

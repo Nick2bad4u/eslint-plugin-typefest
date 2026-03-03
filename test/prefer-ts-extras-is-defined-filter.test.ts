@@ -8,7 +8,7 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -291,7 +291,7 @@ const parseFilterCallFromCode = (
     };
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     enforceRuleShape: true,

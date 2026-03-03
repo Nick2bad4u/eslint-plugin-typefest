@@ -45,7 +45,7 @@ import {
     threeMemberUnionValidCode,
     validFixtureName,
 } from "./_internal/prefer-type-fest-arrayable-cases";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -289,7 +289,7 @@ const assertIsReplaceFixFunction: (
     }
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     enforceRuleShape: true,

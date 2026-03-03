@@ -12,14 +12,8 @@ import {
     getTypedRuleServices,
     isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
-    isTestFilePath,
     isTypeAssignableTo,
 } from "../../src/_internal/typed-rule";
-import {
-    assertKnownSuffixesProperty,
-    assertNonTestPaths,
-    assertTestsDirectoryProperty,
-} from "./typed-rule-path-assertions";
 
 /** Minimal parser-services shape consumed by typed-rule helper tests. */
 interface ParserServicesLike {
@@ -64,26 +58,6 @@ const createParserServices = (
     esTreeNodeToTSNodeMap: new WeakMap<object, object>(),
     program,
     tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
-});
-
-describe(isTestFilePath, () => {
-    it("accepts known test suffixes regardless of filename casing", () => {
-        expect.hasAssertions();
-
-        assertKnownSuffixesProperty();
-    });
-
-    it("accepts paths containing tests directories with mixed separators/casing", () => {
-        expect.hasAssertions();
-
-        assertTestsDirectoryProperty();
-    });
-
-    it("rejects non-test paths", () => {
-        expect.hasAssertions();
-
-        assertNonTestPaths();
-    });
 });
 
 describe(isGlobalUndefinedIdentifier, () => {

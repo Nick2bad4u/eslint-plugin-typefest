@@ -10,7 +10,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -219,20 +219,17 @@ const parseIncludesCallExpressionFromCode = (
     throw new Error("Expected a hasValue call expression in generated code");
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-array-includes",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasArrayIncludes:
-                "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
-        },
-        name: "prefer-ts-extras-array-includes",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-array-includes", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras arrayIncludes over Array#includes for stronger element inference.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasArrayIncludes:
+            "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+    },
+    name: "prefer-ts-extras-array-includes",
+});
 
 describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
     it("fast-check: includes call patterns report and produce parseable arrayIncludes replacements", async () => {

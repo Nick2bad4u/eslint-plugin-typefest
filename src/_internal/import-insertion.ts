@@ -64,6 +64,35 @@ const getLastDirectivePrologueStatement = (
 };
 
 /**
+ * Read and validate a node range tuple.
+ *
+ * @param node - Node whose range should be extracted.
+ *
+ * @returns `[start, end]` tuple when available and valid; otherwise `null`.
+ */
+const getNodeRange = (
+    node: Readonly<TSESTree.Node>
+): null | readonly [number, number] => {
+    const nodeRange = node.range;
+
+    if (!Array.isArray(nodeRange)) {
+        return null;
+    }
+
+    const [start, end] = nodeRange;
+
+    if (!Number.isInteger(start) || !Number.isInteger(end)) {
+        return null;
+    }
+
+    if (start < 0 || end < start) {
+        return null;
+    }
+
+    return [start, end];
+};
+
+/**
  * Read the numeric start offset from an ESTree node range tuple.
  *
  * @param node - Node whose start offset should be extracted.
@@ -71,14 +100,9 @@ const getLastDirectivePrologueStatement = (
  * @returns Numeric start offset when available; otherwise `null`.
  */
 const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
-    const nodeRange = (node as Readonly<TSESTree.Node> & { range?: unknown })
-        .range;
+    const nodeRange = getNodeRange(node);
 
-    if (!Array.isArray(nodeRange) || typeof nodeRange[0] !== "number") {
-        return null;
-    }
-
-    return nodeRange[0];
+    return nodeRange?.[0] ?? null;
 };
 
 /**
@@ -91,20 +115,9 @@ const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
 const getProgramRangeEnd = (
     programNode: Readonly<TSESTree.Program>
 ): null | number => {
-    const programRange = (
-        programNode as Readonly<TSESTree.Program> & { range?: unknown }
-    ).range;
+    const programRange = getNodeRange(programNode);
 
-    if (!Array.isArray(programRange) || typeof programRange[1] !== "number") {
-        return null;
-    }
-
-    const programEnd = programRange[1];
-    if (!Number.isInteger(programEnd) || programEnd < 0) {
-        return null;
-    }
-
-    return programEnd;
+    return programRange?.[1] ?? null;
 };
 
 /**

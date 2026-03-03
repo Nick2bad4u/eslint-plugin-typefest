@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-partial-deep.test` behavior.
@@ -124,20 +124,16 @@ const parsePartialDeepTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-partial-deep",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest PartialDeep over `DeepPartial` aliases.",
-        enforceRuleShape: true,
-        messages: {
-            preferPartialDeep:
-                "Prefer `PartialDeep` from type-fest over `DeepPartial`.",
-        },
-        name: "prefer-type-fest-partial-deep",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-partial-deep", {
+    defaultOptions: [],
+    docsDescription: "require TypeFest PartialDeep over `DeepPartial` aliases.",
+    enforceRuleShape: true,
+    messages: {
+        preferPartialDeep:
+            "Prefer `PartialDeep` from type-fest over `DeepPartial`.",
+    },
+    name: "prefer-type-fest-partial-deep",
+});
 
 describe("prefer-type-fest-partial-deep parse-safety guards", () => {
     it("fast-check: PartialDeep replacement remains parseable across deep-structure variants", () => {

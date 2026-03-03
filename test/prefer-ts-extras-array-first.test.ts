@@ -10,7 +10,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -259,20 +259,17 @@ describe("prefer-ts-extras-array-first source assertions", () => {
     });
 });
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-array-first",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasArrayFirst:
-                "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
-        },
-        name: "prefer-ts-extras-array-first",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-array-first", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasArrayFirst:
+            "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
+    },
+    name: "prefer-ts-extras-array-first",
+});
 
 ruleTester.run("prefer-ts-extras-array-first", rule, {
     invalid: [

@@ -12,7 +12,6 @@ import {
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -53,11 +52,6 @@ const isReflectHasCall = ({
 const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

@@ -9,7 +9,7 @@ import {
     createSafeTypeNodeReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Built-in readonly array type targeted by this rule. */
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
@@ -71,12 +71,6 @@ const isReadonlyUnknownArrayType = (
 const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
                 "type-fest"

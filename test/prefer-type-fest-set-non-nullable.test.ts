@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-set-non-nullable.test` behavior.
@@ -135,20 +135,17 @@ const parseSetNonNullableTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-non-nullable",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
-        enforceRuleShape: true,
-        messages: {
-            preferSetNonNullable:
-                "Prefer `{{replacement}}` from type-fest to make selected keys non-nullable instead of legacy alias `{{alias}}`.",
-        },
-        name: "prefer-type-fest-set-non-nullable",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-set-non-nullable", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest SetNonNullable over imported aliases such as NonNullableBy.",
+    enforceRuleShape: true,
+    messages: {
+        preferSetNonNullable:
+            "Prefer `{{replacement}}` from type-fest to make selected keys non-nullable instead of legacy alias `{{alias}}`.",
+    },
+    name: "prefer-type-fest-set-non-nullable",
+});
 
 describe("prefer-type-fest-set-non-nullable parse-safety guards", () => {
     it("fast-check: SetNonNullable replacement remains parseable", () => {

@@ -8,7 +8,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -112,18 +112,15 @@ const parseReadonlyUnknownSetTypeReferenceFromCode = (sourceText: string) => {
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unknown-set",
-    {
-        docsDescription:
-            "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
-        enforceRuleShape: true,
-        messages: {
-            preferUnknownSet:
-                "Prefer `Readonly<UnknownSet>` from type-fest over `ReadonlySet<unknown>`.",
-        },
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-unknown-set", {
+    docsDescription:
+        "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
+    enforceRuleShape: true,
+    messages: {
+        preferUnknownSet:
+            "Prefer `Readonly<UnknownSet>` from type-fest over `ReadonlySet<unknown>`.",
+    },
+});
 
 describe("prefer-type-fest-unknown-set source assertions", () => {
     it("matches ReadonlySet<unknown> in undecorated visitor", async () => {

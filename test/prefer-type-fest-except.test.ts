@@ -10,7 +10,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -142,7 +142,7 @@ const parseExceptTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-except", {
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-except", {
     defaultOptions: [],
     docsDescription:
         "require TypeFest Except over Omit when removing properties from object types.",

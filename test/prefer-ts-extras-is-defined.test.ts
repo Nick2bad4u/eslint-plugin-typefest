@@ -56,7 +56,7 @@ import {
     isRuntimeIsDefinedCase,
     runtimeIsDefinedCaseArbitrary,
 } from "./_internal/prefer-ts-extras-is-defined-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -97,7 +97,7 @@ const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
     }
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     enforceRuleShape: true,

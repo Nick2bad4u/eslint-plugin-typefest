@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -156,7 +156,7 @@ const parseIsFiniteCallFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-finite", {
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-finite", {
     defaultOptions: [],
     docsDescription:
         "require ts-extras isFinite over Number.isFinite for consistent predicate helper usage.",

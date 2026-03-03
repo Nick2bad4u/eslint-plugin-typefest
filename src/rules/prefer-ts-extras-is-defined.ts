@@ -9,10 +9,10 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /** Concrete rule context type inferred from `createTypedRule`. */
@@ -60,23 +60,30 @@ const isBoundIdentifierReference = (
         return true;
     }
 
-    try {
-        let currentScope: null | TSESLint.Scope.Scope =
-            context.sourceCode.getScope(expression);
+    const result = safeTypeOperation({
+        operation: () => {
+            let currentScope: null | TSESLint.Scope.Scope =
+                context.sourceCode.getScope(expression);
 
-        while (currentScope !== null) {
-            const variable = currentScope.set.get(expression.name);
-            if (variable !== undefined) {
-                return variable.defs.length > 0;
+            while (currentScope !== null) {
+                const variable = currentScope.set.get(expression.name);
+                if (variable !== undefined) {
+                    return variable.defs.length > 0;
+                }
+
+                currentScope = currentScope.upper;
             }
 
-            currentScope = currentScope.upper;
-        }
-    } catch {
+            return false;
+        },
+        reason: "is-defined-scope-resolution-failed",
+    });
+
+    if (!result.ok) {
         return false;
     }
 
-    return false;
+    return result.value;
 };
 
 /**
@@ -172,11 +179,6 @@ const getUndefinedComparisonMatch = (
 const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

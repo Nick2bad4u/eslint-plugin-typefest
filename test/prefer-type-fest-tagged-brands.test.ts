@@ -9,7 +9,7 @@ import {
     fastCheckRunConfig,
     isSafeGeneratedIdentifier,
 } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-tagged-brands.test` behavior.
@@ -224,20 +224,17 @@ const parseTaggedTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-tagged-brands",
-    {
-        docsDescription:
-            "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
-        enforceRuleShape: true,
-        messages: {
-            preferTaggedAlias:
-                "Prefer `{{replacement}}` from type-fest for canonical tagged-brand aliases instead of legacy alias `{{alias}}`.",
-            preferTaggedBrand:
-                "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
-        },
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-tagged-brands", {
+    docsDescription:
+        "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
+    enforceRuleShape: true,
+    messages: {
+        preferTaggedAlias:
+            "Prefer `{{replacement}}` from type-fest for canonical tagged-brand aliases instead of legacy alias `{{alias}}`.",
+        preferTaggedBrand:
+            "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
+    },
+});
 
 describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
     it("fast-check: Tagged replacement remains parseable for imported alias references", () => {

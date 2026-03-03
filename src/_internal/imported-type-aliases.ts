@@ -6,6 +6,10 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import { getParentNode } from "./ast-node.js";
 import {
+    collectNamedImportSpecifierBindingsFromSource,
+    collectNamespaceImportLocalNamesFromSourceModule,
+} from "./import-analysis.js";
+import {
     type ImportFixIntent,
     shouldIncludeImportInsertionForReportFix,
 } from "./import-fix-coordinator.js";
@@ -25,19 +29,6 @@ const READONLY_CONTAINER_TYPE_NAMES = new Set([
     "ReadonlyMap",
     "ReadonlySet",
 ]);
-
-/**
- * Check whether an import declaration targets the expected source module.
- *
- * @param statement - Import declaration node.
- * @param sourceModuleName - Expected module specifier value.
- *
- * @returns `true` when the import declaration source matches.
- */
-const isImportDeclarationFromSource = (
-    statement: Readonly<TSESTree.ImportDeclaration>,
-    sourceModuleName: string
-): boolean => statement.source.value === sourceModuleName;
 
 /**
  * Matched imported type alias that can be replaced with a canonical name.
@@ -65,44 +56,32 @@ export const collectImportedTypeAliasMatches = (
 ): ReadonlyMap<string, ImportedTypeAliasMatch> => {
     const aliasMatches = new Map<string, ImportedTypeAliasMatch>();
 
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
+    for (const binding of collectNamedImportSpecifierBindingsFromSource({
+        sourceCode,
+    })) {
+        if (binding.localName !== binding.importedName) {
+            continue;
+        }
+
+        const replacementName =
+            replacementsByImportedName[binding.importedName];
+        if (
+            typeof replacementName !== "string" ||
+            replacementName.length === 0
+        ) {
             continue;
         }
 
         const sourceValue =
-            typeof statement.source.value === "string"
-                ? statement.source.value
+            typeof binding.declaration.source.value === "string"
+                ? binding.declaration.source.value
                 : "";
 
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportSpecifier") {
-                continue;
-            }
-
-            if (specifier.imported.type !== "Identifier") {
-                continue;
-            }
-
-            if (specifier.local.name !== specifier.imported.name) {
-                continue;
-            }
-
-            const replacementName =
-                replacementsByImportedName[specifier.imported.name];
-            if (
-                typeof replacementName !== "string" ||
-                replacementName.length === 0
-            ) {
-                continue;
-            }
-
-            aliasMatches.set(specifier.imported.name, {
-                importedName: specifier.imported.name,
-                replacementName,
-                sourceValue,
-            });
-        }
+        aliasMatches.set(binding.importedName, {
+            importedName: binding.importedName,
+            replacementName,
+            sourceValue,
+        });
     }
 
     return aliasMatches;
@@ -122,30 +101,15 @@ export const collectDirectNamedImportsFromSource = (
 ): ReadonlySet<string> => {
     const namedImports = new Set<string>();
 
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
+    for (const binding of collectNamedImportSpecifierBindingsFromSource({
+        sourceCode,
+        sourceModuleName: expectedSourceValue,
+    })) {
+        if (binding.localName !== binding.importedName) {
             continue;
         }
 
-        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
-            continue;
-        }
-
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportSpecifier") {
-                continue;
-            }
-
-            if (specifier.imported.type !== "Identifier") {
-                continue;
-            }
-
-            if (specifier.local.name !== specifier.imported.name) {
-                continue;
-            }
-
-            namedImports.add(specifier.imported.name);
-        }
+        namedImports.add(binding.importedName);
     }
 
     return namedImports;
@@ -168,29 +132,15 @@ export const collectNamedImportLocalNamesFromSource = (
 ): ReadonlySet<string> => {
     const localNames = new Set<string>();
 
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
+    for (const binding of collectNamedImportSpecifierBindingsFromSource({
+        sourceCode,
+        sourceModuleName: expectedSourceValue,
+    })) {
+        if (binding.importedName !== expectedImportedName) {
             continue;
         }
 
-        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
-            continue;
-        }
-
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportSpecifier") {
-                continue;
-            }
-
-            if (
-                specifier.imported.type !== "Identifier" ||
-                specifier.imported.name !== expectedImportedName
-            ) {
-                continue;
-            }
-
-            localNames.add(specifier.local.name);
-        }
+        localNames.add(binding.localName);
     }
 
     return localNames;
@@ -208,29 +158,11 @@ export const collectNamedImportLocalNamesFromSource = (
 export const collectNamespaceImportLocalNamesFromSource = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     expectedSourceValue: string
-): ReadonlySet<string> => {
-    const localNames = new Set<string>();
-
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
-            continue;
-        }
-
-        if (!isImportDeclarationFromSource(statement, expectedSourceValue)) {
-            continue;
-        }
-
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportNamespaceSpecifier") {
-                continue;
-            }
-
-            localNames.add(specifier.local.name);
-        }
-    }
-
-    return localNames;
-};
+): ReadonlySet<string> =>
+    collectNamespaceImportLocalNamesFromSourceModule(
+        sourceCode,
+        expectedSourceValue
+    );
 
 /**
  * Builds an import-insertion fix for missing named type replacements.

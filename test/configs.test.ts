@@ -233,18 +233,17 @@ describe("typefest plugin configs", () => {
         }
     });
 
-    it("keeps experimental rules strict-only excluded and all-only included", () => {
+    it("keeps all-only rules excluded from strict and included in all", () => {
         const strictRules = getConfigRules(configs, "strict") ?? {};
         const allRules = getConfigRules(configs, "all") ?? {};
 
-        const experimentalRules = [
+        const allOnlyRules = [
             "typefest/prefer-ts-extras-array-find",
-            "typefest/prefer-ts-extras-array-find-last",
             "typefest/prefer-ts-extras-array-find-last-index",
             "typefest/prefer-ts-extras-is-equal-type",
         ];
 
-        for (const ruleName of experimentalRules) {
+        for (const ruleName of allOnlyRules) {
             expect(strictRules).not.toHaveProperty(ruleName);
             expect(allRules).toHaveProperty(ruleName, "error");
         }

@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-set-optional.test` behavior.
@@ -131,20 +131,17 @@ const parseSetOptionalTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-optional",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest SetOptional over imported alias types like PartialBy.",
-        enforceRuleShape: true,
-        messages: {
-            preferSetOptional:
-                "Prefer `{{replacement}}` from type-fest to make selected keys optional instead of legacy alias `{{alias}}`.",
-        },
-        name: "prefer-type-fest-set-optional",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-set-optional", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest SetOptional over imported alias types like PartialBy.",
+    enforceRuleShape: true,
+    messages: {
+        preferSetOptional:
+            "Prefer `{{replacement}}` from type-fest to make selected keys optional instead of legacy alias `{{alias}}`.",
+    },
+    name: "prefer-type-fest-set-optional",
+});
 
 describe("prefer-type-fest-set-optional parse-safety guards", () => {
     it("fast-check: SetOptional replacement remains parseable", () => {

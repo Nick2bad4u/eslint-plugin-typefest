@@ -9,7 +9,7 @@ import {
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 const OMIT_TYPE_NAME = "Omit";
 const exceptAliasReplacements = {
@@ -25,12 +25,6 @@ const exceptAliasReplacements = {
 const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 exceptAliasReplacements

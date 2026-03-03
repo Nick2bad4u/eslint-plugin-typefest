@@ -7,7 +7,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-array.test` behavior.
@@ -186,7 +186,7 @@ const parseUnknownArrayCandidateFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     enforceRuleShape: true,

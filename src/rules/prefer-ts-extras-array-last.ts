@@ -16,7 +16,6 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import {
     createTypedRule,
     getTypedRuleServices,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -72,12 +71,6 @@ const isLastIndexPattern = (
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const directImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

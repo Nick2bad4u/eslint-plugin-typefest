@@ -6,7 +6,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-type-fest-writable-deep`.
@@ -17,12 +17,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
                 "type-fest"

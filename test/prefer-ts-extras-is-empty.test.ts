@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -230,7 +230,7 @@ const parseIsEmptyCallFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-is-empty", {
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-empty", {
     defaultOptions: [],
     docsDescription:
         "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",

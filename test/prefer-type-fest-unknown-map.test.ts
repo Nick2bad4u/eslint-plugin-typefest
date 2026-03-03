@@ -8,7 +8,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -128,18 +128,15 @@ const parseReadonlyUnknownMapTypeReferenceFromCode = (sourceText: string) => {
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unknown-map",
-    {
-        docsDescription:
-            "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
-        enforceRuleShape: true,
-        messages: {
-            preferUnknownMap:
-                "Prefer `Readonly<UnknownMap>` from type-fest over `ReadonlyMap<unknown, unknown>`.",
-        },
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-unknown-map", {
+    docsDescription:
+        "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
+    enforceRuleShape: true,
+    messages: {
+        preferUnknownMap:
+            "Prefer `Readonly<UnknownMap>` from type-fest over `ReadonlyMap<unknown, unknown>`.",
+    },
+});
 
 describe("prefer-type-fest-unknown-map source assertions", () => {
     it("matches only ReadonlyMap<unknown, unknown> in undecorated visitor", async () => {

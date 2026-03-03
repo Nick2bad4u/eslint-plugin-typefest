@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-required-deep.test` behavior.
@@ -128,20 +128,17 @@ const parseRequiredDeepTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-required-deep",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest RequiredDeep over `DeepRequired` aliases.",
-        enforceRuleShape: true,
-        messages: {
-            preferRequiredDeep:
-                "Prefer `RequiredDeep` from type-fest over `DeepRequired`.",
-        },
-        name: "prefer-type-fest-required-deep",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-required-deep", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest RequiredDeep over `DeepRequired` aliases.",
+    enforceRuleShape: true,
+    messages: {
+        preferRequiredDeep:
+            "Prefer `RequiredDeep` from type-fest over `DeepRequired`.",
+    },
+    name: "prefer-type-fest-required-deep",
+});
 
 describe("prefer-type-fest-required-deep parse-safety guards", () => {
     it("fast-check: RequiredDeep replacement remains parseable across deep-structure variants", () => {

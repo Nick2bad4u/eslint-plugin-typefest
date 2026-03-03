@@ -8,7 +8,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Array-like method targeted by this rule's callback analysis. */
 const FILTER_METHOD_NAME = "filter";
@@ -104,11 +104,6 @@ const getNegatedPredicateCall = (
 const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

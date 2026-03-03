@@ -8,10 +8,10 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     createTypedRule,
     getTypedRuleServices,
-    isTestFilePath,
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
 
@@ -24,11 +24,6 @@ import {
 const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"
@@ -102,30 +97,37 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
+                    const callCallee = node.callee;
+
                     if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
+                        callCallee.type !== "MemberExpression" ||
+                        callCallee.computed
                     ) {
                         return;
                     }
 
                     if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "split"
+                        callCallee.property.type !== "Identifier" ||
+                        callCallee.property.name !== "split"
                     ) {
                         return;
                     }
 
-                    try {
-                        const tsNode = parserServices.esTreeNodeToTSNodeMap.get(
-                            node.callee.object
-                        );
-                        const objectType = checker.getTypeAtLocation(tsNode);
+                    const result = safeTypeOperation({
+                        operation: () => {
+                            const tsNode =
+                                parserServices.esTreeNodeToTSNodeMap.get(
+                                    callCallee.object
+                                );
+                            const objectType =
+                                checker.getTypeAtLocation(tsNode);
 
-                        if (!isStringLikeType(objectType)) {
-                            return;
-                        }
-                    } catch {
+                            return isStringLikeType(objectType);
+                        },
+                        reason: "string-split-type-analysis-failed",
+                    });
+
+                    if (!result.ok || !result.value) {
                         return;
                     }
 

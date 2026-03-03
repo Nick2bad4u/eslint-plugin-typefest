@@ -23,7 +23,7 @@ import {
     promiseSecondInvalidCode,
     validFixtureName,
 } from "./_internal/prefer-type-fest-promisable-cases";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -36,7 +36,7 @@ const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const invalidFixturePath = typedFixturePath(invalidFixtureName);
 const validFixturePath = typedFixturePath(validFixtureName);
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-type-fest-promisable", {
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-promisable", {
     defaultOptions: [],
     docsDescription:
         "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",

@@ -13,7 +13,7 @@ import {
     fastCheckRunConfig,
     isSafeGeneratedIdentifier,
 } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -241,7 +241,7 @@ const parseFilterCallFromCode = (
     };
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests("prefer-ts-extras-not", {
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-not", {
     defaultOptions: [],
     docsDescription:
         "require ts-extras not helper over inline negated predicate callbacks in filter calls.",

@@ -6,6 +6,10 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 import {
+    collectNamedImportSpecifierBindingsFromSource,
+    isImportDeclarationFromSource,
+} from "./import-analysis.js";
+import {
     type ImportFixIntent,
     shouldIncludeImportInsertionForReportFix,
 } from "./import-fix-coordinator.js";
@@ -93,16 +97,18 @@ type ValueArgumentFunctionCallFixParams = Readonly<{
 }>;
 
 /**
- * Check whether an import declaration targets the expected source module.
- *
- * @param sourceModuleName - Expected module specifier value.
- *
- * @returns `true` when the import declaration source matches.
+ * Resolved import-planning metadata reused across value-fixer factories.
  */
-const isImportDeclarationFromSource = (
-    statement: Readonly<TSESTree.ImportDeclaration>,
-    sourceModuleName: string
-): boolean => statement.source.value === sourceModuleName;
+type ValueReplacementPlan = Readonly<{
+    replacementNameAndImportFixFactory: Readonly<{
+        createImportFix: (
+            fixer: Readonly<TSESLint.RuleFixer>
+        ) => null | TSESLint.RuleFix;
+        replacementName: string;
+        requiresImportInsertion: boolean;
+    }>;
+    shouldIncludeImportInsertionFix: boolean;
+}>;
 
 /**
  * Collect direct named value imports from a specific module.
@@ -118,44 +124,20 @@ export const collectDirectNamedValueImportsFromSource = (
 ): ImportedValueAliasMap => {
     const aliasesByImportedName = new Map<string, Set<string>>();
 
-    for (const node of sourceCode.ast.body) {
-        if (node.type !== "ImportDeclaration") {
-            continue;
-        }
-
-        if (node.importKind === "type") {
-            continue;
-        }
-
-        if (!isImportDeclarationFromSource(node, sourceModuleName)) {
-            continue;
-        }
-
-        for (const specifier of node.specifiers) {
-            if (specifier.type !== "ImportSpecifier") {
-                continue;
-            }
-
-            if (specifier.importKind === "type") {
-                continue;
-            }
-
-            if (
-                specifier.imported.type !== "Identifier" ||
-                specifier.local.type !== "Identifier"
-            ) {
-                continue;
-            }
-
-            const importedName = specifier.imported.name;
-            const localName = specifier.local.name;
-
-            const existing = aliasesByImportedName.get(importedName);
-            if (existing === undefined) {
-                aliasesByImportedName.set(importedName, new Set([localName]));
-            } else {
-                existing.add(localName);
-            }
+    for (const binding of collectNamedImportSpecifierBindingsFromSource({
+        allowTypeImportDeclaration: false,
+        allowTypeImportSpecifier: false,
+        sourceCode,
+        sourceModuleName,
+    })) {
+        const existing = aliasesByImportedName.get(binding.importedName);
+        if (existing === undefined) {
+            aliasesByImportedName.set(
+                binding.importedName,
+                new Set([binding.localName])
+            );
+        } else {
+            existing.add(binding.localName);
         }
     }
 
@@ -467,6 +449,83 @@ const createImportAwareFixes = ({
 };
 
 /**
+ * Resolve and coordinate import planning for value replacement fixers.
+ */
+const createValueReplacementPlan = ({
+    context,
+    importedName,
+    imports,
+    referenceNode,
+    reportFixIntent,
+    sourceModuleName,
+}: Readonly<{
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    importedName: string;
+    imports: ImportedValueAliasMap;
+    referenceNode: Readonly<TSESTree.Node>;
+    reportFixIntent: ImportFixIntent;
+    sourceModuleName: string;
+}>): null | ValueReplacementPlan => {
+    const replacementNameAndImportFixFactory =
+        getSafeReplacementNameAndImportFixFactory({
+            context,
+            importedName,
+            imports,
+            referenceNode,
+            sourceModuleName,
+        });
+
+    if (replacementNameAndImportFixFactory === null) {
+        return null;
+    }
+
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
+
+    return {
+        replacementNameAndImportFixFactory,
+        shouldIncludeImportInsertionFix,
+    };
+};
+
+/**
+ * Build a report-fix callback from a resolved value replacement plan.
+ */
+const createReportFixFromValueReplacementPlan =
+    ({
+        createReplacementFix,
+        valueReplacementPlan,
+    }: Readonly<{
+        createReplacementFix: (
+            fixer: Readonly<TSESLint.RuleFixer>,
+            replacementName: string
+        ) => TSESLint.RuleFix;
+        valueReplacementPlan: Readonly<ValueReplacementPlan>;
+    }>): TSESLint.ReportFixFunction =>
+    (fixer) =>
+        createImportAwareFixes({
+            createReplacementFix: (replacementFixer) =>
+                createReplacementFix(
+                    replacementFixer,
+                    valueReplacementPlan.replacementNameAndImportFixFactory
+                        .replacementName
+                ),
+            fixer,
+            replacementNameAndImportFixFactory:
+                valueReplacementPlan.replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix:
+                valueReplacementPlan.shouldIncludeImportInsertionFix,
+        });
+
+/**
  * Serialize a call argument node to text, preserving sequence-expression
  * semantics with parentheses when required.
  *
@@ -514,41 +573,24 @@ export const createSafeValueReferenceReplacementFix = ({
     sourceModuleName,
     targetNode,
 }: Readonly<SafeValueReplacementFixParams>): null | TSESLint.ReportFixFunction => {
-    const replacementNameAndImportFixFactory =
-        getSafeReplacementNameAndImportFixFactory({
-            context,
-            importedName,
-            imports,
-            referenceNode: targetNode,
-            sourceModuleName,
-        });
+    const valueReplacementPlan = createValueReplacementPlan({
+        context,
+        importedName,
+        imports,
+        referenceNode: targetNode,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    if (!replacementNameAndImportFixFactory) {
+    if (valueReplacementPlan === null) {
         return null;
     }
 
-    const shouldIncludeImportInsertionFix =
-        replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
-                  importBindingKind: "value",
-                  importedName,
-                  referenceNode: targetNode,
-                  reportFixIntent,
-                  sourceModuleName,
-              })
-            : false;
-
-    return (fixer) =>
-        createImportAwareFixes({
-            createReplacementFix: (replacementFixer) =>
-                replacementFixer.replaceText(
-                    targetNode,
-                    replacementNameAndImportFixFactory.replacementName
-                ),
-            fixer,
-            replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix,
-        });
+    return createReportFixFromValueReplacementPlan({
+        createReplacementFix: (replacementFixer, replacementName) =>
+            replacementFixer.replaceText(targetNode, replacementName),
+        valueReplacementPlan,
+    });
 };
 
 /**
@@ -569,43 +611,27 @@ export const createSafeValueNodeTextReplacementFix = ({
     sourceModuleName,
     targetNode,
 }: Readonly<SafeValueNodeTextReplacementFixParams>): null | TSESLint.ReportFixFunction => {
-    const replacementNameAndImportFixFactory =
-        getSafeReplacementNameAndImportFixFactory({
-            context,
-            importedName,
-            imports,
-            referenceNode: targetNode,
-            sourceModuleName,
-        });
+    const valueReplacementPlan = createValueReplacementPlan({
+        context,
+        importedName,
+        imports,
+        referenceNode: targetNode,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    if (!replacementNameAndImportFixFactory) {
+    if (valueReplacementPlan === null) {
         return null;
     }
 
-    const shouldIncludeImportInsertionFix =
-        replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
-                  importBindingKind: "value",
-                  importedName,
-                  referenceNode: targetNode,
-                  reportFixIntent,
-                  sourceModuleName,
-              })
-            : false;
-
-    return (fixer) => {
-        const replacementText = replacementTextFactory(
-            replacementNameAndImportFixFactory.replacementName
-        );
-
-        return createImportAwareFixes({
-            createReplacementFix: (replacementFixer) =>
-                replacementFixer.replaceText(targetNode, replacementText),
-            fixer,
-            replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix,
-        });
-    };
+    return createReportFixFromValueReplacementPlan({
+        createReplacementFix: (replacementFixer, replacementName) =>
+            replacementFixer.replaceText(
+                targetNode,
+                replacementTextFactory(replacementName)
+            ),
+        valueReplacementPlan,
+    });
 };
 
 /**
@@ -630,29 +656,18 @@ export const createMethodToFunctionCallFix = ({
         return null;
     }
 
-    const replacementNameAndImportFixFactory =
-        getSafeReplacementNameAndImportFixFactory({
-            context,
-            importedName,
-            imports,
-            referenceNode: callNode,
-            sourceModuleName,
-        });
+    const valueReplacementPlan = createValueReplacementPlan({
+        context,
+        importedName,
+        imports,
+        referenceNode: callNode,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    if (!replacementNameAndImportFixFactory) {
+    if (valueReplacementPlan === null) {
         return null;
     }
-
-    const shouldIncludeImportInsertionFix =
-        replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
-                  importBindingKind: "value",
-                  importedName,
-                  referenceNode: callNode,
-                  reportFixIntent,
-                  sourceModuleName,
-              })
-            : false;
 
     const { sourceCode } = context;
     const receiverText = getFunctionCallArgumentText({
@@ -682,17 +697,14 @@ export const createMethodToFunctionCallFix = ({
 
     const replacementText =
         argumentText.length > 0
-            ? `${replacementNameAndImportFixFactory.replacementName}(${receiverText}, ${argumentText})`
-            : `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
+            ? `${valueReplacementPlan.replacementNameAndImportFixFactory.replacementName}(${receiverText}, ${argumentText})`
+            : `${valueReplacementPlan.replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
-    return (fixer) =>
-        createImportAwareFixes({
-            createReplacementFix: (replacementFixer) =>
-                replacementFixer.replaceText(callNode, replacementText),
-            fixer,
-            replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix,
-        });
+    return createReportFixFromValueReplacementPlan({
+        createReplacementFix: (replacementFixer) =>
+            replacementFixer.replaceText(callNode, replacementText),
+        valueReplacementPlan,
+    });
 };
 
 /**
@@ -712,29 +724,18 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    const replacementNameAndImportFixFactory =
-        getSafeReplacementNameAndImportFixFactory({
-            context,
-            importedName,
-            imports,
-            referenceNode: memberNode,
-            sourceModuleName,
-        });
+    const valueReplacementPlan = createValueReplacementPlan({
+        context,
+        importedName,
+        imports,
+        referenceNode: memberNode,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    if (!replacementNameAndImportFixFactory) {
+    if (valueReplacementPlan === null) {
         return null;
     }
-
-    const shouldIncludeImportInsertionFix =
-        replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
-                  importBindingKind: "value",
-                  importedName,
-                  referenceNode: memberNode,
-                  reportFixIntent,
-                  sourceModuleName,
-              })
-            : false;
 
     const receiverText = getFunctionCallArgumentText({
         argumentNode: memberNode.object,
@@ -744,16 +745,13 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    const replacementText = `${replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
+    const replacementText = `${valueReplacementPlan.replacementNameAndImportFixFactory.replacementName}(${receiverText})`;
 
-    return (fixer) =>
-        createImportAwareFixes({
-            createReplacementFix: (replacementFixer) =>
-                replacementFixer.replaceText(memberNode, replacementText),
-            fixer,
-            replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix,
-        });
+    return createReportFixFromValueReplacementPlan({
+        createReplacementFix: (replacementFixer) =>
+            replacementFixer.replaceText(memberNode, replacementText),
+        valueReplacementPlan,
+    });
 };
 
 /**
@@ -773,29 +771,18 @@ export const createSafeValueArgumentFunctionCallFix = ({
     sourceModuleName,
     targetNode,
 }: Readonly<ValueArgumentFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
-    const replacementNameAndImportFixFactory =
-        getSafeReplacementNameAndImportFixFactory({
-            context,
-            importedName,
-            imports,
-            referenceNode: targetNode,
-            sourceModuleName,
-        });
+    const valueReplacementPlan = createValueReplacementPlan({
+        context,
+        importedName,
+        imports,
+        referenceNode: targetNode,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    if (!replacementNameAndImportFixFactory) {
+    if (valueReplacementPlan === null) {
         return null;
     }
-
-    const shouldIncludeImportInsertionFix =
-        replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
-                  importBindingKind: "value",
-                  importedName,
-                  referenceNode: targetNode,
-                  reportFixIntent,
-                  sourceModuleName,
-              })
-            : false;
 
     const argumentText = getFunctionCallArgumentText({
         argumentNode,
@@ -805,15 +792,12 @@ export const createSafeValueArgumentFunctionCallFix = ({
         return null;
     }
 
-    const callText = `${replacementNameAndImportFixFactory.replacementName}(${argumentText})`;
+    const callText = `${valueReplacementPlan.replacementNameAndImportFixFactory.replacementName}(${argumentText})`;
     const replacementText = negated === true ? `!${callText}` : callText;
 
-    return (fixer) =>
-        createImportAwareFixes({
-            createReplacementFix: (replacementFixer) =>
-                replacementFixer.replaceText(targetNode, replacementText),
-            fixer,
-            replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix,
-        });
+    return createReportFixFromValueReplacementPlan({
+        createReplacementFix: (replacementFixer) =>
+            replacementFixer.replaceText(targetNode, replacementText),
+        valueReplacementPlan,
+    });
 };

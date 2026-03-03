@@ -12,7 +12,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
 const WRITABLE_TYPE_NAME = "Writable" as const;
@@ -26,11 +26,6 @@ const WRITABLE_TYPE_NAME = "Writable" as const;
 const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

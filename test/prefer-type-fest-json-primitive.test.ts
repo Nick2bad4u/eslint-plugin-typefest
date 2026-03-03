@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -138,20 +138,17 @@ const parseUnionTypeFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-json-primitive",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
-        enforceRuleShape: true,
-        messages: {
-            preferJsonPrimitive:
-                "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
-        },
-        name: "prefer-type-fest-json-primitive",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-json-primitive", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
+    enforceRuleShape: true,
+    messages: {
+        preferJsonPrimitive:
+            "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
+    },
+    name: "prefer-type-fest-json-primitive",
+});
 
 describe("prefer-type-fest-json-primitive source assertions", () => {
     it("keeps json-primitive helper guard clauses in source", () => {
@@ -180,47 +177,6 @@ describe("prefer-type-fest-json-primitive source assertions", () => {
 });
 
 describe("prefer-type-fest-json-primitive internal listener guards", () => {
-    it("returns no listeners for test file paths", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => true,
-            }));
-
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: () => null,
-            }));
-
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-type-fest-json-primitive")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            TSUnionType?: (node: unknown) => void;
-                        };
-                    };
-                };
-
-            const listeners = authoredRuleModule.default.create({
-                filename: "src/example.test.ts",
-                report: () => undefined,
-                sourceCode: {
-                    ast: {
-                        body: [],
-                    },
-                },
-            });
-
-            expect(listeners).toStrictEqual({});
-        } finally {
-            vi.doUnmock("../src/_internal/imported-type-aliases.js");
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
-
     it("reports without fix when replacement builder returns null", async () => {
         const reportCalls: unknown[] = [];
 

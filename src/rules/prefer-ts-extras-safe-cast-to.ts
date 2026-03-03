@@ -10,10 +10,10 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     createTypedRule,
     getTypedRuleServices,
-    isTestFilePath,
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
 
@@ -46,11 +46,6 @@ const isIgnoredTypeAnnotation = (
 const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"
@@ -75,45 +70,54 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     return;
                 }
 
-                try {
-                    const expressionTsNode =
-                        parserServices.esTreeNodeToTSNodeMap.get(expression);
-                    const annotationTsNode =
-                        parserServices.esTreeNodeToTSNodeMap.get(
-                            typeAnnotation
-                        );
+                const result = safeTypeOperation({
+                    operation: () => {
+                        const expressionTsNode =
+                            parserServices.esTreeNodeToTSNodeMap.get(
+                                expression
+                            );
+                        const annotationTsNode =
+                            parserServices.esTreeNodeToTSNodeMap.get(
+                                typeAnnotation
+                            );
 
-                    if (!ts.isTypeNode(annotationTsNode)) {
-                        return;
-                    }
+                        if (!ts.isTypeNode(annotationTsNode)) {
+                            return null;
+                        }
 
-                    const sourceType =
-                        checker.getTypeAtLocation(expressionTsNode);
-                    const targetType =
-                        checker.getTypeFromTypeNode(annotationTsNode);
+                        const sourceType =
+                            checker.getTypeAtLocation(expressionTsNode);
+                        const targetType =
+                            checker.getTypeFromTypeNode(annotationTsNode);
 
-                    if (!isTypeAssignableTo(checker, sourceType, targetType)) {
-                        return;
-                    }
+                        if (
+                            !isTypeAssignableTo(checker, sourceType, targetType)
+                        ) {
+                            return null;
+                        }
 
-                    const fix = createSafeValueNodeTextReplacementFix({
-                        context,
-                        importedName: "safeCastTo",
-                        imports: tsExtrasImports,
-                        replacementTextFactory: (replacementName) =>
-                            `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`,
-                        sourceModuleName: "ts-extras",
-                        targetNode: node,
-                    });
+                        return createSafeValueNodeTextReplacementFix({
+                            context,
+                            importedName: "safeCastTo",
+                            imports: tsExtrasImports,
+                            replacementTextFactory: (replacementName) =>
+                                `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        });
+                    },
+                    reason: "safe-cast-to-candidate-analysis-failed",
+                });
 
-                    context.report({
-                        fix,
-                        messageId: "preferTsExtrasSafeCastTo",
-                        node,
-                    });
-                } catch {
-                    // Best effort only: skip when parser services/type info is unavailable for this node.
+                if (!result.ok || result.value === null) {
+                    return;
                 }
+
+                context.report({
+                    fix: result.value,
+                    messageId: "preferTsExtrasSafeCastTo",
+                    node,
+                });
             };
 
             return {

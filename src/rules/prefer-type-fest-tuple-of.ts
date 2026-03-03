@@ -10,7 +10,7 @@ import {
     createSafeTypeNodeTextReplacementFix,
     isTypeParameterNameShadowed,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * Legacy tuple aliases this rule normalizes to `TupleOf` forms.
@@ -49,12 +49,6 @@ const createTupleOfReplacementText = (
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 tupleOfAliasReplacements

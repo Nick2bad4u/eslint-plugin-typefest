@@ -16,7 +16,15 @@ describe("plugin runtime edge branches", () => {
             vi.doMock("node:module", () => {
                 const mockedRequire = (moduleName: string): unknown => {
                     if (moduleName === "@typescript-eslint/parser") {
-                        throw new Error("parser unavailable");
+                        const moduleNotFoundError = new Error(
+                            "Cannot find module '@typescript-eslint/parser'"
+                        ) as Error & {
+                            code: string;
+                        };
+
+                        moduleNotFoundError.code = "MODULE_NOT_FOUND";
+
+                        throw moduleNotFoundError;
                     }
 
                     if (moduleName === "../package.json") {
@@ -47,6 +55,36 @@ describe("plugin runtime edge branches", () => {
         }
     });
 
+    it("rethrows unexpected parser load failures", async () => {
+        try {
+            vi.doMock("node:module", () => {
+                const mockedRequire = (moduleName: string): unknown => {
+                    if (moduleName === "@typescript-eslint/parser") {
+                        throw new Error("parser crashed unexpectedly");
+                    }
+
+                    if (moduleName === "../package.json") {
+                        return {
+                            version: "0.1.0",
+                        };
+                    }
+
+                    throw new Error(`Unexpected module request: ${moduleName}`);
+                };
+
+                return {
+                    createRequire: () => mockedRequire,
+                };
+            });
+
+            await expect(import("../src/plugin")).rejects.toThrowError(
+                "parser crashed unexpectedly"
+            );
+        } finally {
+            resetRuntimeMocks();
+        }
+    });
+
     it("assigns default docs url when a rule docs object omits url", async () => {
         try {
             vi.doMock("../src/rules/prefer-ts-extras-array-at.js", () => ({
@@ -70,7 +108,13 @@ describe("plugin runtime edge branches", () => {
             const plugin = pluginModule.default;
             const arrayAtRule = plugin.rules["prefer-ts-extras-array-at"];
 
-            expect(arrayAtRule.meta.docs?.url).toBe(
+            expect(arrayAtRule).toBeDefined();
+
+            if (arrayAtRule === undefined) {
+                throw new TypeError("Expected prefer-ts-extras-array-at rule");
+            }
+
+            expect(arrayAtRule.meta?.docs?.url).toBe(
                 "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-at"
             );
         } finally {
@@ -90,10 +134,15 @@ describe("plugin runtime edge branches", () => {
             const pluginModule = await import("../src/plugin");
             const plugin = pluginModule.default;
 
-            expect(plugin.rules["prefer-ts-extras-array-at"]).toBeDefined();
-            expect(
-                plugin.rules["prefer-ts-extras-array-at"].meta
-            ).toBeUndefined();
+            const arrayAtRule = plugin.rules["prefer-ts-extras-array-at"];
+
+            expect(arrayAtRule).toBeDefined();
+
+            if (arrayAtRule === undefined) {
+                throw new TypeError("Expected prefer-ts-extras-array-at rule");
+            }
+
+            expect(arrayAtRule.meta).toBeUndefined();
         } finally {
             resetRuntimeMocks();
         }

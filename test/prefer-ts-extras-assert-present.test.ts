@@ -28,7 +28,7 @@ import {
     parserOptions,
     variableNameArbitrary,
 } from "./_internal/prefer-ts-extras-assert-present-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -40,22 +40,19 @@ const ruleTester = createTypedRuleTester();
 const { invalid: invalidRuleTesterCases, valid: validRuleTesterCases } =
     createAssertPresentRuleTesterCases({ typedFixturePath });
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-assert-present",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras assertPresent over manual nullish-guard throw blocks.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasAssertPresent:
-                "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
-            suggestTsExtrasAssertPresent:
-                "Replace this manual guard with `assertPresent(...)` from `ts-extras`.",
-        },
-        name: "prefer-ts-extras-assert-present",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-present", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras assertPresent over manual nullish-guard throw blocks.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasAssertPresent:
+            "Prefer `assertPresent` from `ts-extras` over manual nullish guard throw blocks.",
+        suggestTsExtrasAssertPresent:
+            "Replace this manual guard with `assertPresent(...)` from `ts-extras`.",
+    },
+    name: "prefer-ts-extras-assert-present",
+});
 
 describe("prefer-ts-extras-assert-present source assertions", () => {
     it("keeps assert-present guard and canonical-template checks in source", () => {

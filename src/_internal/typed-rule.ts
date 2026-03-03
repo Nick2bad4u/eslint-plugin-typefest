@@ -12,16 +12,12 @@ import {
     type TSESTree,
 } from "@typescript-eslint/utils";
 
-import { registerProgramSettingsForContext } from "./plugin-settings.js";
-import { createRuleDocsUrl } from "./rule-docs-url.js";
+import type { TypefestConfigReference } from "./typefest-config-references.js";
 
-/**
- * Canonical `context.report` descriptor type for a rule message/options pair.
- */
-type ReportDescriptor<
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
-> = Parameters<TSESLint.RuleContext<MessageIds, Options>["report"]>[0];
+import { registerProgramSettingsForContext } from "./plugin-settings.js";
+import { createReportWithoutAutofixes } from "./report-adapter.js";
+import { createRuleDocsUrl } from "./rule-docs-url.js";
+import { safeTypeOperation } from "./safe-type-operation.js";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -30,19 +26,6 @@ type TypedRuleServices = {
     checker: ts.TypeChecker;
     parserServices: ReturnType<typeof ESLintUtils.getParserServices>;
 };
-
-/**
- * Fully-qualified preset references used in rule docs metadata.
- */
-type TypefestConfigReference =
-    | "typefest.configs.all"
-    | "typefest.configs.minimal"
-    | "typefest.configs.recommended"
-    | "typefest.configs.strict"
-    | "typefest.configs.ts-extras/type-guards"
-    | "typefest.configs.type-fest/types"
-    | 'typefest.configs["ts-extras/type-guards"]'
-    | 'typefest.configs["type-fest/types"]';
 
 /**
  * Plugin-specific metadata extensions for `meta.docs`.
@@ -57,11 +40,6 @@ type TypefestRuleDocs = {
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
 };
-
-/** Path segment matcher used to detect `tests`/`__tests__` directories. */
-const TEST_DIRECTORY_SEGMENT_PATTERN = /(?:^|\/)(?:__tests__|tests)(?:\/|$)/u;
-/** Filename matcher for spec/test suffixes across supported module formats. */
-const TEST_FILE_SUFFIX_PATTERN = /\.(?:spec|test)\.(?:cts|js|jsx|mts|ts|tsx)$/u;
 
 /**
  * Resolve a variable binding by searching the current scope and all parents.
@@ -85,79 +63,28 @@ const getVariableInScopeChain = (
 };
 
 /**
- * Clone a report descriptor while removing `fix`, preserving other descriptor
- * properties and property descriptors.
+ * Create a RuleContext facade that overrides only the `report` function while
+ * preserving all original context behavior and own-property descriptors.
  */
-const stripFixFromReportDescriptor = <
+const createContextWithOverriddenReport = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 >(
-    descriptor: Readonly<ReportDescriptor<MessageIds, Options>>
-): ReportDescriptor<MessageIds, Options> => {
-    if (
-        typeof descriptor !== "object" ||
-        descriptor === null ||
-        !Object.hasOwn(descriptor, "fix")
-    ) {
-        return descriptor as ReportDescriptor<MessageIds, Options>;
-    }
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
+    report: TSESLint.RuleContext<MessageIds, Options>["report"]
+): TSESLint.RuleContext<MessageIds, Options> => {
+    const propertyDescriptors = Object.getOwnPropertyDescriptors(context);
+    const reportDescriptor = propertyDescriptors.report;
 
-    const fixPropertyDescriptor = Object.getOwnPropertyDescriptor(
-        descriptor,
-        "fix"
-    );
-
-    if (!fixPropertyDescriptor) {
-        return descriptor as ReportDescriptor<MessageIds, Options>;
-    }
-
-    if (
-        "value" in fixPropertyDescriptor &&
-        typeof fixPropertyDescriptor.value !== "function"
-    ) {
-        return descriptor as ReportDescriptor<MessageIds, Options>;
-    }
-
-    const descriptorProperties = {
-        ...Object.getOwnPropertyDescriptors(descriptor),
-    };
-
-    Reflect.deleteProperty(descriptorProperties, "fix");
-
-    const descriptorWithoutFix = Object.defineProperties(
-        {},
-        descriptorProperties
-    );
-
-    return descriptorWithoutFix as ReportDescriptor<MessageIds, Options>;
-};
-
-/**
- * Wrap a rule context so `context.report` never emits autofixes.
- */
-const createContextWithoutAutofixes = <
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
->(
-    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
-): Readonly<TSESLint.RuleContext<MessageIds, Options>> => {
-    const reportWithoutAutofixes: typeof context.report = (descriptor) => {
-        context.report(stripFixFromReportDescriptor(descriptor));
-    };
-
-    const effectiveContext = Object.create(context) as TSESLint.RuleContext<
-        MessageIds,
-        Options
-    >;
-
-    Object.defineProperty(effectiveContext, "report", {
-        configurable: true,
-        enumerable: true,
-        value: reportWithoutAutofixes,
-        writable: false,
-    });
-
-    return effectiveContext;
+    return Object.create(Object.getPrototypeOf(context), {
+        ...propertyDescriptors,
+        report: {
+            configurable: true,
+            enumerable: reportDescriptor?.enumerable ?? true,
+            value: report,
+            writable: true,
+        },
+    }) as TSESLint.RuleContext<MessageIds, Options>;
 };
 
 /**
@@ -193,7 +120,10 @@ export const createTypedRule: ReturnType<
             const settings = registerProgramSettingsForContext(context);
 
             const effectiveContext = settings.disableAllAutofixes
-                ? createContextWithoutAutofixes(context)
+                ? createContextWithOverriddenReport(
+                      context,
+                      createReportWithoutAutofixes(context.report)
+                  )
                 : context;
 
             return createdRule.create(effectiveContext);
@@ -256,14 +186,20 @@ export const isTypeAssignableTo = (
     };
 
     if (typeof checkerWithAssignable.isTypeAssignableTo === "function") {
-        try {
-            return checkerWithAssignable.isTypeAssignableTo(
-                sourceType,
-                targetType
-            );
-        } catch {
+        const result = safeTypeOperation({
+            operation: () =>
+                checkerWithAssignable.isTypeAssignableTo(
+                    sourceType,
+                    targetType
+                ),
+            reason: "type-assignability-check-failed",
+        });
+
+        if (!result.ok) {
             return sourceType === targetType;
         }
+
+        return result.value;
     }
 
     return sourceType === targetType;
@@ -299,25 +235,6 @@ export const getSignatureParameterTypeAt = ({
 };
 
 /**
- * Determine whether a file path appears to reference a test file.
- *
- * @param filePath - Absolute or relative file path.
- *
- * @returns `true` when the path contains a dedicated test directory segment or
- *   ends with a known `.{spec|test}.<ext>` suffix.
- */
-export const isTestFilePath = (filePath: string): boolean => {
-    const normalizedLowercaseFilePath = filePath
-        .replaceAll("\\", "/")
-        .toLowerCase();
-
-    return (
-        TEST_DIRECTORY_SEGMENT_PATTERN.test(normalizedLowercaseFilePath) ||
-        TEST_FILE_SUFFIX_PATTERN.test(normalizedLowercaseFilePath)
-    );
-};
-
-/**
  * Determine whether an expression references an unshadowed global identifier.
  *
  * @param context - Rule context used for scope resolution.
@@ -342,14 +259,24 @@ export const isGlobalIdentifierNamed = <
         return false;
     }
 
-    try {
-        const initialScope = context.sourceCode.getScope(expression);
-        const variable = getVariableInScopeChain(initialScope, identifierName);
+    const result = safeTypeOperation({
+        operation: () => {
+            const initialScope = context.sourceCode.getScope(expression);
+            const variable = getVariableInScopeChain(
+                initialScope,
+                identifierName
+            );
 
-        return variable === null || variable.defs.length === 0;
-    } catch {
+            return variable === null || variable.defs.length === 0;
+        },
+        reason: "scope-resolution-failed",
+    });
+
+    if (!result.ok) {
         return false;
     }
+
+    return result.value;
 };
 
 /**

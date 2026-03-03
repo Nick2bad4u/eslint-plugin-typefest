@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-set-required.test` behavior.
@@ -131,20 +131,17 @@ const parseSetRequiredTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-set-required",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest SetRequired over imported aliases such as RequiredBy.",
-        enforceRuleShape: true,
-        messages: {
-            preferSetRequired:
-                "Prefer `{{replacement}}` from type-fest to make selected keys required instead of legacy alias `{{alias}}`.",
-        },
-        name: "prefer-type-fest-set-required",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-set-required", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest SetRequired over imported aliases such as RequiredBy.",
+    enforceRuleShape: true,
+    messages: {
+        preferSetRequired:
+            "Prefer `{{replacement}}` from type-fest to make selected keys required instead of legacy alias `{{alias}}`.",
+    },
+    name: "prefer-type-fest-set-required",
+});
 
 describe("prefer-type-fest-set-required parse-safety guards", () => {
     it("fast-check: SetRequired replacement remains parseable", () => {

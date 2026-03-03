@@ -17,7 +17,7 @@ import {
     isRuntimeLooseNullCase,
     runtimeLooseNullCaseArbitrary,
 } from "./_internal/prefer-ts-extras-is-present-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -1287,7 +1287,7 @@ const applyTextEdits = ({
     return updatedSourceText;
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     enforceRuleShape: true,

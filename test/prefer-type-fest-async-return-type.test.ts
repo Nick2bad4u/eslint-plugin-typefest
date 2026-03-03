@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -167,20 +167,17 @@ const parseAwaitedTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-async-return-type",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
-        enforceRuleShape: true,
-        messages: {
-            preferAsyncReturnType:
-                "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
-        },
-        name: "prefer-type-fest-async-return-type",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-async-return-type", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
+    enforceRuleShape: true,
+    messages: {
+        preferAsyncReturnType:
+            "Prefer `AsyncReturnType<T>` from type-fest over `Awaited<ReturnType<T>>`.",
+    },
+    name: "prefer-type-fest-async-return-type",
+});
 
 describe("prefer-type-fest-async-return-type source assertions", () => {
     it("keeps async-return-type helper constants and guard clauses in source", () => {

@@ -264,46 +264,6 @@ describe("prefer-type-fest-if metadata", () => {
             vi.resetModules();
         }
     });
-
-    it("falls back to an empty filename before the test-file guard", async () => {
-        const capturedPaths: string[] = [];
-
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map<
-                        string,
-                        { importedName: string; replacementName: string }
-                    >(),
-                createSafeTypeReferenceReplacementFix: () => undefined,
-            }));
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (filePath: string): boolean => {
-                    capturedPaths.push(filePath);
-
-                    return true;
-                },
-            }));
-
-            const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-if")) as {
-                    default: IfRuleMetadataSnapshot;
-                };
-
-            undecoratedModule.default.create({});
-
-            expect(capturedPaths).toStrictEqual([""]);
-        } finally {
-            vi.doUnmock("../src/_internal/imported-type-aliases.js");
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 describe("prefer-type-fest-if source assertions", () => {

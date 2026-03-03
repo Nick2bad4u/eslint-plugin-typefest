@@ -60,7 +60,7 @@ import {
     parserOptions,
     parseUnionAliasAnnotation,
 } from "./_internal/prefer-type-fest-literal-union-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -70,20 +70,17 @@ import {
 
 const ruleTester = createTypedRuleTester();
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-literal-union",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",
-        enforceRuleShape: true,
-        messages: {
-            preferLiteralUnion:
-                "Prefer `LiteralUnion<...>` from type-fest over unions that mix primitive keywords and same-family literal members.",
-        },
-        name: "prefer-type-fest-literal-union",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-literal-union", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",
+    enforceRuleShape: true,
+    messages: {
+        preferLiteralUnion:
+            "Prefer `LiteralUnion<...>` from type-fest over unions that mix primitive keywords and same-family literal members.",
+    },
+    name: "prefer-type-fest-literal-union",
+});
 
 describe("prefer-type-fest-literal-union source assertions", () => {
     it("keeps critical literal-union guard expressions in source", () => {
@@ -264,40 +261,6 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             expect(reportedNodes).toContain(bigIntTextUnion);
             expect(reportedNodes).not.toContain(booleanAndStringUnion);
             expect(reportedNodes).not.toContain(numberAndStringUnion);
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
-
-    it("returns an empty listener map for test-file paths", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => true,
-            }));
-
-            const undecoratedRuleModule =
-                (await import("../src/rules/prefer-type-fest-literal-union")) as {
-                    default: {
-                        create: (context: unknown) => Record<string, unknown>;
-                    };
-                };
-
-            const listenerMap = undecoratedRuleModule.default.create({
-                filename: "test/fixtures/literal-union.test.ts",
-                sourceCode: {
-                    ast: {
-                        body: [],
-                        sourceType: "module",
-                        type: "Program",
-                    },
-                },
-            });
-
-            expect(listenerMap).toStrictEqual({});
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();

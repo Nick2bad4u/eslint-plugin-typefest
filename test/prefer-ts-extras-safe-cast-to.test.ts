@@ -11,7 +11,7 @@ import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -292,20 +292,17 @@ const getSourceTextForNode = ({
     return code.slice(nodeRange[0], nodeRange[1]);
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-safe-cast-to",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasSafeCastTo:
-                "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",
-        },
-        name: "prefer-ts-extras-safe-cast-to",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-safe-cast-to", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasSafeCastTo:
+            "Prefer `safeCastTo<T>(value)` from `ts-extras` over direct `as` assertions when the cast is already type-safe.",
+    },
+    name: "prefer-ts-extras-safe-cast-to",
+});
 
 describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
     it("skips reporting when parser services return a non-TypeNode annotation mapping", async () => {

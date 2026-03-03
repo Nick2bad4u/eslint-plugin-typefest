@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -192,20 +192,17 @@ const parseReadonlyTupleOperatorFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-non-empty-tuple",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
-        enforceRuleShape: true,
-        messages: {
-            preferNonEmptyTuple:
-                "Prefer `Readonly<NonEmptyTuple<T>>` from type-fest over `readonly [T, ...T[]]`.",
-        },
-        name: "prefer-type-fest-non-empty-tuple",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-non-empty-tuple", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest NonEmptyTuple over readonly [T, ...T[]] tuple patterns.",
+    enforceRuleShape: true,
+    messages: {
+        preferNonEmptyTuple:
+            "Prefer `Readonly<NonEmptyTuple<T>>` from type-fest over `readonly [T, ...T[]]`.",
+    },
+    name: "prefer-type-fest-non-empty-tuple",
+});
 
 describe("prefer-type-fest-non-empty-tuple source assertions", () => {
     it("uses structural type-node equivalence instead of text normalization", () => {
@@ -327,40 +324,6 @@ describe("prefer-type-fest-non-empty-tuple source assertions", () => {
 
             expect(report).not.toHaveBeenCalled();
             expect(getText).not.toHaveBeenCalled();
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
-
-    it("returns an empty listener map for test-file paths", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => true,
-            }));
-
-            const undecoratedRuleModule =
-                (await import("../src/rules/prefer-type-fest-non-empty-tuple")) as {
-                    default: {
-                        create: (context: unknown) => Record<string, unknown>;
-                    };
-                };
-
-            const listenerMap = undecoratedRuleModule.default.create({
-                filename: "test/fixtures/non-empty-tuple.test.ts",
-                sourceCode: {
-                    ast: {
-                        body: [],
-                        sourceType: "module",
-                        type: "Program",
-                    },
-                },
-            });
-
-            expect(listenerMap).toStrictEqual({});
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();

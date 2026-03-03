@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -209,20 +209,17 @@ const parseObjectHasInCallFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-object-has-in",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasObjectHasIn:
-                "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
-        },
-        name: "prefer-ts-extras-object-has-in",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-in", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasObjectHasIn:
+            "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
+    },
+    name: "prefer-ts-extras-object-has-in",
+});
 
 describe("prefer-ts-extras-object-has-in source assertions", () => {
     it("keeps object-has-in callee predicate guard clauses in source", () => {

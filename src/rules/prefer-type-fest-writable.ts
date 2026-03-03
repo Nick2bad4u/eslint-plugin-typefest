@@ -10,7 +10,7 @@ import {
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Legacy alias names normalized by this rule to `Writable`. */
 const writableAliasReplacements = {
@@ -86,12 +86,6 @@ const hasWritableMappedTypeShape = (
 const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename;
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const { sourceCode } = context;
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 sourceCode,

@@ -2,6 +2,8 @@ import type { UnknownArray } from "type-fest";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { isTypefestConfigReference } from "../../src/_internal/typefest-config-references";
+
 /**
  * Minimal shape read from dynamically imported rule modules for metadata
  * assertions.
@@ -12,6 +14,7 @@ interface RuleMetadataSnapshot {
     meta?: {
         docs?: {
             description?: string;
+            recommended?: boolean | readonly string[] | string;
             url?: string;
         };
         fixable?: string;
@@ -21,6 +24,35 @@ interface RuleMetadataSnapshot {
     };
     name?: string;
 }
+
+/**
+ * Narrow unknown values to object records used by runtime module guards.
+ */
+const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+    typeof value === "object" && value !== null;
+
+/**
+ * Guard dynamic import payloads to the expected `{ default: RuleMetadata }`
+ * shape.
+ */
+const isRuleModuleSnapshot = (
+    value: unknown
+): value is Readonly<{ default: RuleMetadataSnapshot }> => {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    if (!Object.hasOwn(value, "default")) {
+        return false;
+    }
+
+    const defaultExport = value["default"];
+
+    return (
+        isRecord(defaultExport) &&
+        typeof defaultExport["create"] === "function"
+    );
+};
 
 /**
  * Optional expectation overrides used by shared rule-metadata smoke tests.
@@ -38,6 +70,36 @@ const docsBaseUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 /**
+ * Normalize `meta.docs.recommended` into a reference list suitable for
+ * assertion.
+ */
+const getRecommendedReferenceCandidates = (
+    recommended: boolean | readonly string[] | string | undefined
+): readonly string[] => {
+    if (recommended === true || recommended === false) {
+        return [];
+    }
+
+    if (typeof recommended === "string") {
+        return [recommended];
+    }
+
+    if (!Array.isArray(recommended)) {
+        return [];
+    }
+
+    const references: string[] = [];
+
+    for (const candidate of recommended) {
+        if (typeof candidate === "string") {
+            references.push(candidate);
+        }
+    }
+
+    return references;
+};
+
+/**
  * Import a rule module by id from `src/rules`.
  *
  * @param ruleId - Unqualified rule module id.
@@ -48,22 +110,27 @@ const importRuleModule = async (
     ruleId: string
 ): Promise<{ default: RuleMetadataSnapshot }> => {
     // eslint-disable-next-line no-unsanitized/method -- Rule ids are repository-controlled constants in test files.
-    const moduleUnderTest = (await import(
+    const moduleUnderTest: unknown = await import(
         `../../src/rules/${ruleId}.ts`
-    )) as unknown;
+    );
 
-    return moduleUnderTest as { default: RuleMetadataSnapshot };
+    if (!isRuleModuleSnapshot(moduleUnderTest)) {
+        throw new TypeError(
+            `Rule module '${ruleId}' does not export a valid default rule object.`
+        );
+    }
+
+    return moduleUnderTest;
 };
 
 /**
- * Registers shared metadata/fallback tests that kill recurring Stryker
- * survivors in rule modules that use `createTypedRule` and the function
- * `context.filename ?? ""`.
+ * Registers shared metadata smoke tests that kill recurring Stryker survivors
+ * in rule modules that use `createTypedRule`.
  *
  * @param ruleId - Rule module id under `src/rules`.
  * @param expectations - Optional expected metadata overrides.
  */
-export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
+export const addTypeFestRuleMetadataSmokeTests = (
     ruleId: string,
     expectations: TypeFestRuleMetadataExpectations = {}
 ): void => {
@@ -74,11 +141,7 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
     describe(`${ruleId} metadata`, () => {
         it("exports expected metadata baseline", async () => {
             const metadataRule = (await importRuleModule(ruleId)).default;
-            const metadataDefaultOptions =
-                "defaultOptions" in metadataRule
-                    ? (metadataRule as { defaultOptions?: unknown })
-                          .defaultOptions
-                    : undefined;
+            const metadataDefaultOptions = metadataRule.defaultOptions;
             const expectedDocsDescription =
                 expectations.docsDescription ??
                 metadataRule.meta?.docs?.description;
@@ -107,6 +170,14 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                 expectedDocsDescription
             );
 
+            for (const recommendedReference of getRecommendedReferenceCandidates(
+                metadataRule.meta?.docs?.recommended
+            )) {
+                expect(
+                    isTypefestConfigReference(recommendedReference)
+                ).toBeTruthy();
+            }
+
             for (const [messageId, expectedMessage] of Object.entries(
                 expectations.messages ?? {}
             )) {
@@ -129,7 +200,6 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                 vi.doMock("../../src/_internal/typed-rule.js", () => ({
                     createTypedRule: (definition: unknown): unknown =>
                         definition,
-                    isTestFilePath: () => false,
                 }));
 
                 const undecoratedRule = (await importRuleModule(ruleId))
@@ -154,34 +224,6 @@ export const addTypeFestRuleMetadataAndFilenameFallbackTests = (
                         expectedMessage
                     );
                 }
-            } finally {
-                vi.doUnmock("../../src/_internal/typed-rule.js");
-                vi.resetModules();
-            }
-        });
-
-        it("falls back to an empty filename before the test-file guard", async () => {
-            const capturedPaths: string[] = [];
-
-            try {
-                vi.resetModules();
-
-                vi.doMock("../../src/_internal/typed-rule.js", () => ({
-                    createTypedRule: (definition: unknown): unknown =>
-                        definition,
-                    isTestFilePath: (filePath: string): boolean => {
-                        capturedPaths.push(filePath);
-
-                        return true;
-                    },
-                }));
-
-                const undecoratedRule = (await importRuleModule(ruleId))
-                    .default;
-
-                undecoratedRule.create({});
-
-                expect(capturedPaths).toStrictEqual([""]);
             } finally {
                 vi.doUnmock("../../src/_internal/typed-rule.js");
                 vi.resetModules();

@@ -34,7 +34,7 @@ import {
     unionStringInvalidOutput,
     validFixtureName,
 } from "./_internal/prefer-ts-extras-string-split-cases";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -258,20 +258,17 @@ const assertIsReplaceFixFunction: (
     }
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-string-split",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras stringSplit over String#split for stronger tuple inference.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasStringSplit:
-                "Prefer `stringSplit` from `ts-extras` over `string.split(...)` for stronger tuple inference.",
-        },
-        name: "prefer-ts-extras-string-split",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras stringSplit over String#split for stronger tuple inference.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasStringSplit:
+            "Prefer `stringSplit` from `ts-extras` over `string.split(...)` for stronger tuple inference.",
+    },
+    name: "prefer-ts-extras-string-split",
+});
 
 describe("prefer-ts-extras-string-split source assertions", () => {
     it("keeps string-split string-like and member guards in source", () => {
@@ -289,9 +286,12 @@ describe("prefer-ts-extras-string-split source assertions", () => {
             'candidateType.getSymbol()?.getName() === "String"'
         );
         expect(ruleSource).toContain(
-            'node.callee.property.type !== "Identifier" ||'
+            'callCallee.property.type !== "Identifier" ||'
         );
-        expect(ruleSource).toContain("} catch {");
+        expect(ruleSource).toContain("safeTypeOperation({");
+        expect(ruleSource).toContain(
+            'reason: "string-split-type-analysis-failed"'
+        );
         expect(ruleSource).toContain("return;");
     });
 

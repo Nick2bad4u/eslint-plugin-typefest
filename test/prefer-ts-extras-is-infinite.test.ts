@@ -42,7 +42,7 @@ import {
     parseLogicalDisjunctionFromCode,
     parserOptions,
 } from "./_internal/prefer-ts-extras-is-infinite-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -53,20 +53,17 @@ import {
 const rule = getPluginRule("prefer-ts-extras-is-infinite");
 const ruleTester = createTypedRuleTester();
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-is-infinite",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras isInfinite over direct Infinity equality checks for consistent predicate helper usage.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasIsInfinite:
-                "Prefer `isInfinite` from `ts-extras` over direct Infinity equality checks.",
-        },
-        name: "prefer-ts-extras-is-infinite",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-infinite", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras isInfinite over direct Infinity equality checks for consistent predicate helper usage.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasIsInfinite:
+            "Prefer `isInfinite` from `ts-extras` over direct Infinity equality checks.",
+    },
+    name: "prefer-ts-extras-is-infinite",
+});
 
 describe("prefer-ts-extras-is-infinite source assertions", () => {
     it("keeps is-infinite helper guards and comparisons in source", () => {

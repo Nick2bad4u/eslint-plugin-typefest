@@ -280,19 +280,19 @@ interface WritableDeepRuleModuleForCreate {
 }
 
 describe("prefer-type-fest-writable-deep filename fallback", () => {
-    it("short-circuits missing filenames as test-path matches", async () => {
-        const collectDirectNamedImportsFromSourceMock = vi.fn(() => {
-            throw new Error(
-                "collectDirectNamedImportsFromSource should not run when filename is missing"
-            );
-        });
+    it("keeps create callable when filename is omitted", async () => {
+        expect.hasAssertions();
+
+        const collectDirectNamedImportsFromSourceMock = vi.fn(
+            () => new Set<string>()
+        );
 
         try {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (filePath: string): boolean => filePath === "",
+                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -306,14 +306,16 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
                     default: WritableDeepRuleModuleForCreate;
                 };
 
-            const listeners = moduleUnderTest.default.create({
-                sourceCode: {},
-            });
-
-            expect(listeners).toStrictEqual({});
-            expect(
-                collectDirectNamedImportsFromSourceMock
-            ).not.toHaveBeenCalled();
+            expect(() => {
+                moduleUnderTest.default.create({
+                    sourceCode: {
+                        ast: {
+                            body: [],
+                        },
+                    },
+                });
+            }).not.toThrowError();
+            expect(collectDirectNamedImportsFromSourceMock).toHaveBeenCalled();
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.doUnmock("../src/_internal/imported-type-aliases.js");

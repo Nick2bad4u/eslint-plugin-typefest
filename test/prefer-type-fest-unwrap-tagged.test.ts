@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unwrap-tagged.test` behavior.
@@ -134,18 +134,15 @@ const parseUnwrapTaggedTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-unwrap-tagged",
-    {
-        docsDescription:
-            "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
-        enforceRuleShape: true,
-        messages: {
-            preferUnwrapTagged:
-                "Prefer `{{replacement}}` from type-fest to unwrap Tagged/Opaque values instead of legacy alias `{{alias}}`.",
-        },
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-unwrap-tagged", {
+    docsDescription:
+        "require TypeFest UnwrapTagged over imported aliases such as UnwrapOpaque.",
+    enforceRuleShape: true,
+    messages: {
+        preferUnwrapTagged:
+            "Prefer `{{replacement}}` from type-fest to unwrap Tagged/Opaque values instead of legacy alias `{{alias}}`.",
+    },
+});
 
 describe("prefer-type-fest-unwrap-tagged parse-safety guards", () => {
     it("fast-check: UnwrapTagged replacement remains parseable across wrapper variants", () => {

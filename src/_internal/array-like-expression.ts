@@ -6,6 +6,8 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
+import { safeTypeOperation } from "./safe-type-operation.js";
+
 /**
  * Shared inputs required to evaluate whether an ESTree expression is array-like
  * using TypeScript type information.
@@ -134,19 +136,27 @@ export const createIsArrayLikeExpressionChecker =
         unionMatchMode = "some",
     }: Readonly<ArrayLikeExpressionCheckerOptions>) =>
     (expression: Readonly<TSESTree.Expression>): boolean => {
-        try {
-            const tsNode = parserServices.esTreeNodeToTSNodeMap.get(expression);
+        const result = safeTypeOperation({
+            operation: () => {
+                const tsNode =
+                    parserServices.esTreeNodeToTSNodeMap.get(expression);
 
-            if (!tsNode) {
-                return false;
-            }
+                if (!tsNode) {
+                    return false;
+                }
 
-            const expressionType = checker.getTypeAtLocation(tsNode);
+                const expressionType = checker.getTypeAtLocation(tsNode);
 
-            return isArrayLikeType(checker, expressionType, unionMatchMode);
-        } catch {
+                return isArrayLikeType(checker, expressionType, unionMatchMode);
+            },
+            reason: "array-like-expression-check-failed",
+        });
+
+        if (!result.ok) {
             return false;
         }
+
+        return result.value;
     };
 
 /**

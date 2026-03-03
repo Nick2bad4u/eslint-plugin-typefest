@@ -9,7 +9,7 @@ import {
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Tuple rest annotation node variants accepted by the parser. */
 type RestAnnotation = TSESTree.TSRestType["typeAnnotation"];
@@ -95,12 +95,6 @@ const getRestArrayElementType = (
 const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const { sourceCode } = context;
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,

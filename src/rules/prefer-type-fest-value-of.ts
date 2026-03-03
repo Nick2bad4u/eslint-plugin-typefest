@@ -9,7 +9,7 @@ import {
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-type-fest-value-of`.
@@ -20,12 +20,6 @@ import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
 const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const { sourceCode } = context;
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 sourceCode,

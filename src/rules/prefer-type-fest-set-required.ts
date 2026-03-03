@@ -7,7 +7,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 const setRequiredAliasReplacements = {
     RequiredBy: "SetRequired",
@@ -22,12 +22,6 @@ const setRequiredAliasReplacements = {
 const preferTypeFestSetRequiredRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 setRequiredAliasReplacements

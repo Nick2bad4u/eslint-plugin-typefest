@@ -9,7 +9,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Property keys commonly used in ad-hoc branded intersections. */
 const BRAND_PROPERTY_NAMES = new Set([
@@ -98,11 +98,6 @@ const typeContainsTaggedReference = (
 const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 taggedAliasReplacements

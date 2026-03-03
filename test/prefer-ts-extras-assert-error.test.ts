@@ -8,7 +8,7 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-assert-error.test` behavior.
  */
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -339,7 +339,7 @@ type ReportDescriptor = Readonly<{
     }>[];
 }>;
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(ruleId, {
+addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
     messages: {

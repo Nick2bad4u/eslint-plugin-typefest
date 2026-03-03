@@ -8,7 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * Primitive families supported by TypeFest `LiteralUnion`.
@@ -223,12 +223,6 @@ const getLiteralUnionReplacementText = (
 const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
                 "type-fest"

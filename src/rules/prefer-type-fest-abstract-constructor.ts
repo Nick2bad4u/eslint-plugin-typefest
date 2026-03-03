@@ -6,7 +6,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-type-fest-abstract-constructor`.
@@ -18,12 +18,6 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
     typeof createTypedRule
 > = createTypedRule({
     create(context) {
-        const filePath = context.filename ?? "";
-
-        if (isTestFilePath(filePath)) {
-            return {};
-        }
-
         const typeFestDirectImports = collectDirectNamedImportsFromSource(
             context.sourceCode,
             "type-fest"

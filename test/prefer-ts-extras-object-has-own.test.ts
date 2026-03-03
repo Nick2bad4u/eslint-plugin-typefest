@@ -15,7 +15,7 @@ import {
     fastCheckRunConfig,
     isSafeGeneratedIdentifier,
 } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -174,20 +174,17 @@ const parseObjectHasOwnCallFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-object-has-own",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasObjectHasOwn:
-                "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",
-        },
-        name: "prefer-ts-extras-object-has-own",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-own", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasObjectHasOwn:
+            "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",
+    },
+    name: "prefer-ts-extras-object-has-own",
+});
 
 describe("prefer-ts-extras-object-has-own source assertions", () => {
     it("keeps object-has-own callee guard clauses in source", () => {

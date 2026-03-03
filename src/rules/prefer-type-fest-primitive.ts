@@ -8,7 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { createTypedRule, isTestFilePath } from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Canonical primitive keyword node types required by `Primitive`. */
 const primitiveKeywordTypes = [
@@ -72,11 +72,6 @@ const hasPrimitiveUnionShape = (
 const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
                 "type-fest"

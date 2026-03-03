@@ -6,7 +6,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-require-exactly-one.test` behavior.
@@ -135,20 +135,17 @@ const parseRequireExactlyOneTypeReferenceFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-type-fest-require-exactly-one",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
-        enforceRuleShape: true,
-        messages: {
-            preferRequireExactlyOne:
-                "Prefer `{{replacement}}` from type-fest to require exactly one key from a group instead of legacy alias `{{alias}}`.",
-        },
-        name: "prefer-type-fest-require-exactly-one",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-type-fest-require-exactly-one", {
+    defaultOptions: [],
+    docsDescription:
+        "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
+    enforceRuleShape: true,
+    messages: {
+        preferRequireExactlyOne:
+            "Prefer `{{replacement}}` from type-fest to require exactly one key from a group instead of legacy alias `{{alias}}`.",
+    },
+    name: "prefer-type-fest-require-exactly-one",
+});
 
 describe("prefer-type-fest-require-exactly-one parse-safety guards", () => {
     it("fast-check: RequireExactlyOne replacement remains parseable across alias variants", () => {

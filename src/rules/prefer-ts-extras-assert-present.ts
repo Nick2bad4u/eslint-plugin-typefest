@@ -13,7 +13,6 @@ import {
     createTypedRule,
     isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /** Concrete rule context type inferred from `createTypedRule`. */
@@ -256,11 +255,6 @@ const extractNullishEqualityPart = (
 const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

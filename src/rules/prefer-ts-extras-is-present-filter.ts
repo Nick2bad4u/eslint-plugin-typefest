@@ -12,7 +12,6 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -344,12 +343,6 @@ const isSafePresentFilterAutoFixableCallback = ({
 const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

@@ -12,7 +12,6 @@ import {
 import {
     createTypedRule,
     getTypedRuleServices,
-    isTestFilePath,
 } from "../_internal/typed-rule.js";
 
 /**
@@ -52,11 +51,6 @@ const isLengthMemberExpression = (
 const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const filePath = context.filename ?? "";
-            if (isTestFilePath(filePath)) {
-                return {};
-            }
-
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"

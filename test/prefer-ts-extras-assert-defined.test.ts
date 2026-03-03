@@ -52,7 +52,7 @@ import {
     parseIfStatementFromCode,
     parserOptions,
 } from "./_internal/prefer-ts-extras-assert-defined-runtime-harness";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -66,22 +66,19 @@ type AssertDefinedFixFactoryArgs = Readonly<{
     replacementTextFactory: (replacementName: string) => string;
 }>;
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-assert-defined",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras assertDefined over manual undefined-guard throw blocks.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasAssertDefined:
-                "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
-            suggestTsExtrasAssertDefined:
-                "Replace this manual guard with `assertDefined(...)` from `ts-extras`.",
-        },
-        name: "prefer-ts-extras-assert-defined",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-defined", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras assertDefined over manual undefined-guard throw blocks.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasAssertDefined:
+            "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks.",
+        suggestTsExtrasAssertDefined:
+            "Replace this manual guard with `assertDefined(...)` from `ts-extras`.",
+    },
+    name: "prefer-ts-extras-assert-defined",
+});
 
 describe("prefer-ts-extras-assert-defined metadata assertions", () => {
     it("retains hasSuggestions metadata for assert-defined", () => {

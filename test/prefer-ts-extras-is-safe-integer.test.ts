@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { addTypeFestRuleMetadataAndFilenameFallbackTests } from "./_internal/rule-metadata-smoke";
+import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
@@ -163,20 +163,17 @@ const parseIsSafeIntegerCallFromCode = (
     );
 };
 
-addTypeFestRuleMetadataAndFilenameFallbackTests(
-    "prefer-ts-extras-is-safe-integer",
-    {
-        defaultOptions: [],
-        docsDescription:
-            "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
-        enforceRuleShape: true,
-        messages: {
-            preferTsExtrasIsSafeInteger:
-                "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",
-        },
-        name: "prefer-ts-extras-is-safe-integer",
-    }
-);
+addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-safe-integer", {
+    defaultOptions: [],
+    docsDescription:
+        "require ts-extras isSafeInteger over Number.isSafeInteger for consistent predicate helper usage.",
+    enforceRuleShape: true,
+    messages: {
+        preferTsExtrasIsSafeInteger:
+            "Prefer `isSafeInteger` from `ts-extras` over `Number.isSafeInteger(...)`.",
+    },
+    name: "prefer-ts-extras-is-safe-integer",
+});
 
 describe("prefer-ts-extras-is-safe-integer source assertions", () => {
     it("keeps is-safe-integer member guard clauses in source", () => {
