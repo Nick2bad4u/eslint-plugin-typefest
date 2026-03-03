@@ -15,9 +15,6 @@
  */
 // @ts-check
 
-// @ts-ignore -- Ignore missing types for remark-ignore
-import { ignoreStart, ignoreEnd } from "remark-ignore";
-
 import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.mjs";
 
 // Type definitions for remark configuration
