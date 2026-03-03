@@ -149,7 +149,8 @@ const processEnvironment = globalThis.process.env;
  * self-hosting noise under control while still exercising local rules.
  */
 const localTypefestDogfoodRules = {
-    "typefest/prefer-type-fest-arrayable": "warn",
+    // "typefest/prefer-ts-extras-is-defined": "warn",
+    // "typefest/prefer-type-fest-arrayable": "warn",
     "typefest/prefer-type-fest-async-return-type": "warn",
     "typefest/prefer-type-fest-json-array": "warn",
     "typefest/prefer-type-fest-json-object": "warn",
@@ -573,6 +574,7 @@ export default defineConfig([
             "@eslint-react/dom/prefer-namespace-import": "warn",
             "@eslint-react/jsx-dollar": "warn",
             "@eslint-react/jsx-shorthand-boolean": "warn",
+
             "@eslint-react/jsx-shorthand-fragment": "warn",
             "@eslint-react/naming-convention/component-name": "warn",
             // Docusaurus relies on canonical non-PascalCase filenames
@@ -590,6 +592,9 @@ export default defineConfig([
             // JS-only docs components do not consistently model props via
             // readonly TS types, so keep this disabled in docs scope.
             "@eslint-react/prefer-read-only-props": "off",
+            "jsx-a11y/lang": "warn",
+            "jsx-a11y/no-aria-hidden-on-focusable": "warn",
+            "jsx-a11y/prefer-tag-over-role": "warn",
         },
         settings: {
             ...eslintReactStrictTypeCheckedConfig.settings,
@@ -1471,7 +1476,10 @@ export default defineConfig([
     // SECTION: 🐶 Dogfooding
     // ═══════════════════════════════════════════════════════════════════════════════
     {
-        files: ["src/**/*.{ts,tsx,mts,cts}", "test/**/*.{ts,tsx,mts,cts}"],
+        files: [
+            "src/**/*.{ts,tsx,mts,cts}",
+            //    "test/**/*.{ts,tsx,mts,cts}"
+        ],
         name: "Local typefest plugin manual dogfooding rules",
         plugins: {
             typefest: localTypefestPlugin,

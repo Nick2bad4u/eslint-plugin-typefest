@@ -9,15 +9,37 @@
 # - Grouping updates by ecosystem with specific patterns for version updates.
 # yaml-language-server: $schema=https://www.schemastore.org/dependabot-2.0.json
 version: 2
+enable-beta-ecosystems: true
+
+multi-ecosystem-groups:
+    dependabot-all:
+        assignees:
+            - "Nick2bad4u"
+        target-branch: "main"
+        update-types:
+            - major
+            - minor
+            - patch
+        open-pull-requests-limit: 1
+        commit-message:
+            prefix: "[dependabot][all]"
+            prefix-development: "[dependabot][dev][all]"
+            include: "scope"
+        labels:
+            - "dependabot"
+            - "dependencies"
+        schedule:
+            interval: "monthly"
+
 updates:
     - package-ecosystem: github-actions
       cooldown:
           default-days: 3
           include: ["*"]
-      open-pull-requests-limit: 5
+      open-pull-requests-limit: 1
       directory: /
       schedule:
-          interval: weekly
+          interval: monthly
           time: "05:30"
           timezone: "America/Detroit"
       assignees: ["Nick2bad4u"]
@@ -28,10 +50,12 @@ updates:
           - "github-actions"
           - "dependabot"
           - "dependencies"
-      commit-message:
-          prefix: "[ci][skip-ci]"
-          prefix-development: "[ci][skip-ci]"
-          include: "scope"
+      multi-ecosystem-group: dependabot-all
+      name: "GitHub Actions dependencies"
+      versioning-strategy: increase
+      rebase-strategy: auto
+      patterns:
+          - "*"
       groups:
           github-actions:
               applies-to: version-updates
@@ -42,10 +66,10 @@ updates:
       cooldown:
           default-days: 3
           include: ["*"]
-      open-pull-requests-limit: 5
+      open-pull-requests-limit: 1
       directory: /
       schedule:
-          interval: weekly
+          interval: monthly
       assignees: ["Nick2bad4u"]
       rebase-strategy: auto
       versioning-strategy: increase
@@ -71,10 +95,10 @@ updates:
           - "npm"
           - "dependabot"
           - "dependencies"
-      commit-message:
-          prefix: "[dependency][skip-ci]"
-          prefix-development: "[dev-dependency][skip-ci]"
-          include: "scope"
+      multi-ecosystem-group: dependabot-all
+      name: "NPM dependencies"
+      patterns:
+          - "*"
       groups:
           npm-all:
               applies-to: version-updates
@@ -91,7 +115,7 @@ updates:
           include: ["*"]
       directory: /docs/docusaurus
       schedule:
-          interval: weekly
+          interval: monthly
       assignees: ["Nick2bad4u"]
       rebase-strategy: auto
       versioning-strategy: increase
@@ -107,15 +131,12 @@ updates:
           - "npm"
           - "dependabot"
           - "dependencies"
-      commit-message:
-          include: "scope"
-          prefix: "[dependency][docusaurus][skip-ci]"
-          prefix-development: "[dev-dependency][docusaurus][skip-ci]"
-
+      multi-ecosystem-group: dependabot-all
+      name: "Docusaurus NPM dependencies"
+      patterns:
+          - "*"
       groups:
           npm-all:
               applies-to: version-updates
               patterns:
                   - "*"
-
-enable-beta-ecosystems: true
