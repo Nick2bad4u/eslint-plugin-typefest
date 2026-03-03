@@ -343,11 +343,13 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
-                            dedupeImportInsertionFixes: canAutofix,
                             importedName: "assertPresent",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
                                 `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                            reportFixIntent: canAutofix
+                                ? "autofix"
+                                : "suggestion",
                             sourceModuleName: "ts-extras",
                             targetNode: node,
                         });

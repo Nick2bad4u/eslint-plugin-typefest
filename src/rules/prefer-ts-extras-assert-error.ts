@@ -145,11 +145,11 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
-                            dedupeImportInsertionFixes: false,
                             importedName: "assertError",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
                                 `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                            reportFixIntent: "suggestion",
                             sourceModuleName: "ts-extras",
                             targetNode: node,
                         });

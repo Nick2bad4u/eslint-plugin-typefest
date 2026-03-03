@@ -5,9 +5,11 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
-import { getProgramNode } from "./ast-node.js";
+import {
+    type ImportFixIntent,
+    shouldIncludeImportInsertionForReportFix,
+} from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
-import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
 /**
  * Immutable mapping of imported symbol names to directly imported local
@@ -16,106 +18,14 @@ import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
 
 /**
- * Cache of import-insertion claims keyed by Program node to prevent emitting
- * multiple wide import+replacement fix ranges for the same helper in a single
- * lint pass.
- */
-const claimedImportInsertionKeysByProgram = new WeakMap<
-    TSESTree.Program,
-    Set<string>
->();
-
-/**
- * Build a stable dedupe key for a helper import from a specific source.
- */
-const createImportInsertionDedupeKey = (
-    importedName: string,
-    sourceModuleName: string
-): string => `${sourceModuleName}\u0000${importedName}`;
-
-/**
- * Checks whether an import-insertion fix has already been claimed for the
- * current Program and helper key.
- */
-const hasClaimedImportInsertionForProgram = (
-    programNode: Readonly<TSESTree.Program>,
-    dedupeKey: string
-): boolean => {
-    const claimedKeys = claimedImportInsertionKeysByProgram.get(programNode);
-
-    return claimedKeys?.has(dedupeKey) ?? false;
-};
-
-/**
- * Marks a helper import-insertion fix as claimed for the current Program.
- */
-const claimImportInsertionForProgram = (
-    programNode: Readonly<TSESTree.Program>,
-    dedupeKey: string
-): void => {
-    const claimedKeys = claimedImportInsertionKeysByProgram.get(programNode);
-    if (claimedKeys) {
-        claimedKeys.add(dedupeKey);
-        return;
-    }
-
-    claimedImportInsertionKeysByProgram.set(programNode, new Set([dedupeKey]));
-};
-
-/**
- * Decide whether a specific report fixer should carry the import-insertion edit
- * for a helper import that is currently missing.
- *
- * @remarks
- * This decision is made at fixer-creation time (during AST traversal), not at
- * fix-execution time, to keep behavior deterministic even when ESLint invokes
- * fix callbacks multiple times while resolving conflicts.
- */
-const shouldAttachImportInsertionFix = ({
-    importInsertionDedupeKey,
-    referenceNode,
-    requiresImportInsertion,
-}: Readonly<{
-    importInsertionDedupeKey: string;
-    referenceNode: Readonly<TSESTree.Node>;
-    requiresImportInsertion: boolean;
-}>): boolean => {
-    if (!requiresImportInsertion) {
-        return false;
-    }
-
-    if (isImportInsertionFixesDisabledForNode(referenceNode)) {
-        return true;
-    }
-
-    const programNode = getProgramNode(referenceNode);
-    if (!programNode) {
-        return true;
-    }
-
-    if (
-        hasClaimedImportInsertionForProgram(
-            programNode,
-            importInsertionDedupeKey
-        )
-    ) {
-        return false;
-    }
-
-    claimImportInsertionForProgram(programNode, importInsertionDedupeKey);
-
-    return true;
-};
-
-/**
  * Parameters for creating a safe member-expression to function-call fixer.
  */
 type MemberToFunctionCallFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     memberNode: TSESTree.MemberExpression;
+    reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
 }>;
 
@@ -125,9 +35,9 @@ type MemberToFunctionCallFixParams = Readonly<{
 type MethodToFunctionCallFixParams = Readonly<{
     callNode: TSESTree.CallExpression;
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
+    reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
 }>;
 
@@ -148,10 +58,10 @@ type SafeImportedValueNameParams = Readonly<{
  */
 type SafeValueNodeTextReplacementFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     replacementTextFactory: (replacementName: string) => string;
+    reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
     targetNode: TSESTree.Node;
 }>;
@@ -161,9 +71,9 @@ type SafeValueNodeTextReplacementFixParams = Readonly<{
  */
 type SafeValueReplacementFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
+    reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
     targetNode: TSESTree.Node;
 }>;
@@ -174,10 +84,10 @@ type SafeValueReplacementFixParams = Readonly<{
 type ValueArgumentFunctionCallFixParams = Readonly<{
     argumentNode: TSESTree.Node;
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     negated?: boolean;
+    reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
     targetNode: TSESTree.Node;
 }>;
@@ -185,7 +95,6 @@ type ValueArgumentFunctionCallFixParams = Readonly<{
 /**
  * Check whether an import declaration targets the expected source module.
  *
- * @param statement - Import declaration node.
  * @param sourceModuleName - Expected module specifier value.
  *
  * @returns `true` when the import declaration source matches.
@@ -465,15 +374,9 @@ const getSafeReplacementNameAndImportFixFactory = ({
     createImportFix: (
         fixer: Readonly<TSESLint.RuleFixer>
     ) => null | TSESLint.RuleFix;
-    importInsertionDedupeKey: string;
     replacementName: string;
     requiresImportInsertion: boolean;
 } => {
-    const importInsertionDedupeKey = createImportInsertionDedupeKey(
-        importedName,
-        sourceModuleName
-    );
-
     const existingReplacementName = getSafeLocalNameForImportedValue({
         context,
         importedName,
@@ -488,7 +391,6 @@ const getSafeReplacementNameAndImportFixFactory = ({
     ) {
         return {
             createImportFix: () => null,
-            importInsertionDedupeKey,
             replacementName: existingReplacementName,
             requiresImportInsertion: false,
         };
@@ -513,7 +415,6 @@ const getSafeReplacementNameAndImportFixFactory = ({
                 referenceNode,
                 sourceModuleName,
             }),
-        importInsertionDedupeKey,
         replacementName: importedName,
         requiresImportInsertion: true,
     };
@@ -607,9 +508,9 @@ const getFunctionCallArgumentText = ({
  */
 export const createSafeValueReferenceReplacementFix = ({
     context,
-    dedupeImportInsertionFixes = true,
     importedName,
     imports,
+    reportFixIntent = "autofix",
     sourceModuleName,
     targetNode,
 }: Readonly<SafeValueReplacementFixParams>): null | TSESLint.ReportFixFunction => {
@@ -626,15 +527,16 @@ export const createSafeValueReferenceReplacementFix = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
-        ? shouldAttachImportInsertionFix({
-              importInsertionDedupeKey:
-                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
-              referenceNode: targetNode,
-              requiresImportInsertion:
-                  replacementNameAndImportFixFactory.requiresImportInsertion,
-          })
-        : replacementNameAndImportFixFactory.requiresImportInsertion;
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode: targetNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
 
     return (fixer) =>
         createImportAwareFixes({
@@ -660,10 +562,10 @@ export const createSafeValueReferenceReplacementFix = ({
  */
 export const createSafeValueNodeTextReplacementFix = ({
     context,
-    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     replacementTextFactory,
+    reportFixIntent = "autofix",
     sourceModuleName,
     targetNode,
 }: Readonly<SafeValueNodeTextReplacementFixParams>): null | TSESLint.ReportFixFunction => {
@@ -680,15 +582,16 @@ export const createSafeValueNodeTextReplacementFix = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
-        ? shouldAttachImportInsertionFix({
-              importInsertionDedupeKey:
-                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
-              referenceNode: targetNode,
-              requiresImportInsertion:
-                  replacementNameAndImportFixFactory.requiresImportInsertion,
-          })
-        : replacementNameAndImportFixFactory.requiresImportInsertion;
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode: targetNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
 
     return (fixer) => {
         const replacementText = replacementTextFactory(
@@ -709,16 +612,14 @@ export const createSafeValueNodeTextReplacementFix = ({
  * Create a fixer that rewrites `receiver.method(args...)` to
  * `importedFn(receiver, args...)`.
  *
- * @param options - Call-expression context and import metadata.
- *
  * @returns A report fixer when safe; otherwise `null`.
  */
 export const createMethodToFunctionCallFix = ({
     callNode,
     context,
-    dedupeImportInsertionFixes = true,
     importedName,
     imports,
+    reportFixIntent = "autofix",
     sourceModuleName,
 }: Readonly<MethodToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     if (callNode.optional || callNode.callee.type !== "MemberExpression") {
@@ -742,15 +643,16 @@ export const createMethodToFunctionCallFix = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
-        ? shouldAttachImportInsertionFix({
-              importInsertionDedupeKey:
-                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
-              referenceNode: callNode,
-              requiresImportInsertion:
-                  replacementNameAndImportFixFactory.requiresImportInsertion,
-          })
-        : replacementNameAndImportFixFactory.requiresImportInsertion;
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode: callNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
 
     const { sourceCode } = context;
     const receiverText = getFunctionCallArgumentText({
@@ -796,16 +698,14 @@ export const createMethodToFunctionCallFix = ({
 /**
  * Create a fixer that rewrites `receiver[member]` to `importedFn(receiver)`.
  *
- * @param options - Member-expression context and import metadata.
- *
  * @returns A report fixer when safe; otherwise `null`.
  */
 export const createMemberToFunctionCallFix = ({
     context,
-    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     memberNode,
+    reportFixIntent = "autofix",
     sourceModuleName,
 }: Readonly<MemberToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     if (memberNode.optional) {
@@ -825,15 +725,16 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
-        ? shouldAttachImportInsertionFix({
-              importInsertionDedupeKey:
-                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
-              referenceNode: memberNode,
-              requiresImportInsertion:
-                  replacementNameAndImportFixFactory.requiresImportInsertion,
-          })
-        : replacementNameAndImportFixFactory.requiresImportInsertion;
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode: memberNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
 
     const receiverText = getFunctionCallArgumentText({
         argumentNode: memberNode.object,
@@ -859,17 +760,16 @@ export const createMemberToFunctionCallFix = ({
  * Create a fixer that rewrites a target node to an imported helper invocation.
  *
  * @param options - Target/argument nodes and import metadata for call
- *   replacement.
  *
  * @returns A report fixer when safe; otherwise `null`.
  */
 export const createSafeValueArgumentFunctionCallFix = ({
     argumentNode,
     context,
-    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     negated,
+    reportFixIntent = "autofix",
     sourceModuleName,
     targetNode,
 }: Readonly<ValueArgumentFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
@@ -886,15 +786,16 @@ export const createSafeValueArgumentFunctionCallFix = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
-        ? shouldAttachImportInsertionFix({
-              importInsertionDedupeKey:
-                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
-              referenceNode: targetNode,
-              requiresImportInsertion:
-                  replacementNameAndImportFixFactory.requiresImportInsertion,
-          })
-        : replacementNameAndImportFixFactory.requiresImportInsertion;
+    const shouldIncludeImportInsertionFix =
+        replacementNameAndImportFixFactory.requiresImportInsertion
+            ? shouldIncludeImportInsertionForReportFix({
+                  importBindingKind: "value",
+                  importedName,
+                  referenceNode: targetNode,
+                  reportFixIntent,
+                  sourceModuleName,
+              })
+            : false;
 
     const argumentText = getFunctionCallArgumentText({
         argumentNode,

@@ -1455,6 +1455,91 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             parser.parseForESLint(fixedCode, parserOptions);
         }).not.toThrowError();
     });
+
+    it("keeps suggestion-intent type fixes self-contained with replacement import insertion", () => {
+        expect.hasAssertions();
+
+        const sourceText = [
+            '"use strict";',
+            "type First = Expand<string>;",
+            "type Second = Expand<number>;",
+        ].join("\n");
+
+        const { ast, referenceNodes } =
+            parseTypeReferencesFromTypeAliasCode(sourceText);
+
+        expect(referenceNodes).toHaveLength(2);
+
+        const [firstReferenceNode, secondReferenceNode] =
+            referenceNodes as readonly [
+                TSESTree.TSTypeReference,
+                TSESTree.TSTypeReference,
+            ];
+
+        (firstReferenceNode as { parent?: TSESTree.Program }).parent = ast;
+        (secondReferenceNode as { parent?: TSESTree.Program }).parent = ast;
+
+        const firstSuggestionFix = createSafeTypeReferenceReplacementFix(
+            firstReferenceNode,
+            "Simplify",
+            new Set<string>(),
+            "type-fest",
+            "suggestion"
+        );
+        const secondSuggestionFix = createSafeTypeReferenceReplacementFix(
+            secondReferenceNode,
+            "Simplify",
+            new Set<string>(),
+            "type-fest",
+            "suggestion"
+        );
+
+        expect(firstSuggestionFix).toBeTypeOf("function");
+        expect(secondSuggestionFix).toBeTypeOf("function");
+
+        const firstSuggestionTextEdits =
+            invokeFixToTextEdits(firstSuggestionFix);
+        const secondSuggestionTextEdits =
+            invokeFixToTextEdits(secondSuggestionFix);
+
+        expect(firstSuggestionTextEdits).toHaveLength(2);
+        expect(secondSuggestionTextEdits).toHaveLength(2);
+
+        const firstSuggestionAppliedCode = applyTextEdits({
+            sourceText,
+            textEdits: firstSuggestionTextEdits,
+        });
+        const secondSuggestionAppliedCode = applyTextEdits({
+            sourceText,
+            textEdits: secondSuggestionTextEdits,
+        });
+
+        expect(firstSuggestionAppliedCode).toContain(
+            "type First = Simplify<string>;"
+        );
+        expect(secondSuggestionAppliedCode).toContain(
+            "type Second = Simplify<number>;"
+        );
+        expect(
+            countNamedTypeImportSpecifiersInSource({
+                importedName: "Simplify",
+                sourceModuleName: "type-fest",
+                sourceText: firstSuggestionAppliedCode,
+            })
+        ).toBe(1);
+        expect(
+            countNamedTypeImportSpecifiersInSource({
+                importedName: "Simplify",
+                sourceModuleName: "type-fest",
+                sourceText: secondSuggestionAppliedCode,
+            })
+        ).toBe(1);
+
+        expect(() => {
+            parser.parseForESLint(firstSuggestionAppliedCode, parserOptions);
+            parser.parseForESLint(secondSuggestionAppliedCode, parserOptions);
+        }).not.toThrowError();
+    });
 });
 
 function createSafeTypeNodeReplacementFixGroup(): void {

@@ -83,7 +83,9 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                         createSafeTypeNodeReplacementFix(
                             node,
                             "JsonObject",
-                            typeFestDirectImports
+                            typeFestDirectImports,
+                            "type-fest",
+                            "suggestion"
                         );
 
                     if (jsonObjectSuggestionFix === null) {

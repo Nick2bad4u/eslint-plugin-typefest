@@ -2681,6 +2681,125 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         }).not.toThrowError();
     });
 
+    it("keeps suggestion-intent fixes self-contained with helper import insertion", () => {
+        expect.hasAssertions();
+
+        const sourceText = [
+            '"use strict";',
+            "declare const left: unknown;",
+            "declare const right: unknown;",
+            "const first = left !== undefined;",
+            "const second = right !== undefined;",
+            "void first;",
+            "void second;",
+        ].join("\n");
+
+        const { ast } = parser.parseForESLint(sourceText, parserOptions);
+        const binaryExpressions: TSESTree.BinaryExpression[] = [];
+
+        for (const statement of ast.body) {
+            if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+                for (const declaration of statement.declarations) {
+                    if (
+                        declaration.init?.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        binaryExpressions.push(declaration.init);
+                    }
+                }
+            }
+        }
+
+        expect(binaryExpressions).toHaveLength(2);
+
+        const [firstBinaryExpression, secondBinaryExpression] =
+            binaryExpressions;
+
+        expect(firstBinaryExpression).toBeDefined();
+        expect(secondBinaryExpression).toBeDefined();
+
+        const firstBinaryExpressionNode = firstBinaryExpression!;
+        const secondBinaryExpressionNode = secondBinaryExpression!;
+
+        (firstBinaryExpressionNode as { parent?: TSESTree.Program }).parent =
+            ast;
+        (secondBinaryExpressionNode as { parent?: TSESTree.Program }).parent =
+            ast;
+
+        const context = createRuleContextFromParsedSource({
+            ast,
+            sourceText,
+            variablesByName: new Map(),
+        });
+
+        const firstSuggestionFix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: firstBinaryExpressionNode.left,
+            context,
+            importedName: "isDefined",
+            imports: new Map(),
+            reportFixIntent: "suggestion",
+            sourceModuleName: "ts-extras",
+            targetNode: firstBinaryExpressionNode,
+        });
+
+        const secondSuggestionFix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: secondBinaryExpressionNode.left,
+            context,
+            importedName: "isDefined",
+            imports: new Map(),
+            reportFixIntent: "suggestion",
+            sourceModuleName: "ts-extras",
+            targetNode: secondBinaryExpressionNode,
+        });
+
+        expect(firstSuggestionFix).toBeTypeOf("function");
+        expect(secondSuggestionFix).toBeTypeOf("function");
+
+        const firstSuggestionTextEdits =
+            invokeFixToTextEdits(firstSuggestionFix);
+        const secondSuggestionTextEdits =
+            invokeFixToTextEdits(secondSuggestionFix);
+
+        expect(firstSuggestionTextEdits).toHaveLength(2);
+        expect(secondSuggestionTextEdits).toHaveLength(2);
+
+        const firstSuggestionAppliedCode = applyTextEdits({
+            sourceText,
+            textEdits: firstSuggestionTextEdits,
+        });
+        const secondSuggestionAppliedCode = applyTextEdits({
+            sourceText,
+            textEdits: secondSuggestionTextEdits,
+        });
+
+        expect(firstSuggestionAppliedCode).toContain(
+            "const first = isDefined(left);"
+        );
+        expect(secondSuggestionAppliedCode).toContain(
+            "const second = isDefined(right);"
+        );
+
+        expect(
+            countNamedImportSpecifiersInSource({
+                importedName: "isDefined",
+                sourceModuleName: "ts-extras",
+                sourceText: firstSuggestionAppliedCode,
+            })
+        ).toBe(1);
+        expect(
+            countNamedImportSpecifiersInSource({
+                importedName: "isDefined",
+                sourceModuleName: "ts-extras",
+                sourceText: secondSuggestionAppliedCode,
+            })
+        ).toBe(1);
+
+        expect(() => {
+            parser.parseForESLint(firstSuggestionAppliedCode, parserOptions);
+            parser.parseForESLint(secondSuggestionAppliedCode, parserOptions);
+        }).not.toThrowError();
+    });
+
     it("fast-check: emits parseable replacements across argument and negation variants", () => {
         expect.hasAssertions();
 
