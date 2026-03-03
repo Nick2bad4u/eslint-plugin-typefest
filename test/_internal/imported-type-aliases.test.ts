@@ -515,6 +515,36 @@ const parseSingleTypeReferenceFromTypeAliasCode = (
     );
 };
 
+const parseTypeReferencesFromTypeAliasCode = (
+    sourceText: string
+): Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    referenceNodes: readonly TSESTree.TSTypeReference[];
+}> => {
+    const parsed = parser.parseForESLint(sourceText, parserOptions);
+    const referenceNodes: TSESTree.TSTypeReference[] = [];
+
+    for (const statement of parsed.ast.body) {
+        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            const annotation = statement.typeAnnotation;
+            if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
+                referenceNodes.push(annotation);
+            }
+        }
+    }
+
+    if (referenceNodes.length === 0) {
+        throw new Error(
+            "Expected generated source text to include type aliases with TSTypeReference annotations"
+        );
+    }
+
+    return {
+        ast: parsed.ast,
+        referenceNodes,
+    };
+};
+
 const parseSingleTypeAliasAnnotationNodeFromCode = (
     sourceText: string
 ): Readonly<{
@@ -1355,6 +1385,75 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             ),
             fastCheckRunConfig.default
         );
+    });
+
+    it("dedupes same-pass missing replacement type import insertion across multiple reports", () => {
+        expect.hasAssertions();
+
+        const sourceText = [
+            '"use strict";',
+            "type First = Expand<string>;",
+            "type Second = Expand<number>;",
+        ].join("\n");
+
+        const { ast, referenceNodes } =
+            parseTypeReferencesFromTypeAliasCode(sourceText);
+
+        expect(referenceNodes).toHaveLength(2);
+
+        const [firstReferenceNode, secondReferenceNode] =
+            referenceNodes as readonly [
+                TSESTree.TSTypeReference,
+                TSESTree.TSTypeReference,
+            ];
+
+        (firstReferenceNode as { parent?: TSESTree.Program }).parent = ast;
+        (secondReferenceNode as { parent?: TSESTree.Program }).parent = ast;
+
+        const firstFix = createSafeTypeReferenceReplacementFixFn(
+            firstReferenceNode,
+            "Simplify",
+            new Set<string>()
+        );
+        const secondFix = createSafeTypeReferenceReplacementFixFn(
+            secondReferenceNode,
+            "Simplify",
+            new Set<string>()
+        );
+
+        expect(firstFix).toBeTypeOf("function");
+        expect(secondFix).toBeTypeOf("function");
+
+        const firstTextEdits = invokeFixToTextEdits(firstFix);
+        const secondTextEdits = invokeFixToTextEdits(secondFix);
+
+        expect(firstTextEdits).toHaveLength(2);
+        expect(secondTextEdits).toHaveLength(1);
+
+        assertTextEditsDoNotOverlap(firstTextEdits);
+        assertTextEditsDoNotOverlap(secondTextEdits);
+
+        const fixedCode = applyTextEdits({
+            sourceText,
+            textEdits: [...firstTextEdits, ...secondTextEdits],
+        });
+
+        expect(fixedCode).toContain(
+            'import type { Simplify } from "type-fest";'
+        );
+        expect(fixedCode).toContain("type First = Simplify<string>;");
+        expect(fixedCode).toContain("type Second = Simplify<number>;");
+        expect(
+            countNamedTypeImportSpecifiersInSource({
+                importedName: "Simplify",
+                sourceModuleName: "type-fest",
+                sourceText: fixedCode,
+            })
+        ).toBe(1);
+
+        expect(() => {
+            parser.parseForESLint(fixedCode, parserOptions);
+        }).not.toThrowError();
     });
 });
 

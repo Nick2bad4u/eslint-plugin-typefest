@@ -412,10 +412,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture readonly unknown array aliases",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableSecondPassOutputCode,
-            ],
+            output: fixtureFixableSecondPassOutputCode,
         },
         {
             code: inlineInvalidReadonlyArrayCode,

@@ -692,10 +692,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture type-fest Writable assertions",
-                output: [
-                    fixtureInvalidOutputWithMixedLineEndings,
-                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
-                ],
+                output: fixtureInvalidSecondPassOutputWithMixedLineEndings,
             },
             {
                 code: inlineInvalidTypeAssertionCode,

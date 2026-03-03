@@ -4,8 +4,9 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { getParentNode } from "./ast-node.js";
+import { getParentNode, getProgramNode } from "./ast-node.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
 /** Default module source used for type-fest replacement imports. */
 const TYPE_FEST_MODULE_NAME = "type-fest";
@@ -21,6 +22,101 @@ const READONLY_CONTAINER_TYPE_NAMES = new Set([
     "ReadonlyMap",
     "ReadonlySet",
 ]);
+
+/**
+ * Cache of claimed type-import insertion keys by Program node to prevent
+ * emitting duplicate wide import+replacement edits in a single lint pass.
+ */
+const claimedTypeImportInsertionKeysByProgram = new WeakMap<
+    TSESTree.Program,
+    Set<string>
+>();
+
+/**
+ * Build a stable dedupe key for type import insertion.
+ */
+const createTypeImportInsertionDedupeKey = (
+    replacementName: string,
+    sourceModuleName: string
+): string => `${sourceModuleName}\u0000${replacementName}`;
+
+/**
+ * Check whether a type import insertion has already been claimed for Program.
+ */
+const hasClaimedTypeImportInsertionForProgram = (
+    programNode: Readonly<TSESTree.Program>,
+    dedupeKey: string
+): boolean => {
+    const claimedKeys =
+        claimedTypeImportInsertionKeysByProgram.get(programNode);
+
+    return claimedKeys?.has(dedupeKey) ?? false;
+};
+
+/**
+ * Mark a type import insertion as claimed for Program.
+ */
+const claimTypeImportInsertionForProgram = (
+    programNode: Readonly<TSESTree.Program>,
+    dedupeKey: string
+): void => {
+    const claimedKeys =
+        claimedTypeImportInsertionKeysByProgram.get(programNode);
+    if (claimedKeys) {
+        claimedKeys.add(dedupeKey);
+        return;
+    }
+
+    claimedTypeImportInsertionKeysByProgram.set(
+        programNode,
+        new Set([dedupeKey])
+    );
+};
+
+/**
+ * Decide whether a fixer should include the type-import insertion edit.
+ *
+ * @remarks
+ * This decision is made when creating the fixer to keep behavior deterministic
+ * even when ESLint evaluates fix callbacks multiple times while resolving
+ * overlaps.
+ */
+const shouldAttachTypeImportInsertionFix = ({
+    node,
+    replacementName,
+    requiresImportInsertion,
+    sourceModuleName,
+}: Readonly<{
+    node: Readonly<TSESTree.Node>;
+    replacementName: string;
+    requiresImportInsertion: boolean;
+    sourceModuleName: string;
+}>): boolean => {
+    if (!requiresImportInsertion) {
+        return false;
+    }
+
+    if (isImportInsertionFixesDisabledForNode(node)) {
+        return true;
+    }
+
+    const programNode = getProgramNode(node);
+    if (!programNode) {
+        return true;
+    }
+
+    const dedupeKey = createTypeImportInsertionDedupeKey(
+        replacementName,
+        sourceModuleName
+    );
+    if (hasClaimedTypeImportInsertionForProgram(programNode, dedupeKey)) {
+        return false;
+    }
+
+    claimTypeImportInsertionForProgram(programNode, dedupeKey);
+
+    return true;
+};
 
 /**
  * Check whether an import declaration targets the expected source module.
@@ -334,11 +430,24 @@ const createTypeReplacementFix = ({
         return null;
     }
 
-    if (availableReplacementNames.has(replacementName)) {
+    const requiresImportInsertion =
+        !availableReplacementNames.has(replacementName);
+    if (!requiresImportInsertion) {
         return (fixer) => applyReplacement(fixer);
     }
 
+    const shouldIncludeImportInsertionFix = shouldAttachTypeImportInsertionFix({
+        node,
+        replacementName,
+        requiresImportInsertion,
+        sourceModuleName,
+    });
+
     return (fixer) => {
+        if (!shouldIncludeImportInsertionFix) {
+            return [applyReplacement(fixer)];
+        }
+
         const importFix = getInsertionFixForMissingNamedTypeImport({
             fixer,
             node,

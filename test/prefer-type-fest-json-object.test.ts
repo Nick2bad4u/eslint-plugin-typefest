@@ -477,10 +477,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonObject-like Record aliases",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableSecondPassOutputCode,
-            ],
+            output: fixtureFixableSecondPassOutputCode,
         },
         {
             code: inlineInvalidLiteralStringKeyCode,

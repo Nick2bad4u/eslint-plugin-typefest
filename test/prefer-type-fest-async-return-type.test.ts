@@ -392,10 +392,7 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture Awaited<ReturnType<...>> compositions",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableSecondPassOutputCode,
-            ],
+            output: fixtureFixableSecondPassOutputCode,
         },
         {
             code: inlineInvalidCode,

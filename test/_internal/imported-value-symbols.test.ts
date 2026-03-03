@@ -2579,6 +2579,108 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         expect(invokeFix(fix)).toStrictEqual(["isPresent(候補?.name)"]);
     });
 
+    it("deduplicates helper import insertion across multiple same-pass replacements", () => {
+        expect.hasAssertions();
+
+        const sourceText = [
+            '"use strict";',
+            "declare const left: unknown;",
+            "declare const right: unknown;",
+            "const first = left !== undefined;",
+            "const second = right !== undefined;",
+            "void first;",
+            "void second;",
+        ].join("\n");
+
+        const { ast } = parser.parseForESLint(sourceText, parserOptions);
+        const binaryExpressions: TSESTree.BinaryExpression[] = [];
+
+        for (const statement of ast.body) {
+            if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
+                for (const declaration of statement.declarations) {
+                    if (
+                        declaration.init?.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        binaryExpressions.push(declaration.init);
+                    }
+                }
+            }
+        }
+
+        expect(binaryExpressions).toHaveLength(2);
+
+        const [firstBinaryExpression, secondBinaryExpression] =
+            binaryExpressions;
+
+        expect(firstBinaryExpression).toBeDefined();
+        expect(secondBinaryExpression).toBeDefined();
+
+        const firstBinaryExpressionNode = firstBinaryExpression!;
+        const secondBinaryExpressionNode = secondBinaryExpression!;
+
+        (firstBinaryExpressionNode as { parent?: TSESTree.Program }).parent =
+            ast;
+        (secondBinaryExpressionNode as { parent?: TSESTree.Program }).parent =
+            ast;
+
+        const context = createRuleContextFromParsedSource({
+            ast,
+            sourceText,
+            variablesByName: new Map(),
+        });
+
+        const firstFix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: firstBinaryExpressionNode.left,
+            context,
+            importedName: "isDefined",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: firstBinaryExpressionNode,
+        });
+
+        const secondFix = createSafeValueArgumentFunctionCallFix({
+            argumentNode: secondBinaryExpressionNode.left,
+            context,
+            importedName: "isDefined",
+            imports: new Map(),
+            sourceModuleName: "ts-extras",
+            targetNode: secondBinaryExpressionNode,
+        });
+
+        expect(firstFix).toBeTypeOf("function");
+        expect(secondFix).toBeTypeOf("function");
+
+        const firstTextEdits = invokeFixToTextEdits(firstFix);
+        const secondTextEdits = invokeFixToTextEdits(secondFix);
+
+        expect(firstTextEdits).toHaveLength(2);
+        expect(secondTextEdits).toHaveLength(1);
+
+        const mergedTextEdits = [...firstTextEdits, ...secondTextEdits];
+        assertTextEditsDoNotOverlap(mergedTextEdits);
+
+        const fixedCode = applyTextEdits({
+            sourceText,
+            textEdits: mergedTextEdits,
+        });
+
+        expect(fixedCode).toContain("const first = isDefined(left);");
+        expect(fixedCode).toContain("const second = isDefined(right);");
+
+        expect(
+            countNamedImportSpecifiersInSource({
+                importedName: "isDefined",
+                sourceModuleName: "ts-extras",
+                sourceText: fixedCode,
+            })
+        ).toBe(1);
+
+        expect(() => {
+            parser.parseForESLint(fixedCode, parserOptions);
+        }).not.toThrowError();
+    });
+
     it("fast-check: emits parseable replacements across argument and negation variants", () => {
         expect.hasAssertions();
 

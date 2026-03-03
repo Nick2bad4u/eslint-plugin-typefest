@@ -115,6 +115,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     const isEqualTypeSuggestionFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
+                            dedupeImportInsertionFixes: false,
                             importedName: IS_EQUAL_TYPE_FUNCTION_NAME,
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) => {

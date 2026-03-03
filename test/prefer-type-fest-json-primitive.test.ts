@@ -415,10 +415,7 @@ ruleTester.run("prefer-type-fest-json-primitive", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture JsonPrimitive-like unions",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableSecondPassOutputCode,
-            ],
+            output: fixtureFixableSecondPassOutputCode,
         },
         {
             code: inlineInvalidWithoutFixCode,

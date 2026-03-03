@@ -11,7 +11,6 @@ import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
-    fixtureFixableOutputCode,
     fixtureFixableSecondPassOutputCode,
     inlineFixableBigIntCode,
     inlineFixableBigIntOutput,
@@ -614,10 +613,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture literal plus base type unions",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableSecondPassOutputCode,
-                ],
+                output: fixtureFixableSecondPassOutputCode,
             },
             {
                 code: inlineInvalidBigIntLiteralUnionCode,

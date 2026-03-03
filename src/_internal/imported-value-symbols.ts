@@ -5,7 +5,9 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { getProgramNode } from "./ast-node.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
 /**
  * Immutable mapping of imported symbol names to directly imported local
@@ -14,10 +16,103 @@ import { createImportInsertionFix } from "./import-insertion.js";
 type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
 
 /**
+ * Cache of import-insertion claims keyed by Program node to prevent emitting
+ * multiple wide import+replacement fix ranges for the same helper in a single
+ * lint pass.
+ */
+const claimedImportInsertionKeysByProgram = new WeakMap<
+    TSESTree.Program,
+    Set<string>
+>();
+
+/**
+ * Build a stable dedupe key for a helper import from a specific source.
+ */
+const createImportInsertionDedupeKey = (
+    importedName: string,
+    sourceModuleName: string
+): string => `${sourceModuleName}\u0000${importedName}`;
+
+/**
+ * Checks whether an import-insertion fix has already been claimed for the
+ * current Program and helper key.
+ */
+const hasClaimedImportInsertionForProgram = (
+    programNode: Readonly<TSESTree.Program>,
+    dedupeKey: string
+): boolean => {
+    const claimedKeys = claimedImportInsertionKeysByProgram.get(programNode);
+
+    return claimedKeys?.has(dedupeKey) ?? false;
+};
+
+/**
+ * Marks a helper import-insertion fix as claimed for the current Program.
+ */
+const claimImportInsertionForProgram = (
+    programNode: Readonly<TSESTree.Program>,
+    dedupeKey: string
+): void => {
+    const claimedKeys = claimedImportInsertionKeysByProgram.get(programNode);
+    if (claimedKeys) {
+        claimedKeys.add(dedupeKey);
+        return;
+    }
+
+    claimedImportInsertionKeysByProgram.set(programNode, new Set([dedupeKey]));
+};
+
+/**
+ * Decide whether a specific report fixer should carry the import-insertion edit
+ * for a helper import that is currently missing.
+ *
+ * @remarks
+ * This decision is made at fixer-creation time (during AST traversal), not at
+ * fix-execution time, to keep behavior deterministic even when ESLint invokes
+ * fix callbacks multiple times while resolving conflicts.
+ */
+const shouldAttachImportInsertionFix = ({
+    importInsertionDedupeKey,
+    referenceNode,
+    requiresImportInsertion,
+}: Readonly<{
+    importInsertionDedupeKey: string;
+    referenceNode: Readonly<TSESTree.Node>;
+    requiresImportInsertion: boolean;
+}>): boolean => {
+    if (!requiresImportInsertion) {
+        return false;
+    }
+
+    if (isImportInsertionFixesDisabledForNode(referenceNode)) {
+        return true;
+    }
+
+    const programNode = getProgramNode(referenceNode);
+    if (!programNode) {
+        return true;
+    }
+
+    if (
+        hasClaimedImportInsertionForProgram(
+            programNode,
+            importInsertionDedupeKey
+        )
+    ) {
+        return false;
+    }
+
+    claimImportInsertionForProgram(programNode, importInsertionDedupeKey);
+
+    return true;
+};
+
+/**
  * Parameters for creating a safe member-expression to function-call fixer.
  */
 type MemberToFunctionCallFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     memberNode: TSESTree.MemberExpression;
@@ -30,6 +125,7 @@ type MemberToFunctionCallFixParams = Readonly<{
 type MethodToFunctionCallFixParams = Readonly<{
     callNode: TSESTree.CallExpression;
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     sourceModuleName: string;
@@ -52,6 +148,7 @@ type SafeImportedValueNameParams = Readonly<{
  */
 type SafeValueNodeTextReplacementFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     replacementTextFactory: (replacementName: string) => string;
@@ -64,6 +161,7 @@ type SafeValueNodeTextReplacementFixParams = Readonly<{
  */
 type SafeValueReplacementFixParams = Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     sourceModuleName: string;
@@ -76,6 +174,7 @@ type SafeValueReplacementFixParams = Readonly<{
 type ValueArgumentFunctionCallFixParams = Readonly<{
     argumentNode: TSESTree.Node;
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    dedupeImportInsertionFixes?: boolean;
     importedName: string;
     imports: ImportedValueAliasMap;
     negated?: boolean;
@@ -366,9 +465,15 @@ const getSafeReplacementNameAndImportFixFactory = ({
     createImportFix: (
         fixer: Readonly<TSESLint.RuleFixer>
     ) => null | TSESLint.RuleFix;
+    importInsertionDedupeKey: string;
     replacementName: string;
     requiresImportInsertion: boolean;
 } => {
+    const importInsertionDedupeKey = createImportInsertionDedupeKey(
+        importedName,
+        sourceModuleName
+    );
+
     const existingReplacementName = getSafeLocalNameForImportedValue({
         context,
         importedName,
@@ -383,6 +488,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
     ) {
         return {
             createImportFix: () => null,
+            importInsertionDedupeKey,
             replacementName: existingReplacementName,
             requiresImportInsertion: false,
         };
@@ -407,6 +513,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
                 referenceNode,
                 sourceModuleName,
             }),
+        importInsertionDedupeKey,
         replacementName: importedName,
         requiresImportInsertion: true,
     };
@@ -426,6 +533,7 @@ const createImportAwareFixes = ({
     createReplacementFix,
     fixer,
     replacementNameAndImportFixFactory,
+    shouldIncludeImportInsertionFix,
 }: Readonly<{
     createReplacementFix: (
         fixer: Readonly<TSESLint.RuleFixer>
@@ -437,18 +545,24 @@ const createImportAwareFixes = ({
         ) => null | TSESLint.RuleFix;
         requiresImportInsertion: boolean;
     }>;
+    shouldIncludeImportInsertionFix: boolean;
 }>): null | readonly TSESLint.RuleFix[] => {
+    const replacementFix = createReplacementFix(fixer);
+
+    if (!replacementNameAndImportFixFactory.requiresImportInsertion) {
+        return [replacementFix];
+    }
+
+    if (!shouldIncludeImportInsertionFix) {
+        return [replacementFix];
+    }
+
     const importFix = replacementNameAndImportFixFactory.createImportFix(fixer);
-    if (
-        importFix === null &&
-        replacementNameAndImportFixFactory.requiresImportInsertion
-    ) {
+    if (importFix === null) {
         return null;
     }
 
-    const replacementFix = createReplacementFix(fixer);
-
-    return importFix ? [importFix, replacementFix] : [replacementFix];
+    return [importFix, replacementFix];
 };
 
 /**
@@ -493,6 +607,7 @@ const getFunctionCallArgumentText = ({
  */
 export const createSafeValueReferenceReplacementFix = ({
     context,
+    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     sourceModuleName,
@@ -511,6 +626,16 @@ export const createSafeValueReferenceReplacementFix = ({
         return null;
     }
 
+    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
+        ? shouldAttachImportInsertionFix({
+              importInsertionDedupeKey:
+                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
+              referenceNode: targetNode,
+              requiresImportInsertion:
+                  replacementNameAndImportFixFactory.requiresImportInsertion,
+          })
+        : replacementNameAndImportFixFactory.requiresImportInsertion;
+
     return (fixer) =>
         createImportAwareFixes({
             createReplacementFix: (replacementFixer) =>
@@ -520,6 +645,7 @@ export const createSafeValueReferenceReplacementFix = ({
                 ),
             fixer,
             replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix,
         });
 };
 
@@ -534,6 +660,7 @@ export const createSafeValueReferenceReplacementFix = ({
  */
 export const createSafeValueNodeTextReplacementFix = ({
     context,
+    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     replacementTextFactory,
@@ -553,6 +680,16 @@ export const createSafeValueNodeTextReplacementFix = ({
         return null;
     }
 
+    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
+        ? shouldAttachImportInsertionFix({
+              importInsertionDedupeKey:
+                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
+              referenceNode: targetNode,
+              requiresImportInsertion:
+                  replacementNameAndImportFixFactory.requiresImportInsertion,
+          })
+        : replacementNameAndImportFixFactory.requiresImportInsertion;
+
     return (fixer) => {
         const replacementText = replacementTextFactory(
             replacementNameAndImportFixFactory.replacementName
@@ -563,6 +700,7 @@ export const createSafeValueNodeTextReplacementFix = ({
                 replacementFixer.replaceText(targetNode, replacementText),
             fixer,
             replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix,
         });
     };
 };
@@ -578,6 +716,7 @@ export const createSafeValueNodeTextReplacementFix = ({
 export const createMethodToFunctionCallFix = ({
     callNode,
     context,
+    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     sourceModuleName,
@@ -602,6 +741,16 @@ export const createMethodToFunctionCallFix = ({
     if (!replacementNameAndImportFixFactory) {
         return null;
     }
+
+    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
+        ? shouldAttachImportInsertionFix({
+              importInsertionDedupeKey:
+                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
+              referenceNode: callNode,
+              requiresImportInsertion:
+                  replacementNameAndImportFixFactory.requiresImportInsertion,
+          })
+        : replacementNameAndImportFixFactory.requiresImportInsertion;
 
     const { sourceCode } = context;
     const receiverText = getFunctionCallArgumentText({
@@ -640,6 +789,7 @@ export const createMethodToFunctionCallFix = ({
                 replacementFixer.replaceText(callNode, replacementText),
             fixer,
             replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix,
         });
 };
 
@@ -652,6 +802,7 @@ export const createMethodToFunctionCallFix = ({
  */
 export const createMemberToFunctionCallFix = ({
     context,
+    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     memberNode,
@@ -674,6 +825,16 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
+    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
+        ? shouldAttachImportInsertionFix({
+              importInsertionDedupeKey:
+                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
+              referenceNode: memberNode,
+              requiresImportInsertion:
+                  replacementNameAndImportFixFactory.requiresImportInsertion,
+          })
+        : replacementNameAndImportFixFactory.requiresImportInsertion;
+
     const receiverText = getFunctionCallArgumentText({
         argumentNode: memberNode.object,
         sourceCode: context.sourceCode,
@@ -690,6 +851,7 @@ export const createMemberToFunctionCallFix = ({
                 replacementFixer.replaceText(memberNode, replacementText),
             fixer,
             replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix,
         });
 };
 
@@ -704,6 +866,7 @@ export const createMemberToFunctionCallFix = ({
 export const createSafeValueArgumentFunctionCallFix = ({
     argumentNode,
     context,
+    dedupeImportInsertionFixes = true,
     importedName,
     imports,
     negated,
@@ -723,6 +886,16 @@ export const createSafeValueArgumentFunctionCallFix = ({
         return null;
     }
 
+    const shouldIncludeImportInsertionFix = dedupeImportInsertionFixes
+        ? shouldAttachImportInsertionFix({
+              importInsertionDedupeKey:
+                  replacementNameAndImportFixFactory.importInsertionDedupeKey,
+              referenceNode: targetNode,
+              requiresImportInsertion:
+                  replacementNameAndImportFixFactory.requiresImportInsertion,
+          })
+        : replacementNameAndImportFixFactory.requiresImportInsertion;
+
     const argumentText = getFunctionCallArgumentText({
         argumentNode,
         sourceCode: context.sourceCode,
@@ -740,5 +913,6 @@ export const createSafeValueArgumentFunctionCallFix = ({
                 replacementFixer.replaceText(targetNode, replacementText),
             fixer,
             replacementNameAndImportFixFactory,
+            shouldIncludeImportInsertionFix,
         });
 };

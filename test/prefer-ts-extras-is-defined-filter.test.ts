@@ -604,10 +604,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture filter guards for undefined",
-            output: [
-                fixtureInvalidOutputWithMixedLineEndings,
-                fixtureInvalidSecondPassOutputWithMixedLineEndings,
-            ],
+            output: fixtureInvalidSecondPassOutputWithMixedLineEndings,
         },
         {
             code: inlineInvalidCode,

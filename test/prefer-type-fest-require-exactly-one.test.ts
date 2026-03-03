@@ -227,10 +227,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture OneOf and RequireOnlyOne alias usage",
-                output: [
-                    fixtureFixableFirstPassOutputCode,
-                    fixtureFixableSecondPassOutputCode,
-                ],
+                output: fixtureFixableSecondPassOutputCode,
             },
             {
                 code: inlineFixableInvalidCode,

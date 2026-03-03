@@ -360,10 +360,7 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Object.hasOwn checks",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableThirdPassOutputCode,
-                ],
+                output: fixtureFixableThirdPassOutputCode,
             },
             {
                 code: inlineFixableCode,

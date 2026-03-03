@@ -16,7 +16,6 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
     filterArrowCallbackValidCode,
     filterFunctionCallbackValidCode,
-    fixtureInvalidOutput,
     fixtureInvalidSecondPassOutput,
     inlineFixableDefinedCode,
     inlineFixableDefinedOutput,
@@ -580,7 +579,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture strict defined and undefined comparisons",
-            output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
+            output: fixtureInvalidSecondPassOutput,
         },
         {
             code: inlineFixableDefinedCode,

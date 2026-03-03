@@ -331,10 +331,7 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture indexed-access value unions",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableThirdPassOutputCode,
-            ],
+            output: fixtureFixableThirdPassOutputCode,
         },
         {
             code: inlineInvalidCode,

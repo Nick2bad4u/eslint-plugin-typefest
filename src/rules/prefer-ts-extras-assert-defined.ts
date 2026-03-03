@@ -207,9 +207,17 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const throwStatement = getThrowStatementFromConsequent(
+                        node.consequent
+                    );
+                    const canAutofix =
+                        throwStatement !== null &&
+                        isCanonicalAssertDefinedThrow(context, throwStatement);
+
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
+                            dedupeImportInsertionFixes: canAutofix,
                             importedName: "assertDefined",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
@@ -226,13 +234,6 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
 
                         return;
                     }
-
-                    const throwStatement = getThrowStatementFromConsequent(
-                        node.consequent
-                    );
-                    const canAutofix =
-                        throwStatement !== null &&
-                        isCanonicalAssertDefinedThrow(context, throwStatement);
 
                     if (canAutofix) {
                         context.report({

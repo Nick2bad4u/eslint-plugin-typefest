@@ -476,10 +476,7 @@ ruleTester.run("prefer-type-fest-non-empty-tuple", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture readonly non-empty tuple aliases",
-            output: [
-                fixtureFixableOutputCode,
-                fixtureFixableSecondPassOutputCode,
-            ],
+            output: fixtureFixableSecondPassOutputCode,
         },
         {
             code: inlineInvalidTupleCode,

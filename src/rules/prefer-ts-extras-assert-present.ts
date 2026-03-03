@@ -329,9 +329,21 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const throwStatement = getThrowStatementFromConsequent(
+                        node.consequent
+                    );
+                    const canAutofix =
+                        throwStatement !== null &&
+                        isCanonicalAssertPresentThrow({
+                            context,
+                            guardExpression,
+                            throwStatement,
+                        });
+
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
+                            dedupeImportInsertionFixes: canAutofix,
                             importedName: "assertPresent",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
@@ -348,17 +360,6 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
 
                         return;
                     }
-
-                    const throwStatement = getThrowStatementFromConsequent(
-                        node.consequent
-                    );
-                    const canAutofix =
-                        throwStatement !== null &&
-                        isCanonicalAssertPresentThrow({
-                            context,
-                            guardExpression,
-                            throwStatement,
-                        });
 
                     if (canAutofix) {
                         context.report({
