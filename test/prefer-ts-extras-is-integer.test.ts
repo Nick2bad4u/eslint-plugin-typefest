@@ -182,12 +182,8 @@ describe("prefer-ts-extras-is-integer source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.callee.property.type !== "Identifier" ||'
-        );
-        expect(ruleSource).toContain(
-            'node.callee.property.name !== "isInteger"'
-        );
+        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain('memberName: "isInteger"');
         expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });

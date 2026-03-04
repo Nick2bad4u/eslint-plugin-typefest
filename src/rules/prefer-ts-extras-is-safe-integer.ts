@@ -2,6 +2,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-safe-integer`.
@@ -27,28 +28,19 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
-                        return;
-                    }
+                    const numberIsSafeIntegerCall = getIdentifierMemberCall({
+                        memberName: "isSafeInteger",
+                        node,
+                        objectName: "Number",
+                    });
 
                     if (
-                        node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Number" ||
+                        numberIsSafeIntegerCall === null ||
                         !isGlobalIdentifierNamed(
                             context,
-                            node.callee.object,
+                            numberIsSafeIntegerCall.callee.object,
                             "Number"
                         )
-                    ) {
-                        return;
-                    }
-
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "isSafeInteger"
                     ) {
                         return;
                     }
@@ -59,7 +51,7 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                             importedName: "isSafeInteger",
                             imports: tsExtrasImports,
                             sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
+                            targetNode: numberIsSafeIntegerCall.callee,
                         }),
                         messageId: "preferTsExtrasIsSafeInteger",
                         node,

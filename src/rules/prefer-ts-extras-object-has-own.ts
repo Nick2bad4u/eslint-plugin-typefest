@@ -2,6 +2,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
@@ -27,20 +28,19 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const { callee } = node;
+                    const objectHasOwnCall = getIdentifierMemberCall({
+                        memberName: "hasOwn",
+                        node,
+                        objectName: "Object",
+                    });
 
                     if (
-                        callee.type !== "MemberExpression" ||
-                        callee.computed ||
-                        callee.object.type !== "Identifier" ||
-                        callee.object.name !== "Object" ||
+                        objectHasOwnCall === null ||
                         !isGlobalIdentifierNamed(
                             context,
-                            callee.object,
+                            objectHasOwnCall.callee.object,
                             "Object"
-                        ) ||
-                        callee.property.type !== "Identifier" ||
-                        callee.property.name !== "hasOwn"
+                        )
                     ) {
                         return;
                     }
@@ -51,7 +51,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                             importedName: "objectHasOwn",
                             imports: tsExtrasImports,
                             sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
+                            targetNode: objectHasOwnCall.callee,
                         }),
                         messageId: "preferTsExtrasObjectHasOwn",
                         node,

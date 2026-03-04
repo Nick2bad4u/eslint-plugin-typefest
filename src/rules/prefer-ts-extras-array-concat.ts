@@ -7,6 +7,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -34,21 +35,16 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
+                    const arrayConcatCall = getIdentifierPropertyMemberCall({
+                        memberName: "concat",
+                        node,
+                    });
+
+                    if (arrayConcatCall === null) {
                         return;
                     }
 
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "concat"
-                    ) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(node.callee.object)) {
+                    if (!isArrayLikeExpression(arrayConcatCall.callee.object)) {
                         return;
                     }
 

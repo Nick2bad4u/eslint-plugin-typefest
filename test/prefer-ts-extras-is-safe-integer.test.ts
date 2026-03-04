@@ -185,12 +185,8 @@ describe("prefer-ts-extras-is-safe-integer source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.callee.property.type !== "Identifier" ||'
-        );
-        expect(ruleSource).toContain(
-            'node.callee.property.name !== "isSafeInteger"'
-        );
+        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain('memberName: "isSafeInteger"');
         expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });

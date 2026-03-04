@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
@@ -30,16 +31,20 @@ const isReflectHasCall = ({
     context: TSESLint.RuleContext<string, Readonly<UnknownArray>>;
     node: TSESTree.CallExpression;
 }>): boolean => {
-    if (node.callee.type !== "MemberExpression" || node.callee.computed) {
+    const reflectHasCall = getIdentifierMemberCall({
+        memberName: "has",
+        node,
+        objectName: "Reflect",
+    });
+
+    if (reflectHasCall === null) {
         return false;
     }
 
-    return (
-        node.callee.object.type === "Identifier" &&
-        node.callee.object.name === "Reflect" &&
-        isGlobalIdentifierNamed(context, node.callee.object, "Reflect") &&
-        node.callee.property.type === "Identifier" &&
-        node.callee.property.name === "has"
+    return isGlobalIdentifierNamed(
+        context,
+        reflectHasCall.callee.object,
+        "Reflect"
     );
 };
 

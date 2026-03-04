@@ -4,6 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isFilterCallExpression } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
@@ -248,21 +249,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const { callee } = node;
-
-                    if (callee.type !== "MemberExpression") {
-                        return;
-                    }
-
-                    if (callee.computed) {
-                        return;
-                    }
-
-                    if (callee.property.type !== "Identifier") {
-                        return;
-                    }
-
-                    if (callee.property.name !== "filter") {
+                    if (!isFilterCallExpression(node)) {
                         return;
                     }
 

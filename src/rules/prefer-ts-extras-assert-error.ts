@@ -9,34 +9,11 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { isThrowOnlyConsequent } from "../_internal/throw-consequent.js";
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
 } from "../_internal/typed-rule.js";
-
-/**
- * Determines whether an `if` consequent only throws.
- *
- * @param node - Consequent statement from an `IfStatement`.
- *
- * @returns `true` when the consequent is either a `throw` statement directly or
- *   a block containing exactly one `throw` statement.
- */
-const isThrowOnlyConsequent = (node: Readonly<TSESTree.Statement>): boolean => {
-    if (node.type === "ThrowStatement") {
-        return true;
-    }
-
-    if (node.type !== "BlockStatement") {
-        return false;
-    }
-
-    if (node.body.length !== 1) {
-        return false;
-    }
-
-    return node.body[0]?.type === "ThrowStatement";
-};
 
 /**
  * Checks whether an expression is `<value> instanceof Error`.

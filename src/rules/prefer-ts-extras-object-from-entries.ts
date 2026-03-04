@@ -2,6 +2,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-from-entries`.
@@ -27,28 +28,19 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
-                        return;
-                    }
+                    const objectFromEntriesCall = getIdentifierMemberCall({
+                        memberName: "fromEntries",
+                        node,
+                        objectName: "Object",
+                    });
 
                     if (
-                        node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Object" ||
+                        objectFromEntriesCall === null ||
                         !isGlobalIdentifierNamed(
                             context,
-                            node.callee.object,
+                            objectFromEntriesCall.callee.object,
                             "Object"
                         )
-                    ) {
-                        return;
-                    }
-
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "fromEntries"
                     ) {
                         return;
                     }
@@ -59,7 +51,7 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
                             importedName: "objectFromEntries",
                             imports: tsExtrasImports,
                             sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
+                            targetNode: objectFromEntriesCall.callee,
                         }),
                         messageId: "preferTsExtrasObjectFromEntries",
                         node,

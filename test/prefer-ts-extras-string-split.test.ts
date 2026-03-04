@@ -288,9 +288,8 @@ describe("prefer-ts-extras-string-split source assertions", () => {
         expect(ruleSource).toContain(
             'candidateType.getSymbol()?.getName() === "String"'
         );
-        expect(ruleSource).toContain(
-            'callCallee.property.type !== "Identifier" ||'
-        );
+        expect(ruleSource).toContain("getIdentifierPropertyMemberCall(");
+        expect(ruleSource).toContain('memberName: "split"');
         expect(ruleSource).toContain("safeTypeOperation({");
         expect(ruleSource).toContain(
             'reason: "string-split-type-analysis-failed"'

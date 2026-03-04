@@ -231,17 +231,10 @@ describe("prefer-ts-extras-object-has-in source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.callee.object.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain(
-            'node.callee.object.name === "Reflect" &&'
-        );
+        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain('memberName: "has"');
+        expect(ruleSource).toContain('objectName: "Reflect"');
         expect(ruleSource).toContain("isGlobalIdentifierNamed(");
-        expect(ruleSource).toContain(
-            'node.callee.property.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain('node.callee.property.name === "has"');
     });
 });
 

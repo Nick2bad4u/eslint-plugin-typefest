@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
@@ -124,21 +125,16 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const callCallee = node.callee;
+                    const setHasCall = getIdentifierPropertyMemberCall({
+                        memberName: "has",
+                        node,
+                    });
 
-                    if (
-                        callCallee.type !== "MemberExpression" ||
-                        callCallee.computed
-                    ) {
+                    if (setHasCall === null) {
                         return;
                     }
 
-                    if (
-                        callCallee.property.type !== "Identifier" ||
-                        callCallee.property.name !== "has"
-                    ) {
-                        return;
-                    }
+                    const callCallee = setHasCall.callee;
 
                     const result = safeTypeOperation({
                         operation: () => {

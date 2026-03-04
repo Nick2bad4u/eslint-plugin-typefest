@@ -21,7 +21,7 @@ const isFunctionCallbackNode = (
 /**
  * Narrows call expressions to direct `.filter(...)` calls.
  */
-const isFilterCall = (
+export const isFilterCallExpression = (
     expression: Readonly<TSESTree.CallExpression>
 ): expression is TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
@@ -66,7 +66,7 @@ export const isWithinFilterCallback = (
             if (
                 callbackParent?.type === "CallExpression" &&
                 firstArgument === currentNode &&
-                isFilterCall(callbackParent)
+                isFilterCallExpression(callbackParent)
             ) {
                 return true;
             }

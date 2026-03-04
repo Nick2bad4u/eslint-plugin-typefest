@@ -99,8 +99,9 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
         expect(ruleSource).toContain(
             'node.type === "Identifier" && node.name === "undefined"'
         );
-        expect(ruleSource).toContain("node.body.length === 1 &&");
-        expect(ruleSource).toContain('node.body[0]?.type === "ThrowStatement"');
+        expect(ruleSource).toContain('from "../_internal/throw-consequent.js"');
+        expect(ruleSource).toContain("isThrowOnlyConsequent(");
+        expect(ruleSource).toContain("getThrowStatementFromConsequent(");
         expect(ruleSource).toContain(
             "throwStatement.argument.arguments.length !== 1"
         );

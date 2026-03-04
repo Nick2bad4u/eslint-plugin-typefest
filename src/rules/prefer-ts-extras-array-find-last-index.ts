@@ -7,6 +7,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -34,21 +35,21 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
+                    const arrayFindLastIndexCall =
+                        getIdentifierPropertyMemberCall({
+                            memberName: "findLastIndex",
+                            node,
+                        });
+
+                    if (arrayFindLastIndexCall === null) {
                         return;
                     }
 
                     if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "findLastIndex"
+                        !isArrayLikeExpression(
+                            arrayFindLastIndexCall.callee.object
+                        )
                     ) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(node.callee.object)) {
                         return;
                     }
 

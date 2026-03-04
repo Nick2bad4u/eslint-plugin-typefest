@@ -178,12 +178,8 @@ describe("prefer-ts-extras-is-finite source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.callee.property.type !== "Identifier" ||'
-        );
-        expect(ruleSource).toContain(
-            'node.callee.property.name !== "isFinite"'
-        );
+        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain('memberName: "isFinite"');
         expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });

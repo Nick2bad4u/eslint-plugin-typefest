@@ -10,6 +10,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
@@ -98,21 +99,16 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const callCallee = node.callee;
+                    const splitCall = getIdentifierPropertyMemberCall({
+                        memberName: "split",
+                        node,
+                    });
 
-                    if (
-                        callCallee.type !== "MemberExpression" ||
-                        callCallee.computed
-                    ) {
+                    if (splitCall === null) {
                         return;
                     }
 
-                    if (
-                        callCallee.property.type !== "Identifier" ||
-                        callCallee.property.name !== "split"
-                    ) {
-                        return;
-                    }
+                    const callCallee = splitCall.callee;
 
                     const result = safeTypeOperation({
                         operation: () => {

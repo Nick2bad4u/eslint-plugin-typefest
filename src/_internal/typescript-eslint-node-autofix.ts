@@ -4,7 +4,7 @@
  * `@typescript-eslint` AST-node expressions.
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { JsonObject, UnknownArray } from "type-fest";
+import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
 import { isDefined } from "ts-extras";
@@ -13,15 +13,10 @@ import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypedRuleServices } from "./typed-rule.js";
 
-const tsEslintNodeTypeTextPattern = /\bTSESTree\.\w*Node\b/v;
+const tsEslintAstTypeTextPattern = /\bTSESTree\.\w+\b/v;
 
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean =>
     fileName.replaceAll("\\", "/").includes("/@typescript-eslint/");
-
-const isNodeLikeSymbolName = (symbolName: string): boolean =>
-    symbolName === "Node" || symbolName.endsWith("Node");
-
-type UnknownRecord = JsonObject;
 
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
     typeof value === "object" && value !== null;
@@ -140,6 +135,23 @@ const containsTypeScriptEslintTypeReference = (
     return false;
 };
 
+const containsTypeScriptEslintTypeReferenceText = (
+    text: string,
+    namespaceNames: ReadonlySet<string>
+): boolean => {
+    if (text.includes("TSESTree.")) {
+        return true;
+    }
+
+    for (const namespaceName of namespaceNames) {
+        if (text.includes(`${namespaceName}.`)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 const isTypeScriptEslintNodeLikeExpressionByDefinition = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
@@ -200,6 +212,17 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
                 if (
                     containsTypeScriptEslintTypeReference(
                         definitionNode,
+                        namespaceNames
+                    )
+                ) {
+                    return true;
+                }
+
+                const definitionNodeText =
+                    context.sourceCode.getText(definitionNode);
+                if (
+                    containsTypeScriptEslintTypeReferenceText(
+                        definitionNodeText,
                         namespaceNames
                     )
                 ) {
@@ -275,9 +298,9 @@ const collectNestedTypeArguments = (
  * @param checker - Type checker for symbol and declaration inspection.
  * @param type - Candidate type to inspect.
  *
- * @returns `true` when the candidate resolves to a `TSESTree` node type.
+ * @returns `true` when the candidate resolves to a `TSESTree` AST type.
  */
-export const isTypeScriptEslintNodeType = (
+export const isTypeScriptEslintAstType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): boolean => {
@@ -294,14 +317,13 @@ export const isTypeScriptEslintNodeType = (
         visitedTypes.add(currentType);
 
         const renderedTypeText = checker.typeToString(currentType);
-        if (tsEslintNodeTypeTextPattern.test(renderedTypeText)) {
+        if (tsEslintAstTypeTextPattern.test(renderedTypeText)) {
             return true;
         }
 
         const symbol = currentType.aliasSymbol ?? currentType.getSymbol();
 
         if (isDefined(symbol)) {
-            const symbolName = checker.symbolToString(symbol);
             const declarations = symbol.getDeclarations() ?? [];
 
             const hasTypeScriptEslintDeclaration = declarations.some(
@@ -311,10 +333,7 @@ export const isTypeScriptEslintNodeType = (
                     )
             );
 
-            if (
-                hasTypeScriptEslintDeclaration &&
-                isNodeLikeSymbolName(symbolName)
-            ) {
+            if (hasTypeScriptEslintDeclaration) {
                 return true;
             }
         }
@@ -390,7 +409,7 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
 
                 const expressionType = checker.getTypeAtLocation(tsNode);
 
-                return isTypeScriptEslintNodeType(checker, expressionType);
+                return isTypeScriptEslintAstType(checker, expressionType);
             },
             reason: "ts-eslint-node-autofix-expression-check-failed",
         });
@@ -408,14 +427,3 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
         );
     };
 };
-
-/**
- * Backward-compatible alias kept temporarily while callsites migrate.
- */
-export const createTypeScriptEslintNodeAutofixSuppressionChecker =
-    createTypeScriptEslintNodeExpressionSkipChecker as <
-        MessageIds extends string,
-        Options extends Readonly<UnknownArray>,
-    >(
-        context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
-    ) => (expression: Readonly<TSESTree.Expression>) => boolean;

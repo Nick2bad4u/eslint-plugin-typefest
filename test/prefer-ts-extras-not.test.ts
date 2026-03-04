@@ -260,19 +260,15 @@ describe("prefer-ts-extras-not source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('const FILTER_METHOD_NAME = "filter";');
-        expect(ruleSource).toContain(
-            'node.callee.property.type === "Identifier" &&'
-        );
+        expect(ruleSource).toContain('from "../_internal/filter-callback.js"');
+        expect(ruleSource).toContain("isFilterCallExpression(");
         expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
         expect(ruleSource).toMatch(
             /predicateCall\.optional \|\|\s+predicateCall\.callee\.type !== "Identifier"/v
         );
         expect(ruleSource).toContain(".trim();");
         expect(ruleSource).toContain("if (predicateText.length === 0) {");
-        expect(ruleSource).toContain(
-            "if (!isFilterCall(node) || node.arguments.length === 0) {"
-        );
+        expect(ruleSource).toContain("!isFilterCallExpression(node) ||");
         expect(ruleSource).toMatch(
             /\(firstArgument\.type !== "ArrowFunctionExpression" &&\s+firstArgument\.type !== "FunctionExpression"\)/v
         );

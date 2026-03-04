@@ -2,6 +2,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-keys`.
@@ -27,28 +28,19 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
-                        return;
-                    }
+                    const objectKeysCall = getIdentifierMemberCall({
+                        memberName: "keys",
+                        node,
+                        objectName: "Object",
+                    });
 
                     if (
-                        node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Object" ||
+                        objectKeysCall === null ||
                         !isGlobalIdentifierNamed(
                             context,
-                            node.callee.object,
+                            objectKeysCall.callee.object,
                             "Object"
                         )
-                    ) {
-                        return;
-                    }
-
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "keys"
                     ) {
                         return;
                     }
@@ -59,7 +51,7 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                             importedName: "objectKeys",
                             imports: tsExtrasImports,
                             sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
+                            targetNode: objectKeysCall.callee,
                         }),
                         messageId: "preferTsExtrasObjectKeys",
                         node,

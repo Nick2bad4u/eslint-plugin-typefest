@@ -67,8 +67,9 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
         expect(ruleSource).toContain(
             'node.type === "Literal" && node.value === null;'
         );
-        expect(ruleSource).toContain("node.body.length === 1 &&");
-        expect(ruleSource).toContain('if (node.type === "ThrowStatement") {');
+        expect(ruleSource).toContain('from "../_internal/throw-consequent.js"');
+        expect(ruleSource).toContain("isThrowOnlyConsequent(");
+        expect(ruleSource).toContain("getThrowStatementFromConsequent(");
         expect(ruleSource).toContain(
             'throwStatement.argument.callee.name !== "TypeError" ||'
         );

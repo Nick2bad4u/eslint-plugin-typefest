@@ -4,7 +4,10 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
-import type { ImportFixIntent, ImportInsertionDecision  } from "./import-fix-coordinator.js";
+import type {
+    ImportFixIntent,
+    ImportInsertionDecision,
+} from "./import-fix-coordinator.js";
 
 /**
  * Controls whether an autofix that must insert an import should also emit its

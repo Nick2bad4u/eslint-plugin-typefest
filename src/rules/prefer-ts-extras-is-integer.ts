@@ -2,6 +2,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierMemberCall } from "../_internal/member-call.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-integer`.
@@ -27,28 +28,19 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
-                        return;
-                    }
+                    const numberIsIntegerCall = getIdentifierMemberCall({
+                        memberName: "isInteger",
+                        node,
+                        objectName: "Number",
+                    });
 
                     if (
-                        node.callee.object.type !== "Identifier" ||
-                        node.callee.object.name !== "Number" ||
+                        numberIsIntegerCall === null ||
                         !isGlobalIdentifierNamed(
                             context,
-                            node.callee.object,
+                            numberIsIntegerCall.callee.object,
                             "Number"
                         )
-                    ) {
-                        return;
-                    }
-
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "isInteger"
                     ) {
                         return;
                     }
@@ -59,7 +51,7 @@ const preferTsExtrasIsIntegerRule: ReturnType<typeof createTypedRule> =
                             importedName: "isInteger",
                             imports: tsExtrasImports,
                             sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
+                            targetNode: numberIsIntegerCall.callee,
                         }),
                         messageId: "preferTsExtrasIsInteger",
                         node,

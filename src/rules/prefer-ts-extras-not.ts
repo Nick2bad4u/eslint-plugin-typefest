@@ -4,36 +4,12 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { isFilterCallExpression } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-/** Array-like method targeted by this rule's callback analysis. */
-const FILTER_METHOD_NAME = "filter";
-
-/**
- * Narrows call expressions to direct `.filter(...)` invocations.
- *
- * @param node - Call expression to inspect.
- *
- * @returns `true` when the callee is a non-computed member expression named
- *   `filter`.
- */
-
-const isFilterCall = (
-    node: Readonly<TSESTree.CallExpression>
-): node is TSESTree.CallExpression & {
-    callee: TSESTree.MemberExpression & {
-        computed: false;
-        property: TSESTree.Identifier;
-    };
-} =>
-    node.callee.type === "MemberExpression" &&
-    !node.callee.computed &&
-    node.callee.property.type === "Identifier" &&
-    node.callee.property.name === FILTER_METHOD_NAME;
 
 /**
  * Checks whether a call argument refers to the callback parameter identifier.
@@ -150,7 +126,10 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (!isFilterCall(node) || node.arguments.length === 0) {
+                    if (
+                        !isFilterCallExpression(node) ||
+                        node.arguments.length === 0
+                    ) {
                         return;
                     }
 

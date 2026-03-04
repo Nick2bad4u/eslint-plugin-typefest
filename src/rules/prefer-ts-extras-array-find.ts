@@ -7,6 +7,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -34,21 +35,16 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        node.callee.type !== "MemberExpression" ||
-                        node.callee.computed
-                    ) {
+                    const arrayFindCall = getIdentifierPropertyMemberCall({
+                        memberName: "find",
+                        node,
+                    });
+
+                    if (arrayFindCall === null) {
                         return;
                     }
 
-                    if (
-                        node.callee.property.type !== "Identifier" ||
-                        node.callee.property.name !== "find"
-                    ) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(node.callee.object)) {
+                    if (!isArrayLikeExpression(arrayFindCall.callee.object)) {
                         return;
                     }
 
