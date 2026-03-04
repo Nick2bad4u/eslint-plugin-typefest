@@ -9,6 +9,7 @@ import {
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
@@ -190,7 +191,9 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
+                        fix: null,
                         messageId: "preferTsExtrasIsInfinite",
                         node,
                     });
@@ -207,7 +210,8 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createSafeValueArgumentFunctionCallFix({
                             argumentNode: comparedExpression,
                             context,

@@ -10,6 +10,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     createTypedRule,
@@ -113,7 +114,8 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     return;
                 }
 
-                context.report({
+                reportWithOptionalFix({
+                    context,
                     fix: result.value,
                     messageId: "preferTsExtrasSafeCastTo",
                     node,

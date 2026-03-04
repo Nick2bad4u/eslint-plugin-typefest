@@ -520,6 +520,54 @@ describe(createImportInsertionFix, () => {
         ]);
     });
 
+    it("inserts named imports whose local bindings include `from` before relative imports", () => {
+        const relativeImport = {
+            range: [20, 60],
+            source: {
+                value: "./local-utils.js",
+            },
+            specifiers: [],
+            type: "ImportDeclaration",
+        } as unknown as TSESTree.ImportDeclaration;
+        const program = createProgram([relativeImport]);
+        const referenceNode = {
+            parent: program,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fixer = {
+            insertTextAfter: vi.fn(),
+            insertTextBeforeRange: (
+                range: readonly [number, number],
+                text: string
+            ) => {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+        } as unknown as TSESLint.RuleFixer;
+
+        const fix = createImportInsertionFix({
+            fixer,
+            importDeclarationText:
+                'import { fromClauseValue as localFromClauseValue } from "ts-extras";',
+            referenceNode,
+        });
+
+        expect(fix).toBeTypeOf("string");
+        expect(insertBeforeRangeCalls).toStrictEqual([
+            {
+                range: [20, 20],
+                text: 'import { fromClauseValue as localFromClauseValue } from "ts-extras";\n',
+            },
+        ]);
+    });
+
     it("inserts side-effect bare-module imports after the last non-relative import", () => {
         const externalImport = {
             range: [0, 44],

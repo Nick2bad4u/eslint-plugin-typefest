@@ -13,6 +13,7 @@ import {
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -103,7 +104,8 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         sourceModuleName: "ts-extras",
                     });
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: fixes,
                         messageId: "preferTsExtrasArrayLast",
                         node,

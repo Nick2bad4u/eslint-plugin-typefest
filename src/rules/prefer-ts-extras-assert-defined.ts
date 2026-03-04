@@ -8,6 +8,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
@@ -132,7 +133,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
             return {
                 IfStatement(node) {
                     if (
-                        node.alternate ||
+                        node.alternate !== null ||
                         !isThrowOnlyConsequent(node.consequent)
                     ) {
                         return;
@@ -143,7 +144,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                         context
                     );
 
-                    if (!guardExpression) {
+                    if (guardExpression === null) {
                         return;
                     }
 
@@ -169,7 +170,9 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                         });
 
                     if (replacementFix === null) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferTsExtrasAssertDefined",
                             node,
                         });
@@ -178,7 +181,8 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (canAutofix) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
                             fix: replacementFix,
                             messageId: "preferTsExtrasAssertDefined",
                             node,

@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -99,7 +100,8 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createSafeValueArgumentFunctionCallFix({
                             argumentNode: lengthNode.object,
                             context,

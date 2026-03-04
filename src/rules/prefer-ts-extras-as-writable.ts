@@ -12,6 +12,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
@@ -94,7 +95,8 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     targetNode: node,
                 });
 
-                context.report({
+                reportWithOptionalFix({
+                    context,
                     fix,
                     messageId: "preferTsExtrasAsWritable",
                     node,

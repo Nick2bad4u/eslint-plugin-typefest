@@ -28,72 +28,186 @@ const collectProgramImportDeclarations = (
     return importDeclarations;
 };
 
+const IMPORT_KEYWORD = "import" as const;
+const FROM_KEYWORD = "from" as const;
+
+type ParsedQuotedStringLiteral = Readonly<{
+    endIndex: number;
+    value: string;
+}>;
+
+const skipLeadingWhitespace = ({
+    startIndex,
+    text,
+}: Readonly<{
+    startIndex: number;
+    text: string;
+}>): number => {
+    let index = startIndex;
+
+    while (index < text.length && /\s/u.test(text[index] ?? "")) {
+        index += 1;
+    }
+
+    return index;
+};
+
+const parseQuotedStringLiteral = ({
+    startIndex,
+    text,
+}: Readonly<{
+    startIndex: number;
+    text: string;
+}>): null | ParsedQuotedStringLiteral => {
+    const quoteCharacter = text.at(startIndex);
+    if (quoteCharacter !== '"' && quoteCharacter !== "'") {
+        return null;
+    }
+
+    let value = "";
+
+    for (let index = startIndex + 1; index < text.length; index += 1) {
+        const currentCharacter = text[index];
+
+        if (currentCharacter === "\\") {
+            const escapedCharacter = text[index + 1];
+            if (escapedCharacter === undefined) {
+                return null;
+            }
+
+            value += `${currentCharacter}${escapedCharacter}`;
+            index += 1;
+            continue;
+        }
+
+        if (currentCharacter === quoteCharacter) {
+            if (value.length === 0) {
+                return null;
+            }
+
+            return {
+                endIndex: index,
+                value,
+            };
+        }
+
+        value += currentCharacter;
+    }
+
+    return null;
+};
+
+const isIdentifierPartCharacter = (character: string): boolean =>
+    /[\w$]/u.test(character);
+
+const findLastFromKeywordOutsideStrings = (text: string): null | number => {
+    let activeQuoteCharacter: null | string = null;
+    let lastFromKeywordIndex: null | number = null;
+
+    for (let index = 0; index < text.length; index += 1) {
+        const currentCharacter = text[index];
+
+        if (activeQuoteCharacter !== null) {
+            if (currentCharacter === "\\") {
+                index += 1;
+                continue;
+            }
+
+            if (currentCharacter === activeQuoteCharacter) {
+                activeQuoteCharacter = null;
+            }
+
+            continue;
+        }
+
+        if (currentCharacter === '"' || currentCharacter === "'") {
+            activeQuoteCharacter = currentCharacter;
+            continue;
+        }
+
+        if (!text.startsWith(FROM_KEYWORD, index)) {
+            continue;
+        }
+
+        const previousCharacter = text[index - 1] ?? "";
+        const nextCharacter = text[index + FROM_KEYWORD.length] ?? "";
+        const hasWordBoundaryBefore =
+            index === 0 || !isIdentifierPartCharacter(previousCharacter);
+        const hasWordBoundaryAfter =
+            index + FROM_KEYWORD.length >= text.length ||
+            !isIdentifierPartCharacter(nextCharacter);
+
+        if (hasWordBoundaryBefore && hasWordBoundaryAfter) {
+            lastFromKeywordIndex = index;
+        }
+    }
+
+    return lastFromKeywordIndex;
+};
+
+const isTrailingImportText = (text: string): boolean => {
+    const trailingText = text.trim();
+
+    return trailingText === "" || trailingText === ";";
+};
+
 /**
  * Extract the module specifier from an import declaration text snippet.
  */
 const getModuleSpecifierFromImportDeclarationText = (
     importDeclarationText: string
 ): null | string => {
-    const fromClauseMatchResult =
-        /\bfrom\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
-            importDeclarationText
+    const trimmedImportText = importDeclarationText.trim();
+    if (!trimmedImportText.startsWith(IMPORT_KEYWORD)) {
+        return null;
+    }
+
+    const importClauseStart = skipLeadingWhitespace({
+        startIndex: IMPORT_KEYWORD.length,
+        text: trimmedImportText,
+    });
+
+    const sideEffectImportModuleSpecifier = parseQuotedStringLiteral({
+        startIndex: importClauseStart,
+        text: trimmedImportText,
+    });
+
+    if (sideEffectImportModuleSpecifier !== null) {
+        const trailingImportText = trimmedImportText.slice(
+            sideEffectImportModuleSpecifier.endIndex + 1
         );
 
-    const moduleSpecifierFromClause =
-        fromClauseMatchResult?.groups?.["moduleSpecifier"];
-    if (typeof moduleSpecifierFromClause === "string") {
-        return moduleSpecifierFromClause;
+        return isTrailingImportText(trailingImportText)
+            ? sideEffectImportModuleSpecifier.value
+            : null;
     }
 
-    const trimmedImportText = importDeclarationText.trim();
-    if (!trimmedImportText.startsWith("import")) {
+    const fromKeywordIndex =
+        findLastFromKeywordOutsideStrings(trimmedImportText);
+    if (fromKeywordIndex === null) {
         return null;
     }
 
-    const importArgumentStart = trimmedImportText
-        .slice("import".length)
-        .trimStart();
-    const firstQuote = importArgumentStart.at(0);
+    const moduleSpecifierStart = skipLeadingWhitespace({
+        startIndex: fromKeywordIndex + FROM_KEYWORD.length,
+        text: trimmedImportText,
+    });
+    const fromClauseModuleSpecifier = parseQuotedStringLiteral({
+        startIndex: moduleSpecifierStart,
+        text: trimmedImportText,
+    });
 
-    if (firstQuote !== '"' && firstQuote !== "'") {
+    if (fromClauseModuleSpecifier === null) {
         return null;
     }
 
-    let moduleSpecifierEndIndex = -1;
-    for (let index = 1; index < importArgumentStart.length; index += 1) {
-        const currentCharacter = importArgumentStart[index];
-
-        if (currentCharacter === "\\") {
-            index += 1;
-            continue;
-        }
-
-        if (currentCharacter === firstQuote) {
-            moduleSpecifierEndIndex = index;
-            break;
-        }
-    }
-
-    if (moduleSpecifierEndIndex <= 0) {
-        return null;
-    }
-
-    const moduleSpecifier = importArgumentStart.slice(
-        1,
-        moduleSpecifierEndIndex
+    const trailingImportText = trimmedImportText.slice(
+        fromClauseModuleSpecifier.endIndex + 1
     );
-    if (moduleSpecifier.length === 0) {
-        return null;
-    }
 
-    const trailingImportText = importArgumentStart
-        .slice(moduleSpecifierEndIndex + 1)
-        .trim();
-    if (trailingImportText === "" || trailingImportText === ";") {
-        return moduleSpecifier;
-    }
-
-    return null;
+    return isTrailingImportText(trailingImportText)
+        ? fromClauseModuleSpecifier.value
+        : null;
 };
 
 /**
@@ -293,7 +407,7 @@ export const createImportInsertionFix = ({
     }
 
     const lastImportDeclaration = importDeclarations.at(-1);
-    if (lastImportDeclaration) {
+    if (lastImportDeclaration !== undefined) {
         return fixer.insertTextAfter(
             lastImportDeclaration,
             `\n${normalizedImportDeclarationText}`
@@ -302,7 +416,7 @@ export const createImportInsertionFix = ({
 
     const lastDirectiveStatement =
         getLastDirectivePrologueStatement(programNode);
-    if (lastDirectiveStatement) {
+    if (lastDirectiveStatement !== null) {
         return fixer.insertTextAfter(
             lastDirectiveStatement,
             `\n${normalizedImportDeclarationText}`
@@ -310,7 +424,7 @@ export const createImportInsertionFix = ({
     }
 
     const [firstStatement] = programNode.body;
-    if (firstStatement) {
+    if (firstStatement !== undefined) {
         const firstStatementStart = getNodeRangeStart(firstStatement);
         if (firstStatementStart !== null) {
             return fixer.insertTextBeforeRange(

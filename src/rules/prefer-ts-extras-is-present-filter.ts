@@ -13,6 +13,7 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import {
     flattenLogicalTerms,
     getNullishComparison,
+    isExpressionPair,
 } from "../_internal/nullish-comparison.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
@@ -226,14 +227,11 @@ const isSafePresentFilterAutoFixableCallback = ({
         expression: body,
         operator: "&&",
     });
-    if (andTerms.length !== 2) {
+    if (!isExpressionPair(andTerms)) {
         return false;
     }
 
-    const [firstTerm, secondTerm] = andTerms as readonly [
-        TSESTree.Expression,
-        TSESTree.Expression,
-    ];
+    const [firstTerm, secondTerm] = andTerms;
 
     const first = extractNullishInequalityPart(
         context,

@@ -49,7 +49,9 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                             return;
                         }
 
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferExcept",
                             node,
                         });

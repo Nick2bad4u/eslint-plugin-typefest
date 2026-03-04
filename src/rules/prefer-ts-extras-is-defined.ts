@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import {
@@ -199,7 +200,8 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createSafeValueArgumentFunctionCallFix({
                             argumentNode: match.comparedExpression,
                             context,

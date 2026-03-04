@@ -118,10 +118,12 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         data: {
                             alias: node.id.name,
                         },
+                        fix: null,
                         messageId: "preferTaggedBrand",
                         node: node.id,
                     });

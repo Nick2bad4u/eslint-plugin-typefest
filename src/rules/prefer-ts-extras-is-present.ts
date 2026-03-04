@@ -13,7 +13,9 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import {
     flattenLogicalTerms,
     getNullishComparison as getSharedNullishComparison,
+    isExpressionPair,
 } from "../_internal/nullish-comparison.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -81,14 +83,11 @@ const isStrictPresentCheck = ({
         operator: "&&",
     });
 
-    if (terms.length !== 2) {
+    if (!isExpressionPair(terms)) {
         return false;
     }
 
-    const [firstTerm, secondTerm] = terms as readonly [
-        TSESTree.Expression,
-        TSESTree.Expression,
-    ];
+    const [firstTerm, secondTerm] = terms;
 
     const first = getRuleNullishComparison(context, firstTerm);
     const second = getRuleNullishComparison(context, secondTerm);
@@ -136,14 +135,11 @@ const isStrictAbsentCheck = ({
         operator: "||",
     });
 
-    if (terms.length !== 2) {
+    if (!isExpressionPair(terms)) {
         return false;
     }
 
-    const [firstTerm, secondTerm] = terms as readonly [
-        TSESTree.Expression,
-        TSESTree.Expression,
-    ];
+    const [firstTerm, secondTerm] = terms;
 
     const first = getRuleNullishComparison(context, firstTerm);
     const second = getRuleNullishComparison(context, secondTerm);
@@ -202,7 +198,8 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (comparison.operator === "!=") {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
                             fix: createSafeValueArgumentFunctionCallFix({
                                 argumentNode: comparison.comparedExpression,
                                 context,
@@ -217,7 +214,8 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (comparison.operator === "==") {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
                             fix: createSafeValueArgumentFunctionCallFix({
                                 argumentNode: comparison.comparedExpression,
                                 context,
@@ -243,7 +241,9 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                             expression: node,
                         })
                     ) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferTsExtrasIsPresent",
                             node,
                         });
@@ -256,7 +256,9 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                             expression: node,
                         })
                     ) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferTsExtrasIsPresentNegated",
                             node,
                         });

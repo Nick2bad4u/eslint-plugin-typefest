@@ -12,6 +12,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -64,7 +65,8 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createMemberToFunctionCallFix({
                             context,
                             importedName: "arrayFirst",

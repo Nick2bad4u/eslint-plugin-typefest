@@ -118,6 +118,18 @@ type ValueReplacementPlan = Readonly<{
     reportFixIntent: ImportFixIntent;
 }>;
 
+const getImportDeclarationParent = (
+    node: Readonly<TSESTree.Node>
+): null | Readonly<TSESTree.ImportDeclaration> => {
+    const nodeParent = node.parent;
+
+    if (nodeParent?.type !== "ImportDeclaration") {
+        return null;
+    }
+
+    return nodeParent;
+};
+
 /**
  * Coordination decision used when import insertion is not required.
  */
@@ -180,10 +192,15 @@ function isLocalNameBoundToExpectedImport(
             return false;
         }
 
-        const parent = definitionNode.parent;
+        const parentImportDeclaration =
+            getImportDeclarationParent(definitionNode);
+
         return (
-            parent.type === "ImportDeclaration" &&
-            isImportDeclarationFromSource(parent, sourceModuleName)
+            parentImportDeclaration !== null &&
+            isImportDeclarationFromSource(
+                parentImportDeclaration,
+                sourceModuleName
+            )
         );
     });
 }
@@ -229,12 +246,16 @@ const canUseDirectImportedNameSafely = ({
             return false;
         }
 
-        const parent = definitionNode.parent;
+        const parentImportDeclaration =
+            getImportDeclarationParent(definitionNode);
 
         return (
-            parent.type === "ImportDeclaration" &&
-            isImportDeclarationFromSource(parent, sourceModuleName) &&
-            parent.importKind !== "type" &&
+            parentImportDeclaration !== null &&
+            isImportDeclarationFromSource(
+                parentImportDeclaration,
+                sourceModuleName
+            ) &&
+            parentImportDeclaration.importKind !== "type" &&
             definitionNode.importKind !== "type"
         );
     });

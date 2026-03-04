@@ -8,6 +8,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -65,7 +66,8 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createKeyInFix(node),
                         messageId: "preferTsExtrasKeyIn",
                         node,

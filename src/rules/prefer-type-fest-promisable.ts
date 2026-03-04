@@ -147,7 +147,9 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
+                        fix: null,
                         messageId: "preferPromisable",
                         node,
                     });

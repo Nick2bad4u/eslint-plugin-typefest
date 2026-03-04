@@ -1855,8 +1855,7 @@ export default defineConfig([
             "node-dependencies/no-deprecated": [
                 "error",
                 {
-                    // User-request: you'll uninstall these; keep lint green in the meantime.
-                    allows: [],
+                    allows: ["prettier-plugin-packagejson"],
                     devDependencies: true,
                 },
             ],

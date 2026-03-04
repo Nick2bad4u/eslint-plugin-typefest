@@ -489,10 +489,22 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         listeners.BinaryExpression?.(binaryExpression);
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
+
+                        const [firstReport] = reportCalls;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-key-in report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasKeyIn",
                         });
-                        expect(reportCalls[0]?.fix).toBeNull();
+                        expect("fix" in firstReport).toBeFalsy();
+
                         expect(
                             createSafeValueNodeTextReplacementFixMock
                         ).not.toHaveBeenCalled();

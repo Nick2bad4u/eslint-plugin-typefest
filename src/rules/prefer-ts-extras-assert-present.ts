@@ -9,6 +9,7 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
@@ -215,7 +216,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 test: Readonly<TSESTree.Expression>
             ): null | TSESTree.Expression => {
                 const eqNullExpression = extractEqNullGuardExpression(test);
-                if (eqNullExpression) {
+                if (eqNullExpression !== null) {
                     return eqNullExpression;
                 }
 
@@ -233,8 +234,8 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 );
 
                 if (
-                    !leftPart ||
-                    !rightPart ||
+                    leftPart === null ||
+                    rightPart === null ||
                     leftPart.kind === rightPart.kind
                 ) {
                     return null;
@@ -251,7 +252,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
             return {
                 IfStatement(node) {
                     if (
-                        node.alternate ||
+                        node.alternate !== null ||
                         !isThrowOnlyConsequent(node.consequent)
                     ) {
                         return;
@@ -261,7 +262,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         node.test
                     );
 
-                    if (!guardExpression) {
+                    if (guardExpression === null) {
                         return;
                     }
 
@@ -291,7 +292,9 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                         });
 
                     if (replacementFix === null) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferTsExtrasAssertPresent",
                             node,
                         });
@@ -300,7 +303,8 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (canAutofix) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
                             fix: replacementFix,
                             messageId: "preferTsExtrasAssertPresent",
                             node,
