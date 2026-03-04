@@ -29,6 +29,43 @@ const collectProgramImportDeclarations = (
 };
 
 /**
+ * Extract the module specifier from an import declaration text snippet.
+ */
+const getModuleSpecifierFromImportDeclarationText = (
+    importDeclarationText: string
+): null | string => {
+    const matchResult =
+        /from\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
+            importDeclarationText
+        );
+
+    if (matchResult === null) {
+        return null;
+    }
+
+    const moduleSpecifier = matchResult.groups?.["moduleSpecifier"];
+
+    return moduleSpecifier ?? null;
+};
+
+/**
+ * Determine whether a module specifier is relative (`./` or `../`) or rooted.
+ */
+const isRelativeModuleSpecifier = (moduleSpecifier: string): boolean =>
+    moduleSpecifier.startsWith(".") || moduleSpecifier.startsWith("/");
+
+/**
+ * Read a string-valued module specifier from an import declaration node.
+ */
+const getImportDeclarationModuleSpecifier = (
+    importDeclaration: Readonly<TSESTree.ImportDeclaration>
+): null | string => {
+    const sourceValue = importDeclaration.source.value;
+
+    return typeof sourceValue === "string" ? sourceValue : null;
+};
+
+/**
  * Check whether a Program statement is part of the directive prologue (for
  * example, `"use strict"`).
  */
@@ -155,6 +192,58 @@ export const createImportInsertionFix = ({
     }
 
     const importDeclarations = collectProgramImportDeclarations(programNode);
+    if (importDeclarations.length > 0) {
+        const moduleSpecifier = getModuleSpecifierFromImportDeclarationText(
+            normalizedImportDeclarationText
+        );
+
+        if (
+            typeof moduleSpecifier === "string" &&
+            !isRelativeModuleSpecifier(moduleSpecifier)
+        ) {
+            let firstRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
+                null;
+            let lastNonRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
+                null;
+
+            for (const importDeclaration of importDeclarations) {
+                const existingModuleSpecifier =
+                    getImportDeclarationModuleSpecifier(importDeclaration);
+
+                if (
+                    typeof existingModuleSpecifier === "string" &&
+                    isRelativeModuleSpecifier(existingModuleSpecifier)
+                ) {
+                    firstRelativeImportDeclaration ??= importDeclaration;
+
+                    continue;
+                }
+
+                lastNonRelativeImportDeclaration = importDeclaration;
+            }
+
+            if (lastNonRelativeImportDeclaration !== null) {
+                return fixer.insertTextAfter(
+                    lastNonRelativeImportDeclaration,
+                    `\n${normalizedImportDeclarationText}`
+                );
+            }
+
+            if (firstRelativeImportDeclaration !== null) {
+                const firstRelativeImportStart = getNodeRangeStart(
+                    firstRelativeImportDeclaration
+                );
+
+                if (firstRelativeImportStart !== null) {
+                    return fixer.insertTextBeforeRange(
+                        [firstRelativeImportStart, firstRelativeImportStart],
+                        `${normalizedImportDeclarationText}\n`
+                    );
+                }
+            }
+        }
+    }
+
     const lastImportDeclaration = importDeclarations.at(-1);
     if (lastImportDeclaration) {
         return fixer.insertTextAfter(

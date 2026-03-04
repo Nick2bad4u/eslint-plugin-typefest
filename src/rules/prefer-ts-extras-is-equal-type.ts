@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 import {
     collectNamedImportLocalNamesFromSource,
     collectNamespaceImportLocalNamesFromSource,
@@ -80,7 +82,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 VariableDeclarator(node) {
                     if (
                         node.id.type !== "Identifier" ||
-                        node.id.typeAnnotation?.typeAnnotation === undefined ||
+                        !isDefined(node.id.typeAnnotation?.typeAnnotation) ||
                         node.init?.type !== "Literal" ||
                         typeof node.init.value !== "boolean"
                     ) {

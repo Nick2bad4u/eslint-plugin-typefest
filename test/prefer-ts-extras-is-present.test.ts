@@ -319,6 +319,16 @@ const inlineFixableAbsentOutput = [
     "declare const maybeValue: null | string | undefined;",
     "const isMissing = !isPresent(maybeValue);",
 ].join("\n");
+const inlineAstNodePresentInvalidCode = [
+    'import type { TSESTree } from "@typescript-eslint/utils";',
+    "",
+    "const memberExpressionWithParent = {} as Readonly<TSESTree.MemberExpression> & {",
+    "    parent?: null | Readonly<TSESTree.Node>;",
+    "};",
+    "const parentNode = memberExpressionWithParent.parent;",
+    "const hasParent = parentNode != null;",
+    "String(hasParent);",
+].join("\n");
 const inlineFixablePresentWithUnicodeAndEmojiCode = [
     'import { isPresent } from "ts-extras";',
     "",
@@ -3275,6 +3285,13 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes loose null equality when isPresent import is in scope",
             output: inlineFixableAbsentOutput,
+        },
+        {
+            code: inlineAstNodePresentInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsPresent" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports AST-node loose null inequality without applying an autofix",
+            output: null,
         },
         {
             code: inlineFixablePresentWithUnicodeAndEmojiCode,

@@ -6,6 +6,8 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
+import { isDefined } from "ts-extras";
+
 import { safeTypeOperation } from "./safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
@@ -99,7 +101,7 @@ export const isArrayLikeType = (
             candidateType
         );
         if (
-            baseConstraint !== undefined &&
+            isDefined(baseConstraint) &&
             baseConstraint !== candidateType &&
             isArrayLikeTypeInternal(baseConstraint)
         ) {
@@ -107,7 +109,7 @@ export const isArrayLikeType = (
         }
 
         const apparentType = getTypeCheckerApparentType(checker, candidateType);
-        if (apparentType !== undefined && apparentType !== candidateType) {
+        if (isDefined(apparentType) && apparentType !== candidateType) {
             return isArrayLikeTypeInternal(apparentType);
         }
 

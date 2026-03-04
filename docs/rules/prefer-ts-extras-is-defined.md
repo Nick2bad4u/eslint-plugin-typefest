@@ -63,6 +63,7 @@ if (!isDefined(value)) {
 - `isDefined(value)` is equivalent to `value !== undefined`.
 - `!isDefined(value)` is equivalent to `value === undefined`.
 - Loose `value != undefined` and `value == undefined` checks are not auto-fixed by this rule because replacing them with `isDefined` would change runtime behavior for `null`.
+- Autofix is intentionally skipped for comparisons whose value resolves to `@typescript-eslint` AST node types (for example `TSESTree.Node | undefined`) to avoid pathological type-analysis performance cliffs in downstream lint passes.
 - Filter-specific patterns are intentionally covered by `prefer-ts-extras-is-defined-filter`.
 
 ## Additional examples

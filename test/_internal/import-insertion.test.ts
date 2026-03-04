@@ -375,6 +375,102 @@ describe(createImportInsertionFix, () => {
         ]);
     });
 
+    it("inserts bare-module imports after the last non-relative import", () => {
+        const externalImport = {
+            range: [0, 44],
+            source: {
+                value: "type-fest",
+            },
+            specifiers: [],
+            type: "ImportDeclaration",
+        } as unknown as TSESTree.ImportDeclaration;
+        const relativeImport = {
+            range: [46, 96],
+            source: {
+                value: "./local-utils.js",
+            },
+            specifiers: [],
+            type: "ImportDeclaration",
+        } as unknown as TSESTree.ImportDeclaration;
+        const program = createProgram([externalImport, relativeImport]);
+        const referenceNode = {
+            parent: program,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        const insertAfterCalls: { target: unknown; text: string }[] = [];
+
+        const fixer = {
+            insertTextAfter: (target: unknown, text: string) => {
+                insertAfterCalls.push({ target, text });
+
+                return text;
+            },
+            insertTextBeforeRange: vi.fn(),
+        } as unknown as TSESLint.RuleFixer;
+
+        const fix = createImportInsertionFix({
+            fixer,
+            importDeclarationText: 'import { isDefined } from "ts-extras";',
+            referenceNode,
+        });
+
+        expect(fix).toBeTypeOf("string");
+        expect(insertAfterCalls).toStrictEqual([
+            {
+                target: externalImport,
+                text: '\nimport { isDefined } from "ts-extras";',
+            },
+        ]);
+    });
+
+    it("inserts bare-module imports before relative imports when none are non-relative", () => {
+        const relativeImport = {
+            range: [20, 60],
+            source: {
+                value: "./local-utils.js",
+            },
+            specifiers: [],
+            type: "ImportDeclaration",
+        } as unknown as TSESTree.ImportDeclaration;
+        const program = createProgram([relativeImport]);
+        const referenceNode = {
+            parent: program,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fixer = {
+            insertTextAfter: vi.fn(),
+            insertTextBeforeRange: (
+                range: readonly [number, number],
+                text: string
+            ) => {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+        } as unknown as TSESLint.RuleFixer;
+
+        const fix = createImportInsertionFix({
+            fixer,
+            importDeclarationText: 'import { isDefined } from "ts-extras";',
+            referenceNode,
+        });
+
+        expect(fix).toBeTypeOf("string");
+        expect(insertBeforeRangeCalls).toStrictEqual([
+            {
+                range: [20, 20],
+                text: 'import { isDefined } from "ts-extras";\n',
+            },
+        ]);
+    });
+
     it("does not treat non-directive string literals as directive prologue", () => {
         const nonDirectiveStringStatement = {
             expression: {

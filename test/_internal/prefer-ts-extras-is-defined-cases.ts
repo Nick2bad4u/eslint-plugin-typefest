@@ -34,11 +34,7 @@ const replaceOrThrow = ({
 };
 
 const buildFixtureInvalidOutput = (): string =>
-    `import { isDefined } from "ts-extras";\n${replaceOrThrow({
-        replacement: "if (isDefined(maybeValue)) {\r\n",
-        sourceText: invalidFixtureCode,
-        target: "if (maybeValue !== undefined) {\r\n",
-    })}`;
+    `import { isDefined } from "ts-extras";\n${invalidFixtureCode}`;
 
 export const fixtureInvalidOutput: string = buildFixtureInvalidOutput();
 
@@ -50,7 +46,11 @@ export const fixtureInvalidSecondPassOutput: string = replaceOrThrow({
             replacement: "if (isDefined(maybeValue)) {\r\n",
             sourceText: replaceOrThrow({
                 replacement: "if (isDefined(maybeValue)) {\r\n",
-                sourceText: fixtureInvalidOutput,
+                sourceText: replaceOrThrow({
+                    replacement: "if (isDefined(maybeValue)) {\r\n",
+                    sourceText: fixtureInvalidOutput,
+                    target: "if (maybeValue !== undefined) {\r\n",
+                }),
                 target: "if (undefined !== maybeValue) {\r\n",
             }),
             target: 'if (typeof maybeValue !== "undefined") {\r\n',
@@ -86,6 +86,18 @@ export const inlineFixableNegatedOutput: string = [
     "",
     "declare const maybeValue: string | undefined;",
     "const isMissing = !isDefined(maybeValue);",
+].join("\n");
+
+export const inlineAstNodeNegatedInvalidCode: string = [
+    'import type { TSESTree } from "@typescript-eslint/utils";',
+    'import { isDefined } from "ts-extras";',
+    "",
+    "const memberExpressionWithParent = {} as Readonly<TSESTree.MemberExpression> & {",
+    "    parent?: Readonly<TSESTree.Node>;",
+    "};",
+    "const parentNode = memberExpressionWithParent.parent;",
+    "const parentIsMissing = parentNode === undefined;",
+    "String(parentIsMissing);",
 ].join("\n");
 
 export const inlineMapCallbackInvalidCode: string = [

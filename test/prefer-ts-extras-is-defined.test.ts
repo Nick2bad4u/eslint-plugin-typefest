@@ -17,6 +17,7 @@ import {
     filterArrowCallbackValidCode,
     filterFunctionCallbackValidCode,
     fixtureInvalidSecondPassOutput,
+    inlineAstNodeNegatedInvalidCode,
     inlineFixableDefinedCode,
     inlineFixableDefinedOutput,
     inlineFixableNegatedCode,
@@ -591,6 +592,13 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes undefined equality when isDefined import is in scope",
             output: inlineFixableNegatedOutput,
+        },
+        {
+            code: inlineAstNodeNegatedInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsDefinedNegated" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports AST-node undefined equality without applying an autofix",
+            output: null,
         },
         {
             code: inlineMapCallbackInvalidCode,

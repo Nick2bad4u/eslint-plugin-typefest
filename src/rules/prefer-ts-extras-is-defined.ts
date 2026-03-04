@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-defined`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import { isWithinFilterCallback } from "../_internal/filter-callback.js";
 import {
@@ -10,10 +10,12 @@ import {
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
+import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
+import { createTypeScriptEslintNodeAutofixSuppressionChecker } from "../_internal/typescript-eslint-node-autofix.js";
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -62,19 +64,13 @@ const isBoundIdentifierReference = (
 
     const result = safeTypeOperation({
         operation: () => {
-            let currentScope: null | TSESLint.Scope.Scope =
-                context.sourceCode.getScope(expression);
+            const initialScope = context.sourceCode.getScope(expression);
+            const variable = getVariableInScopeChain(
+                initialScope,
+                expression.name
+            );
 
-            while (currentScope !== null) {
-                const variable = currentScope.set.get(expression.name);
-                if (variable !== undefined) {
-                    return variable.defs.length > 0;
-                }
-
-                currentScope = currentScope.upper;
-            }
-
-            return false;
+            return variable !== null && variable.defs.length > 0;
         },
         reason: "is-defined-scope-resolution-failed",
     });
@@ -183,6 +179,8 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 "ts-extras"
             );
+            const shouldSuppressAutofixForComparedExpression =
+                createTypeScriptEslintNodeAutofixSuppressionChecker(context);
 
             return {
                 BinaryExpression(node) {
@@ -195,16 +193,25 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const suppressAutofix =
+                        shouldSuppressAutofixForComparedExpression(
+                            match.comparedExpression
+                        );
+
                     context.report({
-                        fix: createSafeValueArgumentFunctionCallFix({
-                            argumentNode: match.comparedExpression,
-                            context,
-                            importedName: "isDefined",
-                            imports: tsExtrasImports,
-                            negated: match.prefersNegatedHelper,
-                            sourceModuleName: "ts-extras",
-                            targetNode: node,
-                        }),
+                        ...(suppressAutofix
+                            ? {}
+                            : {
+                                  fix: createSafeValueArgumentFunctionCallFix({
+                                      argumentNode: match.comparedExpression,
+                                      context,
+                                      importedName: "isDefined",
+                                      imports: tsExtrasImports,
+                                      negated: match.prefersNegatedHelper,
+                                      sourceModuleName: "ts-extras",
+                                      targetNode: node,
+                                  }),
+                              }),
                         messageId: match.prefersNegatedHelper
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined",

@@ -18,6 +18,7 @@ import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
+import { createTypeScriptEslintNodeAutofixSuppressionChecker } from "../_internal/typescript-eslint-node-autofix.js";
 
 /**
  * Concrete rule context type derived from `createTypedRule`.
@@ -178,6 +179,8 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 "ts-extras"
             );
+            const shouldSuppressAutofixForComparedExpression =
+                createTypeScriptEslintNodeAutofixSuppressionChecker(context);
 
             return {
                 BinaryExpression(node) {
@@ -190,16 +193,28 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const suppressAutofix =
+                        shouldSuppressAutofixForComparedExpression(
+                            comparison.comparedExpression
+                        );
+
                     if (comparison.operator === "!=") {
                         context.report({
-                            fix: createSafeValueArgumentFunctionCallFix({
-                                argumentNode: comparison.comparedExpression,
-                                context,
-                                importedName: "isPresent",
-                                imports: tsExtrasImports,
-                                sourceModuleName: "ts-extras",
-                                targetNode: node,
-                            }),
+                            ...(suppressAutofix
+                                ? {}
+                                : {
+                                      fix: createSafeValueArgumentFunctionCallFix(
+                                          {
+                                              argumentNode:
+                                                  comparison.comparedExpression,
+                                              context,
+                                              importedName: "isPresent",
+                                              imports: tsExtrasImports,
+                                              sourceModuleName: "ts-extras",
+                                              targetNode: node,
+                                          }
+                                      ),
+                                  }),
                             messageId: "preferTsExtrasIsPresent",
                             node,
                         });
@@ -207,15 +222,22 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
 
                     if (comparison.operator === "==") {
                         context.report({
-                            fix: createSafeValueArgumentFunctionCallFix({
-                                argumentNode: comparison.comparedExpression,
-                                context,
-                                importedName: "isPresent",
-                                imports: tsExtrasImports,
-                                negated: true,
-                                sourceModuleName: "ts-extras",
-                                targetNode: node,
-                            }),
+                            ...(suppressAutofix
+                                ? {}
+                                : {
+                                      fix: createSafeValueArgumentFunctionCallFix(
+                                          {
+                                              argumentNode:
+                                                  comparison.comparedExpression,
+                                              context,
+                                              importedName: "isPresent",
+                                              imports: tsExtrasImports,
+                                              negated: true,
+                                              sourceModuleName: "ts-extras",
+                                              targetNode: node,
+                                          }
+                                      ),
+                                  }),
                             messageId: "preferTsExtrasIsPresentNegated",
                             node,
                         });

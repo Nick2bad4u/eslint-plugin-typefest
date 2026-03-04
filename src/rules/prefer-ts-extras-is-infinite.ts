@@ -13,6 +13,7 @@ import {
     createTypedRule,
     isGlobalIdentifierNamed,
 } from "../_internal/typed-rule.js";
+import { createTypeScriptEslintNodeAutofixSuppressionChecker } from "../_internal/typescript-eslint-node-autofix.js";
 
 /**
  * Parsed infinity comparison extracted from a binary expression.
@@ -196,6 +197,8 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 "ts-extras"
             );
+            const shouldSuppressAutofixForComparedExpression =
+                createTypeScriptEslintNodeAutofixSuppressionChecker(context);
 
             return {
                 BinaryExpression(node) {
@@ -237,15 +240,24 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const suppressAutofix =
+                        shouldSuppressAutofixForComparedExpression(
+                            comparedExpression
+                        );
+
                     context.report({
-                        fix: createSafeValueArgumentFunctionCallFix({
-                            argumentNode: comparedExpression,
-                            context,
-                            importedName: "isInfinite",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: node,
-                        }),
+                        ...(suppressAutofix
+                            ? {}
+                            : {
+                                  fix: createSafeValueArgumentFunctionCallFix({
+                                      argumentNode: comparedExpression,
+                                      context,
+                                      importedName: "isInfinite",
+                                      imports: tsExtrasImports,
+                                      sourceModuleName: "ts-extras",
+                                      targetNode: node,
+                                  }),
+                              }),
                         messageId: "preferTsExtrasIsInfinite",
                         node,
                     });

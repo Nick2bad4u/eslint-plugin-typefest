@@ -4,6 +4,8 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Grouped mapping from imported symbol name to all local alias names.
  */
@@ -52,7 +54,7 @@ export const collectNamedImportSpecifierBindingsFromSource = ({
         }
 
         if (
-            sourceModuleName !== undefined &&
+            isDefined(sourceModuleName) &&
             !isImportDeclarationFromSource(statement, sourceModuleName)
         ) {
             continue;
@@ -112,7 +114,7 @@ export const collectNamedImportLocalNamesByImportedNameFromSource = ({
         allowTypeImportDeclaration,
         allowTypeImportSpecifier,
         sourceCode,
-        ...(sourceModuleName === undefined ? {} : { sourceModuleName }),
+        ...(isDefined(sourceModuleName) ? { sourceModuleName } : {}),
     };
 
     for (const binding of collectNamedImportSpecifierBindingsFromSource(
@@ -122,7 +124,7 @@ export const collectNamedImportLocalNamesByImportedNameFromSource = ({
             binding.importedName
         );
 
-        if (existingLocalNames === undefined) {
+        if (!isDefined(existingLocalNames)) {
             localNamesByImportedName.set(
                 binding.importedName,
                 new Set([binding.localName])

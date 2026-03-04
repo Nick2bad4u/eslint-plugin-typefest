@@ -7,6 +7,7 @@ import type { ESLint, Linter } from "eslint";
 import type { PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
+import { isDefined } from "ts-extras";
 
 import type {
     TypefestConfigName as InternalTypefestConfigName,
@@ -513,7 +514,7 @@ function withTypefestPlugin(
         const existingParserOptions = existingLanguageOptions["parserOptions"];
 
         languageOptions["parserOptions"] =
-            existingParserOptions !== undefined &&
+            isDefined(existingParserOptions) &&
             existingParserOptions !== null &&
             typeof existingParserOptions === "object" &&
             !Array.isArray(existingParserOptions)

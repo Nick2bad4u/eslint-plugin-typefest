@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
@@ -45,8 +47,8 @@ const isRecordLikeUnknownOrAny = (
     const [keyType, valueType] = typeNode.typeArguments.params;
 
     return (
-        keyType !== undefined &&
-        valueType !== undefined &&
+        isDefined(keyType) &&
+        isDefined(valueType) &&
         isStringLikeKeyType(keyType) &&
         (valueType.type === "TSUnknownKeyword" ||
             valueType.type === "TSAnyKeyword")

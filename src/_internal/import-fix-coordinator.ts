@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
@@ -79,7 +81,7 @@ const claimImportCoordinationKeyForProgram = ({
         return false;
     }
 
-    if (existingClaims === undefined) {
+    if (!isDefined(existingClaims)) {
         claimedImportKeysByProgram.set(programNode, new Set([coordinationKey]));
 
         return true;

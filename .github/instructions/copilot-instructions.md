@@ -110,6 +110,7 @@ applyTo: "**"
 - **Diagnostics:** Use `mcp_vscode-mcp_get_diagnostics` for fast feedback on modified files before full runs.
 - **Documentation:** Keep rule docs in `docs/rules/` synchronized with rule metadata and tests.
 - **Memory:** Use memory only for durable architectural decisions that should persist across sessions.
+- **Stuck / Hung Commands**: You can use the timeout setting when using a tool if you suspect it might hang. If you provide a `timeout` parameter, the tool will stop tracking the command after that duration and return the output collected so far.
 
   </tool_use>
 </instructions>

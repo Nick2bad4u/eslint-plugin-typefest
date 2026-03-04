@@ -1,3 +1,4 @@
+import { isDefined } from "ts-extras";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-set-has`.
@@ -38,7 +39,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 candidateType: Readonly<ts.Type>
             ): boolean => {
                 const declarations = candidateType.getSymbol()?.declarations;
-                if (declarations === undefined) {
+                if (!isDefined(declarations)) {
                     return false;
                 }
 
@@ -88,7 +89,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         candidateType
                     );
                     if (
-                        apparentType !== undefined &&
+                        isDefined(apparentType) &&
                         apparentType !== candidateType &&
                         isSetTypeInternal(apparentType)
                     ) {

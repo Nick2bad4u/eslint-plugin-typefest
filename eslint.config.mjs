@@ -149,7 +149,7 @@ const processEnvironment = globalThis.process.env;
  * self-hosting noise under control while still exercising local rules.
  */
 const localTypefestDogfoodRules = {
-    // "typefest/prefer-ts-extras-is-defined": "warn",
+    "typefest/prefer-ts-extras-is-defined": "warn",
     // "typefest/prefer-type-fest-arrayable": "warn",
     "typefest/prefer-type-fest-async-return-type": "warn",
     "typefest/prefer-type-fest-json-array": "warn",
@@ -191,11 +191,11 @@ const HIDE_PROGRESS_FILENAMES = ESLINT_PROGRESS_MODE === "nofile";
 /** @type {import("eslint").Linter.Config} */
 const fileProgressOverridesConfig = {
     name: "CLI: file progress overrides",
-    plugins: { progress: progress },
+    plugins: { "file-progress": progress },
     rules: {
         // The preset already auto-hides on CI, but we also support explicit
         // local toggles.
-        "progress/activate": DISABLE_PROGRESS ? 0 : 1,
+        "file-progress/activate": DISABLE_PROGRESS ? 0 : 1,
     },
     settings: {
         progress: {
@@ -362,16 +362,7 @@ export default defineConfig([
         name: "Array func all (code files only)",
     },
     ...pluginCasePolice.configs.recommended,
-    ...jsdocPlugin.configs["examples-and-default-expressions"].map(
-        (config) => ({
-            ...config,
-            files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-            name:
-                typeof config.name === "string" && config.name.length > 0
-                    ? `JSDoc examples/default expressions (code files only): ${config.name}`
-                    : "JSDoc examples/default expressions (code files only)",
-        })
-    ),
+    // ...jsdocPlugin.configs["examples-and-default-expressions"],
     // #endregion
     // #region 🧩 Custom Flat Configs
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -1044,7 +1035,7 @@ export default defineConfig([
             "comment-length/limit-multi-line-comments": [
                 "warn",
                 {
-                    ignoreCommentsWithCode: true,
+                    ignoreCommentsWithCode: false,
                     ignoreUrls: true,
                     logicalWrap: true,
                     maxLength: 120,
@@ -1094,7 +1085,7 @@ export default defineConfig([
             "comment-length/limit-single-line-comments": [
                 "warn",
                 {
-                    ignoreCommentsWithCode: true,
+                    ignoreCommentsWithCode: false,
                     ignoreUrls: true,
                     logicalWrap: true,
                     maxLength: 120,
@@ -1144,7 +1135,7 @@ export default defineConfig([
             "comment-length/limit-tagged-template-literal-comments": [
                 "warn",
                 {
-                    ignoreCommentsWithCode: true,
+                    ignoreCommentsWithCode: false,
                     ignoreUrls: true,
                     logicalWrap: true,
                     maxLength: 120,

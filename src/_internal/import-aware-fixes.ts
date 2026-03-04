@@ -4,7 +4,13 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
-import type { ImportInsertionDecision } from "./import-fix-coordinator.js";
+import type { ImportFixIntent, ImportInsertionDecision  } from "./import-fix-coordinator.js";
+
+/**
+ * Controls whether an autofix that must insert an import should also emit its
+ * replacement in the same report callback.
+ */
+export type AutofixImportInsertionStrategy = "combined" | "separate-pass";
 
 /**
  * Build replacement/import fixer arrays according to an import-insertion
@@ -17,12 +23,15 @@ import type { ImportInsertionDecision } from "./import-fix-coordinator.js";
  *   otherwise `null` when the fix must be suppressed.
  */
 export const createImportAwareFixes = ({
+    autofixImportInsertionStrategy = "combined",
     createImportFix,
     createReplacementFix,
     fixer,
     importInsertionDecision,
+    reportFixIntent = "autofix",
     requiresImportInsertion,
 }: Readonly<{
+    autofixImportInsertionStrategy?: AutofixImportInsertionStrategy | undefined;
     createImportFix: (
         fixer: Readonly<TSESLint.RuleFixer>
     ) => null | TSESLint.RuleFix;
@@ -31,8 +40,26 @@ export const createImportAwareFixes = ({
     ) => TSESLint.RuleFix;
     fixer: Readonly<TSESLint.RuleFixer>;
     importInsertionDecision: ImportInsertionDecision;
+    reportFixIntent?: ImportFixIntent | undefined;
     requiresImportInsertion: boolean;
 }>): null | readonly TSESLint.RuleFix[] => {
+    if (
+        requiresImportInsertion &&
+        reportFixIntent === "autofix" &&
+        autofixImportInsertionStrategy === "separate-pass"
+    ) {
+        if (!importInsertionDecision.shouldIncludeImportInsertionFix) {
+            return null;
+        }
+
+        const importFix = createImportFix(fixer);
+        if (importFix === null) {
+            return null;
+        }
+
+        return [importFix];
+    }
+
     const replacementFix = createReplacementFix(fixer);
 
     if (!requiresImportInsertion) {

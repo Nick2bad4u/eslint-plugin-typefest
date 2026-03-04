@@ -67,4 +67,17 @@ describe(getVariableInScopeChain, () => {
 
         expect(getVariableInScopeChain(scope, "missing")).toBeNull();
     });
+
+    it("returns null when the scope chain contains a cycle", () => {
+        const firstScope = createScope(new Map());
+        const secondScope = createScope(new Map(), firstScope);
+
+        (
+            firstScope as {
+                upper: null | Readonly<TSESLint.Scope.Scope>;
+            }
+        ).upper = secondScope;
+
+        expect(getVariableInScopeChain(firstScope, "missing")).toBeNull();
+    });
 });

@@ -66,6 +66,34 @@ describe(createImportAwareFixes, () => {
         expect(fixes).toHaveLength(2);
     });
 
+    it("returns import only when separate-pass strategy is selected for autofix", () => {
+        const fixes = createImportAwareFixes({
+            autofixImportInsertionStrategy: "separate-pass",
+            createImportFix: () => createRuleFix("import"),
+            createReplacementFix: () => createRuleFix("replacement"),
+            fixer: createFixer(),
+            importInsertionDecision: INCLUDE_IMPORT_INSERTION,
+            reportFixIntent: "autofix",
+            requiresImportInsertion: true,
+        });
+
+        expect(fixes).toHaveLength(1);
+    });
+
+    it("keeps import plus replacement for suggestions even with separate-pass strategy", () => {
+        const fixes = createImportAwareFixes({
+            autofixImportInsertionStrategy: "separate-pass",
+            createImportFix: () => createRuleFix("import"),
+            createReplacementFix: () => createRuleFix("replacement"),
+            fixer: createFixer(),
+            importInsertionDecision: INCLUDE_IMPORT_INSERTION,
+            reportFixIntent: "suggestion",
+            requiresImportInsertion: true,
+        });
+
+        expect(fixes).toHaveLength(2);
+    });
+
     it("returns replacement only when insertion is skipped but replacement allowed", () => {
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
@@ -76,6 +104,20 @@ describe(createImportAwareFixes, () => {
         });
 
         expect(fixes).toHaveLength(1);
+    });
+
+    it("returns null when separate-pass autofix skips import insertion on duplicate claims", () => {
+        const fixes = createImportAwareFixes({
+            autofixImportInsertionStrategy: "separate-pass",
+            createImportFix: () => createRuleFix("import"),
+            createReplacementFix: () => createRuleFix("replacement"),
+            fixer: createFixer(),
+            importInsertionDecision: SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT,
+            reportFixIntent: "autofix",
+            requiresImportInsertion: true,
+        });
+
+        expect(fixes).toBeNull();
     });
 
     it("returns null when insertion is skipped and replacement blocked", () => {

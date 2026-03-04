@@ -2,6 +2,8 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-abstract-constructor`.
  */
+import { isDefined } from "ts-extras";
+
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
@@ -31,8 +33,8 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
                 }
 
                 const replacementFix =
-                    node.typeParameters === undefined &&
-                    node.returnType !== undefined
+                    !isDefined(node.typeParameters) &&
+                    isDefined(node.returnType)
                         ? createSafeTypeNodeTextReplacementFix(
                               node,
                               "AbstractConstructor",

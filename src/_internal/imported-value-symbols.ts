@@ -9,7 +9,10 @@ import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     isImportDeclarationFromSource,
 } from "./import-analysis.js";
-import { createImportAwareFixes } from "./import-aware-fixes.js";
+import {
+    type AutofixImportInsertionStrategy,
+    createImportAwareFixes,
+} from "./import-aware-fixes.js";
 import {
     type ImportFixIntent,
     type ImportInsertionDecision,
@@ -90,6 +93,7 @@ type SafeValueReplacementFixParams = Readonly<{
  */
 type ValueArgumentFunctionCallFixParams = Readonly<{
     argumentNode: TSESTree.Node;
+    autofixImportInsertionStrategy?: AutofixImportInsertionStrategy;
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
     imports: ImportedValueAliasMap;
@@ -111,6 +115,7 @@ type ValueReplacementPlan = Readonly<{
         replacementName: string;
         requiresImportInsertion: boolean;
     }>;
+    reportFixIntent: ImportFixIntent;
 }>;
 
 /**
@@ -411,6 +416,7 @@ const createValueReplacementPlan = ({
     return {
         importInsertionDecision,
         replacementNameAndImportFixFactory,
+        reportFixIntent,
     };
 };
 
@@ -419,9 +425,13 @@ const createValueReplacementPlan = ({
  */
 const createReportFixFromValueReplacementPlan =
     ({
+        autofixImportInsertionStrategy,
         createReplacementFix,
         valueReplacementPlan,
     }: Readonly<{
+        autofixImportInsertionStrategy?:
+            | AutofixImportInsertionStrategy
+            | undefined;
         createReplacementFix: (
             fixer: Readonly<TSESLint.RuleFixer>,
             replacementName: string
@@ -430,6 +440,7 @@ const createReportFixFromValueReplacementPlan =
     }>): TSESLint.ReportFixFunction =>
     (fixer) =>
         createImportAwareFixes({
+            autofixImportInsertionStrategy,
             createImportFix:
                 valueReplacementPlan.replacementNameAndImportFixFactory
                     .createImportFix,
@@ -442,6 +453,7 @@ const createReportFixFromValueReplacementPlan =
             fixer,
             importInsertionDecision:
                 valueReplacementPlan.importInsertionDecision,
+            reportFixIntent: valueReplacementPlan.reportFixIntent,
             requiresImportInsertion:
                 valueReplacementPlan.replacementNameAndImportFixFactory
                     .requiresImportInsertion,
@@ -685,6 +697,7 @@ export const createMemberToFunctionCallFix = ({
  */
 export const createSafeValueArgumentFunctionCallFix = ({
     argumentNode,
+    autofixImportInsertionStrategy,
     context,
     importedName,
     imports,
@@ -718,6 +731,7 @@ export const createSafeValueArgumentFunctionCallFix = ({
     const replacementText = negated === true ? `!${callText}` : callText;
 
     return createReportFixFromValueReplacementPlan({
+        autofixImportInsertionStrategy,
         createReplacementFix: (replacementFixer) =>
             replacementFixer.replaceText(targetNode, replacementText),
         valueReplacementPlan,

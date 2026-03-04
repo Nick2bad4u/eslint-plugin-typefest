@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Normalized representation of one binary comparison against null/undefined.
  */
@@ -138,7 +140,7 @@ export const getNullishComparison = ({
     const matchesComparedExpression = (
         candidateExpression: Readonly<TSESTree.Expression>
     ): boolean =>
-        comparedIdentifierName === undefined ||
+        !isDefined(comparedIdentifierName) ||
         (candidateExpression.type === "Identifier" &&
             candidateExpression.name === comparedIdentifierName);
 
@@ -194,7 +196,7 @@ export const getNullishComparison = ({
     }
 
     if (
-        comparedIdentifierName === undefined ||
+        !isDefined(comparedIdentifierName) ||
         !allowTypeofComparedIdentifierForUndefined
     ) {
         return null;

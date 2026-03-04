@@ -52,6 +52,17 @@ import {
 
 const rule = getPluginRule("prefer-ts-extras-is-infinite");
 const ruleTester = createTypedRuleTester();
+const inlineAstNodeDualInfinityInvalidCode = [
+    'import type { TSESTree } from "@typescript-eslint/utils";',
+    "",
+    "const memberExpressionWithParent = {} as Readonly<TSESTree.MemberExpression> & {",
+    "    parent?: Readonly<TSESTree.Node>;",
+    "};",
+    "const parentNode = memberExpressionWithParent.parent;",
+    "const hasInfiniteParent =",
+    "    parentNode === Infinity || parentNode === Number.NEGATIVE_INFINITY;",
+    "String(hasInfiniteParent);",
+].join("\n");
 
 addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-infinite", {
     defaultOptions: [],
@@ -502,6 +513,13 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes strict dual-sign disjunction when Infinity identifier appears on left",
             output: inlineFixableInfinityIdentifierDualSignOutput,
+        },
+        {
+            code: inlineAstNodeDualInfinityInvalidCode,
+            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports AST-node strict dual-sign disjunction without applying an autofix",
+            output: null,
         },
         {
             code: inlineInvalidMixedStrictnessDualSignCode,

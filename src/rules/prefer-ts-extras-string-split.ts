@@ -4,6 +4,8 @@
  */
 import type ts from "typescript";
 
+import { isDefined } from "ts-extras";
+
 import {
     collectDirectNamedValueImportsFromSource,
     createMethodToFunctionCallFix,
@@ -67,7 +69,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (
-                        stringPrimitiveType !== undefined &&
+                        isDefined(stringPrimitiveType) &&
                         isTypeAssignableTo(
                             checker,
                             candidateType,
@@ -85,7 +87,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         checker,
                         candidateType
                     );
-                    return apparentType === undefined ||
+                    return !isDefined(apparentType) ||
                         apparentType === candidateType
                         ? false
                         : isStringLikeTypeInternal(apparentType);

@@ -5,6 +5,8 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Contract for adapting a rule-context report callback.
  */
@@ -42,7 +44,7 @@ const hasCallableOwnFixDataProperty = <
     descriptor: Readonly<ReportDescriptor<MessageIds, Options>>
 ): boolean => {
     const ownFixDescriptor = Object.getOwnPropertyDescriptor(descriptor, "fix");
-    if (ownFixDescriptor === undefined) {
+    if (!isDefined(ownFixDescriptor)) {
         return false;
     }
 

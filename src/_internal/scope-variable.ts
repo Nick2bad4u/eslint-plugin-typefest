@@ -4,6 +4,8 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Resolve a variable binding by walking the current scope and all parent
  * scopes.
@@ -19,10 +21,17 @@ export const getVariableInScopeChain = (
     variableName: string
 ): null | TSESLint.Scope.Variable => {
     let currentScope = scope;
+    const visitedScopes = new Set<Readonly<TSESLint.Scope.Scope>>();
 
     while (currentScope !== null) {
+        if (visitedScopes.has(currentScope)) {
+            return null;
+        }
+
+        visitedScopes.add(currentScope);
+
         const variable = currentScope.set.get(variableName);
-        if (variable !== undefined) {
+        if (isDefined(variable)) {
             return variable;
         }
 

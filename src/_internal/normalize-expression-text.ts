@@ -6,6 +6,8 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject } from "type-fest";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Object-like value that can participate in deep structural comparisons.
  */
@@ -98,10 +100,10 @@ const markAndCheckSeenPair = (
         return true;
     }
 
-    if (seenRightNodes === undefined) {
-        seenPairs.set(left, new WeakSet([right]));
-    } else {
+    if (isDefined(seenRightNodes)) {
         seenRightNodes.add(right);
+    } else {
+        seenPairs.set(left, new WeakSet([right]));
     }
 
     return false;
