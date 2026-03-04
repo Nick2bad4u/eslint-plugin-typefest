@@ -1,8 +1,7 @@
 ---
 name: review-hacky-brittle-fixes
-description: Describe when to use this prompt
+description: "🤖🤖 Use this prompt to perform a comprehensive audit of the repository, focusing on fragile, brittle, or hacky code."
 argument-hint: Provide any trouble spots or specific areas of the codebase to focus on, if applicable.
-agent: BeastMode-[3.1]
 ---
 
 # Task: Comprehensive Repository Quality & Scalability Audit
