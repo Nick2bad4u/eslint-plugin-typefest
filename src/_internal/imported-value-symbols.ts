@@ -6,14 +6,17 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 import {
-    collectNamedImportSpecifierBindingsFromSource,
+    collectNamedImportLocalNamesByImportedNameFromSource,
     isImportDeclarationFromSource,
 } from "./import-analysis.js";
+import { createImportAwareFixes } from "./import-aware-fixes.js";
 import {
     type ImportFixIntent,
-    shouldIncludeImportInsertionForReportFix,
+    type ImportInsertionDecision,
+    resolveImportInsertionDecisionForReportFix,
 } from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { getVariableInScopeChain } from "./scope-variable.js";
 
 /**
  * Immutable mapping of imported symbol names to directly imported local
@@ -100,6 +103,7 @@ type ValueArgumentFunctionCallFixParams = Readonly<{
  * Resolved import-planning metadata reused across value-fixer factories.
  */
 type ValueReplacementPlan = Readonly<{
+    importInsertionDecision: ImportInsertionDecision;
     replacementNameAndImportFixFactory: Readonly<{
         createImportFix: (
             fixer: Readonly<TSESLint.RuleFixer>
@@ -107,8 +111,15 @@ type ValueReplacementPlan = Readonly<{
         replacementName: string;
         requiresImportInsertion: boolean;
     }>;
-    shouldIncludeImportInsertionFix: boolean;
 }>;
+
+/**
+ * Coordination decision used when import insertion is not required.
+ */
+const NO_IMPORT_INSERTION_NEEDED_DECISION: ImportInsertionDecision = {
+    allowReplacementWithoutImportInsertion: true,
+    shouldIncludeImportInsertionFix: false,
+};
 
 /**
  * Collect direct named value imports from a specific module.
@@ -121,60 +132,13 @@ type ValueReplacementPlan = Readonly<{
 export const collectDirectNamedValueImportsFromSource = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     sourceModuleName: string
-): ImportedValueAliasMap => {
-    const aliasesByImportedName = new Map<string, Set<string>>();
-
-    for (const binding of collectNamedImportSpecifierBindingsFromSource({
+): ImportedValueAliasMap =>
+    collectNamedImportLocalNamesByImportedNameFromSource({
         allowTypeImportDeclaration: false,
         allowTypeImportSpecifier: false,
         sourceCode,
         sourceModuleName,
-    })) {
-        const existing = aliasesByImportedName.get(binding.importedName);
-        if (existing === undefined) {
-            aliasesByImportedName.set(
-                binding.importedName,
-                new Set([binding.localName])
-            );
-        } else {
-            existing.add(binding.localName);
-        }
-    }
-
-    return new Map(
-        [...aliasesByImportedName.entries()].map(([importedName, aliases]) => [
-            importedName,
-            new Set(aliases),
-        ])
-    );
-};
-
-/**
- * Finds a variable binding by name starting at a scope and walking outward.
- *
- * @param scope - Initial scope for lookup.
- * @param variableName - Identifier name to resolve.
- *
- * @returns Matched variable binding from the nearest scope chain; otherwise
- *   `null`.
- */
-function getVariableInScopeChain(
-    scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
-    variableName: string
-): null | TSESLint.Scope.Variable {
-    let currentScope = scope;
-
-    while (currentScope !== null) {
-        const variable = currentScope.set.get(variableName);
-        if (variable !== undefined) {
-            return variable;
-        }
-
-        currentScope = currentScope.upper;
-    }
-
-    return null;
-}
+    });
 
 /**
  * Verify that a local identifier resolves to an import binding from the
@@ -403,52 +367,6 @@ const getSafeReplacementNameAndImportFixFactory = ({
 };
 
 /**
- * Compose replacement and optional import insertion fixes into a single fix
- * array for `context.report` callbacks.
- *
- * @param options - Replacement-fix callback, fixer instance, and optional
- *   import-fix metadata.
- *
- * @returns Combined fix array when all required fixes are available; otherwise
- *   `null`.
- */
-const createImportAwareFixes = ({
-    createReplacementFix,
-    fixer,
-    replacementNameAndImportFixFactory,
-    shouldIncludeImportInsertionFix,
-}: Readonly<{
-    createReplacementFix: (
-        fixer: Readonly<TSESLint.RuleFixer>
-    ) => TSESLint.RuleFix;
-    fixer: Readonly<TSESLint.RuleFixer>;
-    replacementNameAndImportFixFactory: Readonly<{
-        createImportFix: (
-            fixer: Readonly<TSESLint.RuleFixer>
-        ) => null | TSESLint.RuleFix;
-        requiresImportInsertion: boolean;
-    }>;
-    shouldIncludeImportInsertionFix: boolean;
-}>): null | readonly TSESLint.RuleFix[] => {
-    const replacementFix = createReplacementFix(fixer);
-
-    if (!replacementNameAndImportFixFactory.requiresImportInsertion) {
-        return [replacementFix];
-    }
-
-    if (!shouldIncludeImportInsertionFix) {
-        return [replacementFix];
-    }
-
-    const importFix = replacementNameAndImportFixFactory.createImportFix(fixer);
-    if (importFix === null) {
-        return null;
-    }
-
-    return [importFix, replacementFix];
-};
-
-/**
  * Resolve and coordinate import planning for value replacement fixers.
  */
 const createValueReplacementPlan = ({
@@ -479,20 +397,20 @@ const createValueReplacementPlan = ({
         return null;
     }
 
-    const shouldIncludeImportInsertionFix =
+    const importInsertionDecision =
         replacementNameAndImportFixFactory.requiresImportInsertion
-            ? shouldIncludeImportInsertionForReportFix({
+            ? resolveImportInsertionDecisionForReportFix({
                   importBindingKind: "value",
                   importedName,
                   referenceNode,
                   reportFixIntent,
                   sourceModuleName,
               })
-            : false;
+            : NO_IMPORT_INSERTION_NEEDED_DECISION;
 
     return {
+        importInsertionDecision,
         replacementNameAndImportFixFactory,
-        shouldIncludeImportInsertionFix,
     };
 };
 
@@ -512,6 +430,9 @@ const createReportFixFromValueReplacementPlan =
     }>): TSESLint.ReportFixFunction =>
     (fixer) =>
         createImportAwareFixes({
+            createImportFix:
+                valueReplacementPlan.replacementNameAndImportFixFactory
+                    .createImportFix,
             createReplacementFix: (replacementFixer) =>
                 createReplacementFix(
                     replacementFixer,
@@ -519,10 +440,11 @@ const createReportFixFromValueReplacementPlan =
                         .replacementName
                 ),
             fixer,
-            replacementNameAndImportFixFactory:
-                valueReplacementPlan.replacementNameAndImportFixFactory,
-            shouldIncludeImportInsertionFix:
-                valueReplacementPlan.shouldIncludeImportInsertionFix,
+            importInsertionDecision:
+                valueReplacementPlan.importInsertionDecision,
+            requiresImportInsertion:
+                valueReplacementPlan.replacementNameAndImportFixFactory
+                    .requiresImportInsertion,
         });
 
 /**

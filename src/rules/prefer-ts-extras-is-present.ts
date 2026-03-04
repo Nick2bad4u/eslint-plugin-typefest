@@ -11,23 +11,13 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
+    flattenLogicalTerms,
+    getNullishComparison as getSharedNullishComparison,
+} from "../_internal/nullish-comparison.js";
+import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
-
-/**
- * Normalized view of a nullish equality/inequality comparison.
- */
-type NullishComparison = {
-    readonly comparedExpression: TSESTree.Expression;
-    readonly kind: NullishKind;
-    readonly operator: "!=" | "!==" | "==" | "===";
-};
-
-/**
- * Nullish literal kinds that can appear in supported comparisons.
- */
-type NullishKind = "null" | "undefined";
 
 /**
  * Concrete rule context type derived from `createTypedRule`.
@@ -37,122 +27,17 @@ type RuleContext = Readonly<
 >;
 
 /**
- * Flattens chained logical expressions that use a single operator.
- *
- * @param options - Expression/operator pair used to collect linear terms.
- *
- * @returns A left-to-right list of leaf expressions that share the same logical
- *   operator.
+ * Adapter for shared nullish comparison parsing with this rule's context.
  */
-
-const flattenLogicalTerms = ({
-    expression,
-    operator,
-}: Readonly<{
-    expression: TSESTree.Expression;
-    operator: "&&" | "||";
-}>): readonly TSESTree.Expression[] => {
-    if (expression.type !== "LogicalExpression") {
-        return [expression];
-    }
-
-    if (expression.operator !== operator) {
-        return [expression];
-    }
-
-    return [
-        ...flattenLogicalTerms({
-            expression: expression.left,
-            operator,
-        }),
-        ...flattenLogicalTerms({
-            expression: expression.right,
-            operator,
-        }),
-    ];
-};
-
-/**
- * Check whether an expression is the global `undefined` identifier.
- *
- * @param context - Rule context used for global-identifier resolution.
- * @param expression - Expression node to inspect.
- *
- * @returns `true` when the expression references unshadowed global `undefined`.
- */
-const isUndefinedIdentifier = (
+const getRuleNullishComparison = (
     context: RuleContext,
     expression: Readonly<TSESTree.Expression>
-): boolean =>
-    expression.type === "Identifier" &&
-    expression.name === "undefined" &&
-    isGlobalUndefinedIdentifier(context, expression);
-
-/**
- * Converts a binary comparison against `null`/`undefined` into a normalized
- * structure.
- *
- * @param context - Rule context used to verify global `undefined` references.
- * @param expression - Binary expression candidate.
- *
- * @returns Parsed comparison data when the expression is a supported nullish
- *   comparison; otherwise `null`.
- */
-
-const getNullishComparison = (
-    context: RuleContext,
-    expression: Readonly<TSESTree.Expression>
-): null | NullishComparison => {
-    if (expression.type !== "BinaryExpression") {
-        return null;
-    }
-
-    if (
-        expression.operator !== "!=" &&
-        expression.operator !== "!==" &&
-        expression.operator !== "==" &&
-        expression.operator !== "==="
-    ) {
-        return null;
-    }
-
-    if (
-        expression.right.type === "Literal" &&
-        expression.right.value === null
-    ) {
-        return {
-            comparedExpression: expression.left,
-            kind: "null",
-            operator: expression.operator,
-        };
-    }
-
-    if (expression.left.type === "Literal" && expression.left.value === null) {
-        return {
-            comparedExpression: expression.right,
-            kind: "null",
-            operator: expression.operator,
-        };
-    }
-
-    if (isUndefinedIdentifier(context, expression.right)) {
-        return {
-            comparedExpression: expression.left,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (isUndefinedIdentifier(context, expression.left)) {
-        return {
-            comparedExpression: expression.right,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    return null;
-};
+): ReturnType<typeof getSharedNullishComparison> =>
+    getSharedNullishComparison({
+        expression,
+        isGlobalUndefinedIdentifier: (candidateExpression) =>
+            isGlobalUndefinedIdentifier(context, candidateExpression),
+    });
 
 /**
  * Checks whether two expressions are syntactically equivalent targets.
@@ -181,17 +66,17 @@ const haveSameComparedExpression = ({
 
 const isStrictPresentCheck = ({
     context,
-    node,
+    expression,
 }: Readonly<{
     context: RuleContext;
-    node: TSESTree.LogicalExpression;
+    expression: TSESTree.LogicalExpression;
 }>): boolean => {
-    if (node.operator !== "&&") {
+    if (expression.operator !== "&&") {
         return false;
     }
 
     const terms = flattenLogicalTerms({
-        expression: node,
+        expression,
         operator: "&&",
     });
 
@@ -204,8 +89,8 @@ const isStrictPresentCheck = ({
         TSESTree.Expression,
     ];
 
-    const first = getNullishComparison(context, firstTerm);
-    const second = getNullishComparison(context, secondTerm);
+    const first = getRuleNullishComparison(context, firstTerm);
+    const second = getRuleNullishComparison(context, secondTerm);
 
     if (!first || !second) {
         return false;
@@ -236,17 +121,17 @@ const isStrictPresentCheck = ({
 
 const isStrictAbsentCheck = ({
     context,
-    node,
+    expression,
 }: Readonly<{
     context: RuleContext;
-    node: TSESTree.LogicalExpression;
+    expression: TSESTree.LogicalExpression;
 }>): boolean => {
-    if (node.operator !== "||") {
+    if (expression.operator !== "||") {
         return false;
     }
 
     const terms = flattenLogicalTerms({
-        expression: node,
+        expression,
         operator: "||",
     });
 
@@ -259,8 +144,8 @@ const isStrictAbsentCheck = ({
         TSESTree.Expression,
     ];
 
-    const first = getNullishComparison(context, firstTerm);
-    const second = getNullishComparison(context, secondTerm);
+    const first = getRuleNullishComparison(context, firstTerm);
+    const second = getRuleNullishComparison(context, secondTerm);
 
     if (!first || !second) {
         return false;
@@ -300,7 +185,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const comparison = getNullishComparison(context, node);
+                    const comparison = getRuleNullishComparison(context, node);
                     if (comparison?.kind !== "null") {
                         return;
                     }
@@ -344,7 +229,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     if (
                         isStrictPresentCheck({
                             context,
-                            node,
+                            expression: node,
                         })
                     ) {
                         context.report({
@@ -357,7 +242,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     if (
                         isStrictAbsentCheck({
                             context,
-                            node,
+                            expression: node,
                         })
                     ) {
                         context.report({

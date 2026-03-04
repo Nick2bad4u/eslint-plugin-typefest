@@ -5,6 +5,20 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
 /**
+ * AST node shape that may carry a parser-populated `parent` reference.
+ */
+type NodeWithOptionalParent = Readonly<TSESTree.Node> & {
+    parent?: Readonly<TSESTree.Node>;
+};
+
+/**
+ * Determine whether a node exposes an optional `parent` property.
+ */
+const hasOptionalParentProperty = (
+    node: Readonly<TSESTree.Node>
+): node is NodeWithOptionalParent => "parent" in node;
+
+/**
  * Gets a node's parent reference when available.
  *
  * @param node - AST node whose parent should be read.
@@ -13,13 +27,8 @@ import type { TSESTree } from "@typescript-eslint/utils";
  */
 export const getParentNode = (
     node: Readonly<TSESTree.Node>
-): Readonly<TSESTree.Node> | undefined => {
-    const nodeWithParent = node as Readonly<TSESTree.Node> & {
-        parent?: Readonly<TSESTree.Node>;
-    };
-
-    return nodeWithParent.parent;
-};
+): Readonly<TSESTree.Node> | undefined =>
+    hasOptionalParentProperty(node) ? node.parent : undefined;
 
 /**
  * Walks the parent chain to locate the enclosing `Program` node.

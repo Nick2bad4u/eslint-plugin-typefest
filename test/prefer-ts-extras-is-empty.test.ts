@@ -293,7 +293,6 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
                         },
                     },
                 }),
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =
@@ -374,7 +373,6 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
                         },
                     },
                 }),
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

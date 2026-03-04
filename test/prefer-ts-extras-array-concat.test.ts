@@ -174,7 +174,6 @@ describe("prefer-ts-extras-array-concat source assertions", () => {
                     checker: {},
                     parserServices: {},
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/array-like-expression.js", () => ({

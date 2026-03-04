@@ -173,7 +173,6 @@ describe("prefer-ts-extras-array-join source assertions", () => {
                     checker: {},
                     parserServices: {},
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/array-like-expression.js", () => ({

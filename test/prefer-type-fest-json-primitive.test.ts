@@ -185,7 +185,6 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -272,7 +271,6 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

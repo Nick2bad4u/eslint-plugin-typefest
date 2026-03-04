@@ -15,9 +15,14 @@ import {
 import type { TypefestConfigReference } from "./typefest-config-references.js";
 
 import { registerProgramSettingsForContext } from "./plugin-settings.js";
-import { createReportWithoutAutofixes } from "./report-adapter.js";
+import {
+    createReportWithoutAutofixes,
+    createRuleContextWithAdaptedReport,
+} from "./report-adapter.js";
 import { createRuleDocsUrl } from "./rule-docs-url.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
+import { getVariableInScopeChain } from "./scope-variable.js";
+import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -42,58 +47,15 @@ type TypefestRuleDocs = {
 };
 
 /**
- * Resolve a variable binding by searching the current scope and all parents.
- */
-const getVariableInScopeChain = (
-    scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
-    variableName: string
-): null | TSESLint.Scope.Variable => {
-    let currentScope = scope;
-
-    while (currentScope !== null) {
-        const variable = currentScope.set.get(variableName);
-        if (variable !== undefined) {
-            return variable;
-        }
-
-        currentScope = currentScope.upper;
-    }
-
-    return null;
-};
-
-/**
- * Create a RuleContext facade that overrides only the `report` function while
- * preserving all original context behavior and own-property descriptors.
- */
-const createContextWithOverriddenReport = <
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
->(
-    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
-    report: TSESLint.RuleContext<MessageIds, Options>["report"]
-): TSESLint.RuleContext<MessageIds, Options> => {
-    const propertyDescriptors = Object.getOwnPropertyDescriptors(context);
-    const reportDescriptor = propertyDescriptors.report;
-
-    return Object.create(Object.getPrototypeOf(context), {
-        ...propertyDescriptors,
-        report: {
-            configurable: true,
-            enumerable: reportDescriptor?.enumerable ?? true,
-            value: report,
-            writable: true,
-        },
-    }) as TSESLint.RuleContext<MessageIds, Options>;
-};
-
-/**
  * Create typed rules with docs URLs that point to this repository's rule docs.
  */
-/* eslint-disable total-functions/no-hidden-type-assertions -- RuleCreator generic specialization is required so `meta.docs.recommended` is typed across all rules. */
-const baseTypedRuleCreator = ESLintUtils.RuleCreator<TypefestRuleDocs>(
-    (ruleName) => createRuleDocsUrl(ruleName)
+const baseTypedRuleCreator = ESLintUtils.RuleCreator((ruleName) =>
+    createRuleDocsUrl(ruleName)
 );
+
+type TypefestRuleCreator = ReturnType<
+    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
+>;
 
 /**
  * Rule-creator wrapper used by all plugin rules.
@@ -109,9 +71,7 @@ const baseTypedRuleCreator = ESLintUtils.RuleCreator<TypefestRuleDocs>(
  * @returns Rule module factory output that auto-registers program settings and
  *   conditionally strips autofixes.
  */
-export const createTypedRule: ReturnType<
-    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
-> = ((ruleDefinition) => {
+export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     const createdRule = baseTypedRuleCreator(ruleDefinition);
 
     return {
@@ -120,17 +80,16 @@ export const createTypedRule: ReturnType<
             const settings = registerProgramSettingsForContext(context);
 
             const effectiveContext = settings.disableAllAutofixes
-                ? createContextWithOverriddenReport(
+                ? createRuleContextWithAdaptedReport(
                       context,
-                      createReportWithoutAutofixes(context.report)
+                      createReportWithoutAutofixes
                   )
                 : context;
 
             return createdRule.create(effectiveContext);
         },
     };
-}) as ReturnType<typeof ESLintUtils.RuleCreator<TypefestRuleDocs>>;
-/* eslint-enable total-functions/no-hidden-type-assertions -- Re-enable hidden-type-assertion checks for the rest of the module. */
+};
 
 /**
  * Retrieve parser services and type checker for typed rules.
@@ -178,31 +137,21 @@ export const isTypeAssignableTo = (
     sourceType: Readonly<ts.Type>,
     targetType: Readonly<ts.Type>
 ): boolean => {
-    const checkerWithAssignable = checker as ts.TypeChecker & {
-        isTypeAssignableTo?: (
-            source: Readonly<ts.Type>,
-            target: Readonly<ts.Type>
-        ) => boolean;
-    };
+    const result = safeTypeOperation({
+        operation: () =>
+            getTypeCheckerIsTypeAssignableToResult(
+                checker,
+                sourceType,
+                targetType
+            ),
+        reason: "type-assignability-check-failed",
+    });
 
-    if (typeof checkerWithAssignable.isTypeAssignableTo === "function") {
-        const result = safeTypeOperation({
-            operation: () =>
-                checkerWithAssignable.isTypeAssignableTo(
-                    sourceType,
-                    targetType
-                ),
-            reason: "type-assignability-check-failed",
-        });
-
-        if (!result.ok) {
-            return sourceType === targetType;
-        }
-
-        return result.value;
+    if (!result.ok || typeof result.value !== "boolean") {
+        return sourceType === targetType;
     }
 
-    return sourceType === targetType;
+    return result.value;
 };
 
 /**

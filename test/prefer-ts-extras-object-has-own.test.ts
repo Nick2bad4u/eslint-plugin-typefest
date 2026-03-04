@@ -223,7 +223,6 @@ describe("prefer-ts-extras-object-has-own source assertions", () => {
                     expectedName: string
                 ): boolean =>
                     node.type === "Identifier" && node.name === expectedName,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

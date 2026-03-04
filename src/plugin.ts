@@ -180,21 +180,28 @@ function getPackageVersion(pkg: Readonly<PackageJson>): string {
 }
 
 /**
+ * Safely read a property from an unknown object value.
+ */
+const getUnknownObjectProperty = (
+    value: unknown,
+    propertyName: string
+): unknown => {
+    if (typeof value !== "object" || value === null) {
+        return undefined;
+    }
+
+    return Reflect.get(value, propertyName);
+};
+
+/**
  * Determine whether a caught `require` error represents a missing module.
  */
 const hasModuleNotFoundCode = (
     error: unknown
 ): error is Readonly<{ code: "ERR_MODULE_NOT_FOUND" | "MODULE_NOT_FOUND" }> => {
-    if (typeof error !== "object" || error === null) {
-        return false;
-    }
+    const code = getUnknownObjectProperty(error, "code");
 
-    const candidate = error as Readonly<{ code?: unknown }>;
-
-    return (
-        candidate.code === "MODULE_NOT_FOUND" ||
-        candidate.code === "ERR_MODULE_NOT_FOUND"
-    );
+    return code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND";
 };
 
 /**
@@ -205,11 +212,11 @@ const isMissingTypeScriptParserError = (error: unknown): boolean => {
         return false;
     }
 
-    const candidate = error as Readonly<{ message?: unknown }>;
+    const message = getUnknownObjectProperty(error, "message");
 
     return (
-        typeof candidate.message === "string" &&
-        candidate.message.includes("@typescript-eslint/parser")
+        typeof message === "string" &&
+        message.includes("@typescript-eslint/parser")
     );
 };
 

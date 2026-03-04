@@ -231,7 +231,6 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -378,7 +377,6 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

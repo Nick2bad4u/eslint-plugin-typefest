@@ -322,7 +322,6 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -422,7 +421,6 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

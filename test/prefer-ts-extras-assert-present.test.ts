@@ -116,7 +116,6 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =
@@ -275,7 +274,6 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
@@ -399,7 +397,6 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/normalize-expression-text.js", () => ({

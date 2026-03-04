@@ -65,7 +65,6 @@ describe("prefer-type-fest-promisable source assertions", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =
@@ -151,7 +150,6 @@ describe("prefer-type-fest-promisable internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

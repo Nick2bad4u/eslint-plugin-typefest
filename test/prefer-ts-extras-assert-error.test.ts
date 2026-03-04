@@ -420,7 +420,6 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
                 ) =>
                     identifier.type === "Identifier" &&
                     identifier.name === name,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -494,7 +493,6 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

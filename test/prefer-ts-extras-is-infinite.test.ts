@@ -116,7 +116,6 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     node: Readonly<{ name?: string; type?: string }>,
                     name: string
                 ) => node.type === "Identifier" && node.name === name,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -214,7 +213,6 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     node: Readonly<{ name?: string; type?: string }>,
                     name: string
                 ) => node.type === "Identifier" && node.name === name,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -372,7 +370,6 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     node: Readonly<{ name?: string; type?: string }>,
                     name: string
                 ) => node.type === "Identifier" && node.name === name,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

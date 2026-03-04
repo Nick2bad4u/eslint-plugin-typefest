@@ -49,8 +49,7 @@ const isRuleModuleSnapshot = (
     const defaultExport = value["default"];
 
     return (
-        isRecord(defaultExport) &&
-        typeof defaultExport["create"] === "function"
+        isRecord(defaultExport) && typeof defaultExport["create"] === "function"
     );
 };
 

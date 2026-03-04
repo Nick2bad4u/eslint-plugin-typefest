@@ -5,6 +5,14 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 /**
+ * Grouped mapping from imported symbol name to all local alias names.
+ */
+export type NamedImportLocalNamesByImportedName = ReadonlyMap<
+    string,
+    ReadonlySet<string>
+>;
+
+/**
  * Flattened named-import binding metadata.
  */
 export type NamedImportSpecifierBinding = Readonly<{
@@ -80,6 +88,57 @@ export const collectNamedImportSpecifierBindingsFromSource = ({
     }
 
     return bindings;
+};
+
+/**
+ * Collect named import local names grouped by imported symbol name.
+ */
+export const collectNamedImportLocalNamesByImportedNameFromSource = ({
+    allowTypeImportDeclaration = true,
+    allowTypeImportSpecifier = true,
+    sourceCode,
+    sourceModuleName,
+}: Readonly<{
+    allowTypeImportDeclaration?: boolean;
+    allowTypeImportSpecifier?: boolean;
+    sourceCode: Readonly<TSESLint.SourceCode>;
+    sourceModuleName?: string;
+}>): NamedImportLocalNamesByImportedName => {
+    const localNamesByImportedName = new Map<string, Set<string>>();
+
+    const bindingCollectionOptions: Parameters<
+        typeof collectNamedImportSpecifierBindingsFromSource
+    >[0] = {
+        allowTypeImportDeclaration,
+        allowTypeImportSpecifier,
+        sourceCode,
+        ...(sourceModuleName === undefined ? {} : { sourceModuleName }),
+    };
+
+    for (const binding of collectNamedImportSpecifierBindingsFromSource(
+        bindingCollectionOptions
+    )) {
+        const existingLocalNames = localNamesByImportedName.get(
+            binding.importedName
+        );
+
+        if (existingLocalNames === undefined) {
+            localNamesByImportedName.set(
+                binding.importedName,
+                new Set([binding.localName])
+            );
+
+            continue;
+        }
+
+        existingLocalNames.add(binding.localName);
+    }
+
+    return new Map(
+        [...localNamesByImportedName.entries()].map(
+            ([importedName, localNames]) => [importedName, new Set(localNames)]
+        )
+    );
 };
 
 /**

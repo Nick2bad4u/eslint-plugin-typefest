@@ -10,34 +10,13 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
+    flattenLogicalTerms,
+    getNullishComparison,
+} from "../_internal/nullish-comparison.js";
+import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
-
-/**
- * Flatten a left-associative `&&` expression tree into a linear term list.
- *
- * @param expression - Expression to inspect.
- *
- * @returns Individual conjunction terms, or a single-item array when the
- *   expression is not a logical-and chain.
- */
-const flattenLogicalAndTerms = (
-    expression: Readonly<TSESTree.Expression>
-): readonly TSESTree.Expression[] => {
-    if (expression.type !== "LogicalExpression") {
-        return [expression];
-    }
-
-    if (expression.operator !== "&&") {
-        return [expression];
-    }
-
-    return [
-        ...flattenLogicalAndTerms(expression.left),
-        ...flattenLogicalAndTerms(expression.right),
-    ];
-};
 
 /**
  * Normalized metadata for one nullish inequality comparison part.
@@ -54,42 +33,6 @@ type RuleContext = Readonly<
 >;
 
 /**
- * Narrow a node to an Identifier with an expected name.
- */
-const isIdentifierWithName = (
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
-    name: string
-): node is TSESTree.Identifier =>
-    node.type === "Identifier" && node.name === name;
-
-/**
- * Narrow a node to the `null` literal.
- */
-const isNullLiteral = (
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Literal & { value: null } =>
-    node.type === "Literal" && node.value === null;
-
-/**
- * Narrow a node to the string literal `"undefined"`.
- */
-const isUndefinedStringLiteral = (
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Literal & { value: "undefined" } =>
-    node.type === "Literal" && node.value === "undefined";
-
-/**
- * Narrow an expression to `typeof <parameterName>`.
- */
-const isTypeofParameter = (
-    node: Readonly<TSESTree.Expression>,
-    parameterName: string
-): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
-    node.type === "UnaryExpression" &&
-    node.operator === "typeof" &&
-    isIdentifierWithName(node.argument, parameterName);
-
-/**
  * Extract one nullish inequality comparison part from an expression.
  *
  * @param context - Active rule context for global-binding checks.
@@ -103,79 +46,28 @@ const extractNullishInequalityPart = (
     expression: Readonly<TSESTree.Expression>,
     parameterName: string
 ): null | NullishInequalityPart => {
-    if (expression.type !== "BinaryExpression") {
+    const comparison = getNullishComparison({
+        allowedOperators: ["!=", "!=="],
+        allowTypeofComparedIdentifierForUndefined: true,
+        comparedIdentifierName: parameterName,
+        expression,
+        isGlobalUndefinedIdentifier: (candidateExpression) =>
+            isGlobalUndefinedIdentifier(context, candidateExpression),
+    });
+
+    if (!comparison) {
         return null;
     }
 
-    if (expression.operator !== "!=" && expression.operator !== "!==") {
+    if (comparison.operator !== "!=" && comparison.operator !== "!==") {
         return null;
     }
 
-    if (isIdentifierWithName(expression.left, parameterName)) {
-        if (isNullLiteral(expression.right)) {
-            return {
-                expression: expression.left,
-                kind: "null",
-                operator: expression.operator,
-            };
-        }
-
-        if (
-            expression.right.type === "Identifier" &&
-            isGlobalUndefinedIdentifier(context, expression.right)
-        ) {
-            return {
-                expression: expression.left,
-                kind: "undefined",
-                operator: expression.operator,
-            };
-        }
-    }
-
-    if (isIdentifierWithName(expression.right, parameterName)) {
-        if (isNullLiteral(expression.left)) {
-            return {
-                expression: expression.right,
-                kind: "null",
-                operator: expression.operator,
-            };
-        }
-
-        if (
-            expression.left.type === "Identifier" &&
-            isGlobalUndefinedIdentifier(context, expression.left)
-        ) {
-            return {
-                expression: expression.right,
-                kind: "undefined",
-                operator: expression.operator,
-            };
-        }
-    }
-
-    if (
-        isTypeofParameter(expression.left, parameterName) &&
-        isUndefinedStringLiteral(expression.right)
-    ) {
-        return {
-            expression: expression.left.argument,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        isTypeofParameter(expression.right, parameterName) &&
-        isUndefinedStringLiteral(expression.left)
-    ) {
-        return {
-            expression: expression.right.argument,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    return null;
+    return {
+        expression: comparison.comparedExpression,
+        kind: comparison.kind,
+        operator: comparison.operator,
+    };
 };
 
 /**
@@ -256,7 +148,10 @@ const isNullishFilterGuardBody = (
         return callback.returnType?.typeAnnotation.type === "TSTypePredicate";
     }
 
-    const andTerms = flattenLogicalAndTerms(body);
+    const andTerms = flattenLogicalTerms({
+        expression: body,
+        operator: "&&",
+    });
     const hasNullComparison = andTerms.some((term) =>
         isNullComparison(context, term, parameterName)
     );
@@ -306,7 +201,10 @@ const isSafePresentFilterAutoFixableCallback = ({
     }
     /* v8 ignore stop */
 
-    const andTerms = flattenLogicalAndTerms(body);
+    const andTerms = flattenLogicalTerms({
+        expression: body,
+        operator: "&&",
+    });
     if (andTerms.length !== 2) {
         return false;
     }

@@ -10,6 +10,10 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
+    getTypeCheckerApparentType,
+    getTypeCheckerStringType,
+} from "../_internal/type-checker-compat.js";
+import {
     createTypedRule,
     getTypedRuleServices,
     isTypeAssignableTo,
@@ -30,12 +34,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-            const checkerWithStringHelpers = checker as ts.TypeChecker & {
-                getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
-                getStringType?: () => ts.Type;
-            };
-            const stringPrimitiveType =
-                checkerWithStringHelpers.getStringType?.();
+            const stringPrimitiveType = getTypeCheckerStringType(checker);
 
             /**
              * Determine whether a type behaves like a string, traversing
@@ -82,10 +81,10 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    const apparentType =
-                        checkerWithStringHelpers.getApparentType?.(
-                            candidateType
-                        );
+                    const apparentType = getTypeCheckerApparentType(
+                        checker,
+                        candidateType
+                    );
                     return apparentType === undefined ||
                         apparentType === candidateType
                         ? false

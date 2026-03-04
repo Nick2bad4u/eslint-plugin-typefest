@@ -154,7 +154,6 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =
@@ -275,7 +274,6 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             const authoredRuleModule =
@@ -430,7 +428,6 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                 createTypedRule: (definition: unknown): unknown => definition,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
-                isTestFilePath: (): boolean => false,
             }));
 
             const authoredRuleModule =

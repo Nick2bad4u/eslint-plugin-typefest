@@ -457,7 +457,6 @@ describe("prefer-ts-extras-as-writable internal listener guards", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -540,7 +539,6 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

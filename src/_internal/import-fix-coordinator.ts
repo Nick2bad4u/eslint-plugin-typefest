@@ -7,6 +7,9 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 
+/** Classification for coordinated import insertion keys. */
+export type ImportBindingKind = "type" | "value";
+
 /**
  * Delivery channel for a report fix callback.
  *
@@ -18,8 +21,24 @@ import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
  */
 export type ImportFixIntent = "autofix" | "suggestion";
 
-/** Internal classification for coordinated import insertion keys. */
-type ImportBindingKind = "type" | "value";
+/**
+ * Import-insertion planning decision for one report fix callback.
+ */
+export type ImportInsertionDecision = Readonly<{
+    allowReplacementWithoutImportInsertion: boolean;
+    shouldIncludeImportInsertionFix: boolean;
+}>;
+
+/**
+ * Input options used to resolve import-insertion coordination decisions.
+ */
+export type ImportInsertionDecisionOptions = Readonly<{
+    importBindingKind: ImportBindingKind;
+    importedName: string;
+    referenceNode: Readonly<TSESTree.Node>;
+    reportFixIntent: ImportFixIntent;
+    sourceModuleName: string;
+}>;
 
 /** Claimed import-insertion keys for one Program node. */
 type ProgramImportClaims = Set<string>;
@@ -45,36 +64,81 @@ const createImportCoordinationKey = ({
     `${importBindingKind}\u0000${sourceModuleName}\u0000${importedName}`;
 
 /**
- * Decide whether a report fix callback should include import insertion.
+ * Claim a coordination key for one program and return whether this call made
+ * the first claim.
+ */
+const claimImportCoordinationKeyForProgram = ({
+    coordinationKey,
+    programNode,
+}: Readonly<{
+    coordinationKey: string;
+    programNode: Readonly<TSESTree.Program>;
+}>): boolean => {
+    const existingClaims = claimedImportKeysByProgram.get(programNode);
+    if (existingClaims?.has(coordinationKey) === true) {
+        return false;
+    }
+
+    if (existingClaims === undefined) {
+        claimedImportKeysByProgram.set(programNode, new Set([coordinationKey]));
+
+        return true;
+    }
+
+    existingClaims.add(coordinationKey);
+
+    return true;
+};
+
+/**
+ * Decision when import insertion should be emitted and replacement is allowed.
+ */
+const INCLUDE_IMPORT_INSERTION: ImportInsertionDecision = {
+    allowReplacementWithoutImportInsertion: true,
+    shouldIncludeImportInsertionFix: true,
+};
+
+/**
+ * Decision when insertion is skipped but replacement remains valid.
+ */
+const SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT: ImportInsertionDecision = {
+    allowReplacementWithoutImportInsertion: true,
+    shouldIncludeImportInsertionFix: false,
+};
+
+/**
+ * Decision when replacement depends on insertion and should be suppressed.
+ */
+const SKIP_IMPORT_INSERTION_BLOCK_REPLACEMENT: ImportInsertionDecision = {
+    allowReplacementWithoutImportInsertion: false,
+    shouldIncludeImportInsertionFix: false,
+};
+
+/**
+ * Resolve import-insertion and replacement behavior for a report-fix callback.
  *
  * @remarks
  * This decision is made during fixer construction (AST traversal) to keep
  * behavior deterministic across repeated fix callback evaluation.
  */
-export const shouldIncludeImportInsertionForReportFix = ({
+export function resolveImportInsertionDecisionForReportFix({
     importBindingKind,
     importedName,
     referenceNode,
     reportFixIntent,
     sourceModuleName,
-}: Readonly<{
-    importBindingKind: ImportBindingKind;
-    importedName: string;
-    referenceNode: Readonly<TSESTree.Node>;
-    reportFixIntent: ImportFixIntent;
-    sourceModuleName: string;
-}>): boolean => {
+}: ImportInsertionDecisionOptions): ImportInsertionDecision {
     if (reportFixIntent === "suggestion") {
-        return true;
+        return INCLUDE_IMPORT_INSERTION;
     }
 
     if (isImportInsertionFixesDisabledForNode(referenceNode)) {
-        return true;
+        return SKIP_IMPORT_INSERTION_BLOCK_REPLACEMENT;
     }
 
     const programNode = getProgramNode(referenceNode);
     if (!programNode) {
-        return true;
+        return INCLUDE_IMPORT_INSERTION;
     }
 
     const coordinationKey = createImportCoordinationKey({
@@ -83,18 +147,14 @@ export const shouldIncludeImportInsertionForReportFix = ({
         sourceModuleName,
     });
 
-    const claimedImportKeys = claimedImportKeysByProgram.get(programNode);
-    if (claimedImportKeys?.has(coordinationKey) === true) {
-        return false;
+    if (
+        !claimImportCoordinationKeyForProgram({
+            coordinationKey,
+            programNode,
+        })
+    ) {
+        return SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT;
     }
 
-    if (claimedImportKeys === undefined) {
-        claimedImportKeysByProgram.set(programNode, new Set([coordinationKey]));
-
-        return true;
-    }
-
-    claimedImportKeys.add(coordinationKey);
-
-    return true;
-};
+    return INCLUDE_IMPORT_INSERTION;
+}

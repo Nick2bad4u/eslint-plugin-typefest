@@ -1346,7 +1346,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -1457,7 +1456,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -1588,7 +1586,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -1717,7 +1714,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -2289,7 +2285,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

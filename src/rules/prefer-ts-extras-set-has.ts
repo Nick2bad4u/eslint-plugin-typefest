@@ -10,6 +10,10 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
+    getTypeCheckerApparentType,
+    getTypeCheckerBaseTypes,
+} from "../_internal/type-checker-compat.js";
+import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
@@ -29,8 +33,20 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-            const checkerWithApparentType = checker as ts.TypeChecker & {
-                getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
+
+            const hasClassOrInterfaceLikeDeclaration = (
+                candidateType: Readonly<ts.Type>
+            ): boolean => {
+                const declarations = candidateType.getSymbol()?.declarations;
+                if (declarations === undefined) {
+                    return false;
+                }
+
+                return declarations.some(
+                    (declaration) =>
+                        declaration.kind === ts.SyntaxKind.ClassDeclaration ||
+                        declaration.kind === ts.SyntaxKind.InterfaceDeclaration
+                );
             };
 
             /**
@@ -67,10 +83,10 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    const apparentType =
-                        checkerWithApparentType.getApparentType?.(
-                            candidateType
-                        );
+                    const apparentType = getTypeCheckerApparentType(
+                        checker,
+                        candidateType
+                    );
                     if (
                         apparentType !== undefined &&
                         apparentType !== candidateType &&
@@ -79,23 +95,21 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    const typeDeclarations =
-                        candidateType.getSymbol()?.declarations ?? [];
-                    const isClassOrInterfaceLikeType = typeDeclarations.some(
-                        (declaration) =>
-                            declaration.kind ===
-                                ts.SyntaxKind.ClassDeclaration ||
-                            declaration.kind ===
-                                ts.SyntaxKind.InterfaceDeclaration
-                    );
-
-                    if (!isClassOrInterfaceLikeType) {
+                    if (!hasClassOrInterfaceLikeDeclaration(candidateType)) {
                         return false;
                     }
 
-                    const baseTypes = checker.getBaseTypes(
-                        candidateType as ts.InterfaceType
-                    );
+                    const baseTypesResult = safeTypeOperation({
+                        operation: () =>
+                            getTypeCheckerBaseTypes(checker, candidateType),
+                        reason: "set-has-base-type-analysis-failed",
+                    });
+
+                    if (!baseTypesResult.ok) {
+                        return false;
+                    }
+
+                    const baseTypes = baseTypesResult.value;
 
                     return (
                         baseTypes?.some((baseType) =>

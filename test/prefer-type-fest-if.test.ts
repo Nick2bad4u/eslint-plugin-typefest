@@ -248,7 +248,6 @@ describe("prefer-type-fest-if metadata", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: () => false,
             }));
 
             const undecoratedModule =
@@ -295,7 +294,6 @@ describe("prefer-type-fest-if source assertions", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =

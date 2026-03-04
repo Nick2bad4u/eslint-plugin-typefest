@@ -145,7 +145,6 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =

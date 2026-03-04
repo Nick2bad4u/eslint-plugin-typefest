@@ -281,7 +281,10 @@ describe("prefer-ts-extras-string-split source assertions", () => {
         );
 
         expect(ruleSource).toContain("isTypeAssignableTo(");
-        expect(ruleSource).toContain("getStringType?.()");
+        expect(ruleSource).toContain("getTypeCheckerStringType(checker)");
+        expect(ruleSource).toContain(
+            "const apparentType = getTypeCheckerApparentType("
+        );
         expect(ruleSource).toContain(
             'candidateType.getSymbol()?.getName() === "String"'
         );
@@ -316,7 +319,6 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                         },
                     },
                 }),
-                isTestFilePath: (): boolean => false,
             }));
 
             const undecoratedRuleModule =
@@ -426,7 +428,6 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                         },
                     },
                 }),
-                isTestFilePath: (): boolean => false,
                 isTypeAssignableTo: (): boolean => false,
             }));
 
@@ -520,7 +521,6 @@ describe("prefer-ts-extras-string-split source assertions", () => {
                         },
                     },
                 }),
-                isTestFilePath: (): boolean => false,
                 isTypeAssignableTo: (): boolean => true,
             }));
 

@@ -103,7 +103,6 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -183,7 +182,6 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -344,7 +342,6 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -468,7 +465,6 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
             }));
 
             const authoredRuleModule =

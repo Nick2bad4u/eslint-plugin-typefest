@@ -221,7 +221,6 @@ describe("prefer-type-fest-value-of source assertions", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/normalize-expression-text.js", () => ({

@@ -129,7 +129,6 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: (filePath: string) => filePath.length > 0,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -197,7 +196,6 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -273,7 +271,6 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                 ): boolean =>
                     expression.type === "Identifier" &&
                     expression.name === "undefined",
-                isTestFilePath: (): boolean => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

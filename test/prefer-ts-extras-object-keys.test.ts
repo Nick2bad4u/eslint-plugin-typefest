@@ -200,7 +200,6 @@ describe("prefer-ts-extras-object-keys internal listener guards", () => {
                 ) =>
                     expression.type === "Identifier" &&
                     expression.name === identifierName,
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

@@ -342,7 +342,6 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
                 isTypeAssignableTo: () => true,
             }));
 
@@ -438,7 +437,6 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
                 isTypeAssignableTo: () => true,
             }));
 
@@ -610,7 +608,6 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         },
                     },
                 }),
-                isTestFilePath: () => false,
                 isTypeAssignableTo: () => true,
             }));
 

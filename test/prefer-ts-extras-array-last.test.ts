@@ -271,7 +271,6 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                     checker: {},
                     parserServices: {},
                 }),
-                isTestFilePath: () => false,
             }));
 
             vi.doMock("../src/_internal/array-like-expression.js", () => ({

@@ -177,7 +177,6 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
                 createTypedRule: (definition: unknown): unknown => definition,
-                isTestFilePath: () => false,
             }));
 
             const undecoratedModule =

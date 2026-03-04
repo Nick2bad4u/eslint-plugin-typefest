@@ -6,12 +6,14 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import { getParentNode } from "./ast-node.js";
 import {
+    collectNamedImportLocalNamesByImportedNameFromSource,
     collectNamedImportSpecifierBindingsFromSource,
     collectNamespaceImportLocalNamesFromSourceModule,
 } from "./import-analysis.js";
+import { createImportAwareFixes } from "./import-aware-fixes.js";
 import {
     type ImportFixIntent,
-    shouldIncludeImportInsertionForReportFix,
+    resolveImportInsertionDecisionForReportFix,
 } from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
 
@@ -29,6 +31,20 @@ const READONLY_CONTAINER_TYPE_NAMES = new Set([
     "ReadonlyMap",
     "ReadonlySet",
 ]);
+
+/**
+ * AST node shape that may carry optional generic type parameters.
+ */
+type NodeWithOptionalTypeParameters = Readonly<TSESTree.Node> & {
+    typeParameters?: Readonly<TSESTree.TSTypeParameterDeclaration>;
+};
+
+/**
+ * Determine whether a node exposes an optional `typeParameters` property.
+ */
+const hasOptionalTypeParametersProperty = (
+    node: Readonly<TSESTree.Node>
+): node is NodeWithOptionalTypeParameters => "typeParameters" in node;
 
 /**
  * Matched imported type alias that can be replaced with a canonical name.
@@ -99,17 +115,20 @@ export const collectDirectNamedImportsFromSource = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     expectedSourceValue: string
 ): ReadonlySet<string> => {
+    const localNamesByImportedName =
+        collectNamedImportLocalNamesByImportedNameFromSource({
+            sourceCode,
+            sourceModuleName: expectedSourceValue,
+        });
+
     const namedImports = new Set<string>();
 
-    for (const binding of collectNamedImportSpecifierBindingsFromSource({
-        sourceCode,
-        sourceModuleName: expectedSourceValue,
-    })) {
-        if (binding.localName !== binding.importedName) {
+    for (const [importedName, localNames] of localNamesByImportedName) {
+        if (!localNames.has(importedName)) {
             continue;
         }
 
-        namedImports.add(binding.importedName);
+        namedImports.add(importedName);
     }
 
     return namedImports;
@@ -129,22 +148,13 @@ export const collectNamedImportLocalNamesFromSource = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     expectedSourceValue: string,
     expectedImportedName: string
-): ReadonlySet<string> => {
-    const localNames = new Set<string>();
-
-    for (const binding of collectNamedImportSpecifierBindingsFromSource({
-        sourceCode,
-        sourceModuleName: expectedSourceValue,
-    })) {
-        if (binding.importedName !== expectedImportedName) {
-            continue;
-        }
-
-        localNames.add(binding.localName);
-    }
-
-    return localNames;
-};
+): ReadonlySet<string> =>
+    new Set(
+        collectNamedImportLocalNamesByImportedNameFromSource({
+            sourceCode,
+            sourceModuleName: expectedSourceValue,
+        }).get(expectedImportedName)
+    );
 
 /**
  * Collect local identifier names for namespace imports from a selected module
@@ -205,11 +215,11 @@ const ancestorDefinesTypeParameterNamed = (
     ancestor: Readonly<TSESTree.Node>,
     parameterName: string
 ): boolean => {
-    const ancestorWithTypeParameters = ancestor as Readonly<TSESTree.Node> & {
-        typeParameters?: Readonly<TSESTree.TSTypeParameterDeclaration>;
-    };
+    if (!hasOptionalTypeParametersProperty(ancestor)) {
+        return false;
+    }
 
-    const typeParameterDeclaration = ancestorWithTypeParameters.typeParameters;
+    const typeParameterDeclaration = ancestor.typeParameters;
     if (!typeParameterDeclaration) {
         return false;
     }
@@ -278,35 +288,28 @@ const createTypeReplacementFix = ({
         return (fixer) => applyReplacement(fixer);
     }
 
-    const shouldIncludeImportInsertionFix =
-        shouldIncludeImportInsertionForReportFix({
-            importBindingKind: "type",
-            importedName: replacementName,
-            referenceNode: node,
-            reportFixIntent,
-            sourceModuleName,
-        });
+    const importInsertionDecision = resolveImportInsertionDecisionForReportFix({
+        importBindingKind: "type",
+        importedName: replacementName,
+        referenceNode: node,
+        reportFixIntent,
+        sourceModuleName,
+    });
 
-    return (fixer) => {
-        if (!shouldIncludeImportInsertionFix) {
-            return [applyReplacement(fixer)];
-        }
-
-        const importFix = getInsertionFixForMissingNamedTypeImport({
+    return (fixer) =>
+        createImportAwareFixes({
+            createImportFix: (importFixer) =>
+                getInsertionFixForMissingNamedTypeImport({
+                    fixer: importFixer,
+                    node,
+                    replacementName,
+                    sourceModuleName,
+                }),
+            createReplacementFix: applyReplacement,
             fixer,
-            node,
-            replacementName,
-            sourceModuleName,
+            importInsertionDecision,
+            requiresImportInsertion,
         });
-
-        if (!importFix) {
-            return null;
-        }
-
-        const replacementFix = applyReplacement(fixer);
-
-        return [importFix, replacementFix];
-    };
 };
 
 /**

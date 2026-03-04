@@ -7,6 +7,12 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
+import {
+    getTypeCheckerApparentType,
+    getTypeCheckerBaseConstraintType,
+    getTypeCheckerIsArrayTypeResult,
+    getTypeCheckerIsTupleTypeResult,
+} from "./type-checker-compat.js";
 
 /**
  * Shared inputs required to evaluate whether an ESTree expression is array-like
@@ -36,18 +42,6 @@ interface ArrayLikeExpressionCheckerOptions {
 }
 
 /**
- * TypeChecker shape with optional helper APIs available across TypeScript
- * versions.
- */
-type TypeCheckerWithArrayHelpers = ts.TypeChecker & {
-    getBaseConstraintOfType?: (
-        candidateType: Readonly<ts.Type>
-    ) => ts.Type | undefined;
-    isArrayType?: (candidateType: Readonly<ts.Type>) => boolean;
-    isTupleType?: (candidateType: Readonly<ts.Type>) => boolean;
-};
-
-/**
  * Determines how union member types are evaluated for array-likeness.
  */
 type UnionArrayLikeMatchMode = "every" | "some";
@@ -66,7 +60,6 @@ export const isArrayLikeType = (
     type: Readonly<ts.Type>,
     unionMatchMode: UnionArrayLikeMatchMode = "some"
 ): boolean => {
-    const typedChecker = checker as TypeCheckerWithArrayHelpers;
     const seenTypes = new Set<ts.Type>();
 
     const isArrayLikeTypeInternal = (
@@ -79,8 +72,8 @@ export const isArrayLikeType = (
         seenTypes.add(candidateType);
 
         if (
-            typedChecker.isArrayType?.(candidateType) ||
-            typedChecker.isTupleType?.(candidateType)
+            getTypeCheckerIsArrayTypeResult(checker, candidateType) === true ||
+            getTypeCheckerIsTupleTypeResult(checker, candidateType) === true
         ) {
             return true;
         }
@@ -101,8 +94,10 @@ export const isArrayLikeType = (
             );
         }
 
-        const baseConstraint =
-            typedChecker.getBaseConstraintOfType?.(candidateType);
+        const baseConstraint = getTypeCheckerBaseConstraintType(
+            checker,
+            candidateType
+        );
         if (
             baseConstraint !== undefined &&
             baseConstraint !== candidateType &&
@@ -111,8 +106,8 @@ export const isArrayLikeType = (
             return true;
         }
 
-        const apparentType = checker.getApparentType(candidateType);
-        if (apparentType !== candidateType) {
+        const apparentType = getTypeCheckerApparentType(checker, candidateType);
+        if (apparentType !== undefined && apparentType !== candidateType) {
             return isArrayLikeTypeInternal(apparentType);
         }
 
