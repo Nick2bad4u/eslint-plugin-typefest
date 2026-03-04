@@ -26,13 +26,70 @@ export const isFilterCallExpression = (
 ): expression is TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
         computed: false;
+        optional: false;
         property: TSESTree.Identifier;
     };
+    optional: false;
 } =>
+    !expression.optional &&
     expression.callee.type === "MemberExpression" &&
     !expression.callee.computed &&
+    !expression.callee.optional &&
     expression.callee.property.type === "Identifier" &&
     expression.callee.property.name === FILTER_METHOD_NAME;
+
+/**
+ * Structured match for `.filter(...)` calls with a single identifier parameter
+ * arrow callback that uses an expression body.
+ */
+export type SingleParameterExpressionArrowFilterCallbackMatch = Readonly<{
+    callback: TSESTree.ArrowFunctionExpression & {
+        body: TSESTree.Expression;
+        params: [TSESTree.Identifier];
+    };
+    parameter: TSESTree.Identifier;
+}>;
+
+/**
+ * Extract a strict callback shape from direct `.filter(...)` calls.
+ *
+ * @param expression - Candidate call expression to inspect.
+ *
+ * @returns Structured callback match when supported; otherwise `null`.
+ */
+export const getSingleParameterExpressionArrowFilterCallback = (
+    expression: Readonly<TSESTree.CallExpression>
+): null | SingleParameterExpressionArrowFilterCallbackMatch => {
+    if (!isFilterCallExpression(expression)) {
+        return null;
+    }
+
+    const [firstArgument] = expression.arguments;
+    if (firstArgument?.type !== "ArrowFunctionExpression") {
+        return null;
+    }
+
+    if (firstArgument.params.length !== 1) {
+        return null;
+    }
+
+    if (firstArgument.body.type === "BlockStatement") {
+        return null;
+    }
+
+    const [parameter] = firstArgument.params;
+    if (parameter?.type !== "Identifier") {
+        return null;
+    }
+
+    return {
+        callback: firstArgument as TSESTree.ArrowFunctionExpression & {
+            body: TSESTree.Expression;
+            params: [TSESTree.Identifier];
+        },
+        parameter,
+    };
+};
 
 /**
  * Checks whether a node appears inside a callback passed as the first argument

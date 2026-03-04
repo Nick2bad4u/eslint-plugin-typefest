@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-at`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,27 +32,12 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayAtCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayAt",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "at",
-                        node,
-                    });
-
-                    if (arrayAtCall === null) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(arrayAtCall.callee.object)) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayAt",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayAt",
                         node,
                     });

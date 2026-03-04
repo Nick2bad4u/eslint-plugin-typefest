@@ -14,6 +14,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSourceTextForNode } from "./_internal/source-text-for-node";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -118,30 +119,6 @@ const returnTypeTargetArbitrary = fc.constantFrom(
     "(value: number) => Promise<ReadonlyArray<number>>"
 );
 
-const getSourceTextForNode = ({
-    code,
-    node,
-}: Readonly<{
-    code: string;
-    node: unknown;
-}>): string => {
-    if (typeof node !== "object" || node === null || !("range" in node)) {
-        return "";
-    }
-
-    const nodeRange = (
-        node as Readonly<{
-            range?: readonly [number, number];
-        }>
-    ).range;
-
-    if (nodeRange === undefined) {
-        return "";
-    }
-
-    return code.slice(nodeRange[0], nodeRange[1]);
-};
-
 const parseAwaitedTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
@@ -191,11 +168,11 @@ describe("prefer-type-fest-async-return-type source assertions", () => {
 
         expect(ruleSource).toContain('const AWAITED_TYPE_NAME = "Awaited";');
         expect(ruleSource).toContain('const RETURN_TYPE_NAME = "ReturnType";');
+        expect(ruleSource).toContain("const getSingleTypeArgument = (");
+        expect(ruleSource).toContain("createSafeTypeNodeTextReplacementFix(");
         expect(ruleSource).toContain(
-            "if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {"
+            'name: "prefer-type-fest-async-return-type"'
         );
-        expect(ruleSource).toContain("if (returnTypeArgument === null) {");
-        expect(ruleSource).toContain("return;");
     });
 
     it("handles defensive malformed-type-argument fallback without reporting", async () => {

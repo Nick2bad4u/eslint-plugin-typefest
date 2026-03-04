@@ -9,6 +9,8 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -79,10 +81,9 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                             typeFestDirectImports
                         );
 
-                    context.report({
-                        ...(aliasReplacementFix === null
-                            ? {}
-                            : { fix: aliasReplacementFix }),
+                    reportWithOptionalFix({
+                        context,
+                        fix: aliasReplacementFix,
                         messageId: "preferPromisable",
                         node,
                     });
@@ -140,11 +141,9 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const promiseInnerText = sourceCode.getText(promiseInner);
-                    const synchronousMemberText =
-                        sourceCode.getText(synchronousMember);
-
-                    if (promiseInnerText !== synchronousMemberText) {
+                    if (
+                        !areEquivalentTypeNodes(promiseInner, synchronousMember)
+                    ) {
                         return;
                     }
 

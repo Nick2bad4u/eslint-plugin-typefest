@@ -34,17 +34,29 @@ const collectProgramImportDeclarations = (
 const getModuleSpecifierFromImportDeclarationText = (
     importDeclarationText: string
 ): null | string => {
-    const matchResult = /from\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
-        importDeclarationText
-    );
+    const fromClauseMatchResult =
+        /\bfrom\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
+            importDeclarationText
+        );
 
-    if (matchResult === null) {
-        return null;
+    const moduleSpecifierFromClause =
+        fromClauseMatchResult?.groups?.["moduleSpecifier"];
+    if (typeof moduleSpecifierFromClause === "string") {
+        return moduleSpecifierFromClause;
     }
 
-    const moduleSpecifier = matchResult.groups?.["moduleSpecifier"];
+    const sideEffectImportMatchResult =
+        /^\s*import\s+["'](?<moduleSpecifier>[^"']+)["']\s*(?:;\s*)?$/u.exec(
+            importDeclarationText
+        );
 
-    return moduleSpecifier ?? null;
+    const sideEffectModuleSpecifier =
+        sideEffectImportMatchResult?.groups?.["moduleSpecifier"];
+    if (typeof sideEffectModuleSpecifier === "string") {
+        return sideEffectModuleSpecifier;
+    }
+
+    return null;
 };
 
 /**

@@ -4,6 +4,7 @@
  * fast-check parse-safety tests in their corresponding rule test files.
  */
 
+import parser from "@typescript-eslint/parser";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -47,18 +48,178 @@ const collectRuleIdsRequiringParseSafety = (): readonly string[] => {
     );
 };
 
+type CoverageInspection = Readonly<{
+    observedCallExpressions: ReadonlySet<string>;
+}>;
+
+type CoverageMarker = Readonly<{
+    description: string;
+    matcher: (inspection: CoverageInspection) => boolean;
+}>;
+
+const getCallExpressionName = (callee: unknown): null | string => {
+    if (typeof callee !== "object" || callee === null) {
+        return null;
+    }
+
+    const calleeRecord = callee as Readonly<Record<string, unknown>>;
+
+    if (
+        calleeRecord["type"] === "Identifier" &&
+        typeof calleeRecord["name"] === "string"
+    ) {
+        return calleeRecord["name"];
+    }
+
+    if (
+        calleeRecord["type"] !== "MemberExpression" ||
+        calleeRecord["computed"] !== false
+    ) {
+        return null;
+    }
+
+    const memberObject = calleeRecord["object"];
+    const memberProperty = calleeRecord["property"];
+
+    if (
+        typeof memberObject !== "object" ||
+        memberObject === null ||
+        typeof memberProperty !== "object" ||
+        memberProperty === null
+    ) {
+        return null;
+    }
+
+    const objectRecord = memberObject as Readonly<Record<string, unknown>>;
+    const propertyRecord = memberProperty as Readonly<Record<string, unknown>>;
+
+    if (
+        objectRecord["type"] !== "Identifier" ||
+        typeof objectRecord["name"] !== "string" ||
+        propertyRecord["type"] !== "Identifier" ||
+        typeof propertyRecord["name"] !== "string"
+    ) {
+        return null;
+    }
+
+    return `${objectRecord["name"]}.${propertyRecord["name"]}`;
+};
+
+const isObjectRecord = (
+    value: unknown
+): value is Readonly<Record<string, unknown>> =>
+    typeof value === "object" && value !== null;
+
+const enqueueChildNodes = ({
+    nodeRecord,
+    nodesToVisit,
+}: Readonly<{
+    nodeRecord: Readonly<Record<string, unknown>>;
+    nodesToVisit: unknown[];
+}>): void => {
+    for (const value of Object.values(nodeRecord)) {
+        if (Array.isArray(value)) {
+            for (const arrayValue of value) {
+                nodesToVisit.push(arrayValue);
+            }
+        } else if (isObjectRecord(value)) {
+            nodesToVisit.push(value);
+        }
+    }
+};
+
+const collectObservedCallExpressionFromNode = ({
+    nodeRecord,
+    observedCallExpressions,
+}: Readonly<{
+    nodeRecord: Readonly<Record<string, unknown>>;
+    observedCallExpressions: Set<string>;
+}>): void => {
+    if (nodeRecord["type"] !== "CallExpression") {
+        return;
+    }
+
+    const callExpressionName = getCallExpressionName(nodeRecord["callee"]);
+
+    if (callExpressionName !== null) {
+        observedCallExpressions.add(callExpressionName);
+    }
+};
+
+const collectObservedCallExpressions = (
+    sourceText: string
+): ReadonlySet<string> => {
+    try {
+        const parsed = parser.parseForESLint(sourceText, {
+            ecmaVersion: "latest",
+            loc: false,
+            range: false,
+            sourceType: "module",
+        });
+
+        const observedCallExpressions = new Set<string>();
+        const nodesToVisit: unknown[] = [parsed.ast];
+
+        while (nodesToVisit.length > 0) {
+            const currentNode = nodesToVisit.pop();
+
+            if (isObjectRecord(currentNode)) {
+                collectObservedCallExpressionFromNode({
+                    nodeRecord: currentNode,
+                    observedCallExpressions,
+                });
+                enqueueChildNodes({
+                    nodeRecord: currentNode,
+                    nodesToVisit,
+                });
+            }
+        }
+
+        return observedCallExpressions;
+    } catch {
+        return new Set<string>();
+    }
+};
+
+const createCallExpressionCoverageMarker = ({
+    callExpressionName,
+    description,
+}: Readonly<{
+    callExpressionName: string;
+    description: string;
+}>): CoverageMarker => ({
+    description,
+    matcher: (inspection) =>
+        inspection.observedCallExpressions.has(callExpressionName),
+});
+
+const coverageMarkers: readonly CoverageMarker[] = [
+    createCallExpressionCoverageMarker({
+        callExpressionName: "parser.parseForESLint",
+        description: "parseForESLint call",
+    }),
+    createCallExpressionCoverageMarker({
+        callExpressionName: "fc.assert",
+        description: "fast-check assertion call (fc.assert)",
+    }),
+    createCallExpressionCoverageMarker({
+        callExpressionName: "fc.property",
+        description: "fast-check property call (fc.property)",
+    }),
+];
+
 const pushRuleIdIfMarkerMissing = ({
+    inspection,
     marker,
     missingRuleIds,
     ruleId,
-    testSource,
 }: Readonly<{
-    marker: string;
+    inspection: CoverageInspection;
+    marker: CoverageMarker;
     missingRuleIds: string[];
     ruleId: string;
-    testSource: string;
 }>): void => {
-    if (!testSource.includes(marker)) {
+    if (!marker.matcher(inspection)) {
         missingRuleIds.push(ruleId);
     }
 };
@@ -83,10 +244,9 @@ describe("fixer parse-safety coverage", () => {
         expect(ruleIds.length).toBeGreaterThan(0);
 
         const missingTestFiles: string[] = [];
-        const missingParserGuards: string[] = [];
-        const missingFastCheckAssertions: string[] = [];
-        const missingFastCheckProperties: string[] = [];
-        const missingFastCheckGuards: string[] = [];
+        const missingRuleIdsByMarkerDescription = new Map<string, string[]>(
+            coverageMarkers.map((marker) => [marker.description, []])
+        );
 
         for (const ruleId of ruleIds) {
             const ruleTestFilePath = path.join(
@@ -96,31 +256,26 @@ describe("fixer parse-safety coverage", () => {
 
             if (existsSync(ruleTestFilePath)) {
                 const testSource = readFileSync(ruleTestFilePath, "utf8");
+                const coverageInspection: CoverageInspection = {
+                    observedCallExpressions:
+                        collectObservedCallExpressions(testSource),
+                };
 
-                pushRuleIdIfMarkerMissing({
-                    marker: "parseForESLint",
-                    missingRuleIds: missingParserGuards,
-                    ruleId,
-                    testSource,
-                });
-                pushRuleIdIfMarkerMissing({
-                    marker: "fc.assert(",
-                    missingRuleIds: missingFastCheckAssertions,
-                    ruleId,
-                    testSource,
-                });
-                pushRuleIdIfMarkerMissing({
-                    marker: "fc.property(",
-                    missingRuleIds: missingFastCheckProperties,
-                    ruleId,
-                    testSource,
-                });
-                pushRuleIdIfMarkerMissing({
-                    marker: "fast-check:",
-                    missingRuleIds: missingFastCheckGuards,
-                    ruleId,
-                    testSource,
-                });
+                for (const marker of coverageMarkers) {
+                    const missingRuleIds =
+                        missingRuleIdsByMarkerDescription.get(
+                            marker.description
+                        );
+
+                    if (missingRuleIds) {
+                        pushRuleIdIfMarkerMissing({
+                            inspection: coverageInspection,
+                            marker,
+                            missingRuleIds,
+                            ruleId,
+                        });
+                    }
+                }
             } else {
                 missingTestFiles.push(ruleId);
             }
@@ -130,21 +285,14 @@ describe("fixer parse-safety coverage", () => {
             markerDescription: "rule test file",
             missingRuleIds: missingTestFiles,
         });
-        expectNoMissingRuleCoverage({
-            markerDescription: "parseForESLint marker",
-            missingRuleIds: missingParserGuards,
-        });
-        expectNoMissingRuleCoverage({
-            markerDescription: "fast-check assertion marker (fc.assert)",
-            missingRuleIds: missingFastCheckAssertions,
-        });
-        expectNoMissingRuleCoverage({
-            markerDescription: "fast-check property marker (fc.property)",
-            missingRuleIds: missingFastCheckProperties,
-        });
-        expectNoMissingRuleCoverage({
-            markerDescription: "fast-check test label marker (fast-check:)",
-            missingRuleIds: missingFastCheckGuards,
-        });
+        for (const marker of coverageMarkers) {
+            const missingRuleIds =
+                missingRuleIdsByMarkerDescription.get(marker.description) ?? [];
+
+            expectNoMissingRuleCoverage({
+                markerDescription: marker.description,
+                missingRuleIds,
+            });
+        }
     });
 });

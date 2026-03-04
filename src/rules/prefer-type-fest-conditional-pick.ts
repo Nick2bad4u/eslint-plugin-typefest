@@ -7,6 +7,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const conditionalPickAliasReplacements = {
@@ -51,14 +52,13 @@ const preferTypeFestConditionalPickRule: ReturnType<typeof createTypedRule> =
                             typeFestDirectImports
                         );
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         data: {
                             alias: importedAliasMatch.importedName,
                             replacement: importedAliasMatch.replacementName,
                         },
-                        ...(aliasReplacementFix === null
-                            ? {}
-                            : { fix: aliasReplacementFix }),
+                        fix: aliasReplacementFix,
                         messageId: "preferConditionalPick",
                         node,
                     });

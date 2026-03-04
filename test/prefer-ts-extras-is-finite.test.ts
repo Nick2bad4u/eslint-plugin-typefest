@@ -178,9 +178,10 @@ describe("prefer-ts-extras-is-finite source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
+        expect(ruleSource).toContain('importedName: "isFinite"');
         expect(ruleSource).toContain('memberName: "isFinite"');
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain('objectName: "Number"');
     });
 });
 

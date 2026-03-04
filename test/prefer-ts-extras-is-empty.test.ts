@@ -243,7 +243,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-empty", {
 });
 
 describe("prefer-ts-extras-is-empty source assertions", () => {
-    it("keeps is-empty helper guards and literals in source", () => {
+    it("keeps stable is-empty matcher and fix wiring in source", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -252,26 +252,17 @@ describe("prefer-ts-extras-is-empty source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.type === "Literal" && node.value === 0;'
-        );
-        expect(ruleSource).toContain('node.type === "MemberExpression" &&');
-        expect(ruleSource).toContain('node.property.type === "Identifier" &&');
-        expect(ruleSource).toContain('node.property.name === "length";');
+        expect(ruleSource).toContain("const isZeroLiteral = (");
+        expect(ruleSource).toContain("const isLengthMemberExpression = (");
         expect(ruleSource).toContain("createIsArrayLikeExpressionChecker({");
         expect(ruleSource).toContain('unionMatchMode: "every"');
+        expect(ruleSource).toContain("shouldSkipComparedExpression(");
         expect(ruleSource).toContain(
-            'if (node.operator !== "==" && node.operator !== "===") {'
+            "createSafeValueArgumentFunctionCallFix({"
         );
-        expect(ruleSource).toMatch(
-            /isLengthMemberExpression\(node\.left\) &&\s+isZeroLiteral\(node\.right\)/v
-        );
-        expect(ruleSource).toMatch(
-            /isLengthMemberExpression\(node\.right\) &&\s+isZeroLiteral\(node\.left\);/v
-        );
-        expect(ruleSource).toContain(
-            "if (!isLeftLengthCheck && !isRightLengthCheck) {"
-        );
+        expect(ruleSource).toContain('importedName: "isEmpty"');
+        expect(ruleSource).toContain("preferTsExtrasIsEmpty");
+        expect(ruleSource).toContain('name: "prefer-ts-extras-is-empty"');
     });
 
     it("skips reports when parser services fail during type lookup", async () => {

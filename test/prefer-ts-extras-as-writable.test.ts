@@ -412,18 +412,8 @@ describe("prefer-ts-extras-as-writable source assertions", () => {
         expect(ruleSource).toContain(
             "collectNamespaceImportLocalNamesFromSource("
         );
-        expect(ruleSource).not.toContain(
-            "for (const statement of context.sourceCode.ast.body) {"
-        );
-        expect(ruleSource).toContain(
-            'if (typeAnnotation.typeName.type !== "TSQualifiedName") {'
-        );
-        expect(ruleSource).toContain(
-            'typeAnnotation.typeName.right.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain(
-            "typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME"
-        );
+        expect(ruleSource).toContain("const isWritableTypeReference = (");
+        expect(ruleSource).toContain('name: "prefer-ts-extras-as-writable"');
     });
 
     it("preserves authored rule metadata and source-level branching", () => {

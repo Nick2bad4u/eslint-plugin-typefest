@@ -6,6 +6,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -38,10 +39,9 @@ const preferTypeFestRequiredDeepRule: ReturnType<typeof createTypedRule> =
                             typeFestDirectImports
                         );
 
-                    context.report({
-                        ...(aliasReplacementFix === null
-                            ? {}
-                            : { fix: aliasReplacementFix }),
+                    reportWithOptionalFix({
+                        context,
+                        fix: aliasReplacementFix,
                         messageId: "preferRequiredDeep",
                         node,
                     });

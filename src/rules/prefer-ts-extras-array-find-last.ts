@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-find-last`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,29 +32,12 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayFindLastCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayFindLast",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "findLast",
-                        node,
-                    });
-
-                    if (arrayFindLastCall === null) {
-                        return;
-                    }
-
-                    if (
-                        !isArrayLikeExpression(arrayFindLastCall.callee.object)
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayFindLast",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayFindLast",
                         node,
                     });

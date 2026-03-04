@@ -10,12 +10,16 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
+    reportWithOptionalFix,
+    resolveAutofixOrSuggestionOutcome,
+} from "../_internal/rule-reporting.js";
+import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
 } from "../_internal/throw-consequent.js";
+import { getSingleGlobalTypeErrorArgument } from "../_internal/throw-type-error.js";
 import {
     createTypedRule,
-    isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
 
@@ -69,26 +73,11 @@ const isCanonicalAssertPresentThrow = ({
     guardExpression: TSESTree.Expression;
     throwStatement: TSESTree.ThrowStatement;
 }>): boolean => {
-    if (
-        throwStatement.argument.type !== "NewExpression" ||
-        throwStatement.argument.callee.type !== "Identifier" ||
-        throwStatement.argument.callee.name !== "TypeError" ||
-        !isGlobalIdentifierNamed(
-            context,
-            throwStatement.argument.callee,
-            "TypeError"
-        ) ||
-        throwStatement.argument.arguments.length !== 1
-    ) {
-        return false;
-    }
-
-    const [firstArgument] = throwStatement.argument.arguments;
-    if (
-        !firstArgument ||
-        firstArgument.type === "SpreadElement" ||
-        firstArgument.type !== "TemplateLiteral"
-    ) {
+    const firstArgument = getSingleGlobalTypeErrorArgument({
+        context,
+        throwStatement,
+    });
+    if (firstArgument?.type !== "TemplateLiteral") {
         return false;
     }
 
@@ -305,34 +294,34 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    if (replacementFix === null) {
+                    const reportOutcome = resolveAutofixOrSuggestionOutcome({
+                        canAutofix,
+                        fix: replacementFix,
+                    });
+
+                    if (reportOutcome.kind === "suggestion") {
                         context.report({
                             messageId: "preferTsExtrasAssertPresent",
                             node,
+                            suggest: [
+                                {
+                                    fix: reportOutcome.fix,
+                                    messageId: "suggestTsExtrasAssertPresent",
+                                },
+                            ],
                         });
 
                         return;
                     }
 
-                    if (canAutofix) {
-                        context.report({
-                            fix: replacementFix,
-                            messageId: "preferTsExtrasAssertPresent",
-                            node,
-                        });
-
-                        return;
-                    }
-
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
+                        fix:
+                            reportOutcome.kind === "autofix"
+                                ? reportOutcome.fix
+                                : null,
                         messageId: "preferTsExtrasAssertPresent",
                         node,
-                        suggest: [
-                            {
-                                fix: replacementFix,
-                                messageId: "suggestTsExtrasAssertPresent",
-                            },
-                        ],
                     });
                 },
             };

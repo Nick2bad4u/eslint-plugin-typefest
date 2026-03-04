@@ -2,7 +2,11 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { describe, expect, it } from "vitest";
 
-import { isWithinFilterCallback } from "../../src/_internal/filter-callback";
+import {
+    getSingleParameterExpressionArrowFilterCallback,
+    isFilterCallExpression,
+    isWithinFilterCallback,
+} from "../../src/_internal/filter-callback";
 
 /** Create a minimal Program ancestor used when synthesizing callback chains. */
 const createProgramNode = (): TSESTree.Program =>
@@ -225,5 +229,142 @@ describe(isWithinFilterCallback, () => {
         } as unknown as TSESTree.Node;
 
         expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+    });
+
+    it("returns false for optional-chain filter calls", () => {
+        const optionalFilterCallNode = {
+            arguments: [],
+            callee: {
+                computed: false,
+                object: {
+                    name: "values",
+                    type: "Identifier",
+                },
+                optional: true,
+                property: {
+                    name: "filter",
+                    type: "Identifier",
+                },
+                type: "MemberExpression",
+            },
+            optional: true,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        expect(isFilterCallExpression(optionalFilterCallNode)).toBeFalsy();
+    });
+
+    it("returns false for optional member invocation filter calls", () => {
+        const optionalMemberFilterCallNode = {
+            arguments: [],
+            callee: {
+                computed: false,
+                object: {
+                    name: "values",
+                    type: "Identifier",
+                },
+                optional: true,
+                property: {
+                    name: "filter",
+                    type: "Identifier",
+                },
+                type: "MemberExpression",
+            },
+            optional: false,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        expect(
+            isFilterCallExpression(optionalMemberFilterCallNode)
+        ).toBeFalsy();
+    });
+
+    it("extracts single-parameter expression arrow callbacks", () => {
+        const callback = {
+            body: {
+                left: {
+                    name: "value",
+                    type: "Identifier",
+                },
+                operator: "!=",
+                right: {
+                    name: "undefined",
+                    type: "Identifier",
+                },
+                type: "BinaryExpression",
+            },
+            params: [
+                {
+                    name: "value",
+                    type: "Identifier",
+                },
+            ],
+            type: "ArrowFunctionExpression",
+        } as unknown as TSESTree.ArrowFunctionExpression;
+
+        const filterCallNode = {
+            arguments: [callback],
+            callee: {
+                computed: false,
+                object: {
+                    name: "values",
+                    type: "Identifier",
+                },
+                optional: false,
+                property: {
+                    name: "filter",
+                    type: "Identifier",
+                },
+                type: "MemberExpression",
+            },
+            optional: false,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        const callbackMatch =
+            getSingleParameterExpressionArrowFilterCallback(filterCallNode);
+
+        expect(callbackMatch).not.toBeNull();
+        expect(callbackMatch?.parameter.name).toBe("value");
+        expect(callbackMatch?.callback.body.type).toBe("BinaryExpression");
+    });
+
+    it("returns null for block-bodied filter arrow callbacks", () => {
+        const callback = {
+            body: {
+                body: [],
+                type: "BlockStatement",
+            },
+            params: [
+                {
+                    name: "value",
+                    type: "Identifier",
+                },
+            ],
+            type: "ArrowFunctionExpression",
+        } as unknown as TSESTree.ArrowFunctionExpression;
+
+        const filterCallNode = {
+            arguments: [callback],
+            callee: {
+                computed: false,
+                object: {
+                    name: "values",
+                    type: "Identifier",
+                },
+                optional: false,
+                property: {
+                    name: "filter",
+                    type: "Identifier",
+                },
+                type: "MemberExpression",
+            },
+            optional: false,
+            type: "CallExpression",
+        } as unknown as TSESTree.CallExpression;
+
+        expect(
+            getSingleParameterExpressionArrowFilterCallback(filterCallNode)
+        ).toBeNull();
     });
 });

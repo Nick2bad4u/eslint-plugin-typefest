@@ -55,7 +55,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-present", {
 });
 
 describe("prefer-ts-extras-assert-present source assertions", () => {
-    it("keeps assert-present guard and canonical-template checks in source", () => {
+    it("keeps stable assert-present matcher and report/fix wiring", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -64,38 +64,24 @@ describe("prefer-ts-extras-assert-present source assertions", () => {
             "utf8"
         );
 
+        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-present"');
+        expect(ruleSource).toContain("const extractPresentGuardExpression = (");
         expect(ruleSource).toContain(
-            'node.type === "Literal" && node.value === null;'
+            "const isCanonicalAssertPresentThrow = ({"
         );
-        expect(ruleSource).toContain('from "../_internal/throw-consequent.js"');
-        expect(ruleSource).toContain("isThrowOnlyConsequent(");
-        expect(ruleSource).toContain("getThrowStatementFromConsequent(");
-        expect(ruleSource).toContain(
-            'throwStatement.argument.callee.name !== "TypeError" ||'
-        );
-        expect(ruleSource).toContain(
-            "throwStatement.argument.arguments.length !== 1"
-        );
-        expect(ruleSource).toContain(
-            'firstArgument.type === "SpreadElement" ||'
-        );
-        expect(ruleSource).toContain("firstArgument.expressions.length !== 1");
-        expect(ruleSource).toContain("if (!templateExpression) {");
-        expect(ruleSource).toContain(
-            'prefixQuasi.value.cooked === "Expected a present value, got `" ||'
-        );
-        expect(ruleSource).toContain(
-            'suffixQuasi.value.cooked === "`" || suffixQuasi.value.cooked === ""'
-        );
+        expect(ruleSource).toContain("getSingleGlobalTypeErrorArgument({");
+        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
+        expect(ruleSource).toContain("reportFixIntent: canAutofix");
+        expect(ruleSource).toContain('? "autofix"');
+        expect(ruleSource).toContain(': "suggestion"');
+        expect(ruleSource).toContain("resolveAutofixOrSuggestionOutcome({");
+        expect(ruleSource).toContain("reportWithOptionalFix({");
+        expect(ruleSource).toContain("suggestTsExtrasAssertPresent");
+        expect(ruleSource).toContain("suggest: [");
         expect(ruleSource).toContain(
             "areEquivalentExpressions(templateExpression, guardExpression)"
         );
-        expect(ruleSource).toContain(
-            '(expression.operator !== "==" && expression.operator !== "===")'
-        );
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
         expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
-        expect(ruleSource).toContain('test.operator !== "||"');
         expect(ruleSource).toContain("hasSuggestions: true,");
     });
 

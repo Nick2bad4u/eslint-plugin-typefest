@@ -151,7 +151,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-json-primitive", {
 });
 
 describe("prefer-type-fest-json-primitive source assertions", () => {
-    it("keeps json-primitive helper guard clauses in source", () => {
+    it("keeps stable json-primitive matcher and fixer wiring in source", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -160,19 +160,12 @@ describe("prefer-type-fest-json-primitive source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('node.type === "TSBooleanKeyword" ||');
-        expect(ruleSource).toContain('node.type === "TSNullKeyword" ||');
-        expect(ruleSource).toContain('node.type === "TSNumberKeyword" ||');
-        expect(ruleSource).toContain('node.type === "TSStringKeyword";');
-
-        expect(ruleSource).toContain("if (node.types.length !== 4) {");
-        expect(ruleSource).toContain(
-            "if (!isJsonPrimitiveKeywordNode(typeNode)) {"
-        );
-        expect(ruleSource).toContain(
-            'if (typeNode.type === "TSStringKeyword") {'
-        );
-        expect(ruleSource).toContain("return false;");
+        expect(ruleSource).toContain("const isJsonPrimitiveKeywordNode = (");
+        expect(ruleSource).toContain("const hasJsonPrimitiveUnionShape = (");
+        expect(ruleSource).toContain('name: "prefer-type-fest-json-primitive"');
+        expect(ruleSource).toContain("createSafeTypeNodeReplacementFix(");
+        expect(ruleSource).toContain("preferJsonPrimitive");
+        expect(ruleSource).toContain('"JsonPrimitive"');
     });
 });
 

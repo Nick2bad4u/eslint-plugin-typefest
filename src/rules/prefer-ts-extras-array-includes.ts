@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-includes`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,29 +32,12 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayIncludesCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayIncludes",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "includes",
-                        node,
-                    });
-
-                    if (arrayIncludesCall === null) {
-                        return;
-                    }
-
-                    if (
-                        !isArrayLikeExpression(arrayIncludesCall.callee.object)
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayIncludes",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayIncludes",
                         node,
                     });

@@ -25,7 +25,7 @@ import { getVariableInScopeChain } from "./scope-variable.js";
  * Immutable mapping of imported symbol names to directly imported local
  * aliases.
  */
-type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
+export type ImportedValueAliasMap = ReadonlyMap<string, ReadonlySet<string>>;
 
 /**
  * Parameters for creating a safe member-expression to function-call fixer.

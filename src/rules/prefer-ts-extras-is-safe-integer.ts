@@ -1,16 +1,10 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-safe-integer`.
  */
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-safe-integer`.
@@ -28,33 +22,14 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const numberIsSafeIntegerCall = getIdentifierMemberCall({
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "isSafeInteger",
+                        imports: tsExtrasImports,
                         memberName: "isSafeInteger",
-                        node,
-                        objectName: "Number",
-                    });
-
-                    if (
-                        numberIsSafeIntegerCall === null ||
-                        !isGlobalIdentifierNamed(
-                            context,
-                            numberIsSafeIntegerCall.callee.object,
-                            "Number"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "isSafeInteger",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: numberIsSafeIntegerCall.callee,
-                        }),
                         messageId: "preferTsExtrasIsSafeInteger",
                         node,
+                        objectName: "Number",
                     });
                 },
             };

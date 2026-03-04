@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-find`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,27 +32,12 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayFindCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayFind",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "find",
-                        node,
-                    });
-
-                    if (arrayFindCall === null) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(arrayFindCall.callee.object)) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayFind",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayFind",
                         node,
                     });

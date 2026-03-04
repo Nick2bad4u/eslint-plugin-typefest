@@ -35,24 +35,28 @@ export const flattenLogicalTerms = ({
     expression: Readonly<TSESTree.Expression>;
     operator: "&&" | "||";
 }>): readonly TSESTree.Expression[] => {
-    if (expression.type !== "LogicalExpression") {
-        return [expression];
+    const flattenedTerms: TSESTree.Expression[] = [];
+    const pendingTerms: TSESTree.Expression[] = [expression];
+
+    while (pendingTerms.length > 0) {
+        const currentTerm = pendingTerms.pop();
+
+        if (!currentTerm) {
+            continue;
+        }
+
+        if (
+            currentTerm.type === "LogicalExpression" &&
+            currentTerm.operator === operator
+        ) {
+            pendingTerms.push(currentTerm.right, currentTerm.left);
+            continue;
+        }
+
+        flattenedTerms.push(currentTerm);
     }
 
-    if (expression.operator !== operator) {
-        return [expression];
-    }
-
-    return [
-        ...flattenLogicalTerms({
-            expression: expression.left,
-            operator,
-        }),
-        ...flattenLogicalTerms({
-            expression: expression.right,
-            operator,
-        }),
-    ];
+    return flattenedTerms;
 };
 
 /**

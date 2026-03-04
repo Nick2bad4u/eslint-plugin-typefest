@@ -25,6 +25,7 @@ import {
 } from "./_internal/prefer-type-fest-promisable-cases";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSourceTextForNode } from "./_internal/source-text-for-node";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -54,6 +55,7 @@ describe("prefer-type-fest-promisable source assertions", () => {
             'import type { Promisable } from "type-fest";',
             "type ShouldReportPromiseFirst = Promise<string> | string;",
             "type ShouldReportPromiseSecond = string | Promise<string>;",
+            "type ShouldReportCommentDecorated = Promise</* promise */ string> | /* sync */ string;",
             "type ShouldSkipPromisable = Promise<Promisable<string>> | Promisable<string>;",
             "type ShouldSkipNull = Promise<null> | null;",
             "type ShouldSkipUndefined = Promise<undefined> | undefined;",
@@ -83,26 +85,6 @@ describe("prefer-type-fest-promisable source assertions", () => {
                 sourceType: "module",
             });
 
-            const getNodeText = (node: unknown): string => {
-                if (
-                    typeof node !== "object" ||
-                    node === null ||
-                    !("range" in node)
-                ) {
-                    return "";
-                }
-
-                const nodeRange = (
-                    node as { range?: readonly [number, number] }
-                ).range;
-                if (!nodeRange) {
-                    return "";
-                }
-
-                const [start, end] = nodeRange;
-                return code.slice(start, end);
-            };
-
             const report = vi.fn();
 
             const listenerMap = undecoratedRuleModule.default.create({
@@ -111,7 +93,8 @@ describe("prefer-type-fest-promisable source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
-                    getText: getNodeText,
+                    getText: (node: unknown): string =>
+                        getSourceTextForNode({ code, node }),
                 },
             });
 
@@ -127,13 +110,13 @@ describe("prefer-type-fest-promisable source assertions", () => {
                 }
             }
 
-            expect(unionTypeNodes).toHaveLength(6);
+            expect(unionTypeNodes).toHaveLength(7);
 
             for (const unionTypeNode of unionTypeNodes) {
                 listenerMap.TSUnionType?.(unionTypeNode);
             }
 
-            expect(report).toHaveBeenCalledTimes(2);
+            expect(report).toHaveBeenCalledTimes(3);
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
@@ -279,16 +262,6 @@ const assertIsFixFunction: (
     if (typeof value !== "function") {
         throw new TypeError("Expected fixer to be a function");
     }
-};
-
-const getSourceTextForNode = (sourceText: string, node: unknown): string => {
-    if (!isRangeNode(node)) {
-        return "";
-    }
-
-    const [start, end] = node.range;
-
-    return sourceText.slice(start, end);
 };
 
 const parsePromisableTypeReferenceFromCode = (
@@ -460,7 +433,10 @@ const runPromisableTypeReferenceReport = (
         sourceCode: {
             ast: parsedCode.ast,
             getText(node: unknown): string {
-                return getSourceTextForNode(parsedCode.sourceText, node);
+                return getSourceTextForNode({
+                    code: parsedCode.sourceText,
+                    node,
+                });
             },
         },
     });
@@ -540,11 +516,11 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                         targetTypeReferenceNode.typeArguments?.params[0] ===
                         undefined
                             ? "unknown"
-                            : getSourceTextForNode(
-                                  sourceText,
-                                  targetTypeReferenceNode.typeArguments
-                                      .params[0]
-                              );
+                            : getSourceTextForNode({
+                                  code: sourceText,
+                                  node: targetTypeReferenceNode.typeArguments
+                                      .params[0],
+                              });
 
                     expect(fixedCode).toContain(
                         `type JobResult = Promisable<${innerTypeTextFromNode}>;`
@@ -595,11 +571,11 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                         targetTypeReferenceNode.typeArguments?.params[0] ===
                         undefined
                             ? "unknown"
-                            : getSourceTextForNode(
-                                  sourceText,
-                                  targetTypeReferenceNode.typeArguments
-                                      .params[0]
-                              );
+                            : getSourceTextForNode({
+                                  code: sourceText,
+                                  node: targetTypeReferenceNode.typeArguments
+                                      .params[0],
+                              });
 
                     expect(fixedCode).toContain(
                         'import type { Promisable } from "type-fest";'

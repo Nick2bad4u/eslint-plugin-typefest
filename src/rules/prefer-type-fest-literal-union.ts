@@ -93,50 +93,6 @@ const isLiteralMemberForFamily = (
 };
 
 /**
- * Determines whether a union is structurally replaceable with
- * `LiteralUnion<...>`.
- *
- * @param node - Union node to inspect.
- *
- * @returns `true` when all members belong to a single primitive family and the
- *   union includes at least one keyword member plus one literal member.
- */
-const hasLiteralUnionShape = (
-    node: Readonly<TSESTree.TSUnionType>
-): boolean => {
-    for (const family of literalUnionFamilies) {
-        let allMembersAreFamilyMembers = true;
-        let hasKeywordMember = false;
-        let hasLiteralMember = false;
-
-        for (const unionMember of node.types) {
-            if (isKeywordMemberForFamily(unionMember, family)) {
-                hasKeywordMember = true;
-                continue;
-            }
-
-            if (isLiteralMemberForFamily(unionMember, family)) {
-                hasLiteralMember = true;
-                continue;
-            }
-
-            allMembersAreFamilyMembers = false;
-            break;
-        }
-
-        if (
-            allMembersAreFamilyMembers &&
-            hasKeywordMember &&
-            hasLiteralMember
-        ) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
-/**
  * Resolves which primitive family a replaceable literal union belongs to.
  *
  * @param node - Union node to inspect.
@@ -230,10 +186,6 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSUnionType(node) {
-                    if (!hasLiteralUnionShape(node)) {
-                        return;
-                    }
-
                     const family = getLiteralUnionFamily(node);
 
                     if (!family) {
@@ -250,6 +202,11 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                         replacementText === null ||
                         replacementText.length === 0
                     ) {
+                        return;
+                    }
+
+                    const familyAtReportTime = getLiteralUnionFamily(node);
+                    if (familyAtReportTime !== family) {
                         return;
                     }
 

@@ -29,6 +29,30 @@ const parseExpression = (sourceText: string): TSESTree.Expression => {
     return statement.expression;
 };
 
+const createDeepLogicalExpression = (
+    depth: number,
+    operator: "&&" | "||"
+): TSESTree.Expression => {
+    let expression = {
+        name: "value_0",
+        type: AST_NODE_TYPES.Identifier,
+    } as unknown as TSESTree.Expression;
+
+    for (let index = 1; index <= depth; index += 1) {
+        expression = {
+            left: expression,
+            operator,
+            right: {
+                name: `value_${index}`,
+                type: AST_NODE_TYPES.Identifier,
+            },
+            type: AST_NODE_TYPES.LogicalExpression,
+        } as unknown as TSESTree.Expression;
+    }
+
+    return expression;
+};
+
 describe(flattenLogicalTerms, () => {
     it("flattens nested chains that use the same operator", () => {
         const expression = parseExpression(
@@ -58,6 +82,26 @@ describe(flattenLogicalTerms, () => {
 
         expect(terms).toHaveLength(2);
         expect(terms[1]?.type).toBe("LogicalExpression");
+    });
+
+    it("handles deeply nested logical chains without recursion overflow", () => {
+        const chainDepth = 15_000;
+        const expression = createDeepLogicalExpression(chainDepth, "&&");
+
+        const terms = flattenLogicalTerms({
+            expression,
+            operator: "&&",
+        });
+
+        expect(terms).toHaveLength(chainDepth + 1);
+        expect(terms[0]).toMatchObject({
+            name: "value_0",
+            type: AST_NODE_TYPES.Identifier,
+        });
+        expect(terms.at(-1)).toMatchObject({
+            name: `value_${chainDepth}`,
+            type: AST_NODE_TYPES.Identifier,
+        });
     });
 });
 

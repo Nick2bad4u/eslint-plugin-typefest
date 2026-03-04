@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-find-last-index`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,32 +32,12 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayFindLastIndexCall =
-                        getIdentifierPropertyMemberCall({
-                            memberName: "findLastIndex",
-                            node,
-                        });
-
-                    if (arrayFindLastIndexCall === null) {
-                        return;
-                    }
-
-                    if (
-                        !isArrayLikeExpression(
-                            arrayFindLastIndexCall.callee.object
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayFindLastIndex",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayFindLastIndex",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
+                        memberName: "findLastIndex",
                         messageId: "preferTsExtrasArrayFindLastIndex",
                         node,
                     });

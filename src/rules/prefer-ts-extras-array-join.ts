@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-join`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,27 +32,12 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayJoinCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayJoin",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "join",
-                        node,
-                    });
-
-                    if (arrayJoinCall === null) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(arrayJoinCall.callee.object)) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayJoin",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayJoin",
                         node,
                     });

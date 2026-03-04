@@ -87,7 +87,7 @@ describe("prefer-ts-extras-assert-defined metadata assertions", () => {
 });
 
 describe("prefer-ts-extras-assert-defined source assertions", () => {
-    it("keeps assert-defined source guard and message canonical checks", () => {
+    it("keeps stable assert-defined matcher and report/fix wiring", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -96,25 +96,18 @@ describe("prefer-ts-extras-assert-defined source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain(
-            'node.type === "Identifier" && node.name === "undefined"'
-        );
-        expect(ruleSource).toContain('from "../_internal/throw-consequent.js"');
-        expect(ruleSource).toContain("isThrowOnlyConsequent(");
-        expect(ruleSource).toContain("getThrowStatementFromConsequent(");
-        expect(ruleSource).toContain(
-            "throwStatement.argument.arguments.length !== 1"
-        );
-        expect(ruleSource).toContain(
-            'if (!firstArgument || firstArgument.type === "SpreadElement") {'
-        );
-        expect(ruleSource).toContain(
-            "context.sourceCode.getText(guardExpression)"
-        );
-        expect(ruleSource).toContain(
-            '(test.operator !== "==" && test.operator !== "===")'
-        );
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-defined"');
+        expect(ruleSource).toContain("const extractDefinedGuardExpression = (");
+        expect(ruleSource).toContain("const isCanonicalAssertDefinedThrow = (");
+        expect(ruleSource).toContain("getSingleGlobalTypeErrorArgument({");
+        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
+        expect(ruleSource).toContain("reportFixIntent: canAutofix");
+        expect(ruleSource).toContain('? "autofix"');
+        expect(ruleSource).toContain(': "suggestion"');
+        expect(ruleSource).toContain("resolveAutofixOrSuggestionOutcome({");
+        expect(ruleSource).toContain("reportWithOptionalFix({");
+        expect(ruleSource).toContain("suggestTsExtrasAssertDefined");
+        expect(ruleSource).toContain("suggest: [");
         expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
     });
 

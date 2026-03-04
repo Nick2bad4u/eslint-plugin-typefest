@@ -40,6 +40,7 @@ import {
     validFixtureName,
 } from "./_internal/prefer-ts-extras-is-equal-type-cases";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSourceTextForNode } from "./_internal/source-text-for-node";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -141,27 +142,6 @@ const buildIsEqualVariableCode = (options: {
     ];
 
     return codeLines.filter((line) => line.length > 0).join("\n");
-};
-
-const getSourceTextForNode = (options: {
-    readonly code: string;
-    readonly node: unknown;
-}): string => {
-    if (typeof options.node !== "object" || options.node === null) {
-        return "";
-    }
-
-    const maybeRange = (
-        options.node as Readonly<{
-            range?: readonly [number, number];
-        }>
-    ).range;
-
-    if (!maybeRange) {
-        return "";
-    }
-
-    return options.code.slice(maybeRange[0], maybeRange[1]);
 };
 
 const parseIsEqualDeclaratorFromCode = (
@@ -294,7 +274,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
 });
 
 describe("prefer-ts-extras-is-equal-type source assertions", () => {
-    it("keeps is-equal-type source constants and guard clauses", () => {
+    it("keeps stable is-equal-type matcher and suggestion wiring", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -303,36 +283,15 @@ describe("prefer-ts-extras-is-equal-type source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('const IS_EQUAL_TYPE_NAME = "IsEqual";');
-        expect(ruleSource).toContain(
-            'const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";'
-        );
-        expect(ruleSource).toContain(
-            'const TS_EXTRAS_PACKAGE_NAME = "ts-extras";'
-        );
-        expect(ruleSource).toContain(
-            'const TYPE_FEST_PACKAGE_NAME = "type-fest";'
-        );
+        expect(ruleSource).toContain('name: "prefer-ts-extras-is-equal-type"');
+        expect(ruleSource).toContain("const getIsEqualTypeReference = (");
         expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
         expect(ruleSource).toContain(
             "collectNamespaceImportLocalNamesFromSource("
         );
-        expect(ruleSource).not.toContain(
-            "for (const statement of context.sourceCode.ast.body) {"
-        );
-        expect(ruleSource).toContain(
-            'node.typeName.left.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain(
-            "typeFestNamespaceImportNames.has(node.typeName.left.name) &&"
-        );
-        expect(ruleSource).toContain(
-            'node.typeName.right.type === "Identifier" &&'
-        );
-        expect(ruleSource).toContain('typeof node.init.value !== "boolean"');
-        expect(ruleSource).toContain("if (!leftType || !rightType) {");
-        expect(ruleSource).toContain("typeArguments.length === 2 &&");
+        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
         expect(ruleSource).toContain("hasSuggestions: true,");
+        expect(ruleSource).toContain("suggestTsExtrasIsEqualType");
     });
 });
 

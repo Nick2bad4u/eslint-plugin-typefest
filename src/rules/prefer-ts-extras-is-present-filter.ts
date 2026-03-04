@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isFilterCallExpression } from "../_internal/filter-callback.js";
+import { getSingleParameterExpressionArrowFilterCallback } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
@@ -153,12 +153,31 @@ const isNullishFilterGuardBody = (
         expression: body,
         operator: "&&",
     });
-    const hasNullComparison = andTerms.some((term) =>
-        isNullComparison(context, term, parameterName)
-    );
-    const hasUndefinedComparison = andTerms.some((term) =>
-        isUndefinedComparison(context, term, parameterName)
-    );
+
+    let hasNullComparison = false;
+    let hasUndefinedComparison = false;
+
+    for (const term of andTerms) {
+        const comparison = extractNullishInequalityPart(
+            context,
+            term,
+            parameterName
+        );
+
+        if (comparison) {
+            if (comparison.kind === "null") {
+                hasNullComparison = true;
+            }
+
+            if (comparison.kind === "undefined") {
+                hasUndefinedComparison = true;
+            }
+
+            if (hasNullComparison && hasUndefinedComparison) {
+                return true;
+            }
+        }
+    }
 
     return hasNullComparison && hasUndefinedComparison;
 };
@@ -249,33 +268,14 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (!isFilterCallExpression(node)) {
+                    const callbackMatch =
+                        getSingleParameterExpressionArrowFilterCallback(node);
+                    if (!callbackMatch) {
                         return;
                     }
 
-                    const callback = node.arguments[0];
-
-                    if (callback?.type !== "ArrowFunctionExpression") {
-                        return;
-                    }
-
-                    if (callback.params.length !== 1) {
-                        return;
-                    }
-
-                    if (callback.body.type === "BlockStatement") {
-                        return;
-                    }
-
-                    const parameter = callback.params[0];
-                    if (parameter?.type !== "Identifier") {
-                        return;
-                    }
-
-                    const expressionCallback =
-                        callback as TSESTree.ArrowFunctionExpression & {
-                            body: TSESTree.Expression;
-                        };
+                    const { callback: expressionCallback, parameter } =
+                        callbackMatch;
 
                     if (
                         !isNullishFilterGuardBody(

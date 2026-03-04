@@ -9,6 +9,8 @@ import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 
+import { getSourceTextForNode as getSourceTextForRangeNode } from "./source-text-for-node";
+
 type GuardComparisonOrientation =
     | "guardExpressionOnLeft"
     | "guardExpressionOnRight";
@@ -194,17 +196,4 @@ export const getSourceTextForNode = ({
 }: Readonly<{
     code: string;
     node: unknown;
-}>): string => {
-    if (typeof node !== "object" || node === null || !("range" in node)) {
-        return "";
-    }
-
-    const nodeRange = (node as Readonly<{ range?: readonly [number, number] }>)
-        .range;
-
-    if (!nodeRange) {
-        return "";
-    }
-
-    return code.slice(nodeRange[0], nodeRange[1]);
-};
+}>): string => getSourceTextForRangeNode({ code, node });

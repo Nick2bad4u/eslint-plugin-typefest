@@ -5,15 +5,12 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { getGlobalIdentifierMemberCall } from "../_internal/global-identifier-member-call.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * Detects `Reflect.has(...)` calls that resolve to the global `Reflect` object.
@@ -31,21 +28,14 @@ const isReflectHasCall = ({
     context: TSESLint.RuleContext<string, Readonly<UnknownArray>>;
     node: TSESTree.CallExpression;
 }>): boolean => {
-    const reflectHasCall = getIdentifierMemberCall({
+    const reflectHasCall = getGlobalIdentifierMemberCall({
+        context,
         memberName: "has",
         node,
         objectName: "Reflect",
     });
 
-    if (reflectHasCall === null) {
-        return false;
-    }
-
-    return isGlobalIdentifierNamed(
-        context,
-        reflectHasCall.callee.object,
-        "Reflect"
-    );
+    return reflectHasCall !== null;
 };
 
 /**

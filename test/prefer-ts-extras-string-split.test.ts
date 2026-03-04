@@ -271,7 +271,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {
 });
 
 describe("prefer-ts-extras-string-split source assertions", () => {
-    it("keeps string-split string-like and member guards in source", () => {
+    it("keeps stable string-split analysis and fix wiring in source", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -294,7 +294,9 @@ describe("prefer-ts-extras-string-split source assertions", () => {
         expect(ruleSource).toContain(
             'reason: "string-split-type-analysis-failed"'
         );
-        expect(ruleSource).toContain("return;");
+        expect(ruleSource).toContain("createMethodToFunctionCallFix({");
+        expect(ruleSource).toContain('importedName: "stringSplit"');
+        expect(ruleSource).toContain("preferTsExtrasStringSplit");
     });
 
     it("handles parser-service lookup failures without reporting", async () => {

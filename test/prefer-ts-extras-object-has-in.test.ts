@@ -231,10 +231,9 @@ describe("prefer-ts-extras-object-has-in source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain("getGlobalIdentifierMemberCall(");
         expect(ruleSource).toContain('memberName: "has"');
         expect(ruleSource).toContain('objectName: "Reflect"');
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
     });
 });
 

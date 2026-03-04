@@ -182,9 +182,10 @@ describe("prefer-ts-extras-is-integer source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
+        expect(ruleSource).toContain('importedName: "isInteger"');
         expect(ruleSource).toContain('memberName: "isInteger"');
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain('objectName: "Number"');
     });
 });
 

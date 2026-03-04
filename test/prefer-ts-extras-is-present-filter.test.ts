@@ -34,6 +34,7 @@ import {
     inlineValidLogicalOrNullishGuardCode,
     inlineValidMapCallbackCode,
     inlineValidNoCallbackCode,
+    inlineValidOptionalChainFilterCode,
     inlineValidReverseNonUndefinedIdentifierComparisonCode,
     inlineValidSecondCallbackParameterCode,
     inlineValidShadowedUndefinedBindingCode,
@@ -690,6 +691,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidComputedFilterCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores computed filter property access",
+        },
+        {
+            code: inlineValidOptionalChainFilterCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores optional-chain filter calls",
         },
         {
             code: inlineValidNoCallbackCode,

@@ -1,16 +1,10 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-from-entries`.
  */
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-from-entries`.
@@ -28,33 +22,14 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const objectFromEntriesCall = getIdentifierMemberCall({
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "objectFromEntries",
+                        imports: tsExtrasImports,
                         memberName: "fromEntries",
-                        node,
-                        objectName: "Object",
-                    });
-
-                    if (
-                        objectFromEntriesCall === null ||
-                        !isGlobalIdentifierNamed(
-                            context,
-                            objectFromEntriesCall.callee.object,
-                            "Object"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "objectFromEntries",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: objectFromEntriesCall.callee,
-                        }),
                         messageId: "preferTsExtrasObjectFromEntries",
                         node,
+                        objectName: "Object",
                     });
                 },
             };

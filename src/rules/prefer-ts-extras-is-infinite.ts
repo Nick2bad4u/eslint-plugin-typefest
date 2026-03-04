@@ -37,37 +37,6 @@ type RuleContext = Readonly<
 >;
 
 /**
- * Checks whether an expression references positive or negative infinity.
- *
- * @param options - Rule context plus expression node to inspect.
- *
- * @returns `true` when the expression resolves to the global `Infinity` or a
- *   supported `Number.*_INFINITY` member reference.
- */
-const isInfinityReference = ({
-    context,
-    node,
-}: Readonly<{
-    context: RuleContext;
-    node: Readonly<TSESTree.Expression>;
-}>): boolean => {
-    if (isGlobalIdentifierNamed(context, node, "Infinity")) {
-        return true;
-    }
-
-    return (
-        node.type === "MemberExpression" &&
-        !node.computed &&
-        node.object.type === "Identifier" &&
-        node.object.name === "Number" &&
-        isGlobalIdentifierNamed(context, node.object, "Number") &&
-        node.property.type === "Identifier" &&
-        (node.property.name === "POSITIVE_INFINITY" ||
-            node.property.name === "NEGATIVE_INFINITY")
-    );
-};
-
-/**
  * Classifies an expression as positive or negative infinity.
  *
  * @param context - Rule context used to validate global `Infinity`/`Number`
@@ -215,14 +184,8 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (
-                        !isInfinityReference({
-                            context,
-                            node: node.left,
-                        }) &&
-                        !isInfinityReference({
-                            context,
-                            node: node.right,
-                        })
+                        extractInfinityKind(context, node.left) === null &&
+                        extractInfinityKind(context, node.right) === null
                     ) {
                         return;
                     }

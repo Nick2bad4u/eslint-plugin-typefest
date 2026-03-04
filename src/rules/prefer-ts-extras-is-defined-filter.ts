@@ -4,11 +4,12 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isFilterCallExpression } from "../_internal/filter-callback.js";
+import { getSingleParameterExpressionArrowFilterCallback } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { getNullishComparison } from "../_internal/nullish-comparison.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -18,103 +19,6 @@ import {
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
-
-/**
- * Normalized metadata extracted from a supported undefined inequality guard.
- */
-type UndefinedInequalityMatch = {
-    readonly comparedExpression: TSESTree.Expression;
-    readonly operator: "!=" | "!==";
-};
-
-/**
- * Narrow a node to an Identifier with an expected name.
- */
-const isIdentifierWithName = (
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
-    name: string
-): node is TSESTree.Identifier =>
-    node.type === "Identifier" && node.name === name;
-
-/**
- * Narrow a node to the string literal `"undefined"`.
- */
-const isUndefinedStringLiteral = (
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Literal & { value: "undefined" } =>
-    node.type === "Literal" && node.value === "undefined";
-
-/**
- * Narrow an expression to `typeof <parameterName>`.
- */
-const isTypeofParameter = (
-    node: Readonly<TSESTree.Expression>,
-    parameterName: string
-): node is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
-    node.type === "UnaryExpression" &&
-    node.operator === "typeof" &&
-    isIdentifierWithName(node.argument, parameterName);
-
-/**
- * Match supported undefined-inequality patterns used in `filter` callbacks.
- */
-const getUndefinedInequalityMatch = (
-    context: RuleContext,
-    body: Readonly<TSESTree.Expression>,
-    parameterName: string
-): null | UndefinedInequalityMatch => {
-    if (body.type !== "BinaryExpression") {
-        return null;
-    }
-
-    if (body.operator !== "!==" && body.operator !== "!=") {
-        return null;
-    }
-
-    if (
-        isIdentifierWithName(body.left, parameterName) &&
-        body.right.type === "Identifier" &&
-        isGlobalUndefinedIdentifier(context, body.right)
-    ) {
-        return {
-            comparedExpression: body.left,
-            operator: body.operator,
-        };
-    }
-
-    if (
-        isIdentifierWithName(body.right, parameterName) &&
-        body.left.type === "Identifier" &&
-        isGlobalUndefinedIdentifier(context, body.left)
-    ) {
-        return {
-            comparedExpression: body.right,
-            operator: body.operator,
-        };
-    }
-
-    if (
-        isTypeofParameter(body.left, parameterName) &&
-        isUndefinedStringLiteral(body.right)
-    ) {
-        return {
-            comparedExpression: body.left.argument,
-            operator: body.operator,
-        };
-    }
-
-    if (
-        isTypeofParameter(body.right, parameterName) &&
-        isUndefinedStringLiteral(body.left)
-    ) {
-        return {
-            comparedExpression: body.right.argument,
-            operator: body.operator,
-        };
-    }
-
-    return null;
-};
 
 /**
  * Check whether a callback body is a supported undefined guard expression.
@@ -129,8 +33,18 @@ const isUndefinedFilterGuardBody = (
     context: RuleContext,
     body: Readonly<TSESTree.Expression>,
     parameterName: string
-): boolean =>
-    getUndefinedInequalityMatch(context, body, parameterName) !== null;
+): boolean => {
+    const comparison = getNullishComparison({
+        allowedOperators: ["!=", "!=="],
+        allowTypeofComparedIdentifierForUndefined: true,
+        comparedIdentifierName: parameterName,
+        expression: body,
+        isGlobalUndefinedIdentifier: (candidateExpression) =>
+            isGlobalUndefinedIdentifier(context, candidateExpression),
+    });
+
+    return comparison?.kind === "undefined";
+};
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-defined-filter`.
@@ -148,28 +62,13 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (!isFilterCallExpression(node)) {
+                    const callbackMatch =
+                        getSingleParameterExpressionArrowFilterCallback(node);
+                    if (!callbackMatch) {
                         return;
                     }
 
-                    const callback = node.arguments[0];
-
-                    if (callback?.type !== "ArrowFunctionExpression") {
-                        return;
-                    }
-
-                    if (callback.params.length !== 1) {
-                        return;
-                    }
-
-                    if (callback.body.type === "BlockStatement") {
-                        return;
-                    }
-
-                    const parameter = callback.params[0];
-                    if (parameter?.type !== "Identifier") {
-                        return;
-                    }
+                    const { callback, parameter } = callbackMatch;
 
                     if (
                         !isUndefinedFilterGuardBody(

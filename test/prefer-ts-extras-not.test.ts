@@ -74,6 +74,14 @@ const inlineValidPrivateFilterMethodCode = [
     "const instance = new Store();",
     "String(instance.run().length);",
 ].join("\n");
+const inlineValidOptionalChainFilterCode = [
+    "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
+    "declare const nullableEntries: undefined | readonly (null | string)[];",
+    "",
+    "const missingEntries = nullableEntries?.filter((value) => !isPresent(value));",
+    "",
+    "String(missingEntries);",
+].join("\n");
 const inlineValidFunctionExpressionCallbackCode = [
     "declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;",
     "declare const nullableEntries: readonly (null | string)[];",
@@ -254,7 +262,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-not", {
 });
 
 describe("prefer-ts-extras-not source assertions", () => {
-    it("keeps prefer-ts-extras-not helper guards in source", () => {
+    it("keeps stable prefer-ts-extras-not matcher and fix wiring", () => {
         const ruleSource = readFileSync(
             path.resolve(process.cwd(), "src/rules/prefer-ts-extras-not.ts"),
             "utf8"
@@ -262,16 +270,12 @@ describe("prefer-ts-extras-not source assertions", () => {
 
         expect(ruleSource).toContain('from "../_internal/filter-callback.js"');
         expect(ruleSource).toContain("isFilterCallExpression(");
-        expect(ruleSource).toContain('callbackBody.operator !== "!" ||');
-        expect(ruleSource).toMatch(
-            /predicateCall\.optional \|\|\s+predicateCall\.callee\.type !== "Identifier"/v
-        );
-        expect(ruleSource).toContain(".trim();");
-        expect(ruleSource).toContain("if (predicateText.length === 0) {");
-        expect(ruleSource).toContain("!isFilterCallExpression(node) ||");
-        expect(ruleSource).toMatch(
-            /\(firstArgument\.type !== "ArrowFunctionExpression" &&\s+firstArgument\.type !== "FunctionExpression"\)/v
-        );
+        expect(ruleSource).toContain("const getNegatedPredicateCall = (");
+        expect(ruleSource).toContain("const createNotFilterCallbackFix = ({");
+        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
+        expect(ruleSource).toContain('importedName: "not"');
+        expect(ruleSource).toContain("preferTsExtrasNot");
+        expect(ruleSource).toMatch(/isFilterCallExpression\(node\)/v);
     });
 });
 
@@ -733,6 +737,11 @@ ruleTester.run("prefer-ts-extras-not", rule, {
             code: inlineValidPrivateFilterMethodCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores negated predicate inside private #filter method calls",
+        },
+        {
+            code: inlineValidOptionalChainFilterCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores optional-chain filter calls",
         },
         {
             code: inlineValidFunctionExpressionCallbackCode,

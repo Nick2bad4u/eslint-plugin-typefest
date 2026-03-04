@@ -203,6 +203,14 @@ export const inlineValidComputedFilterCode: string = [
     "String(presentValues.length);",
 ].join("\n");
 
+export const inlineValidOptionalChainFilterCode: string = [
+    "declare const values: readonly (null | string)[] | undefined;",
+    "",
+    "const presentValues = values?.filter((value) => value != null);",
+    "",
+    "String(presentValues);",
+].join("\n");
+
 export const inlineValidNoCallbackCode: string = [
     "declare const values: readonly (null | string)[];",
     "",

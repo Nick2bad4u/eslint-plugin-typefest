@@ -1,16 +1,10 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
  */
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-has-own`.
@@ -28,33 +22,14 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const objectHasOwnCall = getIdentifierMemberCall({
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "objectHasOwn",
+                        imports: tsExtrasImports,
                         memberName: "hasOwn",
-                        node,
-                        objectName: "Object",
-                    });
-
-                    if (
-                        objectHasOwnCall === null ||
-                        !isGlobalIdentifierNamed(
-                            context,
-                            objectHasOwnCall.callee.object,
-                            "Object"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "objectHasOwn",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: objectHasOwnCall.callee,
-                        }),
                         messageId: "preferTsExtrasObjectHasOwn",
                         node,
+                        objectName: "Object",
                     });
                 },
             };

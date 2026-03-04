@@ -185,9 +185,10 @@ describe("prefer-ts-extras-is-safe-integer source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
+        expect(ruleSource).toContain('importedName: "isSafeInteger"');
         expect(ruleSource).toContain('memberName: "isSafeInteger"');
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain('objectName: "Number"');
     });
 });
 

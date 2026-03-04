@@ -77,7 +77,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-infinite", {
 });
 
 describe("prefer-ts-extras-is-infinite source assertions", () => {
-    it("keeps is-infinite helper guards and comparisons in source", () => {
+    it("keeps stable is-infinite matcher and fix wiring in source", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -86,30 +86,17 @@ describe("prefer-ts-extras-is-infinite source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain('node.property.type === "Identifier" &&');
-        expect(ruleSource).toMatch(
-            /\(node\.property\.name === "POSITIVE_INFINITY" \|\|\s+node\.property\.name === "NEGATIVE_INFINITY"\)/v
+        expect(ruleSource).toContain("const extractInfinityKind = (");
+        expect(ruleSource).toContain(
+            "const extractSafeInfinityDisjunctionTarget = ("
         );
         expect(ruleSource).toContain(
-            'isGlobalIdentifierNamed(context, node, "Infinity")'
+            "createSafeValueArgumentFunctionCallFix({"
         );
-        expect(ruleSource).toContain('node.object.name !== "Number" ||');
-        expect(ruleSource).toContain('node.property.type !== "Identifier"');
-        expect(ruleSource).toContain(
-            'if (node.property.name === "NEGATIVE_INFINITY") {'
-        );
-        expect(ruleSource).toContain(
-            '(expression.operator !== "==" && expression.operator !== "===")'
-        );
-        expect(ruleSource).toContain("if (leftKind && !rightKind) {");
-        expect(ruleSource).toContain('if (node.operator !== "||") {');
-        expect(ruleSource).toContain(
-            'if (left.operator !== "===" || right.operator !== "===") {'
-        );
-        expect(ruleSource).toContain("if (left.kind === right.kind) {");
+        expect(ruleSource).toContain('importedName: "isInfinite"');
         expect(ruleSource).toContain("areEquivalentExpressions(");
-        expect(ruleSource).not.toContain("normalizeExpressionText");
-        expect(ruleSource).toContain('parent?.type === "LogicalExpression" &&');
+        expect(ruleSource).toContain("preferTsExtrasIsInfinite");
+        expect(ruleSource).toContain('name: "prefer-ts-extras-is-infinite"');
     });
 });
 

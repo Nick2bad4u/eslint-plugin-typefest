@@ -1,16 +1,10 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-finite`.
  */
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-finite`.
@@ -28,33 +22,14 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const numberIsFiniteCall = getIdentifierMemberCall({
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "isFinite",
+                        imports: tsExtrasImports,
                         memberName: "isFinite",
-                        node,
-                        objectName: "Number",
-                    });
-
-                    if (
-                        numberIsFiniteCall === null ||
-                        !isGlobalIdentifierNamed(
-                            context,
-                            numberIsFiniteCall.callee.object,
-                            "Number"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "isFinite",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: numberIsFiniteCall.callee,
-                        }),
                         messageId: "preferTsExtrasIsFinite",
                         node,
+                        objectName: "Number",
                     });
                 },
             };

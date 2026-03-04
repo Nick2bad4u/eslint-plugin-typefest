@@ -9,6 +9,8 @@ import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 
+import { getSourceTextForNode as getSourceTextForRangeNode } from "./source-text-for-node";
+
 export type ReplaceTextOnlyFixer = Readonly<{
     replaceText: (node: unknown, text: string) => unknown;
 }>;
@@ -139,39 +141,13 @@ export const buildAssertPresentGuardCode = ({
     return lines.filter((line) => line.length > 0).join("\n");
 };
 
-const isRangeNode = (
-    value: unknown
-): value is Readonly<{
-    range: readonly [number, number];
-}> => {
-    if (typeof value !== "object" || value === null || !("range" in value)) {
-        return false;
-    }
-
-    const candidateRange = value.range;
-
-    if (!Array.isArray(candidateRange) || candidateRange.length !== 2) {
-        return false;
-    }
-
-    const [start, end] = candidateRange;
-
-    return typeof start === "number" && typeof end === "number";
-};
-
 export const getSourceTextForNode = ({
     code,
     node,
 }: Readonly<{
     code: string;
     node: unknown;
-}>): string => {
-    if (!isRangeNode(node)) {
-        return "";
-    }
-
-    return code.slice(node.range[0], node.range[1]);
-};
+}>): string => getSourceTextForRangeNode({ code, node });
 
 export const parseEnsureValueIfStatementFromCode = (
     code: string

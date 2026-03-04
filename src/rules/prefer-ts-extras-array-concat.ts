@@ -3,11 +3,8 @@
  * ESLint rule implementation for `prefer-ts-extras-array-concat`.
  */
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -35,27 +32,12 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const arrayConcatCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasArrayMethodCall({
+                        context,
+                        importedName: "arrayConcat",
+                        imports: tsExtrasImports,
+                        isArrayLikeExpression,
                         memberName: "concat",
-                        node,
-                    });
-
-                    if (arrayConcatCall === null) {
-                        return;
-                    }
-
-                    if (!isArrayLikeExpression(arrayConcatCall.callee.object)) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "arrayConcat",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasArrayConcat",
                         node,
                     });

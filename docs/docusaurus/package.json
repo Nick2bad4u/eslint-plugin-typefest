@@ -77,7 +77,7 @@
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.9.2",
         "@docusaurus/tsconfig": "^3.9.2",
-        "@eslint/config-inspector": "^1.4.2",
+        "@eslint/config-inspector": "^1.5.0",
         "@mdx-js/react": "^3.1.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",

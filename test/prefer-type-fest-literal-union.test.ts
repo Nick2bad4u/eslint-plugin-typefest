@@ -83,7 +83,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-literal-union", {
 });
 
 describe("prefer-type-fest-literal-union source assertions", () => {
-    it("keeps critical literal-union guard expressions in source", () => {
+    it("keeps stable literal-union matcher and fixer wiring in source", () => {
         const ruleSource = readFileSync(
             path.resolve(
                 process.cwd(),
@@ -92,33 +92,19 @@ describe("prefer-type-fest-literal-union source assertions", () => {
             "utf8"
         );
 
-        const matchCount = (pattern: Readonly<RegExp>): number =>
-            [...ruleSource.matchAll(pattern)].length;
-
+        expect(ruleSource).toContain('name: "prefer-type-fest-literal-union"');
+        expect(ruleSource).toContain("const getLiteralUnionFamily = (");
         expect(ruleSource).toContain(
-            'if (typeof node.literal.value === "bigint")'
+            "const getLiteralUnionReplacementText = ("
         );
         expect(ruleSource).toContain(
-            'return typeof literalWithPotentialBigInt.bigint === "string";'
+            "const family = getLiteralUnionFamily(node);"
         );
-        expect(ruleSource).toContain("if (!hasLiteralUnionShape(node)) {");
-        expect(ruleSource).toContain("if (literalMembers.length === 0) {");
-        expect(ruleSource).toContain("literalMembers.length === 1");
-
-        expect(matchCount(/let hasKeywordMember = false;/gv)).toBe(2);
-        expect(matchCount(/let hasLiteralMember = false;/gv)).toBe(2);
-        expect(
-            matchCount(
-                /if \(isLiteralMemberForFamily\(unionMember, family\)\)/gv
-            )
-        ).toBe(2);
-        expect(matchCount(/allMembersAreFamilyMembers = false;/gv)).toBe(2);
-
-        expect(
-            matchCount(
-                /allMembersAreFamilyMembers\s*&&\s*hasKeywordMember\s*&&\s*hasLiteralMember/gv
-            )
-        ).toBe(2);
+        expect(ruleSource).toContain(
+            "const replacementText = getLiteralUnionReplacementText("
+        );
+        expect(ruleSource).toContain("createSafeTypeNodeTextReplacementFix(");
+        expect(ruleSource).toContain("preferLiteralUnion");
     });
 
     it("tSUnionType visitor handles bigint-literal variants and rejects cross-family unions", async () => {

@@ -9,12 +9,16 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import {
+    reportWithOptionalFix,
+    resolveAutofixOrSuggestionOutcome,
+} from "../_internal/rule-reporting.js";
+import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
 } from "../_internal/throw-consequent.js";
+import { getSingleGlobalTypeErrorArgument } from "../_internal/throw-type-error.js";
 import {
     createTypedRule,
-    isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
 
@@ -59,22 +63,11 @@ const isCanonicalAssertDefinedThrow = (
     context: RuleContext,
     throwStatement: Readonly<TSESTree.ThrowStatement>
 ): boolean => {
-    if (
-        throwStatement.argument.type !== "NewExpression" ||
-        throwStatement.argument.callee.type !== "Identifier" ||
-        throwStatement.argument.callee.name !== "TypeError" ||
-        !isGlobalIdentifierNamed(
-            context,
-            throwStatement.argument.callee,
-            "TypeError"
-        ) ||
-        throwStatement.argument.arguments.length !== 1
-    ) {
-        return false;
-    }
-
-    const [firstArgument] = throwStatement.argument.arguments;
-    if (!firstArgument || firstArgument.type === "SpreadElement") {
+    const firstArgument = getSingleGlobalTypeErrorArgument({
+        context,
+        throwStatement,
+    });
+    if (firstArgument === null) {
         return false;
     }
 
@@ -179,34 +172,34 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    if (replacementFix === null) {
+                    const reportOutcome = resolveAutofixOrSuggestionOutcome({
+                        canAutofix,
+                        fix: replacementFix,
+                    });
+
+                    if (reportOutcome.kind === "suggestion") {
                         context.report({
                             messageId: "preferTsExtrasAssertDefined",
                             node,
+                            suggest: [
+                                {
+                                    fix: reportOutcome.fix,
+                                    messageId: "suggestTsExtrasAssertDefined",
+                                },
+                            ],
                         });
 
                         return;
                     }
 
-                    if (canAutofix) {
-                        context.report({
-                            fix: replacementFix,
-                            messageId: "preferTsExtrasAssertDefined",
-                            node,
-                        });
-
-                        return;
-                    }
-
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
+                        fix:
+                            reportOutcome.kind === "autofix"
+                                ? reportOutcome.fix
+                                : null,
                         messageId: "preferTsExtrasAssertDefined",
                         node,
-                        suggest: [
-                            {
-                                fix: replacementFix,
-                                messageId: "suggestTsExtrasAssertDefined",
-                            },
-                        ],
                     });
                 },
             };

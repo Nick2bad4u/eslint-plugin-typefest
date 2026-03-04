@@ -196,9 +196,10 @@ describe("prefer-ts-extras-object-has-own source assertions", () => {
             "utf8"
         );
 
-        expect(ruleSource).toContain("getIdentifierMemberCall(");
+        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
+        expect(ruleSource).toContain('importedName: "objectHasOwn"');
         expect(ruleSource).toContain('memberName: "hasOwn"');
-        expect(ruleSource).toContain("isGlobalIdentifierNamed(");
+        expect(ruleSource).toContain('objectName: "Object"');
     });
 
     it("fast-check: objectHasOwn replacement remains parseable", async () => {

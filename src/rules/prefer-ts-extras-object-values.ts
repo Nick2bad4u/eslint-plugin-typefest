@@ -1,16 +1,10 @@
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierMemberCall } from "../_internal/member-call.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-values`.
  */
-import {
-    createTypedRule,
-    isGlobalIdentifierNamed,
-} from "../_internal/typed-rule.js";
+import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-values`.
@@ -28,33 +22,14 @@ const preferTsExtrasObjectValuesRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    const objectValuesCall = getIdentifierMemberCall({
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "objectValues",
+                        imports: tsExtrasImports,
                         memberName: "values",
-                        node,
-                        objectName: "Object",
-                    });
-
-                    if (
-                        objectValuesCall === null ||
-                        !isGlobalIdentifierNamed(
-                            context,
-                            objectValuesCall.callee.object,
-                            "Object"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "objectValues",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: objectValuesCall.callee,
-                        }),
                         messageId: "preferTsExtrasObjectValues",
                         node,
+                        objectName: "Object",
                     });
                 },
             };

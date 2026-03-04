@@ -171,6 +171,11 @@ const computedFilterValidCode = [
     'const definedValues = values["filter"]((value) => value !== undefined);',
     "String(definedValues);",
 ].join("\n");
+const optionalFilterCallValidCode = [
+    "const values: Array<number | undefined> | undefined = [1, undefined, 2];",
+    "const definedValues = values?.filter((value) => value !== undefined);",
+    "String(definedValues);",
+].join("\n");
 
 const inlineFixableCode = [
     'import { isDefined } from "ts-extras";',
@@ -724,6 +729,11 @@ ruleTester.run(ruleId, rule, {
             code: computedFilterValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores computed filter property access",
+        },
+        {
+            code: optionalFilterCallValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores optional-chain filter calls",
         },
         {
             code: shadowedUndefinedBindingValidCode,
