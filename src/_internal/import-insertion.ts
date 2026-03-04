@@ -34,10 +34,9 @@ const collectProgramImportDeclarations = (
 const getModuleSpecifierFromImportDeclarationText = (
     importDeclarationText: string
 ): null | string => {
-    const matchResult =
-        /from\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
-            importDeclarationText
-        );
+    const matchResult = /from\s+["'](?<moduleSpecifier>[^"']+)["']/u.exec(
+        importDeclarationText
+    );
 
     if (matchResult === null) {
         return null;

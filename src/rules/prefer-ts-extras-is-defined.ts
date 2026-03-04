@@ -15,7 +15,7 @@ import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
-import { createTypeScriptEslintNodeAutofixSuppressionChecker } from "../_internal/typescript-eslint-node-autofix.js";
+import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -179,8 +179,8 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 "ts-extras"
             );
-            const shouldSuppressAutofixForComparedExpression =
-                createTypeScriptEslintNodeAutofixSuppressionChecker(context);
+            const shouldSkipComparedExpression =
+                createTypeScriptEslintNodeExpressionSkipChecker(context);
 
             return {
                 BinaryExpression(node) {
@@ -193,25 +193,22 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const suppressAutofix =
-                        shouldSuppressAutofixForComparedExpression(
-                            match.comparedExpression
-                        );
+                    if (
+                        shouldSkipComparedExpression(match.comparedExpression)
+                    ) {
+                        return;
+                    }
 
                     context.report({
-                        ...(suppressAutofix
-                            ? {}
-                            : {
-                                  fix: createSafeValueArgumentFunctionCallFix({
-                                      argumentNode: match.comparedExpression,
-                                      context,
-                                      importedName: "isDefined",
-                                      imports: tsExtrasImports,
-                                      negated: match.prefersNegatedHelper,
-                                      sourceModuleName: "ts-extras",
-                                      targetNode: node,
-                                  }),
-                              }),
+                        fix: createSafeValueArgumentFunctionCallFix({
+                            argumentNode: match.comparedExpression,
+                            context,
+                            importedName: "isDefined",
+                            imports: tsExtrasImports,
+                            negated: match.prefersNegatedHelper,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        }),
                         messageId: match.prefersNegatedHelper
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined",

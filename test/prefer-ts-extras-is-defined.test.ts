@@ -594,13 +594,6 @@ ruleTester.run(ruleId, rule, {
             output: inlineFixableNegatedOutput,
         },
         {
-            code: inlineAstNodeNegatedInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsDefinedNegated" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports AST-node undefined equality without applying an autofix",
-            output: null,
-        },
-        {
             code: inlineMapCallbackInvalidCode,
             errors: [{ messageId: "preferTsExtrasIsDefined" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -672,6 +665,11 @@ ruleTester.run(ruleId, rule, {
             code: undeclaredTypeofEqualityValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores reversed typeof equality checks against undeclared identifiers",
+        },
+        {
+            code: inlineAstNodeNegatedInvalidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores AST-node undefined equality comparisons",
         },
     ],
 });

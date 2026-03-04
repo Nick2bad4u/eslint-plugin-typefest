@@ -13,7 +13,7 @@ import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
-import { createTypeScriptEslintNodeAutofixSuppressionChecker } from "../_internal/typescript-eslint-node-autofix.js";
+import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
 
 /**
  * Checks whether an expression is the numeric literal `0`.
@@ -63,8 +63,8 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                 parserServices,
                 unionMatchMode: "every",
             });
-            const shouldSuppressAutofixForComparedExpression =
-                createTypeScriptEslintNodeAutofixSuppressionChecker(context);
+            const shouldSkipComparedExpression =
+                createTypeScriptEslintNodeExpressionSkipChecker(context);
 
             return {
                 BinaryExpression(node) {
@@ -95,24 +95,19 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const suppressAutofix =
-                        shouldSuppressAutofixForComparedExpression(
-                            lengthNode.object
-                        );
+                    if (shouldSkipComparedExpression(lengthNode.object)) {
+                        return;
+                    }
 
                     context.report({
-                        ...(suppressAutofix
-                            ? {}
-                            : {
-                                  fix: createSafeValueArgumentFunctionCallFix({
-                                      argumentNode: lengthNode.object,
-                                      context,
-                                      importedName: "isEmpty",
-                                      imports: tsExtrasImports,
-                                      sourceModuleName: "ts-extras",
-                                      targetNode: node,
-                                  }),
-                              }),
+                        fix: createSafeValueArgumentFunctionCallFix({
+                            argumentNode: lengthNode.object,
+                            context,
+                            importedName: "isEmpty",
+                            imports: tsExtrasImports,
+                            sourceModuleName: "ts-extras",
+                            targetNode: node,
+                        }),
                         messageId: "preferTsExtrasIsEmpty",
                         node,
                     });

@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * Shared type-aware guardrails for suppressing risky autofixes on
+ * Shared type-aware guardrails for skipping risky rule reports/fixes on
  * `@typescript-eslint` AST-node expressions.
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
@@ -349,56 +349,36 @@ export const isTypeScriptEslintNodeType = (
 };
 
 /**
- * Build a predicate that suppresses autofixes when the compared expression is
- * typed as an `@typescript-eslint` AST node.
+ * Build a predicate that skips rule reporting/fixing when the compared
+ * expression resolves to an `@typescript-eslint` AST node.
  *
  * @param context - Rule context for typed parser services.
  *
- * @returns Expression predicate that returns `true` when autofix should be
- *   suppressed.
+ * @returns Expression predicate that returns `true` when the current rule
+ *   should skip reporting/fixing for the expression.
  */
-export const createTypeScriptEslintNodeAutofixSuppressionChecker = <
+export const createTypeScriptEslintNodeExpressionSkipChecker = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 >(
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
 ): ((expression: Readonly<TSESTree.Expression>) => boolean) => {
-    const hasTypeScriptEslintNamespaceImports =
-        getTypeScriptEslintNamespaceImportNames(context.sourceCode).size > 0;
-
     const typedServicesResult = safeTypeOperation({
         operation: () => getTypedRuleServices(context),
         reason: "ts-eslint-node-autofix-typed-services-unavailable",
     });
 
     if (!typedServicesResult.ok) {
-        return (expression) => {
-            if (
-                expression.type === "Identifier" &&
-                hasTypeScriptEslintNamespaceImports &&
-                isNodeLikeSymbolName(expression.name)
-            ) {
-                return true;
-            }
-
-            return isTypeScriptEslintNodeLikeExpressionByDefinition(
+        return (expression) =>
+            isTypeScriptEslintNodeLikeExpressionByDefinition(
                 context,
                 expression
             );
-        };
     }
 
     const { checker, parserServices } = typedServicesResult.value;
 
     return (expression) => {
-        if (
-            expression.type === "Identifier" &&
-            hasTypeScriptEslintNamespaceImports &&
-            isNodeLikeSymbolName(expression.name)
-        ) {
-            return true;
-        }
-
         const isNodeTypedExpressionResult = safeTypeOperation({
             operation: () => {
                 const tsNode =
@@ -428,3 +408,14 @@ export const createTypeScriptEslintNodeAutofixSuppressionChecker = <
         );
     };
 };
+
+/**
+ * Backward-compatible alias kept temporarily while callsites migrate.
+ */
+export const createTypeScriptEslintNodeAutofixSuppressionChecker =
+    createTypeScriptEslintNodeExpressionSkipChecker as <
+        MessageIds extends string,
+        Options extends Readonly<UnknownArray>,
+    >(
+        context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
+    ) => (expression: Readonly<TSESTree.Expression>) => boolean;

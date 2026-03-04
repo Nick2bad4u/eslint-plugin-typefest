@@ -515,13 +515,6 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             output: inlineFixableInfinityIdentifierDualSignOutput,
         },
         {
-            code: inlineAstNodeDualInfinityInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports AST-node strict dual-sign disjunction without applying an autofix",
-            output: null,
-        },
-        {
             code: inlineInvalidMixedStrictnessDualSignCode,
             errors: [
                 { messageId: "preferTsExtrasIsInfinite" },
@@ -611,6 +604,11 @@ ruleTester.run("prefer-ts-extras-is-infinite", rule, {
             code: inlineValidShadowedNumberBindingCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores Number infinity member checks when Number binding is shadowed",
+        },
+        {
+            code: inlineAstNodeDualInfinityInvalidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores AST-node strict dual-sign disjunctions",
         },
     ],
 });

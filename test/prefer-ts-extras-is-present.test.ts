@@ -3287,13 +3287,6 @@ ruleTester.run(ruleId, rule, {
             output: inlineFixableAbsentOutput,
         },
         {
-            code: inlineAstNodePresentInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsPresent" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports AST-node loose null inequality without applying an autofix",
-            output: null,
-        },
-        {
             code: inlineFixablePresentWithUnicodeAndEmojiCode,
             errors: [{ messageId: "preferTsExtrasIsPresent" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -3450,6 +3443,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidStrictPresentWithShadowedUndefinedBindingCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores strict present checks when undefined binding is shadowed",
+        },
+        {
+            code: inlineAstNodePresentInvalidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores AST-node loose null inequalities",
         },
     ],
 });
