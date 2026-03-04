@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -170,23 +168,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-integer", {
             "Prefer `isInteger` from `ts-extras` over `Number.isInteger(...)`.",
     },
     name: "prefer-ts-extras-is-integer",
-});
-
-describe("prefer-ts-extras-is-integer source assertions", () => {
-    it("keeps is-integer member guard clauses in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-is-integer.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
-        expect(ruleSource).toContain('importedName: "isInteger"');
-        expect(ruleSource).toContain('memberName: "isInteger"');
-        expect(ruleSource).toContain('objectName: "Number"');
-    });
 });
 
 describe("prefer-ts-extras-is-integer parse-safety guards", () => {

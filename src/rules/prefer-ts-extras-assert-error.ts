@@ -9,10 +9,6 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import {
-    reportWithOptionalFix,
-    resolveAutofixOrSuggestionOutcome,
-} from "../_internal/rule-reporting.js";
 import { isThrowOnlyConsequent } from "../_internal/throw-consequent.js";
 import {
     createTypedRule,
@@ -129,34 +125,24 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    const reportOutcome = resolveAutofixOrSuggestionOutcome({
-                        canAutofix: false,
-                        fix: replacementFix,
-                    });
-
-                    if (reportOutcome.kind === "suggestion") {
+                    if (replacementFix === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertError",
                             node,
-                            suggest: [
-                                {
-                                    fix: reportOutcome.fix,
-                                    messageId: "suggestTsExtrasAssertError",
-                                },
-                            ],
                         });
 
                         return;
                     }
 
-                    reportWithOptionalFix({
-                        context,
-                        fix:
-                            reportOutcome.kind === "autofix"
-                                ? reportOutcome.fix
-                                : null,
+                    context.report({
                         messageId: "preferTsExtrasAssertError",
                         node,
+                        suggest: [
+                            {
+                                fix: replacementFix,
+                                messageId: "suggestTsExtrasAssertError",
+                            },
+                        ],
                     });
                 },
             };

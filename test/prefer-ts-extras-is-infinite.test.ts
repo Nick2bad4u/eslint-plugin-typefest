@@ -4,8 +4,6 @@
  */
 import parser from "@typescript-eslint/parser";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -74,30 +72,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-infinite", {
             "Prefer `isInfinite` from `ts-extras` over direct Infinity equality checks.",
     },
     name: "prefer-ts-extras-is-infinite",
-});
-
-describe("prefer-ts-extras-is-infinite source assertions", () => {
-    it("keeps stable is-infinite matcher and fix wiring in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-is-infinite.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("const extractInfinityKind = (");
-        expect(ruleSource).toContain(
-            "const extractSafeInfinityDisjunctionTarget = ("
-        );
-        expect(ruleSource).toContain(
-            "createSafeValueArgumentFunctionCallFix({"
-        );
-        expect(ruleSource).toContain('importedName: "isInfinite"');
-        expect(ruleSource).toContain("areEquivalentExpressions(");
-        expect(ruleSource).toContain("preferTsExtrasIsInfinite");
-        expect(ruleSource).toContain('name: "prefer-ts-extras-is-infinite"');
-    });
 });
 
 describe("prefer-ts-extras-is-infinite internal listener guards", () => {

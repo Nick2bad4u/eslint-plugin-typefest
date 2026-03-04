@@ -2,13 +2,12 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-value-of`.
  */
-import type { TSESLint } from "@typescript-eslint/utils";
-
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -51,24 +50,15 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const fix: null | TSESLint.ReportFixFunction =
-                        createSafeTypeNodeTextReplacementFix(
-                            node,
-                            "ValueOf",
-                            `ValueOf<${sourceCode.getText(node.objectType)}>`,
-                            typeFestDirectImports
-                        );
+                    const fix = createSafeTypeNodeTextReplacementFix(
+                        node,
+                        "ValueOf",
+                        `ValueOf<${sourceCode.getText(node.objectType)}>`,
+                        typeFestDirectImports
+                    );
 
-                    if (fix === null) {
-                        context.report({
-                            messageId: "preferValueOf",
-                            node,
-                        });
-
-                        return;
-                    }
-
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix,
                         messageId: "preferValueOf",
                         node,

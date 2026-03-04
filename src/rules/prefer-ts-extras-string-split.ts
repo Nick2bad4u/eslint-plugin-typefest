@@ -2,20 +2,18 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-string-split`.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import { isDefined } from "ts-extras";
 
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerStringType,
 } from "../_internal/type-checker-compat.js";
+import { reportTsExtrasTypedMemberCall } from "../_internal/typed-member-call-rule.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -97,45 +95,33 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                 return isStringLikeTypeInternal(type);
             };
 
+            const isStringLikeExpression = (
+                expression: Readonly<TSESTree.Expression>
+            ): boolean => {
+                const result = safeTypeOperation({
+                    operation: () => {
+                        const tsNode =
+                            parserServices.esTreeNodeToTSNodeMap.get(
+                                expression
+                            );
+                        const objectType = checker.getTypeAtLocation(tsNode);
+
+                        return isStringLikeType(objectType);
+                    },
+                    reason: "string-split-type-analysis-failed",
+                });
+
+                return result.ok && result.value;
+            };
+
             return {
                 CallExpression(node) {
-                    const splitCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasTypedMemberCall({
+                        context,
+                        importedName: "stringSplit",
+                        imports: tsExtrasImports,
+                        isMatchingObjectExpression: isStringLikeExpression,
                         memberName: "split",
-                        node,
-                    });
-
-                    if (splitCall === null) {
-                        return;
-                    }
-
-                    const callCallee = splitCall.callee;
-
-                    const result = safeTypeOperation({
-                        operation: () => {
-                            const tsNode =
-                                parserServices.esTreeNodeToTSNodeMap.get(
-                                    callCallee.object
-                                );
-                            const objectType =
-                                checker.getTypeAtLocation(tsNode);
-
-                            return isStringLikeType(objectType);
-                        },
-                        reason: "string-split-type-analysis-failed",
-                    });
-
-                    if (!result.ok || !result.value) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "stringSplit",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasStringSplit",
                         node,
                     });

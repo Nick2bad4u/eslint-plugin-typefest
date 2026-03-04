@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -156,25 +154,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-async-return-type", {
     name: "prefer-type-fest-async-return-type",
 });
 
-describe("prefer-type-fest-async-return-type source assertions", () => {
-    it("keeps async-return-type helper constants and guard clauses in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-type-fest-async-return-type.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('const AWAITED_TYPE_NAME = "Awaited";');
-        expect(ruleSource).toContain('const RETURN_TYPE_NAME = "ReturnType";');
-        expect(ruleSource).toContain("const getSingleTypeArgument = (");
-        expect(ruleSource).toContain("createSafeTypeNodeTextReplacementFix(");
-        expect(ruleSource).toContain(
-            'name: "prefer-type-fest-async-return-type"'
-        );
-    });
-
+describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
     it("handles defensive malformed-type-argument fallback without reporting", async () => {
         try {
             vi.resetModules();

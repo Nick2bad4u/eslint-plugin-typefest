@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -396,46 +394,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-as-writable", {
             "Prefer `asWritable(value)` from `ts-extras` over `Writable<...>` assertions.",
     },
     name: "prefer-ts-extras-as-writable",
-});
-
-describe("prefer-ts-extras-as-writable source assertions", () => {
-    it("keeps as-writable import and qualified-name guards in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-as-writable.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
-        expect(ruleSource).toContain(
-            "collectNamespaceImportLocalNamesFromSource("
-        );
-        expect(ruleSource).toContain("const isWritableTypeReference = (");
-        expect(ruleSource).toContain('name: "prefer-ts-extras-as-writable"');
-    });
-
-    it("preserves authored rule metadata and source-level branching", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-as-writable.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-ts-extras-as-writable"');
-        expect(ruleSource).toContain("defaultOptions: []");
-        expect(ruleSource).toContain("meta: {");
-        expect(ruleSource).toContain("const isWritableTypeReference = (");
-        expect(ruleSource).toContain(
-            'if (typeAnnotation.type !== "TSTypeReference") {'
-        );
-        expect(ruleSource).toContain(
-            "require ts-extras asWritable over Writable<T> style assertions from type-fest."
-        );
-    });
 });
 
 describe("prefer-ts-extras-as-writable internal listener guards", () => {

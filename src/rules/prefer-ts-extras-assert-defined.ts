@@ -9,10 +9,6 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import {
-    reportWithOptionalFix,
-    resolveAutofixOrSuggestionOutcome,
-} from "../_internal/rule-reporting.js";
-import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
 } from "../_internal/throw-consequent.js";
@@ -172,34 +168,34 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    const reportOutcome = resolveAutofixOrSuggestionOutcome({
-                        canAutofix,
-                        fix: replacementFix,
-                    });
-
-                    if (reportOutcome.kind === "suggestion") {
+                    if (replacementFix === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertDefined",
                             node,
-                            suggest: [
-                                {
-                                    fix: reportOutcome.fix,
-                                    messageId: "suggestTsExtrasAssertDefined",
-                                },
-                            ],
                         });
 
                         return;
                     }
 
-                    reportWithOptionalFix({
-                        context,
-                        fix:
-                            reportOutcome.kind === "autofix"
-                                ? reportOutcome.fix
-                                : null,
+                    if (canAutofix) {
+                        context.report({
+                            fix: replacementFix,
+                            messageId: "preferTsExtrasAssertDefined",
+                            node,
+                        });
+
+                        return;
+                    }
+
+                    context.report({
                         messageId: "preferTsExtrasAssertDefined",
                         node,
+                        suggest: [
+                            {
+                                fix: replacementFix,
+                                messageId: "suggestTsExtrasAssertDefined",
+                            },
+                        ],
                     });
                 },
             };

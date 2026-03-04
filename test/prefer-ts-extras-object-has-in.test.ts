@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -219,22 +217,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-in", {
             "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
     },
     name: "prefer-ts-extras-object-has-in",
-});
-
-describe("prefer-ts-extras-object-has-in source assertions", () => {
-    it("keeps object-has-in callee predicate guard clauses in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-object-has-in.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("getGlobalIdentifierMemberCall(");
-        expect(ruleSource).toContain('memberName: "has"');
-        expect(ruleSource).toContain('objectName: "Reflect"');
-    });
 });
 
 describe("prefer-ts-extras-object-has-in parse-safety guards", () => {

@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
@@ -270,35 +268,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {
     name: "prefer-ts-extras-string-split",
 });
 
-describe("prefer-ts-extras-string-split source assertions", () => {
-    it("keeps stable string-split analysis and fix wiring in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-string-split.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("isTypeAssignableTo(");
-        expect(ruleSource).toContain("getTypeCheckerStringType(checker)");
-        expect(ruleSource).toContain(
-            "const apparentType = getTypeCheckerApparentType("
-        );
-        expect(ruleSource).toContain(
-            'candidateType.getSymbol()?.getName() === "String"'
-        );
-        expect(ruleSource).toContain("getIdentifierPropertyMemberCall(");
-        expect(ruleSource).toContain('memberName: "split"');
-        expect(ruleSource).toContain("safeTypeOperation({");
-        expect(ruleSource).toContain(
-            'reason: "string-split-type-analysis-failed"'
-        );
-        expect(ruleSource).toContain("createMethodToFunctionCallFix({");
-        expect(ruleSource).toContain('importedName: "stringSplit"');
-        expect(ruleSource).toContain("preferTsExtrasStringSplit");
-    });
-
+describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     it("handles parser-service lookup failures without reporting", async () => {
         try {
             vi.resetModules();

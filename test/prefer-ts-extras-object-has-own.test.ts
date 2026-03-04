@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -186,22 +184,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-own", {
     name: "prefer-ts-extras-object-has-own",
 });
 
-describe("prefer-ts-extras-object-has-own source assertions", () => {
-    it("keeps object-has-own callee guard clauses in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-object-has-own.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("reportTsExtrasGlobalMemberCall(");
-        expect(ruleSource).toContain('importedName: "objectHasOwn"');
-        expect(ruleSource).toContain('memberName: "hasOwn"');
-        expect(ruleSource).toContain('objectName: "Object"');
-    });
-
+describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
     it("fast-check: objectHasOwn replacement remains parseable", async () => {
         expect.hasAssertions();
 

@@ -532,10 +532,21 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                         listeners.CallExpression?.(callExpression);
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
-                            fix: null,
+
+                        const [firstReport] = reportCalls;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-is-present-filter report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasIsPresentFilter",
                         });
+                        expect("fix" in firstReport).toBeFalsy();
                         expect(
                             createSafeValueReferenceReplacementFixMock
                         ).not.toHaveBeenCalled();

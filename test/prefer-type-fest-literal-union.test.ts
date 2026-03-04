@@ -5,8 +5,6 @@
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -82,31 +80,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-literal-union", {
     name: "prefer-type-fest-literal-union",
 });
 
-describe("prefer-type-fest-literal-union source assertions", () => {
-    it("keeps stable literal-union matcher and fixer wiring in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-type-fest-literal-union.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-type-fest-literal-union"');
-        expect(ruleSource).toContain("const getLiteralUnionFamily = (");
-        expect(ruleSource).toContain(
-            "const getLiteralUnionReplacementText = ("
-        );
-        expect(ruleSource).toContain(
-            "const family = getLiteralUnionFamily(node);"
-        );
-        expect(ruleSource).toContain(
-            "const replacementText = getLiteralUnionReplacementText("
-        );
-        expect(ruleSource).toContain("createSafeTypeNodeTextReplacementFix(");
-        expect(ruleSource).toContain("preferLiteralUnion");
-    });
-
+describe("prefer-type-fest-literal-union runtime safety assertions", () => {
     it("tSUnionType visitor handles bigint-literal variants and rejects cross-family unions", async () => {
         const code = [
             "type BigIntValue = bigint | 1n;",

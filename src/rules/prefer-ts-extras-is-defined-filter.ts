@@ -10,6 +10,7 @@ import {
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { getNullishComparison } from "../_internal/nullish-comparison.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -80,7 +81,8 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createSafeValueReferenceReplacementFix({
                             context,
                             importedName: "isDefined",

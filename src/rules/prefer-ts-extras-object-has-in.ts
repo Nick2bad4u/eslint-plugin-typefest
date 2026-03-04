@@ -2,41 +2,9 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-in`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
-import { getGlobalIdentifierMemberCall } from "../_internal/global-identifier-member-call.js";
-import {
-    collectDirectNamedValueImportsFromSource,
-    createSafeValueReferenceReplacementFix,
-} from "../_internal/imported-value-symbols.js";
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-/**
- * Detects `Reflect.has(...)` calls that resolve to the global `Reflect` object.
- *
- * @param options - Rule context and call expression candidate.
- *
- * @returns `true` when the call is a non-computed `Reflect.has` invocation
- *   against the global symbol.
- */
-
-const isReflectHasCall = ({
-    context,
-    node,
-}: Readonly<{
-    context: TSESLint.RuleContext<string, Readonly<UnknownArray>>;
-    node: TSESTree.CallExpression;
-}>): boolean => {
-    const reflectHasCall = getGlobalIdentifierMemberCall({
-        context,
-        memberName: "has",
-        node,
-        objectName: "Reflect",
-    });
-
-    return reflectHasCall !== null;
-};
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-has-in`.
@@ -54,24 +22,18 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (!isReflectHasCall({ context, node })) {
-                        return;
-                    }
-
                     if (node.arguments.length < 2) {
                         return;
                     }
 
-                    context.report({
-                        fix: createSafeValueReferenceReplacementFix({
-                            context,
-                            importedName: "objectHasIn",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                            targetNode: node.callee,
-                        }),
+                    reportTsExtrasGlobalMemberCall({
+                        context,
+                        importedName: "objectHasIn",
+                        imports: tsExtrasImports,
+                        memberName: "has",
                         messageId: "preferTsExtrasObjectHasIn",
                         node,
+                        objectName: "Reflect",
                     });
                 },
             };

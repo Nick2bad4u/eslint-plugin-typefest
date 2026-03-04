@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -75,8 +76,9 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                             typeFestDirectImports
                         );
 
-                    context.report({
-                        ...(replacementFix ? { fix: replacementFix } : {}),
+                    reportWithOptionalFix({
+                        context,
+                        fix: replacementFix,
                         messageId: "preferUnknownMap",
                         node,
                     });

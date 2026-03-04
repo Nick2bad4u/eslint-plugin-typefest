@@ -103,7 +103,9 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
+                        fix: null,
                         messageId: "preferWritable",
                         node,
                     });

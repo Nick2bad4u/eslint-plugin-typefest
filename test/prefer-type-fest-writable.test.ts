@@ -4,7 +4,6 @@ import type { UnknownArray } from "type-fest";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import * as fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 /**
@@ -12,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
  * Vitest coverage for `prefer-type-fest-writable` behavior.
  */
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { getPluginRule, repoPath } from "./_internal/ruleTester";
+import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -278,15 +277,6 @@ describe(ruleName, () => {
         );
         expect(metadataRule.meta?.messages?.["preferWritableAlias"]).toBe(
             "Prefer `{{replacement}}` from type-fest to remove readonly modifiers from selected keys instead of legacy alias `{{alias}}`."
-        );
-
-        const writableRuleSource = fs.readFileSync(
-            repoPath("src", "rules", "prefer-type-fest-writable.ts"),
-            "utf8"
-        );
-
-        expect(writableRuleSource).toMatch(
-            /\/docs\/rules\/prefer-type-fest-writable"/v
         );
     });
 

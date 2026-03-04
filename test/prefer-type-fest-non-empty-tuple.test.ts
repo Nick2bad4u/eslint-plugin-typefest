@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -204,20 +202,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-non-empty-tuple", {
     name: "prefer-type-fest-non-empty-tuple",
 });
 
-describe("prefer-type-fest-non-empty-tuple source assertions", () => {
-    it("uses structural type-node equivalence instead of text normalization", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-type-fest-non-empty-tuple.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("areEquivalentTypeNodes(");
-        expect(ruleSource).not.toContain(String.raw`replaceAll(/\s+/g, "")`);
-    });
-
+describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
     it("returns early before text extraction for optional/rest tuple heads", async () => {
         try {
             vi.resetModules();

@@ -233,7 +233,7 @@ describe("typefest rule docs", () => {
         }
     });
 
-    it("rule docs keep a canonical heading schema and package documentation placement", () => {
+    it("rule docs keep a canonical heading schema and package documentation placement", async () => {
         const docsDir = path.join(process.cwd(), "docs", "rules");
 
         const ruleDocFiles = fs
@@ -247,7 +247,7 @@ describe("typefest rule docs", () => {
 
         for (const fileName of ruleDocFiles) {
             const fullPath = path.join(docsDir, fileName);
-            const markdown = fs.readFileSync(fullPath, "utf8");
+            const markdown = await fs.promises.readFile(fullPath, "utf8");
 
             expect(markdown).not.toMatch(legacyHeadingsPattern);
             expect(markdown).not.toMatch(legacyExampleHeadingLabelPattern);

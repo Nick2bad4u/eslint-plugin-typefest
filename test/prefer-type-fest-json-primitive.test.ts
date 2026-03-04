@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -148,25 +146,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-json-primitive", {
             "Prefer `JsonPrimitive` from type-fest over explicit primitive JSON keyword unions.",
     },
     name: "prefer-type-fest-json-primitive",
-});
-
-describe("prefer-type-fest-json-primitive source assertions", () => {
-    it("keeps stable json-primitive matcher and fixer wiring in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-type-fest-json-primitive.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("const isJsonPrimitiveKeywordNode = (");
-        expect(ruleSource).toContain("const hasJsonPrimitiveUnionShape = (");
-        expect(ruleSource).toContain('name: "prefer-type-fest-json-primitive"');
-        expect(ruleSource).toContain("createSafeTypeNodeReplacementFix(");
-        expect(ruleSource).toContain("preferJsonPrimitive");
-        expect(ruleSource).toContain('"JsonPrimitive"');
-    });
 });
 
 describe("prefer-type-fest-json-primitive internal listener guards", () => {

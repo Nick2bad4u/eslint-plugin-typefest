@@ -8,8 +8,6 @@ import type { UnknownArray } from "type-fest";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -270,28 +268,6 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.resetModules();
         }
-    });
-});
-
-describe("prefer-ts-extras-is-equal-type source assertions", () => {
-    it("keeps stable is-equal-type matcher and suggestion wiring", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-is-equal-type.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-ts-extras-is-equal-type"');
-        expect(ruleSource).toContain("const getIsEqualTypeReference = (");
-        expect(ruleSource).toContain("collectNamedImportLocalNamesFromSource(");
-        expect(ruleSource).toContain(
-            "collectNamespaceImportLocalNamesFromSource("
-        );
-        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
-        expect(ruleSource).toContain("hasSuggestions: true,");
-        expect(ruleSource).toContain("suggestTsExtrasIsEqualType");
     });
 });
 

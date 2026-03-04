@@ -1,20 +1,19 @@
-import { isDefined } from "ts-extras";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-set-has`.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
+import { isDefined } from "ts-extras";
 import ts from "typescript";
 
-import {
-    collectDirectNamedValueImportsFromSource,
-    createMethodToFunctionCallFix,
-} from "../_internal/imported-value-symbols.js";
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerBaseTypes,
 } from "../_internal/type-checker-compat.js";
+import { reportTsExtrasTypedMemberCall } from "../_internal/typed-member-call-rule.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -123,45 +122,33 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 return isSetTypeInternal(type);
             };
 
+            const isSetLikeExpression = (
+                expression: Readonly<TSESTree.Expression>
+            ): boolean => {
+                const result = safeTypeOperation({
+                    operation: () => {
+                        const tsNode =
+                            parserServices.esTreeNodeToTSNodeMap.get(
+                                expression
+                            );
+                        const objectType = checker.getTypeAtLocation(tsNode);
+
+                        return isSetType(objectType);
+                    },
+                    reason: "set-has-type-analysis-failed",
+                });
+
+                return result.ok && result.value;
+            };
+
             return {
                 CallExpression(node) {
-                    const setHasCall = getIdentifierPropertyMemberCall({
+                    reportTsExtrasTypedMemberCall({
+                        context,
+                        importedName: "setHas",
+                        imports: tsExtrasImports,
+                        isMatchingObjectExpression: isSetLikeExpression,
                         memberName: "has",
-                        node,
-                    });
-
-                    if (setHasCall === null) {
-                        return;
-                    }
-
-                    const callCallee = setHasCall.callee;
-
-                    const result = safeTypeOperation({
-                        operation: () => {
-                            const tsNode =
-                                parserServices.esTreeNodeToTSNodeMap.get(
-                                    callCallee.object
-                                );
-                            const objectType =
-                                checker.getTypeAtLocation(tsNode);
-
-                            return isSetType(objectType);
-                        },
-                        reason: "set-has-type-analysis-failed",
-                    });
-
-                    if (!result.ok || !result.value) {
-                        return;
-                    }
-
-                    context.report({
-                        fix: createMethodToFunctionCallFix({
-                            callNode: node,
-                            context,
-                            importedName: "setHas",
-                            imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
-                        }),
                         messageId: "preferTsExtrasSetHas",
                         node,
                     });

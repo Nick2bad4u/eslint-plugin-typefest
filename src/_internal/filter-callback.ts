@@ -39,6 +39,36 @@ export const isFilterCallExpression = (
     expression.callee.property.name === FILTER_METHOD_NAME;
 
 /**
+ * Extract the first callback argument from a direct `.filter(...)` call.
+ *
+ * @param expression - Candidate call expression to inspect.
+ *
+ * @returns Callback expression when the call is a supported `.filter(...)`
+ *   invocation and the first argument is an arrow/function expression;
+ *   otherwise `null`.
+ */
+export const getFilterCallbackFunctionArgument = (
+    expression: Readonly<TSESTree.CallExpression>
+): null | Readonly<
+    TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression
+> => {
+    if (!isFilterCallExpression(expression)) {
+        return null;
+    }
+
+    const [firstArgument] = expression.arguments;
+    if (
+        !firstArgument ||
+        (firstArgument.type !== "ArrowFunctionExpression" &&
+            firstArgument.type !== "FunctionExpression")
+    ) {
+        return null;
+    }
+
+    return firstArgument;
+};
+
+/**
  * Structured match for `.filter(...)` calls with a single identifier parameter
  * arrow callback that uses an expression body.
  */
@@ -60,30 +90,26 @@ export type SingleParameterExpressionArrowFilterCallbackMatch = Readonly<{
 export const getSingleParameterExpressionArrowFilterCallback = (
     expression: Readonly<TSESTree.CallExpression>
 ): null | SingleParameterExpressionArrowFilterCallbackMatch => {
-    if (!isFilterCallExpression(expression)) {
+    const callback = getFilterCallbackFunctionArgument(expression);
+    if (callback?.type !== "ArrowFunctionExpression") {
         return null;
     }
 
-    const [firstArgument] = expression.arguments;
-    if (firstArgument?.type !== "ArrowFunctionExpression") {
+    if (callback.params.length !== 1) {
         return null;
     }
 
-    if (firstArgument.params.length !== 1) {
+    if (callback.body.type === "BlockStatement") {
         return null;
     }
 
-    if (firstArgument.body.type === "BlockStatement") {
-        return null;
-    }
-
-    const [parameter] = firstArgument.params;
+    const [parameter] = callback.params;
     if (parameter?.type !== "Identifier") {
         return null;
     }
 
     return {
-        callback: firstArgument as TSESTree.ArrowFunctionExpression & {
+        callback: callback as TSESTree.ArrowFunctionExpression & {
             body: TSESTree.Expression;
             params: [TSESTree.Identifier];
         },

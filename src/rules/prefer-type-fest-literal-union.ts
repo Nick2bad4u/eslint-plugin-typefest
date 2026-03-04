@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -217,8 +218,9 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                         typeFestDirectImports
                     );
 
-                    context.report({
-                        ...(replacementFix ? { fix: replacementFix } : {}),
+                    reportWithOptionalFix({
+                        context,
+                        fix: replacementFix,
                         messageId: "preferLiteralUnion",
                         node,
                     });

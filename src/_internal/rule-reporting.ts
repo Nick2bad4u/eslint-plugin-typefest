@@ -87,3 +87,53 @@ export function resolveAutofixOrSuggestionOutcome({
         kind: "suggestion",
     };
 }
+
+/**
+ * Report a previously resolved autofix/suggestion outcome.
+ *
+ * @remarks
+ * - Suggestion outcomes are reported with a single `suggest` entry.
+ * - Autofix and no-fix outcomes are delegated to {@link reportWithOptionalFix}.
+ */
+export const reportResolvedAutofixOrSuggestionOutcome = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>({
+    context,
+    data,
+    messageId,
+    node,
+    outcome,
+    suggestionMessageId,
+}: Readonly<{
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>;
+    data?: ReportDescriptor<MessageIds, Options>["data"];
+    messageId: MessageIds;
+    node: TSESTree.Node;
+    outcome: AutofixOrSuggestionOutcome;
+    suggestionMessageId: MessageIds;
+}>): void => {
+    if (outcome.kind === "suggestion") {
+        context.report({
+            ...(data === undefined ? {} : { data }),
+            messageId,
+            node,
+            suggest: [
+                {
+                    fix: outcome.fix,
+                    messageId: suggestionMessageId,
+                },
+            ],
+        });
+
+        return;
+    }
+
+    reportWithOptionalFix({
+        context,
+        data,
+        fix: outcome.kind === "autofix" ? outcome.fix : null,
+        messageId,
+        node,
+    });
+};

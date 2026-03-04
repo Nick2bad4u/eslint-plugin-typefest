@@ -10,6 +10,7 @@ import {
     createSafeTypeNodeTextReplacementFix,
     isTypeParameterNameShadowed,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -108,17 +109,8 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                         replacement: importedAliasMatch.replacementName,
                     };
 
-                    if (fix === null) {
-                        context.report({
-                            data: reportData,
-                            messageId: "preferTupleOf",
-                            node,
-                        });
-
-                        return;
-                    }
-
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         data: reportData,
                         fix,
                         messageId: "preferTupleOf",

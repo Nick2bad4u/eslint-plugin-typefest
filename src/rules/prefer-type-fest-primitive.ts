@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Canonical primitive keyword node types required by `Primitive`. */
@@ -89,8 +90,9 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
                         typeFestDirectImports
                     );
 
-                    context.report({
-                        ...(replacementFix ? { fix: replacementFix } : {}),
+                    reportWithOptionalFix({
+                        context,
+                        fix: replacementFix,
                         messageId: "preferPrimitive",
                         node,
                     });

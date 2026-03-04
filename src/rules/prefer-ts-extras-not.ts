@@ -4,11 +4,12 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { isFilterCallExpression } from "../_internal/filter-callback.js";
+import { getFilterCallbackFunctionArgument } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -126,36 +127,27 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
 
             return {
                 CallExpression(node) {
-                    if (
-                        !isFilterCallExpression(node) ||
-                        node.arguments.length === 0
-                    ) {
-                        return;
-                    }
-
-                    const [firstArgument] = node.arguments;
-                    if (
-                        !firstArgument ||
-                        (firstArgument.type !== "ArrowFunctionExpression" &&
-                            firstArgument.type !== "FunctionExpression")
-                    ) {
+                    const callbackArgument =
+                        getFilterCallbackFunctionArgument(node);
+                    if (!callbackArgument) {
                         return;
                     }
 
                     const negatedPredicateCall =
-                        getNegatedPredicateCall(firstArgument);
+                        getNegatedPredicateCall(callbackArgument);
 
                     if (!negatedPredicateCall) {
                         return;
                     }
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: createNotFilterCallbackFix({
-                            callbackNode: firstArgument,
+                            callbackNode: callbackArgument,
                             predicateCall: negatedPredicateCall,
                         }),
                         messageId: "preferTsExtrasNot",
-                        node: firstArgument,
+                        node: callbackArgument,
                     });
                 },
             };

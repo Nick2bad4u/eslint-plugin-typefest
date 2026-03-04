@@ -5,7 +5,8 @@
  */
 
 import parser from "@typescript-eslint/parser";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -238,7 +239,7 @@ const expectNoMissingRuleCoverage = ({
 };
 
 describe("fixer parse-safety coverage", () => {
-    it("ensures each fixable/suggestion rule test includes parser + fast-check parse guards", () => {
+    it("ensures each fixable/suggestion rule test includes parser + fast-check parse guards", async () => {
         const ruleIds = collectRuleIdsRequiringParseSafety();
 
         expect(ruleIds.length).toBeGreaterThan(0);
@@ -255,7 +256,7 @@ describe("fixer parse-safety coverage", () => {
             );
 
             if (existsSync(ruleTestFilePath)) {
-                const testSource = readFileSync(ruleTestFilePath, "utf8");
+                const testSource = await readFile(ruleTestFilePath, "utf8");
                 const coverageInspection: CoverageInspection = {
                     observedCallExpressions:
                         collectObservedCallExpressions(testSource),

@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -42,8 +43,9 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
                               )
                             : null;
 
-                    context.report({
-                        ...(replacementFix ? { fix: replacementFix } : {}),
+                    reportWithOptionalFix({
+                        context,
+                        fix: replacementFix,
                         messageId: "preferConstructorSignature",
                         node,
                     });

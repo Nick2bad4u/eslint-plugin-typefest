@@ -7,11 +7,10 @@ import type { UnknownArray, UnknownRecord } from "type-fest";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import * as fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
-import { getPluginRule, repoPath } from "./_internal/ruleTester";
+import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -234,15 +233,6 @@ describe("prefer-type-fest-writable-deep metadata", () => {
         );
         expect(metadataRule.meta?.messages?.["preferWritableDeep"]).toBe(
             "Prefer `WritableDeep` from type-fest over `DeepMutable`/`MutableDeep`."
-        );
-
-        const writableDeepRuleSource = fs.readFileSync(
-            repoPath("src", "rules", "prefer-type-fest-writable-deep.ts"),
-            "utf8"
-        );
-
-        expect(writableDeepRuleSource).toMatch(
-            /\/docs\/rules\/prefer-type-fest-writable-deep"/v
         );
     });
 

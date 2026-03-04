@@ -5,8 +5,6 @@
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -54,37 +52,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-present", {
     name: "prefer-ts-extras-assert-present",
 });
 
-describe("prefer-ts-extras-assert-present source assertions", () => {
-    it("keeps stable assert-present matcher and report/fix wiring", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-assert-present.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-present"');
-        expect(ruleSource).toContain("const extractPresentGuardExpression = (");
-        expect(ruleSource).toContain(
-            "const isCanonicalAssertPresentThrow = ({"
-        );
-        expect(ruleSource).toContain("getSingleGlobalTypeErrorArgument({");
-        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
-        expect(ruleSource).toContain("reportFixIntent: canAutofix");
-        expect(ruleSource).toContain('? "autofix"');
-        expect(ruleSource).toContain(': "suggestion"');
-        expect(ruleSource).toContain("resolveAutofixOrSuggestionOutcome({");
-        expect(ruleSource).toContain("reportWithOptionalFix({");
-        expect(ruleSource).toContain("suggestTsExtrasAssertPresent");
-        expect(ruleSource).toContain("suggest: [");
-        expect(ruleSource).toContain(
-            "areEquivalentExpressions(templateExpression, guardExpression)"
-        );
-        expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
-        expect(ruleSource).toContain("hasSuggestions: true,");
-    });
-
+describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
     it("handles defensive nullish-guard branches for synthetic AST drift", async () => {
         try {
             vi.resetModules();

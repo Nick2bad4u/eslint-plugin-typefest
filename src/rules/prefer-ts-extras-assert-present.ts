@@ -10,10 +10,6 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
-    reportWithOptionalFix,
-    resolveAutofixOrSuggestionOutcome,
-} from "../_internal/rule-reporting.js";
-import {
     getThrowStatementFromConsequent,
     isThrowOnlyConsequent,
 } from "../_internal/throw-consequent.js";
@@ -294,34 +290,34 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
-                    const reportOutcome = resolveAutofixOrSuggestionOutcome({
-                        canAutofix,
-                        fix: replacementFix,
-                    });
-
-                    if (reportOutcome.kind === "suggestion") {
+                    if (replacementFix === null) {
                         context.report({
                             messageId: "preferTsExtrasAssertPresent",
                             node,
-                            suggest: [
-                                {
-                                    fix: reportOutcome.fix,
-                                    messageId: "suggestTsExtrasAssertPresent",
-                                },
-                            ],
                         });
 
                         return;
                     }
 
-                    reportWithOptionalFix({
-                        context,
-                        fix:
-                            reportOutcome.kind === "autofix"
-                                ? reportOutcome.fix
-                                : null,
+                    if (canAutofix) {
+                        context.report({
+                            fix: replacementFix,
+                            messageId: "preferTsExtrasAssertPresent",
+                            node,
+                        });
+
+                        return;
+                    }
+
+                    context.report({
                         messageId: "preferTsExtrasAssertPresent",
                         node,
+                        suggest: [
+                            {
+                                fix: replacementFix,
+                                messageId: "suggestTsExtrasAssertPresent",
+                            },
+                        ],
                     });
                 },
             };

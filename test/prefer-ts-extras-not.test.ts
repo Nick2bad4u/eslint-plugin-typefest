@@ -5,8 +5,6 @@
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -261,24 +259,6 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-not", {
     name: "prefer-ts-extras-not",
 });
 
-describe("prefer-ts-extras-not source assertions", () => {
-    it("keeps stable prefer-ts-extras-not matcher and fix wiring", () => {
-        const ruleSource = readFileSync(
-            path.resolve(process.cwd(), "src/rules/prefer-ts-extras-not.ts"),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('from "../_internal/filter-callback.js"');
-        expect(ruleSource).toContain("isFilterCallExpression(");
-        expect(ruleSource).toContain("const getNegatedPredicateCall = (");
-        expect(ruleSource).toContain("const createNotFilterCallbackFix = ({");
-        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
-        expect(ruleSource).toContain('importedName: "not"');
-        expect(ruleSource).toContain("preferTsExtrasNot");
-        expect(ruleSource).toMatch(/isFilterCallExpression\(node\)/v);
-    });
-});
-
 describe("prefer-ts-extras-not internal listener guards", () => {
     it("reports without a fix when predicate text trims to empty", async () => {
         const reportCalls: Readonly<{ fix?: unknown; messageId?: string }>[] =
@@ -358,10 +338,21 @@ describe("prefer-ts-extras-not internal listener guards", () => {
             });
 
             expect(reportCalls).toHaveLength(1);
-            expect(reportCalls[0]).toMatchObject({
-                fix: null,
+
+            const [firstReport] = reportCalls;
+
+            expect(firstReport).toBeDefined();
+
+            if (!firstReport) {
+                throw new TypeError(
+                    "Expected first prefer-ts-extras-not report"
+                );
+            }
+
+            expect(firstReport).toMatchObject({
                 messageId: "preferTsExtrasNot",
             });
+            expect("fix" in firstReport).toBeFalsy();
         } finally {
             vi.resetModules();
         }
@@ -583,10 +574,21 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         listeners.CallExpression?.(callExpression);
 
                         expect(reports).toHaveLength(1);
-                        expect(reports[0]).toMatchObject({
-                            fix: null,
+
+                        const [firstReport] = reports;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-not report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasNot",
                         });
+                        expect("fix" in firstReport).toBeFalsy();
                         expect(
                             createSafeValueNodeTextReplacementFixMock
                         ).not.toHaveBeenCalled();

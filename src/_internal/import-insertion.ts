@@ -45,15 +45,52 @@ const getModuleSpecifierFromImportDeclarationText = (
         return moduleSpecifierFromClause;
     }
 
-    const sideEffectImportMatchResult =
-        /^\s*import\s+["'](?<moduleSpecifier>[^"']+)["']\s*(?:;\s*)?$/u.exec(
-            importDeclarationText
-        );
+    const trimmedImportText = importDeclarationText.trim();
+    if (!trimmedImportText.startsWith("import")) {
+        return null;
+    }
 
-    const sideEffectModuleSpecifier =
-        sideEffectImportMatchResult?.groups?.["moduleSpecifier"];
-    if (typeof sideEffectModuleSpecifier === "string") {
-        return sideEffectModuleSpecifier;
+    const importArgumentStart = trimmedImportText
+        .slice("import".length)
+        .trimStart();
+    const firstQuote = importArgumentStart.at(0);
+
+    if (firstQuote !== '"' && firstQuote !== "'") {
+        return null;
+    }
+
+    let moduleSpecifierEndIndex = -1;
+    for (let index = 1; index < importArgumentStart.length; index += 1) {
+        const currentCharacter = importArgumentStart[index];
+
+        if (currentCharacter === "\\") {
+            index += 1;
+            continue;
+        }
+
+        if (currentCharacter === firstQuote) {
+            moduleSpecifierEndIndex = index;
+            break;
+        }
+    }
+
+    if (moduleSpecifierEndIndex <= 0) {
+        return null;
+    }
+
+    const moduleSpecifier = importArgumentStart.slice(
+        1,
+        moduleSpecifierEndIndex
+    );
+    if (moduleSpecifier.length === 0) {
+        return null;
+    }
+
+    const trailingImportText = importArgumentStart
+        .slice(moduleSpecifierEndIndex + 1)
+        .trim();
+    if (trailingImportText === "" || trailingImportText === ";") {
+        return moduleSpecifier;
     }
 
     return null;

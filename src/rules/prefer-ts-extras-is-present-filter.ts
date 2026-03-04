@@ -14,6 +14,7 @@ import {
     flattenLogicalTerms,
     getNullishComparison,
 } from "../_internal/nullish-comparison.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -294,7 +295,8 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                             parameterName: parameter.name,
                         });
 
-                    context.report({
+                    reportWithOptionalFix({
+                        context,
                         fix: isAutoFixable
                             ? createSafeValueReferenceReplacementFix({
                                   context,

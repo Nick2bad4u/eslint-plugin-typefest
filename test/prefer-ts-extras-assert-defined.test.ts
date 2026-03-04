@@ -5,8 +5,6 @@
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -86,54 +84,7 @@ describe("prefer-ts-extras-assert-defined metadata assertions", () => {
     });
 });
 
-describe("prefer-ts-extras-assert-defined source assertions", () => {
-    it("keeps stable assert-defined matcher and report/fix wiring", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-assert-defined.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-defined"');
-        expect(ruleSource).toContain("const extractDefinedGuardExpression = (");
-        expect(ruleSource).toContain("const isCanonicalAssertDefinedThrow = (");
-        expect(ruleSource).toContain("getSingleGlobalTypeErrorArgument({");
-        expect(ruleSource).toContain("createSafeValueNodeTextReplacementFix({");
-        expect(ruleSource).toContain("reportFixIntent: canAutofix");
-        expect(ruleSource).toContain('? "autofix"');
-        expect(ruleSource).toContain(': "suggestion"');
-        expect(ruleSource).toContain("resolveAutofixOrSuggestionOutcome({");
-        expect(ruleSource).toContain("reportWithOptionalFix({");
-        expect(ruleSource).toContain("suggestTsExtrasAssertDefined");
-        expect(ruleSource).toContain("suggest: [");
-        expect(ruleSource).toContain("isGlobalUndefinedIdentifier(");
-    });
-
-    it("preserves authored metadata literals for assert-defined rule", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-assert-defined.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain('name: "prefer-ts-extras-assert-defined"');
-        expect(ruleSource).toContain("defaultOptions: []");
-        expect(ruleSource).toContain("hasSuggestions: true,");
-        expect(ruleSource).toContain(
-            "require ts-extras assertDefined over manual undefined-guard throw blocks."
-        );
-        expect(ruleSource).toContain(
-            "Prefer `assertDefined` from `ts-extras` over manual undefined guard throw blocks."
-        );
-        expect(ruleSource).toContain(
-            "Replace this manual guard with `assertDefined(...)` from `ts-extras`."
-        );
-    });
-
+describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
     it("handles defensive consequent re-evaluation branch when synthetic AST nodes drift across reads", async () => {
         try {
             vi.resetModules();

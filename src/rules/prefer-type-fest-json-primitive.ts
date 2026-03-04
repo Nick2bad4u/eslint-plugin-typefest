@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -110,8 +111,9 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                         typeFestDirectImports
                     );
 
-                    context.report({
-                        ...(replacementFix ? { fix: replacementFix } : {}),
+                    reportWithOptionalFix({
+                        context,
+                        fix: replacementFix,
                         messageId: "preferJsonPrimitive",
                         node,
                     });

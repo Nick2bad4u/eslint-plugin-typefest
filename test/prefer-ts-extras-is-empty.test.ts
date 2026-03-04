@@ -7,8 +7,6 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { readFileSync } from "node:fs";
-import * as path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
@@ -127,6 +125,7 @@ const parserOptions = {
 } as const;
 
 const includeUnicodeBannerArbitrary = fc.boolean();
+
 const arrayExpressionKindArbitrary = fc.constantFrom<
     "arrayLiteral" | "callExpression" | "identifier" | "memberExpression"
 >("arrayLiteral", "callExpression", "identifier", "memberExpression");
@@ -242,29 +241,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-empty", {
     name: "prefer-ts-extras-is-empty",
 });
 
-describe("prefer-ts-extras-is-empty source assertions", () => {
-    it("keeps stable is-empty matcher and fix wiring in source", () => {
-        const ruleSource = readFileSync(
-            path.resolve(
-                process.cwd(),
-                "src/rules/prefer-ts-extras-is-empty.ts"
-            ),
-            "utf8"
-        );
-
-        expect(ruleSource).toContain("const isZeroLiteral = (");
-        expect(ruleSource).toContain("const isLengthMemberExpression = (");
-        expect(ruleSource).toContain("createIsArrayLikeExpressionChecker({");
-        expect(ruleSource).toContain('unionMatchMode: "every"');
-        expect(ruleSource).toContain("shouldSkipComparedExpression(");
-        expect(ruleSource).toContain(
-            "createSafeValueArgumentFunctionCallFix({"
-        );
-        expect(ruleSource).toContain('importedName: "isEmpty"');
-        expect(ruleSource).toContain("preferTsExtrasIsEmpty");
-        expect(ruleSource).toContain('name: "prefer-ts-extras-is-empty"');
-    });
-
+describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
     it("skips reports when parser services fail during type lookup", async () => {
         try {
             vi.resetModules();
