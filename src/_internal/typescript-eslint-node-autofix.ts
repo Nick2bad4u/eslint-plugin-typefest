@@ -11,15 +11,67 @@ import { isDefined } from "ts-extras";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
+import { isAsciiIdentifierPartCharacter } from "./text-character.js";
+import {
+    getTypeCheckerApparentType,
+    getTypeCheckerBaseConstraintType,
+    getTypeCheckerTypeArguments,
+} from "./type-checker-compat.js";
 import { getTypedRuleServices } from "./typed-rule.js";
 
-const tsEslintAstTypeTextPattern = /\bTSESTree\.\w+\b/v;
+const TYPESCRIPT_ESLINT_UTILS_MODULE_NAME = "@typescript-eslint/utils" as const;
+const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
+const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
+
+const tsEslintAstNamespaceNames = new Set<string>([TSESTREE_NAMESPACE_NAME]);
 
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean =>
-    fileName.replaceAll("\\", "/").includes("/@typescript-eslint/");
+    fileName
+        .replaceAll("\\", "/")
+        .split("/")
+        .includes(TYPESCRIPT_ESLINT_PACKAGE_SEGMENT);
 
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
     typeof value === "object" && value !== null;
+
+const containsNamespaceQualifiedReferenceText = (
+    text: string,
+    namespaceNames: ReadonlySet<string>
+): boolean => {
+    if (namespaceNames.size === 0) {
+        return false;
+    }
+
+    for (const namespaceName of namespaceNames) {
+        if (namespaceName.length === 0) {
+            continue;
+        }
+
+        let index = text.indexOf(namespaceName);
+
+        while (index !== -1) {
+            const previousCharacter = text[index - 1] ?? "";
+            const dotCharacter = text[index + namespaceName.length] ?? "";
+            const nextCharacter = text[index + namespaceName.length + 1] ?? "";
+
+            const hasIdentifierBoundaryBefore =
+                index === 0 ||
+                !isAsciiIdentifierPartCharacter(previousCharacter);
+
+            if (
+                hasIdentifierBoundaryBefore &&
+                dotCharacter === "." &&
+                isAsciiIdentifierPartCharacter(nextCharacter)
+            ) {
+                return true;
+            }
+
+            index = text.indexOf(namespaceName, index + namespaceName.length);
+        }
+    }
+
+    return false;
+};
 
 const getTypeScriptEslintNamespaceImportNames = (
     sourceCode: Readonly<TSESLint.SourceCode>
@@ -40,7 +92,7 @@ const getTypeScriptEslintNamespaceImportNames = (
     for (const statement of sourceAst.body) {
         if (
             statement.type !== "ImportDeclaration" ||
-            statement.source.value !== "@typescript-eslint/utils"
+            statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_NAME
         ) {
             continue;
         }
@@ -54,7 +106,7 @@ const getTypeScriptEslintNamespaceImportNames = (
             if (
                 specifier.type === "ImportSpecifier" &&
                 specifier.imported.type === "Identifier" &&
-                specifier.imported.name === "TSESTree"
+                specifier.imported.name === TSESTREE_NAMESPACE_NAME
             ) {
                 namespaceNames.add(specifier.local.name);
             }
@@ -120,7 +172,13 @@ const containsTypeScriptEslintTypeReference = (
             return true;
         }
 
-        for (const value of Object.values(currentNode)) {
+        for (const key in currentNode) {
+            if (!Object.hasOwn(currentNode, key)) {
+                continue;
+            }
+
+            const value = currentNode[key];
+
             if (Array.isArray(value)) {
                 pendingNodes.push(...value);
                 continue;
@@ -138,34 +196,19 @@ const containsTypeScriptEslintTypeReference = (
 const containsTypeScriptEslintTypeReferenceText = (
     text: string,
     namespaceNames: ReadonlySet<string>
-): boolean => {
-    if (text.includes("TSESTree.")) {
-        return true;
-    }
-
-    for (const namespaceName of namespaceNames) {
-        if (text.includes(`${namespaceName}.`)) {
-            return true;
-        }
-    }
-
-    return false;
-};
+): boolean => containsNamespaceQualifiedReferenceText(text, namespaceNames);
 
 const isTypeScriptEslintNodeLikeExpressionByDefinition = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 >(
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
-    expression: Readonly<TSESTree.Expression>
+    expression: Readonly<TSESTree.Expression>,
+    namespaceNames: ReadonlySet<string>
 ): boolean => {
     if (expression.type !== "Identifier") {
         return false;
     }
-
-    const namespaceNames = getTypeScriptEslintNamespaceImportNames(
-        context.sourceCode
-    );
 
     const resolutionResult = safeTypeOperation({
         operation: () => {
@@ -280,7 +323,9 @@ const collectNestedTypeArguments = (
     }
 
     const checkerTypeArgumentsResult = safeTypeOperation({
-        operation: () => checker.getTypeArguments(type as ts.TypeReference),
+        operation: () =>
+            getTypeCheckerTypeArguments(checker, type as ts.TypeReference) ??
+            [],
         reason: "ts-eslint-node-autofix-get-type-arguments-failed",
     });
 
@@ -317,7 +362,12 @@ export const isTypeScriptEslintAstType = (
         visitedTypes.add(currentType);
 
         const renderedTypeText = checker.typeToString(currentType);
-        if (tsEslintAstTypeTextPattern.test(renderedTypeText)) {
+        if (
+            containsNamespaceQualifiedReferenceText(
+                renderedTypeText,
+                tsEslintAstNamespaceNames
+            )
+        ) {
             return true;
         }
 
@@ -350,12 +400,15 @@ export const isTypeScriptEslintAstType = (
             pendingTypes.push(...nestedTypeArguments);
         }
 
-        const apparentType = checker.getApparentType(currentType);
-        if (apparentType !== currentType) {
+        const apparentType = getTypeCheckerApparentType(checker, currentType);
+        if (isDefined(apparentType) && apparentType !== currentType) {
             pendingTypes.push(apparentType);
         }
 
-        const baseConstraintType = checker.getBaseConstraintOfType(currentType);
+        const baseConstraintType = getTypeCheckerBaseConstraintType(
+            checker,
+            currentType
+        );
         if (
             isDefined(baseConstraintType) &&
             baseConstraintType !== currentType
@@ -382,6 +435,10 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
 >(
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
 ): ((expression: Readonly<TSESTree.Expression>) => boolean) => {
+    const namespaceNames = getTypeScriptEslintNamespaceImportNames(
+        context.sourceCode
+    );
+
     const typedServicesResult = safeTypeOperation({
         operation: () => getTypedRuleServices(context),
         reason: "ts-eslint-node-autofix-typed-services-unavailable",
@@ -391,7 +448,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
         return (expression) =>
             isTypeScriptEslintNodeLikeExpressionByDefinition(
                 context,
-                expression
+                expression,
+                namespaceNames
             );
     }
 
@@ -423,7 +481,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
 
         return isTypeScriptEslintNodeLikeExpressionByDefinition(
             context,
-            expression
+            expression,
+            namespaceNames
         );
     };
 };

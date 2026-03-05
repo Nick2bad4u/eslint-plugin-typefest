@@ -126,7 +126,10 @@ ruleTester.run("prefer-type-fest-writable-deep", writableDeepRule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture DeepMutable aliases",
-            output: fixtureFixableSecondPassOutputCode,
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineFixableInvalidCode,

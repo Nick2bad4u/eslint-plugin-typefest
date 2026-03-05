@@ -101,14 +101,6 @@ const INCLUDE_IMPORT_INSERTION: ImportInsertionDecision = {
 };
 
 /**
- * Decision when insertion is skipped but replacement remains valid.
- */
-const SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT: ImportInsertionDecision = {
-    allowReplacementWithoutImportInsertion: true,
-    shouldIncludeImportInsertionFix: false,
-};
-
-/**
  * Decision when replacement depends on insertion and should be suppressed.
  */
 const SKIP_IMPORT_INSERTION_BLOCK_REPLACEMENT: ImportInsertionDecision = {
@@ -155,7 +147,7 @@ export function resolveImportInsertionDecisionForReportFix({
             programNode,
         })
     ) {
-        return SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT;
+        return SKIP_IMPORT_INSERTION_BLOCK_REPLACEMENT;
     }
 
     return INCLUDE_IMPORT_INSERTION;

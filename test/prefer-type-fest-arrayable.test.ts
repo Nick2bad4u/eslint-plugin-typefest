@@ -614,7 +614,10 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture string-or-array unions",
-            output: fixtureFixableSecondPassOutputCode,
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidCode,

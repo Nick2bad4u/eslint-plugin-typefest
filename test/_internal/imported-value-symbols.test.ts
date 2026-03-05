@@ -1257,6 +1257,38 @@ describe(createMethodToFunctionCallFix, () => {
         expect(fix).toBeNull();
     });
 
+    it("returns null when method receiver is super", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayIncludes", "ts-extras");
+        const fix = createMethodToFunctionCallFix({
+            callNode: {
+                arguments: [],
+                callee: {
+                    object: {
+                        type: "Super",
+                    },
+                    optional: false,
+                    property: {
+                        name: "includes",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                optional: false,
+                type: "CallExpression",
+            } as unknown as Parameters<
+                typeof createMethodToFunctionCallFix
+            >[0]["callNode"],
+            context,
+            importedName: "arrayIncludes",
+            imports: createImportsMap("arrayIncludes", "arrayIncludes"),
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(fix).toBeNull();
+    });
+
     it("builds replacement text with comma-separated receiver and arguments", () => {
         expect.hasAssertions();
 
@@ -1899,6 +1931,34 @@ describe(createMemberToFunctionCallFix, () => {
                 optional: true,
                 property: {
                     name: "0",
+                    type: "Literal",
+                    value: 0,
+                },
+                type: "MemberExpression",
+            } as unknown as Parameters<
+                typeof createMemberToFunctionCallFix
+            >[0]["memberNode"],
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(fix).toBeNull();
+    });
+
+    it("returns null when member receiver is super", () => {
+        expect.hasAssertions();
+
+        const context = createRuleContext("arrayFirst", "ts-extras");
+        const fix = createMemberToFunctionCallFix({
+            context,
+            importedName: "arrayFirst",
+            imports: createImportsMap("arrayFirst", "arrayFirst"),
+            memberNode: {
+                computed: true,
+                object: {
+                    type: "Super",
+                },
+                optional: false,
+                property: {
                     type: "Literal",
                     value: 0,
                 },
@@ -2655,7 +2715,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         const secondTextEdits = invokeFixToTextEdits(secondFix);
 
         expect(firstTextEdits).toHaveLength(2);
-        expect(secondTextEdits).toHaveLength(1);
+        expect(secondTextEdits).toHaveLength(0);
 
         const mergedTextEdits = [...firstTextEdits, ...secondTextEdits];
         assertTextEditsDoNotOverlap(mergedTextEdits);
@@ -2666,7 +2726,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         });
 
         expect(fixedCode).toContain("const first = isDefined(left);");
-        expect(fixedCode).toContain("const second = isDefined(right);");
+        expect(fixedCode).toContain("const second = right !== undefined;");
 
         expect(
             countNamedImportSpecifiersInSource({

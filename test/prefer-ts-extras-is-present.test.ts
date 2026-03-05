@@ -3246,7 +3246,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture strict present and absent comparisons",
-            output: fixtureInvalidSecondPassOutput,
+            output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
         },
         {
             code: inlineInvalidStrictPresentComparisonCode,

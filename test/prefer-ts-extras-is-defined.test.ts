@@ -16,6 +16,7 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
     filterArrowCallbackValidCode,
     filterFunctionCallbackValidCode,
+    fixtureInvalidOutput,
     fixtureInvalidSecondPassOutput,
     inlineAstNodeNegatedInvalidCode,
     inlineFixableDefinedCode,
@@ -83,6 +84,21 @@ type IsDefinedReportDescriptor = Readonly<{
 }>;
 
 type RuleCreateContext = Readonly<Parameters<typeof rule.create>[0]>;
+
+const fixtureInvalidFirstPassOutput = (() => {
+    const replacedText = fixtureInvalidOutput.replace(
+        "if (maybeValue !== undefined) {\r\n",
+        "if (isDefined(maybeValue)) {\r\n"
+    );
+
+    if (replacedText === fixtureInvalidOutput) {
+        throw new TypeError(
+            "Expected prefer-ts-extras-is-defined fixture output to contain first-pass replaceable segment."
+        );
+    }
+
+    return replacedText;
+})();
 
 const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
     for (const [firstIndex, firstEdit] of textEdits.entries()) {
@@ -577,7 +593,10 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture strict defined and undefined comparisons",
-            output: fixtureInvalidSecondPassOutput,
+            output: [
+                fixtureInvalidFirstPassOutput,
+                fixtureInvalidSecondPassOutput,
+            ],
         },
         {
             code: inlineFixableDefinedCode,

@@ -706,7 +706,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture unsafe cast assertions",
-                output: fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                output: [
+                    fixtureInvalidOutputWithMixedLineEndings,
+                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                ],
             },
             {
                 code: inlineFixableCode,

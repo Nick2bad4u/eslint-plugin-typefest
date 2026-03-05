@@ -104,7 +104,7 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
         });
     });
 
-    it("coordinates duplicate autofix import insertions to first claim only", () => {
+    it("blocks duplicate autofix replacements by default after first claim", () => {
         const programNode = createProgramNode();
 
         const firstDecision = resolveDecision({
@@ -129,7 +129,7 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
         });
 
         expect(secondDecision).toStrictEqual({
-            allowReplacementWithoutImportInsertion: true,
+            allowReplacementWithoutImportInsertion: false,
             shouldIncludeImportInsertionFix: false,
         });
     });

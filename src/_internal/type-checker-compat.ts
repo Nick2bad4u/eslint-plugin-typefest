@@ -152,3 +152,24 @@ export const getTypeCheckerIsTupleTypeResult = (
 
     return checkerWithTupleType.isTupleType?.call(checker, type);
 };
+
+/**
+ * Read `checker.getTypeArguments` when the host TypeScript version provides it.
+ *
+ * @param checker - TypeScript type checker.
+ * @param type - Candidate type reference.
+ *
+ * @returns Type arguments when available; otherwise `undefined`.
+ */
+export const getTypeCheckerTypeArguments = (
+    checker: Readonly<ts.TypeChecker>,
+    type: Readonly<ts.TypeReference>
+): readonly ts.Type[] | undefined => {
+    const checkerWithTypeArguments = checker as ts.TypeChecker & {
+        getTypeArguments?: (
+            type: Readonly<ts.TypeReference>
+        ) => readonly ts.Type[];
+    };
+
+    return checkerWithTypeArguments.getTypeArguments?.call(checker, type);
+};

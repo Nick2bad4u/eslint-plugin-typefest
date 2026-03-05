@@ -312,7 +312,10 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture Set* alias usage",
-            output: fixtureFixableSecondPassOutputCode,
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineFixableInvalidCode,

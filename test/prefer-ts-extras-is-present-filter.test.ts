@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
+    fixtureInvalidOutputWithMixedLineEndings,
     fixtureInvalidSecondPassOutputWithMixedLineEndings,
     inlineFixableCode,
     inlineFixableOutput,
@@ -573,7 +574,10 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture present-filter guards",
-            output: fixtureInvalidSecondPassOutputWithMixedLineEndings,
+            output: [
+                fixtureInvalidOutputWithMixedLineEndings,
+                fixtureInvalidSecondPassOutputWithMixedLineEndings,
+            ],
         },
         {
             code: inlineInvalidPredicateUndefinedStrictCode,

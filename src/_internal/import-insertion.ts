@@ -6,6 +6,10 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
+import {
+    isAsciiIdentifierPartCharacter,
+    isKnownWhitespaceCharacter,
+} from "./text-character.js";
 
 /**
  * Collects import declarations from a program body in source order.
@@ -45,7 +49,10 @@ const skipLeadingWhitespace = ({
 }>): number => {
     let index = startIndex;
 
-    while (index < text.length && /\s/u.test(text[index] ?? "")) {
+    while (
+        index < text.length &&
+        isKnownWhitespaceCharacter(text[index] ?? "")
+    ) {
         index += 1;
     }
 
@@ -92,10 +99,6 @@ const parseQuotedStringLiteral = ({
 
     return null;
 };
-
-const isIdentifierPartCharacter = (character: string): boolean =>
-    /[\w$]/u.test(character);
-
 const findLastFromKeywordOutsideStrings = (text: string): null | number => {
     let activeQuoteCharacter: null | string = null;
     let lastFromKeywordIndex: null | number = null;
@@ -128,10 +131,10 @@ const findLastFromKeywordOutsideStrings = (text: string): null | number => {
         const previousCharacter = text[index - 1] ?? "";
         const nextCharacter = text[index + FROM_KEYWORD.length] ?? "";
         const hasWordBoundaryBefore =
-            index === 0 || !isIdentifierPartCharacter(previousCharacter);
+            index === 0 || !isAsciiIdentifierPartCharacter(previousCharacter);
         const hasWordBoundaryAfter =
             index + FROM_KEYWORD.length >= text.length ||
-            !isIdentifierPartCharacter(nextCharacter);
+            !isAsciiIdentifierPartCharacter(nextCharacter);
 
         if (hasWordBoundaryBefore && hasWordBoundaryAfter) {
             lastFromKeywordIndex = index;

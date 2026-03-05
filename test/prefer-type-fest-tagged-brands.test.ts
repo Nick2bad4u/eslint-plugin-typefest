@@ -321,7 +321,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(importedAliasFixtureName),
                 name: "reports imported opaque and branded aliases",
-                output: importedAliasFixtureSecondPassOutputCode,
+                output: [
+                    importedAliasFixtureFirstPassOutputCode,
+                    importedAliasFixtureSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

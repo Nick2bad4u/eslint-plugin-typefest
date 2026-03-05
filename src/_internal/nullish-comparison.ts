@@ -65,7 +65,7 @@ const STRICT_NULLISH_TERM_COUNT = 2 as const;
  * Narrow a list of expressions to an exact two-term tuple.
  */
 export const isExpressionPair = (
-    terms: readonly TSESTree.Expression[]
+    terms: readonly Readonly<TSESTree.Expression>[]
 ): terms is readonly [TSESTree.Expression, TSESTree.Expression] =>
     terms.length === STRICT_NULLISH_TERM_COUNT;
 

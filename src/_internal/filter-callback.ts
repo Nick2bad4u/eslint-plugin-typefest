@@ -141,13 +141,14 @@ export const isWithinFilterCallback = (
 
         if (isFunctionCallbackNode(currentNode)) {
             const callbackParent = getParentNode(currentNode);
-            const [firstArgument] =
-                callbackParent?.type === "CallExpression"
-                    ? callbackParent.arguments
-                    : [];
+            if (callbackParent?.type !== "CallExpression") {
+                currentNode = getParentNode(currentNode);
+                continue;
+            }
+
+            const [firstArgument] = callbackParent.arguments;
 
             if (
-                callbackParent?.type === "CallExpression" &&
                 firstArgument === currentNode &&
                 isFilterCallExpression(callbackParent)
             ) {

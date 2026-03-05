@@ -14,10 +14,12 @@ import {
     getTypeCheckerIsTupleTypeResult,
     getTypeCheckerIsTypeAssignableToResult,
     getTypeCheckerStringType,
+    getTypeCheckerTypeArguments,
 } from "../../src/_internal/type-checker-compat";
 
 describe("type-checker-compat", () => {
     const sourceType = {} as ts.Type;
+    const sourceTypeReference = {} as ts.TypeReference;
     const targetType = {} as ts.Type;
 
     it("returns undefined from optional helpers when methods are unavailable", () => {
@@ -42,6 +44,9 @@ describe("type-checker-compat", () => {
             )
         ).toBeUndefined();
         expect(getTypeCheckerStringType(checker)).toBeUndefined();
+        expect(
+            getTypeCheckerTypeArguments(checker, sourceTypeReference)
+        ).toBeUndefined();
     });
 
     it("delegates apparent type lookup with checker-bound this", () => {
@@ -191,5 +196,29 @@ describe("type-checker-compat", () => {
         expect(
             getTypeCheckerIsTupleTypeResult(checker, sourceType)
         ).toBeFalsy();
+    });
+
+    it("delegates type-argument lookup with checker-bound this", () => {
+        const expectedTypeArguments = [{}] as unknown as readonly ts.Type[];
+
+        const checker = {
+            getTypeArguments: vi
+                .fn<
+                    (
+                        this: ts.TypeChecker,
+                        type: Readonly<ts.TypeReference>
+                    ) => readonly ts.Type[]
+                >()
+                .mockImplementation(function (this: ts.TypeChecker, type) {
+                    expect(this).toBe(checker);
+                    expect(type).toBe(sourceTypeReference);
+
+                    return expectedTypeArguments;
+                }),
+        } as unknown as ts.TypeChecker;
+
+        expect(getTypeCheckerTypeArguments(checker, sourceTypeReference)).toBe(
+            expectedTypeArguments
+        );
     });
 });

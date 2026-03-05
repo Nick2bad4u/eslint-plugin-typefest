@@ -611,6 +611,10 @@ export const createMethodToFunctionCallFix = ({
         return null;
     }
 
+    if (callNode.callee.object.type === "Super") {
+        return null;
+    }
+
     const valueReplacementPlan = createValueReplacementPlan({
         context,
         importedName,
@@ -676,6 +680,10 @@ export const createMemberToFunctionCallFix = ({
     sourceModuleName,
 }: Readonly<MemberToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
     if (memberNode.optional) {
+        return null;
+    }
+
+    if (memberNode.object.type === "Super") {
         return null;
     }
 

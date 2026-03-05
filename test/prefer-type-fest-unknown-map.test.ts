@@ -277,7 +277,10 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture UnknownMap aliases",
-            output: fixtureFixableSecondPassOutputCode,
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReadonlyMapCode,

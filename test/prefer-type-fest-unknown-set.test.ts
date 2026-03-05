@@ -254,7 +254,10 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture UnknownSet aliases",
-            output: fixtureFixableSecondPassOutputCode,
+            output: [
+                fixtureFixableOutputCode,
+                fixtureFixableSecondPassOutputCode,
+            ],
         },
         {
             code: inlineInvalidReadonlySetCode,

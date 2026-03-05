@@ -349,7 +349,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture Id and Prettify aliases",
-                output: fixtureFixableSecondPassOutputCode,
+                output: [
+                    fixtureFixableOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,

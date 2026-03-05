@@ -1430,7 +1430,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         const secondTextEdits = invokeFixToTextEdits(secondFix);
 
         expect(firstTextEdits).toHaveLength(2);
-        expect(secondTextEdits).toHaveLength(1);
+        expect(secondTextEdits).toHaveLength(0);
 
         assertTextEditsDoNotOverlap(firstTextEdits);
         assertTextEditsDoNotOverlap(secondTextEdits);
@@ -1444,7 +1444,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
             'import type { Simplify } from "type-fest";'
         );
         expect(fixedCode).toContain("type First = Simplify<string>;");
-        expect(fixedCode).toContain("type Second = Simplify<number>;");
+        expect(fixedCode).toContain("type Second = Expand<number>;");
         expect(
             countNamedTypeImportSpecifiersInSource({
                 importedName: "Simplify",

@@ -23,6 +23,7 @@ export type IdentifierMemberCallExpression = TSESTree.CallExpression & {
 export type IdentifierPropertyMemberCallExpression = TSESTree.CallExpression & {
     callee: TSESTree.MemberExpression & {
         computed: false;
+        object: Exclude<TSESTree.MemberExpression["object"], TSESTree.Super>;
         property: TSESTree.Identifier;
     };
 };
@@ -90,6 +91,7 @@ export const getIdentifierPropertyMemberCall = ({
         callee.type !== "MemberExpression" ||
         callee.computed ||
         callee.optional ||
+        callee.object.type === "Super" ||
         callee.property.type !== "Identifier" ||
         callee.property.name !== memberName
     ) {

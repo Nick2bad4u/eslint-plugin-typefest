@@ -100,6 +100,20 @@ describe(createImportAwareFixes, () => {
             createReplacementFix: () => createRuleFix("replacement"),
             fixer: createFixer(),
             importInsertionDecision: SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT,
+            reportFixIntent: "autofix",
+            requiresImportInsertion: true,
+        });
+
+        expect(fixes).toHaveLength(1);
+    });
+
+    it("returns replacement when non-autofix paths skip insertion but allow replacement", () => {
+        const fixes = createImportAwareFixes({
+            createImportFix: () => createRuleFix("import"),
+            createReplacementFix: () => createRuleFix("replacement"),
+            fixer: createFixer(),
+            importInsertionDecision: SKIP_IMPORT_INSERTION_ALLOW_REPLACEMENT,
+            reportFixIntent: "suggestion",
             requiresImportInsertion: true,
         });
 

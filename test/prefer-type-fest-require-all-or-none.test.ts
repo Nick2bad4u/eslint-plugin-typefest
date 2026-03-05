@@ -225,7 +225,10 @@ ruleTester.run(
                 ],
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports fixture AllOrNone and AllOrNothing alias usage",
-                output: fixtureFixableSecondPassOutputCode,
+                output: [
+                    fixtureFixableFirstPassOutputCode,
+                    fixtureFixableSecondPassOutputCode,
+                ],
             },
             {
                 code: inlineFixableInvalidCode,
