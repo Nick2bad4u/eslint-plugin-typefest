@@ -63,15 +63,13 @@ export const createImportAwareFixes = ({
         return [importFix];
     }
 
-    const replacementFix = createReplacementFix(fixer);
-
     if (!requiresImportInsertion) {
-        return [replacementFix];
+        return [createReplacementFix(fixer)];
     }
 
     if (!importInsertionDecision.shouldIncludeImportInsertionFix) {
         return importInsertionDecision.allowReplacementWithoutImportInsertion
-            ? [replacementFix]
+            ? [createReplacementFix(fixer)]
             : null;
     }
 
@@ -80,5 +78,5 @@ export const createImportAwareFixes = ({
         return null;
     }
 
-    return [importFix, replacementFix];
+    return [importFix, createReplacementFix(fixer)];
 };

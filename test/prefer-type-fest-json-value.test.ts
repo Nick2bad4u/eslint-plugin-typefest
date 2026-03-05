@@ -20,9 +20,9 @@ import {
 
 const ruleId = "prefer-type-fest-json-value";
 const docsDescription =
-    "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.";
+    "require TypeFest JsonObject for string-keyed JSON record contract types in serialization boundaries.";
 const preferJsonValueMessage =
-    "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.";
+    "Use `JsonObject` from type-fest for string-keyed JSON record contracts in serialization boundaries instead of Record<string, unknown|any>.";
 const suggestJsonObjectMessage =
     "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).";
 

@@ -81,10 +81,6 @@ const parseQuotedStringLiteral = ({
         }
 
         if (currentCharacter === quoteCharacter) {
-            if (value.length === 0) {
-                return null;
-            }
-
             return {
                 endIndex: index,
                 value,

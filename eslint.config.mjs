@@ -248,7 +248,7 @@ export default defineConfig([
     globalIgnores([
         "**/CHANGELOG.md",
         ".remarkrc.mjs",
-        "test//fixtures/**",
+        "test/fixtures/**",
     ]),
     gitignore({
         name: "Global - .gitignore Rules",

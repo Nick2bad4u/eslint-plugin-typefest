@@ -10,6 +10,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -85,7 +86,9 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                         );
 
                     if (jsonObjectSuggestionFix === null) {
-                        context.report({
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferJsonValue",
                             node,
                         });
@@ -111,7 +114,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "require TypeFest JsonValue/JsonObject for payload and context-like contract types in serialization boundaries.",
+                    "require TypeFest JsonObject for string-keyed JSON record contract types in serialization boundaries.",
                 frozen: false,
                 recommended: [
                     "typefest.configs.minimal",
@@ -125,7 +128,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             hasSuggestions: true,
             messages: {
                 preferJsonValue:
-                    "Use `JsonValue`/`JsonObject` from type-fest for payload/context contracts in serialization boundaries instead of Record<string, unknown>.",
+                    "Use `JsonObject` from type-fest for string-keyed JSON record contracts in serialization boundaries instead of Record<string, unknown|any>.",
                 suggestJsonObject:
                     "Replace with `JsonObject` from type-fest (review value constraints, this may narrow accepted shapes).",
             },

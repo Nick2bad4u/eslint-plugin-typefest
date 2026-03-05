@@ -1,6 +1,6 @@
 # prefer-type-fest-json-value
 
-Prefers TypeFest JSON types (`JsonValue`, `JsonObject`) for serialization-bound payload/context contracts.
+Prefers TypeFest `JsonObject` for serialization-bound string-keyed record contracts.
 
 ## Targeted pattern scope
 
@@ -12,7 +12,7 @@ General-purpose records outside configured JSON boundaries are intentionally exc
 
 ## What this rule reports
 
-This rule reports boundary payload aliases that should use `JsonValue`-oriented TypeFest contracts.
+This rule reports boundary payload aliases that should use `JsonObject`.
 
 - Payload/context-like contract aliases using `Record<string, unknown>`/`Record<string, any>` in JSON boundary folders.
 
@@ -29,33 +29,33 @@ type Payload = Record<string, unknown>;
 ## ✅ Correct
 
 ```ts
-type Payload = JsonValue;
+type Payload = JsonObject;
 ```
 
 ## Behavior and migration notes
 
-- `JsonValue` represents the full recursive JSON domain.
-- Use `JsonValue` for serialized payload boundaries where runtime data must be JSON-compatible.
-- Replace open-ended `Record<string, unknown>`/`any` boundary contracts with JSON-specific types when schema intent is serialization.
+- `JsonObject` models JSON-compatible object payloads with string keys.
+- Use `JsonObject` when your boundary contract must stay object-shaped.
+- Replace open-ended `Record<string, unknown>`/`any` boundary contracts with `JsonObject` when schema intent is serialization.
 
 ## Additional examples
 
 ### ❌ Incorrect — Additional example
 
 ```ts
-type ConfigSnapshot = string | number | boolean | null | JsonObject | JsonArray;
+type ConfigSnapshot = Record<string, unknown>;
 ```
 
 ### ✅ Correct — Additional example
 
 ```ts
-type ConfigSnapshot = JsonValue;
+type ConfigSnapshot = JsonObject;
 ```
 
 ### ✅ Correct — Repository-wide usage
 
 ```ts
-type CacheEntry = JsonValue;
+type CacheEntry = JsonObject;
 ```
 
 ## ESLint flat config example

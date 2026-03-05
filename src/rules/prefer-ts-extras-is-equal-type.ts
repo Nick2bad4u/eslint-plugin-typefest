@@ -14,6 +14,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const IS_EQUAL_TYPE_NAME = "IsEqual";
@@ -103,8 +104,10 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     const initializerValue = node.init.value;
                     const [leftType, rightType] = typeArguments;
 
-                    if (!leftType || !rightType) {
-                        context.report({
+                    if (leftType === undefined || rightType === undefined) {
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
                             messageId: "preferTsExtrasIsEqualType",
                             node,
                         });
@@ -133,20 +136,29 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                             targetNode: node,
                         });
 
+                    if (
+                        typeArguments.length !== 2 ||
+                        isEqualTypeSuggestionFix === null
+                    ) {
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
+                            messageId: "preferTsExtrasIsEqualType",
+                            node,
+                        });
+
+                        return;
+                    }
+
                     context.report({
                         messageId: "preferTsExtrasIsEqualType",
                         node,
-                        suggest:
-                            typeArguments.length === 2 &&
-                            isEqualTypeSuggestionFix !== null
-                                ? [
-                                      {
-                                          fix: isEqualTypeSuggestionFix,
-                                          messageId:
-                                              "suggestTsExtrasIsEqualType",
-                                      },
-                                  ]
-                                : null,
+                        suggest: [
+                            {
+                                fix: isEqualTypeSuggestionFix,
+                                messageId: "suggestTsExtrasIsEqualType",
+                            },
+                        ],
                     });
                 },
             };

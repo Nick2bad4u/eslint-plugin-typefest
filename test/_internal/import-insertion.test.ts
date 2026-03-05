@@ -520,6 +520,53 @@ describe(createImportInsertionFix, () => {
         ]);
     });
 
+    it("accepts empty-string side-effect module specifiers when positioning before relative imports", () => {
+        const relativeImport = {
+            range: [20, 60],
+            source: {
+                value: "./local-utils.js",
+            },
+            specifiers: [],
+            type: "ImportDeclaration",
+        } as unknown as TSESTree.ImportDeclaration;
+        const program = createProgram([relativeImport]);
+        const referenceNode = {
+            parent: program,
+            type: "Identifier",
+        } as unknown as TSESTree.Node;
+
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
+
+        const fixer = {
+            insertTextAfter: vi.fn(),
+            insertTextBeforeRange: (
+                range: readonly [number, number],
+                text: string
+            ) => {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
+        } as unknown as TSESLint.RuleFixer;
+
+        const fix = createImportInsertionFix({
+            fixer,
+            importDeclarationText: 'import "";',
+            referenceNode,
+        });
+
+        expect(fix).toBeTypeOf("string");
+        expect(insertBeforeRangeCalls).toStrictEqual([
+            {
+                range: [20, 20],
+                text: 'import "";\n',
+            },
+        ]);
+    });
+
     it("inserts named imports whose local bindings include `from` before relative imports", () => {
         const relativeImport = {
             range: [20, 60],

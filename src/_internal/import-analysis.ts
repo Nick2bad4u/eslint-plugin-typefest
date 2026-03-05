@@ -136,11 +136,7 @@ export const collectNamedImportLocalNamesByImportedNameFromSource = ({
         existingLocalNames.add(binding.localName);
     }
 
-    return new Map(
-        [...localNamesByImportedName.entries()].map(
-            ([importedName, localNames]) => [importedName, new Set(localNames)]
-        )
-    );
+    return localNamesByImportedName;
 };
 
 /**

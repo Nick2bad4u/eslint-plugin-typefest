@@ -133,14 +133,17 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns null when required import insertion fix cannot be created", () => {
+        const createReplacementFix = vi.fn(() => createRuleFix("replacement"));
+
         const fixes = createImportAwareFixes({
             createImportFix: () => null,
-            createReplacementFix: () => createRuleFix("replacement"),
+            createReplacementFix,
             fixer: createFixer(),
             importInsertionDecision: INCLUDE_IMPORT_INSERTION,
             requiresImportInsertion: true,
         });
 
         expect(fixes).toBeNull();
+        expect(createReplacementFix).not.toHaveBeenCalled();
     });
 });

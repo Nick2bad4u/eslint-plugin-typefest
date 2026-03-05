@@ -8,6 +8,7 @@ import type ts from "typescript";
 
 import { isDefined } from "ts-extras";
 
+import { getParentNode } from "./ast-node.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
@@ -166,10 +167,7 @@ export const createIsArrayLikeExpressionChecker =
 export const isWriteTargetMemberExpression = (
     node: Readonly<TSESTree.MemberExpression>
 ): boolean => {
-    const nodeWithParent = node as Readonly<TSESTree.MemberExpression> & {
-        parent?: Readonly<TSESTree.Node>;
-    };
-    const parentNode = nodeWithParent.parent;
+    const parentNode = getParentNode(node);
 
     if (parentNode === undefined) {
         return false;
