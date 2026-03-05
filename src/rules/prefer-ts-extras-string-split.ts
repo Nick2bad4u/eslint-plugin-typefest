@@ -36,6 +36,10 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
 
             const { checker, parserServices } = getTypedRuleServices(context);
             const stringPrimitiveType = getTypeCheckerStringType(checker);
+            const stringTypeResolutionCache = new Map<
+                Readonly<ts.Type>,
+                boolean
+            >();
 
             /**
              * Determine whether a type behaves like a string, traversing
@@ -44,11 +48,24 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             const isStringLikeType = (
                 type: Readonly<ReturnType<typeof checker.getTypeAtLocation>>
             ): boolean => {
+                const cachedRootResult = stringTypeResolutionCache.get(type);
+
+                if (isDefined(cachedRootResult)) {
+                    return cachedRootResult;
+                }
+
                 const seenTypes = new Set<ts.Type>();
 
                 const isStringLikeTypeInternal = (
                     candidateType: Readonly<ts.Type>
                 ): boolean => {
+                    const cachedResult =
+                        stringTypeResolutionCache.get(candidateType);
+
+                    if (isDefined(cachedResult)) {
+                        return cachedResult;
+                    }
+
                     if (seenTypes.has(candidateType)) {
                         return false;
                     }
@@ -56,15 +73,29 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     seenTypes.add(candidateType);
 
                     if (candidateType.isUnion()) {
-                        return candidateType.types.some((partType) =>
-                            isStringLikeTypeInternal(partType)
+                        const isStringLike = candidateType.types.some(
+                            (partType) => isStringLikeTypeInternal(partType)
                         );
+
+                        stringTypeResolutionCache.set(
+                            candidateType,
+                            isStringLike
+                        );
+
+                        return isStringLike;
                     }
 
                     if (candidateType.isIntersection()) {
-                        return candidateType.types.some((partType) =>
-                            isStringLikeTypeInternal(partType)
+                        const isStringLike = candidateType.types.some(
+                            (partType) => isStringLikeTypeInternal(partType)
                         );
+
+                        stringTypeResolutionCache.set(
+                            candidateType,
+                            isStringLike
+                        );
+
+                        return isStringLike;
                     }
 
                     if (
@@ -75,10 +106,14 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                             stringPrimitiveType
                         )
                     ) {
+                        stringTypeResolutionCache.set(candidateType, true);
+
                         return true;
                     }
 
                     if (candidateType.getSymbol()?.getName() === "String") {
+                        stringTypeResolutionCache.set(candidateType, true);
+
                         return true;
                     }
 
@@ -86,10 +121,16 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         checker,
                         candidateType
                     );
-                    return !isDefined(apparentType) ||
+
+                    const isStringLike =
+                        !isDefined(apparentType) ||
                         apparentType === candidateType
-                        ? false
-                        : isStringLikeTypeInternal(apparentType);
+                            ? false
+                            : isStringLikeTypeInternal(apparentType);
+
+                    stringTypeResolutionCache.set(candidateType, isStringLike);
+
+                    return isStringLike;
                 };
 
                 return isStringLikeTypeInternal(type);
@@ -104,6 +145,11 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                             parserServices.esTreeNodeToTSNodeMap.get(
                                 expression
                             );
+
+                        if (!isDefined(tsNode)) {
+                            return false;
+                        }
+
                         const objectType = checker.getTypeAtLocation(tsNode);
 
                         return isStringLikeType(objectType);

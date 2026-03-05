@@ -41,21 +41,27 @@ export const getParentNode = (
 export const getProgramNode = (
     node: Readonly<TSESTree.Node>
 ): null | Readonly<TSESTree.Program> => {
-    let currentNode: null | Readonly<TSESTree.Node> = node;
-    const visitedNodes = new Set<Readonly<TSESTree.Node>>();
+    let slowNode: null | Readonly<TSESTree.Node> = node;
+    let fastNode: null | Readonly<TSESTree.Node> = node;
 
-    while (currentNode !== null) {
-        if (visitedNodes.has(currentNode)) {
+    while (slowNode !== null) {
+        if (slowNode.type === "Program") {
+            return slowNode;
+        }
+
+        slowNode = getParentNode(slowNode) ?? null;
+
+        for (let step = 0; step < 2; step += 1) {
+            if (fastNode === null) {
+                break;
+            }
+
+            fastNode = getParentNode(fastNode) ?? null;
+        }
+
+        if (slowNode !== null && fastNode !== null && slowNode === fastNode) {
             return null;
         }
-
-        visitedNodes.add(currentNode);
-
-        if (currentNode.type === "Program") {
-            return currentNode;
-        }
-
-        currentNode = getParentNode(currentNode) ?? null;
     }
 
     return null;

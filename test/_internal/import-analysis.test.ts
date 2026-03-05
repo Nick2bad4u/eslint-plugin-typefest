@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     collectNamedImportSpecifierBindingsFromSource,
+    collectNamespaceImportLocalNamesFromSourceModule,
 } from "../../src/_internal/import-analysis";
 
 const createImportDeclaration = (
@@ -47,6 +48,17 @@ const createImportSpecifier = ({
         },
         type: "ImportSpecifier",
     }) as unknown as TSESTree.ImportSpecifier;
+
+const createImportNamespaceSpecifier = (
+    localName: string
+): TSESTree.ImportNamespaceSpecifier =>
+    ({
+        local: {
+            name: localName,
+            type: "Identifier",
+        },
+        type: "ImportNamespaceSpecifier",
+    }) as unknown as TSESTree.ImportNamespaceSpecifier;
 
 const createSourceCode = (
     body: readonly Readonly<TSESTree.ProgramStatement>[]
@@ -140,5 +152,49 @@ describe(collectNamedImportLocalNamesByImportedNameFromSource, () => {
         expect(secondResult.get("arrayFirst")).toStrictEqual(
             new Set(["arrayFirst"])
         );
+    });
+});
+
+describe(collectNamespaceImportLocalNamesFromSourceModule, () => {
+    it("collects namespace import local names for a source module", () => {
+        const sourceCode = createSourceCode([
+            createImportDeclaration("type-fest", [
+                createImportNamespaceSpecifier("typeFest"),
+            ]),
+            createImportDeclaration("ts-extras", [
+                createImportNamespaceSpecifier("tsExtras"),
+            ]),
+        ]);
+
+        const namespaceLocalNames =
+            collectNamespaceImportLocalNamesFromSourceModule(
+                sourceCode,
+                "type-fest"
+            );
+
+        expect(namespaceLocalNames).toStrictEqual(new Set(["typeFest"]));
+    });
+
+    it("returns fresh namespace sets across calls even if prior results are mutated", () => {
+        const sourceCode = createSourceCode([
+            createImportDeclaration("type-fest", [
+                createImportNamespaceSpecifier("typeFest"),
+            ]),
+        ]);
+
+        const firstResult = collectNamespaceImportLocalNamesFromSourceModule(
+            sourceCode,
+            "type-fest"
+        );
+
+        const mutableFirstResult = firstResult as Set<string>;
+        mutableFirstResult.add("tamperedNamespaceAlias");
+
+        const secondResult = collectNamespaceImportLocalNamesFromSourceModule(
+            sourceCode,
+            "type-fest"
+        );
+
+        expect(secondResult).toStrictEqual(new Set(["typeFest"]));
     });
 });

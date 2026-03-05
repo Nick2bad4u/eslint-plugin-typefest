@@ -12,25 +12,25 @@ import {
 } from "./text-character.js";
 
 /**
- * Collects import declarations from a program body in source order.
- *
- * @param programNode - Program node to inspect.
- *
- * @returns Ordered import declaration list from the program body.
+ * Cached insertion-layout metadata for one Program node.
  */
-const collectProgramImportDeclarations = (
-    programNode: Readonly<TSESTree.Program>
-): readonly Readonly<TSESTree.ImportDeclaration>[] => {
-    const importDeclarations: TSESTree.ImportDeclaration[] = [];
+type ProgramInsertionLayout = Readonly<{
+    firstRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration>;
+    firstStatementStart: null | number;
+    importDeclarations: readonly Readonly<TSESTree.ImportDeclaration>[];
+    lastDirectiveStatement: null | Readonly<TSESTree.ExpressionStatement>;
+    lastImportDeclaration: null | Readonly<TSESTree.ImportDeclaration>;
+    lastNonRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration>;
+    programEnd: null | number;
+}>;
 
-    for (const statement of programNode.body) {
-        if (statement.type === "ImportDeclaration") {
-            importDeclarations.push(statement);
-        }
-    }
-
-    return importDeclarations;
-};
+/**
+ * Program-scoped insertion-layout cache reused across repeated fixer planning.
+ */
+const programInsertionLayoutCache = new WeakMap<
+    Readonly<TSESTree.Program>,
+    ProgramInsertionLayout
+>();
 
 const IMPORT_KEYWORD = "import" as const;
 const FROM_KEYWORD = "from" as const;
@@ -71,8 +71,6 @@ const parseQuotedStringLiteral = ({
         return null;
     }
 
-    let value = "";
-
     for (let index = startIndex + 1; index < text.length; index += 1) {
         const currentCharacter = text[index];
 
@@ -82,7 +80,6 @@ const parseQuotedStringLiteral = ({
                 return null;
             }
 
-            value += `${currentCharacter}${escapedCharacter}`;
             index += 1;
             continue;
         }
@@ -90,11 +87,9 @@ const parseQuotedStringLiteral = ({
         if (currentCharacter === quoteCharacter) {
             return {
                 endIndex: index,
-                value,
+                value: text.slice(startIndex + 1, index),
             };
         }
-
-        value += currentCharacter;
     }
 
     return null;
@@ -237,31 +232,6 @@ const isDirectiveExpressionStatement = (
     typeof statement.directive === "string";
 
 /**
- * Resolve the last directive statement in the file prologue.
- *
- * @param programNode - Program node to inspect.
- *
- * @returns Final directive statement before non-directive code; otherwise
- *   `null`.
- */
-const getLastDirectivePrologueStatement = (
-    programNode: Readonly<TSESTree.Program>
-): null | Readonly<TSESTree.ExpressionStatement> => {
-    let lastDirectiveStatement: null | Readonly<TSESTree.ExpressionStatement> =
-        null;
-
-    for (const statement of programNode.body) {
-        if (!isDirectiveExpressionStatement(statement)) {
-            break;
-        }
-
-        lastDirectiveStatement = statement;
-    }
-
-    return lastDirectiveStatement;
-};
-
-/**
  * Read and validate a node range tuple.
  *
  * @param node - Node whose range should be extracted.
@@ -319,6 +289,74 @@ const getProgramRangeEnd = (
 };
 
 /**
+ * Build and cache insertion-layout metadata for one Program.
+ */
+const getProgramInsertionLayout = (
+    programNode: Readonly<TSESTree.Program>
+): ProgramInsertionLayout => {
+    const existingLayout = programInsertionLayoutCache.get(programNode);
+    if (existingLayout) {
+        return existingLayout;
+    }
+
+    const importDeclarations: TSESTree.ImportDeclaration[] = [];
+    let firstRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
+        null;
+    let lastNonRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
+        null;
+    let lastDirectiveStatement: null | Readonly<TSESTree.ExpressionStatement> =
+        null;
+    let inDirectivePrologue = true;
+
+    for (const statement of programNode.body) {
+        if (inDirectivePrologue && isDirectiveExpressionStatement(statement)) {
+            lastDirectiveStatement = statement;
+        } else {
+            inDirectivePrologue = false;
+        }
+
+        if (statement.type !== "ImportDeclaration") {
+            continue;
+        }
+
+        importDeclarations.push(statement);
+
+        const existingModuleSpecifier =
+            getImportDeclarationModuleSpecifier(statement);
+
+        if (
+            typeof existingModuleSpecifier === "string" &&
+            isRelativeModuleSpecifier(existingModuleSpecifier)
+        ) {
+            firstRelativeImportDeclaration ??= statement;
+
+            continue;
+        }
+
+        lastNonRelativeImportDeclaration = statement;
+    }
+
+    const [firstStatement] = programNode.body;
+
+    const layout: ProgramInsertionLayout = Object.freeze({
+        firstRelativeImportDeclaration,
+        firstStatementStart:
+            firstStatement === undefined
+                ? null
+                : getNodeRangeStart(firstStatement),
+        importDeclarations: Object.freeze(importDeclarations),
+        lastDirectiveStatement,
+        lastImportDeclaration: importDeclarations.at(-1) ?? null,
+        lastNonRelativeImportDeclaration,
+        programEnd: getProgramRangeEnd(programNode),
+    });
+
+    programInsertionLayoutCache.set(programNode, layout);
+
+    return layout;
+};
+
+/**
  * Create a fixer that inserts an import declaration in a safe location: after
  * existing imports, after directive prologue, before first statement, or at
  * file end for empty programs.
@@ -352,8 +390,9 @@ export const createImportInsertionFix = ({
         return null;
     }
 
-    const importDeclarations = collectProgramImportDeclarations(programNode);
-    if (importDeclarations.length > 0) {
+    const insertionLayout = getProgramInsertionLayout(programNode);
+
+    if (insertionLayout.importDeclarations.length > 0) {
         const moduleSpecifier = getModuleSpecifierFromImportDeclarationText(
             normalizedImportDeclarationText
         );
@@ -362,37 +401,16 @@ export const createImportInsertionFix = ({
             typeof moduleSpecifier === "string" &&
             !isRelativeModuleSpecifier(moduleSpecifier)
         ) {
-            let firstRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
-                null;
-            let lastNonRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration> =
-                null;
-
-            for (const importDeclaration of importDeclarations) {
-                const existingModuleSpecifier =
-                    getImportDeclarationModuleSpecifier(importDeclaration);
-
-                if (
-                    typeof existingModuleSpecifier === "string" &&
-                    isRelativeModuleSpecifier(existingModuleSpecifier)
-                ) {
-                    firstRelativeImportDeclaration ??= importDeclaration;
-
-                    continue;
-                }
-
-                lastNonRelativeImportDeclaration = importDeclaration;
-            }
-
-            if (lastNonRelativeImportDeclaration !== null) {
+            if (insertionLayout.lastNonRelativeImportDeclaration !== null) {
                 return fixer.insertTextAfter(
-                    lastNonRelativeImportDeclaration,
+                    insertionLayout.lastNonRelativeImportDeclaration,
                     `\n${normalizedImportDeclarationText}`
                 );
             }
 
-            if (firstRelativeImportDeclaration !== null) {
+            if (insertionLayout.firstRelativeImportDeclaration !== null) {
                 const firstRelativeImportStart = getNodeRangeStart(
-                    firstRelativeImportDeclaration
+                    insertionLayout.firstRelativeImportDeclaration
                 );
 
                 if (firstRelativeImportStart !== null) {
@@ -405,41 +423,36 @@ export const createImportInsertionFix = ({
         }
     }
 
-    const lastImportDeclaration = importDeclarations.at(-1);
-    if (lastImportDeclaration !== undefined) {
+    if (insertionLayout.lastImportDeclaration !== null) {
         return fixer.insertTextAfter(
-            lastImportDeclaration,
+            insertionLayout.lastImportDeclaration,
             `\n${normalizedImportDeclarationText}`
         );
     }
 
-    const lastDirectiveStatement =
-        getLastDirectivePrologueStatement(programNode);
-    if (lastDirectiveStatement !== null) {
+    if (insertionLayout.lastDirectiveStatement !== null) {
         return fixer.insertTextAfter(
-            lastDirectiveStatement,
+            insertionLayout.lastDirectiveStatement,
             `\n${normalizedImportDeclarationText}`
         );
     }
 
-    const [firstStatement] = programNode.body;
-    if (firstStatement !== undefined) {
-        const firstStatementStart = getNodeRangeStart(firstStatement);
-        if (firstStatementStart !== null) {
-            return fixer.insertTextBeforeRange(
-                [firstStatementStart, firstStatementStart],
-                `${normalizedImportDeclarationText}\n`
-            );
-        }
+    if (insertionLayout.firstStatementStart !== null) {
+        return fixer.insertTextBeforeRange(
+            [
+                insertionLayout.firstStatementStart,
+                insertionLayout.firstStatementStart,
+            ],
+            `${normalizedImportDeclarationText}\n`
+        );
     }
 
-    const programEnd = getProgramRangeEnd(programNode);
-    if (programEnd === null) {
+    if (insertionLayout.programEnd === null) {
         return null;
     }
 
     return fixer.insertTextBeforeRange(
-        [programEnd, programEnd],
-        `${programEnd === 0 ? "" : "\n"}${normalizedImportDeclarationText}\n`
+        [insertionLayout.programEnd, insertionLayout.programEnd],
+        `${insertionLayout.programEnd === 0 ? "" : "\n"}${normalizedImportDeclarationText}\n`
     );
 };

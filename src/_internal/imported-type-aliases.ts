@@ -242,14 +242,27 @@ export function isTypeParameterNameShadowed(
     node: Readonly<TSESTree.Node>,
     parameterName: string
 ): boolean {
-    let currentNode: Readonly<TSESTree.Node> | undefined = node;
+    let slowNode: null | Readonly<TSESTree.Node> = node;
+    let fastNode: null | Readonly<TSESTree.Node> = node;
 
-    while (currentNode) {
-        if (ancestorDefinesTypeParameterNamed(currentNode, parameterName)) {
+    while (slowNode !== null) {
+        if (ancestorDefinesTypeParameterNamed(slowNode, parameterName)) {
             return true;
         }
 
-        currentNode = getParentNode(currentNode);
+        slowNode = getParentNode(slowNode) ?? null;
+
+        for (let step = 0; step < 2; step += 1) {
+            if (fastNode === null) {
+                break;
+            }
+
+            fastNode = getParentNode(fastNode) ?? null;
+        }
+
+        if (slowNode !== null && fastNode !== null && slowNode === fastNode) {
+            return false;
+        }
     }
 
     return false;

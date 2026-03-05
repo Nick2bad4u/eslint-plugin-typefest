@@ -49,6 +49,123 @@ interface ArrayLikeExpressionCheckerOptions {
  */
 type UnionArrayLikeMatchMode = "every" | "some";
 
+const evaluateIsArrayLikeType = ({
+    candidateType,
+    checker,
+    resolutionCache,
+    seenTypes,
+    unionMatchMode,
+}: Readonly<{
+    candidateType: Readonly<ts.Type>;
+    checker: Readonly<ts.TypeChecker>;
+    resolutionCache: Map<Readonly<ts.Type>, boolean>;
+    seenTypes: Set<Readonly<ts.Type>>;
+    unionMatchMode: UnionArrayLikeMatchMode;
+}>): boolean => {
+    const cachedResult = resolutionCache.get(candidateType);
+
+    if (isDefined(cachedResult)) {
+        return cachedResult;
+    }
+
+    if (seenTypes.has(candidateType)) {
+        return false;
+    }
+
+    seenTypes.add(candidateType);
+
+    if (
+        getTypeCheckerIsArrayTypeResult(checker, candidateType) === true ||
+        getTypeCheckerIsTupleTypeResult(checker, candidateType) === true
+    ) {
+        resolutionCache.set(candidateType, true);
+
+        return true;
+    }
+
+    if (candidateType.isUnion()) {
+        const isArrayLike =
+            unionMatchMode === "every"
+                ? candidateType.types.every((partType) =>
+                      evaluateIsArrayLikeType({
+                          candidateType: partType,
+                          checker,
+                          resolutionCache,
+                          seenTypes,
+                          unionMatchMode,
+                      })
+                  )
+                : candidateType.types.some((partType) =>
+                      evaluateIsArrayLikeType({
+                          candidateType: partType,
+                          checker,
+                          resolutionCache,
+                          seenTypes,
+                          unionMatchMode,
+                      })
+                  );
+
+        resolutionCache.set(candidateType, isArrayLike);
+
+        return isArrayLike;
+    }
+
+    if (candidateType.isIntersection()) {
+        const isArrayLike = candidateType.types.some((partType) =>
+            evaluateIsArrayLikeType({
+                candidateType: partType,
+                checker,
+                resolutionCache,
+                seenTypes,
+                unionMatchMode,
+            })
+        );
+
+        resolutionCache.set(candidateType, isArrayLike);
+
+        return isArrayLike;
+    }
+
+    const baseConstraint = getTypeCheckerBaseConstraintType(
+        checker,
+        candidateType
+    );
+    if (
+        isDefined(baseConstraint) &&
+        baseConstraint !== candidateType &&
+        evaluateIsArrayLikeType({
+            candidateType: baseConstraint,
+            checker,
+            resolutionCache,
+            seenTypes,
+            unionMatchMode,
+        })
+    ) {
+        resolutionCache.set(candidateType, true);
+
+        return true;
+    }
+
+    const apparentType = getTypeCheckerApparentType(checker, candidateType);
+    if (isDefined(apparentType) && apparentType !== candidateType) {
+        const isArrayLike = evaluateIsArrayLikeType({
+            candidateType: apparentType,
+            checker,
+            resolutionCache,
+            seenTypes,
+            unionMatchMode,
+        });
+
+        resolutionCache.set(candidateType, isArrayLike);
+
+        return isArrayLike;
+    }
+
+    resolutionCache.set(candidateType, false);
+
+    return false;
+};
+
 /**
  * Determine whether a TypeScript type resolves to an array-like shape.
  *
@@ -62,63 +179,14 @@ export const isArrayLikeType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>,
     unionMatchMode: UnionArrayLikeMatchMode = "some"
-): boolean => {
-    const seenTypes = new Set<ts.Type>();
-
-    const isArrayLikeTypeInternal = (
-        candidateType: Readonly<ts.Type>
-    ): boolean => {
-        if (seenTypes.has(candidateType)) {
-            return false;
-        }
-
-        seenTypes.add(candidateType);
-
-        if (
-            getTypeCheckerIsArrayTypeResult(checker, candidateType) === true ||
-            getTypeCheckerIsTupleTypeResult(checker, candidateType) === true
-        ) {
-            return true;
-        }
-
-        if (candidateType.isUnion()) {
-            return unionMatchMode === "every"
-                ? candidateType.types.every((partType) =>
-                      isArrayLikeTypeInternal(partType)
-                  )
-                : candidateType.types.some((partType) =>
-                      isArrayLikeTypeInternal(partType)
-                  );
-        }
-
-        if (candidateType.isIntersection()) {
-            return candidateType.types.some((partType) =>
-                isArrayLikeTypeInternal(partType)
-            );
-        }
-
-        const baseConstraint = getTypeCheckerBaseConstraintType(
-            checker,
-            candidateType
-        );
-        if (
-            isDefined(baseConstraint) &&
-            baseConstraint !== candidateType &&
-            isArrayLikeTypeInternal(baseConstraint)
-        ) {
-            return true;
-        }
-
-        const apparentType = getTypeCheckerApparentType(checker, candidateType);
-        if (isDefined(apparentType) && apparentType !== candidateType) {
-            return isArrayLikeTypeInternal(apparentType);
-        }
-
-        return false;
-    };
-
-    return isArrayLikeTypeInternal(type);
-};
+): boolean =>
+    evaluateIsArrayLikeType({
+        candidateType: type,
+        checker,
+        resolutionCache: new Map<Readonly<ts.Type>, boolean>(),
+        seenTypes: new Set<Readonly<ts.Type>>(),
+        unionMatchMode,
+    });
 
 /**
  * Build a safe ESTree expression predicate for array-like type checks.
@@ -127,13 +195,14 @@ export const isArrayLikeType = (
  *
  * @returns Function that returns `true` when the expression is array-like.
  */
-export const createIsArrayLikeExpressionChecker =
-    ({
-        checker,
-        parserServices,
-        unionMatchMode = "some",
-    }: Readonly<ArrayLikeExpressionCheckerOptions>) =>
-    (expression: Readonly<TSESTree.Expression>): boolean => {
+export const createIsArrayLikeExpressionChecker = ({
+    checker,
+    parserServices,
+    unionMatchMode = "some",
+}: Readonly<ArrayLikeExpressionCheckerOptions>) => {
+    const arrayLikeTypeResolutionCache = new Map<Readonly<ts.Type>, boolean>();
+
+    return (expression: Readonly<TSESTree.Expression>): boolean => {
         const result = safeTypeOperation({
             operation: () => {
                 const tsNode =
@@ -145,7 +214,13 @@ export const createIsArrayLikeExpressionChecker =
 
                 const expressionType = checker.getTypeAtLocation(tsNode);
 
-                return isArrayLikeType(checker, expressionType, unionMatchMode);
+                return evaluateIsArrayLikeType({
+                    candidateType: expressionType,
+                    checker,
+                    resolutionCache: arrayLikeTypeResolutionCache,
+                    seenTypes: new Set<Readonly<ts.Type>>(),
+                    unionMatchMode,
+                });
             },
             reason: "array-like-expression-check-failed",
         });
@@ -156,6 +231,7 @@ export const createIsArrayLikeExpressionChecker =
 
         return result.value;
     };
+};
 
 /**
  * Check whether a member expression is used as a write target.

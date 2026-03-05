@@ -82,7 +82,10 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                                 typeAnnotation
                             );
 
-                        if (!ts.isTypeNode(annotationTsNode)) {
+                        if (
+                            !expressionTsNode ||
+                            !ts.isTypeNode(annotationTsNode)
+                        ) {
                             return null;
                         }
 

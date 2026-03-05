@@ -240,6 +240,85 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         }
     });
 
+    it("skips reporting when parser services cannot map the receiver expression", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+        const getTypeAtLocation = vi.fn(() => ({ isUnion: () => false }));
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation,
+                        typeToString: () => "Set<number>",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => undefined,
+                        },
+                    },
+                }),
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createMethodToFunctionCallFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-set-has")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                },
+            });
+
+            const callExpressionListener = listeners.CallExpression;
+
+            expect(callExpressionListener).toBeTypeOf("function");
+
+            const identifierHasCallNode = {
+                callee: {
+                    computed: false,
+                    object: {
+                        type: "Identifier",
+                    },
+                    property: {
+                        name: "has",
+                        type: "Identifier",
+                    },
+                    type: "MemberExpression",
+                },
+                type: "CallExpression",
+            };
+
+            callExpressionListener?.(identifierHasCallNode);
+
+            expect(reportCalls).toHaveLength(0);
+            expect(getTypeAtLocation).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
     it("handles recursive unions, intersections, apparent types, and non-member callees", async () => {
         const reportCalls: { messageId?: string }[] = [];
 

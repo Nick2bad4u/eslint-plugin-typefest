@@ -34,6 +34,10 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
+            const setTypeResolutionCache = new Map<
+                Readonly<ts.Type>,
+                boolean
+            >();
 
             const hasClassOrInterfaceLikeDeclaration = (
                 candidateType: Readonly<ts.Type>
@@ -56,11 +60,23 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
              * interfaces.
              */
             const isSetType = (type: Readonly<ts.Type>): boolean => {
+                const cachedRootResult = setTypeResolutionCache.get(type);
+                if (isDefined(cachedRootResult)) {
+                    return cachedRootResult;
+                }
+
                 const seenTypes = new Set<ts.Type>();
 
                 const isSetTypeInternal = (
                     candidateType: Readonly<ts.Type>
                 ): boolean => {
+                    const cachedResult =
+                        setTypeResolutionCache.get(candidateType);
+
+                    if (isDefined(cachedResult)) {
+                        return cachedResult;
+                    }
+
                     if (seenTypes.has(candidateType)) {
                         return false;
                     }
@@ -68,19 +84,27 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     seenTypes.add(candidateType);
 
                     if (candidateType.isUnion()) {
-                        return candidateType.types.some((partType) =>
+                        const isSetLike = candidateType.types.some((partType) =>
                             isSetTypeInternal(partType)
                         );
+                        setTypeResolutionCache.set(candidateType, isSetLike);
+
+                        return isSetLike;
                     }
 
                     if (candidateType.isIntersection()) {
-                        return candidateType.types.some((partType) =>
+                        const isSetLike = candidateType.types.some((partType) =>
                             isSetTypeInternal(partType)
                         );
+                        setTypeResolutionCache.set(candidateType, isSetLike);
+
+                        return isSetLike;
                     }
 
                     const symbolName = candidateType.getSymbol()?.getName();
                     if (symbolName === "ReadonlySet" || symbolName === "Set") {
+                        setTypeResolutionCache.set(candidateType, true);
+
                         return true;
                     }
 
@@ -93,10 +117,14 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         apparentType !== candidateType &&
                         isSetTypeInternal(apparentType)
                     ) {
+                        setTypeResolutionCache.set(candidateType, true);
+
                         return true;
                     }
 
                     if (!hasClassOrInterfaceLikeDeclaration(candidateType)) {
+                        setTypeResolutionCache.set(candidateType, false);
+
                         return false;
                     }
 
@@ -107,16 +135,21 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     });
 
                     if (!baseTypesResult.ok) {
+                        setTypeResolutionCache.set(candidateType, false);
+
                         return false;
                     }
 
                     const baseTypes = baseTypesResult.value;
 
-                    return (
+                    const isSetLike =
                         baseTypes?.some((baseType) =>
                             isSetTypeInternal(baseType)
-                        ) ?? false
-                    );
+                        ) ?? false;
+
+                    setTypeResolutionCache.set(candidateType, isSetLike);
+
+                    return isSetLike;
                 };
 
                 return isSetTypeInternal(type);
@@ -131,6 +164,11 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                             parserServices.esTreeNodeToTSNodeMap.get(
                                 expression
                             );
+
+                        if (!isDefined(tsNode)) {
+                            return false;
+                        }
+
                         const objectType = checker.getTypeAtLocation(tsNode);
 
                         return isSetType(objectType);

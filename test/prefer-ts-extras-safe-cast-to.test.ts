@@ -386,6 +386,87 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
             vi.resetModules();
         }
     });
+
+    it("skips reporting when parser services cannot map the assertion expression node", async () => {
+        const reportCalls: { messageId?: string }[] = [];
+        const getTypeAtLocation = vi.fn(() => ({ flags: 0 }));
+        const expressionNode = {
+            name: "value",
+            type: "Identifier",
+        };
+        const annotationNode = {
+            type: "TSStringKeyword",
+        };
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation,
+                        getTypeFromTypeNode: () => ({ flags: 0 }),
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get(node: unknown) {
+                                if (node === expressionNode) {
+                                    return undefined;
+                                }
+
+                                return ts.factory.createKeywordTypeNode(
+                                    ts.SyntaxKind.StringKeyword
+                                );
+                            },
+                        },
+                    },
+                }),
+                isTypeAssignableTo: () => true,
+            }));
+
+            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
+                collectDirectNamedValueImportsFromSource: () =>
+                    new Set<string>(),
+                createSafeValueNodeTextReplacementFix: () => null,
+            }));
+
+            const authoredRuleModule =
+                (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            TSAsExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const listeners = authoredRuleModule.default.create({
+                filename: "src/example.ts",
+                report(descriptor: Readonly<{ messageId?: string }>) {
+                    reportCalls.push(descriptor);
+                },
+                sourceCode: {
+                    ast: {
+                        body: [],
+                    },
+                    getText: () => "value",
+                },
+            });
+
+            listeners.TSAsExpression?.({
+                expression: expressionNode,
+                type: "TSAsExpression",
+                typeAnnotation: annotationNode,
+            });
+
+            expect(reportCalls).toHaveLength(0);
+            expect(getTypeAtLocation).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/imported-value-symbols.js");
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
 });
 
 describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {

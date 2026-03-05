@@ -25,6 +25,120 @@ export type NamedImportSpecifierBinding = Readonly<{
 }>;
 
 /**
+ * Program-level import analysis cached per SourceCode instance.
+ */
+type SourceImportAnalysis = Readonly<{
+    namedImportSpecifierBindings: readonly NamedImportSpecifierBinding[];
+    namespaceImportLocalNamesBySourceModule: ReadonlyMap<
+        string,
+        ReadonlySet<string>
+    >;
+}>;
+
+/**
+ * SourceCode-scoped cache for parsed import declarations.
+ */
+const sourceImportAnalysisCache = new WeakMap<
+    Readonly<TSESLint.SourceCode>,
+    SourceImportAnalysis
+>();
+
+/**
+ * Build and cache one import-analysis snapshot for the provided SourceCode.
+ */
+const getSourceImportAnalysis = (
+    sourceCode: Readonly<TSESLint.SourceCode>
+): SourceImportAnalysis => {
+    const existingAnalysis = sourceImportAnalysisCache.get(sourceCode);
+    if (isDefined(existingAnalysis)) {
+        return existingAnalysis;
+    }
+
+    const namedImportSpecifierBindings: NamedImportSpecifierBinding[] = [];
+    const mutableNamespaceLocalNamesBySourceModule = new Map<
+        string,
+        Set<string>
+    >();
+
+    for (const statement of sourceCode.ast.body) {
+        if (statement.type !== "ImportDeclaration") {
+            continue;
+        }
+
+        const sourceModuleName =
+            typeof statement.source.value === "string"
+                ? statement.source.value
+                : undefined;
+
+        for (const specifier of statement.specifiers) {
+            if (
+                specifier.type === "ImportSpecifier" &&
+                specifier.imported.type === "Identifier" &&
+                specifier.local.type === "Identifier"
+            ) {
+                namedImportSpecifierBindings.push(
+                    Object.freeze({
+                        declaration: statement,
+                        importedName: specifier.imported.name,
+                        localName: specifier.local.name,
+                        specifier,
+                    })
+                );
+
+                continue;
+            }
+
+            if (
+                specifier.type === "ImportNamespaceSpecifier" &&
+                isDefined(sourceModuleName)
+            ) {
+                const existingLocalNames =
+                    mutableNamespaceLocalNamesBySourceModule.get(
+                        sourceModuleName
+                    );
+
+                if (!isDefined(existingLocalNames)) {
+                    mutableNamespaceLocalNamesBySourceModule.set(
+                        sourceModuleName,
+                        new Set([specifier.local.name])
+                    );
+
+                    continue;
+                }
+
+                existingLocalNames.add(specifier.local.name);
+            }
+        }
+    }
+
+    const namespaceImportLocalNamesBySourceModule = new Map<
+        string,
+        ReadonlySet<string>
+    >();
+
+    for (const [
+        sourceModuleName,
+        localNames,
+    ] of mutableNamespaceLocalNamesBySourceModule) {
+        namespaceImportLocalNamesBySourceModule.set(
+            sourceModuleName,
+            Object.freeze(new Set(localNames))
+        );
+    }
+
+    const analysis: SourceImportAnalysis = Object.freeze({
+        namedImportSpecifierBindings: Object.freeze(
+            namedImportSpecifierBindings
+        ),
+        namespaceImportLocalNamesBySourceModule,
+    });
+
+    sourceImportAnalysisCache.set(sourceCode, analysis);
+
+    return analysis;
+};
+
+/**
  * Check whether an import declaration points at a specific source module.
  */
 export const isImportDeclarationFromSource = (
@@ -46,47 +160,35 @@ export const collectNamedImportSpecifierBindingsFromSource = ({
     sourceCode: Readonly<TSESLint.SourceCode>;
     sourceModuleName?: string;
 }>): readonly NamedImportSpecifierBinding[] => {
+    const sourceImportAnalysis = getSourceImportAnalysis(sourceCode);
     const bindings: NamedImportSpecifierBinding[] = [];
 
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
-            continue;
-        }
-
+    for (const binding of sourceImportAnalysis.namedImportSpecifierBindings) {
         if (
             isDefined(sourceModuleName) &&
-            !isImportDeclarationFromSource(statement, sourceModuleName)
+            !isImportDeclarationFromSource(
+                binding.declaration,
+                sourceModuleName
+            )
         ) {
             continue;
         }
 
-        if (!allowTypeImportDeclaration && statement.importKind === "type") {
+        if (
+            !allowTypeImportDeclaration &&
+            binding.declaration.importKind === "type"
+        ) {
             continue;
         }
 
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportSpecifier") {
-                continue;
-            }
-
-            if (!allowTypeImportSpecifier && specifier.importKind === "type") {
-                continue;
-            }
-
-            if (
-                specifier.imported.type !== "Identifier" ||
-                specifier.local.type !== "Identifier"
-            ) {
-                continue;
-            }
-
-            bindings.push({
-                declaration: statement,
-                importedName: specifier.imported.name,
-                localName: specifier.local.name,
-                specifier,
-            });
+        if (
+            !allowTypeImportSpecifier &&
+            binding.specifier.importKind === "type"
+        ) {
+            continue;
         }
+
+        bindings.push(binding);
     }
 
     return bindings;
@@ -146,25 +248,11 @@ export const collectNamespaceImportLocalNamesFromSourceModule = (
     sourceCode: Readonly<TSESLint.SourceCode>,
     sourceModuleName: string
 ): ReadonlySet<string> => {
-    const localNames = new Set<string>();
+    const sourceImportAnalysis = getSourceImportAnalysis(sourceCode);
+    const localNames =
+        sourceImportAnalysis.namespaceImportLocalNamesBySourceModule.get(
+            sourceModuleName
+        );
 
-    for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
-            continue;
-        }
-
-        if (!isImportDeclarationFromSource(statement, sourceModuleName)) {
-            continue;
-        }
-
-        for (const specifier of statement.specifiers) {
-            if (specifier.type !== "ImportNamespaceSpecifier") {
-                continue;
-            }
-
-            localNames.add(specifier.local.name);
-        }
-    }
-
-    return localNames;
+    return isDefined(localNames) ? new Set(localNames) : new Set<string>();
 };

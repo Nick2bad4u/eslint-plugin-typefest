@@ -22,14 +22,40 @@ import { getTypedRuleServices } from "./typed-rule.js";
 const TYPESCRIPT_ESLINT_UTILS_MODULE_NAME = "@typescript-eslint/utils" as const;
 const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
 const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
+const PATH_SEPARATOR = "/" as const;
+
+const TYPESCRIPT_ESLINT_PACKAGE_PATH_SEGMENT =
+    `${PATH_SEPARATOR}${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}${PATH_SEPARATOR}` as const;
 
 const tsEslintAstNamespaceNames = new Set<string>([TSESTREE_NAMESPACE_NAME]);
+const namespaceImportNamesBySourceCode = new WeakMap<
+    Readonly<TSESLint.SourceCode>,
+    ReadonlySet<string>
+>();
 
-const isTypeScriptEslintDeclarationPath = (fileName: string): boolean =>
-    fileName
-        .replaceAll("\\", "/")
-        .split("/")
-        .includes(TYPESCRIPT_ESLINT_PACKAGE_SEGMENT);
+const appendPendingValues = <T>(
+    pendingValues: T[],
+    valuesToAppend: readonly T[]
+): void => {
+    for (const value of valuesToAppend) {
+        pendingValues.push(value);
+    }
+};
+
+const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
+    const normalizedFileName = fileName.replaceAll("\\", PATH_SEPARATOR);
+
+    return (
+        normalizedFileName === TYPESCRIPT_ESLINT_PACKAGE_SEGMENT ||
+        normalizedFileName.startsWith(
+            `${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}${PATH_SEPARATOR}`
+        ) ||
+        normalizedFileName.endsWith(
+            `${PATH_SEPARATOR}${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}`
+        ) ||
+        normalizedFileName.includes(TYPESCRIPT_ESLINT_PACKAGE_PATH_SEGMENT)
+    );
+};
 
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
     typeof value === "object" && value !== null;
@@ -76,20 +102,22 @@ const containsNamespaceQualifiedReferenceText = (
 const getTypeScriptEslintNamespaceImportNames = (
     sourceCode: Readonly<TSESLint.SourceCode>
 ): ReadonlySet<string> => {
-    const namespaceNames = new Set<string>();
-    const sourceAst = (
-        sourceCode as Readonly<{
-            ast?: Readonly<{
-                body?: readonly TSESTree.ProgramStatement[];
-            }>;
-        }>
-    ).ast;
+    const cachedNamespaceNames =
+        namespaceImportNamesBySourceCode.get(sourceCode);
+    if (isDefined(cachedNamespaceNames)) {
+        return cachedNamespaceNames;
+    }
 
-    if (!isDefined(sourceAst) || !Array.isArray(sourceAst.body)) {
+    const namespaceNames = new Set<string>();
+    const programStatements = sourceCode.ast?.body;
+
+    if (!Array.isArray(programStatements)) {
+        namespaceImportNamesBySourceCode.set(sourceCode, namespaceNames);
+
         return namespaceNames;
     }
 
-    for (const statement of sourceAst.body) {
+    for (const statement of programStatements) {
         if (
             statement.type !== "ImportDeclaration" ||
             statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_NAME
@@ -113,7 +141,11 @@ const getTypeScriptEslintNamespaceImportNames = (
         }
     }
 
-    return namespaceNames;
+    const readonlyNamespaceNames: ReadonlySet<string> = new Set(namespaceNames);
+
+    namespaceImportNamesBySourceCode.set(sourceCode, readonlyNamespaceNames);
+
+    return readonlyNamespaceNames;
 };
 
 const isTypeScriptEslintQualifiedTypeName = (
@@ -180,7 +212,7 @@ const containsTypeScriptEslintTypeReference = (
             const value = currentNode[key];
 
             if (Array.isArray(value)) {
-                pendingNodes.push(...value);
+                appendPendingValues(pendingNodes, value);
                 continue;
             }
 
@@ -206,6 +238,10 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
     expression: Readonly<TSESTree.Expression>,
     namespaceNames: ReadonlySet<string>
 ): boolean => {
+    if (namespaceNames.size === 0) {
+        return false;
+    }
+
     if (expression.type !== "Identifier") {
         return false;
     }
@@ -319,7 +355,7 @@ const collectNestedTypeArguments = (
     ).aliasTypeArguments;
 
     if (isDefined(aliasTypeArguments)) {
-        collectedTypes.push(...aliasTypeArguments);
+        appendPendingValues(collectedTypes, aliasTypeArguments);
     }
 
     const checkerTypeArgumentsResult = safeTypeOperation({
@@ -330,7 +366,7 @@ const collectNestedTypeArguments = (
     });
 
     if (checkerTypeArgumentsResult.ok) {
-        collectedTypes.push(...checkerTypeArgumentsResult.value);
+        appendPendingValues(collectedTypes, checkerTypeArgumentsResult.value);
     }
 
     return collectedTypes;
@@ -389,7 +425,7 @@ export const isTypeScriptEslintAstType = (
         }
 
         if (currentType.isUnionOrIntersection()) {
-            pendingTypes.push(...currentType.types);
+            appendPendingValues(pendingTypes, currentType.types);
         }
 
         const nestedTypeArguments = collectNestedTypeArguments(
@@ -397,7 +433,7 @@ export const isTypeScriptEslintAstType = (
             currentType
         );
         if (nestedTypeArguments.length > 0) {
-            pendingTypes.push(...nestedTypeArguments);
+            appendPendingValues(pendingTypes, nestedTypeArguments);
         }
 
         const apparentType = getTypeCheckerApparentType(checker, currentType);
@@ -435,6 +471,11 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
 >(
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
 ): ((expression: Readonly<TSESTree.Expression>) => boolean) => {
+    const shouldSkipExpressionCache = new WeakMap<
+        Readonly<TSESTree.Expression>,
+        boolean
+    >();
+
     const namespaceNames = getTypeScriptEslintNamespaceImportNames(
         context.sourceCode
     );
@@ -445,17 +486,34 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
     });
 
     if (!typedServicesResult.ok) {
-        return (expression) =>
-            isTypeScriptEslintNodeLikeExpressionByDefinition(
+        return (expression) => {
+            const cachedResult = shouldSkipExpressionCache.get(expression);
+
+            if (isDefined(cachedResult)) {
+                return cachedResult;
+            }
+
+            const shouldSkip = isTypeScriptEslintNodeLikeExpressionByDefinition(
                 context,
                 expression,
                 namespaceNames
             );
+
+            shouldSkipExpressionCache.set(expression, shouldSkip);
+
+            return shouldSkip;
+        };
     }
 
     const { checker, parserServices } = typedServicesResult.value;
 
     return (expression) => {
+        const cachedResult = shouldSkipExpressionCache.get(expression);
+
+        if (isDefined(cachedResult)) {
+            return cachedResult;
+        }
+
         const isNodeTypedExpressionResult = safeTypeOperation({
             operation: () => {
                 const tsNode =
@@ -476,13 +534,19 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
             isNodeTypedExpressionResult.ok &&
             isNodeTypedExpressionResult.value
         ) {
+            shouldSkipExpressionCache.set(expression, true);
+
             return true;
         }
 
-        return isTypeScriptEslintNodeLikeExpressionByDefinition(
+        const shouldSkip = isTypeScriptEslintNodeLikeExpressionByDefinition(
             context,
             expression,
             namespaceNames
         );
+
+        shouldSkipExpressionCache.set(expression, shouldSkip);
+
+        return shouldSkip;
     };
 };

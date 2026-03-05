@@ -80,4 +80,23 @@ describe(getVariableInScopeChain, () => {
 
         expect(getVariableInScopeChain(firstScope, "missing")).toBeNull();
     });
+
+    it("returns a variable in a cyclic chain when encountered before cycle detection", () => {
+        const targetVariable = createVariable("value");
+        const firstScope = createScope(new Map());
+        const secondScope = createScope(
+            new Map([["value", targetVariable]]),
+            firstScope
+        );
+
+        (
+            firstScope as {
+                upper: null | Readonly<TSESLint.Scope.Scope>;
+            }
+        ).upper = secondScope;
+
+        expect(getVariableInScopeChain(firstScope, "value")).toBe(
+            targetVariable
+        );
+    });
 });

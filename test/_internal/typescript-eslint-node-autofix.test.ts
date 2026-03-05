@@ -4,10 +4,14 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
+import type ts from "typescript";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { createTypeScriptEslintNodeExpressionSkipChecker } from "../../src/_internal/typescript-eslint-node-autofix";
+import {
+    createTypeScriptEslintNodeExpressionSkipChecker,
+    isTypeScriptEslintAstType,
+} from "../../src/_internal/typescript-eslint-node-autofix";
 
 type RuleContext = TSESLint.RuleContext<string, UnknownArray>;
 
@@ -41,6 +45,17 @@ const createTSESTreeImportSpecifier = (
         },
         type: "ImportSpecifier",
     }) as unknown as TSESTree.ImportSpecifier;
+
+const createImportNamespaceSpecifier = (
+    localName: string
+): TSESTree.ImportNamespaceSpecifier =>
+    ({
+        local: {
+            name: localName,
+            type: "Identifier",
+        },
+        type: "ImportNamespaceSpecifier",
+    }) as unknown as TSESTree.ImportNamespaceSpecifier;
 
 const createScopeWithVariable = (
     variableName: string,
@@ -89,6 +104,27 @@ const createRuleContext = ({
         },
     } as unknown as Readonly<RuleContext>;
 };
+
+const createTypeCheckerForAstTypeTests = (): Readonly<ts.TypeChecker> =>
+    ({
+        typeToString: () => "NodeLikeType",
+    }) as unknown as Readonly<ts.TypeChecker>;
+
+const createTypeWithDeclarationPath = (fileName: string): Readonly<ts.Type> =>
+    ({
+        aliasSymbol: undefined,
+        getSymbol: () => ({
+            getDeclarations: () => [
+                {
+                    getSourceFile: () => ({
+                        fileName,
+                    }),
+                },
+            ],
+        }),
+        isUnionOrIntersection: () => false,
+        types: [],
+    }) as unknown as Readonly<ts.Type>;
 
 describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     it("returns true for definition nodes containing qualified TSESTree type references", () => {
@@ -163,6 +199,30 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
         ).toBeFalsy();
     });
 
+    it("skips scope traversal entirely when no namespace imports are present", () => {
+        const context = {
+            sourceCode: {
+                ast: {
+                    body: [],
+                },
+                getScope: () => {
+                    throw new Error("scope should not be consulted");
+                },
+                getText: () => "const nodeLike: TSESTree.Node = value;",
+            },
+        } as unknown as Readonly<RuleContext>;
+
+        const shouldSkipExpression =
+            createTypeScriptEslintNodeExpressionSkipChecker(context);
+
+        expect(
+            shouldSkipExpression({
+                name: "nodeLike",
+                type: "Identifier",
+            } as TSESTree.Identifier)
+        ).toBeFalsy();
+    });
+
     it("returns true for imported aliases referenced in definition text fallback", () => {
         const definitionNode = {
             type: "VariableDeclarator",
@@ -174,6 +234,33 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
             importStatements: [
                 createImportDeclarationFromTypeScriptEslintUtils([
                     createTSESTreeImportSpecifier("EST"),
+                ]),
+            ],
+            variableName: "nodeLike",
+        });
+
+        const shouldSkipExpression =
+            createTypeScriptEslintNodeExpressionSkipChecker(context);
+
+        expect(
+            shouldSkipExpression({
+                name: "nodeLike",
+                type: "Identifier",
+            } as TSESTree.Identifier)
+        ).toBeTruthy();
+    });
+
+    it("returns true for namespace imports referenced in definition text fallback", () => {
+        const definitionNode = {
+            type: "VariableDeclarator",
+        } as unknown as TSESTree.VariableDeclarator;
+
+        const context = createRuleContext({
+            definitionNode,
+            definitionText: "const nodeLike: EST.Node = value;",
+            importStatements: [
+                createImportDeclarationFromTypeScriptEslintUtils([
+                    createImportNamespaceSpecifier("EST"),
                 ]),
             ],
             variableName: "nodeLike",
@@ -215,5 +302,84 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 type: "Identifier",
             } as TSESTree.Identifier)
         ).toBeFalsy();
+    });
+
+    it("gracefully handles SourceCode objects without ast/body", () => {
+        const definitionNode = {
+            type: "VariableDeclarator",
+        } as unknown as TSESTree.VariableDeclarator;
+
+        const context = {
+            sourceCode: {
+                getScope: () =>
+                    createScopeWithVariable("nodeLike", definitionNode),
+                getText: () => "const nodeLike: TSESTree.Node = value;",
+            },
+        } as unknown as Readonly<RuleContext>;
+
+        const shouldSkipExpression =
+            createTypeScriptEslintNodeExpressionSkipChecker(context);
+
+        expect(
+            shouldSkipExpression({
+                name: "nodeLike",
+                type: "Identifier",
+            } as TSESTree.Identifier)
+        ).toBeFalsy();
+    });
+
+    it("memoizes fallback skip-check decisions per expression node", () => {
+        const definitionNode = {
+            type: "VariableDeclarator",
+        } as unknown as TSESTree.VariableDeclarator;
+
+        const getScope = vi.fn(() =>
+            createScopeWithVariable("nodeLike", definitionNode)
+        );
+        const expressionNode = {
+            name: "nodeLike",
+            type: "Identifier",
+        } as TSESTree.Identifier;
+
+        const context = {
+            sourceCode: {
+                ast: {
+                    body: [
+                        createImportDeclarationFromTypeScriptEslintUtils([
+                            createTSESTreeImportSpecifier("EST"),
+                        ]),
+                    ],
+                },
+                getScope,
+                getText: () => "const nodeLike: EST.Node = value;",
+            },
+        } as unknown as Readonly<RuleContext>;
+
+        const shouldSkipExpression =
+            createTypeScriptEslintNodeExpressionSkipChecker(context);
+
+        expect(shouldSkipExpression(expressionNode)).toBeTruthy();
+        expect(shouldSkipExpression(expressionNode)).toBeTruthy();
+        expect(getScope).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe(isTypeScriptEslintAstType, () => {
+    it("matches declaration paths containing an @typescript-eslint path segment", () => {
+        const checker = createTypeCheckerForAstTypeTests();
+        const type = createTypeWithDeclarationPath(
+            String.raw`C:\repo\node_modules\@typescript-eslint\utils\dist\index.d.ts`
+        );
+
+        expect(isTypeScriptEslintAstType(checker, type)).toBeTruthy();
+    });
+
+    it("does not match package-like names when @typescript-eslint is not a full path segment", () => {
+        const checker = createTypeCheckerForAstTypeTests();
+        const type = createTypeWithDeclarationPath(
+            String.raw`C:\repo\node_modules\@typescript-eslint-tools\utils\dist\index.d.ts`
+        );
+
+        expect(isTypeScriptEslintAstType(checker, type)).toBeFalsy();
     });
 });

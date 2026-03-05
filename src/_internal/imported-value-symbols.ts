@@ -88,6 +88,9 @@ type SafeValueReplacementFixParams = Readonly<{
     targetNode: TSESTree.Node;
 }>;
 
+/** Scope-chain root used for local-variable resolution helpers. */
+type ScopeChainRoot = Readonly<null | Readonly<TSESLint.Scope.Scope>>;
+
 /**
  * Parameters for creating a safe function-call replacement fixer.
  */
@@ -170,13 +173,11 @@ export const collectDirectNamedValueImportsFromSource = (
  *   from the expected module.
  */
 function isLocalNameBoundToExpectedImport(
-    sourceCode: Readonly<TSESLint.SourceCode>,
-    referenceNode: Readonly<TSESTree.Node>,
+    sourceScope: ScopeChainRoot,
     localName: string,
     sourceModuleName: string
 ): boolean {
-    const initialScope = sourceCode.getScope(referenceNode);
-    const variable = getVariableInScopeChain(initialScope, localName);
+    const variable = getVariableInScopeChain(sourceScope, localName);
 
     if (!variable) {
         return false;
@@ -215,18 +216,15 @@ function isLocalNameBoundToExpectedImport(
  *   expected import binding at the reference location.
  */
 const canUseDirectImportedNameSafely = ({
-    context,
     importedName,
-    referenceNode,
     sourceModuleName,
+    sourceScope,
 }: Readonly<{
-    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     importedName: string;
-    referenceNode: TSESTree.Node;
     sourceModuleName: string;
+    sourceScope: ScopeChainRoot;
 }>): boolean => {
-    const initialScope = context.sourceCode.getScope(referenceNode);
-    const variable = getVariableInScopeChain(initialScope, importedName);
+    const variable = getVariableInScopeChain(sourceScope, importedName);
 
     if (!variable) {
         return true;
@@ -298,13 +296,17 @@ const createInsertNamedValueImportFix = ({
  *
  * @returns Local alias when safely resolved; otherwise `null`.
  */
-export const getSafeLocalNameForImportedValue = ({
-    context,
+function getSafeLocalNameForImportedValueInScope({
     importedName,
     imports,
-    referenceNode,
     sourceModuleName,
-}: Readonly<SafeImportedValueNameParams>): null | string => {
+    sourceScope,
+}: Readonly<{
+    importedName: string;
+    imports: ImportedValueAliasMap;
+    sourceModuleName: string;
+    sourceScope: ScopeChainRoot;
+}>): null | string {
     const candidateNames = imports.get(importedName);
     if (!candidateNames || candidateNames.size === 0) {
         return null;
@@ -313,8 +315,7 @@ export const getSafeLocalNameForImportedValue = ({
     for (const candidateName of candidateNames) {
         if (
             isLocalNameBoundToExpectedImport(
-                context.sourceCode,
-                referenceNode,
+                sourceScope,
                 candidateName,
                 sourceModuleName
             )
@@ -324,6 +325,23 @@ export const getSafeLocalNameForImportedValue = ({
     }
 
     return null;
+}
+
+export const getSafeLocalNameForImportedValue = ({
+    context,
+    importedName,
+    imports,
+    referenceNode,
+    sourceModuleName,
+}: Readonly<SafeImportedValueNameParams>): null | string => {
+    const sourceScope = context.sourceCode.getScope(referenceNode);
+
+    return getSafeLocalNameForImportedValueInScope({
+        importedName,
+        imports,
+        sourceModuleName,
+        sourceScope,
+    });
 };
 
 /**
@@ -349,12 +367,13 @@ const getSafeReplacementNameAndImportFixFactory = ({
     replacementName: string;
     requiresImportInsertion: boolean;
 } => {
-    const existingReplacementName = getSafeLocalNameForImportedValue({
-        context,
+    const sourceScope = context.sourceCode.getScope(referenceNode);
+
+    const existingReplacementName = getSafeLocalNameForImportedValueInScope({
         importedName,
         imports,
-        referenceNode,
         sourceModuleName,
+        sourceScope,
     });
 
     if (
@@ -370,10 +389,9 @@ const getSafeReplacementNameAndImportFixFactory = ({
 
     if (
         !canUseDirectImportedNameSafely({
-            context,
             importedName,
-            referenceNode,
             sourceModuleName,
+            sourceScope,
         })
     ) {
         return null;

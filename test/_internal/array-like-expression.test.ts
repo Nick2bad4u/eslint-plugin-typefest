@@ -1,7 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     createIsArrayLikeExpressionChecker,
@@ -203,6 +203,32 @@ describe(createIsArrayLikeExpressionChecker, () => {
         });
 
         expect(isArrayLikeExpression(expression)).toBeTruthy();
+    });
+
+    it("memoizes array-like type resolution across repeated expression checks", () => {
+        const arrayType = createFakeType({});
+        const isArrayType = vi.fn(
+            (candidateType: Readonly<ts.Type>) => candidateType === arrayType
+        );
+        const checker = createChecker({
+            expressionType: arrayType,
+            isArrayType,
+        });
+
+        const tsNode = {} as ts.Node;
+
+        const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
+            checker,
+            parserServices: {
+                esTreeNodeToTSNodeMap: {
+                    get: () => tsNode,
+                },
+            },
+        });
+
+        expect(isArrayLikeExpression(expression)).toBeTruthy();
+        expect(isArrayLikeExpression(expression)).toBeTruthy();
+        expect(isArrayType).toHaveBeenCalledTimes(1);
     });
 });
 

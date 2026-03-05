@@ -20,22 +20,32 @@ export const getVariableInScopeChain = (
     scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
 ): null | TSESLint.Scope.Variable => {
-    let currentScope = scope;
-    const visitedScopes = new Set<Readonly<TSESLint.Scope.Scope>>();
+    let slowScope = scope;
+    let fastScope = scope;
 
-    while (currentScope !== null) {
-        if (visitedScopes.has(currentScope)) {
-            return null;
-        }
-
-        visitedScopes.add(currentScope);
-
-        const variable = currentScope.set.get(variableName);
+    while (slowScope !== null) {
+        const variable = slowScope.set.get(variableName);
         if (isDefined(variable)) {
             return variable;
         }
 
-        currentScope = currentScope.upper;
+        slowScope = slowScope.upper;
+
+        for (let step = 0; step < 2; step += 1) {
+            if (fastScope === null) {
+                break;
+            }
+
+            fastScope = fastScope.upper;
+        }
+
+        if (
+            slowScope !== null &&
+            fastScope !== null &&
+            slowScope === fastScope
+        ) {
+            return null;
+        }
     }
 
     return null;

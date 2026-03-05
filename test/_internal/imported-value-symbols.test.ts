@@ -1057,6 +1057,58 @@ describe(getSafeLocalNameForImportedValue, () => {
         expect(safeName).toBeNull();
     });
 
+    it("resolves all candidate aliases from a single scope lookup", () => {
+        expect.hasAssertions();
+
+        let getScopeCallCount = 0;
+
+        const context = {
+            sourceCode: {
+                getScope: () => {
+                    getScopeCallCount += 1;
+
+                    return {
+                        set: new Map([
+                            [
+                                "arrayIncludesAlias",
+                                {
+                                    defs: [
+                                        createImportBindingDefinition(
+                                            "arrayIncludes",
+                                            "arrayIncludesAlias",
+                                            "ts-extras"
+                                        ),
+                                    ],
+                                },
+                            ],
+                        ]),
+                        upper: null,
+                    } as unknown as Readonly<TSESLint.Scope.Scope>;
+                },
+                getText: getNodeTextFromSyntheticNode,
+            },
+        } as unknown as RuleContext;
+
+        const safeName = getSafeLocalNameForImportedValue({
+            context,
+            importedName: "arrayIncludes",
+            imports: createImportsMap(
+                "arrayIncludes",
+                "arrayIncludesShadow",
+                "arrayIncludesAlias"
+            ),
+            referenceNode: {
+                type: "Identifier",
+            } as unknown as Parameters<
+                typeof getSafeLocalNameForImportedValue
+            >[0]["referenceNode"],
+            sourceModuleName: "ts-extras",
+        });
+
+        expect(safeName).toBe("arrayIncludesAlias");
+        expect(getScopeCallCount).toBe(1);
+    });
+
     it("returns null when candidate local name is not bound in the scope chain", () => {
         expect.hasAssertions();
 

@@ -352,6 +352,85 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
         }
     });
 
+    it("skips reporting when parser services cannot map the receiver expression", async () => {
+        const getTypeAtLocation = vi.fn(() => ({
+            isIntersection: () => false,
+            isUnion: () => false,
+        }));
+
+        try {
+            vi.resetModules();
+
+            vi.doMock("../src/_internal/typed-rule.js", () => ({
+                createTypedRule: (definition: unknown): unknown => definition,
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getTypeAtLocation,
+                        typeToString: () => "string",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): undefined => undefined,
+                        },
+                    },
+                }),
+            }));
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-string-split")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const parsedResult = parser.parseForESLint(
+                [
+                    "const value = 'a,b';",
+                    "const parts = value.split(',');",
+                ].join("\n"),
+                parserOptions
+            );
+
+            const secondStatement = parsedResult.ast.body[1];
+
+            expect(secondStatement?.type).toBe("VariableDeclaration");
+
+            if (secondStatement?.type !== AST_NODE_TYPES.VariableDeclaration) {
+                throw new Error("Expected variable declaration for split call");
+            }
+
+            const firstDeclarator = secondStatement.declarations[0];
+
+            if (firstDeclarator?.init?.type !== AST_NODE_TYPES.CallExpression) {
+                throw new Error(
+                    "Expected call expression initializer for split call"
+                );
+            }
+
+            const splitCallExpression = firstDeclarator.init;
+            const report = vi.fn();
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            listenerMap.CallExpression?.(splitCallExpression);
+
+            expect(report).not.toHaveBeenCalled();
+            expect(getTypeAtLocation).not.toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
     it("guards apparent-type recursion cycles without reporting", async () => {
         try {
             vi.resetModules();

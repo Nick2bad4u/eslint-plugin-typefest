@@ -1146,6 +1146,39 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         expect(fixer).toBeTypeOf("function");
     });
 
+    it("returns fixer when parent traversal encounters a cycle without a matching shadowed name", () => {
+        expect.hasAssertions();
+
+        const firstParent = {
+            type: "TSTypeAliasDeclaration",
+            typeParameters: createTypeParameterDeclarationWithNames("Other"),
+        } as unknown as TSESTree.TSTypeAliasDeclaration;
+        const secondParent = {
+            type: "TSInterfaceDeclaration",
+            typeParameters: createTypeParameterDeclarationWithNames("Tail"),
+        } as unknown as TSESTree.TSInterfaceDeclaration;
+
+        (
+            firstParent as {
+                parent?: Readonly<TSESTree.Node>;
+            }
+        ).parent = secondParent;
+        (
+            secondParent as {
+                parent?: Readonly<TSESTree.Node>;
+            }
+        ).parent = firstParent;
+
+        const node = createTypeReferenceNode("Expand", firstParent);
+        const fixer = createSafeTypeReferenceReplacementFixFn(
+            node,
+            "Simplify",
+            new Set(["Simplify"])
+        );
+
+        expect(fixer).toBeTypeOf("function");
+    });
+
     it("returns null for qualified type references", () => {
         expect.hasAssertions();
 
