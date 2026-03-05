@@ -15,11 +15,14 @@ import {
     getNullishComparison,
     isExpressionPair,
 } from "../_internal/nullish-comparison.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-present-filter`;
 
 /**
  * Normalized metadata for one nullish inequality comparison part.
@@ -324,7 +327,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-present-filter",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

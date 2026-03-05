@@ -5,7 +5,7 @@
 /**
  * Canonical Docusaurus route prefix for rule documentation pages.
  */
-const DEFAULT_RULE_DOCS_URL_BASE =
+export const RULE_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 /**
@@ -16,4 +16,4 @@ const DEFAULT_RULE_DOCS_URL_BASE =
  * @returns Canonical docs URL for a rule.
  */
 export const createRuleDocsUrl = (ruleName: string): string =>
-    `${DEFAULT_RULE_DOCS_URL_BASE}/${ruleName}`;
+    `${RULE_DOCS_URL_BASE}/${ruleName}`;

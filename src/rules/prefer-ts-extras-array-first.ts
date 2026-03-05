@@ -12,11 +12,14 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-first`;
 
 /**
  * Checks whether a computed member property represents index `0`.
@@ -91,7 +94,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-first",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

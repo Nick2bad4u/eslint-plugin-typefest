@@ -9,6 +9,7 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     getThrowStatementFromConsequent,
@@ -19,6 +20,8 @@ import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-assert-present`;
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -339,7 +342,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-present",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             hasSuggestions: true,

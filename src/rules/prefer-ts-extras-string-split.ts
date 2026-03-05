@@ -8,6 +8,7 @@ import type ts from "typescript";
 import { isDefined } from "ts-extras";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
     getTypeCheckerApparentType,
@@ -19,6 +20,8 @@ import {
     getTypedRuleServices,
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-string-split`;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-string-split`.
@@ -185,7 +188,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-string-split",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

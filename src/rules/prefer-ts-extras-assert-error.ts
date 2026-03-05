@@ -9,12 +9,15 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isThrowOnlyConsequent } from "../_internal/throw-consequent.js";
 import {
     createTypedRule,
     isGlobalIdentifierNamed,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-assert-error`;
 
 /**
  * Checks whether an expression is `<value> instanceof Error`.
@@ -163,7 +166,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error",
+                url: RULE_DOCS_URL,
             },
             hasSuggestions: true,
             messages: {

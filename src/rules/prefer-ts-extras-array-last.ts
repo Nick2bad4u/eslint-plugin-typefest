@@ -13,11 +13,14 @@ import {
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-last`;
 
 /**
  * Detects direct last-element index access (`value[value.length - 1]`).
@@ -125,7 +128,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-last",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

@@ -10,6 +10,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
@@ -17,6 +18,8 @@ import {
     getTypedRuleServices,
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-safe-cast-to`;
 
 /**
  * Checks whether a type assertion target should be excluded from `safeCastTo`
@@ -155,7 +158,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

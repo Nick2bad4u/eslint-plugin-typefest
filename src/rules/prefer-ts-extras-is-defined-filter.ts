@@ -10,11 +10,14 @@ import {
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { getNullishComparison } from "../_internal/nullish-comparison.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-defined-filter`;
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -110,7 +113,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["ts-extras/type-guards"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined-filter",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

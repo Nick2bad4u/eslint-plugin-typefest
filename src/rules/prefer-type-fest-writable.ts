@@ -10,8 +10,11 @@ import {
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-writable`;
 
 /** Legacy alias names normalized by this rule to `Writable`. */
 const writableAliasReplacements = {
@@ -155,7 +158,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["type-fest/types"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-writable",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

@@ -5,10 +5,13 @@
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-find-last-index`;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-find-last-index`.
@@ -52,7 +55,7 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
                 frozen: false,
                 recommended: "typefest.configs.all",
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find-last-index",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

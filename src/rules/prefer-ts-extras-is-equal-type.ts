@@ -14,8 +14,11 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-equal-type`;
 
 const IS_EQUAL_TYPE_NAME = "IsEqual";
 const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";
@@ -171,7 +174,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
                 frozen: false,
                 recommended: "typefest.configs.all",
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type",
+                url: RULE_DOCS_URL,
             },
             hasSuggestions: true,
             messages: {

@@ -8,9 +8,12 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFixPreservingReadonly,
 } from "../_internal/imported-type-aliases.js";
+import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
+
+const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-unknown-array`;
 
 /** Built-in readonly array type targeted by this rule. */
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
@@ -140,7 +143,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     'typefest.configs["type-fest/types"]',
                 ],
-                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-unknown-array",
+                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {
