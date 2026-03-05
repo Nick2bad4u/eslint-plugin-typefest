@@ -33,15 +33,6 @@ const namespaceImportNamesBySourceCode = new WeakMap<
     ReadonlySet<string>
 >();
 
-const appendPendingValues = <T>(
-    pendingValues: T[],
-    valuesToAppend: readonly T[]
-): void => {
-    for (const value of valuesToAppend) {
-        pendingValues.push(value);
-    }
-};
-
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
     const normalizedFileName = fileName.replaceAll("\\", PATH_SEPARATOR);
 
@@ -212,7 +203,9 @@ const containsTypeScriptEslintTypeReference = (
             const value = currentNode[key];
 
             if (Array.isArray(value)) {
-                appendPendingValues(pendingNodes, value);
+                for (const entry of value) {
+                    pendingNodes.push(entry);
+                }
                 continue;
             }
 
@@ -355,7 +348,9 @@ const collectNestedTypeArguments = (
     ).aliasTypeArguments;
 
     if (isDefined(aliasTypeArguments)) {
-        appendPendingValues(collectedTypes, aliasTypeArguments);
+        for (const aliasTypeArgument of aliasTypeArguments) {
+            collectedTypes.push(aliasTypeArgument);
+        }
     }
 
     const checkerTypeArgumentsResult = safeTypeOperation({
@@ -366,7 +361,9 @@ const collectNestedTypeArguments = (
     });
 
     if (checkerTypeArgumentsResult.ok) {
-        appendPendingValues(collectedTypes, checkerTypeArgumentsResult.value);
+        for (const checkerTypeArgument of checkerTypeArgumentsResult.value) {
+            collectedTypes.push(checkerTypeArgument);
+        }
     }
 
     return collectedTypes;
@@ -425,7 +422,9 @@ export const isTypeScriptEslintAstType = (
         }
 
         if (currentType.isUnionOrIntersection()) {
-            appendPendingValues(pendingTypes, currentType.types);
+            for (const typePart of currentType.types) {
+                pendingTypes.push(typePart);
+            }
         }
 
         const nestedTypeArguments = collectNestedTypeArguments(
@@ -433,7 +432,9 @@ export const isTypeScriptEslintAstType = (
             currentType
         );
         if (nestedTypeArguments.length > 0) {
-            appendPendingValues(pendingTypes, nestedTypeArguments);
+            for (const nestedTypeArgument of nestedTypeArguments) {
+                pendingTypes.push(nestedTypeArgument);
+            }
         }
 
         const apparentType = getTypeCheckerApparentType(checker, currentType);
