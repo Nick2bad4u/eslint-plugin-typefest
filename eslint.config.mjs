@@ -31,6 +31,7 @@ import pluginCanonical from "eslint-plugin-canonical";
 import pluginCasePolice from "eslint-plugin-case-police";
 import eslintPluginCommentLength from "eslint-plugin-comment-length";
 import * as pluginCssModules from "eslint-plugin-css-modules";
+import deMorgan from "eslint-plugin-de-morgan";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import etcPlugin from "eslint-plugin-etc";
@@ -337,6 +338,7 @@ export default defineConfig([
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
     },
+    deMorgan.configs.recommended,
     ...pluginCasePolice.configs.recommended,
     // ...jsdocPlugin.configs["examples-and-default-expressions"],
     // #endregion
