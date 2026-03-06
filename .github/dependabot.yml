@@ -34,7 +34,6 @@ updates:
       labels:
           - "github-actions"
       multi-ecosystem-group: dependabot-all
-      versioning-strategy: increase
       rebase-strategy: auto
       patterns:
           - "*"
