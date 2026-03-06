@@ -170,28 +170,6 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
             "Prefer `{{replacement}}` from type-fest to pick keys whose values match a condition instead of legacy alias `{{alias}}`."
         );
     });
-
-    it("declares authored docs url literal before RuleCreator decoration", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-            }));
-
-            const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-conditional-pick")) as {
-                    default: ConditionalPickRuleMetadataSnapshot;
-                };
-
-            expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick"
-            );
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 describe("prefer-type-fest-conditional-pick parse-safety guards", () => {

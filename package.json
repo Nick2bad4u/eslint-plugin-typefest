@@ -33,7 +33,12 @@
     "sideEffects": false,
     "type": "module",
     "exports": {
-        ".": "./dist/plugin.js"
+        ".": {
+            "import": "./dist/plugin.js",
+            "types": "./dist/plugin.d.ts",
+            "default": "./dist/plugin.js"
+        },
+        "./package.json": "./package.json"
     },
     "main": "./dist/plugin.js",
     "types": "./dist/plugin.d.ts",
@@ -518,7 +523,8 @@
         "yamllint-js": "^0.2.4"
     },
     "peerDependencies": {
-        "eslint": "^9.0.0 || ^10.0.2"
+        "eslint": "^9.0.0 || ^10.0.2",
+        "typescript": ">=5.0.0"
     },
     "packageManager": "npm@11.11.0",
     "engines": {

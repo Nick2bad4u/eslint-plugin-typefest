@@ -43,17 +43,6 @@ export const typefestConfigReferenceToName: Readonly<{
 export type TypefestConfigReference =
     keyof typeof typefestConfigReferenceToName;
 
-/** Default preset references implied when `meta.docs.recommended` is `true`. */
-export const defaultRecommendedConfigReferences: readonly [
-    "typefest.configs.recommended",
-    "typefest.configs.strict",
-    "typefest.configs.all",
-] = [
-    "typefest.configs.recommended",
-    "typefest.configs.strict",
-    "typefest.configs.all",
-];
-
 /**
  * Check whether a string is a supported `meta.docs.recommended` reference.
  */

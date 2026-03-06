@@ -21,6 +21,9 @@ export default [
 ];
 ```
 
+`recommended` already enables `languageOptions.parserOptions.projectService`
+because it includes typed rules.
+
 ## Alternative: manual scoped setup
 
 If you prefer to apply plugin rules inside your own file-scoped config object, spread the preset rules manually.

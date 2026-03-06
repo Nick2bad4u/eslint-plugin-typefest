@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import plugin from "../plugin.mjs";
+import typefestPlugin from "../src/plugin";
 
 const expectedConfigRegistryShape = expect.objectContaining({
     all: expect.any(Object),
@@ -45,7 +45,7 @@ const expectedRuleRegistryShape = expect.objectContaining({
 
 describe("plugin entry module", () => {
     it("exports default plugin object with rule and config registries", () => {
-        expect(plugin).toEqual(
+        expect(typefestPlugin).toEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.any(Object),
@@ -54,7 +54,7 @@ describe("plugin entry module", () => {
             })
         );
 
-        expect(plugin.meta).toEqual(
+        expect(typefestPlugin.meta).toEqual(
             expect.objectContaining({
                 name: "eslint-plugin-typefest",
                 namespace: "typefest",
@@ -64,7 +64,7 @@ describe("plugin entry module", () => {
     });
 
     it("exposes critical presets and latest rule registrations", () => {
-        expect(plugin.configs).toEqual(expectedConfigRegistryShape);
-        expect(plugin.rules).toEqual(expectedRuleRegistryShape);
+        expect(typefestPlugin.configs).toEqual(expectedConfigRegistryShape);
+        expect(typefestPlugin.rules).toEqual(expectedRuleRegistryShape);
     });
 });

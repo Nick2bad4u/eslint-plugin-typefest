@@ -41,7 +41,9 @@ export default [
 
 ## Type-aware parser setup notes
 
-For rules that require type information, configure parser services in the config block that targets TypeScript files:
+`typefest.configs.recommended` already enables `projectService`.
+
+If you build a fully manual config block (instead of consuming a preset), configure parser services in the TypeScript-targeted config block:
 
 ```js
 languageOptions: {

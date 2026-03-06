@@ -6,7 +6,7 @@ import type { UnknownRecord } from "type-fest";
 
 import { describe, expect, it } from "vitest";
 
-import plugin from "../plugin.mjs";
+import typefestPlugin from "../src/plugin";
 
 interface FlatConfigLike {
     files?: unknown;
@@ -113,8 +113,8 @@ function isObject(value: unknown): value is UnknownRecord {
 }
 
 describe("typefest plugin configs", () => {
-    const configs = getPluginConfigs(plugin);
-    const rules = getPluginRules(plugin);
+    const configs = getPluginConfigs(typefestPlugin);
+    const rules = getPluginRules(typefestPlugin);
 
     it("exports exactly the supported config keys", () => {
         const keys = Object.keys(configs ?? {}).toSorted((left, right) =>
@@ -247,5 +247,25 @@ describe("typefest plugin configs", () => {
             expect(strictRules).not.toHaveProperty(ruleName);
             expect(allRules).toHaveProperty(ruleName, "error");
         }
+    });
+
+    it("enables parser projectService for presets that include typed rules", () => {
+        const recommendedConfig = getConfig(configs, "recommended");
+        const minimalConfig = getConfig(configs, "minimal");
+
+        expect(recommendedConfig).toBeDefined();
+        expect(minimalConfig).toBeDefined();
+
+        expect(minimalConfig?.languageOptions?.parserOptions).toEqual(
+            expect.not.objectContaining({
+                projectService: true,
+            })
+        );
+
+        expect(recommendedConfig?.languageOptions?.parserOptions).toEqual(
+            expect.objectContaining({
+                projectService: true,
+            })
+        );
     });
 });

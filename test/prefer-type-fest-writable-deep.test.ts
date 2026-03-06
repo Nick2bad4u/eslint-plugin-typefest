@@ -238,28 +238,6 @@ describe("prefer-type-fest-writable-deep metadata", () => {
             "Prefer `WritableDeep` from type-fest over `DeepMutable`/`MutableDeep`."
         );
     });
-
-    it("declares authored docs url literal before RuleCreator decoration", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-            }));
-
-            const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-writable-deep")) as {
-                    default: WritableDeepRuleMetadataSnapshot;
-                };
-
-            expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-writable-deep"
-            );
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 interface WritableDeepRuleModuleForCreate {

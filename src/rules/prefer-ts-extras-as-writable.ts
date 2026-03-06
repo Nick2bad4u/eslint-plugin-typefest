@@ -13,12 +13,9 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-as-writable`;
 
 const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
 const WRITABLE_TYPE_NAME = "Writable" as const;
@@ -157,7 +154,6 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

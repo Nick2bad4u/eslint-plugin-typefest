@@ -9,15 +9,12 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
 import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-empty`;
 
 /**
  * Checks whether an expression is the numeric literal `0`.
@@ -133,7 +130,6 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

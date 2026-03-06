@@ -9,14 +9,11 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-key-in`;
 
 /**
  * Determine whether a key expression can be safely reordered into `keyIn(...)`
@@ -148,7 +145,6 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

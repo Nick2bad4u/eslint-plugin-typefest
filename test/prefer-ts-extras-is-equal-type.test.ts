@@ -225,50 +225,6 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         expect(metadataRule.meta?.schema).toStrictEqual([]);
         expect(metadataRule.meta?.type).toBe("suggestion");
     });
-
-    it("declares authored literals before RuleCreator decoration", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-            }));
-
-            const undecoratedRule =
-                (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {
-                    default: IsEqualTypeRuleMetadataSnapshot;
-                };
-
-            expect(undecoratedRule.default.name).toBe(
-                "prefer-ts-extras-is-equal-type"
-            );
-            expect(undecoratedRule.default.defaultOptions).toStrictEqual([]);
-            expect(undecoratedRule.default.meta?.docs?.description).toBe(
-                "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables."
-            );
-            expect(undecoratedRule.default.meta?.docs?.url).toBe(
-                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type"
-            );
-            expect(undecoratedRule.default.meta?.hasSuggestions).toBeTruthy();
-            expect(
-                undecoratedRule.default.meta?.messages?.[
-                    "preferTsExtrasIsEqualType"
-                ]
-            ).toBe(
-                "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
-            );
-            expect(
-                undecoratedRule.default.meta?.messages?.[
-                    "suggestTsExtrasIsEqualType"
-                ]
-            ).toBe(
-                "Replace this boolean `IsEqual<...>` assertion variable with `isEqualType<...>()`."
-            );
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 describe("prefer-ts-extras-is-equal-type internal listener guards", () => {

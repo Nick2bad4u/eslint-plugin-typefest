@@ -92,11 +92,12 @@ Each preset already includes:
 - `languageOptions.parser` (`@typescript-eslint/parser`)
 - `languageOptions.parserOptions`:
   - `ecmaVersion: "latest"`
+  - `projectService: true` (for presets that include typed rules, including `recommended`)
   - `sourceType: "module"`
 
 End users usually do **not** need to wire parser config manually.
 
-If you need custom parser options (for example `projectService`), extend a preset:
+If you need custom parser options (for example `tsconfigRootDir`), extend a preset:
 
 ```js
 import typefest from "eslint-plugin-typefest";

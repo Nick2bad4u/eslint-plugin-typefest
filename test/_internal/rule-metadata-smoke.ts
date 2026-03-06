@@ -1,6 +1,6 @@
 import type { UnknownArray } from "type-fest";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { isTypefestConfigReference } from "../../src/_internal/typefest-config-references";
 
@@ -203,43 +203,6 @@ export const addTypeFestRuleMetadataSmokeTests = (
                 expectedRuleShape.schema
             );
             expect(metadataRule.meta?.type).toBe(expectedRuleShape.type);
-        });
-
-        it("declares authored literals before RuleCreator decoration", async () => {
-            try {
-                vi.resetModules();
-
-                vi.doMock("../../src/_internal/typed-rule.js", () => ({
-                    createTypedRule: (definition: unknown): unknown =>
-                        definition,
-                }));
-
-                const undecoratedRule = (await importRuleModule(ruleId))
-                    .default;
-
-                expect(undecoratedRule.defaultOptions).toStrictEqual(
-                    expectedDefaultOptions
-                );
-                expect(undecoratedRule.name).toBe(expectedRuleName);
-                expect(undecoratedRule.meta?.docs?.url).toBe(expectedDocsUrl);
-
-                if (expectations.docsDescription !== undefined) {
-                    expect(undecoratedRule.meta?.docs?.description).toBe(
-                        expectations.docsDescription
-                    );
-                }
-
-                for (const [messageId, expectedMessage] of Object.entries(
-                    expectations.messages ?? {}
-                )) {
-                    expect(undecoratedRule.meta?.messages?.[messageId]).toBe(
-                        expectedMessage
-                    );
-                }
-            } finally {
-                vi.doUnmock("../../src/_internal/typed-rule.js");
-                vi.resetModules();
-            }
         });
     });
 };

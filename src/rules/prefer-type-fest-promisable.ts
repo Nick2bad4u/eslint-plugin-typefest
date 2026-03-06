@@ -12,12 +12,9 @@ import {
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-promisable`;
 
 type PreferTypeFestPromisableOption = Readonly<{
     enforceLegacyAliases?: boolean;
@@ -216,7 +213,6 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.type-fest/types",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

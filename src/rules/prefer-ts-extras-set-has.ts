@@ -8,7 +8,6 @@ import { isDefined } from "ts-extras";
 import ts from "typescript";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import {
@@ -21,8 +20,6 @@ import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-set-has`;
 
 const UNION_SET_MATCHING_MODE_ALL_BRANCHES = "allBranches";
 const UNION_SET_MATCHING_MODE_ANY_BRANCH = "anyBranch";
@@ -338,7 +335,6 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             hasSuggestions: true,

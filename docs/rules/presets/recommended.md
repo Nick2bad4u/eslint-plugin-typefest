@@ -20,6 +20,9 @@ import typefest from "eslint-plugin-typefest";
 export default [typefest.configs.recommended];
 ```
 
+This preset is type-aware by default and includes
+`languageOptions.parserOptions.projectService: true`.
+
 ## Alternative: apply recommended rules in your own scope
 
 ```ts

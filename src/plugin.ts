@@ -4,21 +4,16 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { ESLint, Linter } from "eslint";
-import type { Except, PackageJson, UnknownArray } from "type-fest";
+import type { Except, UnknownArray } from "type-fest";
 
-import { createRequire } from "node:module";
-import { arrayIncludes, isDefined, objectEntries, safeCastTo } from "ts-extras";
+import typeScriptParser from "@typescript-eslint/parser";
+import { objectEntries, objectHasIn, safeCastTo, setHas } from "ts-extras";
 
-import type {
-    TypefestConfigName as InternalTypefestConfigName,
-    TypefestConfigReference,
-} from "./_internal/typefest-config-references.js";
+import type { TypefestConfigName as InternalTypefestConfigName } from "./_internal/typefest-config-references.js";
 
-import { createRuleDocsUrl } from "./_internal/rule-docs-url.js";
-import {
-    isTypefestConfigReference,
-    typefestConfigReferenceToName,
-} from "./_internal/typefest-config-references.js";
+import packageJson from "../package.json" with { type: "json" };
+import rulePresetMembershipByRuleName from "./_internal/rule-preset-membership.js";
+import { typefestConfigNames } from "./_internal/typefest-config-references.js";
 import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
 import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
@@ -96,12 +91,6 @@ import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
 import preferTypeFestWritableDeepRule from "./rules/prefer-type-fest-writable-deep.js";
 import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
-/**
- * CommonJS `require` bridge used to load package metadata and optional parser
- * dependencies from this ESM entrypoint.
- */
-const require = createRequire(import.meta.url);
-
 /** ESLint severity used by generated preset rule maps. */
 const ERROR_SEVERITY = "error" as const;
 
@@ -137,18 +126,8 @@ type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
 /** Rule-map type used by preset rule-list expansion helpers. */
 type RulesConfig = TypefestPresetConfig["rules"];
 
-/** Rule module shape extended with optional docs metadata. */
-type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
-    meta?: {
-        docs?: {
-            recommended?: boolean;
-            typefestConfigs?:
-                | readonly TypefestConfigReference[]
-                | TypefestConfigReference;
-            url?: string;
-        };
-    };
-};
+/** Runtime rule module shape used by registry/preset builders. */
+type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray>;
 
 /** Contract for the `configs` object exported by this plugin. */
 type TypefestConfigsContract = Record<TypefestConfigName, TypefestPresetConfig>;
@@ -165,89 +144,29 @@ type TypefestPluginContract = Except<ESLint.Plugin, "configs" | "rules"> & {
     rules: NonNullable<ESLint.Plugin["rules"]>;
 };
 
-/** Optional parser module shape accepted for runtime parser wiring. */
-type TypeScriptParser = {
-    parse?: (...parameters: UnknownArray) => unknown;
-    parseForESLint?: (...parameters: UnknownArray) => unknown;
-};
-
 /**
  * Resolve package version from package.json data.
  *
- * @param pkg - Parsed package manifest.
+ * @param pkg - Parsed package metadata value.
  *
  * @returns The package version, or `0.0.0` when unavailable.
  */
-function getPackageVersion(pkg: Readonly<PackageJson>): string {
-    return typeof pkg.version === "string" ? pkg.version : "0.0.0";
-}
-
-/**
- * Safely read a property from an unknown object value.
- */
-const getUnknownObjectProperty = (
-    value: unknown,
-    propertyName: string
-): unknown => {
-    if (typeof value !== "object" || value === null) {
-        return undefined;
+function getPackageVersion(pkg: unknown): string {
+    if (typeof pkg !== "object" || pkg === null) {
+        return "0.0.0";
     }
 
-    return Reflect.get(value, propertyName);
-};
+    const version = Reflect.get(pkg, "version");
 
-/**
- * Determine whether a caught `require` error represents a missing module.
- */
-const hasModuleNotFoundCode = (
-    error: unknown
-): error is Readonly<{ code: "ERR_MODULE_NOT_FOUND" | "MODULE_NOT_FOUND" }> => {
-    const code = getUnknownObjectProperty(error, "code");
-
-    return code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND";
-};
-
-/**
- * Check whether a parser load failure is the expected optional-dependency miss.
- */
-const isMissingTypeScriptParserError = (error: unknown): boolean => {
-    if (!hasModuleNotFoundCode(error)) {
-        return false;
-    }
-
-    const message = getUnknownObjectProperty(error, "message");
-
-    return (
-        typeof message === "string" &&
-        String.prototype.includes.call(message, "@typescript-eslint/parser")
-    );
-};
-
-/**
- * Load the TypeScript ESLint parser lazily to support optional dependency
- * setups.
- *
- * @returns Parser module when available; otherwise `null`.
- */
-function loadTypeScriptParser(): null | TypeScriptParser {
-    try {
-        return safeCastTo<TypeScriptParser>(
-            require("@typescript-eslint/parser")
-        );
-    } catch (error: unknown) {
-        if (!isMissingTypeScriptParserError(error)) {
-            throw error;
-        }
-
-        return null;
-    }
+    return typeof version === "string" ? version : "0.0.0";
 }
 
 /** Package metadata used to populate plugin runtime `meta.version`. */
-const packageJson = safeCastTo<PackageJson>(require("../package.json"));
+const packageJsonValue = safeCastTo<unknown>(packageJson);
 
-/** Optional parser module instance reused across preset construction. */
-const typeScriptParser = loadTypeScriptParser();
+/** Parser module reused across preset construction. */
+const typeScriptParserValue =
+    safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser);
 
 /** Pattern for unqualified rule names supported by `eslint-plugin-typefest`. */
 type TypefestRuleNamePattern = `prefer-${string}`;
@@ -363,8 +282,18 @@ const typefestRuleEntries = safeCastTo<
     readonly (readonly [TypefestRuleName, RuleWithDocs])[]
 >(objectEntries(typefestRules));
 
-/** Canonical preset reference that marks rule metadata as recommended. */
-const RECOMMENDED_CONFIG_REFERENCE = "typefest.configs.recommended" as const;
+type RulePresetMembership = Readonly<
+    Partial<Record<TypefestRuleName, readonly TypefestConfigName[]>>
+>;
+
+const rulePresetMembership = safeCastTo<RulePresetMembership>(
+    rulePresetMembershipByRuleName
+);
+
+const typefestConfigNameSet: ReadonlySet<string> = new Set(typefestConfigNames);
+
+const isTypefestConfigName = (value: unknown): value is TypefestConfigName =>
+    typeof value === "string" && setHas(typefestConfigNameSet, value);
 
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
@@ -378,96 +307,45 @@ const createEmptyPresetRuleMap = (): Record<
     "type-fest/types": [],
 });
 
-const normalizeTypefestConfigReferences = (
-    typefestConfigs: RuleWithDocs["meta"] extends { docs?: infer Docs }
-        ? Docs extends { typefestConfigs?: infer Value }
-            ? undefined | Value
-            : never
-        : never
-): readonly TypefestConfigReference[] => {
-    if (typeof typefestConfigs === "string") {
-        return isTypefestConfigReference(typefestConfigs)
-            ? [typefestConfigs]
-            : [];
-    }
+const dedupeRuleNames = (
+    ruleNames: readonly TypefestRuleName[]
+): TypefestRuleName[] => [...new Set(ruleNames)];
 
-    if (!Array.isArray(typefestConfigs)) {
-        return [];
-    }
-
-    const references: TypefestConfigReference[] = [];
-
-    for (const candidate of typefestConfigs) {
-        if (typeof candidate !== "string") {
-            continue;
-        }
-
-        if (!isTypefestConfigReference(candidate)) {
-            continue;
-        }
-
-        references.push(candidate);
-    }
-
-    return references;
-};
-
-/**
- * Sync rule docs metadata fields that are derivable from preset references.
- *
- * @remarks
- * `docs.recommended` must reflect actual membership in `configs.recommended` at
- * runtime; we derive it from `docs.typefestConfigs` so rule pages and inspector
- * UIs cannot drift.
- */
-const syncDerivedRuleDocsMetadata = (): void => {
-    for (const [ruleName, rule] of typefestRuleEntries) {
-        const docs = rule.meta?.docs;
-        if (docs === undefined) {
-            continue;
-        }
-
-        docs.url ??= createRuleDocsUrl(ruleName);
-
-        const references = normalizeTypefestConfigReferences(
-            docs.typefestConfigs
-        );
-        docs.recommended = arrayIncludes<TypefestConfigReference>(
-            references,
-            RECOMMENDED_CONFIG_REFERENCE
-        );
-    }
-};
-
-syncDerivedRuleDocsMetadata();
+const isTypefestConfigNameArray = (
+    value: unknown
+): value is readonly TypefestConfigName[] =>
+    Array.isArray(value) && value.every((entry) => isTypefestConfigName(entry));
 
 const derivePresetRuleNamesByConfig = (): Readonly<
     Record<TypefestConfigName, readonly TypefestRuleName[]>
 > => {
     const presetRuleNamesByConfig = createEmptyPresetRuleMap();
 
-    for (const [ruleName, rule] of typefestRuleEntries) {
-        const references = normalizeTypefestConfigReferences(
-            rule.meta?.docs?.typefestConfigs
-        );
+    for (const [ruleName] of typefestRuleEntries) {
+        const configNames = rulePresetMembership[ruleName];
 
-        for (const reference of references) {
-            const configName = typefestConfigReferenceToName[reference];
+        if (!isTypefestConfigNameArray(configNames)) {
+            throw new TypeError(
+                `Rule '${ruleName}' is missing preset membership metadata.`
+            );
+        }
+
+        for (const configName of configNames) {
             presetRuleNamesByConfig[configName].push(ruleName);
         }
     }
 
     return {
-        all: [...new Set(presetRuleNamesByConfig.all)],
-        minimal: [...new Set(presetRuleNamesByConfig.minimal)],
-        recommended: [...new Set(presetRuleNamesByConfig.recommended)],
-        strict: [...new Set(presetRuleNamesByConfig.strict)],
-        "ts-extras/type-guards": [
-            ...new Set(presetRuleNamesByConfig["ts-extras/type-guards"]),
-        ],
-        "type-fest/types": [
-            ...new Set(presetRuleNamesByConfig["type-fest/types"]),
-        ],
+        all: dedupeRuleNames(presetRuleNamesByConfig.all),
+        minimal: dedupeRuleNames(presetRuleNamesByConfig.minimal),
+        recommended: dedupeRuleNames(presetRuleNamesByConfig.recommended),
+        strict: dedupeRuleNames(presetRuleNamesByConfig.strict),
+        "ts-extras/type-guards": dedupeRuleNames(
+            presetRuleNamesByConfig["ts-extras/type-guards"]
+        ),
+        "type-fest/types": dedupeRuleNames(
+            presetRuleNamesByConfig["type-fest/types"]
+        ),
     };
 };
 
@@ -497,23 +375,23 @@ function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
  */
 const presetRuleNamesByConfig = derivePresetRuleNamesByConfig();
 
-/** Recommended preset rule list derived from docs metadata. */
+/** Recommended preset rule list for zero-type-info usage. */
 const recommendedRuleNames = presetRuleNamesByConfig.recommended;
 
-/** Strict preset rule list derived from docs metadata. */
+/** Strict preset rule list. */
 const strictRuleNames = presetRuleNamesByConfig.strict;
 
-/** All preset rule list derived from docs metadata. */
+/** All preset rule list. */
 const allRuleNames = presetRuleNamesByConfig.all;
 
-/** Minimal preset rule list derived from docs metadata. */
+/** Minimal preset rule list. */
 const minimalRuleNames = presetRuleNamesByConfig.minimal;
 
-/** Ts-extras/type-guards preset rule list derived from docs metadata. */
+/** Ts-extras/type-guards preset rule list. */
 const tsExtrasTypeGuardRuleNames =
     presetRuleNamesByConfig["ts-extras/type-guards"];
 
-/** Type-fest/types preset rule list derived from docs metadata. */
+/** Type-fest/types preset rule list. */
 const typeFestTypesRuleNames = presetRuleNamesByConfig["type-fest/types"];
 
 /**
@@ -521,37 +399,39 @@ const typeFestTypesRuleNames = presetRuleNamesByConfig["type-fest/types"];
  *
  * @param config - Preset-specific config fragment.
  * @param plugin - Plugin object registered under the `typefest` namespace.
+ * @param options - Preset-level wiring options.
  *
  * @returns Normalized preset config.
  */
 function withTypefestPlugin(
     config: Readonly<TypefestPresetConfig>,
-    plugin: Readonly<ESLint.Plugin>
+    plugin: Readonly<ESLint.Plugin>,
+    options: Readonly<{ requiresTypeChecking: boolean }>
 ): TypefestPresetConfig {
     const existingLanguageOptions = config.languageOptions ?? {};
+    const existingParserOptions = existingLanguageOptions["parserOptions"];
+    const parserOptions =
+        existingParserOptions !== null &&
+        typeof existingParserOptions === "object" &&
+        !Array.isArray(existingParserOptions)
+            ? { ...existingParserOptions }
+            : {
+                  ecmaVersion: "latest",
+                  sourceType: "module",
+              };
+
+    if (
+        options.requiresTypeChecking &&
+        !objectHasIn(parserOptions, "projectService")
+    ) {
+        Reflect.set(parserOptions, "projectService", true);
+    }
 
     const languageOptions: FlatLanguageOptions = {
         ...existingLanguageOptions,
+        parser: existingLanguageOptions["parser"] ?? typeScriptParserValue,
+        parserOptions,
     };
-
-    if (typeScriptParser !== null && isDefined(typeScriptParser)) {
-        languageOptions["parser"] =
-            existingLanguageOptions["parser"] ??
-            safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser);
-
-        const existingParserOptions = existingLanguageOptions["parserOptions"];
-
-        languageOptions["parserOptions"] =
-            isDefined(existingParserOptions) &&
-            existingParserOptions !== null &&
-            typeof existingParserOptions === "object" &&
-            !Array.isArray(existingParserOptions)
-                ? { ...existingParserOptions }
-                : {
-                      ecmaVersion: "latest",
-                      sourceType: "module",
-                  };
-    }
 
     return {
         ...config,
@@ -578,42 +458,60 @@ const typefestConfigsDefinition = {
             name: "typefest:all",
             rules: errorRulesFor(allRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: true,
+        }
     ),
     minimal: withTypefestPlugin(
         {
             name: "typefest:minimal",
             rules: errorRulesFor(minimalRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: false,
+        }
     ),
     recommended: withTypefestPlugin(
         {
             name: "typefest:recommended",
             rules: errorRulesFor(recommendedRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: true,
+        }
     ),
     strict: withTypefestPlugin(
         {
             name: "typefest:strict",
             rules: errorRulesFor(strictRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: true,
+        }
     ),
     "ts-extras/type-guards": withTypefestPlugin(
         {
             name: "typefest:ts-extras/type-guards",
             rules: errorRulesFor(tsExtrasTypeGuardRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: true,
+        }
     ),
     "type-fest/types": withTypefestPlugin(
         {
             name: "typefest:type-fest/types",
             rules: errorRulesFor(typeFestTypesRuleNames),
         },
-        pluginForConfigs
+        pluginForConfigs,
+        {
+            requiresTypeChecking: false,
+        }
     ),
 } satisfies TypefestConfigsContract;
 
@@ -637,7 +535,7 @@ const typefestPlugin: TypefestPluginContract = {
     meta: {
         name: "eslint-plugin-typefest",
         namespace: "typefest",
-        version: getPackageVersion(packageJson),
+        version: getPackageVersion(packageJsonValue),
     },
     processors: {},
     rules: typefestEslintRules,

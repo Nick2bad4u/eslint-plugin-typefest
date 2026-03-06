@@ -13,7 +13,6 @@ import {
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import {
     reportWithOptionalFix,
     resolveAutofixOrSuggestionOutcome,
@@ -26,8 +25,6 @@ import {
     isArrayIndexReadAutofixSafe,
     isRepeatablyEvaluableExpression,
 } from "../_internal/value-rewrite-autofix-safety.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-last`;
 
 /**
  * Detects direct last-element index access (`value[value.length - 1]`).
@@ -158,7 +155,6 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             hasSuggestions: true,

@@ -1187,7 +1187,7 @@ export default defineConfig([
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
             "eslint-plugin/require-meta-docs-recommended": "warn",
-            "eslint-plugin/require-meta-docs-url": "error",
+            "eslint-plugin/require-meta-docs-url": "off",
             "eslint-plugin/require-meta-fixable": "error",
             "eslint-plugin/require-meta-has-suggestions": "error",
             "eslint-plugin/require-meta-schema": "error",

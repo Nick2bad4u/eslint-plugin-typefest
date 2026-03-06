@@ -12,7 +12,6 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import {
     reportWithOptionalFix,
     resolveAutofixOrSuggestionOutcome,
@@ -22,8 +21,6 @@ import {
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
 import { isArrayIndexReadAutofixSafe } from "../_internal/value-rewrite-autofix-safety.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-first`;
 
 /**
  * Checks whether a computed member property represents index `0`.
@@ -119,7 +116,6 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             hasSuggestions: true,

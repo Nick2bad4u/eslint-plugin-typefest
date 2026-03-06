@@ -6,7 +6,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import plugin from "../plugin.mjs";
+import typefestPlugin from "../src/plugin";
 
 const RULE_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
@@ -205,7 +205,7 @@ function parseH2Headings(markdown: string): string[] {
 
 describe("typefest rule docs", () => {
     it("every rule has a docs url and a matching docs/rules/<id>.md file", () => {
-        const { rules } = plugin;
+        const { rules } = typefestPlugin;
 
         expect(rules).toBeDefined();
 

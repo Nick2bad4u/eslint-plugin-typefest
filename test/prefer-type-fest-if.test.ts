@@ -241,28 +241,6 @@ describe("prefer-type-fest-if metadata", () => {
             "`{{alias}}` is deprecated in type-fest. Prefer `If` combined with `{{replacement}}`."
         );
     });
-
-    it("declares authored docs url literal before RuleCreator decoration", async () => {
-        try {
-            vi.resetModules();
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
-            }));
-
-            const undecoratedModule =
-                (await import("../src/rules/prefer-type-fest-if")) as {
-                    default: IfRuleMetadataSnapshot;
-                };
-
-            expect(undecoratedModule.default.meta?.docs?.url).toBe(
-                "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if"
-            );
-        } finally {
-            vi.doUnmock("../src/_internal/typed-rule.js");
-            vi.resetModules();
-        }
-    });
 });
 
 describe("prefer-type-fest-if source assertions", () => {

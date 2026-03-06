@@ -1,13 +1,10 @@
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-entries`.
  */
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-object-entries`;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-object-entries`.
@@ -49,7 +46,6 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

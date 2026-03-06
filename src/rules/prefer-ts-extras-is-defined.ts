@@ -9,7 +9,6 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
@@ -19,8 +18,6 @@ import {
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
 import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-defined`;
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -242,7 +239,6 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {

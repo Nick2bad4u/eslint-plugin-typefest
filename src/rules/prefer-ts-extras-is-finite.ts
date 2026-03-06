@@ -1,13 +1,10 @@
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
-import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-finite`.
  */
 import { createTypedRule } from "../_internal/typed-rule.js";
-
-const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-finite`;
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-finite`.
@@ -51,7 +48,6 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
-                url: RULE_DOCS_URL,
             },
             fixable: "code",
             messages: {
