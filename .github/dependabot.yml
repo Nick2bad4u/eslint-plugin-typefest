@@ -26,7 +26,6 @@ updates:
       cooldown:
           default-days: 3
           include: ["*"]
-      open-pull-requests-limit: 1
       directory: /
       allow:
           # Allow both direct and indirect updates for all packages
@@ -42,7 +41,6 @@ updates:
       cooldown:
           default-days: 3
           include: ["*"]
-      open-pull-requests-limit: 1
       directory: /
       rebase-strategy: auto
       versioning-strategy: increase
@@ -73,7 +71,6 @@ updates:
       cooldown:
           default-days: 3
           include: ["*"]
-      open-pull-requests-limit: 1
       directory: /docs/docusaurus
       rebase-strategy: auto
       versioning-strategy: increase
