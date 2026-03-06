@@ -36,12 +36,29 @@ const ruleTester = createTypedRuleTester();
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const invalidFixturePath = typedFixturePath(invalidFixtureName);
 const validFixturePath = typedFixturePath(validFixtureName);
+const defaultOptions = [
+    {
+        enforceLegacyAliases: true,
+        enforcePromiseUnions: true,
+    },
+] as const;
+const legacyAliasesOnlyOptions = [
+    {
+        enforceLegacyAliases: true,
+        enforcePromiseUnions: false,
+    },
+] as const;
+const promiseUnionsOnlyOptions = [
+    {
+        enforceLegacyAliases: false,
+        enforcePromiseUnions: true,
+    },
+] as const;
 
 addTypeFestRuleMetadataSmokeTests("prefer-type-fest-promisable", {
-    defaultOptions: [],
+    defaultOptions,
     docsDescription:
-        "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
-    enforceRuleShape: true,
+        "require TypeFest Promisable over legacy MaybePromise aliases and Promise<T> | T unions for sync-or-async contracts.",
     messages: {
         preferPromisable:
             "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
@@ -643,12 +660,40 @@ ruleTester.run(
                 name: "reports alias usage when Promisable import is missing",
                 output: inlineInvalidWithoutFixOutputCode,
             },
+            {
+                code: promiseFirstInvalidCode,
+                errors: [{ messageId: "preferPromisable" }],
+                filename: invalidFixturePath,
+                name: "reports Promise union when only union enforcement is enabled",
+                options: promiseUnionsOnlyOptions,
+                output: null,
+            },
+            {
+                code: inlineFixableInvalidCode,
+                errors: [{ messageId: "preferPromisable" }],
+                filename: invalidFixturePath,
+                name: "reports MaybePromise alias when only alias enforcement is enabled",
+                options: legacyAliasesOnlyOptions,
+                output: inlineFixableOutputCode,
+            },
         ],
         valid: [
             {
                 code: readTypedFixture(validFixtureName),
                 filename: validFixturePath,
                 name: "accepts fixture-safe patterns",
+            },
+            {
+                code: promiseFirstInvalidCode,
+                filename: validFixturePath,
+                name: "ignores Promise union when enforcePromiseUnions is disabled",
+                options: legacyAliasesOnlyOptions,
+            },
+            {
+                code: inlineFixableInvalidCode,
+                filename: validFixturePath,
+                name: "ignores MaybePromise alias when enforceLegacyAliases is disabled",
+                options: promiseUnionsOnlyOptions,
             },
             ...additionalValidRuleTesterCases.map(({ code, name }) => ({
                 code,

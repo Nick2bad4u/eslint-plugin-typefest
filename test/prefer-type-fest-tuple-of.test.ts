@@ -24,6 +24,16 @@ const docsDescription =
     "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.";
 const preferTupleOfMessage =
     "Prefer `{{replacement}}` from type-fest to model fixed-length homogeneous tuples instead of legacy alias `{{alias}}`.";
+const defaultOptions = [
+    {
+        enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
+    },
+] as const;
+const tupleOnlyOptions = [
+    {
+        enforcedAliasNames: ["Tuple"],
+    },
+] as const;
 
 const validFixtureName = "prefer-type-fest-tuple-of.valid.ts";
 const namespaceValidFixtureName =
@@ -129,6 +139,11 @@ const inlineFixTupleWhenReadonlyShadowedOutputCode = replaceOrThrow({
     sourceText: inlineFixTupleWhenReadonlyShadowedInvalidCode,
     target: "type Box<Readonly> = Tuple<string, 3>;",
 });
+const readonlyTupleIgnoredByOptionsValidCode = [
+    'import type { ReadonlyTuple } from "type-aliases";',
+    "",
+    "type Values = ReadonlyTuple<string, 3>;",
+].join("\n");
 
 type TupleOfReportDescriptor = Readonly<{
     data?: {
@@ -212,9 +227,8 @@ const parseTupleAliasTypeReferenceFromCode = (
 };
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
-    defaultOptions: [],
+    defaultOptions,
     docsDescription,
-    enforceRuleShape: true,
     messages: {
         preferTupleOf: preferTupleOfMessage,
     },
@@ -450,6 +464,22 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             name: "autofixes Tuple alias even when Readonly identifier is shadowed",
             output: inlineFixTupleWhenReadonlyShadowedOutputCode,
         },
+        {
+            code: inlineFixableTupleInvalidCode,
+            errors: [
+                {
+                    data: {
+                        alias: "Tuple",
+                        replacement: "TupleOf<Length, Element>",
+                    },
+                    messageId: "preferTupleOf",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports only configured aliases via enforcedAliasNames option",
+            options: tupleOnlyOptions,
+            output: inlineFixableTupleOutputCode,
+        },
     ],
     valid: [
         {
@@ -460,7 +490,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
         {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
-            name: "accepts namespace-qualified FixedLengthArray references",
+            name: "accepts namespace-qualified TupleOf references",
+        },
+        {
+            code: readonlyTupleIgnoredByOptionsValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores aliases that are excluded by enforcedAliasNames option",
+            options: tupleOnlyOptions,
         },
     ],
 });

@@ -16,6 +16,11 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-tagged-brands`;
 
+type PreferTypeFestTaggedBrandsOption = Readonly<{
+    enforceAdHocBrandIntersections?: boolean;
+    enforceLegacyAliases?: boolean;
+}>;
+
 /** Property keys commonly used in ad-hoc branded intersections. */
 const BRAND_PROPERTY_NAMES = new Set([
     "__brand",
@@ -102,8 +107,23 @@ const typeContainsTaggedReference = (
  * Defines metadata, diagnostics, and suggestions/fixes for this rule.
  */
 const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<
+        readonly [PreferTypeFestTaggedBrandsOption],
+        "preferTaggedAlias" | "preferTaggedBrand"
+    >({
+        create(
+            context,
+            [options] = [
+                {
+                    enforceAdHocBrandIntersections: true,
+                    enforceLegacyAliases: true,
+                },
+            ]
+        ) {
+            const enforceAdHocBrandIntersections =
+                options.enforceAdHocBrandIntersections ?? true;
+            const enforceLegacyAliases = options.enforceLegacyAliases ?? true;
+
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 taggedAliasReplacements
@@ -115,6 +135,10 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSTypeAliasDeclaration(node) {
+                    if (!enforceAdHocBrandIntersections) {
+                        return;
+                    }
+
                     if (typeContainsTaggedReference(node.typeAnnotation)) {
                         return;
                     }
@@ -134,6 +158,10 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                     });
                 },
                 TSTypeReference(node) {
+                    if (!enforceLegacyAliases) {
+                        return;
+                    }
+
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -165,8 +193,19 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [
+            {
+                enforceAdHocBrandIntersections: true,
+                enforceLegacyAliases: true,
+            },
+        ],
         meta: {
+            defaultOptions: [
+                {
+                    enforceAdHocBrandIntersections: true,
+                    enforceLegacyAliases: true,
+                },
+            ],
             deprecated: false,
             docs: {
                 description:
@@ -188,7 +227,32 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 preferTaggedBrand:
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for tagged-brand enforcement surfaces.",
+                        minProperties: 1,
+                        properties: {
+                            enforceAdHocBrandIntersections: {
+                                description:
+                                    "Whether to report ad-hoc branded intersections using __brand/__tag/brand fields.",
+                                type: "boolean",
+                            },
+                            enforceLegacyAliases: {
+                                description:
+                                    "Whether to report imported legacy branded aliases such as Opaque and Branded.",
+                                type: "boolean",
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-type-fest-tagged-brands",

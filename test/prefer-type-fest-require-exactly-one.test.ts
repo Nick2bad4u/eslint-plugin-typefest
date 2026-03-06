@@ -24,6 +24,16 @@ const validFixtureName = "prefer-type-fest-require-exactly-one.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-require-exactly-one.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-require-exactly-one.invalid.ts";
+const defaultOptions = [
+    {
+        enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
+    },
+] as const;
+const requireOnlyOneOnlyOptions = [
+    {
+        enforcedAliasNames: ["RequireOnlyOne"],
+    },
+] as const;
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const replaceOrThrow = ({
     replacement,
@@ -76,6 +86,23 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     'import type { OneOf } from "type-aliases";',
     "",
     "type Wrapper<RequireExactlyOne> = OneOf<{ a?: string; b?: number }>;",
+].join("\n");
+const requireOnlyOneOnlyInvalidCode = [
+    'import type { RequireOnlyOne } from "type-aliases";',
+    'import type { RequireExactlyOne } from "type-fest";',
+    "",
+    "type Input = RequireOnlyOne<{ a?: string; b?: number }>;",
+].join("\n");
+const requireOnlyOneOnlyOutputCode = [
+    'import type { RequireOnlyOne } from "type-aliases";',
+    'import type { RequireExactlyOne } from "type-fest";',
+    "",
+    "type Input = RequireExactlyOne<{ a?: string; b?: number }>;",
+].join("\n");
+const oneOfIgnoredByOptionsValidCode = [
+    'import type { OneOf } from "type-aliases";',
+    "",
+    "type Input = OneOf<{ a?: string; b?: number }>;",
 ].join("\n");
 
 type RequireExactlyOneLegacyAlias = "OneOf" | "RequireOnlyOne";
@@ -136,10 +163,9 @@ const parseRequireExactlyOneTypeReferenceFromCode = (
 };
 
 addTypeFestRuleMetadataSmokeTests("prefer-type-fest-require-exactly-one", {
-    defaultOptions: [],
+    defaultOptions,
     docsDescription:
         "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
-    enforceRuleShape: true,
     messages: {
         preferRequireExactlyOne:
             "Prefer `{{replacement}}` from type-fest to require exactly one key from a group instead of legacy alias `{{alias}}`.",
@@ -259,6 +285,22 @@ ruleTester.run(
                 name: "reports OneOf alias when replacement identifier is shadowed",
                 output: null,
             },
+            {
+                code: requireOnlyOneOnlyInvalidCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "RequireOnlyOne",
+                            replacement: "RequireExactlyOne",
+                        },
+                        messageId: "preferRequireExactlyOne",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports only configured aliases via enforcedAliasNames option",
+                options: requireOnlyOneOnlyOptions,
+                output: requireOnlyOneOnlyOutputCode,
+            },
         ],
         valid: [
             {
@@ -270,6 +312,12 @@ ruleTester.run(
                 code: readTypedFixture(namespaceValidFixtureName),
                 filename: typedFixturePath(namespaceValidFixtureName),
                 name: "accepts namespace-qualified RequireExactlyOne references",
+            },
+            {
+                code: oneOfIgnoredByOptionsValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores aliases that are excluded by enforcedAliasNames option",
+                options: requireOnlyOneOnlyOptions,
             },
         ],
     }

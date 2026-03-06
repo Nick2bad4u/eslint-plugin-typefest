@@ -15,6 +15,10 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-except`;
 
+type PreferTypeFestExceptOption = Readonly<{
+    enforceBuiltinOmit?: boolean;
+}>;
+
 const OMIT_TYPE_NAME = "Omit";
 const exceptAliasReplacements = {
     HomomorphicOmit: "Except",
@@ -27,8 +31,10 @@ const exceptAliasReplacements = {
  * Defines metadata, diagnostics, and suggestions/fixes for this rule.
  */
 const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<readonly [PreferTypeFestExceptOption], "preferExcept">({
+        create(context, [options] = [{ enforceBuiltinOmit: true }]) {
+            const enforceBuiltinOmit = options.enforceBuiltinOmit ?? true;
+
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
                 exceptAliasReplacements
@@ -46,6 +52,10 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     );
 
                     if (isBuiltinOmitReference) {
+                        if (!enforceBuiltinOmit) {
+                            return;
+                        }
+
                         const typeArgumentCount =
                             node.typeArguments?.params.length ?? 0;
                         if (typeArgumentCount < 2) {
@@ -88,8 +98,9 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [{ enforceBuiltinOmit: true }],
         meta: {
+            defaultOptions: [{ enforceBuiltinOmit: true }],
             deprecated: false,
             docs: {
                 description:
@@ -110,7 +121,27 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 preferExcept:
                     "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for builtin Omit enforcement in prefer-type-fest-except.",
+                        minProperties: 1,
+                        properties: {
+                            enforceBuiltinOmit: {
+                                description:
+                                    "Whether to report builtin Omit<T, K> references in addition to imported legacy aliases.",
+                                type: "boolean",
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-type-fest-except",

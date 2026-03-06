@@ -16,6 +16,14 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-tuple-of`;
 
+const tupleOfLegacyAliases = ["ReadonlyTuple", "Tuple"] as const;
+
+type PreferTypeFestTupleOfOption = Readonly<{
+    enforcedAliasNames?: readonly ("ReadonlyTuple" | "Tuple")[];
+}>;
+
+type TupleOfLegacyAlias = (typeof tupleOfLegacyAliases)[number];
+
 /**
  * Legacy tuple aliases this rule normalizes to `TupleOf` forms.
  */
@@ -51,11 +59,24 @@ const createTupleOfReplacementText = (
  * with canonical `TupleOf` forms.
  */
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<readonly [PreferTypeFestTupleOfOption], "preferTupleOf">({
+        create(
+            context,
+            [options] = [{ enforcedAliasNames: ["ReadonlyTuple", "Tuple"] }]
+        ) {
+            const enabledAliasReplacements: Partial<
+                Record<TupleOfLegacyAlias, string>
+            > = {};
+
+            for (const aliasName of options.enforcedAliasNames ??
+                tupleOfLegacyAliases) {
+                enabledAliasReplacements[aliasName] =
+                    tupleOfAliasReplacements[aliasName];
+            }
+
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
-                tupleOfAliasReplacements
+                enabledAliasReplacements
             );
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
@@ -122,8 +143,17 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [
+            {
+                enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
+            },
+        ],
         meta: {
+            defaultOptions: [
+                {
+                    enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
+                },
+            ],
             deprecated: false,
             docs: {
                 description:
@@ -143,7 +173,33 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 preferTupleOf:
                     "Prefer `{{replacement}}` from type-fest to model fixed-length homogeneous tuples instead of legacy alias `{{alias}}`.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for alias names enforced by prefer-type-fest-tuple-of.",
+                        minProperties: 1,
+                        properties: {
+                            enforcedAliasNames: {
+                                description:
+                                    "Legacy alias names to report and replace with TupleOf forms.",
+                                items: {
+                                    enum: [...tupleOfLegacyAliases],
+                                    type: "string",
+                                },
+                                minItems: 1,
+                                type: "array",
+                                uniqueItems: true,
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-type-fest-tuple-of",

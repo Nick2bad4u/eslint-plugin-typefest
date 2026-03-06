@@ -12,6 +12,15 @@ This rule targets ad-hoc brand-marker intersections and legacy alias names used 
 - Type references that resolve to imported `Opaque` / `Branded` aliases.
 - Existing `Tagged` usage is ignored.
 
+### Detection boundaries
+
+- ✅ Reports ad-hoc brand-marker intersections by default.
+- ✅ Reports imported `Opaque` / `Branded` aliases by default.
+- ❌ Does not report namespace-qualified alias usage.
+- ✅ Auto-fixes imported legacy alias references to `Tagged` when replacement is syntactically safe.
+- ❌ Does not auto-fix ad-hoc intersection branding declarations.
+- ✅ Enforcement surface is configurable with `enforceAdHocBrandIntersections` and `enforceLegacyAliases`.
+
 ## Why this rule exists
 
 `Tagged` provides a standard, reusable branded-type approach that improves consistency and readability.
@@ -33,6 +42,118 @@ type UserId = Tagged<string, "UserId">;
 - `Tagged<Base, Tag>` standardizes branded identity types.
 - This rule targets both structural brand fields (`__brand`, `__tag`) and legacy alias references (`Opaque`, `Branded`).
 - Use canonical `Tagged` aliases for IDs and domain markers to keep branding semantics consistent across packages.
+
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTypeFestTaggedBrandsOptions = {
+    /**
+     * Whether to report structural ad-hoc branding intersections.
+     *
+     * @default true
+     */
+    enforceAdHocBrandIntersections?: boolean;
+
+    /**
+     * Whether to report imported legacy aliases like Opaque/Branded.
+     *
+     * @default true
+     */
+    enforceLegacyAliases?: boolean;
+};
+```
+
+Default configuration:
+
+```ts
+{
+    enforceAdHocBrandIntersections: true,
+    enforceLegacyAliases: true,
+}
+```
+
+Flat config setup (default behavior):
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-tagged-brands": [
+                "error",
+                {
+                    enforceAdHocBrandIntersections: true,
+                    enforceLegacyAliases: true,
+                },
+            ],
+        },
+    },
+];
+```
+
+#### `enforceAdHocBrandIntersections: false`
+
+Ignores structural ad-hoc intersections, while still reporting legacy aliases:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-tagged-brands": [
+                "error",
+                {
+                    enforceAdHocBrandIntersections: false,
+                    enforceLegacyAliases: true,
+                },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { Opaque } from "type-aliases";
+
+type A = string & { readonly __brand: "UserId" }; // ✅ Not reported
+type B = Opaque<string, "UserId">; // ❌ Reported
+```
+
+#### `enforceLegacyAliases: false`
+
+Ignores imported `Opaque`/`Branded` aliases, while still reporting ad-hoc intersections:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-tagged-brands": [
+                "error",
+                {
+                    enforceAdHocBrandIntersections: true,
+                    enforceLegacyAliases: false,
+                },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { Opaque } from "type-aliases";
+
+type A = Opaque<string, "UserId">; // ✅ Not reported
+type B = string & { readonly __brand: "UserId" }; // ❌ Reported
+```
 
 ## Additional examples
 

@@ -20,6 +20,8 @@ import {
 
 const rule = getPluginRule("prefer-type-fest-except");
 const ruleTester = createTypedRuleTester();
+const defaultOptions = [{ enforceBuiltinOmit: true }] as const;
+const aliasOnlyOptions = [{ enforceBuiltinOmit: false }] as const;
 
 const validFixtureName = "prefer-type-fest-except.valid.ts";
 const invalidFixtureName = "prefer-type-fest-except.invalid.ts";
@@ -104,6 +106,14 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
     "type UserWithoutId = Omit<User>;",
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
+const builtinOmitIgnoredByOptionsValidCode = [
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    'type UserWithoutId = Omit<User, "id">;',
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -143,10 +153,9 @@ const parseExceptTypeReferenceFromCode = (
 };
 
 addTypeFestRuleMetadataSmokeTests("prefer-type-fest-except", {
-    defaultOptions: [],
+    defaultOptions,
     docsDescription:
         "require TypeFest Except over Omit when removing properties from object types.",
-    enforceRuleShape: true,
     messages: {
         preferExcept:
             "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
@@ -314,6 +323,14 @@ ruleTester.run("prefer-type-fest-except", rule, {
             name: "reports HomomorphicOmit alias when replacement identifier is shadowed",
             output: null,
         },
+        {
+            code: inlineFixableInvalidCode,
+            errors: [{ messageId: "preferExcept" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "still reports imported alias when enforceBuiltinOmit is disabled",
+            options: aliasOnlyOptions,
+            output: inlineFixableOutputCode,
+        },
     ],
     valid: [
         {
@@ -335,6 +352,18 @@ ruleTester.run("prefer-type-fest-except", rule, {
             code: inlineValidBareOmitReferenceCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores bare Omit type reference",
+        },
+        {
+            code: builtinOmitIgnoredByOptionsValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores builtin Omit<T, K> when enforceBuiltinOmit is disabled",
+            options: aliasOnlyOptions,
+        },
+        {
+            code: readTypedFixture(invalidFixtureName),
+            filename: typedFixturePath(invalidFixtureName),
+            name: "accepts fixture Omit usage when enforceBuiltinOmit is disabled",
+            options: aliasOnlyOptions,
         },
     ],
 });

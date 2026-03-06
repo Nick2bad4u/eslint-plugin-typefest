@@ -22,6 +22,24 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
+const defaultOptions = [
+    {
+        enforceAdHocBrandIntersections: true,
+        enforceLegacyAliases: true,
+    },
+] as const;
+const legacyAliasesOnlyOptions = [
+    {
+        enforceAdHocBrandIntersections: false,
+        enforceLegacyAliases: true,
+    },
+] as const;
+const adHocIntersectionsOnlyOptions = [
+    {
+        enforceAdHocBrandIntersections: true,
+        enforceLegacyAliases: false,
+    },
+] as const;
 
 const validFixtureName = "prefer-type-fest-tagged-brands.valid.ts";
 const invalidFixtureName = "prefer-type-fest-tagged-brands.invalid.ts";
@@ -225,9 +243,9 @@ const parseTaggedTypeReferenceFromCode = (
 };
 
 addTypeFestRuleMetadataSmokeTests("prefer-type-fest-tagged-brands", {
+    defaultOptions,
     docsDescription:
         "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
-    enforceRuleShape: true,
     messages: {
         preferTaggedAlias:
             "Prefer `{{replacement}}` from type-fest for canonical tagged-brand aliases instead of legacy alias `{{alias}}`.",
@@ -380,6 +398,39 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports ad-hoc branding when intersection uses non-Tagged type references",
             },
+            {
+                code: importedAliasFixtureCode,
+                errors: [
+                    {
+                        data: {
+                            alias: "Opaque",
+                            replacement: "Tagged",
+                        },
+                        messageId: "preferTaggedAlias",
+                    },
+                    {
+                        data: {
+                            alias: "Branded",
+                            replacement: "Tagged",
+                        },
+                        messageId: "preferTaggedAlias",
+                    },
+                ],
+                filename: typedFixturePath(importedAliasFixtureName),
+                name: "reports imported aliases when only legacy alias enforcement is enabled",
+                options: legacyAliasesOnlyOptions,
+                output: [
+                    importedAliasFixtureFirstPassOutputCode,
+                    importedAliasFixtureSecondPassOutputCode,
+                ],
+            },
+            {
+                code: inlineInvalidBrandPropertyIntersectionCode,
+                errors: [{ messageId: "preferTaggedBrand" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports ad-hoc branding when only intersection enforcement is enabled",
+                options: adHocIntersectionsOnlyOptions,
+            },
         ],
         valid: [
             {
@@ -411,6 +462,18 @@ ruleTester.run(
                 code: inlineValidNestedTaggedReferenceCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores nested Tagged references inside union and intersection",
+            },
+            {
+                code: inlineInvalidTagPropertyIntersectionCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores ad-hoc intersections when enforceAdHocBrandIntersections is disabled",
+                options: legacyAliasesOnlyOptions,
+            },
+            {
+                code: importedAliasFixtureCode,
+                filename: typedFixturePath(importedAliasFixtureName),
+                name: "ignores legacy aliases when enforceLegacyAliases is disabled",
+                options: adHocIntersectionsOnlyOptions,
             },
         ],
     }

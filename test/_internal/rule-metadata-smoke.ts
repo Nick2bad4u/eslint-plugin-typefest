@@ -1,6 +1,6 @@
 import type { UnknownArray } from "type-fest";
 
-import { describe, expect, expectTypeOf, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { isTypefestConfigReference } from "../../src/_internal/typefest-config-references";
 
@@ -31,6 +31,12 @@ interface RuleMetadataSnapshot {
  */
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
     typeof value === "object" && value !== null;
+
+/**
+ * Narrow unknown values to booleans for runtime metadata checks.
+ */
+const isBoolean = (value: unknown): value is boolean =>
+    typeof value === "boolean";
 
 /**
  * Guard dynamic import payloads to the expected `{ default: RuleMetadata }`
@@ -166,7 +172,9 @@ export const addTypeFestRuleMetadataSmokeTests = (
                 expectedDocsDescription
             );
 
-            expectTypeOf(metadataRule.meta?.docs?.recommended).toBeBoolean();
+            expect(
+                isBoolean(metadataRule.meta?.docs?.recommended)
+            ).toBeTruthy();
 
             const presetReferences = getTypefestConfigReferenceCandidates(
                 metadataRule.meta?.docs?.typefestConfigs

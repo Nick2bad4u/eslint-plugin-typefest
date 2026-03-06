@@ -19,6 +19,11 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-promisable`;
 
+type PreferTypeFestPromisableOption = Readonly<{
+    enforceLegacyAliases?: boolean;
+    enforcePromiseUnions?: boolean;
+}>;
+
 /** Canonical TypeFest alias preferred by this rule. */
 const PROMISABLE_TYPE_NAME = "Promisable";
 
@@ -59,8 +64,19 @@ const getPromiseInnerType = (
  * Defines metadata, diagnostics, and suggestions/fixes for this rule.
  */
 const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<
+        readonly [PreferTypeFestPromisableOption],
+        "preferPromisable"
+    >({
+        create(
+            context,
+            [options] = [
+                { enforceLegacyAliases: true, enforcePromiseUnions: true },
+            ]
+        ) {
+            const enforceLegacyAliases = options.enforceLegacyAliases ?? true;
+            const enforcePromiseUnions = options.enforcePromiseUnions ?? true;
+
             const { sourceCode } = context;
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 sourceCode,
@@ -73,6 +89,10 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSTypeReference(node) {
+                    if (!enforceLegacyAliases) {
+                        return;
+                    }
+
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -99,6 +119,10 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     });
                 },
                 TSUnionType(node) {
+                    if (!enforcePromiseUnions) {
+                        return;
+                    }
+
                     if (node.types.length !== 2) {
                         return;
                     }
@@ -166,12 +190,23 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [
+            {
+                enforceLegacyAliases: true,
+                enforcePromiseUnions: true,
+            },
+        ],
         meta: {
+            defaultOptions: [
+                {
+                    enforceLegacyAliases: true,
+                    enforcePromiseUnions: true,
+                },
+            ],
             deprecated: false,
             docs: {
                 description:
-                    "require TypeFest Promisable for sync-or-async callback contracts currently expressed as Promise<T> | T unions.",
+                    "require TypeFest Promisable over legacy MaybePromise aliases and Promise<T> | T unions for sync-or-async contracts.",
                 frozen: false,
                 recommended: true,
                 typefestConfigs: [
@@ -188,7 +223,32 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                 preferPromisable:
                     "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for legacy alias and Promise-union enforcement in prefer-type-fest-promisable.",
+                        minProperties: 1,
+                        properties: {
+                            enforceLegacyAliases: {
+                                description:
+                                    "Whether to report legacy imported aliases such as MaybePromise.",
+                                type: "boolean",
+                            },
+                            enforcePromiseUnions: {
+                                description:
+                                    "Whether to report Promise<T> | T union contracts.",
+                                type: "boolean",
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-type-fest-promisable",

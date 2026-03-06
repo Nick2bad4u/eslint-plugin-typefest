@@ -15,6 +15,16 @@ Multi-member unions and Promise-adjacent variants stay out of scope unless they 
 This rule reports strict `Promise<T> | T`-shaped unions that should be expressed as `Promisable<T>`.
 
 - Type unions shaped like `Promise<T> | T` in architecture-critical runtime layers.
+- Type references that resolve to imported legacy aliases such as `MaybePromise`.
+
+### Detection boundaries
+
+- ✅ Reports strict `Promise<T> | T` / `T | Promise<T>` unions by default.
+- ✅ Reports imported legacy aliases such as `MaybePromise` by default.
+- ❌ Does not report namespace-qualified aliases.
+- ✅ Auto-fixes imported legacy alias references when replacement is syntactically safe.
+- ❌ Does not auto-fix `Promise<T> | T` union declarations.
+- ✅ Enforcement surface is configurable with `enforcePromiseUnions` and `enforceLegacyAliases`.
 
 ## Why this rule exists
 
@@ -37,6 +47,118 @@ type HookResult = Promisable<Result>;
 - `Promisable<T>` captures sync-or-async return contracts in one reusable alias.
 - It normalizes both `Promise<T> | T` and `T | Promise<T>` forms.
 - Use this alias in hook/callback contracts where callers may return either immediate or async values.
+
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTypeFestPromisableOptions = {
+    /**
+     * Whether to report imported legacy aliases such as MaybePromise.
+     *
+     * @default true
+     */
+    enforceLegacyAliases?: boolean;
+
+    /**
+     * Whether to report Promise<T> | T sync-or-async unions.
+     *
+     * @default true
+     */
+    enforcePromiseUnions?: boolean;
+};
+```
+
+Default configuration:
+
+```ts
+{
+    enforceLegacyAliases: true,
+    enforcePromiseUnions: true,
+}
+```
+
+Flat config setup (default behavior):
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-promisable": [
+                "error",
+                {
+                    enforceLegacyAliases: true,
+                    enforcePromiseUnions: true,
+                },
+            ],
+        },
+    },
+];
+```
+
+#### `enforcePromiseUnions: false`
+
+Ignores union-shaped contracts while still enforcing legacy aliases:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-promisable": [
+                "error",
+                {
+                    enforceLegacyAliases: true,
+                    enforcePromiseUnions: false,
+                },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { MaybePromise } from "type-aliases";
+
+type A = Promise<Result> | Result; // ✅ Not reported
+type B = MaybePromise<Result>; // ❌ Reported
+```
+
+#### `enforceLegacyAliases: false`
+
+Ignores legacy aliases while still enforcing union-shaped contracts:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-promisable": [
+                "error",
+                {
+                    enforceLegacyAliases: false,
+                    enforcePromiseUnions: true,
+                },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { MaybePromise } from "type-aliases";
+
+type A = MaybePromise<Result>; // ✅ Not reported
+type B = Promise<Result> | Result; // ❌ Reported
+```
 
 ## Additional examples
 

@@ -5,11 +5,19 @@ Require `Readonly<TupleOf<Length, Element>>` over imported aliases like
 
 ## Targeted pattern scope
 
-This rule targets deprecated `ReadonlyTuple` alias usage.
+This rule targets deprecated `ReadonlyTuple` and `Tuple` alias usage.
 
 ## What this rule reports
 
 - Type references that resolve to imported `ReadonlyTuple` aliases.
+- Type references that resolve to imported `Tuple` aliases.
+
+### Detection boundaries
+
+- ✅ Reports imported aliases with direct named imports.
+- ❌ Does not report namespace-qualified alias usage.
+- ✅ Auto-fixes imported alias references to canonical `TupleOf` forms when replacement is syntactically safe.
+- ✅ Alias coverage is configurable with `enforcedAliasNames`.
 
 ## Why this rule exists
 
@@ -30,14 +38,87 @@ type Digits = ReadonlyTuple<number, 4>;
 ```ts
 import type { TupleOf } from "type-fest";
 
-type Digits = Readonly<TupleOf<number, 4>>;
+type Digits = Readonly<TupleOf<4, number>>;
 ```
 
 ## Behavior and migration notes
 
-- `ReadonlyTuple<Element, Length>` is deprecated in favor of `Readonly<TupleOf<Element, Length>>`.
+- `ReadonlyTuple<Element, Length>` is deprecated in favor of `Readonly<TupleOf<Length, Element>>`.
+- `Tuple<Element, Length>` is deprecated in favor of `TupleOf<Length, Element>`.
 - This rule migrates deprecated TypeFest tuple naming toward supported utilities.
 - Keep readonly wrapping explicit so mutability intent remains visible at call sites.
+
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTypeFestTupleOfOptions = {
+    /**
+     * Legacy alias names that this rule will report and replace.
+     *
+     * @default ["ReadonlyTuple", "Tuple"]
+     */
+    enforcedAliasNames?: ("ReadonlyTuple" | "Tuple")[];
+};
+```
+
+Default configuration:
+
+```ts
+{
+    enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
+}
+```
+
+Flat config setup (default behavior):
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-tuple-of": [
+                "error",
+                { enforcedAliasNames: ["ReadonlyTuple", "Tuple"] },
+            ],
+        },
+    },
+];
+```
+
+#### `enforcedAliasNames: ["ReadonlyTuple", "Tuple"]` (default)
+
+Reports both legacy aliases.
+
+#### `enforcedAliasNames: ["Tuple"]`
+
+Reports only `Tuple` and ignores `ReadonlyTuple`:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-tuple-of": [
+                "error",
+                { enforcedAliasNames: ["Tuple"] },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { ReadonlyTuple, Tuple } from "type-aliases";
+
+type A = ReadonlyTuple<string, 3>; // ✅ Not reported
+type B = Tuple<string, 3>; // ❌ Reported
+```
 
 ## Additional examples
 
@@ -54,13 +135,13 @@ type IPv4 = ReadonlyTuple<number, 4>;
 ```ts
 import type { TupleOf } from "type-fest";
 
-type IPv4 = Readonly<TupleOf<number, 4>>;
+type IPv4 = Readonly<TupleOf<4, number>>;
 ```
 
 ### ✅ Correct — Repository-wide usage
 
 ```ts
-type RGB = TupleOf<number, 3>;
+type RGB = TupleOf<3, number>;
 ```
 
 ## ESLint flat config example

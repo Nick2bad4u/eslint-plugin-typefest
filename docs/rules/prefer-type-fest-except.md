@@ -4,11 +4,21 @@ Require TypeFest `Except<T, K>` over `Omit<T, K>` when removing keys from object
 
 ## Targeted pattern scope
 
-This rule targets `Omit<T, K>` object-shaping references that can be replaced by the TypeFest canonical utility.
+This rule targets `Omit<T, K>` object-shaping references and imported aliases such as `HomomorphicOmit` that can be replaced by the TypeFest canonical utility.
 
 ## What this rule reports
 
 - Type references shaped like `Omit<T, K>`.
+- Type references that resolve to imported `HomomorphicOmit` aliases.
+
+### Detection boundaries
+
+- ✅ Reports built-in `Omit<T, K>` by default.
+- ✅ Reports imported aliases with direct named imports.
+- ❌ Does not report namespace-qualified aliases.
+- ✅ Auto-fixes imported alias references to `Except` when replacement is syntactically safe.
+- ❌ Does not auto-fix built-in `Omit<T, K>` references.
+- ✅ Built-in `Omit<T, K>` coverage is configurable with `enforceBuiltinOmit`.
 
 ## Why this rule exists
 
@@ -31,6 +41,78 @@ type PublicUser = Except<User, "password">;
 - `Except<T, K>` is the canonical object-key removal utility in this plugin's type-fest style.
 - Migrate direct `Omit<T, K>` aliases in shared contracts to keep one naming convention.
 - Review constraint behavior if existing helper wrappers add semantics beyond key omission.
+
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTypeFestExceptOptions = {
+    /**
+     * Whether to report built-in Omit<T, K> usages.
+     *
+     * @default true
+     */
+    enforceBuiltinOmit?: boolean;
+};
+```
+
+Default configuration:
+
+```ts
+{
+    enforceBuiltinOmit: true,
+}
+```
+
+Flat config setup (default behavior):
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-except": [
+                "error",
+                { enforceBuiltinOmit: true },
+            ],
+        },
+    },
+];
+```
+
+#### `enforceBuiltinOmit: true` (default)
+
+Reports both built-in `Omit<T, K>` and imported aliases.
+
+#### `enforceBuiltinOmit: false`
+
+Reports imported aliases, but ignores built-in `Omit<T, K>`:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-except": [
+                "error",
+                { enforceBuiltinOmit: false },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { HomomorphicOmit } from "type-aliases";
+
+type A = Omit<User, "password">; // ✅ Not reported
+type B = HomomorphicOmit<User, "password">; // ❌ Reported
+```
 
 ## Additional examples
 

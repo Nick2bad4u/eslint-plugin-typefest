@@ -18,7 +18,8 @@ Use this when callers must choose one mode, not multiple modes (for example,
 
 - ✅ Reports imported aliases with direct named imports.
 - ❌ Does not report namespace-qualified alias usage.
-- ❌ Does not auto-fix.
+- ✅ Auto-fixes imported alias references to `RequireExactlyOne` when replacement is syntactically safe.
+- ✅ Alias coverage is configurable with `enforcedAliasNames`.
 
 ## Why this rule exists
 
@@ -54,6 +55,78 @@ type Auth = RequireExactlyOne<{
 - `RequireExactlyOne<T, Keys>` encodes XOR object modes where one and only one key can be active.
 - This rule targets alias names with matching semantics (`OneOf`, `RequireOnlyOne`).
 - Keep the participating key set small and explicit to avoid hard-to-read error messages in consuming code.
+
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTypeFestRequireExactlyOneOptions = {
+    /**
+     * Legacy alias names that this rule will report and replace.
+     *
+     * @default ["OneOf", "RequireOnlyOne"]
+     */
+    enforcedAliasNames?: ("OneOf" | "RequireOnlyOne")[];
+};
+```
+
+Default configuration:
+
+```ts
+{
+    enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
+}
+```
+
+Flat config setup (default behavior):
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-require-exactly-one": [
+                "error",
+                { enforcedAliasNames: ["OneOf", "RequireOnlyOne"] },
+            ],
+        },
+    },
+];
+```
+
+#### `enforcedAliasNames: ["OneOf", "RequireOnlyOne"]` (default)
+
+Reports both legacy aliases.
+
+#### `enforcedAliasNames: ["RequireOnlyOne"]`
+
+Reports only `RequireOnlyOne` and ignores `OneOf`:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-type-fest-require-exactly-one": [
+                "error",
+                { enforcedAliasNames: ["RequireOnlyOne"] },
+            ],
+        },
+    },
+];
+```
+
+```ts
+import type { OneOf, RequireOnlyOne } from "type-aliases";
+
+type A = OneOf<{ a?: string; b?: number }>; // ✅ Not reported
+type B = RequireOnlyOne<{ a?: string; b?: number }>; // ❌ Reported
+```
 
 ## Additional examples
 

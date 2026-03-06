@@ -24,6 +24,35 @@ import {
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-set-has`;
 
+type PreferTsExtrasSetHasOption = Readonly<{
+    unionBranchMatchingMode?: UnionSetMatchingMode;
+}>;
+
+type UnionSetMatchingMode = "allBranches" | "anyBranch";
+
+const getHasCallReceiverExpression = (
+    node: Readonly<TSESTree.CallExpression>
+): null | Readonly<TSESTree.Expression> => {
+    const callee = node.callee;
+
+    if (callee.type !== "MemberExpression" || callee.computed) {
+        return null;
+    }
+
+    if (
+        callee.property.type !== "Identifier" ||
+        callee.property.name !== "has"
+    ) {
+        return null;
+    }
+
+    if (callee.object.type === "Super") {
+        return null;
+    }
+
+    return callee.object;
+};
+
 /**
  * ESLint rule definition for `prefer-ts-extras-set-has`.
  *
@@ -31,18 +60,29 @@ const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-set-has`;
  * Defines metadata, diagnostics, and suggestions/fixes for this rule.
  */
 const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<
+        readonly [PreferTsExtrasSetHasOption],
+        "preferTsExtrasSetHas" | "suggestTsExtrasSetHas"
+    >({
+        create(
+            context,
+            [options] = [{ unionBranchMatchingMode: "allBranches" }]
+        ) {
+            const unionSetMatchingMode: UnionSetMatchingMode =
+                options.unionBranchMatchingMode ?? "allBranches";
+
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
                 "ts-extras"
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
-            const setTypeResolutionCache = new Map<
-                Readonly<ts.Type>,
-                boolean
-            >();
+            const setTypeResolutionCaches: Readonly<
+                Record<UnionSetMatchingMode, Map<Readonly<ts.Type>, boolean>>
+            > = {
+                allBranches: new Map<Readonly<ts.Type>, boolean>(),
+                anyBranch: new Map<Readonly<ts.Type>, boolean>(),
+            };
 
             const hasClassOrInterfaceLikeDeclaration = (
                 candidateType: Readonly<ts.Type>
@@ -64,7 +104,13 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
              * traversing unions, intersections, apparent types, and base
              * interfaces.
              */
-            const isSetType = (type: Readonly<ts.Type>): boolean => {
+            const isSetType = (
+                type: Readonly<ts.Type>,
+                unionMatchingMode: UnionSetMatchingMode
+            ): boolean => {
+                const setTypeResolutionCache =
+                    setTypeResolutionCaches[unionMatchingMode];
+
                 const cachedRootResult = setTypeResolutionCache.get(type);
                 if (isDefined(cachedRootResult)) {
                     return cachedRootResult;
@@ -89,9 +135,15 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     seenTypes.add(candidateType);
 
                     if (candidateType.isUnion()) {
-                        const isSetLike = candidateType.types.every(
-                            (partType) => isSetTypeInternal(partType)
-                        );
+                        const isSetLike =
+                            unionMatchingMode === "allBranches"
+                                ? candidateType.types.every((partType) =>
+                                      isSetTypeInternal(partType)
+                                  )
+                                : candidateType.types.some((partType) =>
+                                      isSetTypeInternal(partType)
+                                  );
+
                         setTypeResolutionCache.set(candidateType, isSetLike);
 
                         return isSetLike;
@@ -161,7 +213,8 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             };
 
             const isSetLikeExpression = (
-                expression: Readonly<TSESTree.Expression>
+                expression: Readonly<TSESTree.Expression>,
+                unionMatchingMode: UnionSetMatchingMode
             ): boolean => {
                 const result = safeTypeOperation({
                     operation: () => {
@@ -176,7 +229,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
                         const objectType = checker.getTypeAtLocation(tsNode);
 
-                        return isSetType(objectType);
+                        return isSetType(objectType, unionMatchingMode);
                     },
                     reason: "set-has-type-analysis-failed",
                 });
@@ -184,18 +237,45 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 return result.ok && result.value;
             };
 
+            const canReplaceHasCallWithSetHas = (
+                node: Readonly<TSESTree.CallExpression>
+            ): boolean => {
+                const receiverExpression = getHasCallReceiverExpression(node);
+
+                if (receiverExpression === null) {
+                    return false;
+                }
+
+                return isSetLikeExpression(receiverExpression, "allBranches");
+            };
+
             return {
                 CallExpression(node) {
                     reportTsExtrasTypedMemberCall({
-                        canAutofix: isTypePredicateAutofixSafe,
+                        canAutofix: (callNode) =>
+                            isTypePredicateAutofixSafe(callNode) &&
+                            canReplaceHasCallWithSetHas(callNode),
                         context,
                         importedName: "setHas",
                         imports: tsExtrasImports,
-                        isMatchingObjectExpression: isSetLikeExpression,
+                        isMatchingObjectExpression: (expression) =>
+                            isSetLikeExpression(
+                                expression,
+                                unionSetMatchingMode
+                            ),
                         memberName: "has",
                         messageId: "preferTsExtrasSetHas",
                         node,
                         reportSuggestion: ({ fix, node: suggestionNode }) => {
+                            if (!canReplaceHasCallWithSetHas(suggestionNode)) {
+                                context.report({
+                                    messageId: "preferTsExtrasSetHas",
+                                    node: suggestionNode,
+                                });
+
+                                return;
+                            }
+
                             context.report({
                                 messageId: "preferTsExtrasSetHas",
                                 node: suggestionNode,
@@ -212,8 +292,9 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [{ unionBranchMatchingMode: "allBranches" }],
         meta: {
+            defaultOptions: [{ unionBranchMatchingMode: "allBranches" }],
             deprecated: false,
             docs: {
                 description:
@@ -236,7 +317,28 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 suggestTsExtrasSetHas:
                     "Replace this `set.has(...)` call with `setHas(...)` from `ts-extras`.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for mixed-union matching in prefer-ts-extras-set-has.",
+                        minProperties: 1,
+                        properties: {
+                            unionBranchMatchingMode: {
+                                description:
+                                    "How union-typed receivers are matched: allBranches requires every union branch to be Set-like, anyBranch reports when at least one branch is Set-like.",
+                                enum: ["allBranches", "anyBranch"],
+                                type: "string",
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-ts-extras-set-has",

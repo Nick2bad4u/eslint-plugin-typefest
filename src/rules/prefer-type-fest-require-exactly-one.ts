@@ -13,6 +13,21 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-require-exactly-one`;
 
+const requireExactlyOneLegacyAliases = ["OneOf", "RequireOnlyOne"] as const;
+
+type PreferTypeFestRequireExactlyOneOption = Readonly<{
+    enforcedAliasNames?: readonly ("OneOf" | "RequireOnlyOne")[];
+}>;
+
+type RequireExactlyOneLegacyAlias =
+    (typeof requireExactlyOneLegacyAliases)[number];
+
+const defaultRuleOptions = [
+    {
+        enforcedAliasNames: [...requireExactlyOneLegacyAliases],
+    },
+] as const;
+
 const requireExactlyOneAliasReplacements = {
     OneOf: "RequireExactlyOne",
     RequireOnlyOne: "RequireExactlyOne",
@@ -25,11 +40,24 @@ const requireExactlyOneAliasReplacements = {
  * Defines metadata, diagnostics, and suggestions/fixes for this rule.
  */
 const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
-    createTypedRule({
-        create(context) {
+    createTypedRule<
+        readonly [PreferTypeFestRequireExactlyOneOption],
+        "preferRequireExactlyOne"
+    >({
+        create(context, [options] = defaultRuleOptions) {
+            const enabledAliasReplacements: Partial<
+                Record<RequireExactlyOneLegacyAlias, "RequireExactlyOne">
+            > = {};
+
+            for (const aliasName of options.enforcedAliasNames ??
+                requireExactlyOneLegacyAliases) {
+                enabledAliasReplacements[aliasName] =
+                    requireExactlyOneAliasReplacements[aliasName];
+            }
+
             const importedAliasMatches = collectImportedTypeAliasMatches(
                 context.sourceCode,
-                requireExactlyOneAliasReplacements
+                enabledAliasReplacements
             );
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
@@ -69,8 +97,17 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
+        defaultOptions: [
+            {
+                enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
+            },
+        ],
         meta: {
+            defaultOptions: [
+                {
+                    enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
+                },
+            ],
             deprecated: false,
             docs: {
                 description:
@@ -90,7 +127,33 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 preferRequireExactlyOne:
                     "Prefer `{{replacement}}` from type-fest to require exactly one key from a group instead of legacy alias `{{alias}}`.",
             },
-            schema: [],
+            schema: {
+                items: [
+                    {
+                        additionalProperties: false,
+                        description:
+                            "Configuration for alias names enforced by prefer-type-fest-require-exactly-one.",
+                        minProperties: 1,
+                        properties: {
+                            enforcedAliasNames: {
+                                description:
+                                    "Legacy alias names to report and replace with RequireExactlyOne.",
+                                items: {
+                                    enum: [...requireExactlyOneLegacyAliases],
+                                    type: "string",
+                                },
+                                minItems: 1,
+                                type: "array",
+                                uniqueItems: true,
+                            },
+                        },
+                        type: "object",
+                    },
+                ],
+                maxItems: 1,
+                minItems: 0,
+                type: "array",
+            },
             type: "suggestion",
         },
         name: "prefer-type-fest-require-exactly-one",

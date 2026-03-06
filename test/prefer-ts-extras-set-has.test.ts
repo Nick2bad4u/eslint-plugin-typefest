@@ -46,6 +46,10 @@ import {
 } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-ts-extras-set-has";
+const defaultOptions = [{ unionBranchMatchingMode: "allBranches" }] as const;
+const anyBranchUnionMatchingOptions = [
+    { unionBranchMatchingMode: "anyBranch" },
+] as const;
 const docsDescription =
     "require direct ts-extras setHas over Set#has at membership call sites for stronger element narrowing.";
 const docsUrl =
@@ -75,9 +79,8 @@ const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
-    defaultOptions: [],
+    defaultOptions,
     docsDescription,
-    enforceRuleShape: true,
     messages: {
         preferTsExtrasSetHas: preferTsExtrasSetHasMessage,
         suggestTsExtrasSetHas: suggestTsExtrasSetHasMessage,
@@ -761,6 +764,32 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports logical-guard set.has() without autofix",
+            output: null,
+        },
+        {
+            code: mixedUnionValidCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasSetHas",
+                    suggestions: [],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports mixed set/map unions when unionBranchMatchingMode is anyBranch",
+            options: anyBranchUnionMatchingOptions,
+            output: null,
+        },
+        {
+            code: reversedMixedUnionValidCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasSetHas",
+                    suggestions: [],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports map/set unions when unionBranchMatchingMode is anyBranch",
+            options: anyBranchUnionMatchingOptions,
             output: null,
         },
     ],

@@ -84,6 +84,70 @@ export default [
 ];
 ```
 
+### Options
+
+This rule accepts a single options object:
+
+```ts
+type PreferTsExtrasSetHasOptions = {
+    /**
+     * Controls how union receivers are matched.
+     *
+     * - "allBranches": report only when every union branch is Set-like.
+     * - "anyBranch": report when at least one union branch is Set-like.
+     *
+     * @default "allBranches"
+     */
+    unionBranchMatchingMode?: "allBranches" | "anyBranch";
+};
+```
+
+Default configuration:
+
+```ts
+{
+    unionBranchMatchingMode: "allBranches",
+}
+```
+
+#### `unionBranchMatchingMode: "allBranches"` (default)
+
+Mixed unions are ignored to prevent noisy reports and unsafe replacements:
+
+```ts
+declare const values: Set<number> | Map<number, number>;
+const hasValue = values.has(2); // ✅ Not reported by default
+```
+
+#### `unionBranchMatchingMode: "anyBranch"`
+
+Mixed unions with Set-like branches are reported:
+
+```ts
+declare const values: Set<number> | Map<number, number>;
+const hasValue = values.has(2); // ❌ Reported
+```
+
+When this option is enabled, mixed-union reports are intentionally suggestion-free (no autofix and no suggested replacement), because `setHas(values, value)` may not type-check until you narrow to a Set-like branch first.
+
+Flat config example:
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-ts-extras-set-has": [
+                "error",
+                { unionBranchMatchingMode: "anyBranch" },
+            ],
+        },
+    },
+];
+```
+
 ## When not to use it
 
 Disable this rule if native `.has()` calls are required by local conventions.
