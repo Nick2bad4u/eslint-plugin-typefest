@@ -129,7 +129,6 @@ updates:
           - "dependabot"
           - "dependencies"
       multi-ecosystem-group: dependabot-all
-      name: "Docusaurus NPM dependencies"
       patterns:
           - "*"
       groups:
