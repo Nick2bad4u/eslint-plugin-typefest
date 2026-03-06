@@ -17,6 +17,7 @@ import {
 } from "../_internal/nullish-comparison.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -200,17 +201,23 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const canAutofix =
+                        isTypePredicateExpressionAutofixSafe(node);
+
                     if (comparison.operator === "!=") {
                         reportWithOptionalFix({
                             context,
-                            fix: createSafeValueArgumentFunctionCallFix({
-                                argumentNode: comparison.comparedExpression,
-                                context,
-                                importedName: "isPresent",
-                                imports: tsExtrasImports,
-                                sourceModuleName: "ts-extras",
-                                targetNode: node,
-                            }),
+                            fix: canAutofix
+                                ? createSafeValueArgumentFunctionCallFix({
+                                      argumentNode:
+                                          comparison.comparedExpression,
+                                      context,
+                                      importedName: "isPresent",
+                                      imports: tsExtrasImports,
+                                      sourceModuleName: "ts-extras",
+                                      targetNode: node,
+                                  })
+                                : null,
                             messageId: "preferTsExtrasIsPresent",
                             node,
                         });
@@ -219,15 +226,18 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     if (comparison.operator === "==") {
                         reportWithOptionalFix({
                             context,
-                            fix: createSafeValueArgumentFunctionCallFix({
-                                argumentNode: comparison.comparedExpression,
-                                context,
-                                importedName: "isPresent",
-                                imports: tsExtrasImports,
-                                negated: true,
-                                sourceModuleName: "ts-extras",
-                                targetNode: node,
-                            }),
+                            fix: canAutofix
+                                ? createSafeValueArgumentFunctionCallFix({
+                                      argumentNode:
+                                          comparison.comparedExpression,
+                                      context,
+                                      importedName: "isPresent",
+                                      imports: tsExtrasImports,
+                                      negated: true,
+                                      sourceModuleName: "ts-extras",
+                                      targetNode: node,
+                                  })
+                                : null,
                             messageId: "preferTsExtrasIsPresentNegated",
                             node,
                         });

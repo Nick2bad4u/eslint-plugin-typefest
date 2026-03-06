@@ -75,6 +75,27 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const hasValue = arrayIncludes(sample, 2);",
 ].join("\n");
+const inlineInvalidLogicalGuardNoAutofixCode = [
+    "const statuses = ['down', 'up'] as const;",
+    "declare const candidate: string;",
+    "",
+    "const shouldContinue =",
+    "    Math.random() > 0.5 &&",
+    "    statuses.includes(candidate);",
+    "",
+    "String(shouldContinue);",
+].join("\n");
+const inlineInvalidLogicalGuardSuggestionOutput = [
+    'import { arrayIncludes } from "ts-extras";',
+    "const statuses = ['down', 'up'] as const;",
+    "declare const candidate: string;",
+    "",
+    "const shouldContinue =",
+    "    Math.random() > 0.5 &&",
+    "    arrayIncludes(statuses, candidate);",
+    "",
+    "String(shouldContinue);",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -227,6 +248,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-array-includes", {
     messages: {
         preferTsExtrasArrayIncludes:
             "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+        suggestTsExtrasArrayIncludes:
+            "Replace this `array.includes(...)` call with `arrayIncludes(...)` from `ts-extras`.",
     },
     name: "prefer-ts-extras-array-includes",
 });
@@ -417,6 +440,23 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "reports union containing array when calling includes",
                 output: unionWithNonArrayOutput,
+            },
+            {
+                code: inlineInvalidLogicalGuardNoAutofixCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasArrayIncludes",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasArrayIncludes",
+                                output: inlineInvalidLogicalGuardSuggestionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports logical-guard includes call without autofix",
+                output: null,
             },
         ],
         valid: [

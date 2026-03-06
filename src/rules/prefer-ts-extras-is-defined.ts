@@ -13,6 +13,7 @@ import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import {
     createTypedRule,
     isGlobalUndefinedIdentifier,
@@ -203,17 +204,22 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const canAutofix =
+                        isTypePredicateExpressionAutofixSafe(node);
+
                     reportWithOptionalFix({
                         context,
-                        fix: createSafeValueArgumentFunctionCallFix({
-                            argumentNode: match.comparedExpression,
-                            context,
-                            importedName: "isDefined",
-                            imports: tsExtrasImports,
-                            negated: match.prefersNegatedHelper,
-                            sourceModuleName: "ts-extras",
-                            targetNode: node,
-                        }),
+                        fix: canAutofix
+                            ? createSafeValueArgumentFunctionCallFix({
+                                  argumentNode: match.comparedExpression,
+                                  context,
+                                  importedName: "isDefined",
+                                  imports: tsExtrasImports,
+                                  negated: match.prefersNegatedHelper,
+                                  sourceModuleName: "ts-extras",
+                                  targetNode: node,
+                              })
+                            : null,
                         messageId: match.prefersNegatedHelper
                             ? "preferTsExtrasIsDefinedNegated"
                             : "preferTsExtrasIsDefined",

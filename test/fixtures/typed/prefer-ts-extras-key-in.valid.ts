@@ -4,8 +4,8 @@ interface MonitorPayload {
 }
 
 declare function keyIn<TObject extends object>(
-    key: PropertyKey,
-    object: TObject
+    object: TObject,
+    key: PropertyKey
 ): key is keyof TObject;
 
 const monitorPayload: MonitorPayload = {
@@ -15,7 +15,7 @@ const monitorPayload: MonitorPayload = {
 
 declare const dynamicKey: string;
 
-if (keyIn(dynamicKey, monitorPayload)) {
+if (keyIn(monitorPayload, dynamicKey)) {
     const value = monitorPayload[dynamicKey];
     if (typeof value === "number") {
         throw new TypeError("Unexpected numeric payload value");

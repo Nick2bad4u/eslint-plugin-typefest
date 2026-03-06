@@ -6,6 +6,7 @@ import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expr
 import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
+import { isTypePredicateAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -36,6 +37,7 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
             return {
                 CallExpression(node) {
                     reportTsExtrasArrayMethodCall({
+                        canAutofix: isTypePredicateAutofixSafe,
                         context,
                         importedName: "arrayIncludes",
                         imports: tsExtrasImports,
@@ -43,6 +45,20 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                         memberName: "includes",
                         messageId: "preferTsExtrasArrayIncludes",
                         node,
+                        reportSuggestion: ({ fix, node: suggestionNode }) => {
+                            context.report({
+                                messageId: "preferTsExtrasArrayIncludes",
+                                node: suggestionNode,
+                                suggest: [
+                                    {
+                                        fix,
+                                        messageId:
+                                            "suggestTsExtrasArrayIncludes",
+                                    },
+                                ],
+                            });
+                        },
+                        suggestionMessageId: "suggestTsExtrasArrayIncludes",
                     });
                 },
             };
@@ -63,9 +79,12 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasArrayIncludes:
                     "Prefer `arrayIncludes` from `ts-extras` over `array.includes(...)` for stronger element inference.",
+                suggestTsExtrasArrayIncludes:
+                    "Replace this `array.includes(...)` call with `arrayIncludes(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

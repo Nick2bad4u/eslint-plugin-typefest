@@ -92,6 +92,55 @@ const inlineParenthesizedObjectOutput = [
     "const lastStatus = arrayLast(monitorStatuses);",
     "String(lastStatus);",
 ].join("\n");
+const inlineInvalidSideEffectfulObjectCode = [
+    "declare function getStatuses(): readonly string[];",
+    "",
+    "const lastStatus = getStatuses()[getStatuses().length - 1];",
+    "String(lastStatus);",
+].join("\n");
+const inlineInvalidOptionalChainReceiverCode = [
+    "type MonitorBucket = {",
+    "    readonly statuses?: readonly string[];",
+    "};",
+    "",
+    "declare const bucket: MonitorBucket;",
+    "",
+    "const maybeLast = bucket.statuses?.[bucket.statuses.length - 1] ?? null;",
+].join("\n");
+const inlineInvalidReturnLikeCode = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    "",
+    "const getLastStatement = (",
+    "    node: Readonly<TSESTree.BlockStatement>",
+    "): null | TSESTree.Statement => {",
+    "    if (node.body.length === 0) {",
+    "        return null;",
+    "    }",
+    "",
+    "    return node.body[node.body.length - 1];",
+    "};",
+].join("\n");
+const inlineInvalidReturnLikeSuggestionOutput = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    'import { arrayLast } from "ts-extras";',
+    "",
+    "const getLastStatement = (",
+    "    node: Readonly<TSESTree.BlockStatement>",
+    "): null | TSESTree.Statement => {",
+    "    if (node.body.length === 0) {",
+    "        return null;",
+    "    }",
+    "",
+    "    return arrayLast(node.body);",
+    "};",
+].join("\n");
+const inlineInvalidSideEffectfulObjectSuggestionOutput = [
+    'import { arrayLast } from "ts-extras";',
+    "declare function getStatuses(): readonly string[];",
+    "",
+    "const lastStatus = arrayLast(getStatuses());",
+    "String(lastStatus);",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -107,6 +156,10 @@ type ArrayLastFixFactoryArguments = Readonly<{
 type ArrayLastReportDescriptor = Readonly<{
     fix?: unknown;
     messageId?: string;
+    suggest?: readonly Readonly<{
+        fix?: unknown;
+        messageId?: string;
+    }>[];
 }>;
 
 type ArrayLastTemplate = Readonly<{
@@ -160,6 +213,11 @@ const buildArrayLastTemplate = (
         objectText: "(values)",
     };
 };
+
+const isAutofixExpectedForTemplate = (
+    templateId: ArrayLastTemplateId
+): boolean =>
+    templateId === "identifier" || templateId === "parenthesizedIdentifier";
 
 const buildArrayLastPatternCode = (options: {
     readonly includeUnicodeBanner: boolean;
@@ -242,6 +300,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-array-last", {
     messages: {
         preferTsExtrasArrayLast:
             "Prefer `arrayLast` from `ts-extras` over direct last-index access.",
+        suggestTsExtrasArrayLast:
+            "Replace this last-index access with `arrayLast(...)` from `ts-extras`.",
     },
     name: "prefer-ts-extras-array-last",
 });
@@ -327,53 +387,68 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                         listeners.MemberExpression?.(memberExpression);
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
-                            messageId: "preferTsExtrasArrayLast",
-                        });
+                        expect(reportCalls[0]?.messageId).toBe(
+                            "preferTsExtrasArrayLast"
+                        );
+
+                        if (isAutofixExpectedForTemplate(templateId)) {
+                            expect(reportCalls[0]?.fix).toBe("FIX");
+                            expect(
+                                createMemberToFunctionCallFixMock
+                            ).toHaveBeenCalledTimes(1);
+
+                            const fixArguments =
+                                createMemberToFunctionCallFixMock.mock
+                                    .calls[0]?.[0] ?? null;
+
+                            expect(fixArguments).not.toBeNull();
+
+                            const fixedMemberExpression = (
+                                fixArguments as ArrayLastFixFactoryArguments
+                            ).memberNode;
+                            const objectText = getSourceTextForNode({
+                                code,
+                                node: (
+                                    fixedMemberExpression as Readonly<{
+                                        object?: unknown;
+                                    }>
+                                ).object,
+                            });
+                            const replacementText = `arrayLast(${objectText})`;
+
+                            expect(replacementText).toBeTruthy();
+
+                            const memberRange = memberExpression.range;
+
+                            expect(memberRange).toBeDefined();
+
+                            if (memberRange === undefined) {
+                                throw new Error(
+                                    "Expected member expression to expose source range"
+                                );
+                            }
+
+                            const fixedCode =
+                                code.slice(0, memberRange[0]) +
+                                replacementText +
+                                code.slice(memberRange[1]);
+
+                            expect(() => {
+                                parser.parseForESLint(fixedCode, parserOptions);
+                            }).not.toThrowError();
+
+                            return;
+                        }
+
+                        expect(reportCalls[0]?.fix).toBeUndefined();
+                        expect(reportCalls[0]?.suggest).toHaveLength(1);
+                        expect(reportCalls[0]?.suggest?.[0]?.messageId).toBe(
+                            "suggestTsExtrasArrayLast"
+                        );
+                        expect(reportCalls[0]?.suggest?.[0]?.fix).toBe("FIX");
                         expect(
                             createMemberToFunctionCallFixMock
                         ).toHaveBeenCalledTimes(1);
-
-                        const fixArguments =
-                            createMemberToFunctionCallFixMock.mock
-                                .calls[0]?.[0] ?? null;
-
-                        expect(fixArguments).not.toBeNull();
-
-                        const fixedMemberExpression = (
-                            fixArguments as ArrayLastFixFactoryArguments
-                        ).memberNode;
-                        const objectText = getSourceTextForNode({
-                            code,
-                            node: (
-                                fixedMemberExpression as Readonly<{
-                                    object?: unknown;
-                                }>
-                            ).object,
-                        });
-                        const replacementText = `arrayLast(${objectText})`;
-
-                        expect(replacementText).toBeTruthy();
-
-                        const memberRange = memberExpression.range;
-
-                        expect(memberRange).toBeDefined();
-
-                        if (memberRange === undefined) {
-                            throw new Error(
-                                "Expected member expression to expose source range"
-                            );
-                        }
-
-                        const fixedCode =
-                            code.slice(0, memberRange[0]) +
-                            replacementText +
-                            code.slice(memberRange[1]);
-
-                        expect(() => {
-                            parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
                     }
                 ),
                 fastCheckRunConfig.default
@@ -429,6 +504,47 @@ ruleTester.run("prefer-ts-extras-array-last", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes parenthesized object array[array.length - 1] patterns",
             output: inlineParenthesizedObjectOutput,
+        },
+        {
+            code: inlineInvalidOptionalChainReceiverCode,
+            errors: [{ messageId: "preferTsExtrasArrayLast" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports optional-chain last-index access without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidReturnLikeCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasArrayLast",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasArrayLast",
+                            output: inlineInvalidReturnLikeSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports return-position last-index access without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidSideEffectfulObjectCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasArrayLast",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasArrayLast",
+                            output: inlineInvalidSideEffectfulObjectSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports side-effectful duplicate-evaluation pattern without autofix",
+            output: null,
         },
     ],
     valid: [

@@ -11,21 +11,25 @@ import {
     createSafeValueReferenceReplacementFix,
     type ImportedValueAliasMap,
 } from "./imported-value-symbols.js";
-import { reportWithOptionalFix } from "./rule-reporting.js";
+import {
+    reportResolvedAutofixOrSuggestionOutcome,
+    resolveAutofixOrSuggestionOutcome,
+} from "./rule-reporting.js";
 
 /** Direct named value imports collection type from shared import helper. */
 type DirectNamedValueImports = ImportedValueAliasMap;
 
 /** Typed rule context shape for global-member call rules. */
-type GlobalMemberRuleContext = Readonly<
-    TSESLint.RuleContext<string, Readonly<UnknownArray>>
+type GlobalMemberRuleContext<MessageId extends string> = Readonly<
+    TSESLint.RuleContext<MessageId, Readonly<UnknownArray>>
 >;
 
 /**
  * Match `GlobalName.memberName(...)` calls that resolve to unshadowed globals
  * and report a standardized ts-extras replacement.
  */
-export const reportTsExtrasGlobalMemberCall = ({
+export const reportTsExtrasGlobalMemberCall = <MessageId extends string>({
+    canAutofix,
     context,
     importedName,
     imports,
@@ -33,14 +37,26 @@ export const reportTsExtrasGlobalMemberCall = ({
     messageId,
     node,
     objectName,
+    reportSuggestion,
+    suggestionMessageId,
 }: Readonly<{
-    context: GlobalMemberRuleContext;
+    canAutofix?: (node: Readonly<TSESTree.CallExpression>) => boolean;
+    context: GlobalMemberRuleContext<MessageId>;
     importedName: string;
     imports: DirectNamedValueImports;
     memberName: string;
-    messageId: string;
+    messageId: MessageId;
     node: Readonly<TSESTree.CallExpression>;
     objectName: string;
+    reportSuggestion?: (
+        input: Readonly<{
+            fix: TSESLint.ReportFixFunction;
+            messageId: MessageId;
+            node: Readonly<TSESTree.CallExpression>;
+            suggestionMessageId: MessageId;
+        }>
+    ) => void;
+    suggestionMessageId?: MessageId;
 }>): void => {
     const globalMemberCall = getGlobalIdentifierMemberCall({
         context,
@@ -53,16 +69,36 @@ export const reportTsExtrasGlobalMemberCall = ({
         return;
     }
 
-    reportWithOptionalFix({
+    const shouldAutofix = canAutofix?.(node) ?? true;
+    const fix = createSafeValueReferenceReplacementFix({
         context,
-        fix: createSafeValueReferenceReplacementFix({
-            context,
-            importedName,
-            imports,
-            sourceModuleName: "ts-extras",
-            targetNode: globalMemberCall.callee,
-        }),
+        importedName,
+        imports,
+        sourceModuleName: "ts-extras",
+        targetNode: globalMemberCall.callee,
+    });
+
+    const outcome = resolveAutofixOrSuggestionOutcome({
+        canAutofix: shouldAutofix,
+        fix,
+    });
+
+    if (outcome.kind === "suggestion" && reportSuggestion !== undefined) {
+        reportSuggestion({
+            fix: outcome.fix,
+            messageId,
+            node,
+            suggestionMessageId: suggestionMessageId ?? messageId,
+        });
+
+        return;
+    }
+
+    reportResolvedAutofixOrSuggestionOutcome({
+        context,
         messageId,
         node,
+        outcome,
+        suggestionMessageId: suggestionMessageId ?? messageId,
     });
 };

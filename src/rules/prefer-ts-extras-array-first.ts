@@ -13,11 +13,15 @@ import {
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    resolveAutofixOrSuggestionOutcome,
+} from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
+import { isArrayIndexReadAutofixSafe } from "../_internal/value-rewrite-autofix-safety.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-first`;
 
@@ -68,8 +72,8 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    reportWithOptionalFix({
-                        context,
+                    const outcome = resolveAutofixOrSuggestionOutcome({
+                        canAutofix: isArrayIndexReadAutofixSafe(node),
                         fix: createMemberToFunctionCallFix({
                             context,
                             importedName: "arrayFirst",
@@ -77,6 +81,26 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                             memberNode: node,
                             sourceModuleName: "ts-extras",
                         }),
+                    });
+
+                    if (outcome.kind === "suggestion") {
+                        context.report({
+                            messageId: "preferTsExtrasArrayFirst",
+                            node,
+                            suggest: [
+                                {
+                                    fix: outcome.fix,
+                                    messageId: "suggestTsExtrasArrayFirst",
+                                },
+                            ],
+                        });
+
+                        return;
+                    }
+
+                    reportWithOptionalFix({
+                        context,
+                        fix: outcome.kind === "autofix" ? outcome.fix : null,
                         messageId: "preferTsExtrasArrayFirst",
                         node,
                     });
@@ -97,9 +121,12 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasArrayFirst:
                     "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
+                suggestTsExtrasArrayFirst:
+                    "Replace this direct index access with `arrayFirst(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

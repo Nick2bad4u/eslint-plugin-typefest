@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { keyIn } from "ts-extras";
+
 /**
  * AST node shape that may carry a parser-populated `parent` reference.
  */
@@ -16,7 +18,7 @@ type NodeWithOptionalParent = Readonly<TSESTree.Node> & {
  */
 const hasOptionalParentProperty = (
     node: Readonly<TSESTree.Node>
-): node is NodeWithOptionalParent => "parent" in node;
+): node is NodeWithOptionalParent => keyIn(node, "parent");
 
 /**
  * Gets a node's parent reference when available.

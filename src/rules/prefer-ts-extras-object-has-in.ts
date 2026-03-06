@@ -5,6 +5,7 @@
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-object-has-in`;
@@ -30,6 +31,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     }
 
                     reportTsExtrasGlobalMemberCall({
+                        canAutofix: isTypePredicateExpressionAutofixSafe,
                         context,
                         importedName: "objectHasIn",
                         imports: tsExtrasImports,
@@ -37,6 +39,19 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                         messageId: "preferTsExtrasObjectHasIn",
                         node,
                         objectName: "Reflect",
+                        reportSuggestion: ({ fix, node: suggestionNode }) => {
+                            context.report({
+                                messageId: "preferTsExtrasObjectHasIn",
+                                node: suggestionNode,
+                                suggest: [
+                                    {
+                                        fix,
+                                        messageId: "suggestTsExtrasObjectHasIn",
+                                    },
+                                ],
+                            });
+                        },
+                        suggestionMessageId: "suggestTsExtrasObjectHasIn",
                     });
                 },
             };
@@ -57,9 +72,12 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasObjectHasIn:
                     "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
+                suggestTsExtrasObjectHasIn:
+                    "Replace this `Reflect.has(...)` call with `objectHasIn(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

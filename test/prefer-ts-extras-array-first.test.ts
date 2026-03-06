@@ -73,6 +73,42 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const first = arrayFirst(sample);",
 ].join("\n");
+const inlineInvalidOptionalChainReceiverCode = [
+    "type PromiseLikeWrapper = {",
+    "    readonly params?: readonly string[];",
+    "};",
+    "",
+    "declare const wrapper: PromiseLikeWrapper;",
+    "",
+    "const first = wrapper.params?.[0] ?? null;",
+].join("\n");
+const inlineInvalidReturnLikeCode = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    "",
+    "const getFirstStatement = (",
+    "    node: Readonly<TSESTree.BlockStatement>",
+    "): null | TSESTree.Statement => {",
+    "    if (node.body.length === 0) {",
+    "        return null;",
+    "    }",
+    "",
+    "    return node.body[0];",
+    "};",
+].join("\n");
+const inlineInvalidReturnLikeSuggestionOutput = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    'import { arrayFirst } from "ts-extras";',
+    "",
+    "const getFirstStatement = (",
+    "    node: Readonly<TSESTree.BlockStatement>",
+    "): null | TSESTree.Statement => {",
+    "    if (node.body.length === 0) {",
+    "        return null;",
+    "    }",
+    "",
+    "    return arrayFirst(node.body);",
+    "};",
+].join("\n");
 
 type ArrayFirstReportDescriptor = Readonly<{
     fix?: unknown;
@@ -266,6 +302,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-array-first", {
     messages: {
         preferTsExtrasArrayFirst:
             "Prefer `arrayFirst` from `ts-extras` over direct `array[0]` access for stronger inference.",
+        suggestTsExtrasArrayFirst:
+            "Replace this direct index access with `arrayFirst(...)` from `ts-extras`.",
     },
     name: "prefer-ts-extras-array-first",
 });
@@ -312,6 +350,30 @@ ruleTester.run("prefer-ts-extras-array-first", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes array[0] when arrayFirst import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: inlineInvalidOptionalChainReceiverCode,
+            errors: [{ messageId: "preferTsExtrasArrayFirst" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports optional-chain receiver index access without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidReturnLikeCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasArrayFirst",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasArrayFirst",
+                            output: inlineInvalidReturnLikeSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports return-position index access without autofix",
+            output: null,
         },
     ],
     valid: [

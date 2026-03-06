@@ -4,6 +4,8 @@
  */
 
 /** Canonical flat-config preset keys exposed through `plugin.configs`. */
+import { objectHasOwn } from "ts-extras";
+
 export const typefestConfigNames = [
     "all",
     "minimal",
@@ -58,4 +60,4 @@ export const defaultRecommendedConfigReferences: readonly [
 export const isTypefestConfigReference = (
     value: string
 ): value is TypefestConfigReference =>
-    Object.hasOwn(typefestConfigReferenceToName, value);
+    objectHasOwn(typefestConfigReferenceToName, value);

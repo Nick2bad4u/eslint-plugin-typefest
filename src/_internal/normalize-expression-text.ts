@@ -6,7 +6,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject } from "type-fest";
 
-import { isDefined } from "ts-extras";
+import { isDefined, objectKeys  } from "ts-extras";
 
 /**
  * Object-like value that can participate in deep structural comparisons.
@@ -34,7 +34,7 @@ const isComparableRecord = (value: unknown): value is ComparableObject =>
  * Return stable comparable keys after stripping metadata properties.
  */
 const getComparableKeys = (value: ComparableObject): readonly string[] =>
-    Object.keys(value).filter((key) => !ignoredPropertyKeys.has(key));
+    objectKeys(value).filter((key) => !ignoredPropertyKeys.has(key));
 
 /**
  * Unwrap transparent TypeScript expression wrappers.

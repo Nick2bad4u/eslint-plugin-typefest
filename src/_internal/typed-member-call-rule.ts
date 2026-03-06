@@ -10,14 +10,17 @@ import {
     type ImportedValueAliasMap,
 } from "./imported-value-symbols.js";
 import { getIdentifierPropertyMemberCall } from "./member-call.js";
-import { reportWithOptionalFix } from "./rule-reporting.js";
+import {
+    reportResolvedAutofixOrSuggestionOutcome,
+    resolveAutofixOrSuggestionOutcome,
+} from "./rule-reporting.js";
 
 /** Direct named value imports collection type from shared import helper. */
 type DirectNamedValueImports = ImportedValueAliasMap;
 
 /** Typed rule context shape for typed member-call rules. */
-type TypedMemberCallRuleContext = Readonly<
-    TSESLint.RuleContext<string, Readonly<UnknownArray>>
+type TypedMemberCallRuleContext<MessageId extends string> = Readonly<
+    TSESLint.RuleContext<MessageId, Readonly<UnknownArray>>
 >;
 
 /**
@@ -25,7 +28,8 @@ type TypedMemberCallRuleContext = Readonly<
  * replacement when the receiver expression satisfies a caller-provided type
  * predicate.
  */
-export const reportTsExtrasTypedMemberCall = ({
+export const reportTsExtrasTypedMemberCall = <MessageId extends string>({
+    canAutofix,
     context,
     importedName,
     imports,
@@ -33,16 +37,28 @@ export const reportTsExtrasTypedMemberCall = ({
     memberName,
     messageId,
     node,
+    reportSuggestion,
+    suggestionMessageId,
 }: Readonly<{
-    context: TypedMemberCallRuleContext;
+    canAutofix?: (node: Readonly<TSESTree.CallExpression>) => boolean;
+    context: TypedMemberCallRuleContext<MessageId>;
     importedName: string;
     imports: DirectNamedValueImports;
     isMatchingObjectExpression: (
         expression: Readonly<TSESTree.Expression>
     ) => boolean;
     memberName: string;
-    messageId: string;
+    messageId: MessageId;
     node: Readonly<TSESTree.CallExpression>;
+    reportSuggestion?: (
+        input: Readonly<{
+            fix: TSESLint.ReportFixFunction;
+            messageId: MessageId;
+            node: Readonly<TSESTree.CallExpression>;
+            suggestionMessageId: MessageId;
+        }>
+    ) => void;
+    suggestionMessageId?: MessageId;
 }>): void => {
     const memberCall = getIdentifierPropertyMemberCall({
         memberName,
@@ -57,16 +73,37 @@ export const reportTsExtrasTypedMemberCall = ({
         return;
     }
 
-    reportWithOptionalFix({
+    const fix = createMethodToFunctionCallFix({
+        callNode: node,
         context,
-        fix: createMethodToFunctionCallFix({
-            callNode: node,
-            context,
-            importedName,
-            imports,
-            sourceModuleName: "ts-extras",
-        }),
+        importedName,
+        imports,
+        sourceModuleName: "ts-extras",
+    });
+
+    const shouldAutofix = canAutofix?.(node) ?? true;
+
+    const outcome = resolveAutofixOrSuggestionOutcome({
+        canAutofix: shouldAutofix,
+        fix,
+    });
+
+    if (outcome.kind === "suggestion" && reportSuggestion !== undefined) {
+        reportSuggestion({
+            fix: outcome.fix,
+            messageId,
+            node,
+            suggestionMessageId: suggestionMessageId ?? messageId,
+        });
+
+        return;
+    }
+
+    reportResolvedAutofixOrSuggestionOutcome({
+        context,
         messageId,
         node,
+        outcome,
+        suggestionMessageId: suggestionMessageId ?? messageId,
     });
 };

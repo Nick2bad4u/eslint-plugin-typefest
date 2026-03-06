@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-abstract-constructor`.
  */
-import { isDefined } from "ts-extras";
+import { arrayJoin, isDefined } from "ts-extras";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -42,7 +42,12 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
                         ? createSafeTypeNodeTextReplacementFix(
                               node,
                               "AbstractConstructor",
-                              `AbstractConstructor<${sourceCode.getText(node.returnType.typeAnnotation)}, [${node.params.map((parameter) => sourceCode.getText(parameter)).join(", ")}]>`,
+                              `AbstractConstructor<${sourceCode.getText(node.returnType.typeAnnotation)}, [${arrayJoin(
+                                  node.params.map((parameter) =>
+                                      sourceCode.getText(parameter)
+                                  ),
+                                  ", "
+                              )}]>`,
                               typeFestDirectImports
                           )
                         : null;

@@ -56,6 +56,25 @@ const inlineFixableReflectHasOutput = [
     "",
     "String(hasStatus);",
 ].join("\n");
+const inlineInvalidLogicalGuardNoAutofixCode = [
+    "declare const monitorRecord: { readonly status?: string };",
+    "",
+    "const shouldContinue =",
+    "    Math.random() > 0.5 &&",
+    '    Reflect.has(monitorRecord, "status");',
+    "",
+    "String(shouldContinue);",
+].join("\n");
+const inlineInvalidLogicalGuardSuggestionOutput = [
+    'import { objectHasIn } from "ts-extras";',
+    "declare const monitorRecord: { readonly status?: string };",
+    "",
+    "const shouldContinue =",
+    "    Math.random() > 0.5 &&",
+    '    objectHasIn(monitorRecord, "status");',
+    "",
+    "String(shouldContinue);",
+].join("\n");
 const inlineValidComputedReflectHasCode = [
     "declare const monitorRecord: { readonly status?: string };",
     "",
@@ -215,6 +234,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-in", {
     messages: {
         preferTsExtrasObjectHasIn:
             "Prefer `objectHasIn` from `ts-extras` over `Reflect.has` for better type narrowing.",
+        suggestTsExtrasObjectHasIn:
+            "Replace this `Reflect.has(...)` call with `objectHasIn(...)` from `ts-extras`.",
     },
     name: "prefer-ts-extras-object-has-in",
 });
@@ -295,6 +316,23 @@ ruleTester.run("prefer-ts-extras-object-has-in", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes Reflect.has when objectHasIn import is in scope",
             output: inlineFixableReflectHasOutput,
+        },
+        {
+            code: inlineInvalidLogicalGuardNoAutofixCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasObjectHasIn",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasObjectHasIn",
+                            output: inlineInvalidLogicalGuardSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports logical-guard Reflect.has without autofix",
+            output: null,
         },
     ],
     valid: [

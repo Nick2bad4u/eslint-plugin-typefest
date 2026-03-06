@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import { isDefined, safeCastTo  } from "ts-extras";
 import ts from "typescript";
 
 import {
@@ -78,9 +78,9 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                 const result = safeTypeOperation({
                     operation: () => {
                         const expressionTsNode: ts.Node | undefined =
-                            parserServices.esTreeNodeToTSNodeMap.get(
+                            safeCastTo<ts.Node | undefined>(parserServices.esTreeNodeToTSNodeMap.get(
                                 expression
-                            ) as ts.Node | undefined;
+                            ));
                         const annotationTsNode =
                             parserServices.esTreeNodeToTSNodeMap.get(
                                 typeAnnotation

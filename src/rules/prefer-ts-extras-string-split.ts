@@ -5,7 +5,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
-import { isDefined } from "ts-extras";
+import { isDefined, setHas  } from "ts-extras";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
@@ -69,7 +69,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         return cachedResult;
                     }
 
-                    if (seenTypes.has(candidateType)) {
+                    if (setHas(seenTypes, candidateType)) {
                         return false;
                     }
 

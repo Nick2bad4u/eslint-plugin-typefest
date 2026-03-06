@@ -14,11 +14,18 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    resolveAutofixOrSuggestionOutcome,
+} from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
     getTypedRuleServices,
 } from "../_internal/typed-rule.js";
+import {
+    isArrayIndexReadAutofixSafe,
+    isRepeatablyEvaluableExpression,
+} from "../_internal/value-rewrite-autofix-safety.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-array-last`;
 
@@ -107,9 +114,31 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         sourceModuleName: "ts-extras",
                     });
 
+                    const outcome = resolveAutofixOrSuggestionOutcome({
+                        canAutofix:
+                            isArrayIndexReadAutofixSafe(node) &&
+                            isRepeatablyEvaluableExpression(node.object),
+                        fix: fixes,
+                    });
+
+                    if (outcome.kind === "suggestion") {
+                        context.report({
+                            messageId: "preferTsExtrasArrayLast",
+                            node,
+                            suggest: [
+                                {
+                                    fix: outcome.fix,
+                                    messageId: "suggestTsExtrasArrayLast",
+                                },
+                            ],
+                        });
+
+                        return;
+                    }
+
                     reportWithOptionalFix({
                         context,
-                        fix: fixes,
+                        fix: outcome.kind === "autofix" ? outcome.fix : null,
                         messageId: "preferTsExtrasArrayLast",
                         node,
                     });
@@ -131,9 +160,12 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasArrayLast:
                     "Prefer `arrayLast` from `ts-extras` over direct last-index access.",
+                suggestTsExtrasArrayLast:
+                    "Replace this last-index access with `arrayLast(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

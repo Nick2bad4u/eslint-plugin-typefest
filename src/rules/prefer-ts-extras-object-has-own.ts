@@ -1,6 +1,7 @@
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
@@ -26,6 +27,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
             return {
                 CallExpression(node) {
                     reportTsExtrasGlobalMemberCall({
+                        canAutofix: isTypePredicateExpressionAutofixSafe,
                         context,
                         importedName: "objectHasOwn",
                         imports: tsExtrasImports,
@@ -33,6 +35,20 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                         messageId: "preferTsExtrasObjectHasOwn",
                         node,
                         objectName: "Object",
+                        reportSuggestion: ({ fix, node: suggestionNode }) => {
+                            context.report({
+                                messageId: "preferTsExtrasObjectHasOwn",
+                                node: suggestionNode,
+                                suggest: [
+                                    {
+                                        fix,
+                                        messageId:
+                                            "suggestTsExtrasObjectHasOwn",
+                                    },
+                                ],
+                            });
+                        },
+                        suggestionMessageId: "suggestTsExtrasObjectHasOwn",
                     });
                 },
             };
@@ -53,9 +69,12 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasObjectHasOwn:
                     "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",
+                suggestTsExtrasObjectHasOwn:
+                    "Replace this `Object.hasOwn(...)` call with `objectHasOwn(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

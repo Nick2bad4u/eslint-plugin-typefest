@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { setHas } from "ts-extras";
+
 import {
     collectNamedImportLocalNamesFromSource,
     collectNamespaceImportLocalNamesFromSource,
@@ -58,7 +60,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (typeAnnotation.typeName.type === "Identifier") {
-                    return writableLocalNames.has(typeAnnotation.typeName.name);
+                    return setHas(writableLocalNames, typeAnnotation.typeName.name);
                 }
 
                 if (typeAnnotation.typeName.type !== "TSQualifiedName") {

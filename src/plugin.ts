@@ -7,7 +7,7 @@ import type { ESLint, Linter } from "eslint";
 import type { PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
-import { isDefined } from "ts-extras";
+import { isDefined, objectEntries, safeCastTo   } from "ts-extras";
 
 import type {
     TypefestConfigName as InternalTypefestConfigName,
@@ -229,7 +229,7 @@ const isMissingTypeScriptParserError = (error: unknown): boolean => {
  */
 function loadTypeScriptParser(): null | TypeScriptParser {
     try {
-        return require("@typescript-eslint/parser") as TypeScriptParser;
+        return safeCastTo<TypeScriptParser>(require("@typescript-eslint/parser"));
     } catch (error: unknown) {
         if (!isMissingTypeScriptParserError(error)) {
             throw error;
@@ -240,7 +240,7 @@ function loadTypeScriptParser(): null | TypeScriptParser {
 }
 
 /** Package metadata used to populate plugin runtime `meta.version`. */
-const packageJson = require("../package.json") as PackageJson;
+const packageJson = safeCastTo<PackageJson>(require("../package.json"));
 
 /** Optional parser module instance reused across preset construction. */
 const typeScriptParser = loadTypeScriptParser();
@@ -355,9 +355,9 @@ const typefestEslintRules: NonNullable<ESLint.Plugin["rules"]> &
 > &
     typeof typefestRules;
 
-const typefestRuleEntries = Object.entries(
+const typefestRuleEntries = safeCastTo<readonly (readonly [TypefestRuleName, RuleWithDocs])[]>(objectEntries(
     typefestRules
-) as readonly (readonly [TypefestRuleName, RuleWithDocs])[];
+));
 
 for (const [ruleName, rule] of typefestRuleEntries) {
     if (rule.meta?.docs) {
@@ -509,7 +509,7 @@ function withTypefestPlugin(
     if (typeScriptParser) {
         languageOptions["parser"] =
             existingLanguageOptions["parser"] ??
-            (typeScriptParser as FlatLanguageOptions["parser"]);
+            (safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser));
 
         const existingParserOptions = existingLanguageOptions["parserOptions"];
 

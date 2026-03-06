@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { arrayFirst, isDefined } from "ts-extras";
+
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
@@ -42,7 +44,12 @@ const getPromiseInnerType = (
         return null;
     }
 
-    return node.typeArguments?.params[0] ?? null;
+    const typeArguments = node.typeArguments?.params;
+    if (!isDefined(typeArguments)) {
+        return null;
+    }
+
+    return arrayFirst(typeArguments) ?? null;
 };
 
 /**

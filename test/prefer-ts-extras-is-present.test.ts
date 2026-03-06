@@ -41,42 +41,6 @@ const ruleTester = createTypedRuleTester();
 const validFixtureName = "prefer-ts-extras-is-present.valid.ts";
 const invalidFixtureName = "prefer-ts-extras-is-present.invalid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-ts-extras-is-present fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const fixtureInvalidOutput = `import { isPresent } from "ts-extras";\n${replaceOrThrow(
-    {
-        replacement: "if (isPresent(maybeValue)) {\r\n",
-        sourceText: invalidFixtureCode,
-        target: "if (maybeValue != null) {\r\n",
-    }
-)}`;
-const fixtureInvalidSecondPassOutput = replaceOrThrow({
-    replacement: "if (!isPresent(maybeValue)) {\r\n",
-    sourceText: replaceOrThrow({
-        replacement: "if (isPresent(maybeValue)) {\r\n",
-        sourceText: fixtureInvalidOutput,
-        target: "if (null != maybeValue) {\r\n",
-    }),
-    target: "if (maybeValue == null) {\r\n",
-});
 const inlineValidThreeTermStrictPresentCode = [
     "declare const maybeValue: null | string | undefined;",
     "declare const hasPermission: boolean;",
@@ -3246,7 +3210,7 @@ ruleTester.run(ruleId, rule, {
             ],
             filename: typedFixturePath(invalidFixtureName),
             name: "reports fixture strict present and absent comparisons",
-            output: [fixtureInvalidOutput, fixtureInvalidSecondPassOutput],
+            output: null,
         },
         {
             code: inlineInvalidStrictPresentComparisonCode,

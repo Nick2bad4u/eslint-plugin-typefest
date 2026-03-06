@@ -54,6 +54,25 @@ const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has";
 const preferTsExtrasSetHasMessage =
     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.";
+const suggestTsExtrasSetHasMessage =
+    "Replace this `set.has(...)` call with `setHas(...)` from `ts-extras`.";
+const logicalGuardNoAutofixCode = [
+    "const values = new Set([1, 2, 3]);",
+    "declare const candidate: number;",
+    "",
+    "const shouldSkip = Math.random() > 0.5 || values.has(candidate);",
+    "",
+    "String(shouldSkip);",
+].join("\n");
+const logicalGuardSuggestionOutput = [
+    'import { setHas } from "ts-extras";',
+    "const values = new Set([1, 2, 3]);",
+    "declare const candidate: number;",
+    "",
+    "const shouldSkip = Math.random() > 0.5 || setHas(values, candidate);",
+    "",
+    "String(shouldSkip);",
+].join("\n");
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
@@ -63,6 +82,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
     enforceRuleShape: true,
     messages: {
         preferTsExtrasSetHas: preferTsExtrasSetHasMessage,
+        suggestTsExtrasSetHas: suggestTsExtrasSetHasMessage,
     },
     name: ruleId,
 });
@@ -741,6 +761,23 @@ ruleTester.run(ruleId, rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "autofixes set.has() when setHas import is in scope",
             output: inlineFixableOutput,
+        },
+        {
+            code: logicalGuardNoAutofixCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasSetHas",
+                    suggestions: [
+                        {
+                            messageId: "suggestTsExtrasSetHas",
+                            output: logicalGuardSuggestionOutput,
+                        },
+                    ],
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports logical-guard set.has() without autofix",
+            output: null,
         },
     ],
     valid: [

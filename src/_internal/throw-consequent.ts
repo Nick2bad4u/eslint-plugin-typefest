@@ -4,6 +4,32 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { arrayFirst } from "ts-extras";
+
+/**
+ * Extract the single throw statement from a block consequent when present.
+ *
+ * @param node - Consequent statement candidate.
+ *
+ * @returns The throw statement when the consequent is exactly `{ throw ... }`;
+ *   otherwise `null`.
+ */
+const getSingleThrowFromBlockConsequent = (
+    node: Readonly<TSESTree.Statement>
+): null | TSESTree.ThrowStatement => {
+    if (node.type !== "BlockStatement" || node.body.length !== 1) {
+        return null;
+    }
+
+    const firstStatement = arrayFirst(node.body);
+
+    if (firstStatement?.type !== "ThrowStatement") {
+        return null;
+    }
+
+    return firstStatement;
+};
+
 /**
  * Check whether an `if` consequent contains only a throw statement.
  *
@@ -18,12 +44,8 @@ export const isThrowOnlyConsequent = (
         return true;
     }
 
-    /* v8 ignore next 4 -- defensive sparse-array guard for malformed synthetic AST nodes. */
-    return (
-        node.type === "BlockStatement" &&
-        node.body.length === 1 &&
-        node.body[0]?.type === "ThrowStatement"
-    );
+    /* v8 ignore next 2 -- defensive sparse-array guard for malformed synthetic AST nodes. */
+    return getSingleThrowFromBlockConsequent(node) !== null;
 };
 
 /**
@@ -40,15 +62,6 @@ export const getThrowStatementFromConsequent = (
         return node;
     }
 
-    /* v8 ignore next 5 -- defensive sparse-array guard for malformed synthetic AST nodes. */
-    if (
-        node.type === "BlockStatement" &&
-        node.body.length === 1 &&
-        node.body[0]?.type === "ThrowStatement"
-    ) {
-        return node.body[0];
-    }
-
-    /* v8 ignore next -- guarded by isThrowOnlyConsequent before this helper is invoked in rule flow. */
-    return null;
+    /* v8 ignore next 2 -- guarded by isThrowOnlyConsequent before this helper is invoked in rule flow. */
+    return getSingleThrowFromBlockConsequent(node);
 };

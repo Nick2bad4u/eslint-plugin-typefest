@@ -7,7 +7,7 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
-import { isDefined } from "ts-extras";
+import { isDefined, safeCastTo } from "ts-extras";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
@@ -341,11 +341,11 @@ const collectNestedTypeArguments = (
 ): readonly ts.Type[] => {
     const collectedTypes: ts.Type[] = [];
 
-    const aliasTypeArguments = (
-        type as Readonly<{
+    const aliasTypeArguments = safeCastTo<
+        Readonly<{
             aliasTypeArguments?: readonly ts.Type[];
         }>
-    ).aliasTypeArguments;
+    >(type).aliasTypeArguments;
 
     if (isDefined(aliasTypeArguments)) {
         for (const aliasTypeArgument of aliasTypeArguments) {
@@ -383,7 +383,7 @@ export const isTypeScriptEslintAstType = (
     type: Readonly<ts.Type>
 ): boolean => {
     const visitedTypes = new Set<ts.Type>();
-    const pendingTypes: ts.Type[] = [type as ts.Type];
+    const pendingTypes: ts.Type[] = [safeCastTo<ts.Type>(type)];
 
     while (pendingTypes.length > 0) {
         const currentType = pendingTypes.pop();

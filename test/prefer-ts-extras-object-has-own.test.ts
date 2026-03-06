@@ -26,46 +26,6 @@ const ruleTester = createTypedRuleTester();
 const invalidFixtureName = "prefer-ts-extras-object-has-own.invalid.ts";
 const validFixtureName = "prefer-ts-extras-object-has-own.valid.ts";
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
-const replaceOrThrow = ({
-    replacement,
-    sourceText,
-    target,
-}: Readonly<{
-    replacement: string;
-    sourceText: string;
-    target: string;
-}>): string => {
-    const replacedText = sourceText.replace(target, replacement);
-
-    if (replacedText === sourceText) {
-        throw new TypeError(
-            `Expected prefer-ts-extras-object-has-own fixture text to contain replaceable segment: ${target}`
-        );
-    }
-
-    return replacedText;
-};
-
-const fixtureFixableOutputCode = replaceOrThrow({
-    replacement: 'objectHasOwn(candidate, "status")',
-    sourceText: replaceOrThrow({
-        replacement:
-            'import { objectHasOwn } from "ts-extras";\ndeclare const candidate: unknown;\r\n',
-        sourceText: invalidFixtureCode,
-        target: "declare const candidate: unknown;\r\n",
-    }),
-    target: 'Object.hasOwn(candidate, "status")',
-});
-const fixtureFixableSecondPassOutputCode = replaceOrThrow({
-    replacement: "objectHasOwn(variants, propertyName)",
-    sourceText: fixtureFixableOutputCode,
-    target: "Object.hasOwn(variants, propertyName)",
-});
-const fixtureFixableThirdPassOutputCode = replaceOrThrow({
-    replacement: 'objectHasOwn(variants, "success")',
-    sourceText: fixtureFixableSecondPassOutputCode,
-    target: 'Object.hasOwn(variants, "success")',
-});
 const inlineFixableCode = [
     'import { objectHasOwn } from "ts-extras";',
     "",
@@ -116,6 +76,66 @@ const shadowedObjectBindingValidCode = [
     'const hasStatus = Object.hasOwn({ status: "ok" }, "status");',
     "String(hasStatus);",
 ].join("\n");
+const inlineInvalidLogicalGuardNoAutofixCode = [
+    "declare const candidate: unknown;",
+    "",
+    "const shouldContinue =",
+    "    typeof candidate === 'object' &&",
+    "    candidate !== null &&",
+    "    Object.hasOwn(candidate, 'status');",
+    "",
+    "String(shouldContinue);",
+].join("\n");
+const inlineInvalidLogicalGuardSuggestionOutput = [
+    'import { objectHasOwn } from "ts-extras";',
+    "declare const candidate: unknown;",
+    "",
+    "const shouldContinue =",
+    "    typeof candidate === 'object' &&",
+    "    candidate !== null &&",
+    "    objectHasOwn(candidate, 'status');",
+    "",
+    "String(shouldContinue);",
+].join("\n");
+
+const replaceOrThrow = ({
+    replacement,
+    sourceText,
+    target,
+}: Readonly<{
+    replacement: string;
+    sourceText: string;
+    target: string;
+}>): string => {
+    const replacedText = sourceText.replace(target, replacement);
+
+    if (replacedText === sourceText) {
+        throw new TypeError(
+            `Expected prefer-ts-extras-object-has-own text to contain replaceable segment: ${target}`
+        );
+    }
+
+    return replacedText;
+};
+
+const fixtureInvalidCandidateOnlyCode = [
+    'import { objectHasOwn } from "ts-extras";',
+    replaceOrThrow({
+        replacement: "objectHasOwn(variants, propertyName)",
+        sourceText: replaceOrThrow({
+            replacement: 'objectHasOwn(variants, "success")',
+            sourceText: invalidFixtureCode,
+            target: 'Object.hasOwn(variants, "success")',
+        }),
+        target: "Object.hasOwn(variants, propertyName)",
+    }),
+].join("\n");
+
+const fixtureInvalidCandidateOnlySuggestionOutput = replaceOrThrow({
+    replacement: 'objectHasOwn(candidate, "status")',
+    sourceText: fixtureInvalidCandidateOnlyCode,
+    target: 'Object.hasOwn(candidate, "status")',
+});
 
 type ObjectHasOwnKeyExpression = "identifier" | "stringLiteral";
 
@@ -180,6 +200,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-object-has-own", {
     messages: {
         preferTsExtrasObjectHasOwn:
             "Prefer `objectHasOwn` from `ts-extras` over `Object.hasOwn` for own-property guards with stronger type narrowing.",
+        suggestTsExtrasObjectHasOwn:
+            "Replace this `Object.hasOwn(...)` call with `objectHasOwn(...)` from `ts-extras`.",
     },
     name: "prefer-ts-extras-object-has-own",
 });
@@ -329,18 +351,21 @@ ruleTester.run(
     {
         invalid: [
             {
-                code: invalidFixtureCode,
+                code: fixtureInvalidCandidateOnlyCode,
                 errors: [
-                    { messageId: "preferTsExtrasObjectHasOwn" },
-                    { messageId: "preferTsExtrasObjectHasOwn" },
-                    { messageId: "preferTsExtrasObjectHasOwn" },
+                    {
+                        messageId: "preferTsExtrasObjectHasOwn",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasObjectHasOwn",
+                                output: fixtureInvalidCandidateOnlySuggestionOutput,
+                            },
+                        ],
+                    },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture Object.hasOwn checks",
-                output: [
-                    fixtureFixableOutputCode,
-                    fixtureFixableThirdPassOutputCode,
-                ],
+                name: "reports fixture-derived Object.hasOwn guard without unsafe control-flow autofix",
+                output: null,
             },
             {
                 code: inlineFixableCode,
@@ -348,6 +373,23 @@ ruleTester.run(
                 filename: typedFixturePath(invalidFixtureName),
                 name: "autofixes Object.hasOwn when objectHasOwn import is in scope",
                 output: inlineFixableOutput,
+            },
+            {
+                code: inlineInvalidLogicalGuardNoAutofixCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasObjectHasOwn",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasObjectHasOwn",
+                                output: inlineInvalidLogicalGuardSuggestionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports logical-guard Object.hasOwn without autofix",
+                output: null,
             },
         ],
         valid: [

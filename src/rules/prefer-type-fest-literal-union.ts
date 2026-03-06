@@ -4,6 +4,8 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { arrayFirst, arrayJoin, safeCastTo   } from "ts-extras";
+
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
@@ -78,9 +80,9 @@ const isLiteralMemberForFamily = (
             return true;
         }
 
-        const literalWithPotentialBigInt = node.literal as TSESTree.Literal & {
+        const literalWithPotentialBigInt = safeCastTo<TSESTree.Literal & {
             readonly bigint?: unknown;
-        };
+        }>(node.literal);
 
         return typeof literalWithPotentialBigInt.bigint === "string";
     }
@@ -166,10 +168,9 @@ const getLiteralUnionReplacementText = (
 
     const literalText =
         literalMembers.length === 1
-            ? sourceCode.getText(literalMembers[0])
-            : literalMembers
-                  .map((member) => sourceCode.getText(member))
-                  .join(" | ");
+            ? sourceCode.getText(arrayFirst(literalMembers))
+            : arrayJoin(literalMembers
+                  .map((member) => sourceCode.getText(member)), " | ");
 
     return `LiteralUnion<${literalText}, ${family}>`;
 };

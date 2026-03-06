@@ -4,6 +4,8 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { keyIn } from "ts-extras";
+
 import { getParentNode } from "./ast-node.js";
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
@@ -44,7 +46,7 @@ type NodeWithOptionalTypeParameters = Readonly<TSESTree.Node> & {
  */
 const hasOptionalTypeParametersProperty = (
     node: Readonly<TSESTree.Node>
-): node is NodeWithOptionalTypeParameters => "typeParameters" in node;
+): node is NodeWithOptionalTypeParameters => keyIn(node, "typeParameters");
 
 /**
  * Matched imported type alias that can be replaced with a canonical name.

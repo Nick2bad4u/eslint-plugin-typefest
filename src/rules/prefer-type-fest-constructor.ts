@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-constructor`.
  */
-import { isDefined } from "ts-extras";
+import { arrayJoin, isDefined } from "ts-extras";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -41,7 +41,12 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
                             ? createSafeTypeNodeTextReplacementFix(
                                   node,
                                   "Constructor",
-                                  `Constructor<${sourceCode.getText(node.returnType.typeAnnotation)}, [${node.params.map((parameter) => sourceCode.getText(parameter)).join(", ")}]>`,
+                                  `Constructor<${sourceCode.getText(node.returnType.typeAnnotation)}, [${arrayJoin(
+                                      node.params.map((parameter) =>
+                                          sourceCode.getText(parameter)
+                                      ),
+                                      ", "
+                                  )}]>`,
                                   typeFestDirectImports
                               )
                             : null;

@@ -83,7 +83,7 @@ import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 
-import localTypefestPlugin from "./plugin.mjs";
+import typefest from "./plugin.mjs";
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
 // at lint time. That makes linting flaky/offline-hostile.
@@ -140,29 +140,6 @@ const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
 const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const processEnvironment = globalThis.process.env;
-
-/**
- * Manually selected local plugin dogfooding rules for this repository.
- *
- * NOTE: Keep this list explicit instead of deriving from `configs.recommended`.
- * That avoids accidental drift when preset composition changes and keeps
- * self-hosting noise under control while still exercising local rules.
- */
-const localTypefestDogfoodRules = {
-    "typefest/prefer-ts-extras-is-defined": "warn",
-    // "typefest/prefer-type-fest-arrayable": "warn",
-    "typefest/prefer-type-fest-async-return-type": "warn",
-    "typefest/prefer-type-fest-json-array": "warn",
-    "typefest/prefer-type-fest-json-object": "warn",
-    "typefest/prefer-type-fest-json-primitive": "warn",
-    "typefest/prefer-type-fest-json-value": "warn",
-    "typefest/prefer-type-fest-literal-union": "warn",
-    "typefest/prefer-type-fest-non-empty-tuple": "warn",
-    "typefest/prefer-type-fest-primitive": "warn",
-    "typefest/prefer-type-fest-promisable": "warn",
-    "typefest/prefer-type-fest-unknown-array": "warn",
-    "typefest/prefer-type-fest-unknown-map": "warn",
-};
 
 /**
  * Controls eslint-plugin-file-progress behavior.
@@ -556,16 +533,13 @@ export default defineConfig([
         rules: {
             ...eslintReactStrictTypeCheckedConfig.rules,
             ...eslintPluginJsxA11y.flatConfigs.recommended.rules,
-
             "@docusaurus/no-html-links": "warn",
             "@docusaurus/no-untranslated-text": "off",
             "@docusaurus/prefer-docusaurus-heading": "warn",
             "@docusaurus/string-literal-i18n-messages": "off",
-
             "@eslint-react/dom/prefer-namespace-import": "warn",
             "@eslint-react/jsx-dollar": "warn",
             "@eslint-react/jsx-shorthand-boolean": "warn",
-
             "@eslint-react/jsx-shorthand-fragment": "warn",
             "@eslint-react/naming-convention/component-name": "warn",
             // Docusaurus relies on canonical non-PascalCase filenames
@@ -720,17 +694,13 @@ export default defineConfig([
             ...pluginTotalFunctions.configs.recommended.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...etc.configs.recommended.rules,
-
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
-
-            "@eslint-community/eslint-comments/no-unused-disable": "warn",
+            // Deprecated rule - turned off
+            "@eslint-community/eslint-comments/no-unused-disable": "off",
             "@eslint-community/eslint-comments/no-use": "off",
-
             "@eslint-community/eslint-comments/require-description": "warn",
-
             "@microsoft/sdl/no-angular-bypass-sanitizer": "warn",
             "@microsoft/sdl/no-angular-sanitization-trusted-urls": "warn",
-
             "@microsoft/sdl/no-angularjs-bypass-sce": "warn",
             "@microsoft/sdl/no-angularjs-enable-svg": "warn",
             "@microsoft/sdl/no-angularjs-sanitization-whitelist": "warn",
@@ -742,7 +712,6 @@ export default defineConfig([
             "@microsoft/sdl/no-inner-html": "warn",
             "@microsoft/sdl/no-insecure-random": "off",
             "@microsoft/sdl/no-insecure-url": "warn",
-
             "@microsoft/sdl/no-msapp-exec-unsafe": "warn",
             "@microsoft/sdl/no-postmessage-star-origin": "warn",
             "@microsoft/sdl/no-unsafe-alloc": "warn",
@@ -761,7 +730,6 @@ export default defineConfig([
             "@typescript-eslint/consistent-type-exports": "warn",
             "@typescript-eslint/consistent-type-imports": "warn",
             "@typescript-eslint/default-param-last": "warn",
-
             "@typescript-eslint/dot-notation": [
                 "warn",
                 {
@@ -1030,7 +998,6 @@ export default defineConfig([
             "canonical/prefer-inline-type-import": "off",
             "canonical/prefer-react-lazy": "off",
             "canonical/prefer-use-mount": "warn",
-
             "canonical/sort-react-dependencies": "warn",
             "comment-length/limit-multi-line-comments": [
                 "warn",
@@ -1182,7 +1149,6 @@ export default defineConfig([
                     tabSize: 4,
                 },
             ],
-
             "eslint-plugin/consistent-output": "error",
             "eslint-plugin/fixer-return": "error",
             "eslint-plugin/meta-property-ordering": [
@@ -1241,12 +1207,10 @@ export default defineConfig([
             "etc/no-internal": "off",
             "etc/no-misused-generics": "warn",
             "etc/no-t": "off",
-
             "etc/prefer-interface": "off",
             "etc/prefer-less-than": "off",
             "etc/throw-error": "warn",
             "etc/underscore-internal": "off",
-
             "import-x/consistent-type-specifier-style": "off",
             "import-x/default": "warn",
             "import-x/dynamic-import-chunkname": "off",
@@ -1473,10 +1437,10 @@ export default defineConfig([
         ],
         name: "Local typefest plugin manual dogfooding rules",
         plugins: {
-            typefest: localTypefestPlugin,
+            typefest: typefest,
         },
         rules: {
-            ...localTypefestDogfoodRules,
+            ...typefest.configs.all.rules,
         },
     },
     // #endregion
@@ -1584,7 +1548,6 @@ export default defineConfig([
             ...vitest.configs.all.rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...pluginTestingLibrary.configs["flat/react"].rules,
-
             "@jcoreio/implicit-dependencies/no-implicit": "off",
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/no-empty-function": "off", // Empty mocks/stubs are common
@@ -1596,7 +1559,6 @@ export default defineConfig([
             "@typescript-eslint/no-unsafe-function-type": "off", // Tests may use generic handlers
             "@typescript-eslint/no-unsafe-type-assertion": "off",
             "@typescript-eslint/no-unused-vars": "off",
-
             "@typescript-eslint/no-use-before-define": "off", // Allow use before define in tests
             "@typescript-eslint/no-useless-default-assignment": "warn",
             "@typescript-eslint/prefer-destructuring": "off",
@@ -1867,7 +1829,6 @@ export default defineConfig([
             // do not publish provenance metadata consistently).
             "node-dependencies/require-provenance-deps": "off",
             "node-dependencies/valid-semver": "error",
-            // Package.json Plugin Rules (package-json/*)
             "package-json/bin-name-casing": "warn",
             "package-json/exports-subpaths-style": "warn",
             "package-json/no-empty-fields": "warn",
@@ -1895,6 +1856,8 @@ export default defineConfig([
             "package-json/require-license": "warn",
             "package-json/require-name": "warn",
             "package-json/require-optionalDependencies": "off",
+            // Package.json Plugin Rules (package-json/*)
+            "package-json/require-packageManager": "warn",
             "package-json/require-peerDependencies": "warn",
             "package-json/require-repository": "error",
             "package-json/require-scripts": "warn",
@@ -2129,6 +2092,7 @@ export default defineConfig([
             "html/require-attrs": "warn",
             "html/require-button-type": "warn",
             "html/require-closing-tags": "off",
+            "html/require-details-summary": "warn",
             "html/require-explicit-size": "warn",
             "html/require-form-method": "warn",
             "html/require-frame-title": "warn",

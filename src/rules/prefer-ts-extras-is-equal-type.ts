@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import { isDefined, setHas  } from "ts-extras";
 
 import {
     collectNamedImportLocalNamesFromSource,
@@ -61,7 +61,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (node.typeName.type === "Identifier") {
-                    return isEqualLocalNames.has(node.typeName.name)
+                    return setHas(isEqualLocalNames, node.typeName.name)
                         ? node
                         : null;
                 }
@@ -72,7 +72,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
 
                 if (
                     node.typeName.left.type === "Identifier" &&
-                    typeFestNamespaceImportNames.has(node.typeName.left.name) &&
+                    setHas(typeFestNamespaceImportNames, node.typeName.left.name) &&
                     node.typeName.right.type === "Identifier" &&
                     node.typeName.right.name === IS_EQUAL_TYPE_NAME
                 ) {

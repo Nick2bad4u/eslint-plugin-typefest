@@ -4,6 +4,8 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { arrayAt, isInteger  } from "ts-extras";
+
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 import {
@@ -249,7 +251,7 @@ const getNodeRange = (
 
     const [start, end] = nodeRange;
 
-    if (!Number.isInteger(start) || !Number.isInteger(end)) {
+    if (!isInteger(start) || !isInteger(end)) {
         return null;
     }
 
@@ -346,7 +348,7 @@ const getProgramInsertionLayout = (
                 : getNodeRangeStart(firstStatement),
         importDeclarations: Object.freeze(importDeclarations),
         lastDirectiveStatement,
-        lastImportDeclaration: importDeclarations.at(-1) ?? null,
+        lastImportDeclaration: arrayAt(importDeclarations, -1) ?? null,
         lastNonRelativeImportDeclaration,
         programEnd: getProgramRangeEnd(programNode),
     });

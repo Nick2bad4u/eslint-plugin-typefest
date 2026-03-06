@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import { isDefined, setHas } from "ts-extras";
 import ts from "typescript";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
@@ -14,6 +14,7 @@ import {
     getTypeCheckerApparentType,
     getTypeCheckerBaseTypes,
 } from "../_internal/type-checker-compat.js";
+import { isTypePredicateAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { reportTsExtrasTypedMemberCall } from "../_internal/typed-member-call-rule.js";
 import {
     createTypedRule,
@@ -80,7 +81,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return cachedResult;
                     }
 
-                    if (seenTypes.has(candidateType)) {
+                    if (setHas(seenTypes, candidateType)) {
                         return false;
                     }
 
@@ -185,6 +186,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             return {
                 CallExpression(node) {
                     reportTsExtrasTypedMemberCall({
+                        canAutofix: isTypePredicateAutofixSafe,
                         context,
                         importedName: "setHas",
                         imports: tsExtrasImports,
@@ -192,6 +194,19 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         memberName: "has",
                         messageId: "preferTsExtrasSetHas",
                         node,
+                        reportSuggestion: ({ fix, node: suggestionNode }) => {
+                            context.report({
+                                messageId: "preferTsExtrasSetHas",
+                                node: suggestionNode,
+                                suggest: [
+                                    {
+                                        fix,
+                                        messageId: "suggestTsExtrasSetHas",
+                                    },
+                                ],
+                            });
+                        },
+                        suggestionMessageId: "suggestTsExtrasSetHas",
                     });
                 },
             };
@@ -212,9 +227,12 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 url: RULE_DOCS_URL,
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasSetHas:
                     "Prefer `setHas` from `ts-extras` over `set.has(...)` for stronger element narrowing.",
+                suggestTsExtrasSetHas:
+                    "Replace this `set.has(...)` call with `setHas(...)` from `ts-extras`.",
             },
             schema: [],
             type: "suggestion",

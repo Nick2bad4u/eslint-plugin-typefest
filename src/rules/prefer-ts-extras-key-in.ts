@@ -10,16 +10,79 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { getVariableInScopeChain } from "../_internal/scope-variable.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-key-in`;
 
 /**
- * Narrow a binary operand to an identifier usable by `keyIn`.
+ * Determine whether a key expression can be safely reordered into `keyIn(...)`
+ * argument position without changing side-effect semantics.
  */
-const isIdentifierOperand = (
+const isAutofixSafeKeyExpression = (
+    context: Readonly<TSESLint.RuleContext<string, readonly []>>,
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Identifier => node.type === "Identifier";
+): node is TSESTree.Expression => {
+    if (node.type === "PrivateIdentifier") {
+        return false;
+    }
+
+    if (node.type === "Identifier") {
+        try {
+            const sourceScope = context.sourceCode.getScope(node);
+
+            return getVariableInScopeChain(sourceScope, node.name) !== null;
+        } catch {
+            return false;
+        }
+    }
+
+    if (node.type === "Literal") {
+        return true;
+    }
+
+    if (node.type === "TemplateLiteral") {
+        return node.expressions.length === 0;
+    }
+
+    if (
+        node.type === "TSAsExpression" ||
+        node.type === "TSNonNullExpression" ||
+        node.type === "TSSatisfiesExpression" ||
+        node.type === "TSTypeAssertion"
+    ) {
+        return isAutofixSafeKeyExpression(context, node.expression);
+    }
+
+    return false;
+};
+
+/**
+ * Build stable argument text for helper-call generation.
+ */
+const getReplacementArgumentText = ({
+    context,
+    node,
+}: Readonly<{
+    context: Readonly<TSESLint.RuleContext<string, readonly []>>;
+    node: Readonly<TSESTree.Node>;
+}>): null | string => {
+    const nodeText = context.sourceCode.getText(node).trim();
+    if (nodeText.length === 0) {
+        return null;
+    }
+
+    if (node.type !== "SequenceExpression") {
+        return nodeText;
+    }
+
+    if (nodeText.startsWith("(") && nodeText.endsWith(")")) {
+        return nodeText;
+    }
+
+    return `(${nodeText})`;
+};
 
 /**
  * ESLint rule definition for `prefer-ts-extras-key-in`.
@@ -37,20 +100,30 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
 
             /**
              * Build a safe fixer that rewrites `key in object` to
-             * `keyIn(object, key)` when both operands are simple identifiers.
+             * `keyIn(object, key)` when key/object operand ordering is safe.
              */
             const createKeyInFix = (
                 node: Readonly<TSESTree.BinaryExpression>
             ): null | TSESLint.ReportFixFunction => {
                 if (
-                    !isIdentifierOperand(node.left) ||
-                    !isIdentifierOperand(node.right)
+                    !isTypePredicateExpressionAutofixSafe(node) ||
+                    !isAutofixSafeKeyExpression(context, node.left)
                 ) {
                     return null;
                 }
 
-                const keyText = context.sourceCode.getText(node.left);
-                const objectText = context.sourceCode.getText(node.right);
+                const keyText = getReplacementArgumentText({
+                    context,
+                    node: node.left,
+                });
+                const objectText = getReplacementArgumentText({
+                    context,
+                    node: node.right,
+                });
+
+                if (keyText === null || objectText === null) {
+                    return null;
+                }
 
                 return createSafeValueNodeTextReplacementFix({
                     context,

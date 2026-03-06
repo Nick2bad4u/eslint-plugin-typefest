@@ -261,6 +261,7 @@
         "eslint": "^10.0.2",
         "eslint-config-flat-gitignore": "^2.2.1",
         "eslint-config-prettier": "^10.1.8",
+        "eslint-formatter-unix": "^9.0.1",
         "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-array-func": "^5.1.0",
         "eslint-plugin-canonical": "^5.1.3",

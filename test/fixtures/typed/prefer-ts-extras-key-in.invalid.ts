@@ -4,8 +4,8 @@ interface MonitorPayload {
 }
 
 declare function keyIn<TObject extends object>(
-    key: PropertyKey,
-    object: TObject
+    object: TObject,
+    key: PropertyKey
 ): key is keyof TObject;
 
 const monitorPayload: MonitorPayload = {
@@ -17,7 +17,7 @@ declare const dynamicKey: string;
 
 const hasStatusKey = "status" in monitorPayload;
 const hasDynamicKey = dynamicKey in monitorPayload;
-const typedHasDynamicKey = keyIn(dynamicKey, monitorPayload);
+const typedHasDynamicKey = keyIn(monitorPayload, dynamicKey);
 
 if ((hasStatusKey || hasDynamicKey) && typedHasDynamicKey) {
     throw new TypeError("Unexpected key membership in fixture");

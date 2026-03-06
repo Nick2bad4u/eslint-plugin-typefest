@@ -3,6 +3,7 @@
  * ESLint rule implementation for `prefer-type-fest-primitive`.
  */
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { setHas } from "ts-extras";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -36,7 +37,7 @@ const primitiveKeywordTypeSet = new Set<string>(primitiveKeywordTypes);
  */
 const isPrimitiveKeywordType = (
     candidate: string
-): candidate is PrimitiveKeywordType => primitiveKeywordTypeSet.has(candidate);
+): candidate is PrimitiveKeywordType => setHas(primitiveKeywordTypeSet, candidate);
 
 /**
  * Detects explicit unions equivalent to the TypeFest `Primitive` alias.

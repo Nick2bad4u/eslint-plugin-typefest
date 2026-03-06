@@ -140,6 +140,18 @@ const inlineInvalidLiteralLeftOperandCode = [
     "",
     "String(hasDynamicKey);",
 ].join("\n");
+const inlineInvalidLiteralLeftOperandOutput = [
+    'import { keyIn } from "ts-extras";',
+    "type MonitorPayload = {",
+    "    readonly id: string;",
+    "};",
+    "",
+    "declare const payload: MonitorPayload;",
+    "",
+    'const hasDynamicKey = keyIn(payload, "id");',
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
 const inlineInvalidMemberRightOperandCode = [
     "type MonitorState = {",
     "    readonly payload: { id: string };",
@@ -152,6 +164,90 @@ const inlineInvalidMemberRightOperandCode = [
     "",
     "String(hasDynamicKey);",
 ].join("\n");
+const inlineInvalidMemberRightOperandOutput = [
+    'import { keyIn } from "ts-extras";',
+    "type MonitorState = {",
+    "    readonly payload: { id: string };",
+    "};",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const state: MonitorState;",
+    "",
+    "const hasDynamicKey = keyIn(state.payload, dynamicKey);",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidLogicalGuardCode = [
+    "type MonitorPayload = Record<string, string>;",
+    "",
+    "declare const dynamicKey: string;",
+    "declare const payload: MonitorPayload;",
+    "",
+    "const hasDynamicKey = Math.random() > 0.5 || dynamicKey in payload;",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidSideEffectKeyCode = [
+    "declare function getKey(): string;",
+    "declare function getPayload(): Record<string, unknown>;",
+    "",
+    "const hasDynamicKey = getKey() in getPayload();",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidUnboundKeyWithSideEffectfulObjectCode = [
+    "declare function getPayload(): Record<string, unknown>;",
+    "",
+    "const hasDynamicKey = dynamicKey in getPayload();",
+    "",
+    "String(hasDynamicKey);",
+].join("\n");
+const inlineInvalidAstNodeTypeGuardCode = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    "",
+    "type NodeWithOptionalParent = Readonly<TSESTree.Node> & {",
+    "    parent?: Readonly<TSESTree.Node>;",
+    "};",
+    "",
+    "const hasOptionalParentProperty = (",
+    "    node: Readonly<TSESTree.Node>",
+    ' ): node is NodeWithOptionalParent => "parent" in node;',
+].join("\n");
+const inlineInvalidAstNodeTypeGuardOutput = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    'import { keyIn } from "ts-extras";',
+    "",
+    "type NodeWithOptionalParent = Readonly<TSESTree.Node> & {",
+    "    parent?: Readonly<TSESTree.Node>;",
+    "};",
+    "",
+    "const hasOptionalParentProperty = (",
+    "    node: Readonly<TSESTree.Node>",
+    ' ): node is NodeWithOptionalParent => keyIn(node, "parent");',
+].join("\n");
+const inlineInvalidTypeParametersTypeGuardCode = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    "",
+    "type NodeWithOptionalTypeParameters = Readonly<TSESTree.Node> & {",
+    "    typeParameters?: Readonly<TSESTree.TSTypeParameterDeclaration>;",
+    "};",
+    "",
+    "const hasOptionalTypeParametersProperty = (",
+    "    node: Readonly<TSESTree.Node>",
+    '): node is NodeWithOptionalTypeParameters => "typeParameters" in node;',
+].join("\n");
+const inlineInvalidTypeParametersTypeGuardOutput = [
+    "import type { TSESTree } from '@typescript-eslint/utils';",
+    'import { keyIn } from "ts-extras";',
+    "",
+    "type NodeWithOptionalTypeParameters = Readonly<TSESTree.Node> & {",
+    "    typeParameters?: Readonly<TSESTree.TSTypeParameterDeclaration>;",
+    "};",
+    "",
+    "const hasOptionalTypeParametersProperty = (",
+    "    node: Readonly<TSESTree.Node>",
+    '): node is NodeWithOptionalTypeParameters => keyIn(node, "typeParameters");',
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -159,6 +255,16 @@ const parserOptions = {
     range: true,
     sourceType: "module",
 } as const;
+
+const createMinimalScopeWithBindings = (
+    bindingNames: readonly string[]
+): {
+    readonly set: ReadonlyMap<string, Record<string, never>>;
+    readonly upper: null;
+} => ({
+    set: new Map(bindingNames.map((bindingName) => [bindingName, {}])),
+    upper: null,
+});
 
 type KeyInFixFactoryArguments = Readonly<{
     replacementTextFactory: (replacementName: string) => string;
@@ -354,6 +460,12 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             },
                             sourceCode: {
                                 ast,
+                                getScope() {
+                                    return createMinimalScopeWithBindings([
+                                        keyIdentifier,
+                                        objectIdentifier,
+                                    ]);
+                                },
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },
@@ -403,7 +515,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
         }
     });
 
-    it("fast-check: non-identifier in-expression operands report without fixer", async () => {
+    it("fast-check: expression in-operands report and produce parseable keyIn replacements", async () => {
         expect.hasAssertions();
 
         try {
@@ -461,7 +573,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             "String(hasDynamicKey);",
                         ].join("\n");
 
-                        const { ast, binaryExpression } =
+                        const { ast, binaryExpression, binaryRange } =
                             parseInBinaryExpressionFromCode(code);
                         const reportCalls: Readonly<{
                             fix?: unknown;
@@ -480,6 +592,13 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             },
                             sourceCode: {
                                 ast,
+                                getScope() {
+                                    return createMinimalScopeWithBindings([
+                                        keyIdentifier,
+                                        objectIdentifier,
+                                        "index",
+                                    ]);
+                                },
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },
@@ -501,13 +620,33 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         }
 
                         expect(firstReport).toMatchObject({
+                            fix: "FIX",
                             messageId: "preferTsExtrasKeyIn",
                         });
-                        expect("fix" in firstReport).toBeFalsy();
 
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).not.toHaveBeenCalled();
+                        ).toHaveBeenCalledTimes(1);
+
+                        const fixArguments =
+                            createSafeValueNodeTextReplacementFixMock.mock
+                                .calls[0]?.[0];
+
+                        expect(fixArguments).toBeDefined();
+
+                        const replacementText =
+                            fixArguments?.replacementTextFactory("keyIn") ?? "";
+
+                        expect(replacementText.length).toBeGreaterThan(0);
+
+                        const fixedCode =
+                            code.slice(0, binaryRange[0]) +
+                            replacementText +
+                            code.slice(binaryRange[1]);
+
+                        expect(() => {
+                            parser.parseForESLint(fixedCode, parserOptions);
+                        }).not.toThrowError();
                     }
                 ),
                 fastCheckRunConfig.default
@@ -575,8 +714,8 @@ ruleTester.run(ruleId, rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports literal-left in-operator check without autofix",
-            output: null,
+            name: "autofixes literal-left in-operator check",
+            output: inlineInvalidLiteralLeftOperandOutput,
         },
         {
             code: inlineInvalidMemberRightOperandCode,
@@ -586,8 +725,63 @@ ruleTester.run(ruleId, rule, {
                 },
             ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports member-right in-operator check without autofix",
+            name: "autofixes member-right in-operator check",
+            output: inlineInvalidMemberRightOperandOutput,
+        },
+        {
+            code: inlineInvalidLogicalGuardCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports logical-guard in-operator check without autofix",
             output: null,
+        },
+        {
+            code: inlineInvalidSideEffectKeyCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports side-effectful key expression without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidUnboundKeyWithSideEffectfulObjectCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports unbound identifier key with side-effectful object expression without autofix",
+            output: null,
+        },
+        {
+            code: inlineInvalidAstNodeTypeGuardCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes ast-node style parent type-guard with object-first keyIn ordering",
+            output: inlineInvalidAstNodeTypeGuardOutput,
+        },
+        {
+            code: inlineInvalidTypeParametersTypeGuardCode,
+            errors: [
+                {
+                    messageId: "preferTsExtrasKeyIn",
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "autofixes imported-type-aliases style typeParameters guard with object-first keyIn ordering",
+            output: inlineInvalidTypeParametersTypeGuardOutput,
         },
     ],
     valid: [

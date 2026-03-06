@@ -10,11 +10,14 @@ import {
     type ImportedValueAliasMap,
 } from "./imported-value-symbols.js";
 import { getIdentifierPropertyMemberCall } from "./member-call.js";
-import { reportWithOptionalFix } from "./rule-reporting.js";
+import {
+    reportResolvedAutofixOrSuggestionOutcome,
+    resolveAutofixOrSuggestionOutcome,
+} from "./rule-reporting.js";
 
 /** Typed rule context shape for array-method rule listeners. */
-type ArrayMethodRuleContext = Readonly<
-    TSESLint.RuleContext<string, Readonly<UnknownArray>>
+type ArrayMethodRuleContext<MessageId extends string> = Readonly<
+    TSESLint.RuleContext<MessageId, Readonly<UnknownArray>>
 >;
 
 /** Direct named value imports collection type from shared import helper. */
@@ -24,7 +27,8 @@ type DirectNamedValueImports = ImportedValueAliasMap;
  * Match `<arrayExpr>.<method>(...)` and report a standardized ts-extras helper
  * replacement when the receiver is array-like.
  */
-export const reportTsExtrasArrayMethodCall = ({
+export const reportTsExtrasArrayMethodCall = <MessageId extends string>({
+    canAutofix,
     context,
     importedName,
     imports,
@@ -32,16 +36,28 @@ export const reportTsExtrasArrayMethodCall = ({
     memberName,
     messageId,
     node,
+    reportSuggestion,
+    suggestionMessageId,
 }: Readonly<{
-    context: ArrayMethodRuleContext;
+    canAutofix?: (node: Readonly<TSESTree.CallExpression>) => boolean;
+    context: ArrayMethodRuleContext<MessageId>;
     importedName: string;
     imports: DirectNamedValueImports;
     isArrayLikeExpression: (
         expression: Readonly<TSESTree.Expression>
     ) => boolean;
     memberName: string;
-    messageId: string;
+    messageId: MessageId;
     node: Readonly<TSESTree.CallExpression>;
+    reportSuggestion?: (
+        input: Readonly<{
+            fix: TSESLint.ReportFixFunction;
+            messageId: MessageId;
+            node: Readonly<TSESTree.CallExpression>;
+            suggestionMessageId: MessageId;
+        }>
+    ) => void;
+    suggestionMessageId?: MessageId;
 }>): void => {
     const memberCall = getIdentifierPropertyMemberCall({
         memberName,
@@ -56,16 +72,36 @@ export const reportTsExtrasArrayMethodCall = ({
         return;
     }
 
-    reportWithOptionalFix({
+    const shouldAutofix = canAutofix?.(node) ?? true;
+    const fix = createMethodToFunctionCallFix({
+        callNode: node,
         context,
-        fix: createMethodToFunctionCallFix({
-            callNode: node,
-            context,
-            importedName,
-            imports,
-            sourceModuleName: "ts-extras",
-        }),
+        importedName,
+        imports,
+        sourceModuleName: "ts-extras",
+    });
+
+    const outcome = resolveAutofixOrSuggestionOutcome({
+        canAutofix: shouldAutofix,
+        fix,
+    });
+
+    if (outcome.kind === "suggestion" && reportSuggestion !== undefined) {
+        reportSuggestion({
+            fix: outcome.fix,
+            messageId,
+            node,
+            suggestionMessageId: suggestionMessageId ?? messageId,
+        });
+
+        return;
+    }
+
+    reportResolvedAutofixOrSuggestionOutcome({
+        context,
         messageId,
         node,
+        outcome,
+        suggestionMessageId: suggestionMessageId ?? messageId,
     });
 };

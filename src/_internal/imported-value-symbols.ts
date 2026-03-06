@@ -5,6 +5,8 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { arrayJoin } from "ts-extras";
+
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     isImportDeclarationFromSource,
@@ -670,7 +672,7 @@ export const createMethodToFunctionCallFix = ({
         argumentTexts.push(argumentText);
     }
 
-    const argumentText = argumentTexts.join(", ");
+    const argumentText = arrayJoin(argumentTexts, ", ");
 
     const replacementText =
         argumentText.length > 0
