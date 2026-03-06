@@ -51,8 +51,6 @@ updates:
           - "dependabot"
           - "dependencies"
       multi-ecosystem-group: dependabot-all
-      name: "GitHub Actions dependencies"
-      versioning-strategy: increase
       rebase-strategy: auto
       patterns:
           - "*"
@@ -96,7 +94,6 @@ updates:
           - "dependabot"
           - "dependencies"
       multi-ecosystem-group: dependabot-all
-      name: "NPM dependencies"
       patterns:
           - "*"
       groups:
