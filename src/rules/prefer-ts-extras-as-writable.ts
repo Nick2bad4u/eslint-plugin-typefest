@@ -154,6 +154,8 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
+
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-as-writable",
             },
             fixable: "code",
             messages: {

@@ -179,6 +179,8 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 frozen: false,
                 recommended: false,
                 typefestConfigs: "typefest.configs.all",
+
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type",
             },
             hasSuggestions: true,
             messages: {

@@ -116,7 +116,6 @@ const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
 const noUnsanitizedPlugin = fixupPluginRules(nounsanitized);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
-const securityPlugin = fixupPluginRules(pluginSecurity);
 // @ts-expect-error -- Plugin needs update for Eslint v10
 const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
@@ -652,7 +651,7 @@ export default defineConfig([
             redos: pluginRedos,
             regexp: pluginRegexp,
             "require-jsdoc": pluginJSDoc,
-            security: securityPlugin,
+            security: pluginSecurity,
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             "total-functions": fixupPluginRules(pluginTotalFunctions),
@@ -1149,6 +1148,8 @@ export default defineConfig([
                     tabSize: 4,
                 },
             ],
+            // Needs update for Eslint v10
+            // "deprecation/deprecation": "off",
             "eslint-plugin/consistent-output": "error",
             "eslint-plugin/fixer-return": "error",
             "eslint-plugin/meta-property-ordering": [
@@ -1187,7 +1188,7 @@ export default defineConfig([
             "eslint-plugin/require-meta-default-options": "error",
             "eslint-plugin/require-meta-docs-description": "warn",
             "eslint-plugin/require-meta-docs-recommended": "warn",
-            "eslint-plugin/require-meta-docs-url": "off",
+            "eslint-plugin/require-meta-docs-url": "error",
             "eslint-plugin/require-meta-fixable": "error",
             "eslint-plugin/require-meta-has-suggestions": "error",
             "eslint-plugin/require-meta-schema": "error",
@@ -2471,7 +2472,7 @@ export default defineConfig([
             promise: pluginPromise,
             redos: pluginRedos,
             regexp: pluginRegexp,
-            security: securityPlugin,
+            security: pluginSecurity,
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             unicorn: eslintPluginUnicorn,

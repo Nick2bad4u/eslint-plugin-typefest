@@ -19,7 +19,6 @@ import {
     createReportWithoutAutofixes,
     createRuleContextWithAdaptedReport,
 } from "./report-adapter.js";
-import { createRuleDocsUrl } from "./rule-docs-url.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
@@ -31,6 +30,10 @@ type TypedRuleServices = {
     checker: ts.TypeChecker;
     parserServices: ReturnType<typeof ESLintUtils.getParserServices>;
 };
+
+type TypefestRuleCreator = ReturnType<
+    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
+>;
 
 /**
  * Plugin-specific metadata extensions for `meta.docs`.
@@ -48,17 +51,6 @@ type TypefestRuleDocs = {
 };
 
 /**
- * Create typed rules with docs URLs that point to this repository's rule docs.
- */
-const baseTypedRuleCreator = ESLintUtils.RuleCreator((ruleName) =>
-    createRuleDocsUrl(ruleName)
-);
-
-type TypefestRuleCreator = ReturnType<
-    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
->;
-
-/**
  * Rule-creator wrapper used by all plugin rules.
  *
  * @remarks
@@ -73,7 +65,7 @@ type TypefestRuleCreator = ReturnType<
  *   conditionally strips autofixes.
  */
 export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
-    const createdRule = baseTypedRuleCreator(ruleDefinition);
+    const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
 
     return {
         ...createdRule,
@@ -89,6 +81,7 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
 
             return createdRule.create(effectiveContext);
         },
+        name: ruleDefinition.name,
     };
 };
 

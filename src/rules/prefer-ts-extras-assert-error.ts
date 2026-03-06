@@ -182,6 +182,8 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",
                 ],
+
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error",
             },
             hasSuggestions: true,
             messages: {

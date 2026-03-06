@@ -213,6 +213,8 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.type-fest/types",
                 ],
+
+                url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-promisable",
             },
             fixable: "code",
             messages: {
