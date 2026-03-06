@@ -24,11 +24,19 @@ import {
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-set-has`;
 
+const UNION_SET_MATCHING_MODE_ALL_BRANCHES = "allBranches";
+const UNION_SET_MATCHING_MODE_ANY_BRANCH = "anyBranch";
+const DEFAULT_UNION_SET_MATCHING_MODE = UNION_SET_MATCHING_MODE_ALL_BRANCHES;
+const unionSetMatchingModeValues = [
+    UNION_SET_MATCHING_MODE_ALL_BRANCHES,
+    UNION_SET_MATCHING_MODE_ANY_BRANCH,
+] as const;
+
 type PreferTsExtrasSetHasOption = Readonly<{
     unionBranchMatchingMode?: UnionSetMatchingMode;
 }>;
 
-type UnionSetMatchingMode = "allBranches" | "anyBranch";
+type UnionSetMatchingMode = (typeof unionSetMatchingModeValues)[number];
 
 const getHasCallReceiverExpression = (
     node: Readonly<TSESTree.CallExpression>
@@ -66,10 +74,15 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
     >({
         create(
             context,
-            [options] = [{ unionBranchMatchingMode: "allBranches" }]
+            [options] = [
+                {
+                    unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
+                },
+            ]
         ) {
             const unionSetMatchingMode: UnionSetMatchingMode =
-                options.unionBranchMatchingMode ?? "allBranches";
+                options.unionBranchMatchingMode ??
+                DEFAULT_UNION_SET_MATCHING_MODE;
 
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
@@ -80,8 +93,14 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             const setTypeResolutionCaches: Readonly<
                 Record<UnionSetMatchingMode, Map<Readonly<ts.Type>, boolean>>
             > = {
-                allBranches: new Map<Readonly<ts.Type>, boolean>(),
-                anyBranch: new Map<Readonly<ts.Type>, boolean>(),
+                [UNION_SET_MATCHING_MODE_ALL_BRANCHES]: new Map<
+                    Readonly<ts.Type>,
+                    boolean
+                >(),
+                [UNION_SET_MATCHING_MODE_ANY_BRANCH]: new Map<
+                    Readonly<ts.Type>,
+                    boolean
+                >(),
             };
 
             const hasClassOrInterfaceLikeDeclaration = (
@@ -136,7 +155,8 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
                     if (candidateType.isUnion()) {
                         const isSetLike =
-                            unionMatchingMode === "allBranches"
+                            unionMatchingMode ===
+                            UNION_SET_MATCHING_MODE_ALL_BRANCHES
                                 ? candidateType.types.every((partType) =>
                                       isSetTypeInternal(partType)
                                   )
@@ -246,7 +266,10 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     return false;
                 }
 
-                return isSetLikeExpression(receiverExpression, "allBranches");
+                return isSetLikeExpression(
+                    receiverExpression,
+                    DEFAULT_UNION_SET_MATCHING_MODE
+                );
             };
 
             return {
@@ -292,9 +315,17 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [{ unionBranchMatchingMode: "allBranches" }],
+        defaultOptions: [
+            {
+                unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
+            },
+        ],
         meta: {
-            defaultOptions: [{ unionBranchMatchingMode: "allBranches" }],
+            defaultOptions: [
+                {
+                    unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
+                },
+            ],
             deprecated: false,
             docs: {
                 description:
@@ -317,28 +348,23 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 suggestTsExtrasSetHas:
                     "Replace this `set.has(...)` call with `setHas(...)` from `ts-extras`.",
             },
-            schema: {
-                items: [
-                    {
-                        additionalProperties: false,
-                        description:
-                            "Configuration for mixed-union matching in prefer-ts-extras-set-has.",
-                        minProperties: 1,
-                        properties: {
-                            unionBranchMatchingMode: {
-                                description:
-                                    "How union-typed receivers are matched: allBranches requires every union branch to be Set-like, anyBranch reports when at least one branch is Set-like.",
-                                enum: ["allBranches", "anyBranch"],
-                                type: "string",
-                            },
+            schema: [
+                {
+                    additionalProperties: false,
+                    description:
+                        "Configuration for mixed-union matching in prefer-ts-extras-set-has.",
+                    minProperties: 1,
+                    properties: {
+                        unionBranchMatchingMode: {
+                            description:
+                                "How union-typed receivers are matched: allBranches requires every union branch to be Set-like, anyBranch reports when at least one branch is Set-like.",
+                            enum: [...unionSetMatchingModeValues],
+                            type: "string",
                         },
-                        type: "object",
                     },
-                ],
-                maxItems: 1,
-                minItems: 0,
-                type: "array",
-            },
+                    type: "object",
+                },
+            ],
             type: "suggestion",
         },
         name: "prefer-ts-extras-set-has",

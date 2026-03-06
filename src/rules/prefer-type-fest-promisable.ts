@@ -223,32 +223,27 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                 preferPromisable:
                     "Prefer `Promisable<T>` from type-fest over `Promise<T> | T` for sync-or-async contracts.",
             },
-            schema: {
-                items: [
-                    {
-                        additionalProperties: false,
-                        description:
-                            "Configuration for legacy alias and Promise-union enforcement in prefer-type-fest-promisable.",
-                        minProperties: 1,
-                        properties: {
-                            enforceLegacyAliases: {
-                                description:
-                                    "Whether to report legacy imported aliases such as MaybePromise.",
-                                type: "boolean",
-                            },
-                            enforcePromiseUnions: {
-                                description:
-                                    "Whether to report Promise<T> | T union contracts.",
-                                type: "boolean",
-                            },
+            schema: [
+                {
+                    additionalProperties: false,
+                    description:
+                        "Configuration for legacy alias and Promise-union enforcement in prefer-type-fest-promisable.",
+                    minProperties: 1,
+                    properties: {
+                        enforceLegacyAliases: {
+                            description:
+                                "Whether to report legacy imported aliases such as MaybePromise.",
+                            type: "boolean",
                         },
-                        type: "object",
+                        enforcePromiseUnions: {
+                            description:
+                                "Whether to report Promise<T> | T union contracts.",
+                            type: "boolean",
+                        },
                     },
-                ],
-                maxItems: 1,
-                minItems: 0,
-                type: "array",
-            },
+                    type: "object",
+                },
+            ],
             type: "suggestion",
         },
         name: "prefer-type-fest-promisable",

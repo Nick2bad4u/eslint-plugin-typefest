@@ -270,4 +270,30 @@ describe(areEquivalentTypeNodes, () => {
             )
         ).toBeTruthy();
     });
+
+    it("fails closed for deeply nested structures to avoid stack overflows", () => {
+        const leftRoot: { child?: unknown } = {};
+        const rightRoot: { child?: unknown } = {};
+
+        let leftCursor: { child?: unknown } = leftRoot;
+        let rightCursor: { child?: unknown } = rightRoot;
+
+        for (let depth = 0; depth < 512; depth += 1) {
+            const nextLeft: { child?: unknown } = {};
+            const nextRight: { child?: unknown } = {};
+
+            leftCursor.child = nextLeft;
+            rightCursor.child = nextRight;
+
+            leftCursor = nextLeft;
+            rightCursor = nextRight;
+        }
+
+        expect(
+            areEquivalentTypeNodes(
+                leftRoot as unknown as TSESTree.TypeNode,
+                rightRoot as unknown as TSESTree.TypeNode
+            )
+        ).toBeFalsy();
+    });
 });

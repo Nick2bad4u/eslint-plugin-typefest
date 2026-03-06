@@ -32,6 +32,72 @@ export type SafeTypeOperationFailureObserver<Reason extends string> = (
 ) => void;
 
 /**
+ * Shared observer set for operation failures across rule modules.
+ *
+ * @remarks
+ * Observers are intentionally process-local and opt-in; they exist for
+ * diagnostics and test instrumentation only.
+ */
+const safeTypeOperationFailureObservers = new Set<
+    SafeTypeOperationFailureObserver<string>
+>();
+
+/**
+ * Notify all registered global failure observers.
+ *
+ * @param failure - Failure payload emitted by a typed operation.
+ */
+const notifySafeTypeOperationFailureObservers = (
+    failure: Readonly<SafeTypeOperationFailure<string>>
+): void => {
+    for (const observer of safeTypeOperationFailureObservers) {
+        try {
+            observer(failure);
+        } catch {
+            // Observer failures must never break lint execution.
+        }
+    }
+};
+
+/**
+ * Register a process-local failure observer for typed operations.
+ *
+ * @param observer - Callback invoked for each operation failure.
+ *
+ * @returns Unsubscribe callback to remove the observer.
+ */
+export const registerSafeTypeOperationFailureObserver = (
+    observer: SafeTypeOperationFailureObserver<string>
+): (() => void) => {
+    safeTypeOperationFailureObservers.add(observer);
+
+    return () => {
+        safeTypeOperationFailureObservers.delete(observer);
+    };
+};
+
+/**
+ * Run one operation with a scoped failure observer that is always cleaned up.
+ *
+ * @param observer - Observer registered for the operation scope.
+ * @param operation - Synchronous operation to execute while observing failures.
+ *
+ * @returns Return value from {@link operation}.
+ */
+export const withSafeTypeOperationFailureObserver = <Result>(
+    observer: SafeTypeOperationFailureObserver<string>,
+    operation: () => Result
+): Result => {
+    const unsubscribe = registerSafeTypeOperationFailureObserver(observer);
+
+    try {
+        return operation();
+    } finally {
+        unsubscribe();
+    }
+};
+
+/**
  * Result shape for safe typed operations.
  */
 export type SafeTypeOperationResult<Result, Reason extends string> =
@@ -67,7 +133,13 @@ export const safeTypeOperation = <Result, Reason extends string>({
             reason,
         };
 
-        onFailure?.(failure);
+        try {
+            onFailure?.(failure);
+        } catch {
+            // Local observers are optional instrumentation; do not rethrow.
+        }
+
+        notifySafeTypeOperationFailureObservers(failure);
 
         return {
             failure,

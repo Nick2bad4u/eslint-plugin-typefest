@@ -250,30 +250,27 @@ const containsTypeScriptEslintTypeReferenceText = (
     namespaceNames: ReadonlySet<string>
 ): boolean => containsNamespaceQualifiedReferenceText(text, namespaceNames);
 
-const isTypeScriptEslintNodeLikeExpressionByDefinition = <
+const createTypeScriptEslintNodeLikeExpressionByDefinitionChecker = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 >(
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
-    expression: Readonly<TSESTree.Expression>,
     namespaceNames: ReadonlySet<string>
-): boolean => {
-    if (namespaceNames.size === 0) {
-        return false;
-    }
-
-    if (expression.type !== "Identifier") {
-        return false;
-    }
-
+): ((expression: Readonly<TSESTree.Expression>) => boolean) => {
     const definitionNodeTextByNode = new WeakMap<
         Readonly<TSESTree.Node>,
         string
     >();
 
+    const astNodeLikeByVariable = new WeakMap<
+        Readonly<TSESLint.Scope.Variable>,
+        boolean
+    >();
+
+    const sourceCode = context.sourceCode;
+
     const getDefinitionNodeText = (
-        definitionNode: Readonly<TSESTree.Node>,
-        sourceCode: Readonly<TSESLint.SourceCode>
+        definitionNode: Readonly<TSESTree.Node>
     ): string => {
         const cachedText = definitionNodeTextByNode.get(definitionNode);
         if (isDefined(cachedText)) {
@@ -287,103 +284,134 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
         return definitionNodeText;
     };
 
-    const resolutionResult = safeTypeOperation({
-        operation: () => {
-            const { sourceCode } = context;
-            const currentScope = sourceCode.getScope(expression);
-            const variable = getVariableInScopeChain(
-                currentScope,
-                expression.name
-            );
+    return (expression) => {
+        if (namespaceNames.size === 0) {
+            return false;
+        }
 
-            if (variable === null) {
-                return false;
-            }
+        if (expression.type !== "Identifier") {
+            return false;
+        }
 
-            const visitedDefinitionNodes = new Set<TSESTree.Node>();
-            const pendingDefinitionNodes: TSESTree.Node[] = [];
-
-            const enqueueDefinitionNode = (
-                node: null | Readonly<TSESTree.Node> | undefined
-            ): void => {
-                if (node === null || !isDefined(node)) {
-                    return;
-                }
-
-                if (setContainsValue(visitedDefinitionNodes, node)) {
-                    return;
-                }
-
-                pendingDefinitionNodes.push(node);
-            };
-
-            for (const definition of variable.defs) {
-                enqueueDefinitionNode(definition.node);
-            }
-
-            while (pendingDefinitionNodes.length > 0) {
-                const definitionNode = pendingDefinitionNodes.pop();
-
-                if (!isDefined(definitionNode)) {
-                    continue;
-                }
-
-                visitedDefinitionNodes.add(definitionNode);
-
-                if (
-                    containsTypeScriptEslintTypeReference(
-                        definitionNode,
-                        namespaceNames
-                    )
-                ) {
-                    return true;
-                }
-
-                const definitionNodeText = getDefinitionNodeText(
-                    definitionNode,
-                    sourceCode
+        const resolutionResult = safeTypeOperation({
+            operation: () => {
+                const currentScope = sourceCode.getScope(expression);
+                const variable = getVariableInScopeChain(
+                    currentScope,
+                    expression.name
                 );
-                if (
-                    containsTypeScriptEslintTypeReferenceText(
-                        definitionNodeText,
-                        namespaceNames
-                    )
-                ) {
-                    return true;
+
+                if (variable === null) {
+                    return false;
                 }
 
-                if (
-                    definitionNode.type === "VariableDeclarator" &&
-                    definitionNode.init !== null &&
-                    definitionNode.init.type === "MemberExpression" &&
-                    definitionNode.init.object.type === "Identifier"
-                ) {
-                    const { object } = definitionNode.init;
-                    const objectVariable = getVariableInScopeChain(
-                        currentScope,
-                        object.name
-                    );
+                const cachedVariableResult =
+                    astNodeLikeByVariable.get(variable);
 
-                    if (objectVariable === null) {
+                if (isDefined(cachedVariableResult)) {
+                    return cachedVariableResult;
+                }
+
+                const visitedDefinitionNodes = new Set<TSESTree.Node>();
+                const pendingDefinitionNodes: TSESTree.Node[] = [];
+
+                const enqueueDefinitionNode = (
+                    node: null | Readonly<TSESTree.Node> | undefined
+                ): void => {
+                    if (node === null || !isDefined(node)) {
+                        return;
+                    }
+
+                    if (setContainsValue(visitedDefinitionNodes, node)) {
+                        return;
+                    }
+
+                    pendingDefinitionNodes.push(node);
+                };
+
+                for (const definition of variable.defs) {
+                    enqueueDefinitionNode(definition.node);
+                }
+
+                let variableReferencesTypeScriptEslintNode = false;
+
+                while (pendingDefinitionNodes.length > 0) {
+                    const definitionNode = pendingDefinitionNodes.pop();
+
+                    if (!isDefined(definitionNode)) {
                         continue;
                     }
 
-                    for (const objectDefinition of objectVariable.defs) {
-                        enqueueDefinitionNode(objectDefinition.node);
+                    visitedDefinitionNodes.add(definitionNode);
+
+                    if (
+                        containsTypeScriptEslintTypeReference(
+                            definitionNode,
+                            namespaceNames
+                        )
+                    ) {
+                        variableReferencesTypeScriptEslintNode = true;
+                        break;
+                    }
+
+                    const definitionNodeText =
+                        getDefinitionNodeText(definitionNode);
+                    if (
+                        containsTypeScriptEslintTypeReferenceText(
+                            definitionNodeText,
+                            namespaceNames
+                        )
+                    ) {
+                        variableReferencesTypeScriptEslintNode = true;
+                        break;
+                    }
+
+                    if (
+                        definitionNode.type === "VariableDeclarator" &&
+                        definitionNode.init !== null &&
+                        definitionNode.init.type === "MemberExpression" &&
+                        definitionNode.init.object.type === "Identifier"
+                    ) {
+                        const { object } = definitionNode.init;
+                        const objectVariable = getVariableInScopeChain(
+                            currentScope,
+                            object.name
+                        );
+
+                        if (objectVariable === null) {
+                            continue;
+                        }
+
+                        const cachedObjectVariableResult =
+                            astNodeLikeByVariable.get(objectVariable);
+
+                        if (cachedObjectVariableResult === true) {
+                            variableReferencesTypeScriptEslintNode = true;
+                            break;
+                        }
+
+                        for (const objectDefinition of objectVariable.defs) {
+                            enqueueDefinitionNode(objectDefinition.node);
+                        }
                     }
                 }
-            }
 
+                astNodeLikeByVariable.set(
+                    variable,
+                    variableReferencesTypeScriptEslintNode
+                );
+
+                return variableReferencesTypeScriptEslintNode;
+            },
+            reason: "ts-eslint-node-autofix-definition-fallback-failed",
+        });
+
+        if (!resolutionResult.ok) {
             return false;
-        },
-        reason: "ts-eslint-node-autofix-definition-fallback-failed",
-    });
+        }
 
-    if (!resolutionResult.ok) {
-        return false;
-    }
-
-    return resolutionResult.value;
+        return resolutionResult.value;
+    };
 };
 
 const collectNestedTypeArguments = (
@@ -533,6 +561,12 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
         context.sourceCode
     );
 
+    const isTypeScriptEslintNodeLikeExpressionByDefinition =
+        createTypeScriptEslintNodeLikeExpressionByDefinitionChecker(
+            context,
+            namespaceNames
+        );
+
     const typedServicesResult = safeTypeOperation({
         operation: () => getTypedRuleServices(context),
         reason: "ts-eslint-node-autofix-typed-services-unavailable",
@@ -546,11 +580,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
                 return cachedResult;
             }
 
-            const shouldSkip = isTypeScriptEslintNodeLikeExpressionByDefinition(
-                context,
-                expression,
-                namespaceNames
-            );
+            const shouldSkip =
+                isTypeScriptEslintNodeLikeExpressionByDefinition(expression);
 
             shouldSkipExpressionCache.set(expression, shouldSkip);
 
@@ -592,11 +623,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
             return true;
         }
 
-        const shouldSkip = isTypeScriptEslintNodeLikeExpressionByDefinition(
-            context,
-            expression,
-            namespaceNames
-        );
+        const shouldSkip =
+            isTypeScriptEslintNodeLikeExpressionByDefinition(expression);
 
         shouldSkipExpressionCache.set(expression, shouldSkip);
 

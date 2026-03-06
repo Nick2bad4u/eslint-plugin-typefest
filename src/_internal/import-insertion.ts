@@ -369,16 +369,20 @@ const getProgramInsertionLayout = (
  * @param fixer - Rule fixer from ESLint.
  * @param referenceNode - Node used to discover the enclosing Program.
  * @param importDeclarationText - Full import declaration text to insert.
+ * @param moduleSpecifierHint - Optional known module specifier that skips
+ *   import-text parsing when provided.
  *
  * @returns Rule fix when insertion is possible; otherwise `null`.
  */
 export const createImportInsertionFix = ({
     fixer,
     importDeclarationText,
+    moduleSpecifierHint,
     referenceNode,
 }: Readonly<{
     fixer: TSESLint.RuleFixer;
     importDeclarationText: string;
+    moduleSpecifierHint?: string;
     referenceNode: Readonly<TSESTree.Node>;
 }>): null | TSESLint.RuleFix => {
     if (isImportInsertionFixesDisabledForNode(referenceNode)) {
@@ -398,9 +402,11 @@ export const createImportInsertionFix = ({
     const insertionLayout = getProgramInsertionLayout(programNode);
 
     if (insertionLayout.importDeclarations.length > 0) {
-        const moduleSpecifier = getModuleSpecifierFromImportDeclarationText(
-            normalizedImportDeclarationText
-        );
+        const moduleSpecifier =
+            moduleSpecifierHint ??
+            getModuleSpecifierFromImportDeclarationText(
+                normalizedImportDeclarationText
+            );
 
         if (
             typeof moduleSpecifier === "string" &&

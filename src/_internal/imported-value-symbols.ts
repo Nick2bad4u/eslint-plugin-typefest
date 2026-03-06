@@ -286,6 +286,7 @@ const createInsertNamedValueImportFix = ({
     return createImportInsertionFix({
         fixer,
         importDeclarationText,
+        moduleSpecifierHint: sourceModuleName,
         referenceNode,
     });
 };

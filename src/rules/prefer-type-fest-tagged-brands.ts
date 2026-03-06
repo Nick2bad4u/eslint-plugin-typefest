@@ -227,32 +227,27 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 preferTaggedBrand:
                     "Type alias '{{alias}}' uses ad-hoc branding. Prefer `Tagged` from type-fest for branded primitive identifiers.",
             },
-            schema: {
-                items: [
-                    {
-                        additionalProperties: false,
-                        description:
-                            "Configuration for tagged-brand enforcement surfaces.",
-                        minProperties: 1,
-                        properties: {
-                            enforceAdHocBrandIntersections: {
-                                description:
-                                    "Whether to report ad-hoc branded intersections using __brand/__tag/brand fields.",
-                                type: "boolean",
-                            },
-                            enforceLegacyAliases: {
-                                description:
-                                    "Whether to report imported legacy branded aliases such as Opaque and Branded.",
-                                type: "boolean",
-                            },
+            schema: [
+                {
+                    additionalProperties: false,
+                    description:
+                        "Configuration for tagged-brand enforcement surfaces.",
+                    minProperties: 1,
+                    properties: {
+                        enforceAdHocBrandIntersections: {
+                            description:
+                                "Whether to report ad-hoc branded intersections using __brand/__tag/brand fields.",
+                            type: "boolean",
                         },
-                        type: "object",
+                        enforceLegacyAliases: {
+                            description:
+                                "Whether to report imported legacy branded aliases such as Opaque and Branded.",
+                            type: "boolean",
+                        },
                     },
-                ],
-                maxItems: 1,
-                minItems: 0,
-                type: "array",
-            },
+                    type: "object",
+                },
+            ],
             type: "suggestion",
         },
         name: "prefer-type-fest-tagged-brands",

@@ -27,6 +27,16 @@ const ignoredPropertyKeys = new Set<string>([
 ]);
 
 /**
+ * Maximum recursive depth allowed during structural node-value comparisons.
+ *
+ * @remarks
+ * This guard avoids stack-overflow crashes on pathological, adversarially deep
+ * AST/type structures. Returning `false` in that case preserves lint-process
+ * stability by failing closed for autofix-equivalence checks.
+ */
+const MAX_NODE_VALUE_COMPARISON_DEPTH = 256;
+
+/**
  * Check whether a value is object-like for structural comparisons.
  */
 const isComparableRecord = (value: unknown): value is ComparableObject =>
@@ -39,6 +49,30 @@ const getComparableKeys = (value: ComparableObject): readonly string[] =>
     objectKeys(value).filter(
         (key) => !setContainsValue(ignoredPropertyKeys, key)
     );
+
+/**
+ * Read comparable keys with per-comparison caching to reduce repeated
+ * key-filter allocations during deep traversals.
+ *
+ * @param value - Object candidate being compared.
+ * @param comparableKeysByObject - Per-comparison key cache.
+ *
+ * @returns Comparable key list with ESTree metadata keys removed.
+ */
+const getCachedComparableKeys = (
+    value: ComparableObject,
+    comparableKeysByObject: WeakMap<ComparableObject, readonly string[]>
+): readonly string[] => {
+    const existingComparableKeys = comparableKeysByObject.get(value);
+    if (isDefined(existingComparableKeys)) {
+        return existingComparableKeys;
+    }
+
+    const comparableKeys = getComparableKeys(value);
+    comparableKeysByObject.set(value, comparableKeys);
+
+    return comparableKeys;
+};
 
 /**
  * Unwrap transparent TypeScript expression wrappers.
@@ -127,8 +161,17 @@ const markAndCheckSeenPair = (
 const areEquivalentNodeValues = (
     left: unknown,
     right: unknown,
-    seenPairs: WeakMap<object, WeakSet<object>> = new WeakMap()
+    seenPairs: WeakMap<object, WeakSet<object>> = new WeakMap(),
+    comparableKeysByObject: WeakMap<
+        ComparableObject,
+        readonly string[]
+    > = new WeakMap(),
+    depth = 0
 ): boolean => {
+    if (depth >= MAX_NODE_VALUE_COMPARISON_DEPTH) {
+        return false;
+    }
+
     if (Object.is(left, right)) {
         return true;
     }
@@ -155,7 +198,13 @@ const areEquivalentNodeValues = (
         }
 
         return left.every((value, index) =>
-            areEquivalentNodeValues(value, right[index], seenPairs)
+            areEquivalentNodeValues(
+                value,
+                right[index],
+                seenPairs,
+                comparableKeysByObject,
+                depth + 1
+            )
         );
     }
 
@@ -167,8 +216,8 @@ const areEquivalentNodeValues = (
         return true;
     }
 
-    const leftKeys = getComparableKeys(left);
-    const rightKeys = getComparableKeys(right);
+    const leftKeys = getCachedComparableKeys(left, comparableKeysByObject);
+    const rightKeys = getCachedComparableKeys(right, comparableKeysByObject);
     const rightKeySet = new Set(rightKeys);
 
     if (leftKeys.length !== rightKeys.length) {
@@ -184,7 +233,13 @@ const areEquivalentNodeValues = (
             return false;
         }
 
-        return areEquivalentNodeValues(left[key], right[key], seenPairs);
+        return areEquivalentNodeValues(
+            left[key],
+            right[key],
+            seenPairs,
+            comparableKeysByObject,
+            depth + 1
+        );
     });
 };
 

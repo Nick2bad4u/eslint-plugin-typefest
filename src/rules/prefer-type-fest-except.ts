@@ -121,27 +121,22 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 preferExcept:
                     "Prefer `Except<T, K>` from type-fest over `Omit<T, K>` for stricter omitted-key modeling.",
             },
-            schema: {
-                items: [
-                    {
-                        additionalProperties: false,
-                        description:
-                            "Configuration for builtin Omit enforcement in prefer-type-fest-except.",
-                        minProperties: 1,
-                        properties: {
-                            enforceBuiltinOmit: {
-                                description:
-                                    "Whether to report builtin Omit<T, K> references in addition to imported legacy aliases.",
-                                type: "boolean",
-                            },
+            schema: [
+                {
+                    additionalProperties: false,
+                    description:
+                        "Configuration for builtin Omit enforcement in prefer-type-fest-except.",
+                    minProperties: 1,
+                    properties: {
+                        enforceBuiltinOmit: {
+                            description:
+                                "Whether to report builtin Omit<T, K> references in addition to imported legacy aliases.",
+                            type: "boolean",
                         },
-                        type: "object",
                     },
-                ],
-                maxItems: 1,
-                minItems: 0,
-                type: "array",
-            },
+                    type: "object",
+                },
+            ],
             type: "suggestion",
         },
         name: "prefer-type-fest-except",

@@ -12,11 +12,39 @@ import { afterAll, describe, it } from "vitest";
 
 import typefestPlugin from "../../src/plugin";
 
-RuleTester.afterAll = afterAll;
+/**
+ * Assert that a dynamic runtime value is callable for RuleTester hook wiring.
+ *
+ * @param candidate - Dynamic value under validation.
+ * @param hookName - Human-readable hook label for diagnostics.
+ */
+const assertRuleTesterHook: (
+    candidate: unknown,
+    hookName: string
+) => asserts candidate is (...arguments_: UnknownArray) => unknown = (
+    candidate,
+    hookName
+) => {
+    if (typeof candidate !== "function") {
+        throw new TypeError(
+            `Expected Vitest hook '${hookName}' to be a function for RuleTester wiring.`
+        );
+    }
+};
+
+assertRuleTesterHook(afterAll, "afterAll");
+RuleTester.afterAll = afterAll as unknown as typeof RuleTester.afterAll;
+assertRuleTesterHook(describe, "describe");
 RuleTester.describe = describe as unknown as typeof RuleTester.describe;
-RuleTester.it = it as unknown as typeof RuleTester.it;
-const vitestItOnly = Reflect.get(it, "only") as typeof it;
-RuleTester.itOnly = vitestItOnly as unknown as typeof RuleTester.itOnly;
+assertRuleTesterHook(it, "it");
+RuleTester.it = it;
+const vitestItOnly: unknown = Reflect.get(it, "only");
+assertRuleTesterHook(vitestItOnly, "it.only");
+RuleTester.itOnly = (
+    ...arguments_: readonly [...Parameters<typeof RuleTester.itOnly>]
+) => {
+    Reflect.apply(vitestItOnly, undefined, arguments_);
+};
 
 /** Rule module parameter type accepted by `RuleTester#run`. */
 type PluginRuleModule = Parameters<RuleTester["run"]>[1];

@@ -201,6 +201,7 @@ const getInsertionFixForMissingNamedTypeImport = ({
     return createImportInsertionFix({
         fixer,
         importDeclarationText,
+        moduleSpecifierHint: sourceModuleName,
         referenceNode: node,
     });
 };

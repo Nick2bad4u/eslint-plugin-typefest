@@ -173,33 +173,28 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 preferTupleOf:
                     "Prefer `{{replacement}}` from type-fest to model fixed-length homogeneous tuples instead of legacy alias `{{alias}}`.",
             },
-            schema: {
-                items: [
-                    {
-                        additionalProperties: false,
-                        description:
-                            "Configuration for alias names enforced by prefer-type-fest-tuple-of.",
-                        minProperties: 1,
-                        properties: {
-                            enforcedAliasNames: {
-                                description:
-                                    "Legacy alias names to report and replace with TupleOf forms.",
-                                items: {
-                                    enum: [...tupleOfLegacyAliases],
-                                    type: "string",
-                                },
-                                minItems: 1,
-                                type: "array",
-                                uniqueItems: true,
+            schema: [
+                {
+                    additionalProperties: false,
+                    description:
+                        "Configuration for alias names enforced by prefer-type-fest-tuple-of.",
+                    minProperties: 1,
+                    properties: {
+                        enforcedAliasNames: {
+                            description:
+                                "Legacy alias names to report and replace with TupleOf forms.",
+                            items: {
+                                enum: [...tupleOfLegacyAliases],
+                                type: "string",
                             },
+                            minItems: 1,
+                            type: "array",
+                            uniqueItems: true,
                         },
-                        type: "object",
                     },
-                ],
-                maxItems: 1,
-                minItems: 0,
-                type: "array",
-            },
+                    type: "object",
+                },
+            ],
             type: "suggestion",
         },
         name: "prefer-type-fest-tuple-of",
