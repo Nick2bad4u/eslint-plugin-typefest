@@ -78,6 +78,14 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-ts-extras-array-find"
         );
 
+        const recommendedRuleIds = new Set(Object.keys(recommended.rules));
+
+        for (const [ruleName, rule] of Object.entries(plugin.rules)) {
+            expect(rule.meta?.docs?.recommended).toBe(
+                recommendedRuleIds.has(`typefest/${ruleName}`)
+            );
+        }
+
         expect(plugin.configs.all.name).toBe("typefest:all");
         expect(plugin.configs.minimal.name).toBe("typefest:minimal");
         expect(plugin.configs.recommended.name).toBe("typefest:recommended");

@@ -345,6 +345,7 @@ export const executeRuntimeLooseNullSourceText = (
           })
         : `${runtimeIsPresentShimDeclaration}\n${sourceText}`;
 
+    // eslint-disable-next-line sonarjs/code-eval -- Test-only harness intentionally executes repository-controlled transformed snippets to verify semantic equivalence.
     const executionResult = vm.runInNewContext(
         [
             "(() => {",

@@ -7,7 +7,7 @@ import type { ESLint, Linter } from "eslint";
 import type { Except, PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
-import { isDefined, objectEntries, safeCastTo } from "ts-extras";
+import { arrayIncludes, isDefined, objectEntries, safeCastTo } from "ts-extras";
 
 import type {
     TypefestConfigName as InternalTypefestConfigName,
@@ -219,7 +219,7 @@ const isMissingTypeScriptParserError = (error: unknown): boolean => {
 
     return (
         typeof message === "string" &&
-        message.includes("@typescript-eslint/parser")
+        String.prototype.includes.call(message, "@typescript-eslint/parser")
     );
 };
 
@@ -363,11 +363,8 @@ const typefestRuleEntries = safeCastTo<
     readonly (readonly [TypefestRuleName, RuleWithDocs])[]
 >(objectEntries(typefestRules));
 
-for (const [ruleName, rule] of typefestRuleEntries) {
-    if (rule.meta?.docs !== undefined) {
-        rule.meta.docs.url ??= createRuleDocsUrl(ruleName);
-    }
-}
+/** Canonical preset reference that marks rule metadata as recommended. */
+const RECOMMENDED_CONFIG_REFERENCE = "typefest.configs.recommended" as const;
 
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
@@ -414,6 +411,35 @@ const normalizeTypefestConfigReferences = (
 
     return references;
 };
+
+/**
+ * Sync rule docs metadata fields that are derivable from preset references.
+ *
+ * @remarks
+ * `docs.recommended` must reflect actual membership in `configs.recommended` at
+ * runtime; we derive it from `docs.typefestConfigs` so rule pages and inspector
+ * UIs cannot drift.
+ */
+const syncDerivedRuleDocsMetadata = (): void => {
+    for (const [ruleName, rule] of typefestRuleEntries) {
+        const docs = rule.meta?.docs;
+        if (docs === undefined) {
+            continue;
+        }
+
+        docs.url ??= createRuleDocsUrl(ruleName);
+
+        const references = normalizeTypefestConfigReferences(
+            docs.typefestConfigs
+        );
+        docs.recommended = arrayIncludes<TypefestConfigReference>(
+            references,
+            RECOMMENDED_CONFIG_REFERENCE
+        );
+    }
+};
+
+syncDerivedRuleDocsMetadata();
 
 const derivePresetRuleNamesByConfig = (): Readonly<
     Record<TypefestConfigName, readonly TypefestRuleName[]>
