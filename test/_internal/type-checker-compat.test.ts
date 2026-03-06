@@ -19,7 +19,9 @@ import {
 
 describe("type-checker-compat", () => {
     const sourceType = {} as ts.Type;
-    const sourceTypeReference = {} as ts.TypeReference;
+    const sourceTypeReference = {
+        target: {},
+    } as unknown as ts.TypeReference;
     const targetType = {} as ts.Type;
 
     it("returns undefined from optional helpers when methods are unavailable", () => {
@@ -47,6 +49,29 @@ describe("type-checker-compat", () => {
         expect(
             getTypeCheckerTypeArguments(checker, sourceTypeReference)
         ).toBeUndefined();
+    });
+
+    it("does not invoke type-argument lookup for non-reference types", () => {
+        const checker = {
+            getTypeArguments: vi
+                .fn<
+                    (
+                        this: ts.TypeChecker,
+                        type: Readonly<ts.TypeReference>
+                    ) => readonly ts.Type[]
+                >()
+                .mockImplementation(function (this: ts.TypeChecker, type) {
+                    expect(this).toBe(checker);
+                    expect(type).toBe(sourceTypeReference);
+
+                    return [];
+                }),
+        } as unknown as ts.TypeChecker;
+
+        expect(
+            getTypeCheckerTypeArguments(checker, sourceType)
+        ).toBeUndefined();
+        expect(checker.getTypeArguments).not.toHaveBeenCalled();
     });
 
     it("delegates apparent type lookup with checker-bound this", () => {

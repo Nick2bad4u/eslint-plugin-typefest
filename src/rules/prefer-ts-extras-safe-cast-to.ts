@@ -4,12 +4,13 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined, safeCastTo  } from "ts-extras";
+import { isDefined, safeCastTo } from "ts-extras";
 import ts from "typescript";
 
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -78,9 +79,11 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                 const result = safeTypeOperation({
                     operation: () => {
                         const expressionTsNode: ts.Node | undefined =
-                            safeCastTo<ts.Node | undefined>(parserServices.esTreeNodeToTSNodeMap.get(
-                                expression
-                            ));
+                            safeCastTo<ts.Node | undefined>(
+                                parserServices.esTreeNodeToTSNodeMap.get(
+                                    expression
+                                )
+                            );
                         const annotationTsNode =
                             parserServices.esTreeNodeToTSNodeMap.get(
                                 typeAnnotation
@@ -104,12 +107,22 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                             return null;
                         }
 
+                        const expressionArgumentText =
+                            getFunctionCallArgumentText({
+                                argumentNode: expression,
+                                sourceCode: context.sourceCode,
+                            });
+
+                        if (expressionArgumentText === null) {
+                            return null;
+                        }
+
                         return createSafeValueNodeTextReplacementFix({
                             context,
                             importedName: "safeCastTo",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
-                                `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${context.sourceCode.getText(expression)})`,
+                                `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${expressionArgumentText})`,
                             sourceModuleName: "ts-extras",
                             targetNode: node,
                         });

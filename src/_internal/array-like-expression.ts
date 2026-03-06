@@ -10,6 +10,7 @@ import { isDefined } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
+import { setContainsValue } from "./set-membership.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerBaseConstraintType,
@@ -68,7 +69,7 @@ const evaluateIsArrayLikeType = ({
         return cachedResult;
     }
 
-    if (seenTypes.has(candidateType)) {
+    if (setContainsValue(seenTypes, candidateType)) {
         return false;
     }
 

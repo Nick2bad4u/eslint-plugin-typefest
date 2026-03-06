@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import { arrayIncludes, isDefined } from "ts-extras";
 
 /**
  * Normalized representation of one binary comparison against null/undefined.
@@ -147,7 +147,7 @@ export const getNullishComparison = ({
         return null;
     }
 
-    if (!allowedOperators.includes(expression.operator)) {
+    if (!arrayIncludes(allowedOperators, expression.operator)) {
         return null;
     }
 

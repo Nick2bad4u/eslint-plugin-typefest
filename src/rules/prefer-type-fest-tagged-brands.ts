@@ -11,6 +11,7 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-type-fest-tagged-brands`;
@@ -55,7 +56,8 @@ const hasAdHocBrandLiteral = (
 
             const { key } = literalMember;
             return (
-                key.type === "Identifier" && BRAND_PROPERTY_NAMES.has(key.name)
+                key.type === "Identifier" &&
+                setContainsValue(BRAND_PROPERTY_NAMES, key.name)
             );
         });
     });

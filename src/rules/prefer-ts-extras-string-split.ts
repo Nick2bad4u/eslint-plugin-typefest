@@ -5,11 +5,12 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
-import { isDefined, setHas  } from "ts-extras";
+import { isDefined } from "ts-extras";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
+import { setContainsValue } from "../_internal/set-membership.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerStringType,
@@ -69,7 +70,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         return cachedResult;
                     }
 
-                    if (setHas(seenTypes, candidateType)) {
+                    if (setContainsValue(seenTypes, candidateType)) {
                         return false;
                     }
 

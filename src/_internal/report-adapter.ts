@@ -5,7 +5,7 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
-import { isDefined } from "ts-extras";
+import { isDefined, objectHasOwn } from "ts-extras";
 
 /**
  * Contract for adapting a rule-context report callback.
@@ -48,7 +48,7 @@ const hasCallableOwnFixDataProperty = <
         return false;
     }
 
-    if (!Object.hasOwn(ownFixDescriptor, "value")) {
+    if (!objectHasOwn(ownFixDescriptor, "value")) {
         return false;
     }
 

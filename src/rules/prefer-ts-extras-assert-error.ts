@@ -8,6 +8,7 @@ import type { UnknownArray } from "type-fest";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -117,13 +118,30 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const guardExpressionArgumentText =
+                        getFunctionCallArgumentText({
+                            argumentNode: guardExpression,
+                            sourceCode: context.sourceCode,
+                        });
+
+                    if (guardExpressionArgumentText === null) {
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
+                            messageId: "preferTsExtrasAssertError",
+                            node,
+                        });
+
+                        return;
+                    }
+
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
                             context,
                             importedName: "assertError",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
-                                `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                                `${replacementName}(${guardExpressionArgumentText});`,
                             reportFixIntent: "suggestion",
                             sourceModuleName: "ts-extras",
                             targetNode: node,

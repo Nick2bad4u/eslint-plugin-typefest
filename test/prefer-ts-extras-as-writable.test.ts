@@ -418,6 +418,15 @@ describe("prefer-ts-extras-as-writable internal listener guards", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set<string>(),
                 createSafeValueNodeTextReplacementFix: () => null,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -501,6 +510,15 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
                     new Set<string>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =

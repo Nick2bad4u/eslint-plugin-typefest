@@ -4,10 +4,10 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { ESLint, Linter } from "eslint";
-import type { PackageJson, UnknownArray } from "type-fest";
+import type { Except, PackageJson, UnknownArray } from "type-fest";
 
 import { createRequire } from "node:module";
-import { isDefined, objectEntries, safeCastTo   } from "ts-extras";
+import { isDefined, objectEntries, safeCastTo } from "ts-extras";
 
 import type {
     TypefestConfigName as InternalTypefestConfigName,
@@ -152,7 +152,7 @@ type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
 type TypefestConfigsContract = Record<TypefestConfigName, TypefestPresetConfig>;
 
 /** Fully assembled plugin contract used by the runtime default export. */
-type TypefestPluginContract = Omit<ESLint.Plugin, "configs" | "rules"> & {
+type TypefestPluginContract = Except<ESLint.Plugin, "configs" | "rules"> & {
     configs: TypefestConfigsContract;
     meta: {
         name: string;
@@ -229,7 +229,9 @@ const isMissingTypeScriptParserError = (error: unknown): boolean => {
  */
 function loadTypeScriptParser(): null | TypeScriptParser {
     try {
-        return safeCastTo<TypeScriptParser>(require("@typescript-eslint/parser"));
+        return safeCastTo<TypeScriptParser>(
+            require("@typescript-eslint/parser")
+        );
     } catch (error: unknown) {
         if (!isMissingTypeScriptParserError(error)) {
             throw error;
@@ -355,9 +357,9 @@ const typefestEslintRules: NonNullable<ESLint.Plugin["rules"]> &
 > &
     typeof typefestRules;
 
-const typefestRuleEntries = safeCastTo<readonly (readonly [TypefestRuleName, RuleWithDocs])[]>(objectEntries(
-    typefestRules
-));
+const typefestRuleEntries = safeCastTo<
+    readonly (readonly [TypefestRuleName, RuleWithDocs])[]
+>(objectEntries(typefestRules));
 
 for (const [ruleName, rule] of typefestRuleEntries) {
     if (rule.meta?.docs) {
@@ -509,7 +511,7 @@ function withTypefestPlugin(
     if (typeScriptParser) {
         languageOptions["parser"] =
             existingLanguageOptions["parser"] ??
-            (safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser));
+            safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser);
 
         const existingParserOptions = existingLanguageOptions["parserOptions"];
 

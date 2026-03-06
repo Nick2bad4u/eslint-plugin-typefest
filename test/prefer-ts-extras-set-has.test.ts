@@ -17,13 +17,11 @@ import {
     inlineFixableCode,
     inlineFixableOutput,
     invalidFixtureName,
-    mixedUnionInvalidCode,
-    mixedUnionInvalidOutput,
+    mixedUnionValidCode,
     nonSetReceiverValidCode,
     readonlySetInvalidCode,
     readonlySetInvalidOutput,
-    reversedMixedUnionInvalidCode,
-    reversedMixedUnionInvalidOutput,
+    reversedMixedUnionValidCode,
     setDifferentMethodValidCode,
     unionSetInvalidCode,
     unionSetInvalidOutput,
@@ -49,7 +47,7 @@ import {
 
 const ruleId = "prefer-ts-extras-set-has";
 const docsDescription =
-    "require ts-extras setHas over Set#has for stronger element narrowing.";
+    "require direct ts-extras setHas over Set#has at membership call sites for stronger element narrowing.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has";
 const preferTsExtrasSetHasMessage =
@@ -735,20 +733,6 @@ ruleTester.run(ruleId, rule, {
             output: readonlySetInvalidOutput,
         },
         {
-            code: mixedUnionInvalidCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports union of set and map when calling has",
-            output: mixedUnionInvalidOutput,
-        },
-        {
-            code: reversedMixedUnionInvalidCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports union of map and set when calling has",
-            output: reversedMixedUnionInvalidOutput,
-        },
-        {
             code: declaredUnionSetInvalidCode,
             errors: [{ messageId: "preferTsExtrasSetHas" }],
             filename: typedFixturePath(invalidFixtureName),
@@ -800,6 +784,16 @@ ruleTester.run(ruleId, rule, {
             code: setDifferentMethodValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-has set method invocation",
+        },
+        {
+            code: mixedUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union of set and map when calling has",
+        },
+        {
+            code: reversedMixedUnionValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores union of map and set when calling has",
         },
     ],
 });

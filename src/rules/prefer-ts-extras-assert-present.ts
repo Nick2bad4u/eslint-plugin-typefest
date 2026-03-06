@@ -7,6 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
@@ -279,6 +280,22 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                             guardExpression,
                             throwStatement,
                         });
+                    const guardExpressionArgumentText =
+                        getFunctionCallArgumentText({
+                            argumentNode: guardExpression,
+                            sourceCode: context.sourceCode,
+                        });
+
+                    if (guardExpressionArgumentText === null) {
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
+                            messageId: "preferTsExtrasAssertPresent",
+                            node,
+                        });
+
+                        return;
+                    }
 
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
@@ -286,7 +303,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                             importedName: "assertPresent",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
-                                `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                                `${replacementName}(${guardExpressionArgumentText});`,
                             reportFixIntent: canAutofix
                                 ? "autofix"
                                 : "suggestion",

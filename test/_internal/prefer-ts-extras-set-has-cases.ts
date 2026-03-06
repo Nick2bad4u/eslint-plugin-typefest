@@ -54,29 +54,15 @@ export const unionSetInvalidOutput: string = [
     "String(hasValue);",
 ].join("\n");
 
-export const mixedUnionInvalidCode: string = [
+export const mixedUnionValidCode: string = [
     "declare const values: Set<number> | Map<number, number>;",
     "const hasValue = values.has(2);",
     "String(hasValue);",
 ].join("\n");
 
-export const mixedUnionInvalidOutput: string = [
-    'import { setHas } from "ts-extras";',
-    "declare const values: Set<number> | Map<number, number>;",
-    "const hasValue = setHas(values, 2);",
-    "String(hasValue);",
-].join("\n");
-
-export const reversedMixedUnionInvalidCode: string = [
+export const reversedMixedUnionValidCode: string = [
     "declare const values: Map<number, number> | Set<number>;",
     "const hasValue = values.has(2);",
-    "String(hasValue);",
-].join("\n");
-
-export const reversedMixedUnionInvalidOutput: string = [
-    'import { setHas } from "ts-extras";',
-    "declare const values: Map<number, number> | Set<number>;",
-    "const hasValue = setHas(values, 2);",
     "String(hasValue);",
 ].join("\n");
 

@@ -61,6 +61,15 @@ describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set(["assertPresent"]),
                 createSafeValueNodeTextReplacementFix: () => () => [],
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
@@ -252,6 +261,15 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                             options.targetNode,
                             options.replacementTextFactory("assertPresent")
                         ),
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -375,6 +393,15 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                             options.targetNode,
                             options.replacementTextFactory("assertPresent")
                         ),
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =

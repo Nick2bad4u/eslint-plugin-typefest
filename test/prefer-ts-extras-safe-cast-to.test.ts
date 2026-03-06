@@ -349,6 +349,15 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set<string>(),
                 createSafeValueNodeTextReplacementFix: () => null,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -429,6 +438,15 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set<string>(),
                 createSafeValueNodeTextReplacementFix: () => null,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -526,6 +544,15 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -697,6 +724,15 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =

@@ -4,7 +4,7 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { arrayAt, isInteger  } from "ts-extras";
+import { arrayAt, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
@@ -271,8 +271,11 @@ const getNodeRange = (
  */
 const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
     const nodeRange = getNodeRange(node);
+    if (nodeRange === null) {
+        return null;
+    }
 
-    return nodeRange?.[0] ?? null;
+    return arrayAt(nodeRange, 0) ?? null;
 };
 
 /**

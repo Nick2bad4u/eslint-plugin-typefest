@@ -7,6 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -157,6 +158,22 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                     const canAutofix =
                         throwStatement !== null &&
                         isCanonicalAssertDefinedThrow(context, throwStatement);
+                    const guardExpressionArgumentText =
+                        getFunctionCallArgumentText({
+                            argumentNode: guardExpression,
+                            sourceCode: context.sourceCode,
+                        });
+
+                    if (guardExpressionArgumentText === null) {
+                        reportWithOptionalFix({
+                            context,
+                            fix: null,
+                            messageId: "preferTsExtrasAssertDefined",
+                            node,
+                        });
+
+                        return;
+                    }
 
                     const replacementFix =
                         createSafeValueNodeTextReplacementFix({
@@ -164,7 +181,7 @@ const preferTsExtrasAssertDefinedRule: ReturnType<typeof createTypedRule> =
                             importedName: "assertDefined",
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
-                                `${replacementName}(${context.sourceCode.getText(guardExpression)});`,
+                                `${replacementName}(${guardExpressionArgumentText});`,
                             reportFixIntent: canAutofix
                                 ? "autofix"
                                 : "suggestion",

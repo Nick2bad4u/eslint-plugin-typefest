@@ -509,7 +509,7 @@ const createReportFixFromValueReplacementPlan =
  * @returns Trimmed argument text suitable for function-call insertion, or
  *   `null` when no text can be produced.
  */
-const getFunctionCallArgumentText = ({
+export const getFunctionCallArgumentText = ({
     argumentNode,
     sourceCode,
 }: Readonly<{

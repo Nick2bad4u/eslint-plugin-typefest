@@ -5,6 +5,8 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject, UnknownArray } from "type-fest";
 
+import { isPresent, objectHasOwn } from "ts-extras";
+
 import { getProgramNode } from "./ast-node.js";
 
 /** Top-level `settings` key for this plugin. */
@@ -67,7 +69,7 @@ const getTypefestSettings = (
  * @returns `true` only when the key exists and equals literal `true`.
  */
 const readBooleanFlag = (object: Readonly<JsonObject>, key: string): boolean =>
-    Object.hasOwn(object, key) && object[key] === true;
+    objectHasOwn(object, key) && object[key] === true;
 
 /**
  * Reads the import-insertion disable flag from plugin settings.
@@ -80,7 +82,7 @@ const readDisableImportInsertionFixesFromSettings = (
     settings: unknown
 ): boolean => {
     const typefestSettings = getTypefestSettings(settings);
-    if (!typefestSettings) {
+    if (!isPresent(typefestSettings)) {
         return false;
     }
 
@@ -99,7 +101,7 @@ const readDisableImportInsertionFixesFromSettings = (
  */
 const readDisableAllAutofixesFromSettings = (settings: unknown): boolean => {
     const typefestSettings = getTypefestSettings(settings);
-    if (!typefestSettings) {
+    if (!isPresent(typefestSettings)) {
         return false;
     }
 
@@ -119,7 +121,7 @@ export const registerProgramSettingsForContext = (
     const existingProgramSettings = settingsByProgram.get(
         context.sourceCode.ast
     );
-    if (existingProgramSettings) {
+    if (isPresent(existingProgramSettings)) {
         return existingProgramSettings;
     }
 
@@ -148,7 +150,7 @@ export const isImportInsertionFixesDisabledForNode = (
     node: Readonly<TSESTree.Node>
 ): boolean => {
     const programNode = getProgramNode(node);
-    if (!programNode) {
+    if (!isPresent(programNode)) {
         return false;
     }
 

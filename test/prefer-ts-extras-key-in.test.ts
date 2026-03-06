@@ -406,6 +406,15 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -542,6 +551,15 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =

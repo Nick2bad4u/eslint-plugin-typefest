@@ -4,8 +4,6 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { setHas } from "ts-extras";
-
 import {
     collectNamedImportLocalNamesFromSource,
     collectNamespaceImportLocalNamesFromSource,
@@ -13,9 +11,11 @@ import {
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-as-writable`;
@@ -60,7 +60,10 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (typeAnnotation.typeName.type === "Identifier") {
-                    return setHas(writableLocalNames, typeAnnotation.typeName.name);
+                    return setContainsValue(
+                        writableLocalNames,
+                        typeAnnotation.typeName.name
+                    );
                 }
 
                 if (typeAnnotation.typeName.type !== "TSQualifiedName") {
@@ -69,7 +72,8 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
 
                 return (
                     typeAnnotation.typeName.left.type === "Identifier" &&
-                    typeFestNamespaceImportNames.has(
+                    setContainsValue(
+                        typeFestNamespaceImportNames,
                         typeAnnotation.typeName.left.name
                     ) &&
                     typeAnnotation.typeName.right.type === "Identifier" &&
@@ -90,12 +94,28 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     return;
                 }
 
+                const expressionArgumentText = getFunctionCallArgumentText({
+                    argumentNode: expression,
+                    sourceCode: context.sourceCode,
+                });
+
+                if (expressionArgumentText === null) {
+                    reportWithOptionalFix({
+                        context,
+                        fix: null,
+                        messageId: "preferTsExtrasAsWritable",
+                        node,
+                    });
+
+                    return;
+                }
+
                 const fix = createSafeValueNodeTextReplacementFix({
                     context,
                     importedName: "asWritable",
                     imports: tsExtrasImports,
                     replacementTextFactory: (replacementName) =>
-                        `${replacementName}(${context.sourceCode.getText(expression)})`,
+                        `${replacementName}(${expressionArgumentText})`,
                     sourceModuleName: "ts-extras",
                     targetNode: node,
                 });

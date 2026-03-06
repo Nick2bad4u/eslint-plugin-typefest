@@ -7,10 +7,11 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
-import { isDefined, safeCastTo } from "ts-extras";
+import { isDefined, objectHasOwn, safeCastTo } from "ts-extras";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
+import { setContainsValue } from "./set-membership.js";
 import { isAsciiIdentifierPartCharacter } from "./text-character.js";
 import {
     getTypeCheckerApparentType,
@@ -26,6 +27,20 @@ const PATH_SEPARATOR = "/" as const;
 
 const TYPESCRIPT_ESLINT_PACKAGE_PATH_SEGMENT =
     `${PATH_SEPARATOR}${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}${PATH_SEPARATOR}` as const;
+
+/**
+ * ESTree metadata keys that never contribute to semantic type-reference
+ * detection during fallback node traversal.
+ */
+const IGNORED_TRAVERSAL_KEYS = new Set<string>([
+    "comments",
+    "end",
+    "loc",
+    "parent",
+    "range",
+    "start",
+    "tokens",
+]);
 
 const tsEslintAstNamespaceNames = new Set<string>([TSESTREE_NAMESPACE_NAME]);
 const namespaceImportNamesBySourceCode = new WeakMap<
@@ -50,6 +65,12 @@ const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
 
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
     typeof value === "object" && value !== null;
+
+/**
+ * Return `true` when a record key should be excluded from semantic traversal.
+ */
+const shouldSkipTraversalKey = (key: string): boolean =>
+    setContainsValue(IGNORED_TRAVERSAL_KEYS, key);
 
 const containsNamespaceQualifiedReferenceText = (
     text: string,
@@ -154,7 +175,7 @@ const isTypeScriptEslintQualifiedTypeName = (
         isUnknownRecord(left) &&
         left["type"] === "Identifier" &&
         typeof left["name"] === "string" &&
-        namespaceNames.has(left["name"]) &&
+        setContainsValue(namespaceNames, left["name"]) &&
         isUnknownRecord(right) &&
         right["type"] === "Identifier" &&
         typeof right["name"] === "string"
@@ -175,7 +196,10 @@ const containsTypeScriptEslintTypeReference = (
     while (pendingNodes.length > 0) {
         const currentNode = pendingNodes.pop();
 
-        if (!isUnknownRecord(currentNode) || visitedNodes.has(currentNode)) {
+        if (
+            !isUnknownRecord(currentNode) ||
+            setContainsValue(visitedNodes, currentNode)
+        ) {
             continue;
         }
 
@@ -196,7 +220,10 @@ const containsTypeScriptEslintTypeReference = (
         }
 
         for (const key in currentNode) {
-            if (!Object.hasOwn(currentNode, key)) {
+            if (
+                !objectHasOwn(currentNode, key) ||
+                shouldSkipTraversalKey(key)
+            ) {
                 continue;
             }
 
@@ -239,9 +266,31 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
         return false;
     }
 
+    const definitionNodeTextByNode = new WeakMap<
+        Readonly<TSESTree.Node>,
+        string
+    >();
+
+    const getDefinitionNodeText = (
+        definitionNode: Readonly<TSESTree.Node>,
+        sourceCode: Readonly<TSESLint.SourceCode>
+    ): string => {
+        const cachedText = definitionNodeTextByNode.get(definitionNode);
+        if (isDefined(cachedText)) {
+            return cachedText;
+        }
+
+        const definitionNodeText = sourceCode.getText(definitionNode);
+
+        definitionNodeTextByNode.set(definitionNode, definitionNodeText);
+
+        return definitionNodeText;
+    };
+
     const resolutionResult = safeTypeOperation({
         operation: () => {
-            const currentScope = context.sourceCode.getScope(expression);
+            const { sourceCode } = context;
+            const currentScope = sourceCode.getScope(expression);
             const variable = getVariableInScopeChain(
                 currentScope,
                 expression.name
@@ -261,7 +310,7 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
                     return;
                 }
 
-                if (visitedDefinitionNodes.has(node)) {
+                if (setContainsValue(visitedDefinitionNodes, node)) {
                     return;
                 }
 
@@ -290,8 +339,10 @@ const isTypeScriptEslintNodeLikeExpressionByDefinition = <
                     return true;
                 }
 
-                const definitionNodeText =
-                    context.sourceCode.getText(definitionNode);
+                const definitionNodeText = getDefinitionNodeText(
+                    definitionNode,
+                    sourceCode
+                );
                 if (
                     containsTypeScriptEslintTypeReferenceText(
                         definitionNodeText,
@@ -354,9 +405,7 @@ const collectNestedTypeArguments = (
     }
 
     const checkerTypeArgumentsResult = safeTypeOperation({
-        operation: () =>
-            getTypeCheckerTypeArguments(checker, type as ts.TypeReference) ??
-            [],
+        operation: () => getTypeCheckerTypeArguments(checker, type) ?? [],
         reason: "ts-eslint-node-autofix-get-type-arguments-failed",
     });
 
@@ -388,7 +437,10 @@ export const isTypeScriptEslintAstType = (
     while (pendingTypes.length > 0) {
         const currentType = pendingTypes.pop();
 
-        if (!isDefined(currentType) || visitedTypes.has(currentType)) {
+        if (
+            !isDefined(currentType) ||
+            setContainsValue(visitedTypes, currentType)
+        ) {
             continue;
         }
 

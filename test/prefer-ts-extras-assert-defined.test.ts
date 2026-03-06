@@ -93,6 +93,15 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set(["assertDefined"]),
                 createSafeValueNodeTextReplacementFix: () => () => [],
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -213,6 +222,15 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
@@ -367,6 +385,15 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                     new Map<string, ReadonlySet<string>>(),
                 createSafeValueNodeTextReplacementFix:
                     createSafeValueNodeTextReplacementFixMock,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({

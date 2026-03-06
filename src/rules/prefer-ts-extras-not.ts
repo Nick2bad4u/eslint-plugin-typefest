@@ -102,6 +102,10 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     | TSESTree.FunctionExpression;
                 predicateCall: TSESTree.CallExpression;
             }>): null | TSESLint.ReportFixFunction => {
+                if ((predicateCall.typeArguments?.params.length ?? 0) > 0) {
+                    return null;
+                }
+
                 if (
                     predicateCall.optional ||
                     predicateCall.callee.type !== "Identifier"

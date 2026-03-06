@@ -1,6 +1,6 @@
 # prefer-ts-extras-set-has
 
-Prefer [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts) from `ts-extras` over `set.has(...)`.
+Prefer direct [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts) from `ts-extras` over `set.has(...)`.
 
 `setHas(...)` improves narrowing when checking membership in typed sets.
 
@@ -8,15 +8,15 @@ Prefer [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set
 
 This rule focuses on direct `set.has(value)` calls that can be migrated to `setHas(set, value)` with deterministic fixes.
 
-- `set.has(value)` call sites that can use `setHas(set, value)`.
+- `set.has(value)` call sites whose receiver resolves exclusively to `Set`/`ReadonlySet` branches and can use `setHas(set, value)`.
 
-Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `setHas(set, value)` migrations safe.
+Alias indirection, mixed unions with non-Set `has` methods (for example `Set | Map`), wrapper helpers, and non-canonical call shapes are excluded to keep `setHas(set, value)` migrations safe.
 
 ## What this rule reports
 
 This rule reports `set.has(value)` call sites when `setHas(set, value)` is the intended replacement.
 
-- `set.has(value)` call sites that can use `setHas(set, value)`.
+- `set.has(value)` call sites that can safely use `setHas(set, value)` without changing union-branch semantics.
 
 ## Why this rule exists
 
@@ -43,6 +43,7 @@ const hasMonitor = setHas(monitorIds, candidateId);
 - Runtime semantics match native `Set.prototype.has`.
 - Equality semantics still follow SameValueZero.
 - Narrowing benefits are strongest when checking unknown values against literal/unioned set members.
+- If your codebase intentionally needs plain-boolean membership checks (without exposing type-guard narrowing at every call site), wrap `setHas` once in a local helper and call the helper consistently.
 
 ## Additional examples
 
@@ -86,6 +87,8 @@ export default [
 ## When not to use it
 
 Disable this rule if native `.has()` calls are required by local conventions.
+
+You may also disable this rule in implementation-only layers that intentionally centralize `setHas` behind a boolean helper wrapper for stability and readability.
 
 ## Package documentation
 

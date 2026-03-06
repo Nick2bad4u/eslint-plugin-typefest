@@ -7,9 +7,11 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
+    getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
@@ -29,13 +31,20 @@ const isAutofixSafeKeyExpression = (
     }
 
     if (node.type === "Identifier") {
-        try {
-            const sourceScope = context.sourceCode.getScope(node);
+        const scopeResolutionResult = safeTypeOperation({
+            operation: () => {
+                const sourceScope = context.sourceCode.getScope(node);
 
-            return getVariableInScopeChain(sourceScope, node.name) !== null;
-        } catch {
+                return getVariableInScopeChain(sourceScope, node.name) !== null;
+            },
+            reason: "key-in-autofix-key-scope-resolution-failed",
+        });
+
+        if (!scopeResolutionResult.ok) {
             return false;
         }
+
+        return scopeResolutionResult.value;
     }
 
     if (node.type === "Literal") {
@@ -56,32 +65,6 @@ const isAutofixSafeKeyExpression = (
     }
 
     return false;
-};
-
-/**
- * Build stable argument text for helper-call generation.
- */
-const getReplacementArgumentText = ({
-    context,
-    node,
-}: Readonly<{
-    context: Readonly<TSESLint.RuleContext<string, readonly []>>;
-    node: Readonly<TSESTree.Node>;
-}>): null | string => {
-    const nodeText = context.sourceCode.getText(node).trim();
-    if (nodeText.length === 0) {
-        return null;
-    }
-
-    if (node.type !== "SequenceExpression") {
-        return nodeText;
-    }
-
-    if (nodeText.startsWith("(") && nodeText.endsWith(")")) {
-        return nodeText;
-    }
-
-    return `(${nodeText})`;
 };
 
 /**
@@ -112,13 +95,13 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                     return null;
                 }
 
-                const keyText = getReplacementArgumentText({
-                    context,
-                    node: node.left,
+                const keyText = getFunctionCallArgumentText({
+                    argumentNode: node.left,
+                    sourceCode: context.sourceCode,
                 });
-                const objectText = getReplacementArgumentText({
-                    context,
-                    node: node.right,
+                const objectText = getFunctionCallArgumentText({
+                    argumentNode: node.right,
+                    sourceCode: context.sourceCode,
                 });
 
                 if (keyText === null || objectText === null) {

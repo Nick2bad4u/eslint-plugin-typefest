@@ -426,6 +426,15 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
                 collectDirectNamedValueImportsFromSource: () =>
                     new Set<string>(),
                 createSafeValueNodeTextReplacementFix: () => null,
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =
@@ -512,6 +521,15 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
                             options.targetNode,
                             options.replacementTextFactory("assertError")
                         ),
+                getFunctionCallArgumentText: ({
+                    argumentNode,
+                    sourceCode,
+                }: Readonly<{
+                    argumentNode: unknown;
+                    sourceCode: Readonly<{
+                        getText: (node: unknown) => string;
+                    }>;
+                }>): string => sourceCode.getText(argumentNode).trim(),
             }));
 
             const authoredRuleModule =

@@ -4,12 +4,13 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined, setHas } from "ts-extras";
+import { isDefined } from "ts-extras";
 import ts from "typescript";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
+import { setContainsValue } from "../_internal/set-membership.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerBaseTypes,
@@ -81,15 +82,15 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return cachedResult;
                     }
 
-                    if (setHas(seenTypes, candidateType)) {
+                    if (setContainsValue(seenTypes, candidateType)) {
                         return false;
                     }
 
                     seenTypes.add(candidateType);
 
                     if (candidateType.isUnion()) {
-                        const isSetLike = candidateType.types.some((partType) =>
-                            isSetTypeInternal(partType)
+                        const isSetLike = candidateType.types.every(
+                            (partType) => isSetTypeInternal(partType)
                         );
                         setTypeResolutionCache.set(candidateType, isSetLike);
 
@@ -216,7 +217,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "require ts-extras setHas over Set#has for stronger element narrowing.",
+                    "require direct ts-extras setHas over Set#has at membership call sites for stronger element narrowing.",
                 frozen: false,
                 recommended: [
                     "typefest.configs.recommended",

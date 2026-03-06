@@ -18,6 +18,7 @@ import {
     resolveImportInsertionDecisionForReportFix,
 } from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { setContainsValue } from "./set-membership.js";
 
 /** Default module source used for type-fest replacement imports. */
 const TYPE_FEST_MODULE_NAME = "type-fest";
@@ -126,7 +127,7 @@ export const collectDirectNamedImportsFromSource = (
     const namedImports = new Set<string>();
 
     for (const [importedName, localNames] of localNamesByImportedName) {
-        if (!localNames.has(importedName)) {
+        if (!setContainsValue(localNames, importedName)) {
             continue;
         }
 
@@ -297,8 +298,10 @@ const createTypeReplacementFix = ({
         return null;
     }
 
-    const requiresImportInsertion =
-        !availableReplacementNames.has(replacementName);
+    const requiresImportInsertion = !setContainsValue(
+        availableReplacementNames,
+        replacementName
+    );
     if (!requiresImportInsertion) {
         return (fixer) => applyReplacement(fixer);
     }
@@ -440,7 +443,7 @@ const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
         return false;
     }
 
-    return READONLY_CONTAINER_TYPE_NAMES.has(node.typeName.name);
+    return setContainsValue(READONLY_CONTAINER_TYPE_NAMES, node.typeName.name);
 };
 
 /**

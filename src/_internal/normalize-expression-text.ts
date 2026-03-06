@@ -6,7 +6,9 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject } from "type-fest";
 
-import { isDefined, objectKeys  } from "ts-extras";
+import { isDefined, objectHasOwn, objectKeys } from "ts-extras";
+
+import { setContainsValue } from "./set-membership.js";
 
 /**
  * Object-like value that can participate in deep structural comparisons.
@@ -34,7 +36,9 @@ const isComparableRecord = (value: unknown): value is ComparableObject =>
  * Return stable comparable keys after stripping metadata properties.
  */
 const getComparableKeys = (value: ComparableObject): readonly string[] =>
-    objectKeys(value).filter((key) => !ignoredPropertyKeys.has(key));
+    objectKeys(value).filter(
+        (key) => !setContainsValue(ignoredPropertyKeys, key)
+    );
 
 /**
  * Unwrap transparent TypeScript expression wrappers.
@@ -50,7 +54,7 @@ const unwrapTransparentExpression = (
     const visitedExpressions = new Set<Readonly<TSESTree.Expression>>();
 
     while (true) {
-        if (visitedExpressions.has(currentExpression)) {
+        if (setContainsValue(visitedExpressions, currentExpression)) {
             return currentExpression;
         }
 
@@ -96,7 +100,7 @@ const markAndCheckSeenPair = (
     seenPairs: WeakMap<object, WeakSet<object>>
 ): boolean => {
     const seenRightNodes = seenPairs.get(left);
-    if (seenRightNodes?.has(right) === true) {
+    if (isDefined(seenRightNodes) && seenRightNodes.has(right)) {
         return true;
     }
 
@@ -171,12 +175,12 @@ const areEquivalentNodeValues = (
         return false;
     }
 
-    if (leftKeys.some((key) => !rightKeySet.has(key))) {
+    if (leftKeys.some((key) => !setContainsValue(rightKeySet, key))) {
         return false;
     }
 
     return leftKeys.every((key) => {
-        if (!Object.hasOwn(left, key) || !Object.hasOwn(right, key)) {
+        if (!objectHasOwn(left, key) || !objectHasOwn(right, key)) {
             return false;
         }
 

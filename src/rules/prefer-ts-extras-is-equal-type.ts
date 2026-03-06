@@ -4,7 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined, setHas  } from "ts-extras";
+import { isDefined } from "ts-extras";
 
 import {
     collectNamedImportLocalNamesFromSource,
@@ -16,6 +16,7 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import { RULE_DOCS_URL_BASE } from "../_internal/rule-docs-url.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 const RULE_DOCS_URL = `${RULE_DOCS_URL_BASE}/prefer-ts-extras-is-equal-type`;
@@ -61,7 +62,10 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (node.typeName.type === "Identifier") {
-                    return setHas(isEqualLocalNames, node.typeName.name)
+                    return setContainsValue(
+                        isEqualLocalNames,
+                        node.typeName.name
+                    )
                         ? node
                         : null;
                 }
@@ -72,7 +76,10 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
 
                 if (
                     node.typeName.left.type === "Identifier" &&
-                    setHas(typeFestNamespaceImportNames, node.typeName.left.name) &&
+                    setContainsValue(
+                        typeFestNamespaceImportNames,
+                        node.typeName.left.name
+                    ) &&
                     node.typeName.right.type === "Identifier" &&
                     node.typeName.right.name === IS_EQUAL_TYPE_NAME
                 ) {
