@@ -180,7 +180,8 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
                 frozen: false,
-                recommended: "typefest.configs.all",
+                recommended: false,
+                typefestConfigs: "typefest.configs.all",
                 url: RULE_DOCS_URL,
             },
             hasSuggestions: true,

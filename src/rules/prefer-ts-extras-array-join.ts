@@ -54,7 +54,8 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
                 frozen: false,
-                recommended: [
+                recommended: false,
+                typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],

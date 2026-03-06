@@ -152,7 +152,8 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require `arrayLast` from `ts-extras` instead of manual last-index member access.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",

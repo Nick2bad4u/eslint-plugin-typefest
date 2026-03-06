@@ -129,11 +129,12 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    'typefest.configs["type-fest/types"]',
+                    "typefest.configs.type-fest/types",
                 ],
                 url: RULE_DOCS_URL,
             },

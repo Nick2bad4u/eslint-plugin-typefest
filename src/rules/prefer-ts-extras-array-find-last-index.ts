@@ -54,7 +54,8 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
                 frozen: false,
-                recommended: "typefest.configs.all",
+                recommended: false,
+                typefestConfigs: "typefest.configs.all",
                 url: RULE_DOCS_URL,
             },
             fixable: "code",

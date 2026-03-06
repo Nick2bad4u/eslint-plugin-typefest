@@ -16,7 +16,6 @@ import type {
 
 import { createRuleDocsUrl } from "./_internal/rule-docs-url.js";
 import {
-    defaultRecommendedConfigReferences,
     isTypefestConfigReference,
     typefestConfigReferenceToName,
 } from "./_internal/typefest-config-references.js";
@@ -142,7 +141,10 @@ type RulesConfig = TypefestPresetConfig["rules"];
 type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray> & {
     meta?: {
         docs?: {
-            recommended?: boolean | readonly string[] | string;
+            recommended?: boolean;
+            typefestConfigs?:
+                | readonly TypefestConfigReference[]
+                | TypefestConfigReference;
             url?: string;
         };
     };
@@ -362,7 +364,7 @@ const typefestRuleEntries = safeCastTo<
 >(objectEntries(typefestRules));
 
 for (const [ruleName, rule] of typefestRuleEntries) {
-    if (rule.meta?.docs) {
+    if (rule.meta?.docs !== undefined) {
         rule.meta.docs.url ??= createRuleDocsUrl(ruleName);
     }
 }
@@ -379,28 +381,26 @@ const createEmptyPresetRuleMap = (): Record<
     "type-fest/types": [],
 });
 
-const normalizeRecommendedConfigReferences = (
-    recommended: RuleWithDocs["meta"] extends { docs?: infer Docs }
-        ? Docs extends { recommended?: infer Value }
+const normalizeTypefestConfigReferences = (
+    typefestConfigs: RuleWithDocs["meta"] extends { docs?: infer Docs }
+        ? Docs extends { typefestConfigs?: infer Value }
             ? undefined | Value
             : never
         : never
 ): readonly TypefestConfigReference[] => {
-    if (recommended === true) {
-        return defaultRecommendedConfigReferences;
+    if (typeof typefestConfigs === "string") {
+        return isTypefestConfigReference(typefestConfigs)
+            ? [typefestConfigs]
+            : [];
     }
 
-    if (typeof recommended === "string") {
-        return isTypefestConfigReference(recommended) ? [recommended] : [];
-    }
-
-    if (!Array.isArray(recommended)) {
+    if (!Array.isArray(typefestConfigs)) {
         return [];
     }
 
     const references: TypefestConfigReference[] = [];
 
-    for (const candidate of recommended) {
+    for (const candidate of typefestConfigs) {
         if (typeof candidate !== "string") {
             continue;
         }
@@ -421,8 +421,8 @@ const derivePresetRuleNamesByConfig = (): Readonly<
     const presetRuleNamesByConfig = createEmptyPresetRuleMap();
 
     for (const [ruleName, rule] of typefestRuleEntries) {
-        const references = normalizeRecommendedConfigReferences(
-            rule.meta?.docs?.recommended
+        const references = normalizeTypefestConfigReferences(
+            rule.meta?.docs?.typefestConfigs
         );
 
         for (const reference of references) {
@@ -508,7 +508,7 @@ function withTypefestPlugin(
         ...existingLanguageOptions,
     };
 
-    if (typeScriptParser) {
+    if (typeScriptParser !== null && isDefined(typeScriptParser)) {
         languageOptions["parser"] =
             existingLanguageOptions["parser"] ??
             safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser);

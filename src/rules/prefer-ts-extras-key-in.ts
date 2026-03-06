@@ -141,11 +141,12 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras keyIn over `in` key checks for stronger narrowing.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    'typefest.configs["ts-extras/type-guards"]',
+                    "typefest.configs.ts-extras/type-guards",
                 ],
                 url: RULE_DOCS_URL,
             },

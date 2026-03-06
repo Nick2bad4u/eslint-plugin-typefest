@@ -4,7 +4,7 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { arrayAt, isInteger } from "ts-extras";
+import { arrayAt, isDefined, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
 import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
@@ -78,7 +78,7 @@ const parseQuotedStringLiteral = ({
 
         if (currentCharacter === "\\") {
             const escapedCharacter = text[index + 1];
-            if (escapedCharacter === undefined) {
+            if (!isDefined(escapedCharacter)) {
                 return null;
             }
 

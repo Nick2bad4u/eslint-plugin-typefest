@@ -1,6 +1,6 @@
 import type { UnknownArray } from "type-fest";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import { isTypefestConfigReference } from "../../src/_internal/typefest-config-references";
 
@@ -14,7 +14,8 @@ interface RuleMetadataSnapshot {
     meta?: {
         docs?: {
             description?: string;
-            recommended?: boolean | readonly string[] | string;
+            recommended?: boolean;
+            typefestConfigs?: readonly string[] | string;
             url?: string;
         };
         fixable?: string;
@@ -69,27 +70,23 @@ const docsBaseUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules";
 
 /**
- * Normalize `meta.docs.recommended` into a reference list suitable for
+ * Normalize `meta.docs.typefestConfigs` into a reference list suitable for
  * assertion.
  */
-const getRecommendedReferenceCandidates = (
-    recommended: boolean | readonly string[] | string | undefined
+const getTypefestConfigReferenceCandidates = (
+    typefestConfigs: readonly string[] | string | undefined
 ): readonly string[] => {
-    if (recommended === true || recommended === false) {
-        return [];
+    if (typeof typefestConfigs === "string") {
+        return [typefestConfigs];
     }
 
-    if (typeof recommended === "string") {
-        return [recommended];
-    }
-
-    if (!Array.isArray(recommended)) {
+    if (!Array.isArray(typefestConfigs)) {
         return [];
     }
 
     const references: string[] = [];
 
-    for (const candidate of recommended) {
+    for (const candidate of typefestConfigs) {
         if (typeof candidate === "string") {
             references.push(candidate);
         }
@@ -169,13 +166,21 @@ export const addTypeFestRuleMetadataSmokeTests = (
                 expectedDocsDescription
             );
 
-            for (const recommendedReference of getRecommendedReferenceCandidates(
-                metadataRule.meta?.docs?.recommended
-            )) {
-                expect(
-                    isTypefestConfigReference(recommendedReference)
-                ).toBeTruthy();
+            expectTypeOf(metadataRule.meta?.docs?.recommended).toBeBoolean();
+
+            const presetReferences = getTypefestConfigReferenceCandidates(
+                metadataRule.meta?.docs?.typefestConfigs
+            );
+
+            expect(presetReferences.length).toBeGreaterThan(0);
+
+            for (const presetReference of presetReferences) {
+                expect(isTypefestConfigReference(presetReference)).toBeTruthy();
             }
+
+            expect(metadataRule.meta?.docs?.recommended).toBe(
+                presetReferences.includes("typefest.configs.recommended")
+            );
 
             for (const [messageId, expectedMessage] of Object.entries(
                 expectations.messages ?? {}

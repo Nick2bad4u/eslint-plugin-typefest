@@ -44,7 +44,8 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras objectEntries over Object.entries for stronger key/value inference.",
                 frozen: false,
-                recommended: [
+                recommended: false,
+                typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],

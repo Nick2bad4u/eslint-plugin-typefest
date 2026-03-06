@@ -172,11 +172,12 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    'typefest.configs["type-fest/types"]',
+                    "typefest.configs.type-fest/types",
                 ],
                 url: RULE_DOCS_URL,
             },

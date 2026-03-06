@@ -60,11 +60,12 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    'typefest.configs["ts-extras/type-guards"]',
+                    "typefest.configs.ts-extras/type-guards",
                 ],
                 url: RULE_DOCS_URL,
             },

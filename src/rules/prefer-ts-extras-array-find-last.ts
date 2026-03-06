@@ -54,7 +54,8 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayFindLast over Array#findLast for stronger predicate inference.",
                 frozen: false,
-                recommended: [
+                recommended: false,
+                typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],

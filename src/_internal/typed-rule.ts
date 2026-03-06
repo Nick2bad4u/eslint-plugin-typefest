@@ -36,12 +36,13 @@ type TypedRuleServices = {
  * Plugin-specific metadata extensions for `meta.docs`.
  *
  * @remarks
- * `eslint-plugin/require-meta-docs-recommended` expects this field and the
- * repository config allows non-boolean values for multi-preset tagging.
+ * `eslint-plugin/require-meta-docs-recommended` expects `meta.docs.recommended`
+ * to be boolean. Preset membership is tracked separately via
+ * `meta.docs.typefestConfigs`.
  */
 type TypefestRuleDocs = {
-    recommended?:
-        | boolean
+    recommended?: boolean;
+    typefestConfigs?:
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
 };

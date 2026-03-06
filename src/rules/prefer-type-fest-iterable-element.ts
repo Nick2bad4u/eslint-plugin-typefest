@@ -77,11 +77,12 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.",
                 frozen: false,
-                recommended: [
+                recommended: true,
+                typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",
                     "typefest.configs.all",
-                    'typefest.configs["type-fest/types"]',
+                    "typefest.configs.type-fest/types",
                 ],
                 url: RULE_DOCS_URL,
             },

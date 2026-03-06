@@ -114,7 +114,8 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
                 frozen: false,
-                recommended: [
+                recommended: false,
+                typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],

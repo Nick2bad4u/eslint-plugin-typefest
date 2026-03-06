@@ -54,7 +54,8 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras arrayAt over Array#at for stronger element inference.",
                 frozen: false,
-                recommended: [
+                recommended: false,
+                typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",
                 ],
