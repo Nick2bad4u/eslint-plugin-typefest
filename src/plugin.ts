@@ -48,6 +48,9 @@ type FlatConfig = Linter.Config;
 /** Normalized language-options shape for preset composition helpers. */
 type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
 
+/** Normalized parser-options shape for preset composition helpers. */
+type FlatParserOptions = NonNullable<FlatLanguageOptions["parserOptions"]>;
+
 /** Rule-map type used by preset rule-list expansion helpers. */
 type RulesConfig = TypefestPresetConfig["rules"];
 
@@ -88,6 +91,24 @@ const packageJsonValue = safeCastTo<unknown>(packageJson);
 
 /** Parser module reused across preset construction. */
 const typeScriptParserValue: FlatLanguageOptions["parser"] = typeScriptParser;
+
+/** Default parser options applied when a preset omits parser options. */
+const defaultParserOptions = {
+    ecmaVersion: "latest",
+    sourceType: "module",
+} satisfies FlatParserOptions;
+
+/**
+ * Normalize unknown parser options into a mutable parser-options object.
+ */
+const normalizeParserOptions = (
+    parserOptions: FlatLanguageOptions["parserOptions"]
+): FlatParserOptions =>
+    parserOptions !== null &&
+    typeof parserOptions === "object" &&
+    !Array.isArray(parserOptions)
+        ? { ...parserOptions }
+        : { ...defaultParserOptions };
 
 /**
  * Fully-qualified ESLint rule id used by this plugin.
@@ -307,15 +328,7 @@ function withTypefestPlugin(
 ): TypefestPresetConfig {
     const existingLanguageOptions = config.languageOptions ?? {};
     const existingParserOptions = existingLanguageOptions["parserOptions"];
-    const parserOptions =
-        existingParserOptions !== null &&
-        typeof existingParserOptions === "object" &&
-        !Array.isArray(existingParserOptions)
-            ? { ...existingParserOptions }
-            : {
-                  ecmaVersion: "latest",
-                  sourceType: "module",
-              };
+    const parserOptions = normalizeParserOptions(existingParserOptions);
 
     if (
         options.requiresTypeChecking &&

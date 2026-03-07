@@ -119,9 +119,10 @@ describe("source plugin config wiring", () => {
             plugin.configs["recommended-type-checked"];
         const strictConfig = plugin.configs.strict;
         const allConfig = plugin.configs.all;
-        const typeGuardsConfig = plugin.configs["ts-extras/type-guards"];
+        const tsExtrasTypeGuardsConfig =
+            plugin.configs["ts-extras/type-guards"];
         const minimalConfig = plugin.configs.minimal;
-        const typeFestTypesConfig = plugin.configs["type-fest/types"];
+        const festTypesConfig = plugin.configs["type-fest/types"];
 
         expect(recommendedConfig.files).toStrictEqual([
             "**/*.{ts,tsx,mts,cts}",
@@ -154,7 +155,9 @@ describe("source plugin config wiring", () => {
             projectService: true,
             sourceType: "module",
         });
-        expect(typeGuardsConfig.languageOptions?.["parserOptions"]).toEqual({
+        expect(
+            tsExtrasTypeGuardsConfig.languageOptions?.["parserOptions"]
+        ).toEqual({
             ecmaVersion: "latest",
             projectService: true,
             sourceType: "module",
@@ -164,7 +167,7 @@ describe("source plugin config wiring", () => {
             ecmaVersion: "latest",
             sourceType: "module",
         });
-        expect(typeFestTypesConfig.languageOptions?.["parserOptions"]).toEqual({
+        expect(festTypesConfig.languageOptions?.["parserOptions"]).toEqual({
             ecmaVersion: "latest",
             sourceType: "module",
         });
