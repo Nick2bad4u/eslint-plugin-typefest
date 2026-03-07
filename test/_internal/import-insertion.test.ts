@@ -1,5 +1,3 @@
-import type { UnknownArray } from "type-fest";
-
 import parser from "@typescript-eslint/parser";
 import {
     AST_NODE_TYPES,
@@ -10,7 +8,6 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { createImportInsertionFix } from "../../src/_internal/import-insertion";
-import { registerProgramSettingsForContext } from "../../src/_internal/plugin-settings";
 import { fastCheckRunConfig } from "./fast-check";
 
 type InsertionEdit = Readonly<{
@@ -282,32 +279,6 @@ const createProgram = (
         tokens: [],
         type: "Program",
     }) as unknown as TSESTree.Program;
-
-/** Create a RuleContext-like object backed by a specific program/settings pair. */
-const createContext = ({
-    program,
-    settings,
-}: Readonly<{
-    program: TSESTree.Program;
-    settings: unknown;
-}>): TSESLint.RuleContext<string, UnknownArray> =>
-    ({
-        filename: "test-file.ts",
-        id: "import-insertion-test-rule",
-        languageOptions: {
-            parser: {
-                meta: {
-                    name: "@typescript-eslint/parser",
-                },
-            },
-        },
-        options: [],
-        report: () => undefined,
-        settings,
-        sourceCode: {
-            ast: program,
-        },
-    }) as unknown as TSESLint.RuleContext<string, UnknownArray>;
 
 describe(createImportInsertionFix, () => {
     it("returns null for blank import text", () => {
@@ -919,27 +890,28 @@ describe(createImportInsertionFix, () => {
         expect(fix).toBeNull();
     });
 
-    it("returns null when import insertion fixes are disabled via settings", () => {
+    it("does not read plugin settings directly when creating insertion edits", () => {
         const program = createProgram([]);
         const referenceNode = {
             parent: program,
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        registerProgramSettingsForContext(
-            createContext({
-                program,
-                settings: {
-                    typefest: {
-                        disableImportInsertionFixes: true,
-                    },
-                },
-            })
-        );
+        const insertBeforeRangeCalls: {
+            range: readonly [number, number];
+            text: string;
+        }[] = [];
 
         const fixer = {
             insertTextAfter: vi.fn(),
-            insertTextBeforeRange: vi.fn(),
+            insertTextBeforeRange: (
+                range: readonly [number, number],
+                text: string
+            ) => {
+                insertBeforeRangeCalls.push({ range, text });
+
+                return text;
+            },
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -948,7 +920,13 @@ describe(createImportInsertionFix, () => {
             referenceNode,
         });
 
-        expect(fix).toBeNull();
+        expect(fix).toBe('\nimport { arrayAt } from "ts-extras";\n');
+        expect(insertBeforeRangeCalls).toStrictEqual([
+            {
+                range: [100, 100],
+                text: '\nimport { arrayAt } from "ts-extras";\n',
+            },
+        ]);
     });
 
     it("falls back to inserting at file end when first statement range is malformed", () => {

@@ -21,7 +21,9 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Number"][callee.property.type="Identifier"][callee.property.name="isFinite"]'(
+                    node
+                ) {
                     reportTsExtrasGlobalMemberCall({
                         context,
                         importedName: "isFinite",

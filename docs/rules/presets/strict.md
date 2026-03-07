@@ -4,7 +4,7 @@ title: Strict preset
 
 # 🔴 Strict
 
-Use when you want recommended + additional stable runtime helpers.
+Use when you want recommended-type-checked + additional stable runtime helpers.
 
 ## Config key
 

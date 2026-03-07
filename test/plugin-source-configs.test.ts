@@ -28,6 +28,8 @@ describe("source plugin config wiring", () => {
         const plugin = await loadSourcePlugin();
         const minimal = plugin.configs.minimal;
         const recommended = plugin.configs.recommended;
+        const recommendedTypeChecked =
+            plugin.configs["recommended-type-checked"];
         const strict = plugin.configs.strict;
         const all = plugin.configs.all;
         const expectedQualifiedRuleIds = Object.keys(plugin.rules).map(
@@ -36,6 +38,9 @@ describe("source plugin config wiring", () => {
 
         expect(getRuleEntries(minimal).length).toBeGreaterThan(0);
         expect(getRuleEntries(recommended).length).toBeGreaterThan(0);
+        expect(getRuleEntries(recommendedTypeChecked).length).toBeGreaterThan(
+            0
+        );
         expect(getRuleEntries(strict).length).toBeGreaterThan(0);
         expect(getRuleEntries(all).length).toBeGreaterThan(0);
 
@@ -48,7 +53,10 @@ describe("source plugin config wiring", () => {
         expect(Object.keys(recommended.rules)).toContain(
             "typefest/prefer-ts-extras-is-defined"
         );
-        expect(Object.keys(recommended.rules)).toContain(
+        expect(Object.keys(recommended.rules)).not.toContain(
+            "typefest/prefer-ts-extras-set-has"
+        );
+        expect(Object.keys(recommendedTypeChecked.rules)).toContain(
             "typefest/prefer-ts-extras-set-has"
         );
         expect(Object.keys(strict.rules)).toContain(
@@ -72,7 +80,7 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-ts-extras-is-defined",
             "error"
         );
-        expect(recommended.rules).toHaveProperty(
+        expect(recommendedTypeChecked.rules).toHaveProperty(
             "typefest/prefer-ts-extras-set-has",
             "error"
         );
@@ -91,6 +99,9 @@ describe("source plugin config wiring", () => {
         expect(plugin.configs.all.name).toBe("typefest:all");
         expect(plugin.configs.minimal.name).toBe("typefest:minimal");
         expect(plugin.configs.recommended.name).toBe("typefest:recommended");
+        expect(plugin.configs["recommended-type-checked"].name).toBe(
+            "typefest:recommended-type-checked"
+        );
         expect(plugin.configs.strict.name).toBe("typefest:strict");
         expect(plugin.configs["ts-extras/type-guards"].name).toBe(
             "typefest:ts-extras/type-guards"
@@ -104,6 +115,13 @@ describe("source plugin config wiring", () => {
     it("registers parser defaults, files, and plugin namespace", async () => {
         const plugin = await loadSourcePlugin();
         const recommendedConfig = plugin.configs.recommended;
+        const recommendedTypeCheckedConfig =
+            plugin.configs["recommended-type-checked"];
+        const strictConfig = plugin.configs.strict;
+        const allConfig = plugin.configs.all;
+        const typeGuardsConfig = plugin.configs["ts-extras/type-guards"];
+        const minimalConfig = plugin.configs.minimal;
+        const typeFestTypesConfig = plugin.configs["type-fest/types"];
 
         expect(recommendedConfig.files).toStrictEqual([
             "**/*.{ts,tsx,mts,cts}",
@@ -116,7 +134,38 @@ describe("source plugin config wiring", () => {
         );
         expect(recommendedConfig.languageOptions?.["parserOptions"]).toEqual({
             ecmaVersion: "latest",
+            sourceType: "module",
+        });
+
+        expect(
+            recommendedTypeCheckedConfig.languageOptions?.["parserOptions"]
+        ).toEqual({
+            ecmaVersion: "latest",
             projectService: true,
+            sourceType: "module",
+        });
+        expect(strictConfig.languageOptions?.["parserOptions"]).toEqual({
+            ecmaVersion: "latest",
+            projectService: true,
+            sourceType: "module",
+        });
+        expect(allConfig.languageOptions?.["parserOptions"]).toEqual({
+            ecmaVersion: "latest",
+            projectService: true,
+            sourceType: "module",
+        });
+        expect(typeGuardsConfig.languageOptions?.["parserOptions"]).toEqual({
+            ecmaVersion: "latest",
+            projectService: true,
+            sourceType: "module",
+        });
+
+        expect(minimalConfig.languageOptions?.["parserOptions"]).toEqual({
+            ecmaVersion: "latest",
+            sourceType: "module",
+        });
+        expect(typeFestTypesConfig.languageOptions?.["parserOptions"]).toEqual({
+            ecmaVersion: "latest",
             sourceType: "module",
         });
     });

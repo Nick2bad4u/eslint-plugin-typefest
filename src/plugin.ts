@@ -2,9 +2,8 @@
  * @packageDocumentation
  * Public plugin entrypoint for eslint-plugin-typefest exports and preset wiring.
  */
-import type { TSESLint } from "@typescript-eslint/utils";
 import type { ESLint, Linter } from "eslint";
-import type { Except, UnknownArray } from "type-fest";
+import type { Except } from "type-fest";
 
 import typeScriptParser from "@typescript-eslint/parser";
 import { objectEntries, objectHasIn, safeCastTo, setHas } from "ts-extras";
@@ -13,83 +12,9 @@ import type { TypefestConfigName as InternalTypefestConfigName } from "./_intern
 
 import packageJson from "../package.json" with { type: "json" };
 import rulePresetMembershipByRuleName from "./_internal/rule-preset-membership.js";
+import { typefestRules } from "./_internal/rules-registry.js";
+import typeCheckedRuleNames from "./_internal/type-checked-rule-names.js";
 import { typefestConfigNames } from "./_internal/typefest-config-references.js";
-import preferTsExtrasArrayAtRule from "./rules/prefer-ts-extras-array-at.js";
-import preferTsExtrasArrayConcatRule from "./rules/prefer-ts-extras-array-concat.js";
-import preferTsExtrasArrayFindLastIndexRule from "./rules/prefer-ts-extras-array-find-last-index.js";
-import preferTsExtrasArrayFindLastRule from "./rules/prefer-ts-extras-array-find-last.js";
-import preferTsExtrasArrayFindRule from "./rules/prefer-ts-extras-array-find.js";
-import preferTsExtrasArrayFirstRule from "./rules/prefer-ts-extras-array-first.js";
-import preferTsExtrasArrayIncludesRule from "./rules/prefer-ts-extras-array-includes.js";
-import preferTsExtrasArrayJoinRule from "./rules/prefer-ts-extras-array-join.js";
-import preferTsExtrasArrayLastRule from "./rules/prefer-ts-extras-array-last.js";
-import preferTsExtrasAsWritableRule from "./rules/prefer-ts-extras-as-writable.js";
-import preferTsExtrasAssertDefinedRule from "./rules/prefer-ts-extras-assert-defined.js";
-import preferTsExtrasAssertErrorRule from "./rules/prefer-ts-extras-assert-error.js";
-import preferTsExtrasAssertPresentRule from "./rules/prefer-ts-extras-assert-present.js";
-import preferTsExtrasIsDefinedFilterRule from "./rules/prefer-ts-extras-is-defined-filter.js";
-import preferTsExtrasIsDefinedRule from "./rules/prefer-ts-extras-is-defined.js";
-import preferTsExtrasIsEmptyRule from "./rules/prefer-ts-extras-is-empty.js";
-import preferTsExtrasIsEqualTypeRule from "./rules/prefer-ts-extras-is-equal-type.js";
-import preferTsExtrasIsFiniteRule from "./rules/prefer-ts-extras-is-finite.js";
-import preferTsExtrasIsInfiniteRule from "./rules/prefer-ts-extras-is-infinite.js";
-import preferTsExtrasIsIntegerRule from "./rules/prefer-ts-extras-is-integer.js";
-import preferTsExtrasIsPresentFilterRule from "./rules/prefer-ts-extras-is-present-filter.js";
-import preferTsExtrasIsPresentRule from "./rules/prefer-ts-extras-is-present.js";
-import preferTsExtrasIsSafeIntegerRule from "./rules/prefer-ts-extras-is-safe-integer.js";
-import preferTsExtrasKeyInRule from "./rules/prefer-ts-extras-key-in.js";
-import preferTsExtrasNotRule from "./rules/prefer-ts-extras-not.js";
-import preferTsExtrasObjectEntriesRule from "./rules/prefer-ts-extras-object-entries.js";
-import preferTsExtrasObjectFromEntriesRule from "./rules/prefer-ts-extras-object-from-entries.js";
-import preferTsExtrasObjectHasInRule from "./rules/prefer-ts-extras-object-has-in.js";
-import preferTsExtrasObjectHasOwnRule from "./rules/prefer-ts-extras-object-has-own.js";
-import preferTsExtrasObjectKeysRule from "./rules/prefer-ts-extras-object-keys.js";
-import preferTsExtrasObjectValuesRule from "./rules/prefer-ts-extras-object-values.js";
-import preferTsExtrasSafeCastToRule from "./rules/prefer-ts-extras-safe-cast-to.js";
-import preferTsExtrasSetHasRule from "./rules/prefer-ts-extras-set-has.js";
-import preferTsExtrasStringSplitRule from "./rules/prefer-ts-extras-string-split.js";
-import preferTypeFestAbstractConstructorRule from "./rules/prefer-type-fest-abstract-constructor.js";
-import preferTypeFestArrayableRule from "./rules/prefer-type-fest-arrayable.js";
-import preferTypeFestAsyncReturnTypeRule from "./rules/prefer-type-fest-async-return-type.js";
-import preferTypeFestConditionalPickRule from "./rules/prefer-type-fest-conditional-pick.js";
-import preferTypeFestConstructorRule from "./rules/prefer-type-fest-constructor.js";
-import preferTypeFestExceptRule from "./rules/prefer-type-fest-except.js";
-import preferTypeFestIfRule from "./rules/prefer-type-fest-if.js";
-import preferTypeFestIterableElementRule from "./rules/prefer-type-fest-iterable-element.js";
-import preferTypeFestJsonArrayRule from "./rules/prefer-type-fest-json-array.js";
-import preferTypeFestJsonObjectRule from "./rules/prefer-type-fest-json-object.js";
-import preferTypeFestJsonPrimitiveRule from "./rules/prefer-type-fest-json-primitive.js";
-import preferTypeFestJsonValueRule from "./rules/prefer-type-fest-json-value.js";
-import preferTypeFestKeysOfUnionRule from "./rules/prefer-type-fest-keys-of-union.js";
-import preferTypeFestLiteralUnionRule from "./rules/prefer-type-fest-literal-union.js";
-import preferTypeFestMergeExclusiveRule from "./rules/prefer-type-fest-merge-exclusive.js";
-import preferTypeFestNonEmptyTupleRule from "./rules/prefer-type-fest-non-empty-tuple.js";
-import preferTypeFestOmitIndexSignatureRule from "./rules/prefer-type-fest-omit-index-signature.js";
-import preferTypeFestPartialDeepRule from "./rules/prefer-type-fest-partial-deep.js";
-import preferTypeFestPrimitiveRule from "./rules/prefer-type-fest-primitive.js";
-import preferTypeFestPromisableRule from "./rules/prefer-type-fest-promisable.js";
-import preferTypeFestReadonlyDeepRule from "./rules/prefer-type-fest-readonly-deep.js";
-import preferTypeFestRequireAllOrNoneRule from "./rules/prefer-type-fest-require-all-or-none.js";
-import preferTypeFestRequireAtLeastOneRule from "./rules/prefer-type-fest-require-at-least-one.js";
-import preferTypeFestRequireExactlyOneRule from "./rules/prefer-type-fest-require-exactly-one.js";
-import preferTypeFestRequireOneOrNoneRule from "./rules/prefer-type-fest-require-one-or-none.js";
-import preferTypeFestRequiredDeepRule from "./rules/prefer-type-fest-required-deep.js";
-import preferTypeFestSchemaRule from "./rules/prefer-type-fest-schema.js";
-import preferTypeFestSetNonNullableRule from "./rules/prefer-type-fest-set-non-nullable.js";
-import preferTypeFestSetOptionalRule from "./rules/prefer-type-fest-set-optional.js";
-import preferTypeFestSetReadonlyRule from "./rules/prefer-type-fest-set-readonly.js";
-import preferTypeFestSetRequiredRule from "./rules/prefer-type-fest-set-required.js";
-import preferTypeFestSimplifyRule from "./rules/prefer-type-fest-simplify.js";
-import preferTypeFestTaggedBrandsRule from "./rules/prefer-type-fest-tagged-brands.js";
-import preferTypeFestTupleOfRule from "./rules/prefer-type-fest-tuple-of.js";
-import preferTypeFestUnknownArrayRule from "./rules/prefer-type-fest-unknown-array.js";
-import preferTypeFestUnknownMapRule from "./rules/prefer-type-fest-unknown-map.js";
-import preferTypeFestUnknownRecordRule from "./rules/prefer-type-fest-unknown-record.js";
-import preferTypeFestUnknownSetRule from "./rules/prefer-type-fest-unknown-set.js";
-import preferTypeFestUnwrapTaggedRule from "./rules/prefer-type-fest-unwrap-tagged.js";
-import preferTypeFestValueOfRule from "./rules/prefer-type-fest-value-of.js";
-import preferTypeFestWritableDeepRule from "./rules/prefer-type-fest-writable-deep.js";
-import preferTypeFestWritableRule from "./rules/prefer-type-fest-writable.js";
 
 /** ESLint severity used by generated preset rule maps. */
 const ERROR_SEVERITY = "error" as const;
@@ -125,9 +50,6 @@ type FlatLanguageOptions = NonNullable<FlatConfig["languageOptions"]>;
 
 /** Rule-map type used by preset rule-list expansion helpers. */
 type RulesConfig = TypefestPresetConfig["rules"];
-
-/** Runtime rule module shape used by registry/preset builders. */
-type RuleWithDocs = TSESLint.RuleModule<string, UnknownArray>;
 
 /** Contract for the `configs` object exported by this plugin. */
 type TypefestConfigsContract = Record<TypefestConfigName, TypefestPresetConfig>;
@@ -165,97 +87,7 @@ function getPackageVersion(pkg: unknown): string {
 const packageJsonValue = safeCastTo<unknown>(packageJson);
 
 /** Parser module reused across preset construction. */
-const typeScriptParserValue =
-    safeCastTo<FlatLanguageOptions["parser"]>(typeScriptParser);
-
-/** Pattern for unqualified rule names supported by `eslint-plugin-typefest`. */
-type TypefestRuleNamePattern = `prefer-${string}`;
-
-/**
- * Runtime map of all rule modules keyed by unqualified rule name.
- */
-const typefestRules: Readonly<Record<TypefestRuleNamePattern, RuleWithDocs>> = {
-    "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
-    "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
-    "prefer-ts-extras-array-find": preferTsExtrasArrayFindRule,
-    "prefer-ts-extras-array-find-last": preferTsExtrasArrayFindLastRule,
-    "prefer-ts-extras-array-find-last-index":
-        preferTsExtrasArrayFindLastIndexRule,
-    "prefer-ts-extras-array-first": preferTsExtrasArrayFirstRule,
-    "prefer-ts-extras-array-includes": preferTsExtrasArrayIncludesRule,
-    "prefer-ts-extras-array-join": preferTsExtrasArrayJoinRule,
-    "prefer-ts-extras-array-last": preferTsExtrasArrayLastRule,
-    "prefer-ts-extras-as-writable": preferTsExtrasAsWritableRule,
-    "prefer-ts-extras-assert-defined": preferTsExtrasAssertDefinedRule,
-    "prefer-ts-extras-assert-error": preferTsExtrasAssertErrorRule,
-    "prefer-ts-extras-assert-present": preferTsExtrasAssertPresentRule,
-    "prefer-ts-extras-is-defined": preferTsExtrasIsDefinedRule,
-    "prefer-ts-extras-is-defined-filter": preferTsExtrasIsDefinedFilterRule,
-    "prefer-ts-extras-is-empty": preferTsExtrasIsEmptyRule,
-    "prefer-ts-extras-is-equal-type": preferTsExtrasIsEqualTypeRule,
-    "prefer-ts-extras-is-finite": preferTsExtrasIsFiniteRule,
-    "prefer-ts-extras-is-infinite": preferTsExtrasIsInfiniteRule,
-    "prefer-ts-extras-is-integer": preferTsExtrasIsIntegerRule,
-    "prefer-ts-extras-is-present": preferTsExtrasIsPresentRule,
-    "prefer-ts-extras-is-present-filter": preferTsExtrasIsPresentFilterRule,
-    "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
-    "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
-    "prefer-ts-extras-not": preferTsExtrasNotRule,
-    "prefer-ts-extras-object-entries": preferTsExtrasObjectEntriesRule,
-    "prefer-ts-extras-object-from-entries": preferTsExtrasObjectFromEntriesRule,
-    "prefer-ts-extras-object-has-in": preferTsExtrasObjectHasInRule,
-    "prefer-ts-extras-object-has-own": preferTsExtrasObjectHasOwnRule,
-    "prefer-ts-extras-object-keys": preferTsExtrasObjectKeysRule,
-    "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
-    "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
-    "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
-    "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
-    "prefer-type-fest-abstract-constructor":
-        preferTypeFestAbstractConstructorRule,
-    "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
-    "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
-    "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
-    "prefer-type-fest-constructor": preferTypeFestConstructorRule,
-    "prefer-type-fest-except": preferTypeFestExceptRule,
-    "prefer-type-fest-if": preferTypeFestIfRule,
-    "prefer-type-fest-iterable-element": preferTypeFestIterableElementRule,
-    "prefer-type-fest-json-array": preferTypeFestJsonArrayRule,
-    "prefer-type-fest-json-object": preferTypeFestJsonObjectRule,
-    "prefer-type-fest-json-primitive": preferTypeFestJsonPrimitiveRule,
-    "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
-    "prefer-type-fest-keys-of-union": preferTypeFestKeysOfUnionRule,
-    "prefer-type-fest-literal-union": preferTypeFestLiteralUnionRule,
-    "prefer-type-fest-merge-exclusive": preferTypeFestMergeExclusiveRule,
-    "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
-    "prefer-type-fest-omit-index-signature":
-        preferTypeFestOmitIndexSignatureRule,
-    "prefer-type-fest-partial-deep": preferTypeFestPartialDeepRule,
-    "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
-    "prefer-type-fest-promisable": preferTypeFestPromisableRule,
-    "prefer-type-fest-readonly-deep": preferTypeFestReadonlyDeepRule,
-    "prefer-type-fest-require-all-or-none": preferTypeFestRequireAllOrNoneRule,
-    "prefer-type-fest-require-at-least-one":
-        preferTypeFestRequireAtLeastOneRule,
-    "prefer-type-fest-require-exactly-one": preferTypeFestRequireExactlyOneRule,
-    "prefer-type-fest-require-one-or-none": preferTypeFestRequireOneOrNoneRule,
-    "prefer-type-fest-required-deep": preferTypeFestRequiredDeepRule,
-    "prefer-type-fest-schema": preferTypeFestSchemaRule,
-    "prefer-type-fest-set-non-nullable": preferTypeFestSetNonNullableRule,
-    "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
-    "prefer-type-fest-set-readonly": preferTypeFestSetReadonlyRule,
-    "prefer-type-fest-set-required": preferTypeFestSetRequiredRule,
-    "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
-    "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
-    "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
-    "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
-    "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
-    "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,
-    "prefer-type-fest-unknown-set": preferTypeFestUnknownSetRule,
-    "prefer-type-fest-unwrap-tagged": preferTypeFestUnwrapTaggedRule,
-    "prefer-type-fest-value-of": preferTypeFestValueOfRule,
-    "prefer-type-fest-writable": preferTypeFestWritableRule,
-    "prefer-type-fest-writable-deep": preferTypeFestWritableDeepRule,
-};
+const typeScriptParserValue: FlatLanguageOptions["parser"] = typeScriptParser;
 
 /**
  * Fully-qualified ESLint rule id used by this plugin.
@@ -278,22 +110,74 @@ const typefestEslintRules: NonNullable<ESLint.Plugin["rules"]> &
 > &
     typeof typefestRules;
 
-const typefestRuleEntries = safeCastTo<
-    readonly (readonly [TypefestRuleName, RuleWithDocs])[]
->(objectEntries(typefestRules));
+const isTypefestRuleName = (value: string): value is TypefestRuleName =>
+    objectHasIn(typefestRules, value);
+
+const typefestRuleEntries: readonly (readonly [
+    TypefestRuleName,
+    (typeof typefestRules)[TypefestRuleName],
+])[] = (() => {
+    const entries: (readonly [
+        TypefestRuleName,
+        (typeof typefestRules)[TypefestRuleName],
+    ])[] = [];
+
+    for (const [ruleName] of objectEntries(typefestRules)) {
+        if (!isTypefestRuleName(ruleName)) {
+            continue;
+        }
+
+        const ruleDefinition = typefestRules[ruleName];
+
+        if (ruleDefinition === undefined) {
+            continue;
+        }
+
+        entries.push([ruleName, ruleDefinition]);
+    }
+
+    return entries;
+})();
 
 type RulePresetMembership = Readonly<
     Partial<Record<TypefestRuleName, readonly TypefestConfigName[]>>
 >;
 
-const rulePresetMembership = safeCastTo<RulePresetMembership>(
-    rulePresetMembershipByRuleName
-);
-
 const typefestConfigNameSet: ReadonlySet<string> = new Set(typefestConfigNames);
 
 const isTypefestConfigName = (value: unknown): value is TypefestConfigName =>
     typeof value === "string" && setHas(typefestConfigNameSet, value);
+
+const isTypefestConfigNameArray = (
+    value: unknown
+): value is readonly TypefestConfigName[] =>
+    Array.isArray(value) && value.every((entry) => isTypefestConfigName(entry));
+
+const deriveRulePresetMembership = (): RulePresetMembership => {
+    const membership: Partial<
+        Record<TypefestRuleName, readonly TypefestConfigName[]>
+    > = {};
+
+    for (const [ruleName, configNames] of objectEntries(
+        rulePresetMembershipByRuleName
+    )) {
+        if (!isTypefestRuleName(ruleName)) {
+            continue;
+        }
+
+        if (!isTypefestConfigNameArray(configNames)) {
+            throw new TypeError(
+                `Rule '${ruleName}' has invalid preset membership metadata.`
+            );
+        }
+
+        membership[ruleName] = configNames;
+    }
+
+    return membership;
+};
+
+const rulePresetMembership = deriveRulePresetMembership();
 
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
@@ -302,6 +186,7 @@ const createEmptyPresetRuleMap = (): Record<
     all: [],
     minimal: [],
     recommended: [],
+    "recommended-type-checked": [],
     strict: [],
     "ts-extras/type-guards": [],
     "type-fest/types": [],
@@ -310,11 +195,6 @@ const createEmptyPresetRuleMap = (): Record<
 const dedupeRuleNames = (
     ruleNames: readonly TypefestRuleName[]
 ): TypefestRuleName[] => [...new Set(ruleNames)];
-
-const isTypefestConfigNameArray = (
-    value: unknown
-): value is readonly TypefestConfigName[] =>
-    Array.isArray(value) && value.every((entry) => isTypefestConfigName(entry));
 
 const derivePresetRuleNamesByConfig = (): Readonly<
     Record<TypefestConfigName, readonly TypefestRuleName[]>
@@ -339,6 +219,9 @@ const derivePresetRuleNamesByConfig = (): Readonly<
         all: dedupeRuleNames(presetRuleNamesByConfig.all),
         minimal: dedupeRuleNames(presetRuleNamesByConfig.minimal),
         recommended: dedupeRuleNames(presetRuleNamesByConfig.recommended),
+        "recommended-type-checked": dedupeRuleNames(
+            presetRuleNamesByConfig["recommended-type-checked"]
+        ),
         strict: dedupeRuleNames(presetRuleNamesByConfig.strict),
         "ts-extras/type-guards": dedupeRuleNames(
             presetRuleNamesByConfig["ts-extras/type-guards"]
@@ -376,7 +259,21 @@ function errorRulesFor(ruleNames: readonly TypefestRuleName[]): RulesConfig {
 const presetRuleNamesByConfig = derivePresetRuleNamesByConfig();
 
 /** Recommended preset rule list for zero-type-info usage. */
-const recommendedRuleNames = presetRuleNamesByConfig.recommended;
+const recommendedRuleNames: TypefestRuleName[] = [];
+
+for (const ruleName of presetRuleNamesByConfig.recommended) {
+    if (setHas(typeCheckedRuleNames, ruleName)) {
+        continue;
+    }
+
+    recommendedRuleNames.push(ruleName);
+}
+
+/** Type-aware recommended preset rule list. */
+const recommendedTypeCheckedRuleNames = dedupeRuleNames([
+    ...recommendedRuleNames,
+    ...presetRuleNamesByConfig["recommended-type-checked"],
+]);
 
 /** Strict preset rule list. */
 const strictRuleNames = presetRuleNamesByConfig.strict;
@@ -477,6 +374,16 @@ const typefestConfigsDefinition = {
         {
             name: "typefest:recommended",
             rules: errorRulesFor(recommendedRuleNames),
+        },
+        pluginForConfigs,
+        {
+            requiresTypeChecking: false,
+        }
+    ),
+    "recommended-type-checked": withTypefestPlugin(
+        {
+            name: "typefest:recommended-type-checked",
+            rules: errorRulesFor(recommendedTypeCheckedRuleNames),
         },
         pluginForConfigs,
         {

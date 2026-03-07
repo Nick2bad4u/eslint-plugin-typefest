@@ -4,7 +4,7 @@ title: Recommended preset
 
 # 🟡 Recommended
 
-Use as the default for most TypeScript codebases.
+Use as the default baseline for most TypeScript codebases.
 
 ## Config key
 
@@ -20,8 +20,10 @@ import typefest from "eslint-plugin-typefest";
 export default [typefest.configs.recommended];
 ```
 
-This preset is type-aware by default and includes
-`languageOptions.parserOptions.projectService: true`.
+This preset does **not** require type information.
+
+If you want the same baseline plus type-aware helper rules, use
+`typefest.configs["recommended-type-checked"]`.
 
 ## Alternative: apply recommended rules in your own scope
 
@@ -36,7 +38,6 @@ export default [
             parser: tsParser,
             parserOptions: {
                 ecmaVersion: "latest",
-                projectService: true,
                 sourceType: "module",
             },
         },
@@ -56,13 +57,11 @@ This option is useful when you want the recommended rule set, but only for speci
 
 | Rule                                                                                                                                            |
 | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`prefer-ts-extras-array-includes`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-includes)             |
 | [`prefer-ts-extras-assert-defined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-defined)             |
 | [`prefer-ts-extras-assert-error`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error)                 |
 | [`prefer-ts-extras-assert-present`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-present)             |
 | [`prefer-ts-extras-is-defined-filter`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined-filter)       |
 | [`prefer-ts-extras-is-defined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined)                     |
-| [`prefer-ts-extras-is-empty`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-empty)                         |
 | [`prefer-ts-extras-is-finite`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-finite)                       |
 | [`prefer-ts-extras-is-infinite`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-infinite)                   |
 | [`prefer-ts-extras-is-integer`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-integer)                     |
@@ -73,8 +72,6 @@ This option is useful when you want the recommended rule set, but only for speci
 | [`prefer-ts-extras-not`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-not)                                   |
 | [`prefer-ts-extras-object-has-in`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-has-in)               |
 | [`prefer-ts-extras-object-has-own`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-has-own)             |
-| [`prefer-ts-extras-safe-cast-to`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to)                 |
-| [`prefer-ts-extras-set-has`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has)                           |
 | [`prefer-type-fest-abstract-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-abstract-constructor) |
 | [`prefer-type-fest-arrayable`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-arrayable)                       |
 | [`prefer-type-fest-async-return-type`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-async-return-type)       |

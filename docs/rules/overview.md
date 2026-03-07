@@ -32,14 +32,15 @@ That is enough for TypeScript files (`**/*.{ts,tsx,mts,cts}`).
 
 ## Presets
 
-| Preset                                         |
-| ---------------------------------------------- |
-| 🟢 `typefest.configs.minimal`                  |
-| 🟡 `typefest.configs.recommended`              |
-| 🔴 `typefest.configs.strict`                   |
-| 🟣 `typefest.configs.all`                      |
-| 💠 `typefest.configs["type-fest/types"]`       |
-| ✴️ `typefest.configs["ts-extras/type-guards"]` |
+| Preset                                            |
+| ------------------------------------------------- |
+| 🟢 `typefest.configs.minimal`                     |
+| 🟡 `typefest.configs.recommended`                 |
+| 🟠 `typefest.configs["recommended-type-checked"]` |
+| 🔴 `typefest.configs.strict`                      |
+| 🟣 `typefest.configs.all`                         |
+| 💠 `typefest.configs["type-fest/types"]`          |
+| ✴️ `typefest.configs["ts-extras/type-guards"]`    |
 
 ## Next steps
 

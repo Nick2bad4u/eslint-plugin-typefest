@@ -123,9 +123,9 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require ts-extras isEmpty over direct array.length === 0 checks for consistent emptiness guards.",
                 frozen: false,
-                recommended: true,
+                recommended: false,
                 typefestConfigs: [
-                    "typefest.configs.recommended",
+                    "typefest.configs.recommended-type-checked",
                     "typefest.configs.strict",
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",

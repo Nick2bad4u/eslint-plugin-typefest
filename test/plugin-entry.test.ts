@@ -10,6 +10,7 @@ const expectedConfigRegistryShape = expect.objectContaining({
     all: expect.any(Object),
     minimal: expect.any(Object),
     recommended: expect.any(Object),
+    "recommended-type-checked": expect.any(Object),
     strict: expect.any(Object),
     "ts-extras/type-guards": expect.any(Object),
     "type-fest/types": expect.any(Object),

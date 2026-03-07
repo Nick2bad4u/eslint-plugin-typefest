@@ -19,14 +19,14 @@ export const rulePresetMembershipByRuleName: Readonly<
     "prefer-ts-extras-array-first": ["all", "strict"],
     "prefer-ts-extras-array-includes": [
         "all",
-        "recommended",
+        "recommended-type-checked",
         "strict",
         "ts-extras/type-guards",
     ],
     "prefer-ts-extras-array-join": ["all", "strict"],
     "prefer-ts-extras-array-last": [
         "all",
-        "recommended",
+        "recommended-type-checked",
         "strict",
     ],
     "prefer-ts-extras-as-writable": ["all", "strict"],
@@ -63,7 +63,7 @@ export const rulePresetMembershipByRuleName: Readonly<
     ],
     "prefer-ts-extras-is-empty": [
         "all",
-        "recommended",
+        "recommended-type-checked",
         "strict",
         "ts-extras/type-guards",
     ],
@@ -135,13 +135,13 @@ export const rulePresetMembershipByRuleName: Readonly<
     "prefer-ts-extras-object-values": ["all", "strict"],
     "prefer-ts-extras-safe-cast-to": [
         "all",
-        "recommended",
+        "recommended-type-checked",
         "strict",
         "ts-extras/type-guards",
     ],
     "prefer-ts-extras-set-has": [
         "all",
-        "recommended",
+        "recommended-type-checked",
         "strict",
         "ts-extras/type-guards",
     ],

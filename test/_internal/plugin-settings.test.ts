@@ -85,7 +85,7 @@ describe(registerProgramSettingsForContext, () => {
         const parsedSettings = registerProgramSettingsForContext(context);
 
         expect(parsedSettings.disableAllAutofixes).toBeTruthy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableImportInsertionFixes).toBeTruthy();
     });
 
     it("reuses cached settings for the same program", () => {
@@ -269,7 +269,7 @@ describe(isImportInsertionFixesDisabledForNode, () => {
         ).toBeTruthy();
     });
 
-    it("returns false when only disableAllAutofixes is enabled", () => {
+    it("returns true when only disableAllAutofixes is enabled", () => {
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -284,6 +284,6 @@ describe(isImportInsertionFixesDisabledForNode, () => {
 
         expect(
             isImportInsertionFixesDisabledForNode(createNodeInProgram(program))
-        ).toBeFalsy();
+        ).toBeTruthy();
     });
 });

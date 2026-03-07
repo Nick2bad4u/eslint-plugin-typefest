@@ -96,7 +96,7 @@ function prefixIfBareRelativeMarkdownFile(url) {
         queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
 
     // Only touch markdown-file links.
-    if (!(pathname.endsWith(".md") || pathname.endsWith(".mdx"))) {
+    if (!pathname.endsWith(".md") && !pathname.endsWith(".mdx")) {
         return url;
     }
 

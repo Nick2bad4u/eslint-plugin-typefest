@@ -11,6 +11,7 @@ import {
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
+import { arrayIncludes, arrayJoin, setHas } from "ts-extras";
 
 import type { TypefestConfigReference } from "./typefest-config-references.js";
 
@@ -21,6 +22,7 @@ import {
 } from "./report-adapter.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
+import { recommendedTypeCheckedRuleNames } from "./type-checked-rule-names.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
 
 /**
@@ -51,6 +53,82 @@ type TypefestRuleDocs = {
 };
 
 /**
+ * Config reference expected on typed rules included in recommended typed
+ * preset.
+ */
+const RECOMMENDED_TYPE_CHECKED_REFERENCE =
+    "typefest.configs.recommended-type-checked" satisfies TypefestConfigReference;
+
+/** Config reference that should not be present on typed-only recommended rules. */
+const RECOMMENDED_REFERENCE =
+    "typefest.configs.recommended" satisfies TypefestConfigReference;
+
+/** Process-local dedupe for metadata warning logs. */
+const warnedMetadataRuleNames = new Set<string>();
+
+const normalizeTypefestConfigReferences = (
+    value: TypefestRuleDocs["typefestConfigs"]
+): readonly TypefestConfigReference[] => {
+    if (typeof value === "string") {
+        return [value];
+    }
+
+    return Array.isArray(value) ? value : [];
+};
+
+const warnTypedRuleMetadataDrift = (
+    ruleDefinition: Readonly<{
+        meta: {
+            docs?: TypefestRuleDocs;
+        };
+        name: string;
+    }>
+): void => {
+    const { name } = ruleDefinition;
+
+    if (!name.startsWith("prefer-")) {
+        return;
+    }
+
+    const typefestRuleName = name as `prefer-${string}`;
+
+    if (
+        !setHas(recommendedTypeCheckedRuleNames, typefestRuleName) ||
+        setHas(warnedMetadataRuleNames, name)
+    ) {
+        return;
+    }
+
+    const docs = ruleDefinition.meta.docs;
+    const typefestConfigs = normalizeTypefestConfigReferences(
+        docs?.typefestConfigs
+    );
+    const hasRecommendedTypeChecked = arrayIncludes(
+        typefestConfigs,
+        RECOMMENDED_TYPE_CHECKED_REFERENCE
+    );
+    const hasRecommended = arrayIncludes(
+        typefestConfigs,
+        RECOMMENDED_REFERENCE
+    );
+
+    if (
+        !hasRecommendedTypeChecked ||
+        hasRecommended ||
+        docs?.recommended === true
+    ) {
+        warnedMetadataRuleNames.add(name);
+        const warningSegments: readonly string[] = [
+            `[eslint-plugin-typefest] Typed rule \`${name}\` has metadata that may drift from preset intent.`,
+            `Expected docs.typefestConfigs to include \`${RECOMMENDED_TYPE_CHECKED_REFERENCE}\` and exclude \`${RECOMMENDED_REFERENCE}\`,`,
+            "with docs.recommended set to false.",
+        ];
+
+        process.emitWarning(arrayJoin(warningSegments, " "));
+    }
+};
+
+/**
  * Rule-creator wrapper used by all plugin rules.
  *
  * @remarks
@@ -65,6 +143,8 @@ type TypefestRuleDocs = {
  *   conditionally strips autofixes.
  */
 export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
+    warnTypedRuleMetadataDrift(ruleDefinition);
+
     const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
 
     return {

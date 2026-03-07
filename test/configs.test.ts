@@ -125,6 +125,7 @@ describe("typefest plugin configs", () => {
             "all",
             "minimal",
             "recommended",
+            "recommended-type-checked",
             "strict",
             "ts-extras/type-guards",
             "type-fest/types",
@@ -192,9 +193,11 @@ describe("typefest plugin configs", () => {
         }
     });
 
-    it("keeps minimal ⊂ recommended ⊂ strict ⊂ all", () => {
+    it("keeps minimal ⊂ recommended ⊂ recommended-type-checked ⊂ strict ⊂ all", () => {
         const minimalRules = getConfigRules(configs, "minimal") ?? {};
         const recommendedRules = getConfigRules(configs, "recommended") ?? {};
+        const recommendedTypeCheckedRules =
+            getConfigRules(configs, "recommended-type-checked") ?? {};
         const strictRules = getConfigRules(configs, "strict") ?? {};
         const allRules = getConfigRules(configs, "all") ?? {};
 
@@ -203,6 +206,13 @@ describe("typefest plugin configs", () => {
         }
 
         for (const ruleName of Object.keys(recommendedRules)) {
+            expect(recommendedTypeCheckedRules).toHaveProperty(
+                ruleName,
+                "error"
+            );
+        }
+
+        for (const ruleName of Object.keys(recommendedTypeCheckedRules)) {
             expect(strictRules).toHaveProperty(ruleName, "error");
         }
 
@@ -251,9 +261,14 @@ describe("typefest plugin configs", () => {
 
     it("enables parser projectService for presets that include typed rules", () => {
         const recommendedConfig = getConfig(configs, "recommended");
+        const recommendedTypeCheckedConfig = getConfig(
+            configs,
+            "recommended-type-checked"
+        );
         const minimalConfig = getConfig(configs, "minimal");
 
         expect(recommendedConfig).toBeDefined();
+        expect(recommendedTypeCheckedConfig).toBeDefined();
         expect(minimalConfig).toBeDefined();
 
         expect(minimalConfig?.languageOptions?.parserOptions).toEqual(
@@ -263,6 +278,14 @@ describe("typefest plugin configs", () => {
         );
 
         expect(recommendedConfig?.languageOptions?.parserOptions).toEqual(
+            expect.not.objectContaining({
+                projectService: true,
+            })
+        );
+
+        expect(
+            recommendedTypeCheckedConfig?.languageOptions?.parserOptions
+        ).toEqual(
             expect.objectContaining({
                 projectService: true,
             })

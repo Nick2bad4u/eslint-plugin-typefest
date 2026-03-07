@@ -328,9 +328,9 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 description:
                     "require direct ts-extras setHas over Set#has at membership call sites for stronger element narrowing.",
                 frozen: false,
-                recommended: true,
+                recommended: false,
                 typefestConfigs: [
-                    "typefest.configs.recommended",
+                    "typefest.configs.recommended-type-checked",
                     "typefest.configs.strict",
                     "typefest.configs.all",
                     "typefest.configs.ts-extras/type-guards",

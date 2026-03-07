@@ -125,12 +125,16 @@ export const registerProgramSettingsForContext = (
         return existingProgramSettings;
     }
 
+    const disableAllAutofixes = readDisableAllAutofixesFromSettings(
+        context.settings
+    );
+    const disableImportInsertionFixes =
+        disableAllAutofixes ||
+        readDisableImportInsertionFixesFromSettings(context.settings);
+
     const parsedSettings: Readonly<ProgramSettings> = Object.freeze({
-        disableAllAutofixes: readDisableAllAutofixesFromSettings(
-            context.settings
-        ),
-        disableImportInsertionFixes:
-            readDisableImportInsertionFixesFromSettings(context.settings),
+        disableAllAutofixes,
+        disableImportInsertionFixes,
     });
 
     settingsByProgram.set(context.sourceCode.ast, parsedSettings);

@@ -10,6 +10,7 @@ export const typefestConfigNames = [
     "all",
     "minimal",
     "recommended",
+    "recommended-type-checked",
     "strict",
     "ts-extras/type-guards",
     "type-fest/types",
@@ -23,18 +24,22 @@ export const typefestConfigReferenceToName: Readonly<{
     "typefest.configs.all": "all";
     "typefest.configs.minimal": "minimal";
     "typefest.configs.recommended": "recommended";
+    "typefest.configs.recommended-type-checked": "recommended-type-checked";
     "typefest.configs.strict": "strict";
     "typefest.configs.ts-extras/type-guards": "ts-extras/type-guards";
     "typefest.configs.type-fest/types": "type-fest/types";
+    'typefest.configs["recommended-type-checked"]': "recommended-type-checked";
     'typefest.configs["ts-extras/type-guards"]': "ts-extras/type-guards";
     'typefest.configs["type-fest/types"]': "type-fest/types";
 }> = {
     "typefest.configs.all": "all",
     "typefest.configs.minimal": "minimal",
     "typefest.configs.recommended": "recommended",
+    "typefest.configs.recommended-type-checked": "recommended-type-checked",
     "typefest.configs.strict": "strict",
     "typefest.configs.ts-extras/type-guards": "ts-extras/type-guards",
     "typefest.configs.type-fest/types": "type-fest/types",
+    'typefest.configs["recommended-type-checked"]': "recommended-type-checked",
     'typefest.configs["ts-extras/type-guards"]': "ts-extras/type-guards",
     'typefest.configs["type-fest/types"]': "type-fest/types",
 };

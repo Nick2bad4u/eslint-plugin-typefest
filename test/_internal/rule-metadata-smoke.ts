@@ -2,6 +2,7 @@ import type { UnknownArray } from "type-fest";
 
 import { describe, expect, it } from "vitest";
 
+import { recommendedTypeCheckedRuleNames } from "../../src/_internal/type-checked-rule-names";
 import { isTypefestConfigReference } from "../../src/_internal/typefest-config-references";
 
 /**
@@ -37,6 +38,12 @@ const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
  */
 const isBoolean = (value: unknown): value is boolean =>
     typeof value === "boolean";
+
+/**
+ * Guard string rule ids to the plugin's canonical `prefer-*` naming shape.
+ */
+const isPreferRuleName = (value: string): value is `prefer-${string}` =>
+    value.startsWith("prefer-");
 
 /**
  * Guard dynamic import payloads to the expected `{ default: RuleMetadata }`
@@ -189,6 +196,24 @@ export const addTypeFestRuleMetadataSmokeTests = (
             expect(metadataRule.meta?.docs?.recommended).toBe(
                 presetReferences.includes("typefest.configs.recommended")
             );
+
+            const isRecommendedTypeCheckedRule =
+                isPreferRuleName(ruleId) &&
+                recommendedTypeCheckedRuleNames.has(ruleId);
+
+            expect(
+                presetReferences.includes(
+                    "typefest.configs.recommended-type-checked"
+                )
+            ).toBe(isRecommendedTypeCheckedRule);
+            expect(
+                isRecommendedTypeCheckedRule &&
+                    presetReferences.includes("typefest.configs.recommended")
+            ).toBeFalsy();
+            expect(
+                isRecommendedTypeCheckedRule &&
+                    metadataRule.meta?.docs?.recommended
+            ).toBeFalsy();
 
             for (const [messageId, expectedMessage] of Object.entries(
                 expectations.messages ?? {}

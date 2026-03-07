@@ -49,16 +49,17 @@ That is enough for TypeScript files (`**/*.{ts,tsx,mts,cts}`).
 
 ## Presets
 
-This plugin intentionally exports only six presets:
+This plugin intentionally exports seven presets:
 
-| Preset                                         |
-| ---------------------------------------------- |
-| 🟢 `typefest.configs.minimal`                  |
-| 🟡 `typefest.configs.recommended`              |
-| 🔴 `typefest.configs.strict`                   |
-| 🟣 `typefest.configs.all`                      |
-| 💠 `typefest.configs["type-fest/types"]`       |
-| ✴️ `typefest.configs["ts-extras/type-guards"]` |
+| Preset                                            |
+| ------------------------------------------------- |
+| 🟢 `typefest.configs.minimal`                     |
+| 🟡 `typefest.configs.recommended`                 |
+| 🟠 `typefest.configs["recommended-type-checked"]` |
+| 🔴 `typefest.configs.strict`                      |
+| 🟣 `typefest.configs.all`                         |
+| 💠 `typefest.configs["type-fest/types"]`          |
+| ✴️ `typefest.configs["ts-extras/type-guards"]`    |
 
 ## Configuration examples by preset
 
@@ -71,6 +72,9 @@ export default [
 
   // Balanced default for most teams.
   // typefest.configs.recommended,
+
+  // Recommended plus type-aware ts-extras helper rules.
+  // typefest.configs["recommended-type-checked"],
 
   // Recommended plus additional stable runtime utilities.
   // typefest.configs.strict,
@@ -92,7 +96,7 @@ Each preset already includes:
 - `languageOptions.parser` (`@typescript-eslint/parser`)
 - `languageOptions.parserOptions`:
   - `ecmaVersion: "latest"`
-  - `projectService: true` (for presets that include typed rules, including `recommended`)
+  - `projectService: true` (for presets that include typed rules, such as `recommended-type-checked`, `strict`, and `all`)
   - `sourceType: "module"`
 
 End users usually do **not** need to wire parser config manually.
@@ -111,7 +115,7 @@ export default [
       ...recommended.languageOptions,
       parserOptions: {
         ...recommended.languageOptions?.parserOptions,
-        projectService: true,
+        // Add projectService only when you opt into a type-aware preset.
       },
     },
   },
@@ -160,7 +164,7 @@ autofix behavior.
   - `🔧` = autofixable
   - `💡` = suggestions available
   - `—` = report only
-- `Preset key` legend: `🟢 minimal` · `🟡 recommended` · `🔴 strict` · `🟣 all` · `💠 type-fest/types` · `✴️ ts-extras/type-guards`
+- `Preset key` legend: `🟢 minimal` · `🟡 recommended` · `🟠 recommended-type-checked` · `🔴 strict` · `🟣 all` · `💠 type-fest/types` · `✴️ ts-extras/type-guards`
 
 | Rule                                                                                                                                              | Fix |   Preset key   |
 | ------------------------------------------------------------------------------------------------------------------------------------------------- | :-: | :------------: |
@@ -170,16 +174,16 @@ autofix behavior.
 | [`prefer-ts-extras-array-find-last`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find-last)             |  —  |       🟣       |
 | [`prefer-ts-extras-array-find`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find)                       |  —  |       🟣       |
 | [`prefer-ts-extras-array-first`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-first)                     |  —  |      🔴 🟣     |
-| [`prefer-ts-extras-array-includes`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-includes)               |  —  |   🟡 🔴 🟣 ✴️  |
+| [`prefer-ts-extras-array-includes`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-includes)               |  —  |   🟠 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-array-join`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-join)                       |  —  |      🔴 🟣     |
-| [`prefer-ts-extras-array-last`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-last)                       |  —  |      🔴 🟣     |
+| [`prefer-ts-extras-array-last`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-last)                       |  —  |    🟠 🔴 🟣    |
 | [`prefer-ts-extras-as-writable`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-as-writable)                     |  —  |      🔴 🟣     |
 | [`prefer-ts-extras-assert-defined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-defined)               |  —  |   🟡 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-assert-error`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error)                   |  —  |   🟡 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-assert-present`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-present)               |  —  |   🟡 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-is-defined-filter`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined-filter)         |  —  | 🟢 🟡 🔴 🟣 ✴️ |
 | [`prefer-ts-extras-is-defined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-defined)                       |  —  |   🟡 🔴 🟣 ✴️  |
-| [`prefer-ts-extras-is-empty`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-empty)                           |  —  |   🟡 🔴 🟣 ✴️  |
+| [`prefer-ts-extras-is-empty`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-empty)                           |  —  |   🟠 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-is-equal-type`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type)                 |  💡 |       🟣       |
 | [`prefer-ts-extras-is-finite`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-finite)                         |  —  |   🟡 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-is-infinite`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-infinite)                     |  —  |   🟡 🔴 🟣 ✴️  |
@@ -195,8 +199,8 @@ autofix behavior.
 | [`prefer-ts-extras-object-has-own`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-has-own)               |  —  |   🟡 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-object-keys`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-keys)                     |  —  |      🔴 🟣     |
 | [`prefer-ts-extras-object-values`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-values)                 |  —  |      🔴 🟣     |
-| [`prefer-ts-extras-safe-cast-to`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to)                   |  —  |   🟡 🔴 🟣 ✴️  |
-| [`prefer-ts-extras-set-has`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has)                             |  —  |   🟡 🔴 🟣 ✴️  |
+| [`prefer-ts-extras-safe-cast-to`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to)                   |  —  |   🟠 🔴 🟣 ✴️  |
+| [`prefer-ts-extras-set-has`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has)                             |  —  |   🟠 🔴 🟣 ✴️  |
 | [`prefer-ts-extras-string-split`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-string-split)                   |  —  |      🔴 🟣     |
 | [`prefer-type-fest-abstract-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-abstract-constructor)   |  —  |   🟡 🔴 🟣 💠  |
 | [`prefer-type-fest-arrayable`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-arrayable)                         |  —  | 🟢 🟡 🔴 🟣 💠 |

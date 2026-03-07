@@ -21,8 +21,10 @@ export default [
 ];
 ```
 
-`recommended` already enables `languageOptions.parserOptions.projectService`
-because it includes typed rules.
+`recommended` does not require type information.
+
+If you want the same baseline plus type-aware helper rules, use
+`typefest.configs["recommended-type-checked"]`.
 
 ## Alternative: manual scoped setup
 
@@ -39,7 +41,8 @@ export default [
             parser: tsParser,
             parserOptions: {
                 ecmaVersion: "latest",
-                projectService: true,
+                // Enable only when using a type-aware preset.
+                // projectService: true,
                 sourceType: "module",
             },
         },
@@ -59,8 +62,9 @@ Use this pattern when you only extend rules and want full control over parser se
 
 1. Start with `recommended` (or `minimal` if you want low initial noise).
 2. Fix violations in small batches.
-3. Move to `strict` once your baseline is stable.
-4. Use `all` only when you explicitly want every rule, including experimental rules.
+3. Move to `recommended-type-checked` when you are ready for typed rules.
+4. Move to `strict` once your baseline is stable.
+5. Use `all` only when you explicitly want every rule, including experimental rules.
 
 ## Need a subset instead of a full preset?
 

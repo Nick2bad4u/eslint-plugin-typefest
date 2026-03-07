@@ -51,7 +51,7 @@ const isUndefinedExpression = ({
     context: RuleContext;
     node: Readonly<TSESTree.Expression>;
 }>): boolean => {
-    if (!(node.type === "Identifier" && node.name === "undefined")) {
+    if (node.type !== "Identifier" || node.name !== "undefined") {
         return false;
     }
 

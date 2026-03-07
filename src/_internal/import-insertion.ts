@@ -7,7 +7,6 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { arrayAt, isDefined, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
-import { isImportInsertionFixesDisabledForNode } from "./plugin-settings.js";
 import {
     isAsciiIdentifierPartCharacter,
     isKnownWhitespaceCharacter,
@@ -385,10 +384,6 @@ export const createImportInsertionFix = ({
     moduleSpecifierHint?: string;
     referenceNode: Readonly<TSESTree.Node>;
 }>): null | TSESLint.RuleFix => {
-    if (isImportInsertionFixesDisabledForNode(referenceNode)) {
-        return null;
-    }
-
     const normalizedImportDeclarationText = importDeclarationText.trim();
     if (normalizedImportDeclarationText.length === 0) {
         return null;
