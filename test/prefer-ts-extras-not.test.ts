@@ -292,11 +292,10 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener =
-                getSelectorAwareNodeListener<unknown>(
-                    listeners,
-                    "CallExpression"
-                );
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners,
+                "CallExpression"
+            );
 
             callExpressionListener?.({
                 arguments: [
@@ -463,7 +462,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         });
 
                         const callExpressionListener =
-                            getSelectorAwareNodeListener<unknown>(
+                            getSelectorAwareNodeListener(
                                 listeners,
                                 "CallExpression"
                             );
@@ -585,7 +584,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         });
 
                         const callExpressionListener =
-                            getSelectorAwareNodeListener<unknown>(
+                            getSelectorAwareNodeListener(
                                 listeners,
                                 "CallExpression"
                             );
@@ -685,7 +684,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         });
 
                         const callExpressionListener =
-                            getSelectorAwareNodeListener<unknown>(
+                            getSelectorAwareNodeListener(
                                 listeners,
                                 "CallExpression"
                             );

@@ -30,6 +30,8 @@ import {
 const singleRuleBenchmarks = Object.freeze({
     "typefest/prefer-ts-extras-is-present": "error",
     "typefest/prefer-ts-extras-safe-cast-to": "error",
+    "typefest/prefer-ts-extras-set-has": "error",
+    "typefest/prefer-ts-extras-string-split": "error",
     "typefest/prefer-type-fest-arrayable": "error",
 });
 
@@ -368,6 +370,50 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
 
             assertMeaningfulBenchmarkSignal(
                 "single rule prefer-ts-extras-safe-cast-to on stress fixture",
+                lintResults
+            );
+        },
+        standardBenchmarkOptions
+    );
+
+    bench(
+        "single rule prefer-ts-extras-set-has on stress fixture",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.setHasStressFixture,
+                fix: false,
+                rules: {
+                    "typefest/prefer-ts-extras-set-has":
+                        singleRuleBenchmarks[
+                            "typefest/prefer-ts-extras-set-has"
+                        ],
+                },
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "single rule prefer-ts-extras-set-has on stress fixture",
+                lintResults
+            );
+        },
+        standardBenchmarkOptions
+    );
+
+    bench(
+        "single rule prefer-ts-extras-string-split on stress fixture",
+        async () => {
+            const lintResults = await lintScenario({
+                filePatterns: benchmarkFileGlobs.stringSplitStressFixture,
+                fix: false,
+                rules: {
+                    "typefest/prefer-ts-extras-string-split":
+                        singleRuleBenchmarks[
+                            "typefest/prefer-ts-extras-string-split"
+                        ],
+                },
+            });
+
+            assertMeaningfulBenchmarkSignal(
+                "single rule prefer-ts-extras-string-split on stress fixture",
                 lintResults
             );
         },

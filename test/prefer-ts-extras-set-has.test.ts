@@ -154,11 +154,10 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener =
-                getSelectorAwareNodeListener<unknown>(
-                    listeners,
-                    "CallExpression"
-                );
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners,
+                "CallExpression"
+            );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -237,11 +236,10 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener =
-                getSelectorAwareNodeListener<unknown>(
-                    listeners,
-                    "CallExpression"
-                );
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners,
+                "CallExpression"
+            );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -319,11 +317,10 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener =
-                getSelectorAwareNodeListener<unknown>(
-                    listeners,
-                    "CallExpression"
-                );
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners,
+                "CallExpression"
+            );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -484,11 +481,10 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener =
-                getSelectorAwareNodeListener<unknown>(
-                    listeners,
-                    "CallExpression"
-                );
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners,
+                "CallExpression"
+            );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -674,7 +670,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                         });
 
                         const callExpressionListener =
-                            getSelectorAwareNodeListener<unknown>(
+                            getSelectorAwareNodeListener(
                                 listeners,
                                 "CallExpression"
                             );

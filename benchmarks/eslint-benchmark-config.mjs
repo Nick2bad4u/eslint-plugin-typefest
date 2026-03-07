@@ -16,7 +16,9 @@ import plugin from "../plugin.mjs";
  *     arrayableStressFixture: readonly string[];
  *     isPresentStressFixture: readonly string[];
  *     recommendedZeroMessageFixture: readonly string[];
+ *     setHasStressFixture: readonly string[];
  *     safeCastToStressFixture: readonly string[];
+ *     stringSplitStressFixture: readonly string[];
  *     tsExtrasInvalidFixtures: readonly string[];
  *     typedInvalidFixtures: readonly string[];
  *     typedValidFixtures: readonly string[];
@@ -58,6 +60,12 @@ export const benchmarkFileGlobs = Object.freeze({
     ]),
     safeCastToStressFixture: Object.freeze([
         "benchmarks/fixtures/safe-cast-to.stress.ts",
+    ]),
+    setHasStressFixture: Object.freeze([
+        "benchmarks/fixtures/set-has.stress.ts",
+    ]),
+    stringSplitStressFixture: Object.freeze([
+        "benchmarks/fixtures/string-split.stress.ts",
     ]),
     tsExtrasInvalidFixtures: Object.freeze([
         "test/fixtures/typed/prefer-ts-extras-*.invalid.ts",

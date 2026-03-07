@@ -8,7 +8,7 @@ The suite intentionally measures three complementary workloads:
 - **Valid corpus benchmarks** against `test/fixtures/typed/*.valid.ts` to track near-clean traversal overhead.
 - **Curated zero-message benchmark** against `benchmarks/fixtures/recommended-zero-message.baseline.ts` for a true steady-state baseline.
 - **Preset-focused benchmarks** (`recommended`, `strict`, `ts-extras/type-guards`, `type-fest/types`) so regressions are attributable to a config surface.
-- **Single-rule stress benchmarks** for focused hot-path investigation (`prefer-ts-extras-is-present`, `prefer-ts-extras-safe-cast-to`, `prefer-type-fest-arrayable`), including both `fix=false` and `fix=true` for `prefer-ts-extras-safe-cast-to`.
+- **Single-rule stress benchmarks** for focused hot-path investigation (`prefer-ts-extras-is-present`, `prefer-ts-extras-safe-cast-to`, `prefer-ts-extras-set-has`, `prefer-ts-extras-string-split`, `prefer-type-fest-arrayable`), including both `fix=false` and `fix=true` for `prefer-ts-extras-safe-cast-to`.
 
 ## Why this is meaningful
 

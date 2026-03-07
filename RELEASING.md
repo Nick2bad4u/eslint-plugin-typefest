@@ -51,3 +51,18 @@ The release workflow will:
 
 - If tag and `package.json` version differ, release fails intentionally.
 - CI changelog generation is intentionally no-commit/no-push.
+
+## Pre-publish package surface checklist (required before first public release)
+
+This project is currently dogfooded from source, so publish-surface validation
+is intentionally lower priority during architecture work. Before the first real
+public publish, complete all of the following package-entrypoint checks:
+
+1. Build artifact import succeeds (`dist/plugin.js`).
+2. Package `exports` resolution works for `.` and `./package.json`.
+3. Types entrypoint resolves (`dist/plugin.d.ts`) from a consumer tsconfig.
+4. Default plugin export shape is validated from built output.
+5. `npm pack --dry-run` output is validated, then packed tarball import is
+   smoke-tested in an isolated temp project.
+
+Treat this checklist as a release gate alongside lint/typecheck/tests.

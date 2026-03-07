@@ -10,10 +10,10 @@
  * Supports both plain keys (e.g. `CallExpression`) and selector keys (e.g.
  * `CallExpression[callee.type="MemberExpression"]`).
  */
-export const getSelectorAwareNodeListener = <TNode>(
+export const getSelectorAwareNodeListener = (
     listenerMap: unknown,
     nodeType: string
-): ((node: TNode) => void) | undefined => {
+): ((node: unknown) => void) | undefined => {
     if (typeof listenerMap !== "object" || listenerMap === null) {
         return undefined;
     }
@@ -22,7 +22,7 @@ export const getSelectorAwareNodeListener = <TNode>(
     const directListener = listenerRecord[nodeType];
 
     if (typeof directListener === "function") {
-        return directListener as (node: TNode) => void;
+        return directListener as (node: unknown) => void;
     }
 
     for (const [listenerKey, candidateListener] of Object.entries(
@@ -34,7 +34,7 @@ export const getSelectorAwareNodeListener = <TNode>(
                 listenerKey.startsWith(`${nodeType}[`) ||
                 listenerKey.startsWith(`${nodeType}:`))
         ) {
-            return candidateListener as (node: TNode) => void;
+            return candidateListener as (node: unknown) => void;
         }
     }
 

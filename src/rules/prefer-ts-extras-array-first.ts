@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { safeCastTo } from "ts-extras";
+
 import {
     createIsArrayLikeExpressionChecker,
     isWriteTargetMemberExpression,
@@ -57,26 +59,31 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                MemberExpression(node) {
-                    if (!node.computed || !isZeroProperty(node.property)) {
+                'MemberExpression[computed=true][property.type="Literal"]'(
+                    node
+                ) {
+                    const memberNode =
+                        safeCastTo<TSESTree.MemberExpression>(node);
+
+                    if (!isZeroProperty(memberNode.property)) {
                         return;
                     }
 
-                    if (isWriteTargetMemberExpression(node)) {
+                    if (isWriteTargetMemberExpression(memberNode)) {
                         return;
                     }
 
-                    if (!isArrayLikeExpression(node.object)) {
+                    if (!isArrayLikeExpression(memberNode.object)) {
                         return;
                     }
 
                     const outcome = resolveAutofixOrSuggestionOutcome({
-                        canAutofix: isArrayIndexReadAutofixSafe(node),
+                        canAutofix: isArrayIndexReadAutofixSafe(memberNode),
                         fix: createMemberToFunctionCallFix({
                             context,
                             importedName: "arrayFirst",
                             imports: tsExtrasImports,
-                            memberNode: node,
+                            memberNode,
                             sourceModuleName: "ts-extras",
                         }),
                     });
@@ -86,7 +93,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                             context,
                             descriptor: {
                                 messageId: "preferTsExtrasArrayFirst",
-                                node,
+                                node: memberNode,
                                 suggest: [
                                     {
                                         fix: outcome.fix,
@@ -103,7 +110,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                         context,
                         fix: outcome.kind === "autofix" ? outcome.fix : null,
                         messageId: "preferTsExtrasArrayFirst",
-                        node,
+                        node: memberNode,
                     });
                 },
             };

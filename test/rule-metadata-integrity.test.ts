@@ -137,6 +137,18 @@ const assertDefaultOptionsContract = ({
     if (metaDefaultOptions !== undefined) {
         expect(Array.isArray(metaDefaultOptions)).toBeTruthy();
         expect(metaDefaultOptions).toStrictEqual(defaultOptions);
+
+        const typedMetaDefaultOptions =
+            metaDefaultOptions as readonly unknown[];
+        const typedDefaultOptions = defaultOptions as readonly unknown[];
+
+        expect(typedMetaDefaultOptions).toHaveLength(
+            typedDefaultOptions.length
+        );
+
+        for (const [index, optionValue] of typedDefaultOptions.entries()) {
+            expect(typedMetaDefaultOptions[index]).toBe(optionValue);
+        }
     }
 
     const schema = metaRecord["schema"];

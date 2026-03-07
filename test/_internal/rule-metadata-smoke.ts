@@ -200,13 +200,17 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
             expect(isBoolean(requiresTypeChecking)).toBeTruthy();
 
-            if (isRecommendedTypeCheckedRule) {
-                expect(requiresTypeChecking).toBeTruthy();
-                expect(presetReferences).not.toContain(
-                    "typefest.configs.recommended"
-                );
-                expect(metadataRule.meta?.docs?.recommended).toBeFalsy();
-            }
+            expect(
+                !isRecommendedTypeCheckedRule || requiresTypeChecking === true
+            ).toBeTruthy();
+            expect(
+                !isRecommendedTypeCheckedRule ||
+                    !presetReferences.includes("typefest.configs.recommended")
+            ).toBeTruthy();
+            expect(
+                !isRecommendedTypeCheckedRule ||
+                    metadataRule.meta?.docs?.recommended === false
+            ).toBeTruthy();
 
             for (const [messageId, expectedMessage] of Object.entries(
                 expectations.messages ?? {}

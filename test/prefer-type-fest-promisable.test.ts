@@ -185,7 +185,7 @@ describe("prefer-type-fest-promisable internal listener guards", () => {
                 },
             });
 
-            const referenceListener = getSelectorAwareNodeListener<unknown>(
+            const referenceListener = getSelectorAwareNodeListener(
                 listeners,
                 "TSTypeReference"
             );
@@ -464,9 +464,10 @@ const runPromisableTypeReferenceReport = (
         },
     });
 
-    const referenceListener = getSelectorAwareNodeListener<
-        Readonly<TSESTree.TSTypeReference>
-    >(listenerMap, "TSTypeReference");
+    const referenceListener = getSelectorAwareNodeListener(
+        listenerMap,
+        "TSTypeReference"
+    );
 
     referenceListener?.(parsedCode.targetTypeReferenceNode);
 

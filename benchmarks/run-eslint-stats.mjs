@@ -118,8 +118,16 @@ const defaultMaximumMessageCount = Number.POSITIVE_INFINITY;
 const defaultWarmupIterations = 1;
 const defaultMinimumMessageCount = 1;
 
-const singleRuleBenchmarkRules = Object.freeze({
+const singleRuleSafeCastToBenchmarkRules = Object.freeze({
     "typefest/prefer-ts-extras-safe-cast-to": "error",
+});
+
+const singleRuleSetHasBenchmarkRules = Object.freeze({
+    "typefest/prefer-ts-extras-set-has": "error",
+});
+
+const singleRuleStringSplitBenchmarkRules = Object.freeze({
+    "typefest/prefer-ts-extras-string-split": "error",
 });
 
 /**
@@ -159,6 +167,14 @@ const recommendedZeroMessageFixtureGlobs = ensureStringArray(
 const safeCastToStressFixtureGlobs = ensureStringArray(
     benchmarkFileGlobs.safeCastToStressFixture,
     "benchmarkFileGlobs.safeCastToStressFixture"
+);
+const setHasStressFixtureGlobs = ensureStringArray(
+    benchmarkFileGlobs.setHasStressFixture,
+    "benchmarkFileGlobs.setHasStressFixture"
+);
+const stringSplitStressFixtureGlobs = ensureStringArray(
+    benchmarkFileGlobs.stringSplitStressFixture,
+    "benchmarkFileGlobs.stringSplitStressFixture"
 );
 
 /** @type {readonly BenchmarkScenario[]} */
@@ -212,7 +228,7 @@ const benchmarkScenarios = Object.freeze([
         filePatterns: safeCastToStressFixtureGlobs,
         fix: false,
         name: "single-rule-safe-cast-to-stress",
-        rules: singleRuleBenchmarkRules,
+        rules: singleRuleSafeCastToBenchmarkRules,
     },
     {
         filePatterns: safeCastToStressFixtureGlobs,
@@ -220,7 +236,19 @@ const benchmarkScenarios = Object.freeze([
         maximumMessageCount: 0,
         minimumMessageCount: 0,
         name: "single-rule-safe-cast-to-stress-fix",
-        rules: singleRuleBenchmarkRules,
+        rules: singleRuleSafeCastToBenchmarkRules,
+    },
+    {
+        filePatterns: setHasStressFixtureGlobs,
+        fix: false,
+        name: "single-rule-set-has-stress",
+        rules: singleRuleSetHasBenchmarkRules,
+    },
+    {
+        filePatterns: stringSplitStressFixtureGlobs,
+        fix: false,
+        name: "single-rule-string-split-stress",
+        rules: singleRuleStringSplitBenchmarkRules,
     },
 ]);
 

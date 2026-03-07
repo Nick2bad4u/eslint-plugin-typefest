@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { safeCastTo } from "ts-extras";
+
 import {
     createIsArrayLikeExpressionChecker,
     isWriteTargetMemberExpression,
@@ -91,16 +93,21 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                MemberExpression(node): void {
-                    if (!isLastIndexPattern(node)) {
+                'MemberExpression[computed=true][property.type="BinaryExpression"][property.operator="-"]'(
+                    node
+                ): void {
+                    const memberNode =
+                        safeCastTo<TSESTree.MemberExpression>(node);
+
+                    if (!isLastIndexPattern(memberNode)) {
                         return;
                     }
 
-                    if (isWriteTargetMemberExpression(node)) {
+                    if (isWriteTargetMemberExpression(memberNode)) {
                         return;
                     }
 
-                    if (!isArrayLikeExpression(node.object)) {
+                    if (!isArrayLikeExpression(memberNode.object)) {
                         return;
                     }
 
@@ -108,14 +115,14 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         context,
                         importedName: "arrayLast",
                         imports: directImports,
-                        memberNode: node,
+                        memberNode,
                         sourceModuleName: "ts-extras",
                     });
 
                     const outcome = resolveAutofixOrSuggestionOutcome({
                         canAutofix:
-                            isArrayIndexReadAutofixSafe(node) &&
-                            isRepeatablyEvaluableExpression(node.object),
+                            isArrayIndexReadAutofixSafe(memberNode) &&
+                            isRepeatablyEvaluableExpression(memberNode.object),
                         fix: fixes,
                     });
 
@@ -124,7 +131,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                             context,
                             descriptor: {
                                 messageId: "preferTsExtrasArrayLast",
-                                node,
+                                node: memberNode,
                                 suggest: [
                                     {
                                         fix: outcome.fix,
@@ -141,7 +148,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         context,
                         fix: outcome.kind === "autofix" ? outcome.fix : null,
                         messageId: "preferTsExtrasArrayLast",
-                        node,
+                        node: memberNode,
                     });
                 },
             };
