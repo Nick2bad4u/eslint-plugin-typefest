@@ -8,16 +8,6 @@ import type { UnknownArray } from "type-fest";
 import { isDefined, objectHasOwn } from "ts-extras";
 
 /**
- * Contract for adapting a rule-context report callback.
- */
-type ReportAdapter<
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
-> = (
-    report: ReportCallback<MessageIds, Options>
-) => ReportCallback<MessageIds, Options>;
-
-/**
  * Report callback type for a given message/options pair.
  */
 type ReportCallback<
@@ -88,27 +78,3 @@ export const createReportWithoutAutofixes =
     (descriptor) => {
         report(omitAutofixFromReportDescriptor(descriptor));
     };
-
-/**
- * Create a RuleContext facade with an explicitly adapted `report` callback.
- *
- * @remarks
- * Uses a prototype facade instead of object spread so non-enumerable
- * RuleContext members (for example getter-backed `sourceCode`) remain
- * available.
- */
-export const createRuleContextWithAdaptedReport = <
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
->(
-    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
-    reportAdapter: ReportAdapter<MessageIds, Options>
-): TSESLint.RuleContext<MessageIds, Options> =>
-    Object.create(context, {
-        report: {
-            configurable: true,
-            enumerable: true,
-            value: reportAdapter(context.report),
-            writable: true,
-        },
-    });

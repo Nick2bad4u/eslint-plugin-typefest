@@ -2,7 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-tuple-of`.
  */
-import type { TSESLint } from "@typescript-eslint/utils";
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -20,6 +20,12 @@ type PreferTypeFestTupleOfOption = Readonly<{
 }>;
 
 type TupleOfLegacyAlias = (typeof tupleOfLegacyAliases)[number];
+
+const defaultOption = {
+    enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
+} as const;
+
+const defaultOptions = [defaultOption] as const;
 
 /**
  * Legacy tuple aliases this rule normalizes to `TupleOf` forms.
@@ -57,10 +63,7 @@ const createTupleOfReplacementText = (
  */
 const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
     createTypedRule<readonly [PreferTypeFestTupleOfOption], "preferTupleOf">({
-        create(
-            context,
-            [options] = [{ enforcedAliasNames: ["ReadonlyTuple", "Tuple"] }]
-        ) {
+        create(context, [options] = defaultOptions) {
             const enabledAliasReplacements: Partial<
                 Record<TupleOfLegacyAlias, string>
             > = {};
@@ -81,7 +84,9 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -140,23 +145,16 @@ const preferTypeFestTupleOfRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [
-            {
-                enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
-            },
-        ],
+        defaultOptions,
         meta: {
-            defaultOptions: [
-                {
-                    enforcedAliasNames: ["ReadonlyTuple", "Tuple"],
-                },
-            ],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require TypeFest TupleOf over imported aliases such as ReadonlyTuple and Tuple.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

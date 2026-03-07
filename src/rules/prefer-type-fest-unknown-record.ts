@@ -53,7 +53,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (!isRecordStringUnknown(node)) {
                         return;
                     }
@@ -81,6 +81,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

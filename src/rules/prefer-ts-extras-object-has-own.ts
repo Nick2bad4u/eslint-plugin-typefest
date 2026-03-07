@@ -1,5 +1,6 @@
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 /**
  * @packageDocumentation
@@ -22,7 +23,9 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Object"][callee.property.type="Identifier"][callee.property.name="hasOwn"]'(
+                    node
+                ) {
                     reportTsExtrasGlobalMemberCall({
                         canAutofix: isTypePredicateExpressionAutofixSafe,
                         context,
@@ -33,16 +36,19 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                         node,
                         objectName: "Object",
                         reportSuggestion: ({ fix, node: suggestionNode }) => {
-                            context.report({
-                                messageId: "preferTsExtrasObjectHasOwn",
-                                node: suggestionNode,
-                                suggest: [
-                                    {
-                                        fix,
-                                        messageId:
-                                            "suggestTsExtrasObjectHasOwn",
-                                    },
-                                ],
+                            reportWithTypefestPolicy({
+                                context,
+                                descriptor: {
+                                    messageId: "preferTsExtrasObjectHasOwn",
+                                    node: suggestionNode,
+                                    suggest: [
+                                        {
+                                            fix,
+                                            messageId:
+                                                "suggestTsExtrasObjectHasOwn",
+                                        },
+                                    ],
+                                },
                             });
                         },
                         suggestionMessageId: "suggestTsExtrasObjectHasOwn",
@@ -58,6 +64,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectHasOwn over Object.hasOwn for own-property checks that should also narrow object types.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

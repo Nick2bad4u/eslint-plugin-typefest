@@ -261,7 +261,7 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

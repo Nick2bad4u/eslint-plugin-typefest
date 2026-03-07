@@ -156,7 +156,7 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -242,7 +242,7 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

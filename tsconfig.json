@@ -111,6 +111,7 @@
     ],
     "include": [
         "src/**/*.ts",
+        "test/**/*.d.ts",
         "test/**/*.ts",
         "vite.config.ts"
     ],

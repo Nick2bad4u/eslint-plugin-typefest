@@ -143,6 +143,7 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Arrayable over T | T[] and T | Array<T> unions.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

@@ -14,7 +14,10 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    reportWithTypefestPolicy,
+} from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -157,15 +160,18 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
-                        messageId: "preferTsExtrasIsEqualType",
-                        node,
-                        suggest: [
-                            {
-                                fix: isEqualTypeSuggestionFix,
-                                messageId: "suggestTsExtrasIsEqualType",
-                            },
-                        ],
+                    reportWithTypefestPolicy({
+                        context,
+                        descriptor: {
+                            messageId: "preferTsExtrasIsEqualType",
+                            node,
+                            suggest: [
+                                {
+                                    fix: isEqualTypeSuggestionFix,
+                                    messageId: "suggestTsExtrasIsEqualType",
+                                },
+                            ],
+                        },
                     });
                 },
             };
@@ -178,6 +184,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: false,
                 typefestConfigs: "typefest.configs.all",
 
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type",

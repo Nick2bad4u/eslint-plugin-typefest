@@ -10,7 +10,10 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    reportWithTypefestPolicy,
+} from "../_internal/rule-reporting.js";
 import { isThrowOnlyConsequent } from "../_internal/throw-consequent.js";
 import {
     createTypedRule,
@@ -155,15 +158,18 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
-                        messageId: "preferTsExtrasAssertError",
-                        node,
-                        suggest: [
-                            {
-                                fix: replacementFix,
-                                messageId: "suggestTsExtrasAssertError",
-                            },
-                        ],
+                    reportWithTypefestPolicy({
+                        context,
+                        descriptor: {
+                            messageId: "preferTsExtrasAssertError",
+                            node,
+                            suggest: [
+                                {
+                                    fix: replacementFix,
+                                    messageId: "suggestTsExtrasAssertError",
+                                },
+                            ],
+                        },
                     });
                 },
             };
@@ -176,6 +182,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras assertError over manual instanceof Error throw guards.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

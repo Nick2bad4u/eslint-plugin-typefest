@@ -219,7 +219,7 @@ describe("prefer-type-fest-simplify source assertions", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

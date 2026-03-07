@@ -130,7 +130,9 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
             };
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.property.type="Identifier"][callee.property.name="filter"]'(
+                    node
+                ) {
                     const callbackArgument =
                         getFilterCallbackFunctionArgument(node);
                     if (!callbackArgument) {
@@ -164,6 +166,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras not helper over inline negated predicate callbacks in filter calls.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

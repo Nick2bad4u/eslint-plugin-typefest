@@ -94,7 +94,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =
@@ -234,7 +234,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const capturedReplacementTexts: string[] = [];
@@ -356,7 +356,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -441,7 +441,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =

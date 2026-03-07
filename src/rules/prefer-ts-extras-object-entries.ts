@@ -21,7 +21,9 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Object"][callee.property.type="Identifier"][callee.property.name="entries"]'(
+                    node
+                ) {
                     reportTsExtrasGlobalMemberCall({
                         context,
                         importedName: "objectEntries",
@@ -42,6 +44,7 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectEntries over Object.entries for stronger key/value inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

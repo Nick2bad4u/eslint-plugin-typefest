@@ -122,7 +122,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -189,7 +189,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -264,7 +264,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>

@@ -57,7 +57,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (
                         !isIdentifierTypeReference(node, READONLY_MAP_TYPE_NAME)
                     ) {
@@ -93,6 +93,7 @@ const preferTypeFestUnknownMapRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownMap over ReadonlyMap<unknown, unknown> aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -30,6 +30,13 @@ const taggedAliasReplacements = {
     Opaque: "Tagged",
 } as const;
 
+const defaultOption = {
+    enforceAdHocBrandIntersections: true,
+    enforceLegacyAliases: true,
+} as const;
+
+const defaultOptions = [defaultOption] as const;
+
 /**
  * Detects intersection members that use object-literal branding fields.
  *
@@ -108,15 +115,7 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
         readonly [PreferTypeFestTaggedBrandsOption],
         "preferTaggedAlias" | "preferTaggedBrand"
     >({
-        create(
-            context,
-            [options] = [
-                {
-                    enforceAdHocBrandIntersections: true,
-                    enforceLegacyAliases: true,
-                },
-            ]
-        ) {
+        create(context, [options] = defaultOptions) {
             const enforceAdHocBrandIntersections =
                 options.enforceAdHocBrandIntersections ?? true;
             const enforceLegacyAliases = options.enforceLegacyAliases ?? true;
@@ -154,7 +153,9 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                         node: node.id,
                     });
                 },
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (!enforceLegacyAliases) {
                         return;
                     }
@@ -190,25 +191,16 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [
-            {
-                enforceAdHocBrandIntersections: true,
-                enforceLegacyAliases: true,
-            },
-        ],
+        defaultOptions,
         meta: {
-            defaultOptions: [
-                {
-                    enforceAdHocBrandIntersections: true,
-                    enforceLegacyAliases: true,
-                },
-            ],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require TypeFest Tagged over ad-hoc intersection branding with __brand/__tag fields.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

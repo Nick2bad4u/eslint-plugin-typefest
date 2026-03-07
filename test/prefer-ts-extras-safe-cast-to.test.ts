@@ -319,7 +319,7 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({ flags: 0 }),
@@ -411,7 +411,7 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation,
@@ -507,7 +507,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({ flags: 0 }),
@@ -701,7 +701,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({ flags: 0 }),

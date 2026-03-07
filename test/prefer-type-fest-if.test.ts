@@ -271,7 +271,7 @@ describe("prefer-type-fest-if source assertions", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =

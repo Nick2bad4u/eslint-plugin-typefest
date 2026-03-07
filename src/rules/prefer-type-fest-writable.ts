@@ -110,7 +110,9 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                         node,
                     });
                 },
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -150,6 +152,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Writable over manual mapped types that strip readonly with -readonly.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -14,6 +14,7 @@ import {
 } from "../_internal/imported-value-symbols.js";
 import {
     reportWithOptionalFix,
+    reportWithTypefestPolicy,
     resolveAutofixOrSuggestionOutcome,
 } from "../_internal/rule-reporting.js";
 import {
@@ -81,15 +82,18 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     });
 
                     if (outcome.kind === "suggestion") {
-                        context.report({
-                            messageId: "preferTsExtrasArrayFirst",
-                            node,
-                            suggest: [
-                                {
-                                    fix: outcome.fix,
-                                    messageId: "suggestTsExtrasArrayFirst",
-                                },
-                            ],
+                        reportWithTypefestPolicy({
+                            context,
+                            descriptor: {
+                                messageId: "preferTsExtrasArrayFirst",
+                                node,
+                                suggest: [
+                                    {
+                                        fix: outcome.fix,
+                                        messageId: "suggestTsExtrasArrayFirst",
+                                    },
+                                ],
+                            },
                         });
 
                         return;
@@ -112,6 +116,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFirst over direct [0] array access for stronger tuple and readonly-array inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

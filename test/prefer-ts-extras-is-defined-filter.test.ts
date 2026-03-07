@@ -320,7 +320,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -419,7 +419,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>

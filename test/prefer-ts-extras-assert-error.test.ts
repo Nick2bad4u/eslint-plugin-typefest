@@ -412,7 +412,7 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     identifier: Readonly<{ name?: string; type?: string }>,
@@ -500,7 +500,7 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
             }));
 

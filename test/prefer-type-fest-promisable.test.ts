@@ -25,6 +25,7 @@ import {
 } from "./_internal/prefer-type-fest-promisable-cases";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import { getSourceTextForNode } from "./_internal/source-text-for-node";
 import {
     createTypedRuleTester,
@@ -83,7 +84,7 @@ describe("prefer-type-fest-promisable source assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =
@@ -149,7 +150,7 @@ describe("prefer-type-fest-promisable internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -184,7 +185,12 @@ describe("prefer-type-fest-promisable internal listener guards", () => {
                 },
             });
 
-            listeners.TSTypeReference?.({
+            const referenceListener = getSelectorAwareNodeListener<unknown>(
+                listeners,
+                "TSTypeReference"
+            );
+
+            referenceListener?.({
                 type: "TSTypeReference",
                 typeArguments: {
                     params: [{ type: "TSStringKeyword" }],
@@ -458,7 +464,11 @@ const runPromisableTypeReferenceReport = (
         },
     });
 
-    listenerMap.TSTypeReference?.(parsedCode.targetTypeReferenceNode);
+    const referenceListener = getSelectorAwareNodeListener<
+        Readonly<TSESTree.TSTypeReference>
+    >(listenerMap, "TSTypeReference");
+
+    referenceListener?.(parsedCode.targetTypeReferenceNode);
 
     expect(reportDescriptors).toHaveLength(1);
 

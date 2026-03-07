@@ -32,6 +32,13 @@ const promisableAliasReplacements = {
     MaybePromise: "Promisable",
 } as const;
 
+const defaultOption = {
+    enforceLegacyAliases: true,
+    enforcePromiseUnions: true,
+} as const;
+
+const defaultOptions = [defaultOption] as const;
+
 /**
  * Extracts the type argument from `Promise<T>` references.
  *
@@ -65,12 +72,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
         readonly [PreferTypeFestPromisableOption],
         "preferPromisable"
     >({
-        create(
-            context,
-            [options] = [
-                { enforceLegacyAliases: true, enforcePromiseUnions: true },
-            ]
-        ) {
+        create(context, [options] = defaultOptions) {
             const enforceLegacyAliases = options.enforceLegacyAliases ?? true;
             const enforcePromiseUnions = options.enforcePromiseUnions ?? true;
 
@@ -85,7 +87,9 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (!enforceLegacyAliases) {
                         return;
                     }
@@ -187,25 +191,16 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [
-            {
-                enforceLegacyAliases: true,
-                enforcePromiseUnions: true,
-            },
-        ],
+        defaultOptions,
         meta: {
-            defaultOptions: [
-                {
-                    enforceLegacyAliases: true,
-                    enforcePromiseUnions: true,
-                },
-            ],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require TypeFest Promisable over legacy MaybePromise aliases and Promise<T> | T unions for sync-or-async contracts.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

@@ -15,6 +15,7 @@ import {
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
     reportWithOptionalFix,
+    reportWithTypefestPolicy,
     resolveAutofixOrSuggestionOutcome,
 } from "../_internal/rule-reporting.js";
 import {
@@ -119,15 +120,18 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     });
 
                     if (outcome.kind === "suggestion") {
-                        context.report({
-                            messageId: "preferTsExtrasArrayLast",
-                            node,
-                            suggest: [
-                                {
-                                    fix: outcome.fix,
-                                    messageId: "suggestTsExtrasArrayLast",
-                                },
-                            ],
+                        reportWithTypefestPolicy({
+                            context,
+                            descriptor: {
+                                messageId: "preferTsExtrasArrayLast",
+                                node,
+                                suggest: [
+                                    {
+                                        fix: outcome.fix,
+                                        messageId: "suggestTsExtrasArrayLast",
+                                    },
+                                ],
+                            },
                         });
 
                         return;
@@ -150,6 +154,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                     "require `arrayLast` from `ts-extras` instead of manual last-index member access.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.recommended-type-checked",
                     "typefest.configs.strict",

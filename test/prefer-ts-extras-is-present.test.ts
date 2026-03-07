@@ -1313,7 +1313,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1423,7 +1423,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1553,7 +1553,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1681,7 +1681,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -2252,7 +2252,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>

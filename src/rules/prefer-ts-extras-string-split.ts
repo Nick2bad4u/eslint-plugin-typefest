@@ -162,7 +162,9 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             };
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="split"]'(
+                    node
+                ) {
                     reportTsExtrasTypedMemberCall({
                         context,
                         importedName: "stringSplit",
@@ -183,6 +185,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras stringSplit over String#split for stronger tuple inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

@@ -1505,6 +1505,7 @@ export default defineConfig([
                 afterEach: "readonly",
                 beforeAll: "readonly",
                 beforeEach: "readonly",
+                createTypedRuleSelectorAwarePassThrough: "readonly",
                 describe: "readonly",
                 expect: "readonly",
                 it: "readonly",

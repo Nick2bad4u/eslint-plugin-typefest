@@ -208,7 +208,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =
@@ -326,7 +326,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
                 );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({

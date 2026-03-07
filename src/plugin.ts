@@ -6,15 +6,24 @@ import type { ESLint, Linter } from "eslint";
 import type { Except } from "type-fest";
 
 import typeScriptParser from "@typescript-eslint/parser";
-import { objectEntries, objectHasIn, safeCastTo, setHas } from "ts-extras";
+import {
+    isDefined,
+    isEmpty,
+    objectEntries,
+    objectHasIn,
+    safeCastTo,
+    setHas,
+} from "ts-extras";
 
 import type { TypefestConfigName as InternalTypefestConfigName } from "./_internal/typefest-config-references.js";
 
 import packageJson from "../package.json" with { type: "json" };
-import rulePresetMembershipByRuleName from "./_internal/rule-preset-membership.js";
+import {
+    deriveRuleDocsMetadataByName,
+    deriveRulePresetMembershipByRuleName,
+    deriveTypeCheckedRuleNameSet,
+} from "./_internal/rule-docs-metadata.js";
 import { typefestRules } from "./_internal/rules-registry.js";
-import typeCheckedRuleNames from "./_internal/type-checked-rule-names.js";
-import { typefestConfigNames } from "./_internal/typefest-config-references.js";
 
 /** ESLint severity used by generated preset rule maps. */
 const ERROR_SEVERITY = "error" as const;
@@ -160,45 +169,13 @@ const typefestRuleEntries: readonly (readonly [
     return entries;
 })();
 
-type RulePresetMembership = Readonly<
-    Partial<Record<TypefestRuleName, readonly TypefestConfigName[]>>
->;
-
-const typefestConfigNameSet: ReadonlySet<string> = new Set(typefestConfigNames);
-
-const isTypefestConfigName = (value: unknown): value is TypefestConfigName =>
-    typeof value === "string" && setHas(typefestConfigNameSet, value);
-
-const isTypefestConfigNameArray = (
-    value: unknown
-): value is readonly TypefestConfigName[] =>
-    Array.isArray(value) && value.every((entry) => isTypefestConfigName(entry));
-
-const deriveRulePresetMembership = (): RulePresetMembership => {
-    const membership: Partial<
-        Record<TypefestRuleName, readonly TypefestConfigName[]>
-    > = {};
-
-    for (const [ruleName, configNames] of objectEntries(
-        rulePresetMembershipByRuleName
-    )) {
-        if (!isTypefestRuleName(ruleName)) {
-            continue;
-        }
-
-        if (!isTypefestConfigNameArray(configNames)) {
-            throw new TypeError(
-                `Rule '${ruleName}' has invalid preset membership metadata.`
-            );
-        }
-
-        membership[ruleName] = configNames;
-    }
-
-    return membership;
-};
-
-const rulePresetMembership = deriveRulePresetMembership();
+const ruleDocsMetadataByRuleName = deriveRuleDocsMetadataByName(typefestRules);
+const rulePresetMembership = deriveRulePresetMembershipByRuleName(
+    ruleDocsMetadataByRuleName
+);
+const typeCheckedRuleNames = deriveTypeCheckedRuleNameSet(
+    ruleDocsMetadataByRuleName
+);
 
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
@@ -225,7 +202,13 @@ const derivePresetRuleNamesByConfig = (): Readonly<
     for (const [ruleName] of typefestRuleEntries) {
         const configNames = rulePresetMembership[ruleName];
 
-        if (!isTypefestConfigNameArray(configNames)) {
+        if (!isDefined(configNames)) {
+            throw new TypeError(
+                `Rule '${ruleName}' is missing preset membership metadata.`
+            );
+        }
+
+        if (isEmpty(configNames)) {
             throw new TypeError(
                 `Rule '${ruleName}' is missing preset membership metadata.`
             );

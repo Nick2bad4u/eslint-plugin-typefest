@@ -128,6 +128,7 @@ const preferTypeFestJsonPrimitiveRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonPrimitive over explicit null|boolean|number|string unions.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

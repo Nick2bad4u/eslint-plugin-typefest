@@ -1,9 +1,13 @@
 /**
  * @packageDocumentation
- * Integrity tests for required rule metadata across all registered rules.
+ * Strong contract tests for required rule metadata across all registered rules.
  */
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { objectEntries } from "ts-extras";
 import { describe, expect, it } from "vitest";
 
+import { isTypefestConfigReference } from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
 
 /** Allowed ESLint `meta.type` values for plugin rules. */
@@ -13,16 +17,304 @@ const expectedRuleTypes = new Set([
     "suggestion",
 ]);
 
+/** Canonical docs URL prefix for every rule docs page. */
+const RULE_DOCS_URL_BASE =
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
+
 /** Check whether a value is a non-empty trimmed string. */
 const isNonEmptyString = (value: unknown): value is string =>
     typeof value === "string" && value.trim().length > 0;
 
-/** Entry tuple type returned by `Object.entries(typefestPlugin.rules)`. */
-type RuleEntry = readonly [RuleName, RuleModule];
-/** Individual rule module type from plugin rule registry. */
-type RuleModule = (typeof typefestPlugin.rules)[RuleName];
-/** Registered plugin rule-name union. */
-type RuleName = keyof typeof typefestPlugin.rules;
+/** Guard unknown values to object-shaped records. */
+const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+    typeof value === "object" && value !== null;
+
+/**
+ * Read all rule source file names from `src/rules`.
+ */
+const getRuleSourceFileNames = (): readonly string[] => {
+    const rulesDirectory = path.join(process.cwd(), "src", "rules");
+
+    return fs
+        .readdirSync(rulesDirectory)
+        .filter((entry) => entry.endsWith(".ts"))
+        .map((entry) => entry.replace(/\.ts$/v, ""))
+        .toSorted((left, right) => left.localeCompare(right));
+};
+
+/**
+ * Normalize `meta.docs.typefestConfigs` into a string array for assertions.
+ */
+const normalizeTypefestConfigReferences = (
+    typefestConfigs: unknown
+): readonly string[] => {
+    if (typeof typefestConfigs === "string") {
+        return [typefestConfigs];
+    }
+
+    if (!Array.isArray(typefestConfigs)) {
+        return [];
+    }
+
+    const references: string[] = [];
+
+    for (const reference of typefestConfigs) {
+        if (typeof reference === "string") {
+            references.push(reference);
+        }
+    }
+
+    return references;
+};
+
+/**
+ * Read and validate one rule module as an object record.
+ */
+const getRuleRecord = (
+    ruleName: string,
+    ruleModule: unknown
+): Readonly<Record<string, unknown>> => {
+    expect(
+        isRecord(ruleModule),
+        `Rule '${ruleName}' must export an object`
+    ).toBeTruthy();
+
+    return isRecord(ruleModule) ? ruleModule : {};
+};
+
+/**
+ * Read and validate one rule's `meta` object.
+ */
+const getRuleMetaRecord = (
+    ruleName: string,
+    ruleRecord: Readonly<Record<string, unknown>>
+): Readonly<Record<string, unknown>> => {
+    const meta = ruleRecord["meta"];
+
+    expect(isRecord(meta), `Rule '${ruleName}' must define meta`).toBeTruthy();
+
+    return isRecord(meta) ? meta : {};
+};
+
+/**
+ * Read and validate one rule's docs metadata contract.
+ */
+const getRuleDocsRecord = (
+    ruleName: string,
+    metaRecord: Readonly<Record<string, unknown>>
+): Readonly<Record<string, unknown>> => {
+    const docs = metaRecord["docs"];
+
+    expect(
+        isRecord(docs),
+        `Rule '${ruleName}' must define meta.docs`
+    ).toBeTruthy();
+
+    return isRecord(docs) ? docs : {};
+};
+
+/**
+ * Assert schema/default-options contract including canonical option defaults.
+ */
+const assertDefaultOptionsContract = ({
+    metaRecord,
+    ruleName,
+    ruleRecord,
+}: Readonly<{
+    metaRecord: Readonly<Record<string, unknown>>;
+    ruleName: string;
+    ruleRecord: Readonly<Record<string, unknown>>;
+}>): void => {
+    const defaultOptions = ruleRecord["defaultOptions"];
+
+    expect(
+        Array.isArray(defaultOptions),
+        `Rule '${ruleName}' must declare defaultOptions as an array`
+    ).toBeTruthy();
+
+    const metaDefaultOptions = metaRecord["defaultOptions"];
+
+    if (metaDefaultOptions !== undefined) {
+        expect(Array.isArray(metaDefaultOptions)).toBeTruthy();
+        expect(metaDefaultOptions).toStrictEqual(defaultOptions);
+    }
+
+    const schema = metaRecord["schema"];
+
+    if (Array.isArray(schema) && schema.length > 0) {
+        expect(metaDefaultOptions).toBeDefined();
+        expect(metaDefaultOptions).toStrictEqual(defaultOptions);
+    }
+};
+
+/**
+ * Assert docs metadata and preset-membership invariants for one rule.
+ */
+const assertDocsContract = ({
+    docsRecord,
+    ruleName,
+}: Readonly<{
+    docsRecord: Readonly<Record<string, unknown>>;
+    ruleName: string;
+}>): void => {
+    const description = docsRecord["description"];
+    const recommended = docsRecord["recommended"];
+    const requiresTypeChecking = docsRecord["requiresTypeChecking"];
+    const typefestConfigs = docsRecord["typefestConfigs"];
+    const url = docsRecord["url"];
+
+    expect(
+        isNonEmptyString(description),
+        `Rule '${ruleName}' must provide a non-empty docs.description`
+    ).toBeTruthy();
+    expect(
+        typeof recommended === "boolean",
+        `Rule '${ruleName}' must provide boolean docs.recommended`
+    ).toBeTruthy();
+    expect(
+        typeof requiresTypeChecking === "boolean",
+        `Rule '${ruleName}' must provide boolean docs.requiresTypeChecking`
+    ).toBeTruthy();
+    expect(
+        isNonEmptyString(url),
+        `Rule '${ruleName}' must provide a non-empty docs.url`
+    ).toBeTruthy();
+
+    if (!isNonEmptyString(url) || typeof recommended !== "boolean") {
+        return;
+    }
+
+    const expectedRuleUrl = `${RULE_DOCS_URL_BASE}${ruleName}`;
+
+    expect(url).toBe(expectedRuleUrl);
+
+    const docsPath = path.join(
+        process.cwd(),
+        "docs",
+        "rules",
+        `${ruleName}.md`
+    );
+
+    expect(fs.existsSync(docsPath)).toBeTruthy();
+
+    const typefestConfigReferences =
+        normalizeTypefestConfigReferences(typefestConfigs);
+
+    expect(
+        typefestConfigReferences.length > 0,
+        `Rule '${ruleName}' must declare at least one docs.typefestConfigs entry`
+    ).toBeTruthy();
+    expect(typefestConfigReferences).toHaveLength(
+        new Set(typefestConfigReferences).size
+    );
+
+    for (const reference of typefestConfigReferences) {
+        expect(
+            isTypefestConfigReference(reference),
+            `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${reference}'`
+        ).toBeTruthy();
+    }
+
+    const includesRecommendedReference = typefestConfigReferences.includes(
+        "typefest.configs.recommended"
+    );
+    const includesRecommendedTypeCheckedReference =
+        typefestConfigReferences.includes(
+            "typefest.configs.recommended-type-checked"
+        ) ||
+        typefestConfigReferences.includes(
+            'typefest.configs["recommended-type-checked"]'
+        );
+
+    expect(recommended).toBe(includesRecommendedReference);
+
+    if (
+        includesRecommendedTypeCheckedReference &&
+        typeof requiresTypeChecking === "boolean"
+    ) {
+        expect(requiresTypeChecking).toBeTruthy();
+        expect(includesRecommendedReference).toBeFalsy();
+        expect(recommended).toBeFalsy();
+    }
+};
+
+/**
+ * Assert base rule metadata contract shared by every plugin rule.
+ */
+const assertBaseRuleMetadataContract = ({
+    metaRecord,
+    ruleName,
+    ruleRecord,
+}: Readonly<{
+    metaRecord: Readonly<Record<string, unknown>>;
+    ruleName: string;
+    ruleRecord: Readonly<Record<string, unknown>>;
+}>): void => {
+    const type = metaRecord["type"];
+    const schema = metaRecord["schema"];
+    const ruleNameProperty = ruleRecord["name"];
+
+    expect(ruleNameProperty).toBe(ruleName);
+    expect(
+        isNonEmptyString(type) && expectedRuleTypes.has(type),
+        `Rule '${ruleName}' has unsupported meta.type '${String(type)}'`
+    ).toBeTruthy();
+    expect(
+        Array.isArray(schema),
+        `Rule '${ruleName}' must declare a schema array`
+    ).toBeTruthy();
+};
+
+/**
+ * Assert message and fix/suggestion metadata consistency.
+ */
+const assertMessageAndFixContract = ({
+    metaRecord,
+    ruleName,
+}: Readonly<{
+    metaRecord: Readonly<Record<string, unknown>>;
+    ruleName: string;
+}>): void => {
+    const messages = metaRecord["messages"];
+
+    expect(
+        isRecord(messages),
+        `Rule '${ruleName}' must define a messages record`
+    ).toBeTruthy();
+
+    if (!isRecord(messages)) {
+        return;
+    }
+
+    const messageEntries = objectEntries(messages);
+
+    expect(
+        messageEntries.length,
+        `Rule '${ruleName}' must define at least one message`
+    ).toBeGreaterThan(0);
+
+    for (const [messageId, messageTemplate] of messageEntries) {
+        expect(
+            isNonEmptyString(messageTemplate),
+            `Rule '${ruleName}' message '${messageId}' must be a non-empty string`
+        ).toBeTruthy();
+    }
+
+    const fixable = metaRecord["fixable"];
+
+    if (fixable !== undefined) {
+        expect(fixable).toBe("code");
+    }
+
+    if (metaRecord["hasSuggestions"] === true) {
+        expect(
+            messageEntries.some(([messageId]) =>
+                messageId.toLowerCase().includes("suggest")
+            ),
+            `Rule '${ruleName}' enables suggestions but does not define a suggestion message id`
+        ).toBeTruthy();
+    }
+};
 
 describe("rule metadata integrity", () => {
     it("exports processors for plugin shape parity", () => {
@@ -30,79 +322,42 @@ describe("rule metadata integrity", () => {
         expect(typefestPlugin.processors).toEqual({});
     });
 
+    it("keeps src/rules file names in sync with registered rule names", () => {
+        const registeredRuleNames = Object.keys(typefestPlugin.rules).toSorted(
+            (left, right) => left.localeCompare(right)
+        );
+
+        expect(getRuleSourceFileNames()).toStrictEqual(registeredRuleNames);
+    });
+
     it("enforces required metadata invariants for every rule", () => {
-        const ruleEntries = Object.entries(typefestPlugin.rules) as RuleEntry[];
+        const ruleEntries = objectEntries(typefestPlugin.rules);
 
         expect(ruleEntries.length).toBeGreaterThan(0);
 
         for (const [ruleName, ruleModule] of ruleEntries) {
-            const meta = ruleModule.meta;
-            const defaultOptions =
-                "defaultOptions" in ruleModule
-                    ? (
-                          ruleModule as RuleModule & {
-                              defaultOptions?: unknown;
-                          }
-                      ).defaultOptions
-                    : undefined;
+            const ruleRecord = getRuleRecord(ruleName, ruleModule);
+            const metaRecord = getRuleMetaRecord(ruleName, ruleRecord);
+            const docsRecord = getRuleDocsRecord(ruleName, metaRecord);
 
-            expect(meta, `Rule '${ruleName}' must define meta`).toBeDefined();
-
-            if (meta) {
-                const metaType = meta.type;
-                const docs = meta.docs;
-                const docsDescription = docs?.description;
-                const docsUrl = docs?.url;
-                const schema = meta.schema;
-                const messages = meta.messages ?? {};
-
-                expect(
-                    isNonEmptyString(metaType) &&
-                        expectedRuleTypes.has(metaType),
-                    `Rule '${ruleName}' has unsupported meta.type '${String(metaType)}'`
-                ).toBeTruthy();
-
-                expect(
-                    isNonEmptyString(docsDescription),
-                    `Rule '${ruleName}' must provide a non-empty docs.description`
-                ).toBeTruthy();
-
-                expect(
-                    isNonEmptyString(docsUrl),
-                    `Rule '${ruleName}' must provide a non-empty docs.url`
-                ).toBeTruthy();
-
-                if (isNonEmptyString(docsUrl)) {
-                    expect(
-                        docsUrl.endsWith(`/rules/${ruleName}`),
-                        `Rule '${ruleName}' docs.url should end with /rules/${ruleName}`
-                    ).toBeTruthy();
-                }
-
-                expect(
-                    Array.isArray(schema),
-                    `Rule '${ruleName}' must declare a schema array`
-                ).toBeTruthy();
-
-                expect(
-                    Array.isArray(defaultOptions),
-                    `Rule '${ruleName}' must declare defaultOptions as an array`
-                ).toBeTruthy();
-
-                const messageEntries = Object.entries(messages);
-
-                expect(
-                    messageEntries.length,
-                    `Rule '${ruleName}' must define at least one message`
-                ).toBeGreaterThan(0);
-
-                for (const [messageId, messageTemplate] of messageEntries) {
-                    expect(
-                        isNonEmptyString(messageTemplate),
-                        `Rule '${ruleName}' message '${messageId}' must be a non-empty string`
-                    ).toBeTruthy();
-                }
-            }
+            assertBaseRuleMetadataContract({
+                metaRecord,
+                ruleName,
+                ruleRecord,
+            });
+            assertDefaultOptionsContract({
+                metaRecord,
+                ruleName,
+                ruleRecord,
+            });
+            assertDocsContract({
+                docsRecord,
+                ruleName,
+            });
+            assertMessageAndFixContract({
+                metaRecord,
+                ruleName,
+            });
         }
     });
 });

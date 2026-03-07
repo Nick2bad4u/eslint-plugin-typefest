@@ -27,6 +27,7 @@
         "src/**/*.mjs",
         "scripts/**/*.ts",
         "scripts/**/*.mjs",
+        "test/**/*.d.ts",
         "test/**/*.ts",
         "test/**/*.mjs",
         "vitest.stryker.config.ts",

@@ -74,6 +74,7 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest ValueOf over direct T[keyof T] indexed-access unions for object value extraction.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

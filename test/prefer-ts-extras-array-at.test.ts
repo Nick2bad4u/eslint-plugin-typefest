@@ -173,7 +173,7 @@ describe("prefer-ts-extras-array-at source assertions", () => {
             const createMethodToFunctionCallFixMock = vi.fn(() => "FIX");
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {},
                     parserServices: {},

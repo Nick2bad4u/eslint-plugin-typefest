@@ -274,7 +274,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({
@@ -362,7 +362,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation,
@@ -459,7 +459,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             });
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType,
@@ -558,7 +558,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) => type,

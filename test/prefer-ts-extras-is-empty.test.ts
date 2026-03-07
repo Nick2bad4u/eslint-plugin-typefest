@@ -247,7 +247,7 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: (): unknown => ({}),
@@ -332,7 +332,7 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {},
                     parserServices: {

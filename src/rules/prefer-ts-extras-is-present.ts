@@ -284,6 +284,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isPresent over inline nullish comparisons outside filter callbacks.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

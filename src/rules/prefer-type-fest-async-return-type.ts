@@ -57,7 +57,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
             const { sourceCode } = context;
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {
                         return;
                     }
@@ -107,6 +107,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest AsyncReturnType over Awaited<ReturnType<T>> compositions for async return extraction.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -31,7 +31,9 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="concat"]'(
+                    node
+                ) {
                     reportTsExtrasArrayMethodCall({
                         context,
                         importedName: "arrayConcat",
@@ -52,6 +54,7 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayConcat over Array#concat for stronger tuple and readonly-array typing.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

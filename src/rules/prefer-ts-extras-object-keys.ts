@@ -21,7 +21,9 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Object"][callee.property.type="Identifier"][callee.property.name="keys"]'(
+                    node
+                ) {
                     reportTsExtrasGlobalMemberCall({
                         context,
                         importedName: "objectKeys",
@@ -42,6 +44,7 @@ const preferTsExtrasObjectKeysRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectKeys over Object.keys for stronger key inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

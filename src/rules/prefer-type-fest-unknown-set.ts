@@ -54,7 +54,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (
                         !isIdentifierTypeReference(node, READONLY_SET_TYPE_NAME)
                     ) {
@@ -90,6 +90,7 @@ const preferTypeFestUnknownSetRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownSet over ReadonlySet<unknown> aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

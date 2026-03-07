@@ -10,7 +10,10 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    reportWithTypefestPolicy,
+} from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -71,7 +74,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (!isRecordLikeUnknownOrAny(node)) {
                         return;
                     }
@@ -96,15 +99,18 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    context.report({
-                        messageId: "preferJsonValue",
-                        node,
-                        suggest: [
-                            {
-                                fix: jsonObjectSuggestionFix,
-                                messageId: "suggestJsonObject",
-                            },
-                        ],
+                    reportWithTypefestPolicy({
+                        context,
+                        descriptor: {
+                            messageId: "preferJsonValue",
+                            node,
+                            suggest: [
+                                {
+                                    fix: jsonObjectSuggestionFix,
+                                    messageId: "suggestJsonObject",
+                                },
+                            ],
+                        },
                     });
                 },
             };
@@ -117,6 +123,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonObject for string-keyed JSON record contract types in serialization boundaries.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

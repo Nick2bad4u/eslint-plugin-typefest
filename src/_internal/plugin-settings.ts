@@ -109,6 +109,12 @@ const readDisableAllAutofixesFromSettings = (settings: unknown): boolean => {
 };
 
 /**
+ * Guard values suitable for WeakMap object keys.
+ */
+const isWeakMapKeyObject = (value: unknown): value is object =>
+    typeof value === "object" && value !== null;
+
+/**
  * Register parsed plugin settings for the current file program.
  *
  * @param context - Active ESLint rule context.
@@ -118,12 +124,7 @@ const readDisableAllAutofixesFromSettings = (settings: unknown): boolean => {
 export const registerProgramSettingsForContext = (
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>
 ): Readonly<ProgramSettings> => {
-    const existingProgramSettings = settingsByProgram.get(
-        context.sourceCode.ast
-    );
-    if (isPresent(existingProgramSettings)) {
-        return existingProgramSettings;
-    }
+    const programNode = context.sourceCode.ast;
 
     const disableAllAutofixes = readDisableAllAutofixesFromSettings(
         context.settings
@@ -137,7 +138,16 @@ export const registerProgramSettingsForContext = (
         disableImportInsertionFixes,
     });
 
-    settingsByProgram.set(context.sourceCode.ast, parsedSettings);
+    if (!isWeakMapKeyObject(programNode)) {
+        return parsedSettings;
+    }
+
+    const existingProgramSettings = settingsByProgram.get(programNode);
+    if (isPresent(existingProgramSettings)) {
+        return existingProgramSettings;
+    }
+
+    settingsByProgram.set(programNode, parsedSettings);
 
     return parsedSettings;
 };

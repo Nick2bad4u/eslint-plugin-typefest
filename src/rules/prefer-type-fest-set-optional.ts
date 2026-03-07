@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-set-optional`.
@@ -33,7 +35,9 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -73,6 +77,7 @@ const preferTypeFestSetOptionalRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest SetOptional over imported alias types like PartialBy.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

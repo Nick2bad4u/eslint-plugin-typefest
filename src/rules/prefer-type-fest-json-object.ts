@@ -87,7 +87,7 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (!isRecordJsonValueReference(node)) {
                         return;
                     }
@@ -115,6 +115,7 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonObject over equivalent Record<string, JsonValue> object aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

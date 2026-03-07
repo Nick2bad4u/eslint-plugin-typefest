@@ -64,6 +64,7 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
             description:
                 "require TypeFest AbstractConstructor over explicit `abstract new (...) => ...` signatures.",
             recommended: true,
+            requiresTypeChecking: false,
             typefestConfigs: [
                 "typefest.configs.recommended",
                 "typefest.configs.strict",

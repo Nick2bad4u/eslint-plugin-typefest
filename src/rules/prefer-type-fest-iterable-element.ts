@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-iterable-element`.
@@ -35,7 +37,9 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -75,6 +79,7 @@ const preferTypeFestIterableElementRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest IterableElement over imported aliases such as SetElement/SetEntry/SetValues.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

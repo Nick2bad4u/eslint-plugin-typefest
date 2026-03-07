@@ -219,7 +219,7 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     node: Readonly<{ name?: string; type: string }>,

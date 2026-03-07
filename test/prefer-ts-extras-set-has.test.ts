@@ -39,6 +39,7 @@ import {
 } from "./_internal/prefer-ts-extras-set-has-runtime-harness";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -112,7 +113,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => fakeSetType,
@@ -153,7 +154,11 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener = listeners.CallExpression;
+            const callExpressionListener =
+                getSelectorAwareNodeListener<unknown>(
+                    listeners,
+                    "CallExpression"
+                );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -189,7 +194,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({ isUnion: () => false }),
@@ -232,7 +237,11 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener = listeners.CallExpression;
+            const callExpressionListener =
+                getSelectorAwareNodeListener<unknown>(
+                    listeners,
+                    "CallExpression"
+                );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -269,7 +278,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation,
@@ -310,7 +319,11 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener = listeners.CallExpression;
+            const callExpressionListener =
+                getSelectorAwareNodeListener<unknown>(
+                    listeners,
+                    "CallExpression"
+                );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
@@ -417,7 +430,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) =>
@@ -471,11 +484,15 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 },
             });
 
-            const callExpressionListener = listeners.CallExpression;
+            const callExpressionListener =
+                getSelectorAwareNodeListener<unknown>(
+                    listeners,
+                    "CallExpression"
+                );
 
             expect(callExpressionListener).toBeTypeOf("function");
 
-            const identifierHasCallNode = {
+            const createIdentifierHasCallNode = () => ({
                 callee: {
                     computed: false,
                     object: {
@@ -488,28 +505,28 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                     type: "MemberExpression",
                 },
                 type: "CallExpression",
-            };
+            });
 
             currentObjectType = recursiveUnionType;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = intersectionType;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = apparentTypeSource;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = nonClassLikeType;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = noSymbolLeafType;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = classLikeWithoutBaseTypes;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             currentObjectType = classLikeSetBaseType;
-            callExpressionListener?.(identifierHasCallNode);
+            callExpressionListener?.(createIdentifierHasCallNode());
 
             callExpressionListener?.({
                 callee: {
@@ -551,7 +568,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) => type,
@@ -656,7 +673,13 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener<unknown>(
+                                listeners,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({

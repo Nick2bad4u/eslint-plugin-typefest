@@ -27,10 +27,22 @@ const createFix = (): TSESLint.ReportFixFunction => {
 
 const createContext = () => {
     const report = vi.fn<RuleContextLike["report"]>();
+    const program = {
+        body: [],
+        comments: [],
+        range: [0, 0],
+        sourceType: "module",
+        tokens: [],
+        type: "Program",
+    } as unknown as TSESTree.Program;
 
     return {
         context: {
             report,
+            settings: {},
+            sourceCode: {
+                ast: program,
+            },
         } as unknown as RuleContextLike,
         report,
     };

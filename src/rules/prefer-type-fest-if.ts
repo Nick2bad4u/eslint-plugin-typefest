@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-if`.
@@ -38,7 +40,9 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -78,6 +82,7 @@ const preferTypeFestIfRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest If + Is* utilities over deprecated If* aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

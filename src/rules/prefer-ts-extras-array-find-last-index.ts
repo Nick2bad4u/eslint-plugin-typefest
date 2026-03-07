@@ -31,7 +31,9 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="findLastIndex"]'(
+                    node
+                ) {
                     reportTsExtrasArrayMethodCall({
                         context,
                         importedName: "arrayFindLastIndex",
@@ -52,6 +54,7 @@ const preferTsExtrasArrayFindLastIndexRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFindLastIndex over Array#findLastIndex for stronger predicate inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: "typefest.configs.all",
 
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find-last-index",

@@ -8,6 +8,7 @@ import { isDefined } from "ts-extras";
 import ts from "typescript";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import {
@@ -33,7 +34,19 @@ type PreferTsExtrasSetHasOption = Readonly<{
     unionBranchMatchingMode?: UnionSetMatchingMode;
 }>;
 
+type SetHasCallAnalysis = Readonly<{
+    canAutofix: boolean;
+    matchesConfiguredUnionMode: boolean;
+    matchesDefaultUnionMode: boolean;
+}>;
+
 type UnionSetMatchingMode = (typeof unionSetMatchingModeValues)[number];
+
+const defaultOption = {
+    unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
+} as const;
+
+const defaultOptions = [defaultOption] as const;
 
 const getHasCallReceiverExpression = (
     node: Readonly<TSESTree.CallExpression>
@@ -69,14 +82,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
         readonly [PreferTsExtrasSetHasOption],
         "preferTsExtrasSetHas" | "suggestTsExtrasSetHas"
     >({
-        create(
-            context,
-            [options] = [
-                {
-                    unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
-                },
-            ]
-        ) {
+        create(context, [options] = defaultOptions) {
             const unionSetMatchingMode: UnionSetMatchingMode =
                 options.unionBranchMatchingMode ??
                 DEFAULT_UNION_SET_MATCHING_MODE;
@@ -99,6 +105,14 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     boolean
                 >(),
             };
+            const setLikeExpressionResolutionCache = new WeakMap<
+                Readonly<TSESTree.Expression>,
+                Partial<Record<UnionSetMatchingMode, boolean>>
+            >();
+            const setHasCallAnalysisCache = new WeakMap<
+                Readonly<TSESTree.CallExpression>,
+                SetHasCallAnalysis
+            >();
 
             const hasClassOrInterfaceLikeDeclaration = (
                 candidateType: Readonly<ts.Type>
@@ -233,6 +247,15 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 expression: Readonly<TSESTree.Expression>,
                 unionMatchingMode: UnionSetMatchingMode
             ): boolean => {
+                const cachedExpressionModes =
+                    setLikeExpressionResolutionCache.get(expression);
+                const cachedModeResult =
+                    cachedExpressionModes?.[unionMatchingMode];
+
+                if (isDefined(cachedModeResult)) {
+                    return cachedModeResult;
+                }
+
                 const result = safeTypeOperation({
                     operation: () => {
                         const tsNode =
@@ -251,30 +274,75 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     reason: "set-has-type-analysis-failed",
                 });
 
-                return result.ok && result.value;
+                const isSetLike = result.ok && result.value;
+                const nextExpressionModes = {
+                    ...cachedExpressionModes,
+                    [unionMatchingMode]: isSetLike,
+                };
+
+                setLikeExpressionResolutionCache.set(
+                    expression,
+                    nextExpressionModes
+                );
+
+                return isSetLike;
             };
 
-            const canReplaceHasCallWithSetHas = (
+            const analyzeSetHasCall = (
                 node: Readonly<TSESTree.CallExpression>
-            ): boolean => {
+            ): SetHasCallAnalysis => {
+                const cachedAnalysis = setHasCallAnalysisCache.get(node);
+
+                if (isDefined(cachedAnalysis)) {
+                    return cachedAnalysis;
+                }
+
                 const receiverExpression = getHasCallReceiverExpression(node);
 
                 if (receiverExpression === null) {
-                    return false;
+                    const notSetLikeAnalysis: SetHasCallAnalysis = {
+                        canAutofix: false,
+                        matchesConfiguredUnionMode: false,
+                        matchesDefaultUnionMode: false,
+                    };
+
+                    setHasCallAnalysisCache.set(node, notSetLikeAnalysis);
+
+                    return notSetLikeAnalysis;
                 }
 
-                return isSetLikeExpression(
+                const matchesConfiguredUnionMode = isSetLikeExpression(
                     receiverExpression,
-                    DEFAULT_UNION_SET_MATCHING_MODE
+                    unionSetMatchingMode
                 );
+                const matchesDefaultUnionMode =
+                    unionSetMatchingMode === DEFAULT_UNION_SET_MATCHING_MODE
+                        ? matchesConfiguredUnionMode
+                        : isSetLikeExpression(
+                              receiverExpression,
+                              DEFAULT_UNION_SET_MATCHING_MODE
+                          );
+
+                const analysis: SetHasCallAnalysis = {
+                    canAutofix:
+                        matchesDefaultUnionMode &&
+                        isTypePredicateAutofixSafe(node),
+                    matchesConfiguredUnionMode,
+                    matchesDefaultUnionMode,
+                };
+
+                setHasCallAnalysisCache.set(node, analysis);
+
+                return analysis;
             };
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="has"]'(
+                    node
+                ) {
                     reportTsExtrasTypedMemberCall({
                         canAutofix: (callNode) =>
-                            isTypePredicateAutofixSafe(callNode) &&
-                            canReplaceHasCallWithSetHas(callNode),
+                            analyzeSetHasCall(callNode).canAutofix,
                         context,
                         importedName: "setHas",
                         imports: tsExtrasImports,
@@ -287,24 +355,33 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         messageId: "preferTsExtrasSetHas",
                         node,
                         reportSuggestion: ({ fix, node: suggestionNode }) => {
-                            if (!canReplaceHasCallWithSetHas(suggestionNode)) {
-                                context.report({
-                                    messageId: "preferTsExtrasSetHas",
-                                    node: suggestionNode,
+                            const callAnalysis =
+                                analyzeSetHasCall(suggestionNode);
+
+                            if (!callAnalysis.matchesDefaultUnionMode) {
+                                reportWithTypefestPolicy({
+                                    context,
+                                    descriptor: {
+                                        messageId: "preferTsExtrasSetHas",
+                                        node: suggestionNode,
+                                    },
                                 });
 
                                 return;
                             }
 
-                            context.report({
-                                messageId: "preferTsExtrasSetHas",
-                                node: suggestionNode,
-                                suggest: [
-                                    {
-                                        fix,
-                                        messageId: "suggestTsExtrasSetHas",
-                                    },
-                                ],
+                            reportWithTypefestPolicy({
+                                context,
+                                descriptor: {
+                                    messageId: "preferTsExtrasSetHas",
+                                    node: suggestionNode,
+                                    suggest: [
+                                        {
+                                            fix,
+                                            messageId: "suggestTsExtrasSetHas",
+                                        },
+                                    ],
+                                },
                             });
                         },
                         suggestionMessageId: "suggestTsExtrasSetHas",
@@ -312,23 +389,16 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [
-            {
-                unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
-            },
-        ],
+        defaultOptions,
         meta: {
-            defaultOptions: [
-                {
-                    unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,
-                },
-            ],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require direct ts-extras setHas over Set#has at membership call sites for stronger element narrowing.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.recommended-type-checked",
                     "typefest.configs.strict",

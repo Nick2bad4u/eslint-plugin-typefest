@@ -166,7 +166,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =
@@ -251,7 +251,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const undecoratedRuleModule =

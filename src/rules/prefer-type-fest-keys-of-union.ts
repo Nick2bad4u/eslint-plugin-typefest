@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-keys-of-union`.
@@ -33,7 +35,9 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -73,6 +77,7 @@ const preferTypeFestKeysOfUnionRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest KeysOfUnion over imported aliases such as AllKeys.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-partial-deep`.
@@ -24,7 +26,9 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (
                         node.typeName.type !== "Identifier" ||
                         node.typeName.name !== "DeepPartial"
@@ -56,6 +60,7 @@ const preferTypeFestPartialDeepRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest PartialDeep over `DeepPartial` aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

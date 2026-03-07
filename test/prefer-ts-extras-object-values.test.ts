@@ -193,7 +193,7 @@ describe("prefer-ts-extras-object-values internal listener guards", () => {
             vi.resetModules();
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type?: string }>,

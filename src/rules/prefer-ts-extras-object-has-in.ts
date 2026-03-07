@@ -1,9 +1,12 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-in`.
  */
 import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -22,7 +25,9 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Reflect"][callee.property.type="Identifier"][callee.property.name="has"]'(
+                    node: TSESTree.CallExpression
+                ) {
                     if (node.arguments.length < 2) {
                         return;
                     }
@@ -37,15 +42,19 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                         node,
                         objectName: "Reflect",
                         reportSuggestion: ({ fix, node: suggestionNode }) => {
-                            context.report({
-                                messageId: "preferTsExtrasObjectHasIn",
-                                node: suggestionNode,
-                                suggest: [
-                                    {
-                                        fix,
-                                        messageId: "suggestTsExtrasObjectHasIn",
-                                    },
-                                ],
+                            reportWithTypefestPolicy({
+                                context,
+                                descriptor: {
+                                    messageId: "preferTsExtrasObjectHasIn",
+                                    node: suggestionNode,
+                                    suggest: [
+                                        {
+                                            fix,
+                                            messageId:
+                                                "suggestTsExtrasObjectHasIn",
+                                        },
+                                    ],
+                                },
                             });
                         },
                         suggestionMessageId: "suggestTsExtrasObjectHasIn",
@@ -61,6 +70,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras objectHasIn over Reflect.has for stronger key-in-object narrowing.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

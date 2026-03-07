@@ -211,6 +211,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest JsonArray over explicit JsonValue[] | readonly JsonValue[] style unions.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

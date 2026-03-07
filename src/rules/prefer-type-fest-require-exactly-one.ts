@@ -2,6 +2,8 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-exactly-one`.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
+
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
@@ -19,11 +21,11 @@ type PreferTypeFestRequireExactlyOneOption = Readonly<{
 type RequireExactlyOneLegacyAlias =
     (typeof requireExactlyOneLegacyAliases)[number];
 
-const defaultRuleOptions = [
-    {
-        enforcedAliasNames: [...requireExactlyOneLegacyAliases],
-    },
-] as const;
+const defaultOption = {
+    enforcedAliasNames: [...requireExactlyOneLegacyAliases],
+} as const;
+
+const defaultOptions = [defaultOption] as const;
 
 const requireExactlyOneAliasReplacements = {
     OneOf: "RequireExactlyOne",
@@ -41,7 +43,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
         readonly [PreferTypeFestRequireExactlyOneOption],
         "preferRequireExactlyOne"
     >({
-        create(context, [options] = defaultRuleOptions) {
+        create(context, [options] = defaultOptions) {
             const enabledAliasReplacements: Partial<
                 Record<RequireExactlyOneLegacyAlias, "RequireExactlyOne">
             > = {};
@@ -62,7 +64,9 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -94,23 +98,16 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [
-            {
-                enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
-            },
-        ],
+        defaultOptions,
         meta: {
-            defaultOptions: [
-                {
-                    enforcedAliasNames: ["OneOf", "RequireOnlyOne"],
-                },
-            ],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require TypeFest RequireExactlyOne over imported aliases such as OneOf/RequireOnlyOne.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

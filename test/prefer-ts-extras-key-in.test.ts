@@ -398,7 +398,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
@@ -543,7 +543,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({

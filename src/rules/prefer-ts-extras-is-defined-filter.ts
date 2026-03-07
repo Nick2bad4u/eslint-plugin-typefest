@@ -62,7 +62,9 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.property.type="Identifier"][callee.property.name="filter"]'(
+                    node
+                ) {
                     const callbackMatch =
                         getSingleParameterExpressionArrowFilterCallback(node);
                     if (!callbackMatch) {
@@ -104,6 +106,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isDefined in Array.filter callbacks instead of inline undefined checks.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

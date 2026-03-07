@@ -65,6 +65,7 @@ const preferTypeFestConstructorRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest Constructor over explicit `new (...) => ...` constructor signatures.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

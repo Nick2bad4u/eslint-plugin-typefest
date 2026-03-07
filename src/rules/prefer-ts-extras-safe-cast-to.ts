@@ -164,6 +164,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras safeCastTo for assignable type assertions instead of direct `as` casts.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.recommended-type-checked",
                     "typefest.configs.strict",

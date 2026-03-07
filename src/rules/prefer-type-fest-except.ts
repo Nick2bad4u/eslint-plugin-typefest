@@ -2,6 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-except`.
  */
+import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -21,6 +22,12 @@ const exceptAliasReplacements = {
     HomomorphicOmit: "Except",
 } as const;
 
+const defaultOption = {
+    enforceBuiltinOmit: true,
+} as const;
+
+const defaultOptions = [defaultOption] as const;
+
 /**
  * ESLint rule definition for `prefer-type-fest-except`.
  *
@@ -29,7 +36,7 @@ const exceptAliasReplacements = {
  */
 const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
     createTypedRule<readonly [PreferTypeFestExceptOption], "preferExcept">({
-        create(context, [options] = [{ enforceBuiltinOmit: true }]) {
+        create(context, [options] = defaultOptions) {
             const enforceBuiltinOmit = options.enforceBuiltinOmit ?? true;
 
             const importedAliasMatches = collectImportedTypeAliasMatches(
@@ -42,7 +49,9 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     const isBuiltinOmitReference = isIdentifierTypeReference(
                         node,
                         OMIT_TYPE_NAME
@@ -95,15 +104,16 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [{ enforceBuiltinOmit: true }],
+        defaultOptions,
         meta: {
-            defaultOptions: [{ enforceBuiltinOmit: true }],
+            defaultOptions: [defaultOption],
             deprecated: false,
             docs: {
                 description:
                     "require TypeFest Except over Omit when removing properties from object types.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",

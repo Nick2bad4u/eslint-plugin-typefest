@@ -31,7 +31,9 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="at"]'(
+                    node
+                ) {
                     reportTsExtrasArrayMethodCall({
                         context,
                         importedName: "arrayAt",
@@ -52,6 +54,7 @@ const preferTsExtrasArrayAtRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayAt over Array#at for stronger element inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

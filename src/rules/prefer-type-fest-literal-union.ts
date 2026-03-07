@@ -240,6 +240,7 @@ const preferTypeFestLiteralUnionRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest LiteralUnion over unions that combine primitive keywords with same-family literal members.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

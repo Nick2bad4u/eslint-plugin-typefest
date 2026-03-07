@@ -31,7 +31,9 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="join"]'(
+                    node
+                ) {
                     reportTsExtrasArrayMethodCall({
                         context,
                         importedName: "arrayJoin",
@@ -52,6 +54,7 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayJoin over Array#join for stronger tuple-aware typing.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

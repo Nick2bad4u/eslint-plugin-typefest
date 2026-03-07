@@ -97,7 +97,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                         node,
                     });
                 },
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(node) {
                     if (
                         !isIdentifierTypeReference(
                             node,
@@ -135,6 +135,7 @@ const preferTypeFestUnknownArrayRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest UnknownArray over readonly unknown[] and ReadonlyArray<unknown> aliases.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

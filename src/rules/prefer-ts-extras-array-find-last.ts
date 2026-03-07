@@ -31,7 +31,9 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
             });
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.computed=false][callee.property.type="Identifier"][callee.property.name="findLast"]'(
+                    node
+                ) {
                     reportTsExtrasArrayMethodCall({
                         context,
                         importedName: "arrayFindLast",
@@ -52,6 +54,7 @@ const preferTsExtrasArrayFindLastRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras arrayFindLast over Array#findLast for stronger predicate inference.",
                 frozen: false,
                 recommended: false,
+                requiresTypeChecking: true,
                 typefestConfigs: [
                     "typefest.configs.strict",
                     "typefest.configs.all",

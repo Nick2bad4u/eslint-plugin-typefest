@@ -6,6 +6,9 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { registerProgramSettingsForContext } from "./plugin-settings.js";
+import { omitAutofixFromReportDescriptor } from "./report-adapter.js";
+
 /**
  * Resolution result for optional fix/suggestion reporting.
  */
@@ -25,6 +28,44 @@ type ReportDescriptor<
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 > = Parameters<TSESLint.RuleContext<MessageIds, Options>["report"]>[0];
+
+/**
+ * Build a policy-aware reporter that enforces plugin autofix settings.
+ */
+export const createTypefestReporter = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>(
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
+): TSESLint.RuleContext<MessageIds, Options>["report"] => {
+    const settings = registerProgramSettingsForContext(context);
+
+    if (!settings.disableAllAutofixes) {
+        return context.report;
+    }
+
+    return (descriptor) => {
+        context.report(omitAutofixFromReportDescriptor(descriptor));
+    };
+};
+
+/**
+ * Report using plugin-aware autofix policy handling.
+ */
+export const reportWithTypefestPolicy = <
+    MessageIds extends string,
+    Options extends Readonly<UnknownArray>,
+>({
+    context,
+    descriptor,
+}: Readonly<{
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>;
+    descriptor: ReportDescriptor<MessageIds, Options>;
+}>): void => {
+    const report = createTypefestReporter(context);
+
+    report(descriptor);
+};
 
 /**
  * Report a diagnostic with an optional direct fix.
@@ -55,7 +96,10 @@ export const reportWithOptionalFix = <
         node,
     };
 
-    context.report(descriptor);
+    reportWithTypefestPolicy({
+        context,
+        descriptor,
+    });
 };
 
 /**
@@ -114,16 +158,19 @@ export const reportResolvedAutofixOrSuggestionOutcome = <
     suggestionMessageId: MessageIds;
 }>): void => {
     if (outcome.kind === "suggestion") {
-        context.report({
-            ...(data === undefined ? {} : { data }),
-            messageId,
-            node,
-            suggest: [
-                {
-                    fix: outcome.fix,
-                    messageId: suggestionMessageId,
-                },
-            ],
+        reportWithTypefestPolicy({
+            context,
+            descriptor: {
+                ...(data === undefined ? {} : { data }),
+                messageId,
+                node,
+                suggest: [
+                    {
+                        fix: outcome.fix,
+                        messageId: suggestionMessageId,
+                    },
+                ],
+            },
         });
 
         return;

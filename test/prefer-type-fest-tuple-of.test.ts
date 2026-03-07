@@ -248,7 +248,7 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
             );
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
@@ -283,6 +283,9 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                     default: {
                         create: (context: unknown) => {
                             TSTypeReference?: (node: unknown) => void;
+                            'TSTypeReference[typeName.type="Identifier"]'?: (
+                                node: unknown
+                            ) => void;
                         };
                     };
                 };
@@ -319,7 +322,13 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                             },
                         });
 
-                        listeners.TSTypeReference?.(tsReference);
+                        const referenceListener =
+                            listeners.TSTypeReference ??
+                            listeners[
+                                'TSTypeReference[typeName.type="Identifier"]'
+                            ];
+
+                        referenceListener?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({

@@ -13,6 +13,7 @@ import {
 } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -291,7 +292,13 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 },
             });
 
-            listeners.CallExpression?.({
+            const callExpressionListener =
+                getSelectorAwareNodeListener<unknown>(
+                    listeners,
+                    "CallExpression"
+                );
+
+            callExpressionListener?.({
                 arguments: [
                     {
                         body: {
@@ -455,7 +462,13 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener<unknown>(
+                                listeners,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reports).toHaveLength(1);
                         expect(reports[0]).toMatchObject({
@@ -571,7 +584,13 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener<unknown>(
+                                listeners,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reports).toHaveLength(1);
 
@@ -665,7 +684,13 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener<unknown>(
+                                listeners,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reports).toHaveLength(0);
                         expect(

@@ -167,7 +167,7 @@ describe(createTypedRule, () => {
         expect(descriptor.suggest).toHaveLength(1);
     });
 
-    it("strips top-level fix but preserves suggestions when both are present", () => {
+    it("preserves top-level fix and suggestions when both are present", () => {
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -229,7 +229,7 @@ describe(createTypedRule, () => {
             TSESLint.ReportDescriptor<RuleMessageIds>,
         ];
 
-        expect(descriptor.fix).toBeUndefined();
+        expect(descriptor.fix).toBeTypeOf("function");
         expect(descriptor.suggest).toHaveLength(1);
     });
 

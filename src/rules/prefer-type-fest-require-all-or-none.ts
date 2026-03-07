@@ -1,3 +1,5 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-all-or-none`.
@@ -34,7 +36,9 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                TSTypeReference(node) {
+                'TSTypeReference[typeName.type="Identifier"]'(
+                    node: TSESTree.TSTypeReference
+                ) {
                     if (node.typeName.type !== "Identifier") {
                         return;
                     }
@@ -74,6 +78,7 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
                     "require TypeFest RequireAllOrNone over imported aliases such as AllOrNone/AllOrNothing.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.recommended",
                     "typefest.configs.strict",

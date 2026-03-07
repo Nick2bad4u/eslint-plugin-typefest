@@ -105,7 +105,7 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
             }));
@@ -234,7 +234,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
             }));
@@ -397,7 +397,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
             }));
 
             vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: (definition: unknown): unknown => definition,
+                createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
             }));

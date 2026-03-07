@@ -266,7 +266,9 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
             );
 
             return {
-                CallExpression(node) {
+                'CallExpression[callee.type="MemberExpression"][callee.property.type="Identifier"][callee.property.name="filter"]'(
+                    node
+                ) {
                     const callbackMatch =
                         getSingleParameterExpressionArrowFilterCallback(node);
                     if (!callbackMatch) {
@@ -318,6 +320,7 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                     "require ts-extras isPresent in Array.filter callbacks instead of inline nullish checks.",
                 frozen: false,
                 recommended: true,
+                requiresTypeChecking: false,
                 typefestConfigs: [
                     "typefest.configs.minimal",
                     "typefest.configs.recommended",
