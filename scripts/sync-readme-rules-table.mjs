@@ -97,8 +97,9 @@ const normalizeTypefestConfigNames = (typefestConfigs) => {
 
         /** @type {PresetName} */
         const presetName = configName;
+        const presetNameSet = new Set(names);
 
-        if (!names.includes(presetName)) {
+        if (!presetNameSet.has(presetName)) {
             names.push(presetName);
         }
     }
@@ -138,12 +139,13 @@ const getRuleFixIndicator = (ruleModule) => {
 const getPresetIndicator = (ruleModule) => {
     const docsTypefestConfigs = ruleModule.meta?.docs?.typefestConfigs;
     const presetNames = normalizeTypefestConfigNames(docsTypefestConfigs);
+    const presetNamesSet = new Set(presetNames);
 
     /** @type {string[]} */
     const icons = [];
 
     for (const presetName of presetOrder) {
-        if (presetNames.includes(presetName)) {
+        if (presetNamesSet.has(presetName)) {
             icons.push(presetIconByName[presetName]);
         }
     }
@@ -171,7 +173,7 @@ const toRuleTableRow = ([ruleName, ruleModule]) => {
  *
  * @param {ReadmeRulesMap} rules - Plugin `rules` map.
  *
- * @returns Full markdown section text starting at `## Rules`.
+ * @returns {string} Full markdown section text starting at `## Rules`.
  */
 export const generateReadmeRulesSectionFromRules = (rules) => {
     const ruleEntries = Object.entries(rules).toSorted((left, right) =>

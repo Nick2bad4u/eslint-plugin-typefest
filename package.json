@@ -161,6 +161,7 @@
         "remark:fix": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail --quiet --output -- \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\"",
         "remark:test-config": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail \"README.md\"",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
+        "sync:readme-rules-table": "node scripts/sync-readme-rules-table.mjs",
         "pretest": "npm run build",
         "test": "vitest run",
         "test:ci": "cross-env CI=true vitest run --reporter=default",
