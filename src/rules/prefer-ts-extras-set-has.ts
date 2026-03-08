@@ -6,6 +6,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
     containsAllTypesByName,
+    getTypeName,
     isBuiltinSymbolLike,
     isTypeAnyType,
     isTypeUnknownType,
@@ -208,10 +209,24 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     const shouldUseNameBasedFallback = !isPresent(program);
 
                     if (shouldUseNameBasedFallback) {
-                        const symbolName = candidateType.getSymbol()?.getName();
+                        const candidateTypeNameResult = safeTypeOperation({
+                            operation: () =>
+                                getTypeName(checker, candidateType),
+                            reason: "set-has-type-name-analysis-failed",
+                        });
+
+                        const candidateTypeName = candidateTypeNameResult.ok
+                            ? candidateTypeNameResult.value
+                            : "";
+                        const candidateSymbolName = candidateType
+                            .getSymbol()
+                            ?.getName();
+
                         if (
-                            symbolName === "ReadonlySet" ||
-                            symbolName === "Set"
+                            candidateTypeName === "ReadonlySet" ||
+                            candidateTypeName === "Set" ||
+                            candidateSymbolName === "ReadonlySet" ||
+                            candidateSymbolName === "Set"
                         ) {
                             setTypeResolutionCache.set(candidateType, true);
 

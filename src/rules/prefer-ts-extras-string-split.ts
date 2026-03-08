@@ -6,6 +6,7 @@ import type ts from "typescript";
 
 import {
     containsAllTypesByName,
+    getTypeName,
     isBuiltinSymbolLike,
     isTypeAnyType,
     isTypeUnknownType,
@@ -157,13 +158,21 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
 
                     const shouldUseNameBasedFallback = !isPresent(program);
 
-                    if (
-                        shouldUseNameBasedFallback &&
-                        candidateType.getSymbol()?.getName() === "String"
-                    ) {
-                        stringTypeResolutionCache.set(candidateType, true);
+                    if (shouldUseNameBasedFallback) {
+                        const candidateTypeNameResult = safeTypeOperation({
+                            operation: () =>
+                                getTypeName(checker, candidateType),
+                            reason: "string-split-type-name-analysis-failed",
+                        });
 
-                        return true;
+                        if (
+                            candidateTypeNameResult.ok &&
+                            candidateTypeNameResult.value === "String"
+                        ) {
+                            stringTypeResolutionCache.set(candidateType, true);
+
+                            return true;
+                        }
                     }
 
                     const containsStringObjectLikeResult = safeTypeOperation({

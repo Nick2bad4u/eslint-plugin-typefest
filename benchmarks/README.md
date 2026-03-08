@@ -61,6 +61,22 @@ npm run bench:watch
 
 This executes `benchmarks/**/*.bench.*` and writes benchmark JSON to `coverage/bench-results.json`.
 
+## Rule benchmark conventions (`eslint-rule-benchmark`)
+
+- The rule benchmark config is loaded from `benchmark/config.ts` via:
+
+  ```bash
+  npm run bench:rule-benchmark
+  ```
+
+- Benchmark case files under `benchmark/cases/**` use `.ts` extensions.
+
+- The benchmark rule path should point to source rule modules (for example `../src/rules/<rule-id>.ts`) so local rule edits are benchmarked directly.
+
+- Keep warmup/iteration defaults in `benchmark/config.ts` at meaningful levels for stable comparisons; only lower them temporarily for local smoke checks.
+
+- We intentionally run `eslint-rule-benchmark run` without `--config` because the current CLI fails to load the TypeScript config file when an explicit config path is passed on Windows.
+
 ### CLI TIMING + --stats (ESLint docs-aligned)
 
 ```bash

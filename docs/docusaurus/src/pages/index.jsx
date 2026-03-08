@@ -101,8 +101,9 @@ export default function Home() {
                                 eslint-plugin-typefest
                             </Heading>
                             <p className={styles.heroSubtitle}>
-                                ESLint rules for safer, clearer TypeScript
-                                patterns with{" "}
+                                ESLint rules that recommend safer, clearer
+                                TypeScript types, type guards, and other
+                                patterns by utilizing{" "}
                                 <Link
                                     className={styles.heroInlineLink}
                                     href="https://github.com/sindresorhus/type-fest"
@@ -114,7 +115,7 @@ export default function Home() {
                                 and{" "}
                                 <Link
                                     className={styles.heroInlineLink}
-                                    href="https://github.com/ts-extras/ts-extras"
+                                    href="https://github.com/sindresorhus/ts-extras"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >

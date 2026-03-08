@@ -1,7 +1,7 @@
 import { defineConfig } from "eslint-rule-benchmark";
 
 export default defineConfig({
-    iterations: 1,
+    iterations: 80,
     tests: [
         {
             cases: [
@@ -22,7 +22,7 @@ export default defineConfig({
     ],
     timeout: 3000,
     warmup: {
-        enabled: false,
+        enabled: true,
         iterations: 20,
     },
 });
