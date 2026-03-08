@@ -7,12 +7,12 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
+import parser from "@typescript-eslint/parser";
 import { isDefined, objectHasOwn, safeCastTo } from "ts-extras";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { setContainsValue } from "./set-membership.js";
-import { isAsciiIdentifierPartCharacter } from "./text-character.js";
 import {
     getTypeCheckerApparentType,
     getTypeCheckerBaseConstraintType,
@@ -42,11 +42,34 @@ const IGNORED_TRAVERSAL_KEYS = new Set<string>([
     "tokens",
 ]);
 
-const tsEslintAstNamespaceNames = new Set<string>([TSESTREE_NAMESPACE_NAME]);
 const namespaceImportNamesBySourceCode = new WeakMap<
     Readonly<TSESLint.SourceCode>,
     ReadonlySet<string>
 >();
+
+const MAX_PARSED_DEFINITION_TEXT_CACHE_ENTRIES = 512 as const;
+
+const parsedDefinitionTextProgramBySourceText = new Map<
+    string,
+    null | Readonly<TSESTree.Program>
+>();
+
+const cacheParsedDefinitionTextProgram = ({
+    cacheKey,
+    parsedProgram,
+}: Readonly<{
+    cacheKey: string;
+    parsedProgram: null | Readonly<TSESTree.Program>;
+}>): void => {
+    if (
+        parsedDefinitionTextProgramBySourceText.size >=
+        MAX_PARSED_DEFINITION_TEXT_CACHE_ENTRIES
+    ) {
+        parsedDefinitionTextProgramBySourceText.clear();
+    }
+
+    parsedDefinitionTextProgramBySourceText.set(cacheKey, parsedProgram);
+};
 
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
     const normalizedFileName = fileName.replaceAll("\\", PATH_SEPARATOR);
@@ -72,43 +95,68 @@ const isUnknownRecord = (value: unknown): value is UnknownRecord =>
 const shouldSkipTraversalKey = (key: string): boolean =>
     setContainsValue(IGNORED_TRAVERSAL_KEYS, key);
 
-const containsNamespaceQualifiedReferenceText = (
-    text: string,
-    namespaceNames: ReadonlySet<string>
-): boolean => {
-    if (namespaceNames.size === 0) {
-        return false;
+const createDefinitionTextParseCandidates = (
+    definitionNodeText: string
+): readonly string[] => {
+    const trimmedText = definitionNodeText.trim();
+
+    if (trimmedText.length === 0) {
+        return [];
     }
 
-    for (const namespaceName of namespaceNames) {
-        if (namespaceName.length === 0) {
-            continue;
-        }
+    const parseCandidates = new Set<string>([
+        `(${trimmedText});`,
+        `const ${trimmedText};`,
+        `type __typefest_tmp__ = ${trimmedText};`,
+        trimmedText,
+    ]);
 
-        let index = text.indexOf(namespaceName);
+    return [...parseCandidates];
+};
 
-        while (index !== -1) {
-            const previousCharacter = text[index - 1] ?? "";
-            const dotCharacter = text[index + namespaceName.length] ?? "";
-            const nextCharacter = text[index + namespaceName.length + 1] ?? "";
+const parseDefinitionTextProgram = (
+    definitionNodeText: string
+): null | Readonly<TSESTree.Program> => {
+    const cacheKey = definitionNodeText.trim();
 
-            const hasIdentifierBoundaryBefore =
-                index === 0 ||
-                !isAsciiIdentifierPartCharacter(previousCharacter);
+    if (cacheKey.length === 0) {
+        return null;
+    }
 
-            if (
-                hasIdentifierBoundaryBefore &&
-                dotCharacter === "." &&
-                isAsciiIdentifierPartCharacter(nextCharacter)
-            ) {
-                return true;
-            }
+    const cachedProgram = parsedDefinitionTextProgramBySourceText.get(cacheKey);
 
-            index = text.indexOf(namespaceName, index + namespaceName.length);
+    if (cachedProgram !== undefined) {
+        return cachedProgram;
+    }
+
+    const parseCandidates = createDefinitionTextParseCandidates(cacheKey);
+
+    for (const parseCandidate of parseCandidates) {
+        try {
+            const parsedResult = parser.parseForESLint(parseCandidate, {
+                ecmaVersion: "latest",
+                loc: false,
+                range: false,
+                sourceType: "module",
+            });
+
+            cacheParsedDefinitionTextProgram({
+                cacheKey,
+                parsedProgram: parsedResult.ast,
+            });
+
+            return parsedResult.ast;
+        } catch {
+            // Try next parse candidate.
         }
     }
 
-    return false;
+    cacheParsedDefinitionTextProgram({
+        cacheKey,
+        parsedProgram: null,
+    });
+
+    return null;
 };
 
 const getTypeScriptEslintNamespaceImportNames = (
@@ -248,7 +296,19 @@ const containsTypeScriptEslintTypeReference = (
 const containsTypeScriptEslintTypeReferenceText = (
     text: string,
     namespaceNames: ReadonlySet<string>
-): boolean => containsNamespaceQualifiedReferenceText(text, namespaceNames);
+): boolean => {
+    if (namespaceNames.size === 0) {
+        return false;
+    }
+
+    const parsedProgram = parseDefinitionTextProgram(text);
+
+    if (parsedProgram === null) {
+        return false;
+    }
+
+    return containsTypeScriptEslintTypeReference(parsedProgram, namespaceNames);
+};
 
 const createTypeScriptEslintNodeLikeExpressionByDefinitionChecker = <
     MessageIds extends string,
@@ -473,16 +533,6 @@ export const isTypeScriptEslintAstType = (
         }
 
         visitedTypes.add(currentType);
-
-        const renderedTypeText = checker.typeToString(currentType);
-        if (
-            containsNamespaceQualifiedReferenceText(
-                renderedTypeText,
-                tsEslintAstNamespaceNames
-            )
-        ) {
-            return true;
-        }
 
         const symbol = currentType.aliasSymbol ?? currentType.getSymbol();
 

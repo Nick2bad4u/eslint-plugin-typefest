@@ -5,19 +5,39 @@ on:
         tags:
             - "v*"
     workflow_dispatch:
+        inputs:
+            release_type:
+                description: "Release bump type"
+                required: true
+                default: patch
+                type: choice
+                options:
+                    - patch
+                    - minor
+                    - major
+            version:
+                description: "Explicit version x.y.z (overrides release_type)"
+                required: false
+                type: string
+            ref:
+                description: "Branch to release from"
+                required: false
+                default: main
+                type: string
 
 permissions:
     contents: read
 
 jobs:
     publish:
+        if: ${{ github.event_name != 'push' || github.actor != 'github-actions[bot]' }}
         runs-on: ubuntu-latest
-        timeout-minutes: 20
+        timeout-minutes: 25
         permissions:
             contents: write
             id-token: write
         concurrency:
-            group: release-${{ github.ref }}
+            group: release-pipeline
             cancel-in-progress: false
 
         steps:
@@ -26,11 +46,35 @@ jobs:
               with:
                   egress-policy: audit
 
+            - name: Resolve target ref
+              id: target_ref
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    branch="${{ github.event.inputs.ref }}"
+                    if [ -z "$branch" ]; then
+                      branch="main"
+                    fi
+                    branch="${branch#refs/heads/}"
+                    if [[ "$branch" == refs/tags/* ]]; then
+                      echo "workflow_dispatch ref must be a branch, not a tag: $branch" >&2
+                      exit 1
+                    fi
+                    echo "ref=$branch" >> "$GITHUB_OUTPUT"
+                    echo "branch=$branch" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+                    echo "branch=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Checkout
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   fetch-depth: 0
                   fetch-tags: true
+                  ref: ${{ steps.target_ref.outputs.ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Setup Node.js
               uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
@@ -41,6 +85,43 @@ jobs:
 
             - name: Install dependencies
               run: npm ci --force
+
+            - name: Configure Git for release automation
+              if: github.event_name == 'workflow_dispatch'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git fetch --tags --force
+
+            - name: Validate workflow_dispatch release input
+              if: github.event_name == 'workflow_dispatch'
+              shell: bash
+              env:
+                  EXPLICIT_VERSION: ${{ github.event.inputs.version }}
+                  RELEASE_TYPE: ${{ github.event.inputs.release_type }}
+              run: |
+                  set -euo pipefail
+                  explicit_version="${EXPLICIT_VERSION:-}"
+                  if [ -n "$explicit_version" ]; then
+                    if [[ ! "$explicit_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                      echo "Invalid version input '$explicit_version'. Use x.y.z format." >&2
+                      exit 1
+                    fi
+                    exit 0
+                  fi
+
+                  release_type="${RELEASE_TYPE:-patch}"
+                  case "$release_type" in
+                    patch|minor|major)
+                      exit 0
+                      ;;
+                    *)
+                      echo "Invalid release_type '$release_type'. Allowed: patch, minor, major." >&2
+                      exit 1
+                      ;;
+                  esac
 
             - name: Validate tag matches package version
               if: startsWith(github.ref, 'refs/tags/v')
@@ -55,10 +136,102 @@ jobs:
             - name: Verify package
               run: npm run release:check
 
-            - name: Generate release notes from git-cliff
+            - name: Ensure verification did not modify tracked files
               if: startsWith(github.ref, 'refs/tags/v')
               shell: bash
               run: |
+                  set -euo pipefail
+                  if ! git diff --quiet || ! git diff --cached --quiet; then
+                    echo "release:check modified files on a tag-triggered release. Ensure main is clean before tagging." >&2
+                    git status --short
+                    exit 1
+                  fi
+
+            - name: Determine release version
+              id: version
+              shell: bash
+              env:
+                  EXPLICIT_VERSION: ${{ github.event.inputs.version }}
+                  RELEASE_TYPE: ${{ github.event.inputs.release_type }}
+              run: |
+                  set -euo pipefail
+
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    explicit_version="${EXPLICIT_VERSION:-}"
+                    if [ -n "$explicit_version" ]; then
+                      npm version "$explicit_version" --no-git-tag-version
+                      version="$explicit_version"
+                    else
+                      release_type="${RELEASE_TYPE:-patch}"
+                      npm version "$release_type" --no-git-tag-version
+                      version=$(node -p "require('./package.json').version")
+                    fi
+                  else
+                    tag="${GITHUB_REF_NAME}"
+                    version="${tag#v}"
+                  fi
+
+                  package_name=$(node -p "require('./package.json').name")
+                  tag="v${version}"
+
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  echo "tag=$tag" >> "$GITHUB_OUTPUT"
+                  echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
+
+            - name: Check whether version is already published
+              id: npm_check
+              shell: bash
+              env:
+                  PACKAGE_NAME: ${{ steps.version.outputs.package_name }}
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  set -euo pipefail
+                  if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+                    echo "already_published=true" >> "$GITHUB_OUTPUT"
+                    echo "Version ${VERSION} is already published to npm."
+                  else
+                    echo "already_published=false" >> "$GITHUB_OUTPUT"
+                    echo "Version ${VERSION} is available for publishing."
+                  fi
+
+            - name: Prevent duplicate workflow_dispatch release version
+              if: github.event_name == 'workflow_dispatch' && steps.npm_check.outputs.already_published == 'true'
+              shell: bash
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  echo "Version ${VERSION} is already published. Choose a new release type/version." >&2
+                  exit 1
+
+            - name: Commit and push release version + tag
+              if: github.event_name == 'workflow_dispatch'
+              shell: bash
+              env:
+                  BRANCH: ${{ steps.target_ref.outputs.branch }}
+                  TAG: ${{ steps.version.outputs.tag }}
+              run: |
+                  set -euo pipefail
+
+                  if git rev-parse "$TAG" >/dev/null 2>&1; then
+                    echo "Tag $TAG already exists locally." >&2
+                    exit 1
+                  fi
+
+                  git add -A
+                  if git diff --cached --quiet; then
+                    echo "No staged changes found for release commit." >&2
+                    exit 1
+                  fi
+
+                  git commit -m "chore: release ${TAG}"
+                  git tag -a "$TAG" -m "$TAG"
+                  git push origin "HEAD:${BRANCH}"
+                  git push origin "$TAG"
+
+            - name: Generate release notes from git-cliff
+              shell: bash
+              run: |
+                  set -euo pipefail
                   mkdir -p temp
                   npm run --silent changelog:release-notes -- --output temp/release-notes.md
                   if [ ! -s temp/release-notes.md ]; then
@@ -66,16 +239,48 @@ jobs:
                   fi
 
             - name: Publish to npm
-              if: startsWith(github.ref, 'refs/tags/v')
+              if: steps.npm_check.outputs.already_published != 'true'
               run: npm publish --access public --provenance
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+            - name: Check whether GitHub release already exists
+              id: gh_release_check
+              shell: bash
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAG: ${{ steps.version.outputs.tag }}
+              run: |
+                  set -euo pipefail
+                  if gh release view "$TAG" >/dev/null 2>&1; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Create GitHub release
-              if: startsWith(github.ref, 'refs/tags/v')
+              if: steps.gh_release_check.outputs.exists != 'true'
               uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
               with:
+                  tag_name: ${{ steps.version.outputs.tag }}
+                  name: ${{ steps.version.outputs.tag }}
                   body_path: temp/release-notes.md
+                  draft: false
                   generate_release_notes: false
+                  prerelease: false
               env:
-                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Release summary
+              if: ${{ !cancelled() }}
+              shell: bash
+              run: |
+                  {
+                    echo "## 🚀 Release Summary"
+                    echo ""
+                    echo "- Event: \`${{ github.event_name }}\`"
+                    echo "- Ref: \`${{ steps.target_ref.outputs.ref }}\`"
+                    echo "- Version: \`${{ steps.version.outputs.version }}\`"
+                    echo "- Tag: \`${{ steps.version.outputs.tag }}\`"
+                    echo "- Already published on npm: \`${{ steps.npm_check.outputs.already_published }}\`"
+                  } >> "$GITHUB_STEP_SUMMARY"

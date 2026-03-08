@@ -5,7 +5,7 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import parser from "@typescript-eslint/parser";
-import { arrayAt, isInteger } from "ts-extras";
+import { arrayAt, isDefined, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
 import { isKnownWhitespaceCharacter } from "./text-character.js";
@@ -98,7 +98,7 @@ const getModuleSpecifierFromImportDeclarationText = (
     const cachedModuleSpecifier =
         parsedModuleSpecifierByImportText.get(trimmedImportText);
 
-    if (cachedModuleSpecifier !== undefined) {
+    if (isDefined(cachedModuleSpecifier)) {
         return cachedModuleSpecifier;
     }
 
@@ -133,7 +133,9 @@ const getModuleSpecifierFromImportDeclarationText = (
 
     const semicolonIndex = trimmedImportText.lastIndexOf(";");
     const trailingImportText =
-        semicolonIndex >= 0 ? trimmedImportText.slice(semicolonIndex + 1) : "";
+        semicolonIndex === -1
+            ? ""
+            : trimmedImportText.slice(semicolonIndex + 1);
 
     if (!isTrailingImportText(trailingImportText)) {
         parsedModuleSpecifierByImportText.set(trimmedImportText, null);

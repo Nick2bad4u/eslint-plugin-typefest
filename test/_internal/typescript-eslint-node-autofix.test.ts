@@ -110,6 +110,13 @@ const createTypeCheckerForAstTypeTests = (): Readonly<ts.TypeChecker> =>
         typeToString: () => "NodeLikeType",
     }) as unknown as Readonly<ts.TypeChecker>;
 
+const createTypeCheckerWithRenderedType = (
+    renderedTypeText: string
+): Readonly<ts.TypeChecker> =>
+    ({
+        typeToString: () => renderedTypeText,
+    }) as unknown as Readonly<ts.TypeChecker>;
+
 const createTypeWithDeclarationPath = (fileName: string): Readonly<ts.Type> =>
     ({
         aliasSymbol: undefined,
@@ -304,6 +311,33 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
         ).toBeFalsy();
     });
 
+    it("does not match namespace text appearing only inside string literals in parser-backed fallback", () => {
+        const definitionNode = {
+            type: "VariableDeclarator",
+        } as unknown as TSESTree.VariableDeclarator;
+
+        const context = createRuleContext({
+            definitionNode,
+            definitionText: "const nodeLike = 'EST.Node';",
+            importStatements: [
+                createImportDeclarationFromTypeScriptEslintUtils([
+                    createTSESTreeImportSpecifier("EST"),
+                ]),
+            ],
+            variableName: "nodeLike",
+        });
+
+        const shouldSkipExpression =
+            createTypeScriptEslintNodeExpressionSkipChecker(context);
+
+        expect(
+            shouldSkipExpression({
+                name: "nodeLike",
+                type: "Identifier",
+            } as TSESTree.Identifier)
+        ).toBeFalsy();
+    });
+
     it("gracefully handles SourceCode objects without ast/body", () => {
         const definitionNode = {
             type: "VariableDeclarator",
@@ -366,20 +400,36 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
 
 describe(isTypeScriptEslintAstType, () => {
     it("matches declaration paths containing an @typescript-eslint path segment", () => {
-        const checker = createTypeCheckerForAstTypeTests();
+        const utils = createTypeCheckerForAstTypeTests();
         const type = createTypeWithDeclarationPath(
             String.raw`C:\repo\node_modules\@typescript-eslint\utils\dist\index.d.ts`
         );
 
-        expect(isTypeScriptEslintAstType(checker, type)).toBeTruthy();
+        expect(isTypeScriptEslintAstType(utils, type)).toBeTruthy();
     });
 
     it("does not match package-like names when @typescript-eslint is not a full path segment", () => {
-        const checker = createTypeCheckerForAstTypeTests();
+        const utils = createTypeCheckerForAstTypeTests();
         const type = createTypeWithDeclarationPath(
             String.raw`C:\repo\node_modules\@typescript-eslint-tools\utils\dist\index.d.ts`
         );
 
-        expect(isTypeScriptEslintAstType(checker, type)).toBeFalsy();
+        expect(isTypeScriptEslintAstType(utils, type)).toBeFalsy();
+    });
+
+    it("ignores lexical typeToString text when declaration metadata is absent", () => {
+        const utils = createTypeCheckerWithRenderedType("TSESTree.Node");
+        const astTypeWithoutDeclarations = {
+            aliasSymbol: undefined,
+            getSymbol: () => ({
+                getDeclarations: () => [],
+            }),
+            isUnionOrIntersection: () => false,
+            types: [],
+        } as unknown as Readonly<ts.Type>;
+
+        expect(
+            isTypeScriptEslintAstType(utils, astTypeWithoutDeclarations)
+        ).toBeFalsy();
     });
 });

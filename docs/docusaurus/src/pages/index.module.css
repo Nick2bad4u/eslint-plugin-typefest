@@ -114,6 +114,41 @@
     font-size: 1.08rem;
     line-height: 1.5;
     max-inline-size: 39rem;
+    text-wrap: pretty;
+}
+
+.heroInlineLink {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.03rem 0.42rem;
+    border: 1px solid rgb(255 255 255 / 46%);
+    border-radius: 0.52rem;
+    backdrop-filter: blur(5px);
+    background: rgb(15 23 42 / 36%);
+    color: #f8fafc;
+    font-weight: 700;
+    margin-inline: 0.06rem;
+    text-decoration: none;
+    text-shadow: 0 1px 1px rgb(15 23 42 / 45%);
+    transition:
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+
+    &:hover,
+    &:focus {
+        border-color: rgb(255 255 255 / 74%);
+        background: rgb(255 255 255 / 18%);
+        color: #ffffff;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        border-color: rgb(125 211 252 / 95%);
+        outline: 2px solid rgb(186 230 253 / 95%);
+        outline-offset: 2px;
+    }
 }
 
 .heroBadgeRow {
@@ -165,6 +200,46 @@
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-block-start: 0.9rem;
+}
+
+.heroQuickLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block-start: 0.72rem;
+}
+
+.heroQuickLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.64rem;
+    border: 1px solid rgb(255 255 255 / 32%);
+    border-radius: 999rem;
+    background: rgb(15 23 42 / 28%);
+    color: rgb(240 249 255);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    text-decoration: none;
+    transition:
+        border-color 150ms ease,
+        transform 150ms ease;
+
+    &:hover,
+    &:focus {
+        border-color: rgb(255 255 255 / 64%);
+        background: rgb(255 255 255 / 14%);
+        color: #ffffff;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        border-color: rgb(125 211 252 / 95%);
+        outline: 2px solid rgb(186 230 253 / 95%);
+        outline-offset: 2px;
+    }
 }
 
 .heroPanel {
@@ -342,6 +417,7 @@
     margin: 0;
     gap: 0.58rem;
     list-style-type: "";
+    padding-block-start: 16px;
     padding-inline-start: 0;
 }
 
@@ -478,6 +554,14 @@
         inline-size: 100%;
     }
 
+    .heroQuickLinks {
+        margin-block-start: 0.62rem;
+    }
+
+    .heroQuickLink {
+        font-size: 0.76rem;
+    }
+
     .heroLiveBadges {
         gap: 0.5rem;
         margin-block-start: 0.72rem;
@@ -492,6 +576,18 @@
     .heroPanel:hover::before,
     .heroPanel:focus-within::before {
         animation: hero-panel-shimmer 760ms ease-out;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heroInlineLink,
+    .heroQuickLink {
+        transition: none;
+
+        &:hover,
+        &:focus-visible {
+            transform: none;
+        }
     }
 }
 

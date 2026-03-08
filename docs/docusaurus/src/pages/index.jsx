@@ -39,6 +39,25 @@ const heroStats = [
     },
 ];
 
+const heroQuickLinks = [
+    {
+        label: "Rule index",
+        to: "/docs/rules",
+    },
+    {
+        label: "API docs",
+        to: "/docs/api",
+    },
+    {
+        href: "https://www.npmjs.com/package/eslint-plugin-typefest",
+        label: "npm",
+    },
+    {
+        href: "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+        label: "GitHub",
+    },
+];
+
 const homeCards = [
     {
         icon: "🚀",
@@ -76,15 +95,32 @@ export default function Home() {
                     <div className={styles.heroGrid}>
                         <div>
                             <p className={styles.heroKicker}>
-                                ESLint plugin for modern TypeScript teams
+                                🛠️ ESLint plugin for modern TypeScript teams 🚀
                             </p>
                             <Heading as="h1" className={styles.heroTitle}>
                                 eslint-plugin-typefest
                             </Heading>
                             <p className={styles.heroSubtitle}>
-                                Opinionated ESLint rules for safer, clearer
-                                TypeScript patterns with type-fest and
-                                ts-extras.
+                                ESLint rules for safer, clearer TypeScript
+                                patterns with{" "}
+                                <Link
+                                    className={styles.heroInlineLink}
+                                    href="https://github.com/sindresorhus/type-fest"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    type-fest
+                                </Link>{" "}
+                                and{" "}
+                                <Link
+                                    className={styles.heroInlineLink}
+                                    href="https://github.com/ts-extras/ts-extras"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    ts-extras
+                                </Link>
+                                .
                             </p>
 
                             <div className={styles.heroBadgeRow}>
@@ -127,6 +163,33 @@ export default function Home() {
                                     Compare Presets
                                 </Link>
                             </div>
+
+                            <nav
+                                aria-label="Quick links"
+                                className={styles.heroQuickLinks}
+                            >
+                                {heroQuickLinks.map((quickLink) =>
+                                    "to" in quickLink ? (
+                                        <Link
+                                            key={quickLink.label}
+                                            className={styles.heroQuickLink}
+                                            to={quickLink.to}
+                                        >
+                                            {quickLink.label}
+                                        </Link>
+                                    ) : (
+                                        <Link
+                                            key={quickLink.label}
+                                            className={styles.heroQuickLink}
+                                            href={quickLink.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {quickLink.label}
+                                        </Link>
+                                    )
+                                )}
+                            </nav>
                         </div>
 
                         <aside className={styles.heroPanel}>

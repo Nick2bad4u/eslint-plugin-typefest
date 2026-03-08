@@ -70,7 +70,7 @@ import pluginTestingLibrary from "eslint-plugin-testing-library";
 import eslintPluginToml from "eslint-plugin-toml";
 import pluginTotalFunctions from "eslint-plugin-total-functions";
 import pluginTsdoc from "eslint-plugin-tsdoc";
-import pluginTSDocRequire from "eslint-plugin-tsdoc-require";
+import tsdocRequire from "eslint-plugin-tsdoc-require-2";
 import pluginUndefinedCss from "eslint-plugin-undefined-css-classes";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
@@ -448,13 +448,19 @@ export default defineConfig([
         name: "TSDoc rules (TypeScript files)",
         plugins: {
             tsdoc: pluginTsdoc,
-            "tsdoc-require": pluginTSDocRequire,
         },
         rules: {
-            // NOTE(ESLint10): Re-enable once eslint-plugin-tsdoc-require
-            // supports ESLint 10 rule context APIs.
-            "tsdoc-require/require": "off",
             "tsdoc/syntax": "warn",
+        },
+    },
+    {
+        files: ["src/**/*.{ts,mts,cts,tsx}"],
+        name: "TSDoc rules (TypeScript files)",
+        plugins: {
+            "tsdoc-require-2": tsdocRequire,
+        },
+        rules: {
+            "tsdoc-require-2/require": "warn",
         },
     },
     // #endregion
@@ -657,7 +663,7 @@ export default defineConfig([
             sonarjs: sonarjs,
             "sort-class-members": sortClassMembersPlugin,
             "total-functions": fixupPluginRules(pluginTotalFunctions),
-            "tsdoc-require": pluginTSDocRequire,
+            "tsdoc-require-2": tsdocRequire,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
         },

@@ -6,37 +6,37 @@ const liveBadges = [
     {
         alt: "npm license",
         href: "https://www.npmjs.com/package/eslint-plugin-typefest",
-        src: "https://badgen.net/npm/license/eslint-plugin-typefest?icon=npm&style=flat",
+        src: "https://flat.badgen.net/npm/license/eslint-plugin-typefest?color=purple",
     },
     {
         alt: "npm total downloads",
         href: "https://www.npmjs.com/package/eslint-plugin-typefest",
-        src: "https://badgen.net/npm/dt/eslint-plugin-typefest?icon=npm&style=flat",
+        src: "https://flat.badgen.net/npm/dt/eslint-plugin-typefest?color=pink",
     },
     {
         alt: "latest GitHub release",
         href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/releases",
-        src: "https://badgen.net/github/release/Nick2bad4u/eslint-plugin-typefest?icon=github&style=flat",
+        src: "https://flat.badgen.net/github/release/Nick2bad4u/eslint-plugin-typefest?color=cyan",
     },
     {
         alt: "GitHub stars",
         href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/stargazers",
-        src: "https://badgen.net/github/stars/Nick2bad4u/eslint-plugin-typefest?icon=github&style=flat",
+        src: "https://flat.badgen.net/github/stars/Nick2bad4u/eslint-plugin-typefest?color=yellow",
     },
     {
         alt: "GitHub forks",
         href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/forks",
-        src: "https://badgen.net/github/forks/Nick2bad4u/eslint-plugin-typefest?icon=github&style=flat",
+        src: "https://flat.badgen.net/github/forks/Nick2bad4u/eslint-plugin-typefest?color=green",
     },
     {
         alt: "GitHub open issues",
         href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues",
-        src: "https://badgen.net/github/open-issues/Nick2bad4u/eslint-plugin-typefest?icon=github&style=flat",
+        src: "https://flat.badgen.net/github/open-issues/Nick2bad4u/eslint-plugin-typefest?color=red",
     },
 ];
 
 /**
- * Renders live repository and package badges powered by badgen.net.
+ * Renders live repository and package badges powered by flat.badgen.net.
  *
  * @param {{ className?: string }} [props] - Optional list class override.
  *

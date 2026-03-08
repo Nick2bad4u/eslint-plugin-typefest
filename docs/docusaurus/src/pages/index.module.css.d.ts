@@ -9,6 +9,7 @@ declare const styles: {
     readonly heroBadge: string;
     readonly heroBadgeDescription: string;
     readonly heroBadgeIcon: string;
+    readonly heroInlineLink: string;
     readonly heroBadgeLabel: string;
     readonly heroBadgeRow: string;
     readonly heroBanner: string;
@@ -26,6 +27,7 @@ declare const styles: {
     readonly heroStatIcon: string;
     readonly heroStatLabel: string;
     readonly heroStatValue: string;
+    readonly heroQuickLink: string;
     readonly heroStats: string;
     readonly heroSubtitle: string;
     readonly heroTitle: string;
@@ -35,6 +37,7 @@ declare const styles: {
     readonly liveBadgeListItem: string;
     readonly liveStatsDescription: string;
     readonly liveStatsHeader: string;
+    readonly heroQuickLinks: string;
     readonly liveStatsKicker: string;
     readonly liveStatsLink: string;
     readonly liveStatsSection: string;
