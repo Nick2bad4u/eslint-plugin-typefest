@@ -4,13 +4,11 @@
  */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
-import { arrayAt, isDefined, isInteger } from "ts-extras";
+import parser from "@typescript-eslint/parser";
+import { arrayAt, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
-import {
-    isAsciiIdentifierPartCharacter,
-    isKnownWhitespaceCharacter,
-} from "./text-character.js";
+import { isKnownWhitespaceCharacter } from "./text-character.js";
 
 /**
  * Cached insertion-layout metadata for one Program node.
@@ -34,12 +32,6 @@ const programInsertionLayoutCache = new WeakMap<
 >();
 
 const IMPORT_KEYWORD = "import" as const;
-const FROM_KEYWORD = "from" as const;
-
-type ParsedQuotedStringLiteral = Readonly<{
-    endIndex: number;
-    value: string;
-}>;
 
 const skipLeadingWhitespace = ({
     startIndex,
@@ -60,90 +52,39 @@ const skipLeadingWhitespace = ({
     return index;
 };
 
-const parseQuotedStringLiteral = ({
-    startIndex,
-    text,
-}: Readonly<{
-    startIndex: number;
-    text: string;
-}>): null | ParsedQuotedStringLiteral => {
-    const quoteCharacter = text.at(startIndex);
-    if (quoteCharacter !== '"' && quoteCharacter !== "'") {
-        return null;
-    }
-
-    for (let index = startIndex + 1; index < text.length; index += 1) {
-        const currentCharacter = text[index];
-
-        if (currentCharacter === "\\") {
-            const escapedCharacter = text[index + 1];
-            if (!isDefined(escapedCharacter)) {
-                return null;
-            }
-
-            index += 1;
-            continue;
-        }
-
-        if (currentCharacter === quoteCharacter) {
-            return {
-                endIndex: index,
-                value: text.slice(startIndex + 1, index),
-            };
-        }
-    }
-
-    return null;
-};
-const findLastFromKeywordOutsideStrings = (text: string): null | number => {
-    let activeQuoteCharacter: null | string = null;
-    let lastFromKeywordIndex: null | number = null;
-
-    for (let index = 0; index < text.length; index += 1) {
-        const currentCharacter = text[index];
-
-        if (activeQuoteCharacter !== null) {
-            if (currentCharacter === "\\") {
-                index += 1;
-                continue;
-            }
-
-            if (currentCharacter === activeQuoteCharacter) {
-                activeQuoteCharacter = null;
-            }
-
-            continue;
-        }
-
-        if (currentCharacter === '"' || currentCharacter === "'") {
-            activeQuoteCharacter = currentCharacter;
-            continue;
-        }
-
-        if (!text.startsWith(FROM_KEYWORD, index)) {
-            continue;
-        }
-
-        const previousCharacter = text[index - 1] ?? "";
-        const nextCharacter = text[index + FROM_KEYWORD.length] ?? "";
-        const hasWordBoundaryBefore =
-            index === 0 || !isAsciiIdentifierPartCharacter(previousCharacter);
-        const hasWordBoundaryAfter =
-            index + FROM_KEYWORD.length >= text.length ||
-            !isAsciiIdentifierPartCharacter(nextCharacter);
-
-        if (hasWordBoundaryBefore && hasWordBoundaryAfter) {
-            lastFromKeywordIndex = index;
-        }
-    }
-
-    return lastFromKeywordIndex;
-};
+const parsedModuleSpecifierByImportText = new Map<string, null | string>();
 
 const isTrailingImportText = (text: string): boolean => {
     const trailingText = text.trim();
 
     return trailingText === "" || trailingText === ";";
+};
+
+const parseModuleSpecifierFromImportDeclarationText = (
+    importDeclarationText: string
+): null | string => {
+    try {
+        const parsedResult = parser.parseForESLint(importDeclarationText, {
+            ecmaVersion: "latest",
+            loc: false,
+            range: false,
+            sourceType: "module",
+        });
+        const [firstStatement] = parsedResult.ast.body;
+
+        if (
+            parsedResult.ast.body.length !== 1 ||
+            firstStatement?.type !== "ImportDeclaration"
+        ) {
+            return null;
+        }
+
+        const moduleSpecifier = firstStatement.source.value;
+
+        return typeof moduleSpecifier === "string" ? moduleSpecifier : null;
+    } catch {
+        return null;
+    }
 };
 
 /**
@@ -153,7 +94,17 @@ const getModuleSpecifierFromImportDeclarationText = (
     importDeclarationText: string
 ): null | string => {
     const trimmedImportText = importDeclarationText.trim();
+
+    const cachedModuleSpecifier =
+        parsedModuleSpecifierByImportText.get(trimmedImportText);
+
+    if (cachedModuleSpecifier !== undefined) {
+        return cachedModuleSpecifier;
+    }
+
     if (!trimmedImportText.startsWith(IMPORT_KEYWORD)) {
+        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+
         return null;
     }
 
@@ -162,47 +113,37 @@ const getModuleSpecifierFromImportDeclarationText = (
         text: trimmedImportText,
     });
 
-    const sideEffectImportModuleSpecifier = parseQuotedStringLiteral({
-        startIndex: importClauseStart,
-        text: trimmedImportText,
-    });
+    if (importClauseStart >= trimmedImportText.length) {
+        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
 
-    if (sideEffectImportModuleSpecifier !== null) {
-        const trailingImportText = trimmedImportText.slice(
-            sideEffectImportModuleSpecifier.endIndex + 1
+        return null;
+    }
+
+    const moduleSpecifier =
+        parseModuleSpecifierFromImportDeclarationText(trimmedImportText);
+
+    if (moduleSpecifier !== null) {
+        parsedModuleSpecifierByImportText.set(
+            trimmedImportText,
+            moduleSpecifier
         );
 
-        return isTrailingImportText(trailingImportText)
-            ? sideEffectImportModuleSpecifier.value
-            : null;
+        return moduleSpecifier;
     }
 
-    const fromKeywordIndex =
-        findLastFromKeywordOutsideStrings(trimmedImportText);
-    if (fromKeywordIndex === null) {
+    const semicolonIndex = trimmedImportText.lastIndexOf(";");
+    const trailingImportText =
+        semicolonIndex >= 0 ? trimmedImportText.slice(semicolonIndex + 1) : "";
+
+    if (!isTrailingImportText(trailingImportText)) {
+        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+
         return null;
     }
 
-    const moduleSpecifierStart = skipLeadingWhitespace({
-        startIndex: fromKeywordIndex + FROM_KEYWORD.length,
-        text: trimmedImportText,
-    });
-    const fromClauseModuleSpecifier = parseQuotedStringLiteral({
-        startIndex: moduleSpecifierStart,
-        text: trimmedImportText,
-    });
+    parsedModuleSpecifierByImportText.set(trimmedImportText, null);
 
-    if (fromClauseModuleSpecifier === null) {
-        return null;
-    }
-
-    const trailingImportText = trimmedImportText.slice(
-        fromClauseModuleSpecifier.endIndex + 1
-    );
-
-    return isTrailingImportText(trailingImportText)
-        ? fromClauseModuleSpecifier.value
-        : null;
+    return null;
 };
 
 /**

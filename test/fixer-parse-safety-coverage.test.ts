@@ -1,7 +1,7 @@
 /**
  * @packageDocumentation
- * Coverage guard ensuring fixable/suggestion-capable rules retain parser-backed
- * fast-check parse-safety tests in their corresponding rule test files.
+ * Coverage guard ensuring fixable/suggestion-capable rules retain meaningful
+ * parser-backed fast-check parse-safety assertions in their rule test files.
  */
 
 import parser from "@typescript-eslint/parser";
@@ -15,11 +15,18 @@ import typefestPlugin from "../src/plugin";
 const projectRootPath = process.cwd();
 const testsDirectoryPath = path.resolve(projectRootPath, "test");
 
-/** Entry tuple type returned by `Object.entries(typefestPlugin.rules)`. */
+type CoverageInspection = Readonly<{
+    hasGeneratedParseGuardExpectation: boolean;
+    observedCallExpressions: ReadonlySet<string>;
+}>;
+
+type CoverageMarker = Readonly<{
+    description: string;
+    matcher: (inspection: CoverageInspection) => boolean;
+}>;
+
 type RuleEntry = readonly [RuleName, RuleModule];
-/** Individual rule module type from plugin rule registry. */
 type RuleModule = (typeof typefestPlugin.rules)[RuleName];
-/** Registered plugin rule-name union. */
 type RuleName = keyof typeof typefestPlugin.rules;
 
 const ruleRequiresParseSafetyCoverage = (
@@ -48,15 +55,6 @@ const collectRuleIdsRequiringParseSafety = (): readonly string[] => {
         left.localeCompare(right)
     );
 };
-
-type CoverageInspection = Readonly<{
-    observedCallExpressions: ReadonlySet<string>;
-}>;
-
-type CoverageMarker = Readonly<{
-    description: string;
-    matcher: (inspection: CoverageInspection) => boolean;
-}>;
 
 const getCallExpressionName = (callee: unknown): null | string => {
     if (typeof callee !== "object" || callee === null) {
@@ -182,6 +180,258 @@ const collectObservedCallExpressions = (
     }
 };
 
+const containsParseForEslintCall = (rootNode: unknown): boolean => {
+    const nodesToVisit: unknown[] = [rootNode];
+
+    while (nodesToVisit.length > 0) {
+        const currentNode = nodesToVisit.pop();
+
+        if (isObjectRecord(currentNode)) {
+            if (
+                currentNode["type"] === "CallExpression" &&
+                getCallExpressionName(currentNode["callee"]) ===
+                    "parser.parseForESLint"
+            ) {
+                return true;
+            }
+
+            enqueueChildNodes({
+                nodeRecord: currentNode,
+                nodesToVisit,
+            });
+        }
+    }
+
+    return false;
+};
+
+type NamedFunctionBody = Readonly<{
+    body: unknown;
+    name: string;
+}>;
+
+const getNamedFunctionBodyFromNode = (
+    nodeRecord: Readonly<Record<string, unknown>>
+): NamedFunctionBody | null => {
+    if (nodeRecord["type"] === "FunctionDeclaration") {
+        const declarationIdentifier = nodeRecord["id"];
+
+        if (
+            isObjectRecord(declarationIdentifier) &&
+            declarationIdentifier["type"] === "Identifier" &&
+            typeof declarationIdentifier["name"] === "string"
+        ) {
+            return {
+                body: nodeRecord["body"],
+                name: declarationIdentifier["name"],
+            };
+        }
+
+        return null;
+    }
+
+    if (nodeRecord["type"] !== "VariableDeclarator") {
+        return null;
+    }
+
+    const declaratorIdentifier = nodeRecord["id"];
+    const declaratorInitializer = nodeRecord["init"];
+
+    if (
+        isObjectRecord(declaratorIdentifier) &&
+        declaratorIdentifier["type"] === "Identifier" &&
+        typeof declaratorIdentifier["name"] === "string" &&
+        isObjectRecord(declaratorInitializer) &&
+        (declaratorInitializer["type"] === "ArrowFunctionExpression" ||
+            declaratorInitializer["type"] === "FunctionExpression")
+    ) {
+        return {
+            body: declaratorInitializer["body"],
+            name: declaratorIdentifier["name"],
+        };
+    }
+
+    return null;
+};
+
+const collectNamedFunctionBodies = (
+    sourceText: string
+): ReadonlyMap<string, unknown> => {
+    try {
+        const parsed = parser.parseForESLint(sourceText, {
+            ecmaVersion: "latest",
+            loc: false,
+            range: false,
+            sourceType: "module",
+        });
+        const namedFunctionBodies = new Map<string, unknown>();
+        const nodesToVisit: unknown[] = [parsed.ast];
+
+        while (nodesToVisit.length > 0) {
+            const currentNode = nodesToVisit.pop();
+
+            if (isObjectRecord(currentNode)) {
+                const namedFunctionBody =
+                    getNamedFunctionBodyFromNode(currentNode);
+
+                if (namedFunctionBody !== null) {
+                    namedFunctionBodies.set(
+                        namedFunctionBody.name,
+                        namedFunctionBody.body
+                    );
+                }
+
+                enqueueChildNodes({
+                    nodeRecord: currentNode,
+                    nodesToVisit,
+                });
+            }
+        }
+
+        return namedFunctionBodies;
+    } catch {
+        return new Map<string, unknown>();
+    }
+};
+
+const containsCallToKnownFunction = ({
+    knownFunctionNames,
+    rootNode,
+}: Readonly<{
+    knownFunctionNames: ReadonlySet<string>;
+    rootNode: unknown;
+}>): boolean => {
+    const nodesToVisit: unknown[] = [rootNode];
+
+    while (nodesToVisit.length > 0) {
+        const currentNode = nodesToVisit.pop();
+
+        if (isObjectRecord(currentNode)) {
+            if (currentNode["type"] === "CallExpression") {
+                const callExpressionCallee = currentNode["callee"];
+
+                if (
+                    isObjectRecord(callExpressionCallee) &&
+                    callExpressionCallee["type"] === "Identifier" &&
+                    typeof callExpressionCallee["name"] === "string" &&
+                    knownFunctionNames.has(callExpressionCallee["name"])
+                ) {
+                    return true;
+                }
+            }
+
+            enqueueChildNodes({
+                nodeRecord: currentNode,
+                nodesToVisit,
+            });
+        }
+    }
+
+    return false;
+};
+
+const collectParseDriverFunctionNames = ({
+    namedFunctionBodies,
+}: Readonly<{
+    namedFunctionBodies: ReadonlyMap<string, unknown>;
+}>): ReadonlySet<string> => {
+    const parseDriverFunctionNames = new Set<string>();
+    let shouldContinue = true;
+
+    while (shouldContinue) {
+        shouldContinue = false;
+
+        for (const [functionName, functionBody] of namedFunctionBodies) {
+            const shouldTryMarkAsParseDriver =
+                !parseDriverFunctionNames.has(functionName);
+
+            if (
+                shouldTryMarkAsParseDriver &&
+                (containsParseForEslintCall(functionBody) ||
+                    containsCallToKnownFunction({
+                        knownFunctionNames: parseDriverFunctionNames,
+                        rootNode: functionBody,
+                    }))
+            ) {
+                parseDriverFunctionNames.add(functionName);
+                shouldContinue = true;
+            }
+        }
+    }
+
+    return parseDriverFunctionNames;
+};
+
+const isFastCheckPropertyCallbackWithParseSafety = ({
+    callbackCandidate,
+    parseDriverFunctionNames,
+}: Readonly<{
+    callbackCandidate: unknown;
+    parseDriverFunctionNames: ReadonlySet<string>;
+}>): boolean => {
+    if (
+        !isObjectRecord(callbackCandidate) ||
+        (callbackCandidate["type"] !== "ArrowFunctionExpression" &&
+            callbackCandidate["type"] !== "FunctionExpression")
+    ) {
+        return false;
+    }
+
+    return (
+        containsParseForEslintCall(callbackCandidate["body"]) ||
+        containsCallToKnownFunction({
+            knownFunctionNames: parseDriverFunctionNames,
+            rootNode: callbackCandidate["body"],
+        })
+    );
+};
+
+const hasFastCheckPropertyParseGuard = (sourceText: string): boolean => {
+    try {
+        const parsed = parser.parseForESLint(sourceText, {
+            ecmaVersion: "latest",
+            loc: false,
+            range: false,
+            sourceType: "module",
+        });
+        const namedFunctionBodies = collectNamedFunctionBodies(sourceText);
+        const parseDriverFunctionNames = collectParseDriverFunctionNames({
+            namedFunctionBodies,
+        });
+        const nodesToVisit: unknown[] = [parsed.ast];
+
+        while (nodesToVisit.length > 0) {
+            const currentNode = nodesToVisit.pop();
+
+            if (isObjectRecord(currentNode)) {
+                if (
+                    currentNode["type"] === "CallExpression" &&
+                    getCallExpressionName(currentNode["callee"]) ===
+                        "fc.property" &&
+                    Array.isArray(currentNode["arguments"]) &&
+                    currentNode["arguments"].some((argument) =>
+                        isFastCheckPropertyCallbackWithParseSafety({
+                            callbackCandidate: argument,
+                            parseDriverFunctionNames,
+                        })
+                    )
+                ) {
+                    return true;
+                }
+
+                enqueueChildNodes({
+                    nodeRecord: currentNode,
+                    nodesToVisit,
+                });
+            }
+        }
+    } catch {
+        return false;
+    }
+
+    return false;
+};
+
 const createCallExpressionCoverageMarker = ({
     callExpressionName,
     description,
@@ -207,7 +457,18 @@ const coverageMarkers: readonly CoverageMarker[] = [
         callExpressionName: "fc.property",
         description: "fast-check property call (fc.property)",
     }),
+    {
+        description:
+            "parseForESLint invocation reachable inside an fc.property callback",
+        matcher: (inspection) => inspection.hasGeneratedParseGuardExpectation,
+    },
 ];
+
+const inspectCoverage = (sourceText: string): CoverageInspection => ({
+    hasGeneratedParseGuardExpectation:
+        hasFastCheckPropertyParseGuard(sourceText),
+    observedCallExpressions: collectObservedCallExpressions(sourceText),
+});
 
 const pushRuleIdIfMarkerMissing = ({
     inspection,
@@ -239,7 +500,7 @@ const expectNoMissingRuleCoverage = ({
 };
 
 describe("fixer parse-safety coverage", () => {
-    it("ensures each fixable/suggestion rule test includes parser + fast-check parse guards", async () => {
+    it("ensures each fixable/suggestion rule test includes parser-backed fast-check parse guards", async () => {
         const ruleIds = collectRuleIdsRequiringParseSafety();
 
         expect(ruleIds.length).toBeGreaterThan(0);
@@ -257,10 +518,7 @@ describe("fixer parse-safety coverage", () => {
 
             if (existsSync(ruleTestFilePath)) {
                 const testSource = await readFile(ruleTestFilePath, "utf8");
-                const coverageInspection: CoverageInspection = {
-                    observedCallExpressions:
-                        collectObservedCallExpressions(testSource),
-                };
+                const coverageInspection = inspectCoverage(testSource);
 
                 for (const marker of coverageMarkers) {
                     const missingRuleIds =

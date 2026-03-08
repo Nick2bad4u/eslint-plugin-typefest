@@ -68,4 +68,29 @@ describe("plugin entry module", () => {
         expect(typefestPlugin.configs).toEqual(expectedConfigRegistryShape);
         expect(typefestPlugin.rules).toEqual(expectedRuleRegistryShape);
     });
+
+    it("exports matching runtime plugin shape from plugin.mjs", async () => {
+        const runtimePluginModule = (await import("../plugin.mjs")) as {
+            default: unknown;
+        };
+
+        expect(runtimePluginModule.default).toEqual(
+            expect.objectContaining({
+                configs: expect.any(Object),
+                meta: expect.any(Object),
+                processors: expect.any(Object),
+                rules: expect.any(Object),
+            })
+        );
+
+        expect(runtimePluginModule.default).toEqual(
+            expect.objectContaining({
+                meta: expect.objectContaining({
+                    name: "eslint-plugin-typefest",
+                    namespace: "typefest",
+                    version: expect.any(String),
+                }),
+            })
+        );
+    });
 });

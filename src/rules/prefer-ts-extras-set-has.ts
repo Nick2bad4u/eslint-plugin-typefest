@@ -8,6 +8,7 @@ import { isDefined } from "ts-extras";
 import ts from "typescript";
 
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { setContainsValue } from "../_internal/set-membership.js";
@@ -36,7 +37,6 @@ type PreferTsExtrasSetHasOption = Readonly<{
 
 type SetHasCallAnalysis = Readonly<{
     canAutofix: boolean;
-    matchesConfiguredUnionMode: boolean;
     matchesDefaultUnionMode: boolean;
 }>;
 
@@ -47,29 +47,6 @@ const defaultOption = {
 } as const;
 
 const defaultOptions = [defaultOption] as const;
-
-const getHasCallReceiverExpression = (
-    node: Readonly<TSESTree.CallExpression>
-): null | Readonly<TSESTree.Expression> => {
-    const callee = node.callee;
-
-    if (callee.type !== "MemberExpression" || callee.computed) {
-        return null;
-    }
-
-    if (
-        callee.property.type !== "Identifier" ||
-        callee.property.name !== "has"
-    ) {
-        return null;
-    }
-
-    if (callee.object.type === "Super") {
-        return null;
-    }
-
-    return callee.object;
-};
 
 /**
  * ESLint rule definition for `prefer-ts-extras-set-has`.
@@ -297,12 +274,14 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     return cachedAnalysis;
                 }
 
-                const receiverExpression = getHasCallReceiverExpression(node);
+                const receiverExpression = getIdentifierPropertyMemberCall({
+                    memberName: "has",
+                    node,
+                })?.callee.object;
 
-                if (receiverExpression === null) {
+                if (!isDefined(receiverExpression)) {
                     const notSetLikeAnalysis: SetHasCallAnalysis = {
                         canAutofix: false,
-                        matchesConfiguredUnionMode: false,
                         matchesDefaultUnionMode: false,
                     };
 
@@ -327,7 +306,6 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     canAutofix:
                         matchesDefaultUnionMode &&
                         isTypePredicateAutofixSafe(node),
-                    matchesConfiguredUnionMode,
                     matchesDefaultUnionMode,
                 };
 

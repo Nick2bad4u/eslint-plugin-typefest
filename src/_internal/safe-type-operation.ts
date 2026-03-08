@@ -151,13 +151,9 @@ export const safeTypeOperation = <Result, Reason extends string>({
 /**
  * Build a lightweight reason counter for debugging operation failures in tests.
  */
-export const createSafeTypeOperationCounter = <Reason extends string>(
-    reasonsForTypeInference: readonly Reason[] = []
-): SafeTypeOperationCounter<Reason> => {
-    if (reasonsForTypeInference.length > 0) {
-        // Keep the optional argument observable for type inference only.
-    }
-
+export const createSafeTypeOperationCounter = <
+    Reason extends string,
+>(): SafeTypeOperationCounter<Reason> => {
     const counts = new Map<Reason, number>();
 
     const onFailure: SafeTypeOperationFailureObserver<Reason> = (failure) => {

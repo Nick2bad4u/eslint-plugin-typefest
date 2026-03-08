@@ -256,6 +256,25 @@ const assertIsReplaceFixFunction: (
     }
 };
 
+type TypedRuleModuleOverrides = Readonly<{
+    getTypedRuleServices?: (...arguments_: readonly unknown[]) => unknown;
+    isTypeAssignableTo?: (...arguments_: readonly unknown[]) => boolean;
+}>;
+
+const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
+    vi.doMock("../src/_internal/typed-rule.js", async () => {
+        const actualTypedRuleModule = await vi.importActual<
+            typeof import("../src/_internal/typed-rule.js")
+        >("../src/_internal/typed-rule.js");
+
+        return {
+            ...actualTypedRuleModule,
+            createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            ...overrides,
+        };
+    });
+};
+
 addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {
     defaultOptions: [],
     docsDescription:
@@ -273,8 +292,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({
@@ -290,7 +308,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-ts-extras-string-split")) as {
@@ -361,8 +379,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation,
@@ -374,7 +391,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-ts-extras-string-split")) as {
@@ -458,8 +475,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                 return candidate;
             });
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType,
@@ -479,7 +495,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                     },
                 }),
                 isTypeAssignableTo: (): boolean => false,
-            }));
+            });
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-ts-extras-string-split")) as {
@@ -537,6 +553,103 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
         }
     });
 
+    it("reuses cached type resolutions for duplicate union branches and across expressions", async () => {
+        const report = vi.fn();
+
+        const nonStringLeafType: Readonly<{
+            getSymbol: () => undefined;
+            isIntersection: () => false;
+            isUnion: () => false;
+        }> = {
+            getSymbol: () => undefined,
+            isIntersection: () => false,
+            isUnion: () => false,
+        };
+
+        const duplicateBranchUnionType = {
+            getSymbol: () => undefined,
+            isIntersection: () => false,
+            isUnion: () => true,
+            types: [nonStringLeafType, nonStringLeafType],
+        };
+
+        const getTypeAtLocation = vi.fn(() => duplicateBranchUnionType);
+
+        try {
+            vi.resetModules();
+
+            mockTypedRuleModule({
+                getTypedRuleServices: () => ({
+                    checker: {
+                        getApparentType: (type: unknown) => type,
+                        getStringType: () => undefined,
+                        getTypeAtLocation,
+                        typeToString: () => "NonStringLike",
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "MockTypeNode" }),
+                        },
+                    },
+                }),
+                isTypeAssignableTo: () => false,
+            });
+
+            const undecoratedRuleModule =
+                (await import("../src/rules/prefer-ts-extras-string-split")) as {
+                    default: {
+                        create: (context: unknown) => {
+                            CallExpression?: (node: unknown) => void;
+                        };
+                    };
+                };
+
+            const parsedResult = parser.parseForESLint(
+                [
+                    "declare const firstValue: { split(separator: string): string[] };",
+                    "declare const secondValue: { split(separator: string): string[] };",
+                    "const firstParts = firstValue.split(',');",
+                    "const secondParts = secondValue.split(',');",
+                ].join("\n"),
+                parserOptions
+            );
+
+            const splitCallExpressions = parsedResult.ast.body.flatMap(
+                (statement) => {
+                    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
+                        return [];
+                    }
+
+                    return statement.declarations.flatMap((declaration) =>
+                        declaration.init?.type === AST_NODE_TYPES.CallExpression
+                            ? [declaration.init]
+                            : []
+                    );
+                }
+            );
+
+            expect(splitCallExpressions).toHaveLength(2);
+
+            const listenerMap = undecoratedRuleModule.default.create({
+                filename:
+                    "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                report,
+                sourceCode: {
+                    ast: parsedResult.ast,
+                },
+            });
+
+            listenerMap.CallExpression?.(splitCallExpressions[0]);
+            listenerMap.CallExpression?.(splitCallExpressions[1]);
+
+            expect(report).not.toHaveBeenCalled();
+            expect(getTypeAtLocation).toHaveBeenCalledTimes(2);
+        } finally {
+            vi.doUnmock("../src/_internal/typed-rule.js");
+            vi.resetModules();
+        }
+    });
+
     it("fast-check: split() calls report and produce parseable stringSplit replacements", async () => {
         expect.hasAssertions();
 
@@ -557,8 +670,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                 createMethodToFunctionCallFix,
             }));
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) => type,
@@ -572,7 +684,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                     },
                 }),
                 isTypeAssignableTo: (): boolean => true,
-            }));
+            });
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-string-split")) as {

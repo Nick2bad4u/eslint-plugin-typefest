@@ -5,6 +5,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { isDefined } from "ts-extras";
+
 /**
  * Memoize a boolean expression predicate using a `WeakMap` keyed by expression
  * node identity.
@@ -20,8 +22,10 @@ export const memoizeExpressionBooleanPredicate = (
     const cache = new WeakMap<Readonly<TSESTree.Expression>, boolean>();
 
     return (expression) => {
-        if (cache.has(expression)) {
-            return cache.get(expression) ?? false;
+        const cachedResult = cache.get(expression);
+
+        if (isDefined(cachedResult)) {
+            return cachedResult;
         }
 
         const result = evaluate(expression);

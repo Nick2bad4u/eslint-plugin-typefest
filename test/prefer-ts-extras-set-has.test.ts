@@ -8,7 +8,6 @@ import fc from "fast-check";
 import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
-import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
     computedAccessValidCode,
@@ -79,6 +78,24 @@ const logicalGuardSuggestionOutput = [
 const rule = getPluginRule(ruleId);
 const ruleTester = createTypedRuleTester();
 
+type TypedRuleModuleOverrides = Readonly<{
+    getTypedRuleServices?: (...arguments_: readonly unknown[]) => unknown;
+}>;
+
+const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
+    vi.doMock("../src/_internal/typed-rule.js", async () => {
+        const actualTypedRuleModule = await vi.importActual<
+            typeof import("../src/_internal/typed-rule.js")
+        >("../src/_internal/typed-rule.js");
+
+        return {
+            ...actualTypedRuleModule,
+            createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            ...overrides,
+        };
+    });
+};
+
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions,
     docsDescription,
@@ -106,14 +123,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map([["setHas", new Set(["setHas"])]]),
-                createMethodToFunctionCallFix,
-            }));
-
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => fakeSetType,
@@ -125,7 +135,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
                 collectDirectNamedValueImportsFromSource: () =>
@@ -192,8 +202,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation: () => ({ isUnion: () => false }),
@@ -207,7 +216,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
                 collectDirectNamedValueImportsFromSource: () =>
@@ -275,8 +284,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getTypeAtLocation,
@@ -288,7 +296,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
                 collectDirectNamedValueImportsFromSource: () =>
@@ -426,8 +434,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) =>
@@ -452,7 +459,7 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
                 collectDirectNamedValueImportsFromSource: () =>
@@ -563,8 +570,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
-                createTypedRule: createTypedRuleSelectorAwarePassThrough,
+            mockTypedRuleModule({
                 getTypedRuleServices: () => ({
                     checker: {
                         getApparentType: (type: unknown) => type,
@@ -578,7 +584,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                         },
                     },
                 }),
-            }));
+            });
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-set-has")) as {
