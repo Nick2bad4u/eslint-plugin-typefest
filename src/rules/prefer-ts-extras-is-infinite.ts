@@ -160,6 +160,7 @@ const extractSafeInfinityDisjunctionTarget = (
         : null;
 };
 
+/** Rule module definition for `prefer-ts-extras-is-infinite`. */
 const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {

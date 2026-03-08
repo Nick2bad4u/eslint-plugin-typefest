@@ -2,10 +2,9 @@
  * @packageDocumentation
  * Shared typefest preset/config reference constants and type guards.
  */
-
-/** Canonical flat-config preset keys exposed through `plugin.configs`. */
 import { objectHasOwn } from "ts-extras";
 
+/** Canonical flat-config preset keys exposed through `plugin.configs`. */
 export const typefestConfigNames = [
     "all",
     "minimal",

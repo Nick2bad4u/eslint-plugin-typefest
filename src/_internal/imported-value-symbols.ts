@@ -330,6 +330,15 @@ function getSafeLocalNameForImportedValueInScope({
     return null;
 }
 
+/**
+ * Resolve a safe local alias for a required imported value at one reference.
+ *
+ * @param options - Rule context, import alias map, and target reference
+ *   metadata.
+ *
+ * @returns Local alias when the current scope binds it to the expected module;
+ *   otherwise `null`.
+ */
 export const getSafeLocalNameForImportedValue = ({
     context,
     importedName,

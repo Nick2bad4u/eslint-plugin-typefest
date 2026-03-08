@@ -10,6 +10,7 @@ import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
 import { createMethodToFunctionCallFix } from "../src/_internal/imported-value-symbols.js";
+import * as typedRuleModule from "../src/_internal/typed-rule.js";
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
     computedAccessValidCode,
@@ -262,17 +263,11 @@ type TypedRuleModuleOverrides = Readonly<{
 }>;
 
 const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
-    vi.doMock("../src/_internal/typed-rule.js", async () => {
-        const actualTypedRuleModule = await vi.importActual<
-            typeof import("../src/_internal/typed-rule.js")
-        >("../src/_internal/typed-rule.js");
-
-        return {
-            ...actualTypedRuleModule,
-            createTypedRule: createTypedRuleSelectorAwarePassThrough,
-            ...overrides,
-        };
-    });
+    vi.doMock("../src/_internal/typed-rule.js", () => ({
+        ...typedRuleModule,
+        createTypedRule: createTypedRuleSelectorAwarePassThrough,
+        ...overrides,
+    }));
 };
 
 addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {

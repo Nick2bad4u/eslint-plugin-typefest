@@ -79,6 +79,7 @@ const isLastIndexPattern = (
     );
 };
 
+/** Rule module definition for `prefer-ts-extras-array-last`. */
 const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
