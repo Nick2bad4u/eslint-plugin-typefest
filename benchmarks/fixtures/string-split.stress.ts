@@ -25,7 +25,7 @@ const split4 = values[4]!.split(" ");
 const split5 = values[5]!.split(" ");
 const split6 = values[6]!.split(" ");
 
-export const stringSplitStressFixture = [
+export const stringSplitStressFixture: string = [
     ...split0,
     ...split1,
     ...split2,

@@ -39,12 +39,18 @@ const vitestReporters = shouldEnableHangingProcessReporter
 /** Shared glob exclusions for generated/cache directories. */
 const testExcludePatterns = [
     "**/.cache/**",
+    "**/.stryker-tmp/**",
     "**/coverage/**",
     "**/dist/**",
     "**/node_modules/**",
 ];
 /** Canonical test file include patterns for unit/integration suites. */
 const testFilePatterns = ["test/**/*.{test,spec}.{ts,tsx,js,mjs,cjs,mts,cts}"];
+/** Canonical include patterns for Vitest type-test discovery. */
+const typecheckTestFilePatterns = [
+    "**/*.{test,spec}-d.{ts,tsx,mts,cts}",
+    "**/*.{test,spec}.{ts,tsx,mts,cts}",
+];
 
 /**
  * Vitest configuration for eslint-plugin-typefest.
@@ -254,10 +260,10 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
                 ...defaultExclude,
             ],
             ignoreSourceErrors: false,
-            include: ["**/*.{test,spec}-d.?(c|m)[jt]s?(x)"],
+            include: [...typecheckTestFilePatterns],
             only: false,
             spawnTimeout: 10_000,
-            tsconfig: "./tsconfig.json",
+            tsconfig: "./tsconfig.vitest-typecheck.json",
         },
     },
 });

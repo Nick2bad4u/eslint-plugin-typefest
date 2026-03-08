@@ -69,4 +69,5 @@ if (candidate5 === null || candidate5 === undefined) {
     consume(candidate5);
 }
 
-export const isPresentStressFixture = values.length + consumedUpperCaseLength;
+export const isPresentStressFixture: number =
+    values.length + consumedUpperCaseLength;

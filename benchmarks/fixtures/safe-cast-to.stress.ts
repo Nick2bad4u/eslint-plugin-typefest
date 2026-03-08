@@ -59,7 +59,7 @@ const castRecord3 = ({ value: string3 } as { value: string }).value;
 const castRecord4 = ({ value: string4 } as { value: string }).value;
 const castRecord5 = ({ value: string5 } as { value: string }).value;
 
-export const safeCastToStressFixture = [
+export const safeCastToStressFixture: string = [
     castString0,
     castString1,
     castString2,

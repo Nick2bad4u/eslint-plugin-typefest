@@ -50,5 +50,5 @@ const summarizeRecords = (records: readonly BenchmarkRecord[]): string => {
     return `${records.length}:${normalizedRows.join("|")}`;
 };
 
-export const recommendedZeroMessageBaseline =
+export const recommendedZeroMessageBaseline: string =
     summarizeRecords(benchmarkRecords);

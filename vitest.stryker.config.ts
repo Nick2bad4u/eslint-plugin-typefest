@@ -7,7 +7,7 @@ import { defineConfig } from "vitest/config";
  * This profile intentionally disables file parallelism and forces a single
  * worker to keep mutant execution deterministic and resource-bounded.
  */
-export default defineConfig({
+const strykerVitestConfig: ReturnType<typeof defineConfig> = defineConfig({
     test: {
         css: false,
         dangerouslyIgnoreUnhandledErrors: false,
@@ -48,3 +48,5 @@ export default defineConfig({
         testTimeout: 15_000,
     },
 });
+
+export default strykerVitestConfig;

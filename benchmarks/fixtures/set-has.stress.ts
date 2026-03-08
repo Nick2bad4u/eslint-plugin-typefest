@@ -40,7 +40,7 @@ const hasCombined3 = combinedIds.has(3);
 const hasCombined4 = combinedIds.has(4);
 const hasCombined5 = combinedIds.has(5);
 
-export const setHasStressFixture = [
+export const setHasStressFixture: number = [
     hasUser0,
     hasUser1,
     hasUser2,

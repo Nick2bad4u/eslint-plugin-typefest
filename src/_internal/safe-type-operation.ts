@@ -154,7 +154,7 @@ export const safeTypeOperation = <Result, Reason extends string>({
  * @param reasonsForTypeInference - Optional typed reason literals used to infer
  *   the `Reason` generic without requiring explicit type parameters.
  */
-export const createSafeTypeOperationCounter = <Reason extends string>(
+export const createSafeTypeOperationCounter = <Reason extends string = never>(
     reasonsForTypeInference: readonly Reason[] = []
 ): SafeTypeOperationCounter<Reason> => {
     const counts = new Map<Reason, number>();

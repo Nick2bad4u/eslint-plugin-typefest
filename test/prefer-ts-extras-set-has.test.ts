@@ -91,6 +91,79 @@ const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
     }));
 };
 
+type RuleDefaultExport = Readonly<{
+    create: UnknownFunction;
+}>;
+type RuleListenerMap = Readonly<{
+    CallExpression?: (node: unknown) => void;
+}>;
+type RuleModuleWithDefaultExport = Readonly<{
+    default: RuleDefaultExport;
+}>;
+type UnknownFunction = (...arguments_: readonly unknown[]) => unknown;
+
+const isObjectRecord = (
+    value: unknown
+): value is Record<PropertyKey, unknown> =>
+    typeof value === "object" && value !== null;
+
+const isUnknownFunction = (value: unknown): value is UnknownFunction =>
+    typeof value === "function";
+
+const isRuleDefaultExport = (value: unknown): value is RuleDefaultExport => {
+    if (!isObjectRecord(value)) {
+        return false;
+    }
+
+    return isUnknownFunction(Reflect.get(value, "create"));
+};
+
+const isRuleModuleWithDefaultExport = (
+    value: unknown
+): value is RuleModuleWithDefaultExport => {
+    if (!isObjectRecord(value)) {
+        return false;
+    }
+
+    return isRuleDefaultExport(Reflect.get(value, "default"));
+};
+
+const toRuleListenerMap = (value: unknown): RuleListenerMap => {
+    if (!isObjectRecord(value)) {
+        throw new TypeError("Expected listener map object");
+    }
+
+    const callExpressionListener = Reflect.get(value, "CallExpression");
+
+    if (callExpressionListener === undefined) {
+        return {};
+    }
+
+    if (!isUnknownFunction(callExpressionListener)) {
+        throw new TypeError("Expected CallExpression listener function");
+    }
+
+    return {
+        CallExpression: (node: unknown): void => {
+            callExpressionListener(node);
+        },
+    };
+};
+
+const loadCreateRuleListeners = async (): Promise<
+    (context: unknown) => RuleListenerMap
+> => {
+    const moduleValue = await import("../src/rules/prefer-ts-extras-set-has");
+
+    if (!isRuleModuleWithDefaultExport(moduleValue)) {
+        throw new TypeError("Expected rule module object");
+    }
+    const create = moduleValue.default.create;
+
+    return (context: unknown): RuleListenerMap =>
+        toRuleListenerMap(create(context));
+};
+
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions,
     docsDescription,
@@ -138,16 +211,9 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-ts-extras-set-has")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            CallExpression?: (node: unknown) => void;
-                        };
-                    };
-                };
+            const createRuleListeners = await loadCreateRuleListeners();
 
-            const listeners = authoredRuleModule.default.create({
+            const listeners = createRuleListeners({
                 filename: "src/example.ts",
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
@@ -219,16 +285,9 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-ts-extras-set-has")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            CallExpression?: (node: unknown) => void;
-                        };
-                    };
-                };
+            const createRuleListeners = await loadCreateRuleListeners();
 
-            const listeners = authoredRuleModule.default.create({
+            const listeners = createRuleListeners({
                 filename: "src/example.ts",
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
@@ -299,16 +358,9 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-ts-extras-set-has")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            CallExpression?: (node: unknown) => void;
-                        };
-                    };
-                };
+            const createRuleListeners = await loadCreateRuleListeners();
 
-            const listeners = authoredRuleModule.default.create({
+            const listeners = createRuleListeners({
                 filename: "src/example.ts",
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
@@ -462,16 +514,9 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 createMethodToFunctionCallFix: () => null,
             }));
 
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-ts-extras-set-has")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            CallExpression?: (node: unknown) => void;
-                        };
-                    };
-                };
+            const createRuleListeners = await loadCreateRuleListeners();
 
-            const listeners = authoredRuleModule.default.create({
+            const listeners = createRuleListeners({
                 filename: "src/example.ts",
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
@@ -581,14 +626,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                 }),
             });
 
-            const authoredRuleModule =
-                (await import("../src/rules/prefer-ts-extras-set-has")) as {
-                    default: {
-                        create: (context: unknown) => {
-                            CallExpression?: (node: unknown) => void;
-                        };
-                    };
-                };
+            const createRuleListeners = await loadCreateRuleListeners();
 
             fc.assert(
                 fc.property(
@@ -621,7 +659,7 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                             messageId?: string;
                         }>[] = [];
 
-                        const listeners = authoredRuleModule.default.create({
+                        const listeners = createRuleListeners({
                             filename: "src/example.ts",
                             report: (
                                 descriptor: Readonly<{
