@@ -44,6 +44,7 @@ const strykerVitestConfig: ReturnType<typeof defineConfig> = defineConfig({
             groupOrder: 0,
             setupFiles: "parallel",
         },
+        setupFiles: ["./test/_internal/vitest-setup.ts"],
         slowTestThreshold: 300,
         testTimeout: 15_000,
     },
