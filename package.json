@@ -59,6 +59,8 @@
         "bench:eslint:stats": "node benchmarks/run-eslint-stats.mjs",
         "prebench:eslint:timing": "npm run build",
         "bench:eslint:timing": "cross-env TIMING=all eslint --config benchmarks/eslint-timing.config.mjs --stats \"test/fixtures/typed/*.invalid.ts\"",
+        "prebench:rule-benchmark": "npm run build",
+        "bench:rule-benchmark": "eslint-rule-benchmark run",
         "prebench:ui": "npm run build",
         "bench:ui": "vitest bench --ui",
         "prebench:watch": "npm run build",
@@ -194,6 +196,7 @@
     },
     "dependencies": {
         "@typescript-eslint/parser": "^8.56.1",
+        "@typescript-eslint/type-utils": "^8.56.1",
         "@typescript-eslint/utils": "^8.56.1",
         "ts-extras": "^0.17.0",
         "type-fest": "^5.4.4"
@@ -321,6 +324,7 @@
         "eslint-plugin-unused-imports": "^4.4.1",
         "eslint-plugin-write-good-comments": "^0.2.0",
         "eslint-plugin-yml": "^3.3.1",
+        "eslint-rule-benchmark": "^0.8.0",
         "fast-check": "^4.6.0",
         "git-cliff": "^2.12.0",
         "gitleaks-secret-scanner": "^2.1.1",

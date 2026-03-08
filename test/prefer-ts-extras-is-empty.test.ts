@@ -79,6 +79,11 @@ const unresolvedMixedUnionValidCode = [
     "const isEmpty = values.length === 0;",
     "String(isEmpty);",
 ].join("\n");
+const anyTypedLengthValidCode = [
+    "declare const values: any;",
+    "const isEmpty = values.length === 0;",
+    "String(isEmpty);",
+].join("\n");
 const looseEqualityInvalidCode = [
     "declare const values: readonly number[];",
     "const isEmpty = values.length == 0;",
@@ -566,6 +571,11 @@ ruleTester.run("prefer-ts-extras-is-empty", rule, {
             code: unresolvedMixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores unresolved mixed string-or-array unions when not all members are array-like",
+        },
+        {
+            code: anyTypedLengthValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores any-typed length checks where array-likeness is not statically knowable",
         },
     ],
 });

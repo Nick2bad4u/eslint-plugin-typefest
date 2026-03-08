@@ -4,9 +4,16 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined, safeCastTo } from "ts-extras";
+import {
+    containsAllTypesByName,
+    isTypeAnyType,
+    isTypeNeverType,
+    isTypeUnknownType,
+} from "@typescript-eslint/type-utils";
+import { isDefined } from "ts-extras";
 import ts from "typescript";
 
+import { getConstrainedTypeAtLocationWithFallback } from "../_internal/constrained-type-at-location.js";
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
@@ -39,6 +46,41 @@ const isIgnoredTypeAnnotation = (
     (typeAnnotation.type === "TSTypeReference" &&
         typeAnnotation.typeName.type === "Identifier" &&
         typeAnnotation.typeName.name === "const");
+
+const IGNORED_TARGET_TYPE_NAMES = new Set([
+    "any",
+    "never",
+    "unknown",
+]);
+
+const resolvesToIgnoredTargetTypeName = (
+    targetType: Readonly<ts.Type>
+): boolean => {
+    const containsIgnoredTypeNameResult = safeTypeOperation({
+        operation: () =>
+            containsAllTypesByName(targetType, true, IGNORED_TARGET_TYPE_NAMES),
+        reason: "safe-cast-to-ignored-target-name-check-failed",
+    });
+
+    return (
+        containsIgnoredTypeNameResult.ok && containsIgnoredTypeNameResult.value
+    );
+};
+
+/**
+ * Checks whether a resolved target type should be excluded from `safeCastTo`
+ * suggestions.
+ *
+ * @param targetType - Resolved target type.
+ *
+ * @returns `true` for broad or intentionally unsafe targets (`any`, `unknown`,
+ *   and `never`) including aliased forms.
+ */
+const isIgnoredTargetType = (targetType: Readonly<ts.Type>): boolean =>
+    isTypeAnyType(targetType) ||
+    isTypeNeverType(targetType) ||
+    isTypeUnknownType(targetType) ||
+    resolvesToIgnoredTargetTypeName(targetType);
 
 /**
  * ESLint rule definition for `prefer-ts-extras-safe-cast-to`.
@@ -75,28 +117,33 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
 
                 const result = safeTypeOperation({
                     operation: () => {
-                        const expressionTsNode: ts.Node | undefined =
-                            safeCastTo<ts.Node | undefined>(
-                                parserServices.esTreeNodeToTSNodeMap.get(
-                                    expression
-                                )
-                            );
                         const annotationTsNode =
                             parserServices.esTreeNodeToTSNodeMap.get(
                                 typeAnnotation
                             );
 
-                        if (
-                            !isDefined(expressionTsNode) ||
-                            !ts.isTypeNode(annotationTsNode)
-                        ) {
+                        if (!ts.isTypeNode(annotationTsNode)) {
                             return null;
                         }
 
                         const sourceType =
-                            checker.getTypeAtLocation(expressionTsNode);
+                            getConstrainedTypeAtLocationWithFallback({
+                                checker,
+                                node: expression,
+                                parserServices,
+                                reason: "safe-cast-to-source-type-resolution-failed",
+                            });
+
+                        if (!isDefined(sourceType)) {
+                            return null;
+                        }
+
                         const targetType =
                             checker.getTypeFromTypeNode(annotationTsNode);
+
+                        if (isIgnoredTargetType(targetType)) {
+                            return null;
+                        }
 
                         if (
                             !isTypeAssignableTo(checker, sourceType, targetType)

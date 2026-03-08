@@ -8,8 +8,13 @@ import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
 import parser from "@typescript-eslint/parser";
+import {
+    isTypeAnyType,
+    isTypeUnknownType,
+} from "@typescript-eslint/type-utils";
 import { isDefined, objectHasOwn, safeCastTo } from "ts-extras";
 
+import { getConstrainedTypeAtLocationWithFallback } from "./constrained-type-at-location.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { setContainsValue } from "./set-membership.js";
@@ -534,6 +539,10 @@ export const isTypeScriptEslintAstType = (
 
         visitedTypes.add(currentType);
 
+        if (isTypeAnyType(currentType) || isTypeUnknownType(currentType)) {
+            continue;
+        }
+
         const symbol = currentType.aliasSymbol ?? currentType.getSymbol();
 
         if (isDefined(symbol)) {
@@ -650,14 +659,18 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
 
         const isNodeTypedExpressionResult = safeTypeOperation({
             operation: () => {
-                const tsNode =
-                    parserServices.esTreeNodeToTSNodeMap.get(expression);
+                const expressionType = getConstrainedTypeAtLocationWithFallback(
+                    {
+                        checker,
+                        node: expression,
+                        parserServices,
+                        reason: "ts-eslint-node-autofix-expression-type-resolution-failed",
+                    }
+                );
 
-                if (!isDefined(tsNode)) {
+                if (!isDefined(expressionType)) {
                     return false;
                 }
-
-                const expressionType = checker.getTypeAtLocation(tsNode);
 
                 return isTypeScriptEslintAstType(checker, expressionType);
             },

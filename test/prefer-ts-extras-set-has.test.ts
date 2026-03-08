@@ -850,6 +850,22 @@ ruleTester.run(ruleId, rule, {
             options: anyBranchUnionMatchingOptions,
             output: null,
         },
+        {
+            code: [
+                "function hasGeneric<T extends Set<number>>(value: T) {",
+                "    return value.has(1);",
+                "}",
+            ].join("\n"),
+            errors: [{ messageId: "preferTsExtrasSetHas" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports has calls on generic receivers constrained to Set",
+            output: [
+                'import { setHas } from "ts-extras";',
+                "function hasGeneric<T extends Set<number>>(value: T) {",
+                "    return setHas(value, 1);",
+                "}",
+            ].join("\n"),
+        },
     ],
     valid: [
         {
@@ -881,6 +897,21 @@ ruleTester.run(ruleId, rule, {
             code: reversedMixedUnionValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores union of map and set when calling has",
+        },
+        {
+            code: [
+                "namespace CustomTypes {",
+                "    export class Set<T> {",
+                "        has(_value: T): boolean {",
+                "            return true;",
+                "        }",
+                "    }",
+                "}",
+                "const values = new CustomTypes.Set<number>();",
+                "values.has(1);",
+            ].join("\n"),
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores namespaced user-defined Set class has method",
         },
     ],
 });

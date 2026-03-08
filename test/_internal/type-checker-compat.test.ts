@@ -2,8 +2,7 @@
  * @packageDocumentation
  * Unit tests for TypeChecker optional-API compatibility helpers.
  */
-import type ts from "typescript";
-
+import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -20,6 +19,8 @@ import {
 describe("type-checker-compat", () => {
     const sourceType = {} as ts.Type;
     const sourceTypeReference = {
+        flags: ts.TypeFlags.Object,
+        objectFlags: ts.ObjectFlags.Reference,
         target: {},
     } as unknown as ts.TypeReference;
     const targetType = {} as ts.Type;

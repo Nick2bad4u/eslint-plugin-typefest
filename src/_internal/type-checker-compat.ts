@@ -4,14 +4,8 @@
  */
 import type ts from "typescript";
 
-import { keyIn, safeCastTo } from "ts-extras";
-
-/**
- * Narrow a generic TypeScript type object to a type-reference-like shape.
- */
-const isTypeReferenceLike = (
-    type: Readonly<ts.Type>
-): type is Readonly<ts.TypeReference> => keyIn(type, "target");
+import { isTypeReferenceType } from "@typescript-eslint/type-utils";
+import { safeCastTo } from "ts-extras";
 
 /**
  * Read `checker.getApparentType` when the host TypeScript version provides it.
@@ -186,7 +180,7 @@ export const getTypeCheckerTypeArguments = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): readonly ts.Type[] | undefined => {
-    if (!isTypeReferenceLike(type)) {
+    if (!isTypeReferenceType(type)) {
         return undefined;
     }
 

@@ -6,9 +6,15 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
+import {
+    isTypeAnyType,
+    isTypeArrayTypeOrUnionOfArrayTypes,
+    isTypeUnknownType,
+} from "@typescript-eslint/type-utils";
 import { isDefined } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
+import { getConstrainedTypeAtLocationWithFallback } from "./constrained-type-at-location.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { setContainsValue } from "./set-membership.js";
 import {
@@ -74,6 +80,18 @@ const evaluateIsArrayLikeType = ({
     }
 
     seenTypes.add(candidateType);
+
+    if (isTypeAnyType(candidateType) || isTypeUnknownType(candidateType)) {
+        resolutionCache.set(candidateType, false);
+
+        return false;
+    }
+
+    if (isTypeArrayTypeOrUnionOfArrayTypes(candidateType, checker)) {
+        resolutionCache.set(candidateType, true);
+
+        return true;
+    }
 
     if (
         getTypeCheckerIsArrayTypeResult(checker, candidateType) === true ||
@@ -206,14 +224,18 @@ export const createIsArrayLikeExpressionChecker = ({
     return (expression: Readonly<TSESTree.Expression>): boolean => {
         const result = safeTypeOperation({
             operation: () => {
-                const tsNode =
-                    parserServices.esTreeNodeToTSNodeMap.get(expression);
+                const expressionType = getConstrainedTypeAtLocationWithFallback(
+                    {
+                        checker,
+                        node: expression,
+                        parserServices,
+                        reason: "array-like-expression-type-resolution-failed",
+                    }
+                );
 
-                if (!tsNode) {
+                if (!isDefined(expressionType)) {
                     return false;
                 }
-
-                const expressionType = checker.getTypeAtLocation(tsNode);
 
                 return evaluateIsArrayLikeType({
                     candidateType: expressionType,

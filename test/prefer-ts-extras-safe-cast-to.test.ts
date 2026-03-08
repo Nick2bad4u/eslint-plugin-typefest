@@ -49,6 +49,24 @@ const ignoredUnknownAnnotationValidCode = [
     "const castValue = rawValue as unknown;",
     "String(castValue);",
 ].join("\n");
+const ignoredAnyAliasAnnotationValidCode = [
+    "type UnsafeAny = any;",
+    'const rawValue = "alpha";',
+    "const castValue = rawValue as UnsafeAny;",
+    "String(castValue);",
+].join("\n");
+const ignoredNeverAliasAnnotationValidCode = [
+    "type Impossible = never;",
+    "declare const neverValue: never;",
+    "const castValue = neverValue as Impossible;",
+    "String(castValue);",
+].join("\n");
+const ignoredUnknownAliasAnnotationValidCode = [
+    "type UnknownAlias = unknown;",
+    'const rawValue = "alpha";',
+    "const castValue = rawValue as UnknownAlias;",
+    "String(castValue);",
+].join("\n");
 const inlineFixableCode = [
     'import { safeCastTo } from "ts-extras";',
     "",
@@ -866,6 +884,21 @@ ruleTester.run(
                 code: ignoredUnknownAnnotationValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores as-expression assertions targeting unknown",
+            },
+            {
+                code: ignoredAnyAliasAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting aliases to any",
+            },
+            {
+                code: ignoredNeverAliasAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting aliases to never",
+            },
+            {
+                code: ignoredUnknownAliasAnnotationValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores as-expression assertions targeting aliases to unknown",
             },
         ],
     }

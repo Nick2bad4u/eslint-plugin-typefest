@@ -4,8 +4,15 @@
  */
 import type ts from "typescript";
 
-import { isDefined } from "ts-extras";
+import {
+    containsAllTypesByName,
+    isBuiltinSymbolLike,
+    isTypeAnyType,
+    isTypeUnknownType,
+} from "@typescript-eslint/type-utils";
+import { isDefined, isPresent } from "ts-extras";
 
+import { getConstrainedTypeAtLocationWithFallback } from "../_internal/constrained-type-at-location.js";
 import { memoizeExpressionBooleanPredicate } from "../_internal/expression-boolean-memoizer.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
@@ -20,6 +27,8 @@ import {
     getTypedRuleServices,
     isTypeAssignableTo,
 } from "../_internal/typed-rule.js";
+
+const stringObjectTypeNames = new Set(["String"]);
 
 /**
  * ESLint rule definition for `prefer-ts-extras-string-split`.
@@ -36,6 +45,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
+            const program = parserServices.program;
             const stringPrimitiveType = getTypeCheckerStringType(checker);
             const stringTypeResolutionCache = new Map<
                 Readonly<ts.Type>,
@@ -100,6 +110,15 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (
+                        isTypeAnyType(candidateType) ||
+                        isTypeUnknownType(candidateType)
+                    ) {
+                        stringTypeResolutionCache.set(candidateType, false);
+
+                        return false;
+                    }
+
+                    if (
                         isDefined(stringPrimitiveType) &&
                         isTypeAssignableTo(
                             checker,
@@ -112,7 +131,58 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                         return true;
                     }
 
-                    if (candidateType.getSymbol()?.getName() === "String") {
+                    const builtinStringLikeResult = safeTypeOperation({
+                        operation: () => {
+                            if (!isPresent(program)) {
+                                return false;
+                            }
+
+                            return isBuiltinSymbolLike(
+                                program,
+                                candidateType,
+                                "String"
+                            );
+                        },
+                        reason: "string-split-builtin-symbol-analysis-failed",
+                    });
+
+                    if (
+                        builtinStringLikeResult.ok &&
+                        builtinStringLikeResult.value
+                    ) {
+                        stringTypeResolutionCache.set(candidateType, true);
+
+                        return true;
+                    }
+
+                    const shouldUseNameBasedFallback = !isPresent(program);
+
+                    if (
+                        shouldUseNameBasedFallback &&
+                        candidateType.getSymbol()?.getName() === "String"
+                    ) {
+                        stringTypeResolutionCache.set(candidateType, true);
+
+                        return true;
+                    }
+
+                    const containsStringObjectLikeResult = safeTypeOperation({
+                        operation: () =>
+                            isPresent(program)
+                                ? false
+                                : containsAllTypesByName(
+                                      candidateType,
+                                      true,
+                                      stringObjectTypeNames,
+                                      true
+                                  ),
+                        reason: "string-split-contains-all-types-analysis-failed",
+                    });
+
+                    if (
+                        containsStringObjectLikeResult.ok &&
+                        containsStringObjectLikeResult.value
+                    ) {
                         stringTypeResolutionCache.set(candidateType, true);
 
                         return true;
@@ -141,17 +211,17 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                 (expression): boolean => {
                     const result = safeTypeOperation({
                         operation: () => {
-                            const tsNode =
-                                parserServices.esTreeNodeToTSNodeMap.get(
-                                    expression
-                                );
+                            const objectType =
+                                getConstrainedTypeAtLocationWithFallback({
+                                    checker,
+                                    node: expression,
+                                    parserServices,
+                                    reason: "string-split-expression-type-resolution-failed",
+                                });
 
-                            if (!isDefined(tsNode)) {
+                            if (!isDefined(objectType)) {
                                 return false;
                             }
-
-                            const objectType =
-                                checker.getTypeAtLocation(tsNode);
 
                             return isStringLikeType(objectType);
                         },

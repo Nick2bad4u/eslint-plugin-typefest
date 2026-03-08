@@ -4,9 +4,16 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import {
+    containsAllTypesByName,
+    isBuiltinSymbolLike,
+    isTypeAnyType,
+    isTypeUnknownType,
+} from "@typescript-eslint/type-utils";
+import { isDefined, isPresent } from "ts-extras";
 import ts from "typescript";
 
+import { getConstrainedTypeAtLocationWithFallback } from "../_internal/constrained-type-at-location.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
 import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
@@ -47,6 +54,8 @@ const defaultOption = {
 } as const;
 
 const defaultOptions = [defaultOption] as const;
+const setTypeNameList = ["ReadonlySet", "Set"];
+const setTypeNames = new Set(setTypeNameList);
 
 /**
  * ESLint rule definition for `prefer-ts-extras-set-has`.
@@ -70,6 +79,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
+            const program = parserServices.program;
             const setTypeResolutionCaches: Readonly<
                 Record<UnionSetMatchingMode, Map<Readonly<ts.Type>, boolean>>
             > = {
@@ -108,8 +118,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
             /**
              * Determine whether a type resolves to `Set`/`ReadonlySet`,
-             * traversing unions, intersections, apparent types, and base
-             * interfaces.
+             * traversing unions, intersections, and apparent types.
              */
             const isSetType = (
                 type: Readonly<ts.Type>,
@@ -166,8 +175,67 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         return isSetLike;
                     }
 
-                    const symbolName = candidateType.getSymbol()?.getName();
-                    if (symbolName === "ReadonlySet" || symbolName === "Set") {
+                    if (
+                        isTypeAnyType(candidateType) ||
+                        isTypeUnknownType(candidateType)
+                    ) {
+                        setTypeResolutionCache.set(candidateType, false);
+
+                        return false;
+                    }
+
+                    const builtinSetLikeResult = safeTypeOperation({
+                        operation: () => {
+                            if (!isPresent(program)) {
+                                return false;
+                            }
+
+                            return isBuiltinSymbolLike(
+                                program,
+                                candidateType,
+                                setTypeNameList
+                            );
+                        },
+                        reason: "set-has-builtin-symbol-analysis-failed",
+                    });
+
+                    if (builtinSetLikeResult.ok && builtinSetLikeResult.value) {
+                        setTypeResolutionCache.set(candidateType, true);
+
+                        return true;
+                    }
+
+                    const shouldUseNameBasedFallback = !isPresent(program);
+
+                    if (shouldUseNameBasedFallback) {
+                        const symbolName = candidateType.getSymbol()?.getName();
+                        if (
+                            symbolName === "ReadonlySet" ||
+                            symbolName === "Set"
+                        ) {
+                            setTypeResolutionCache.set(candidateType, true);
+
+                            return true;
+                        }
+                    }
+
+                    const containsSetLikeResult = safeTypeOperation({
+                        operation: () =>
+                            isPresent(program)
+                                ? false
+                                : containsAllTypesByName(
+                                      candidateType,
+                                      true,
+                                      setTypeNames,
+                                      true
+                                  ),
+                        reason: "set-has-contains-all-types-analysis-failed",
+                    });
+
+                    if (
+                        containsSetLikeResult.ok &&
+                        containsSetLikeResult.value
+                    ) {
                         setTypeResolutionCache.set(candidateType, true);
 
                         return true;
@@ -235,16 +303,17 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
                 const result = safeTypeOperation({
                     operation: () => {
-                        const tsNode =
-                            parserServices.esTreeNodeToTSNodeMap.get(
-                                expression
-                            );
+                        const objectType =
+                            getConstrainedTypeAtLocationWithFallback({
+                                checker,
+                                node: expression,
+                                parserServices,
+                                reason: "set-has-expression-type-resolution-failed",
+                            });
 
-                        if (!isDefined(tsNode)) {
+                        if (!isDefined(objectType)) {
                             return false;
                         }
-
-                        const objectType = checker.getTypeAtLocation(tsNode);
 
                         return isSetType(objectType, unionMatchingMode);
                     },

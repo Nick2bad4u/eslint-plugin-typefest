@@ -926,6 +926,22 @@ ruleTester.run(
                 name: "autofixes string.split() when stringSplit import is in scope",
                 output: inlineFixableOutput,
             },
+            {
+                code: [
+                    "function splitGeneric<T extends String>(value: T) {",
+                    "    return value.split(',');",
+                    "}",
+                ].join("\n"),
+                errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports split calls on generic receivers constrained to String",
+                output: [
+                    'import { stringSplit } from "ts-extras";',
+                    "function splitGeneric<T extends String>(value: T) {",
+                    "    return stringSplit(value, ',');",
+                    "}",
+                ].join("\n"),
+            },
         ],
         valid: [
             {
@@ -947,6 +963,21 @@ ruleTester.run(
                 code: differentStringMethodValidCode,
                 filename: typedFixturePath(validFixtureName),
                 name: "ignores non-split string method call",
+            },
+            {
+                code: [
+                    "namespace CustomTypes {",
+                    "    export class String {",
+                    "        split(separator: string): string[] {",
+                    "            return [separator];",
+                    "        }",
+                    "    }",
+                    "}",
+                    "const value = new CustomTypes.String();",
+                    "value.split(',');",
+                ].join("\n"),
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores namespaced user-defined String class split method",
             },
         ],
     }
