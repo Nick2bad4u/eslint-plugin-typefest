@@ -54,10 +54,12 @@ jobs:
               run: npm run typecheck
 
             - name: Run tests with coverage and JUnit report
-              run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml --silent
+              run: npx vitest run --coverage --reporter=github-actions --reporter=dot --reporter=junit --outputFile=test-report.junit.xml --silent
               env:
                   CI: "true"
                   MAX_THREADS: "1"
+                  TYPEFEST_VITEST_HANGING_PROCESS_REPORTER: "true"
+                  VITEST_HANGING_PROCESS_REPORTER: "true"
 
             - name: Verify coverage artifact
               run: python -c "from pathlib import Path; assert Path('coverage/lcov.info').is_file(), 'coverage/lcov.info was not generated'"

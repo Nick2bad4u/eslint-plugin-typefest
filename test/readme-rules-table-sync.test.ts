@@ -10,6 +10,10 @@ import { generateReadmeRulesSectionFromRules } from "../scripts/sync-readme-rule
 import typefestPlugin from "../src/plugin";
 
 const RULES_SECTION_HEADING = "## Rules";
+const RULES_SECTION_SNAPSHOT_PATH = path.join(
+    "__snapshots__",
+    "readme-rules-section.generated.md"
+);
 
 /**
  * Extract the README rules section body beginning at `## Rules`.
@@ -47,5 +51,15 @@ describe("readme rules table synchronization", () => {
         );
 
         expect(readmeRulesSection).toBe(expectedRulesSection);
+    });
+
+    it("keeps generated rules markdown snapshot-stable", async () => {
+        const generatedRulesSection = generateReadmeRulesSectionFromRules(
+            typefestPlugin.rules
+        );
+
+        await expect(generatedRulesSection).toMatchFileSnapshot(
+            RULES_SECTION_SNAPSHOT_PATH
+        );
     });
 });

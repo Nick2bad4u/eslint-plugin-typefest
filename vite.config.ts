@@ -20,6 +20,22 @@ const maxWorkerCount =
     Number.isFinite(parsedMaxWorkers) && parsedMaxWorkers > 0
         ? parsedMaxWorkers
         : 1;
+/** Raw flag controlling optional hanging-process reporter activation. */
+const rawHangingReporterFlag =
+    process.env["TYPEFEST_VITEST_HANGING_PROCESS_REPORTER"] ??
+    process.env["VITEST_HANGING_PROCESS_REPORTER"] ??
+    "false";
+/** Normalized `true` when hanging-process reporter is explicitly enabled. */
+const shouldEnableHangingProcessReporter = [
+    "1",
+    "on",
+    "true",
+    "yes",
+].includes(rawHangingReporterFlag.toLowerCase());
+/** Shared reporter list for test runs with optional hanging-process diagnostics. */
+const vitestReporters = shouldEnableHangingProcessReporter
+    ? ["default", "hanging-process"]
+    : ["default"];
 /** Shared glob exclusions for generated/cache directories. */
 const testExcludePatterns = [
     "**/.cache/**",
@@ -169,7 +185,6 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         },
         env: {
             NODE_ENV: "test",
-
             PACKAGE_VERSION: process.env["PACKAGE_VERSION"] ?? "unknown",
         },
         environment: "node",
@@ -217,17 +232,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         pool: "threads", // Use worker threads for better performance
         printConsoleTrace: false, // Disable stack trace printing for cleaner output
         // Improve test output
-        reporters: [
-            "default",
-            // "json",
-            // "verbose",
-            "hanging-process",
-            // "dot",
-            // "tap",
-            // "tap-flat",
-            // "junit",
-            // "html",
-        ],
+        reporters: vitestReporters,
         retry: 0, // No retries to surface issues immediately
         sequence: {
             // Run projects sequentially to avoid resource contention

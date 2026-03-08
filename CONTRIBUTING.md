@@ -75,6 +75,42 @@ Use these commands locally before submitting a pull request:
 - `npm test`
 - `npm run lint:all:fix:quiet`
 
+## Snapshot testing guidance
+
+This repository uses Vitest snapshots selectively for stable contract surfaces,
+not as a replacement for explicit rule behavior assertions.
+
+Use snapshots for:
+
+- normalized plugin contract summaries
+- normalized rule metadata matrices
+- generated documentation artifacts (for example README rules sections)
+- docs structure schemas where heading order and presence are contractual
+
+Avoid snapshots for:
+
+- raw AST trees
+- broad ESLint diagnostics payloads in rule tests
+- unnormalized objects with volatile or environment-specific fields
+
+Focused update flow:
+
+```bash
+npx vitest run test/plugin-contract-snapshots.test.ts -u
+npx vitest run test/rule-metadata-snapshots.test.ts -u
+npx vitest run test/readme-rules-table-sync.test.ts -u
+npx vitest run test/docs-heading-snapshots.test.ts -u
+```
+
+Verification flow:
+
+```bash
+npx vitest run test/plugin-contract-snapshots.test.ts test/rule-metadata-snapshots.test.ts test/readme-rules-table-sync.test.ts test/docs-heading-snapshots.test.ts
+```
+
+For detailed design and review guidance, see
+[`docs/rules/guides/snapshot-testing.md`](./docs/rules/guides/snapshot-testing.md).
+
 Optional focused checks:
 
 - `npm run mutation:test` for Stryker mutation testing
