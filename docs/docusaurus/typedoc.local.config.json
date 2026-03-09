@@ -70,9 +70,10 @@
     "disableGit": false,
     "disableSources": false,
     "emit": "docs",
-    "entryPointStrategy": "resolve",
+    "entryPointStrategy": "expand",
     "entryPoints": [
-        "C:/Users/Nick/Dropbox/PC (2)/Documents/GitHub/eslint-plugin-typefest/src/plugin.ts"
+        "../../src/plugin.ts",
+        "../../src/_internal"
     ],
     "exclude": [
         "**/dist/**",

@@ -36,17 +36,12 @@ type ConstrainedTypeParserServices = Readonly<{
  *
  * @returns The constrained type when resolvable; otherwise `undefined`.
  */
-export const getConstrainedTypeAtLocationWithFallback = ({
-    checker,
-    node,
-    parserServices,
-    reason,
-}: Readonly<{
-    checker: Readonly<ts.TypeChecker>;
-    node: Readonly<TSESTree.Node>;
-    parserServices: ConstrainedTypeParserServices;
-    reason: string;
-}>): ts.Type | undefined => {
+export const getConstrainedTypeAtLocationWithFallback = (
+    checker: Readonly<ts.TypeChecker>,
+    node: Readonly<TSESTree.Node>,
+    parserServices: ConstrainedTypeParserServices,
+    reason: string
+): ts.Type | undefined => {
     const constrainedTypeResult = safeTypeOperation({
         operation: () => {
             if (

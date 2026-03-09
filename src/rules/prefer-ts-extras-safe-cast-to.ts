@@ -127,12 +127,12 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                         }
 
                         const sourceType =
-                            getConstrainedTypeAtLocationWithFallback({
+                            getConstrainedTypeAtLocationWithFallback(
                                 checker,
-                                node: expression,
+                                expression,
                                 parserServices,
-                                reason: "safe-cast-to-source-type-resolution-failed",
-                            });
+                                "safe-cast-to-source-type-resolution-failed"
+                            );
 
                         if (!isDefined(sourceType)) {
                             return null;

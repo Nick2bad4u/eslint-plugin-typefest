@@ -26,6 +26,14 @@ This section is for contributors and advanced users.
 - Rule catalog and docs synchronization
 - Change impact and validation matrix
 - Quality gates and release flow
+- Typed rule semantic analysis flow
+- Import-safe autofix decision tree
+- Preset composition and rule matrix
+- Docs link integrity and anchor stability
+- Typed rule performance budget and hotspots
+- Diagnostics and regression triage loop
+- Preset semver and deprecation lifecycle
+- Rule authoring to release lifecycle
 
 Use the **Charts** section in the Developer sidebar to open these pages.
 

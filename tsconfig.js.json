@@ -15,6 +15,7 @@
         ".cache/**",
         "coverage/**",
         "dist/**",
+        "eslint.config.bundled_*.mjs",
         "node_modules/**"
     ],
     "extends": "./tsconfig.json",

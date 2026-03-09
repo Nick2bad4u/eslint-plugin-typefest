@@ -82,7 +82,7 @@ export const registerSafeTypeOperationFailureObserver = (
  * @param observer - Observer registered for the operation scope.
  * @param operation - Synchronous operation to execute while observing failures.
  *
- * @returns Return value from {@link operation}.
+ * @returns Return value produced by `operation`.
  */
 export const withSafeTypeOperationFailureObserver = <Result>(
     observer: SafeTypeOperationFailureObserver<string>,

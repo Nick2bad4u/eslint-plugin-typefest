@@ -71,6 +71,38 @@ const normalizeTypefestConfigReferences = (
 };
 
 /**
+ * Build an ordered 1-based sequence of expected rule numbers.
+ */
+const createExpectedRuleNumberSequence = (
+    ruleCount: number
+): readonly number[] => {
+    const sequence: number[] = [];
+
+    for (let index = 1; index <= ruleCount; index += 1) {
+        sequence.push(index);
+    }
+
+    return sequence;
+};
+
+/**
+ * Convert a rule-number set into an ascending numeric list.
+ */
+const getSortedRuleNumberValues = (
+    values: ReadonlySet<number>
+): readonly number[] => {
+    const sortedValues: number[] = [];
+
+    for (const value of values) {
+        sortedValues.push(value);
+    }
+
+    sortedValues.sort((left, right) => left - right);
+
+    return sortedValues;
+};
+
+/**
  * Read and validate one rule module as an object record.
  */
 const getRuleRecord = (
@@ -409,10 +441,8 @@ describe("rule metadata integrity", () => {
 
         expect(seenRuleIds.size).toBe(ruleEntries.length);
         expect(seenRuleNumbers.size).toBe(ruleEntries.length);
-        expect(
-            [...seenRuleNumbers].toSorted((left, right) => left - right)
-        ).toStrictEqual(
-            Array.from({ length: ruleEntries.length }, (_, index) => index + 1)
+        expect(getSortedRuleNumberValues(seenRuleNumbers)).toStrictEqual(
+            createExpectedRuleNumberSequence(ruleEntries.length)
         );
     });
 });

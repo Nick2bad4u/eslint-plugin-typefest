@@ -11,6 +11,7 @@ import {
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
+import { assertDefined } from "ts-extras";
 
 import type { TypefestConfigReference } from "./typefest-config-references.js";
 
@@ -68,12 +69,7 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     );
     const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
     const ruleDocs = createdRule.meta.docs;
-
-    if (ruleDocs === undefined) {
-        throw new TypeError(
-            `Rule '${ruleDefinition.name}' must declare meta.docs.`
-        );
-    }
+    assertDefined(ruleDocs);
 
     const docsWithCatalog: TSESLint.RuleMetaDataDocs & TypefestRuleDocs =
         catalogEntry === null
@@ -114,15 +110,16 @@ export const getTypedRuleServices = (
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>
 ): TypedRuleServices => {
     const parserServices = ESLintUtils.getParserServices(context, true);
+    const program = parserServices.program;
 
-    if (!parserServices.program) {
+    if (program === null) {
         throw new Error(
             "Typed rule requires parserServices.program; ensure projectService is enabled for this lint run."
         );
     }
 
     return {
-        checker: parserServices.program.getTypeChecker(),
+        checker: program.getTypeChecker(),
         parserServices,
     };
 };
@@ -165,24 +162,25 @@ export const isTypeAssignableTo = (
 /**
  * Resolve the type of a signature parameter by index.
  *
- * @param checker - TypeScript type checker.
- * @param index - Parameter index in the signature.
- * @param location - Source location used for contextual type lookup.
- * @param signature - Candidate call signature.
+ * @param options - Signature parameter lookup options.
+ *
+ *   - `checker`: TypeScript type checker.
+ *   - `index`: Parameter index in the signature.
+ *   - `location`: Source location used for contextual type lookup.
+ *   - `signature`: Candidate call signature.
  *
  * @returns Parameter type when available; otherwise `undefined`.
  */
-export const getSignatureParameterTypeAt = ({
-    checker,
-    index,
-    location,
-    signature,
-}: Readonly<{
-    checker: ts.TypeChecker;
-    index: number;
-    location: ts.Node;
-    signature: null | ts.Signature | undefined;
-}>): ts.Type | undefined => {
+export const getSignatureParameterTypeAt = (
+    options: Readonly<{
+        checker: ts.TypeChecker;
+        index: number;
+        location: ts.Node;
+        signature: null | ts.Signature | undefined;
+    }>
+): ts.Type | undefined => {
+    const { checker, index, location, signature } = options;
+
     const symbol = signature?.parameters[index];
     if (!symbol) {
         return undefined;

@@ -221,12 +221,12 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     const result = safeTypeOperation({
                         operation: () => {
                             const objectType =
-                                getConstrainedTypeAtLocationWithFallback({
+                                getConstrainedTypeAtLocationWithFallback(
                                     checker,
-                                    node: expression,
+                                    expression,
                                     parserServices,
-                                    reason: "string-split-expression-type-resolution-failed",
-                                });
+                                    "string-split-expression-type-resolution-failed"
+                                );
 
                             if (!isDefined(objectType)) {
                                 return false;

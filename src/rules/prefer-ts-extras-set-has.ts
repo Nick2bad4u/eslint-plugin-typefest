@@ -319,12 +319,12 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                 const result = safeTypeOperation({
                     operation: () => {
                         const objectType =
-                            getConstrainedTypeAtLocationWithFallback({
+                            getConstrainedTypeAtLocationWithFallback(
                                 checker,
-                                node: expression,
+                                expression,
                                 parserServices,
-                                reason: "set-has-expression-type-resolution-failed",
-                            });
+                                "set-has-expression-type-resolution-failed"
+                            );
 
                         if (!isDefined(objectType)) {
                             return false;

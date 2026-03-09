@@ -4,8 +4,6 @@
  */
 import { objectFromEntries, setHas } from "ts-extras";
 
-import type { TypefestRuleNamePattern } from "./rules-registry.js";
-
 /**
  * Catalog metadata for a single rule.
  */
@@ -19,6 +17,9 @@ export type TypefestRuleCatalogEntry = Readonly<{
  * Stable machine-friendly rule id format (for example: `R001`).
  */
 export type TypefestRuleCatalogId = `R${string}`;
+
+/** Pattern for unqualified rule names supported by eslint-plugin-typefest. */
+type TypefestRuleNamePattern = `prefer-${string}`;
 
 /**
  * Stable global ordering used for rule catalog IDs.

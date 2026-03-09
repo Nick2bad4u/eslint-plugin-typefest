@@ -41,6 +41,22 @@ const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
 const isBoolean = (value: unknown): value is boolean =>
     typeof value === "boolean";
 
+/** Validate docs.ruleId and return a normalized string value. */
+const getValidatedRuleCatalogId = (value: unknown): string => {
+    expect(typeof value === "string" && /^R\d{3}$/v.test(value)).toBeTruthy();
+
+    return typeof value === "string" ? value : "";
+};
+
+/** Validate docs.ruleNumber and return a normalized numeric value. */
+const getValidatedRuleNumber = (value: unknown): number => {
+    expect(
+        typeof value === "number" && Number.isInteger(value) && value > 0
+    ).toBeTruthy();
+
+    return typeof value === "number" ? value : Number.NaN;
+};
+
 /**
  * Guard dynamic import payloads to the expected `{ default: RuleMetadata }`
  * shape.
@@ -203,23 +219,13 @@ export const addTypeFestRuleMetadataSmokeTests = (
             const docsRuleNumber = metadataRule.meta?.docs?.ruleNumber;
 
             expect(isBoolean(requiresTypeChecking)).toBeTruthy();
-            expect(
-                typeof docsRuleId === "string" && /^R\d{3}$/v.test(docsRuleId)
-            ).toBeTruthy();
-            expect(
-                typeof docsRuleNumber === "number" &&
-                    Number.isInteger(docsRuleNumber) &&
-                    docsRuleNumber > 0
-            ).toBeTruthy();
 
-            if (
-                typeof docsRuleId === "string" &&
-                typeof docsRuleNumber === "number"
-            ) {
-                expect(docsRuleId).toBe(
-                    `R${String(docsRuleNumber).padStart(3, "0")}`
-                );
-            }
+            const normalizedRuleId = getValidatedRuleCatalogId(docsRuleId);
+            const normalizedRuleNumber = getValidatedRuleNumber(docsRuleNumber);
+
+            expect(normalizedRuleId).toBe(
+                `R${String(normalizedRuleNumber).padStart(3, "0")}`
+            );
 
             expect(
                 !isRecommendedTypeCheckedRule || requiresTypeChecking === true

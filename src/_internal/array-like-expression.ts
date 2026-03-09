@@ -225,12 +225,10 @@ export const createIsArrayLikeExpressionChecker = ({
         const result = safeTypeOperation({
             operation: () => {
                 const expressionType = getConstrainedTypeAtLocationWithFallback(
-                    {
-                        checker,
-                        node: expression,
-                        parserServices,
-                        reason: "array-like-expression-type-resolution-failed",
-                    }
+                    checker,
+                    expression,
+                    parserServices,
+                    "array-like-expression-type-resolution-failed"
                 );
 
                 if (!isDefined(expressionType)) {

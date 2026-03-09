@@ -21,6 +21,10 @@ This page acts as the ADR README/index for developer documentation.
 - [ADR 0009: Plugin blog as an official documentation channel](./0009-plugin-blog-as-docs-channel.md)
 - [ADR 0010: Autofix governance and global kill-switch](./0010-autofix-governance-and-global-kill-switch.md)
 - [ADR 0011: Type-aware rule contract and fail-fast behavior](./0011-type-aware-rule-contract-and-fail-fast-behavior.md)
+- [ADR 0012: Internal API surface and stability contract](./0012-internal-api-surface-and-stability-contract.md)
+- [ADR 0013: Docs link integrity and anchor stability policy](./0013-docs-link-integrity-and-anchor-stability-policy.md)
+- [ADR 0014: Typed-rule performance budget and instrumentation](./0014-typed-rule-performance-budget-and-instrumentation.md)
+- [ADR 0015: Preset semver and deprecation policy](./0015-preset-semver-and-deprecation-policy.md)
 
 ## How to add a new ADR
 

@@ -52,6 +52,81 @@ const normalizeTypefestConfigs = (value: unknown): readonly string[] => {
     return references.toSorted((left, right) => left.localeCompare(right));
 };
 
+/** Read an optional object-like property from a record. */
+const getNestedRecord = (
+    record: Readonly<UnknownRecord> | undefined,
+    propertyName: string
+): undefined | UnknownRecord => {
+    const candidate = record?.[propertyName];
+
+    return isRecord(candidate) ? candidate : undefined;
+};
+
+/** Read an optional array-like property from a record. */
+const getNestedArray = (
+    record: Readonly<UnknownRecord> | undefined,
+    propertyName: string
+): readonly unknown[] => {
+    const candidate = record?.[propertyName];
+
+    return Array.isArray(candidate) ? candidate : [];
+};
+
+/** Build normalized message-id list from optional metadata messages. */
+const getMessageIds = (
+    messages: Readonly<UnknownRecord> | undefined
+): readonly string[] => {
+    if (messages === undefined) {
+        return [];
+    }
+
+    return Object.keys(messages).toSorted((left, right) =>
+        left.localeCompare(right)
+    );
+};
+
+/** Normalize one dynamic rule entry into snapshot format. */
+const toRuleMetadataSnapshot = (
+    ruleId: string,
+    ruleModule: unknown
+): RuleMetadataSnapshot => {
+    const safeRuleModule = isRecord(ruleModule) ? ruleModule : undefined;
+    const meta = getNestedRecord(safeRuleModule, "meta");
+    const docs = getNestedRecord(meta, "docs");
+    const messages = getNestedRecord(meta, "messages");
+    const defaultOptions = getNestedArray(safeRuleModule, "defaultOptions");
+    const schema = getNestedArray(meta, "schema");
+
+    const type = meta?.["type"];
+    const fixable = meta?.["fixable"];
+    const docsUrl = docs?.["url"];
+    const docsRecommended = docs?.["recommended"];
+    const docsRequiresTypeChecking = docs?.["requiresTypeChecking"];
+    const docsRuleId = docs?.["ruleId"];
+    const docsRuleNumber = docs?.["ruleNumber"];
+
+    return {
+        defaultOptionsLength: defaultOptions.length,
+        docs: {
+            recommended: docsRecommended === true,
+            requiresTypeChecking: docsRequiresTypeChecking === true,
+            ruleId: typeof docsRuleId === "string" ? docsRuleId : null,
+            ruleNumber:
+                typeof docsRuleNumber === "number" ? docsRuleNumber : null,
+            typefestConfigs: normalizeTypefestConfigs(
+                docs?.["typefestConfigs"]
+            ),
+            url: typeof docsUrl === "string" ? docsUrl : null,
+        },
+        fixable: typeof fixable === "string" ? fixable : null,
+        hasSuggestions: meta?.["hasSuggestions"] === true,
+        messageIds: getMessageIds(messages),
+        ruleId,
+        schemaLength: schema.length,
+        type: typeof type === "string" ? type : null,
+    };
+};
+
 /**
  * Build deterministic rule metadata snapshots for all exported rules.
  *
@@ -60,68 +135,9 @@ const normalizeTypefestConfigs = (value: unknown): readonly string[] => {
 const getRuleMetadataSnapshots = (): readonly RuleMetadataSnapshot[] =>
     objectEntries(typefestPlugin.rules)
         .toSorted(([left], [right]) => left.localeCompare(right))
-        .map(([ruleId, ruleModule]) => {
-            const safeRuleModule = isRecord(ruleModule)
-                ? ruleModule
-                : undefined;
-            const meta =
-                safeRuleModule !== undefined && isRecord(safeRuleModule.meta)
-                    ? safeRuleModule.meta
-                    : undefined;
-            const docs =
-                meta !== undefined && isRecord(meta["docs"])
-                    ? meta["docs"]
-                    : undefined;
-            const messages =
-                meta !== undefined && isRecord(meta["messages"])
-                    ? meta["messages"]
-                    : undefined;
-            const defaultOptions =
-                safeRuleModule !== undefined &&
-                Array.isArray(safeRuleModule["defaultOptions"])
-                    ? safeRuleModule["defaultOptions"]
-                    : [];
-            const schema =
-                meta !== undefined && Array.isArray(meta["schema"])
-                    ? meta["schema"]
-                    : [];
-            const messageIds =
-                messages === undefined
-                    ? []
-                    : Object.keys(messages).toSorted((left, right) =>
-                          left.localeCompare(right)
-                      );
-            const type = meta?.["type"];
-            const fixable = meta?.["fixable"];
-            const docsUrl = docs?.["url"];
-            const docsRecommended = docs?.["recommended"];
-            const docsRequiresTypeChecking = docs?.["requiresTypeChecking"];
-            const docsRuleId = docs?.["ruleId"];
-            const docsRuleNumber = docs?.["ruleNumber"];
-
-            return {
-                defaultOptionsLength: defaultOptions.length,
-                docs: {
-                    recommended: docsRecommended === true,
-                    requiresTypeChecking: docsRequiresTypeChecking === true,
-                    ruleId: typeof docsRuleId === "string" ? docsRuleId : null,
-                    ruleNumber:
-                        typeof docsRuleNumber === "number"
-                            ? docsRuleNumber
-                            : null,
-                    typefestConfigs: normalizeTypefestConfigs(
-                        docs?.["typefestConfigs"]
-                    ),
-                    url: typeof docsUrl === "string" ? docsUrl : null,
-                },
-                fixable: typeof fixable === "string" ? fixable : null,
-                hasSuggestions: meta?.["hasSuggestions"] === true,
-                messageIds,
-                ruleId,
-                schemaLength: schema.length,
-                type: typeof type === "string" ? type : null,
-            };
-        });
+        .map(([ruleId, ruleModule]) =>
+            toRuleMetadataSnapshot(ruleId, ruleModule)
+        );
 
 describe("rule metadata snapshots", () => {
     it("keeps normalized rule metadata contract stable", () => {

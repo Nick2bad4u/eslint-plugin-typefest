@@ -34,4 +34,4 @@ This preset is type-aware and includes
 | [`prefer-ts-extras-safe-cast-to`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to)     |
 | [`prefer-ts-extras-set-has`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has)               |
 
-For the complete rule list, see the [preset matrix](./index.md#rule-matrix).
+For the complete rule list, see the [preset matrix](./index.md).

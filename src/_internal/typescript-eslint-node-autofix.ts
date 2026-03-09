@@ -660,12 +660,10 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
         const isNodeTypedExpressionResult = safeTypeOperation({
             operation: () => {
                 const expressionType = getConstrainedTypeAtLocationWithFallback(
-                    {
-                        checker,
-                        node: expression,
-                        parserServices,
-                        reason: "ts-eslint-node-autofix-expression-type-resolution-failed",
-                    }
+                    checker,
+                    expression,
+                    parserServices,
+                    "ts-eslint-node-autofix-expression-type-resolution-failed"
                 );
 
                 if (!isDefined(expressionType)) {
