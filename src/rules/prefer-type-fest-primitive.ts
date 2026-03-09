@@ -8,6 +8,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
@@ -77,7 +78,7 @@ const preferTypeFestPrimitiveRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
-                "type-fest"
+                TYPE_FEST_MODULE_SOURCE
             );
 
             return {

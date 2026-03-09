@@ -11,6 +11,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
@@ -83,7 +84,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
             );
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 sourceCode,
-                "type-fest"
+                TYPE_FEST_MODULE_SOURCE
             );
 
             return {

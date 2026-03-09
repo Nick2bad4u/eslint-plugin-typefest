@@ -9,6 +9,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -32,7 +33,7 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
             );
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
-                "type-fest"
+                TYPE_FEST_MODULE_SOURCE
             );
 
             return {

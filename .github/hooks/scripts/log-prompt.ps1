@@ -1,5 +1,5 @@
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 
 try {
@@ -18,7 +18,7 @@ try {
   # Optional example redaction. Adjust to match your organization’s needs.
   $redactedPrompt = $prompt -replace 'ghp_[A-Za-z0-9]{20,}', '[REDACTED_TOKEN]'
 
-  $logDir = Join-Path ".github" "hooks" "logs"
+  $logDir = ".github/hooks/logs"
   if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
   }

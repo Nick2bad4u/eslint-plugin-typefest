@@ -10,6 +10,7 @@ import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import {
     reportWithOptionalFix,
     reportWithTypefestPolicy,
@@ -70,7 +71,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const typeFestDirectImports = collectDirectNamedImportsFromSource(
                 context.sourceCode,
-                "type-fest"
+                TYPE_FEST_MODULE_SOURCE
             );
 
             return {
@@ -84,7 +85,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
                             node,
                             "JsonObject",
                             typeFestDirectImports,
-                            "type-fest",
+                            TYPE_FEST_MODULE_SOURCE,
                             "suggestion"
                         );
 

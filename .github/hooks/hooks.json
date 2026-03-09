@@ -10,7 +10,7 @@
                 "osx": ".github/hooks/scripts/remove-temp.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
+                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/remove-temp.ps1"
             }
         ],
         "Stop": [
@@ -23,7 +23,7 @@
                 "osx": ".github/hooks/scripts/remove-temp.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "\".github/hooks/scripts/remove-temp.ps1\""
+                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/remove-temp.ps1"
             }
         ],
         "UserPromptSubmit": [
@@ -36,7 +36,7 @@
                 "osx": ".github/hooks/scripts/log-prompt.sh",
                 "timeout": 10,
                 "type": "command",
-                "windows": "\".github/hooks/scripts/log-prompt.ps1\""
+                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/log-prompt.ps1"
             }
         ]
     },
