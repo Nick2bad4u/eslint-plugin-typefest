@@ -23,6 +23,8 @@ This section is for contributors and advanced users.
 - System architecture overview
 - Rule lifecycle and autofix flow
 - Docs and API pipeline
+- Rule catalog and docs synchronization
+- Change impact and validation matrix
 - Quality gates and release flow
 
 Use the **Charts** section in the Developer sidebar to open these pages.

@@ -150,6 +150,16 @@ const sidebars: SidebarsConfig = {
                             type: "doc",
                         },
                         {
+                            id: "developer/charts/rule-catalog-and-doc-sync",
+                            label: "Rule Catalog & Doc Sync",
+                            type: "doc",
+                        },
+                        {
+                            id: "developer/charts/change-impact-and-validation-matrix",
+                            label: "Change Impact Matrix",
+                            type: "doc",
+                        },
+                        {
                             id: "developer/charts/quality-gates-and-release-flow",
                             label: "Quality Gates & Release",
                             type: "doc",

@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Docs and API pipeline
 
-This flow highlights the relationship between authored docs, generated API docs, and Docusaurus build output.
+This flow highlights the relationship between authored docs, generated API docs, sidebar wiring, and final Docusaurus output.
 
 ```mermaid
 flowchart LR
@@ -47,3 +47,9 @@ flowchart LR
 - Treat TypeDoc output as generated artifacts; edit source code, not generated files.
 - Keep sidebars aligned with file paths and generated API entrypoints.
 - Use full docs build in CI for confidence that rule docs and API docs stay synchronized.
+
+## Troubleshooting signals
+
+- If API pages drift, inspect `npm run docs:api` output first.
+- If pages disappear from nav, validate `sidebars.ts` / `sidebars.rules.ts` IDs.
+- If Markdown linting fails, run docs checks before full build to shorten feedback loops.

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # System architecture overview
 
-This diagram shows how source modules, rule metadata, docs, and consumer projects fit together.
+This diagram shows how source modules, rule metadata, docs, generated tooling assets, and consumer projects fit together.
 
 ```mermaid
 flowchart TB
@@ -41,6 +41,7 @@ flowchart TB
       CI[CI + GitHub Actions]
       SITE[Docusaurus Site]
       IDE[IDE + ESLint Language Server]
+      INSP[ESLint Config Inspector]
     end
 
     R --> ER
@@ -60,13 +61,15 @@ flowchart TB
     PC --> CONS
     ER --> IDE
     SITE --> CONS
+    PC --> INSP
     CI --> SITE
+    CI --> INSP
     CI --> CONS
 
     class R,I,P,C,M source
     class ER,PC,MD runtime
     class RD,DD,SB,CSS docs
-    class CONS,CI,SITE,IDE ext
+    class CONS,CI,SITE,IDE,INSP ext
 ```
 
 ## Notes
@@ -74,3 +77,10 @@ flowchart TB
 - The rule catalog provides stable IDs for traceability (`R001`, `R002`, ...).
 - `createTypedRule` centralizes rule metadata and type-aware wiring.
 - Rule docs and Docusaurus sidebars remain aligned through shared metadata conventions.
+
+## How to read this diagram
+
+- **Source layer** is where maintainers edit behavior and contracts.
+- **Runtime layer** is what ESLint and consumers execute directly.
+- **Documentation layer** controls generated/static docs discoverability.
+- **External integrations** represent CI, IDE, and published artifact entry points.

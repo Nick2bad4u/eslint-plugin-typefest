@@ -85,7 +85,7 @@
     "excludeInternal": false,
     "excludeNotDocumented": false,
     "excludePrivate": false,
-    "excludePrivateClassFields": true,
+    "excludePrivateClassFields": false,
     "excludeProtected": false,
     "excludeReferences": false,
     "expandObjects": true,
@@ -469,7 +469,7 @@
         "linkify": true
     },
     "markdownLinkExternal": true,
-    "maxTypeConversionDepth": 15,
+    "maxTypeConversionDepth": 30,
     "modifierTags": [
         "@alpha",
         "@beta",
