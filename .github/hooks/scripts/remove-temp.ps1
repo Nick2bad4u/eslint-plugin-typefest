@@ -21,6 +21,8 @@ if (Test-Path -LiteralPath $tempPath) {
     Get-ChildItem -LiteralPath $tempPath -Force |
         Remove-Item -Recurse -Force -WhatIf:$WhatIfPreference
     Write-Verbose 'Temp directory cleaned successfully.'
+    Write-Host "Success: Temp directory cleaned."
 } else {
     Write-Verbose "Temp directory not found, nothing to clean: $tempPath"
+    Write-Host "Fail: Temp directory not found, nothing to clean."
 }

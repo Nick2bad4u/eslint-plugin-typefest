@@ -18,4 +18,10 @@ jq -n \
     '{event:"userPromptSubmitted", timestampMs:$ts, cwd:$cwd}' \
     >> "$LOG_DIR/audit.jsonl"
 
-exit 0
+if [ $? -eq 0 ]; then
+    echo "Prompt log: Success"
+    exit 0
+else
+    echo "Prompt log: Failed"
+    exit 1
+fi

@@ -39,17 +39,23 @@ if [[ -n "${TEMP_PATH}" && -d "${TEMP_PATH}" ]]; then
     items=("${TEMP_PATH}"/*)
     shopt -u dotglob nullglob
 
-    if ((${#items[@]} > 0)); then
+    if (((${#items[@]} > 0))); then
         if ((WHAT_IF)); then
             for item in "${items[@]}"; do
                 echo "Would remove: ${item}"
             done
+            echo "[SUCCESS] Dry run completed. No files were deleted."
         else
             rm -rf -- "${items[@]}"
+            if [[ $? -eq 0 ]]; then
+                echo "[SUCCESS] Temp directory cleaned successfully."
+            else
+                echo "[FAIL] Failed to clean temp directory."
+            fi
         fi
+    else
+        echo "[SUCCESS] Temp directory already empty."
     fi
-
-    ((VERBOSE)) && echo "Temp directory cleaned successfully."
 else
-    ((VERBOSE)) && echo "Temp directory not found, nothing to clean: ${SCRIPT_DIR}/../../../temp"
+    echo "[FAIL] Temp directory not found, nothing to clean: ${SCRIPT_DIR}/../../../temp"
 fi
