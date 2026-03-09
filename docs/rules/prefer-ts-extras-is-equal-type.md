@@ -130,6 +130,8 @@ const result4 = isEqualType(string1, number);  // Type: false (different types)
 */
 ````
 
+> **Rule catalog ID:** R017
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

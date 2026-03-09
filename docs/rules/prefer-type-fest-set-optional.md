@@ -119,6 +119,8 @@ type SomeOptional = SetOptional<Foo, 'b' | 'c'>;
 */
 ````
 
+> **Rule catalog ID:** R063
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

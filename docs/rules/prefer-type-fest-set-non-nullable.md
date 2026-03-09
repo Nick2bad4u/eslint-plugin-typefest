@@ -131,6 +131,8 @@ type AllNonNullable = SetNonNullable<Foo>;
 */
 ````
 
+> **Rule catalog ID:** R062
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

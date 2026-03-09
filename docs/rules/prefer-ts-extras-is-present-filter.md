@@ -111,6 +111,8 @@ import {isPresent} from 'ts-extras';
 */
 ````
 
+> **Rule catalog ID:** R022
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

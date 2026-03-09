@@ -125,6 +125,8 @@ type AllKeys = KeysOfUnion<Union>;
 */
 ````
 
+> **Rule catalog ID:** R047
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

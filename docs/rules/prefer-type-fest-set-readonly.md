@@ -122,6 +122,8 @@ type SomeReadonly = SetReadonly<Foo, 'b' | 'c'>;
 */
 ````
 
+> **Rule catalog ID:** R064
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

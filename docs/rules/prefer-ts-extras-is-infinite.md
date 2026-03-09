@@ -120,6 +120,8 @@ isInfinite(Number.NaN);
 */
 ````
 
+> **Rule catalog ID:** R019
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

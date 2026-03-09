@@ -16,6 +16,8 @@ interface RuleMetadataSnapshot {
             description?: string;
             recommended?: boolean;
             requiresTypeChecking?: boolean;
+            ruleId?: string;
+            ruleNumber?: number;
             typefestConfigs?: readonly string[] | string;
             url?: string;
         };
@@ -197,8 +199,27 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
             const requiresTypeChecking =
                 metadataRule.meta?.docs?.requiresTypeChecking;
+            const docsRuleId = metadataRule.meta?.docs?.ruleId;
+            const docsRuleNumber = metadataRule.meta?.docs?.ruleNumber;
 
             expect(isBoolean(requiresTypeChecking)).toBeTruthy();
+            expect(
+                typeof docsRuleId === "string" && /^R\d{3}$/v.test(docsRuleId)
+            ).toBeTruthy();
+            expect(
+                typeof docsRuleNumber === "number" &&
+                    Number.isInteger(docsRuleNumber) &&
+                    docsRuleNumber > 0
+            ).toBeTruthy();
+
+            if (
+                typeof docsRuleId === "string" &&
+                typeof docsRuleNumber === "number"
+            ) {
+                expect(docsRuleId).toBe(
+                    `R${String(docsRuleNumber).padStart(3, "0")}`
+                );
+            }
 
             expect(
                 !isRecommendedTypeCheckedRule || requiresTypeChecking === true

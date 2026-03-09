@@ -110,6 +110,8 @@ Note that types containing overloaded functions are not made deeply required due
 */
 ````
 
+> **Rule catalog ID:** R060
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

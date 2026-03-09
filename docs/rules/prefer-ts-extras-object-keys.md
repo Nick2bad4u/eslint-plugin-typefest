@@ -113,6 +113,8 @@ const untypedItems = Object.keys({a: 1, b: 2, c: 3}); // => Array<string>
 */
 ````
 
+> **Rule catalog ID:** R030
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

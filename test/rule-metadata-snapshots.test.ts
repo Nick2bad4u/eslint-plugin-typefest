@@ -14,6 +14,8 @@ interface RuleMetadataSnapshot {
     docs: {
         recommended: boolean;
         requiresTypeChecking: boolean;
+        ruleId: null | string;
+        ruleNumber: null | number;
         typefestConfigs: readonly string[];
         url: null | string;
     };
@@ -94,12 +96,19 @@ const getRuleMetadataSnapshots = (): readonly RuleMetadataSnapshot[] =>
             const docsUrl = docs?.["url"];
             const docsRecommended = docs?.["recommended"];
             const docsRequiresTypeChecking = docs?.["requiresTypeChecking"];
+            const docsRuleId = docs?.["ruleId"];
+            const docsRuleNumber = docs?.["ruleNumber"];
 
             return {
                 defaultOptionsLength: defaultOptions.length,
                 docs: {
                     recommended: docsRecommended === true,
                     requiresTypeChecking: docsRequiresTypeChecking === true,
+                    ruleId: typeof docsRuleId === "string" ? docsRuleId : null,
+                    ruleNumber:
+                        typeof docsRuleNumber === "number"
+                            ? docsRuleNumber
+                            : null,
                     typefestConfigs: normalizeTypefestConfigs(
                         docs?.["typefestConfigs"]
                     ),

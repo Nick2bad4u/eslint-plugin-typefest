@@ -116,6 +116,8 @@ if (isObject(value)) {
 */
 ````
 
+> **Rule catalog ID:** R071
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

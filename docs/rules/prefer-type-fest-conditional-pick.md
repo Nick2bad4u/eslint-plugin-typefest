@@ -126,6 +126,8 @@ type StringKeysOnly = ConditionalPick<Example, string>;
 */
 ````
 
+> **Rule catalog ID:** R038
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

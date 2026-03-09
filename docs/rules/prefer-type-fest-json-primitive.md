@@ -91,6 +91,8 @@ Matches any valid JSON primitive value.
 */
 ```
 
+> **Rule catalog ID:** R045
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

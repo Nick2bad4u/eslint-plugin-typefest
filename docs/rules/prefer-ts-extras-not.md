@@ -124,6 +124,8 @@ if (isNotString(mixedValue)) {
 */
 ````
 
+> **Rule catalog ID:** R025
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

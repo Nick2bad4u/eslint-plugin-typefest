@@ -126,6 +126,8 @@ assertDefined(notUnicorn);
 */
 ````
 
+> **Rule catalog ID:** R011
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

@@ -5,7 +5,7 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 
-import { arrayIncludes, isEmpty, objectEntries } from "ts-extras";
+import { arrayIncludes, isEmpty, isInteger, objectEntries } from "ts-extras";
 
 import type { TypefestRuleNamePattern } from "./rules-registry.js";
 
@@ -21,6 +21,8 @@ export type RuleDocsMetadata = Readonly<{
     description: string;
     recommended: boolean;
     requiresTypeChecking: boolean;
+    ruleId: string;
+    ruleNumber: number;
     typefestConfigNames: readonly TypefestConfigName[];
     typefestConfigReferences: readonly TypefestConfigReference[];
     url: string;
@@ -46,6 +48,8 @@ type TypefestRuleDocsContract = Readonly<{
     description: string;
     recommended: boolean;
     requiresTypeChecking: boolean;
+    ruleId: string;
+    ruleNumber: number;
     typefestConfigs:
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
@@ -117,6 +121,8 @@ const getRuleDocsContract = (
     const description = docs["description"];
     const recommended = docs["recommended"];
     const requiresTypeChecking = docs["requiresTypeChecking"];
+    const ruleId = docs["ruleId"];
+    const ruleNumber = docs["ruleNumber"];
     const typefestConfigs = docs["typefestConfigs"];
     const url = docs["url"];
 
@@ -144,6 +150,26 @@ const getRuleDocsContract = (
         );
     }
 
+    if (
+        typeof ruleId !== "string" ||
+        !/^R\d{3}$/v.test(ruleId) ||
+        ruleId.trim().length === 0
+    ) {
+        throw new TypeError(
+            `Rule '${ruleName}' must declare docs.ruleId using the 'R###' format.`
+        );
+    }
+
+    if (
+        typeof ruleNumber !== "number" ||
+        !isInteger(ruleNumber) ||
+        ruleNumber < 1
+    ) {
+        throw new TypeError(
+            `Rule '${ruleName}' must declare positive integer docs.ruleNumber.`
+        );
+    }
+
     if (typeof typefestConfigs === "string") {
         if (!isTypefestConfigReference(typefestConfigs)) {
             throw new TypeError(
@@ -155,6 +181,8 @@ const getRuleDocsContract = (
             description,
             recommended,
             requiresTypeChecking,
+            ruleId,
+            ruleNumber,
             typefestConfigs,
             url,
         };
@@ -185,6 +213,8 @@ const getRuleDocsContract = (
         description,
         recommended,
         requiresTypeChecking,
+        ruleId,
+        ruleNumber,
         typefestConfigs: normalizedTypefestConfigs,
         url,
     };
@@ -221,6 +251,8 @@ export const deriveRuleDocsMetadataByName = (
             description: ruleDocs.description,
             recommended: ruleDocs.recommended,
             requiresTypeChecking: ruleDocs.requiresTypeChecking,
+            ruleId: ruleDocs.ruleId,
+            ruleNumber: ruleDocs.ruleNumber,
             typefestConfigNames,
             typefestConfigReferences,
             url: ruleDocs.url,

@@ -112,6 +112,8 @@ type C = IsArray<string>;
 */
 ````
 
+> **Rule catalog ID:** R069
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

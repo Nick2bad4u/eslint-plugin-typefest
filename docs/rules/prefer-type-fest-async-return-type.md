@@ -103,6 +103,8 @@ doSomething(value);
 */
 ````
 
+> **Rule catalog ID:** R037
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

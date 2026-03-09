@@ -105,6 +105,8 @@ const petWithAutoComplete: Pet2 = '';
 */
 ````
 
+> **Rule catalog ID:** R048
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

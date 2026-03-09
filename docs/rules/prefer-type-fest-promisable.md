@@ -232,6 +232,8 @@ await logger(() => Promise.resolve('bar'));
 */
 ````
 
+> **Rule catalog ID:** R054
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

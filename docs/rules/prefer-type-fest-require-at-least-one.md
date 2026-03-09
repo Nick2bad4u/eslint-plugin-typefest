@@ -141,6 +141,8 @@ const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
 */
 ````
 
+> **Rule catalog ID:** R057
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

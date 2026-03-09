@@ -203,6 +203,8 @@ type Works = IncludesWithoutIf<HundredZeroes, '1'>;
 */
 ````
 
+> **Rule catalog ID:** R041
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

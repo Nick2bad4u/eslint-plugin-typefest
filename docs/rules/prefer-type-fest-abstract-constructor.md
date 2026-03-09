@@ -74,6 +74,8 @@ Matches an [`abstract class`](https://www.typescriptlang.org/docs/handbook/relea
 */
 ```
 
+> **Rule catalog ID:** R035
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

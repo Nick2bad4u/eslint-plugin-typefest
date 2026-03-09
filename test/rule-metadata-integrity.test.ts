@@ -21,6 +21,9 @@ const expectedRuleTypes = new Set([
 const RULE_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
 
+/** Stable rule-catalog id format used in docs metadata. */
+const ruleCatalogIdPattern = /^R\d{3}$/v;
+
 /** Check whether a value is a non-empty trimmed string. */
 const isNonEmptyString = (value: unknown): value is string =>
     typeof value === "string" && value.trim().length > 0;
@@ -172,6 +175,8 @@ const assertDocsContract = ({
     const description = docsRecord["description"];
     const recommended = docsRecord["recommended"];
     const requiresTypeChecking = docsRecord["requiresTypeChecking"];
+    const ruleId = docsRecord["ruleId"];
+    const ruleNumber = docsRecord["ruleNumber"];
     const typefestConfigs = docsRecord["typefestConfigs"];
     const url = docsRecord["url"];
 
@@ -188,13 +193,30 @@ const assertDocsContract = ({
         `Rule '${ruleName}' must provide boolean docs.requiresTypeChecking`
     ).toBeTruthy();
     expect(
+        typeof ruleId === "string" && ruleCatalogIdPattern.test(ruleId),
+        `Rule '${ruleName}' must provide docs.ruleId in 'R###' format`
+    ).toBeTruthy();
+    expect(
+        Number.isInteger(ruleNumber) &&
+            typeof ruleNumber === "number" &&
+            ruleNumber > 0,
+        `Rule '${ruleName}' must provide positive integer docs.ruleNumber`
+    ).toBeTruthy();
+    expect(
         isNonEmptyString(url),
         `Rule '${ruleName}' must provide a non-empty docs.url`
     ).toBeTruthy();
 
-    if (!isNonEmptyString(url) || typeof recommended !== "boolean") {
+    if (
+        !isNonEmptyString(url) ||
+        typeof recommended !== "boolean" ||
+        typeof ruleId !== "string" ||
+        typeof ruleNumber !== "number"
+    ) {
         return;
     }
+
+    expect(ruleId).toBe(`R${String(ruleNumber).padStart(3, "0")}`);
 
     const expectedRuleUrl = `${RULE_DOCS_URL_BASE}${ruleName}`;
 
@@ -344,6 +366,8 @@ describe("rule metadata integrity", () => {
 
     it("enforces required metadata invariants for every rule", () => {
         const ruleEntries = objectEntries(typefestPlugin.rules);
+        const seenRuleIds = new Set<string>();
+        const seenRuleNumbers = new Set<number>();
 
         expect(ruleEntries.length).toBeGreaterThan(0);
 
@@ -370,6 +394,25 @@ describe("rule metadata integrity", () => {
                 metaRecord,
                 ruleName,
             });
+
+            const docsRuleId = docsRecord["ruleId"];
+            const docsRuleNumber = docsRecord["ruleNumber"];
+
+            if (typeof docsRuleId === "string") {
+                seenRuleIds.add(docsRuleId);
+            }
+
+            if (typeof docsRuleNumber === "number") {
+                seenRuleNumbers.add(docsRuleNumber);
+            }
         }
+
+        expect(seenRuleIds.size).toBe(ruleEntries.length);
+        expect(seenRuleNumbers.size).toBe(ruleEntries.length);
+        expect(
+            [...seenRuleNumbers].toSorted((left, right) => left - right)
+        ).toStrictEqual(
+            Array.from({ length: ruleEntries.length }, (_, index) => index + 1)
+        );
     });
 });

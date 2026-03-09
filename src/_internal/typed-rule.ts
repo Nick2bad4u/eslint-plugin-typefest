@@ -15,6 +15,7 @@ import {
 import type { TypefestConfigReference } from "./typefest-config-references.js";
 
 import { registerProgramSettingsForContext } from "./plugin-settings.js";
+import { getRuleCatalogEntryForRuleNameOrNull } from "./rule-catalog.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
@@ -42,6 +43,8 @@ type TypefestRuleCreator = ReturnType<
 type TypefestRuleDocs = {
     recommended?: boolean;
     requiresTypeChecking?: boolean;
+    ruleId?: string;
+    ruleNumber?: number;
     typefestConfigs?:
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
@@ -60,7 +63,26 @@ type TypefestRuleDocs = {
  *   preserves the authored rule contract.
  */
 export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
+    const catalogEntry = getRuleCatalogEntryForRuleNameOrNull(
+        ruleDefinition.name
+    );
     const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
+    const ruleDocs = createdRule.meta.docs;
+
+    if (ruleDocs === undefined) {
+        throw new TypeError(
+            `Rule '${ruleDefinition.name}' must declare meta.docs.`
+        );
+    }
+
+    const docsWithCatalog: TSESLint.RuleMetaDataDocs & TypefestRuleDocs =
+        catalogEntry === null
+            ? { ...ruleDocs }
+            : {
+                  ...ruleDocs,
+                  ruleId: catalogEntry.ruleId,
+                  ruleNumber: catalogEntry.ruleNumber,
+              };
 
     return {
         ...createdRule,
@@ -68,6 +90,10 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
             registerProgramSettingsForContext(context);
 
             return createdRule.create(context);
+        },
+        meta: {
+            ...createdRule.meta,
+            docs: docsWithCatalog,
         },
         name: ruleDefinition.name,
     };

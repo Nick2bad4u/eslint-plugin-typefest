@@ -116,6 +116,8 @@ console.log(bar.a ?? '', bar.b ?? 0);
 */
 ````
 
+> **Rule catalog ID:** R032
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

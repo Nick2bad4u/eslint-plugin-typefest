@@ -109,6 +109,8 @@ type C = IsMap<string>;
 */
 ````
 
+> **Rule catalog ID:** R070
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

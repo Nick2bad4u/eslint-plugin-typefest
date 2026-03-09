@@ -113,6 +113,8 @@ bundle('src/index.js', ['dist/index.cjs', 'dist/index.mjs']);
 */
 ````
 
+> **Rule catalog ID:** R036
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

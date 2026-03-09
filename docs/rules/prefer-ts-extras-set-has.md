@@ -189,6 +189,8 @@ if (setHas(valueSet, valueToCheck)) {
 */
 ````
 
+> **Rule catalog ID:** R033
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

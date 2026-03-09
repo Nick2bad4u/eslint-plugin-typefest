@@ -93,6 +93,8 @@ This type can be useful to enforce some input to be JSON-compatible or as a supe
 */
 ```
 
+> **Rule catalog ID:** R044
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

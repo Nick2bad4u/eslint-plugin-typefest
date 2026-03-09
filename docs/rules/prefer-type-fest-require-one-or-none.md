@@ -151,6 +151,8 @@ const responder3: Responder = {
 */
 ````
 
+> **Rule catalog ID:** R059
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

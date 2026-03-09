@@ -119,6 +119,8 @@ const dynamicParts = stringSplit(dynamic, '-');
 */
 ````
 
+> **Rule catalog ID:** R034
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

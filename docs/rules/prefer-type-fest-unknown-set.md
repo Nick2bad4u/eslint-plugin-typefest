@@ -109,6 +109,8 @@ type C = IsSet<string>;
 */
 ````
 
+> **Rule catalog ID:** R072
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

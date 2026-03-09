@@ -120,6 +120,8 @@ partialShape.dimensions = [15]; // OK
 */
 ````
 
+> **Rule catalog ID:** R052
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

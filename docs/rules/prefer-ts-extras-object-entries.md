@@ -116,6 +116,8 @@ const untypedEntries = Object.entries({a: 1, b: 2, c: 3});
 */
 ````
 
+> **Rule catalog ID:** R026
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

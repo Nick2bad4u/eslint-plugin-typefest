@@ -147,6 +147,8 @@ const userMaskSettings: UserMask = {
 */
 ````
 
+> **Rule catalog ID:** R061
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

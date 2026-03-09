@@ -101,6 +101,8 @@ sum();
 */
 ````
 
+> **Rule catalog ID:** R050
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

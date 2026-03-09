@@ -7,6 +7,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R001",
+      "ruleNumber": 1,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -27,6 +29,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R002",
+      "ruleNumber": 2,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -47,6 +51,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R003",
+      "ruleNumber": 3,
       "typefestConfigs": [
         "typefest.configs.all",
       ],
@@ -66,6 +72,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R004",
+      "ruleNumber": 4,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -86,6 +94,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R005",
+      "ruleNumber": 5,
       "typefestConfigs": [
         "typefest.configs.all",
       ],
@@ -105,6 +115,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R006",
+      "ruleNumber": 6,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -126,6 +138,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R007",
+      "ruleNumber": 7,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended-type-checked",
@@ -149,6 +163,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R008",
+      "ruleNumber": 8,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -169,6 +185,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R009",
+      "ruleNumber": 9,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended-type-checked",
@@ -191,6 +209,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R010",
+      "ruleNumber": 10,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -211,6 +231,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R011",
+      "ruleNumber": 11,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -234,6 +256,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R012",
+      "ruleNumber": 12,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -257,6 +281,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R013",
+      "ruleNumber": 13,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -280,6 +306,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R014",
+      "ruleNumber": 14,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -303,6 +331,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R015",
+      "ruleNumber": 15,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -326,6 +356,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R016",
+      "ruleNumber": 16,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended-type-checked",
@@ -348,6 +380,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R017",
+      "ruleNumber": 17,
       "typefestConfigs": [
         "typefest.configs.all",
       ],
@@ -368,6 +402,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R018",
+      "ruleNumber": 18,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -390,6 +426,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R019",
+      "ruleNumber": 19,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -412,6 +450,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R020",
+      "ruleNumber": 20,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -434,6 +474,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R021",
+      "ruleNumber": 21,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -457,6 +499,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R022",
+      "ruleNumber": 22,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -480,6 +524,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R023",
+      "ruleNumber": 23,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -502,6 +548,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R024",
+      "ruleNumber": 24,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -524,6 +572,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R025",
+      "ruleNumber": 25,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -546,6 +596,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R026",
+      "ruleNumber": 26,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -566,6 +618,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R027",
+      "ruleNumber": 27,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -586,6 +640,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R028",
+      "ruleNumber": 28,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -609,6 +665,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R029",
+      "ruleNumber": 29,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -632,6 +690,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R030",
+      "ruleNumber": 30,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -652,6 +712,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R031",
+      "ruleNumber": 31,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -672,6 +734,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R032",
+      "ruleNumber": 32,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended-type-checked",
@@ -694,6 +758,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R033",
+      "ruleNumber": 33,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended-type-checked",
@@ -717,6 +783,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": true,
+      "ruleId": "R034",
+      "ruleNumber": 34,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.strict",
@@ -737,6 +805,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R035",
+      "ruleNumber": 35,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -759,6 +829,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R036",
+      "ruleNumber": 36,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -782,6 +854,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R037",
+      "ruleNumber": 37,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -804,6 +878,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R038",
+      "ruleNumber": 38,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -826,6 +902,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R039",
+      "ruleNumber": 39,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -848,6 +926,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R040",
+      "ruleNumber": 40,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -871,6 +951,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R041",
+      "ruleNumber": 41,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -893,6 +975,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R042",
+      "ruleNumber": 42,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -915,6 +999,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R043",
+      "ruleNumber": 43,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -938,6 +1024,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R044",
+      "ruleNumber": 44,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -961,6 +1049,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R045",
+      "ruleNumber": 45,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -984,6 +1074,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R046",
+      "ruleNumber": 46,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -1008,6 +1100,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R047",
+      "ruleNumber": 47,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1030,6 +1124,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R048",
+      "ruleNumber": 48,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1052,6 +1148,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R049",
+      "ruleNumber": 49,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1074,6 +1172,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R050",
+      "ruleNumber": 50,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1096,6 +1196,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R051",
+      "ruleNumber": 51,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1118,6 +1220,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R052",
+      "ruleNumber": 52,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1140,6 +1244,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R053",
+      "ruleNumber": 53,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -1163,6 +1269,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R054",
+      "ruleNumber": 54,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -1186,6 +1294,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R055",
+      "ruleNumber": 55,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1208,6 +1318,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R056",
+      "ruleNumber": 56,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1230,6 +1342,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R057",
+      "ruleNumber": 57,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1252,6 +1366,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R058",
+      "ruleNumber": 58,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1274,6 +1390,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R059",
+      "ruleNumber": 59,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1296,6 +1414,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R060",
+      "ruleNumber": 60,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1318,6 +1438,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R061",
+      "ruleNumber": 61,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1340,6 +1462,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R062",
+      "ruleNumber": 62,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1362,6 +1486,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R063",
+      "ruleNumber": 63,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1384,6 +1510,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R064",
+      "ruleNumber": 64,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1406,6 +1534,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R065",
+      "ruleNumber": 65,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1428,6 +1558,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R066",
+      "ruleNumber": 66,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1450,6 +1582,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R067",
+      "ruleNumber": 67,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1473,6 +1607,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R068",
+      "ruleNumber": 68,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1495,6 +1631,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R069",
+      "ruleNumber": 69,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1517,6 +1655,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R070",
+      "ruleNumber": 70,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1539,6 +1679,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R071",
+      "ruleNumber": 71,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.minimal",
@@ -1562,6 +1704,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R072",
+      "ruleNumber": 72,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1584,6 +1728,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R073",
+      "ruleNumber": 73,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1606,6 +1752,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R074",
+      "ruleNumber": 74,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1628,6 +1776,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R075",
+      "ruleNumber": 75,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
@@ -1651,6 +1801,8 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
+      "ruleId": "R076",
+      "ruleNumber": 76,
       "typefestConfigs": [
         "typefest.configs.all",
         "typefest.configs.recommended",
