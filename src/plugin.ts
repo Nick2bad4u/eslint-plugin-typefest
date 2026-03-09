@@ -15,8 +15,6 @@ import {
     setHas,
 } from "ts-extras";
 
-import type { TypefestConfigName as InternalTypefestConfigName } from "./_internal/typefest-config-references.js";
-
 import packageJson from "../package.json" with { type: "json" };
 import {
     deriveRuleDocsMetadataByName,
@@ -24,6 +22,11 @@ import {
     deriveTypeCheckedRuleNameSet,
 } from "./_internal/rule-docs-metadata.js";
 import { typefestRules } from "./_internal/rules-registry.js";
+import {
+    type TypefestConfigName as InternalTypefestConfigName,
+    typefestConfigMetadataByName,
+    typefestConfigNames,
+} from "./_internal/typefest-config-references.js";
 
 /** ESLint severity used by generated preset rule maps. */
 const ERROR_SEVERITY = "error" as const;
@@ -180,15 +183,15 @@ const typeCheckedRuleNames = deriveTypeCheckedRuleNameSet(
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
     TypefestRuleName[]
-> => ({
-    all: [],
-    minimal: [],
-    recommended: [],
-    "recommended-type-checked": [],
-    strict: [],
-    "ts-extras/type-guards": [],
-    "type-fest/types": [],
-});
+> => {
+    const presetRuleMap = {} as Record<TypefestConfigName, TypefestRuleName[]>;
+
+    for (const configName of typefestConfigNames) {
+        presetRuleMap[configName] = [];
+    }
+
+    return presetRuleMap;
+};
 
 const dedupeRuleNames = (
     ruleNames: readonly TypefestRuleName[]
@@ -279,21 +282,14 @@ const recommendedTypeCheckedRuleNames = dedupeRuleNames([
     ...presetRuleNamesByConfig["recommended-type-checked"],
 ]);
 
-/** Strict preset rule list. */
-const strictRuleNames = presetRuleNamesByConfig.strict;
-
-/** All preset rule list. */
-const allRuleNames = presetRuleNamesByConfig.all;
-
-/** Minimal preset rule list. */
-const minimalRuleNames = presetRuleNamesByConfig.minimal;
-
-/** Ts-extras/type-guards preset rule list. */
-const tsExtrasTypeGuardRuleNames =
-    presetRuleNamesByConfig["ts-extras/type-guards"];
-
-/** Type-fest/types preset rule list. */
-const typeFestTypesRuleNames = presetRuleNamesByConfig["type-fest/types"];
+/** Effective per-preset rule lists after applying derived policy overlays. */
+const effectivePresetRuleNamesByConfig: Readonly<
+    Record<TypefestConfigName, readonly TypefestRuleName[]>
+> = {
+    ...presetRuleNamesByConfig,
+    recommended: recommendedRuleNames,
+    "recommended-type-checked": recommendedTypeCheckedRuleNames,
+};
 
 /**
  * Apply parser and plugin metadata required by all plugin presets.
@@ -345,78 +341,30 @@ const pluginForConfigs: ESLint.Plugin = {
 /**
  * Flat config presets distributed by eslint-plugin-typefest.
  */
-const typefestConfigsDefinition = {
-    all: withTypefestPlugin(
-        {
-            name: "typefest:all",
-            rules: errorRulesFor(allRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: true,
-        }
-    ),
-    minimal: withTypefestPlugin(
-        {
-            name: "typefest:minimal",
-            rules: errorRulesFor(minimalRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: false,
-        }
-    ),
-    recommended: withTypefestPlugin(
-        {
-            name: "typefest:recommended",
-            rules: errorRulesFor(recommendedRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: false,
-        }
-    ),
-    "recommended-type-checked": withTypefestPlugin(
-        {
-            name: "typefest:recommended-type-checked",
-            rules: errorRulesFor(recommendedTypeCheckedRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: true,
-        }
-    ),
-    strict: withTypefestPlugin(
-        {
-            name: "typefest:strict",
-            rules: errorRulesFor(strictRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: true,
-        }
-    ),
-    "ts-extras/type-guards": withTypefestPlugin(
-        {
-            name: "typefest:ts-extras/type-guards",
-            rules: errorRulesFor(tsExtrasTypeGuardRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: true,
-        }
-    ),
-    "type-fest/types": withTypefestPlugin(
-        {
-            name: "typefest:type-fest/types",
-            rules: errorRulesFor(typeFestTypesRuleNames),
-        },
-        pluginForConfigs,
-        {
-            requiresTypeChecking: false,
-        }
-    ),
-} satisfies TypefestConfigsContract;
+const createTypefestConfigsDefinition = (): TypefestConfigsContract => {
+    const configs = {} as TypefestConfigsContract;
+
+    for (const configName of typefestConfigNames) {
+        const configMetadata = typefestConfigMetadataByName[configName];
+
+        configs[configName] = withTypefestPlugin(
+            {
+                name: configMetadata.presetName,
+                rules: errorRulesFor(
+                    effectivePresetRuleNamesByConfig[configName]
+                ),
+            },
+            pluginForConfigs,
+            {
+                requiresTypeChecking: configMetadata.requiresTypeChecking,
+            }
+        );
+    }
+
+    return configs;
+};
+
+const typefestConfigsDefinition = createTypefestConfigsDefinition();
 
 /** Finalized typed view of all exported preset configurations. */
 const typefestConfigs: TypefestConfigsContract = typefestConfigsDefinition;

@@ -4,17 +4,17 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { typefestConfigNames } from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
 
-const expectedConfigRegistryShape = expect.objectContaining({
-    all: expect.any(Object),
-    minimal: expect.any(Object),
-    recommended: expect.any(Object),
-    "recommended-type-checked": expect.any(Object),
-    strict: expect.any(Object),
-    "ts-extras/type-guards": expect.any(Object),
-    "type-fest/types": expect.any(Object),
-});
+const expectedConfigRegistryShape = expect.objectContaining(
+    Object.fromEntries(
+        [...typefestConfigNames].map((configName) => [
+            configName,
+            expect.any(Object),
+        ])
+    )
+);
 
 const expectedRuleRegistryShape = expect.objectContaining({
     "prefer-ts-extras-as-writable": expect.any(Object),

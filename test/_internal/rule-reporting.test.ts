@@ -110,4 +110,29 @@ describe("rule-reporting helpers", () => {
             node,
         });
     });
+
+    it("reportWithOptionalFix strips top-level fix when disableAllAutofixes is enabled", () => {
+        const { context, report } = createContext();
+        const fix = createFix();
+
+        context.settings = {
+            typefest: {
+                disableAllAutofixes: true,
+            },
+        };
+
+        reportWithOptionalFix({
+            context,
+            fix,
+            messageId: "preferTsExtrasAssertDefined",
+            node,
+        });
+
+        expect(report).toHaveBeenCalledTimes(1);
+        expect(report.mock.calls[0]?.[0]).toMatchObject({
+            messageId: "preferTsExtrasAssertDefined",
+            node,
+        });
+        expect(report.mock.calls[0]?.[0]).not.toHaveProperty("fix");
+    });
 });

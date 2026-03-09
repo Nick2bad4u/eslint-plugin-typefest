@@ -159,7 +159,8 @@
         "madge:orphans": "madge --orphans --no-spinner --ts-config tsconfig.json --extensions ts,tsx,js,jsx,mjs,cjs,cts,mts ./src --exclude \"(^|[\\/])(test|dist|node_modules|cache|.cache|coverage|build|eslint-inspector|temp|.docusaurus)($|[\\/])|\\.css$\"",
         "open:coverage": "open-cli coverage/index.html",
         "prepublishOnly": "npm run release:check",
-        "release:check": "npm run lint && npm run typecheck && npm run test && npm pack --dry-run",
+        "release:check": "npm run release:verify",
+        "release:verify": "npm run build && npm run lint && npm run typecheck && npm run test && npm run sync:readme-rules-table && npm run docs:check-links && npm pack --dry-run",
         "remark:fix": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail --quiet --output -- \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\"",
         "remark:test-config": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail \"README.md\"",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
@@ -189,7 +190,8 @@
         "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.eslint.json --noEmit && tsc -p tsconfig.js.json --noEmit && npm run --workspace docs/docusaurus typecheck",
         "typecheck:all": "npm run typecheck",
         "types:update": "typesync",
-        "update-deps": "npx ncu -i --install never && npm run sync:peer-eslint-range && npm install --force"
+        "update-deps": "npx ncu -i --install never && npm run sync:peer-eslint-range && npm install --force",
+        "verify:readme-rules-table": "npm run build && npm run sync:readme-rules-table"
     },
     "overrides": {
         "jsonc-eslint-parser": "$jsonc-eslint-parser"

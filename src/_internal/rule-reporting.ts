@@ -30,26 +30,6 @@ type ReportDescriptor<
 > = Parameters<TSESLint.RuleContext<MessageIds, Options>["report"]>[0];
 
 /**
- * Build a policy-aware reporter that enforces plugin autofix settings.
- */
-export const createTypefestReporter = <
-    MessageIds extends string,
-    Options extends Readonly<UnknownArray>,
->(
-    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
-): TSESLint.RuleContext<MessageIds, Options>["report"] => {
-    const settings = registerProgramSettingsForContext(context);
-
-    if (!settings.disableAllAutofixes) {
-        return context.report;
-    }
-
-    return (descriptor) => {
-        context.report(omitAutofixFromReportDescriptor(descriptor));
-    };
-};
-
-/**
  * Report using plugin-aware autofix policy handling.
  */
 export const reportWithTypefestPolicy = <
@@ -62,9 +42,15 @@ export const reportWithTypefestPolicy = <
     context: Readonly<TSESLint.RuleContext<MessageIds, Options>>;
     descriptor: ReportDescriptor<MessageIds, Options>;
 }>): void => {
-    const report = createTypefestReporter(context);
+    const settings = registerProgramSettingsForContext(context);
 
-    report(descriptor);
+    if (!settings.disableAllAutofixes) {
+        context.report(descriptor);
+
+        return;
+    }
+
+    context.report(omitAutofixFromReportDescriptor(descriptor));
 };
 
 /**

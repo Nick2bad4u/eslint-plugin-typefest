@@ -15,8 +15,85 @@ export const typefestConfigNames = [
     "type-fest/types",
 ] as const;
 
+/** Metadata contract shared across preset wiring, docs, and README rendering. */
+export type TypefestConfigMetadata = Readonly<{
+    icon: string;
+    presetName: `typefest:${TypefestConfigName}`;
+    readmeOrder: number;
+    requiresTypeChecking: boolean;
+}>;
+
 /** Canonical flat-config preset key type exposed through `plugin.configs`. */
 export type TypefestConfigName = (typeof typefestConfigNames)[number];
+
+/**
+ * Canonical metadata for every exported `typefest` preset key.
+ *
+ * @remarks
+ * This is the single source of truth for:
+ *
+ * - Preset display order in generated README tables,
+ * - Preset icon mapping,
+ * - Preset runtime flat-config names, and
+ * - Preset type-checking requirements.
+ */
+export const typefestConfigMetadataByName: Readonly<
+    Record<TypefestConfigName, TypefestConfigMetadata>
+> = {
+    all: {
+        icon: "🟣",
+        presetName: "typefest:all",
+        readmeOrder: 5,
+        requiresTypeChecking: true,
+    },
+    minimal: {
+        icon: "🟢",
+        presetName: "typefest:minimal",
+        readmeOrder: 1,
+        requiresTypeChecking: false,
+    },
+    recommended: {
+        icon: "🟡",
+        presetName: "typefest:recommended",
+        readmeOrder: 2,
+        requiresTypeChecking: false,
+    },
+    "recommended-type-checked": {
+        icon: "🟠",
+        presetName: "typefest:recommended-type-checked",
+        readmeOrder: 3,
+        requiresTypeChecking: true,
+    },
+    strict: {
+        icon: "🔴",
+        presetName: "typefest:strict",
+        readmeOrder: 4,
+        requiresTypeChecking: true,
+    },
+    "ts-extras/type-guards": {
+        icon: "✴️",
+        presetName: "typefest:ts-extras/type-guards",
+        readmeOrder: 7,
+        requiresTypeChecking: true,
+    },
+    "type-fest/types": {
+        icon: "💠",
+        presetName: "typefest:type-fest/types",
+        readmeOrder: 6,
+        requiresTypeChecking: false,
+    },
+};
+
+/** Stable README legend/rendering order for preset icons. */
+export const typefestConfigNamesByReadmeOrder: readonly TypefestConfigName[] = [
+    "minimal",
+    "recommended",
+    "recommended-type-checked",
+    "strict",
+    "all",
+    "type-fest/types",
+    "ts-extras/type-guards",
+];
 
 /** Metadata references supported in `meta.docs.recommended`. */
 export const typefestConfigReferenceToName: Readonly<{

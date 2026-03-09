@@ -6,6 +6,11 @@ import type { AsyncReturnType } from "type-fest";
 
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    typefestConfigMetadataByName,
+    typefestConfigNames,
+} from "../src/_internal/typefest-config-references";
+
 /** Import `src/plugin` fresh for each assertion set. */
 const loadSourcePlugin = async () => {
     vi.resetModules();
@@ -96,33 +101,18 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-ts-extras-array-find"
         );
 
-        expect(plugin.configs.all.name).toBe("typefest:all");
-        expect(plugin.configs.minimal.name).toBe("typefest:minimal");
-        expect(plugin.configs.recommended.name).toBe("typefest:recommended");
-        expect(plugin.configs["recommended-type-checked"].name).toBe(
-            "typefest:recommended-type-checked"
-        );
-        expect(plugin.configs.strict.name).toBe("typefest:strict");
-        expect(plugin.configs["ts-extras/type-guards"].name).toBe(
-            "typefest:ts-extras/type-guards"
-        );
-        expect(plugin.configs["type-fest/types"].name).toBe(
-            "typefest:type-fest/types"
-        );
+        for (const configName of typefestConfigNames) {
+            expect(plugin.configs[configName].name).toBe(
+                typefestConfigMetadataByName[configName].presetName
+            );
+        }
+
         expect(plugin.meta.name).toBe("eslint-plugin-typefest");
     });
 
     it("registers parser defaults, files, and plugin namespace", async () => {
         const plugin = await loadSourcePlugin();
         const recommendedConfig = plugin.configs.recommended;
-        const recommendedTypeCheckedConfig =
-            plugin.configs["recommended-type-checked"];
-        const strictConfig = plugin.configs.strict;
-        const allConfig = plugin.configs.all;
-        const tsExtrasTypeGuardsConfig =
-            plugin.configs["ts-extras/type-guards"];
-        const minimalConfig = plugin.configs.minimal;
-        const festTypesConfig = plugin.configs["type-fest/types"];
 
         expect(recommendedConfig.files).toStrictEqual([
             "**/*.{ts,tsx,mts,cts}",
@@ -138,38 +128,30 @@ describe("source plugin config wiring", () => {
             sourceType: "module",
         });
 
-        expect(
-            recommendedTypeCheckedConfig.languageOptions?.["parserOptions"]
-        ).toEqual({
-            ecmaVersion: "latest",
-            projectService: true,
-            sourceType: "module",
-        });
-        expect(strictConfig.languageOptions?.["parserOptions"]).toEqual({
-            ecmaVersion: "latest",
-            projectService: true,
-            sourceType: "module",
-        });
-        expect(allConfig.languageOptions?.["parserOptions"]).toEqual({
-            ecmaVersion: "latest",
-            projectService: true,
-            sourceType: "module",
-        });
-        expect(
-            tsExtrasTypeGuardsConfig.languageOptions?.["parserOptions"]
-        ).toEqual({
-            ecmaVersion: "latest",
-            projectService: true,
-            sourceType: "module",
-        });
+        for (const configName of typefestConfigNames) {
+            const parserOptions =
+                plugin.configs[configName].languageOptions?.["parserOptions"];
 
-        expect(minimalConfig.languageOptions?.["parserOptions"]).toEqual({
-            ecmaVersion: "latest",
-            sourceType: "module",
-        });
-        expect(festTypesConfig.languageOptions?.["parserOptions"]).toEqual({
-            ecmaVersion: "latest",
-            sourceType: "module",
-        });
+            expect(parserOptions).toEqual(
+                expect.objectContaining({
+                    ecmaVersion: "latest",
+                    sourceType: "module",
+                })
+            );
+
+            if (typefestConfigMetadataByName[configName].requiresTypeChecking) {
+                expect(parserOptions).toEqual(
+                    expect.objectContaining({
+                        projectService: true,
+                    })
+                );
+            } else {
+                expect(parserOptions).toEqual(
+                    expect.not.objectContaining({
+                        projectService: true,
+                    })
+                );
+            }
+        }
     });
 });

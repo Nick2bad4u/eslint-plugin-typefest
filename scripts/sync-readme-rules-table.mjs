@@ -9,6 +9,11 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import builtPlugin from "../dist/plugin.js";
+import {
+    typefestConfigMetadataByName,
+    typefestConfigNamesByReadmeOrder,
+    typefestConfigReferenceToName,
+} from "../dist/_internal/typefest-config-references.js";
 
 /**
  * @typedef {Readonly<{
@@ -25,46 +30,42 @@ import builtPlugin from "../dist/plugin.js";
 
 /** @typedef {Readonly<Record<string, ReadmeRuleModule>>} ReadmeRulesMap */
 
-/** @typedef {keyof typeof presetIconByName} PresetName */
+/** @typedef {import("../dist/_internal/typefest-config-references.js").TypefestConfigName} PresetName */
 
-/** @type {Readonly<Record<string, string>>} */
-const presetIconByName = {
-    all: "🟣",
-    minimal: "🟢",
-    recommended: "🟡",
-    "recommended-type-checked": "🟠",
-    strict: "🔴",
-    "ts-extras/type-guards": "✴️",
-    "type-fest/types": "💠",
-};
-
-const presetOrder = [
-    "minimal",
-    "recommended",
-    "recommended-type-checked",
-    "strict",
-    "all",
-    "type-fest/types",
-    "ts-extras/type-guards",
-];
+const presetOrder = [...typefestConfigNamesByReadmeOrder];
+const presetNameSet = new Set(presetOrder);
 
 const rulesSectionHeading = "## Rules";
 
 /**
+ * @returns {string}
+ */
+const createPresetLegend = () =>
+    presetOrder
+        .map(
+            (presetName) =>
+                `\`${typefestConfigMetadataByName[presetName].icon} ${presetName}\``
+        )
+        .join(" · ");
+
+/**
  * @param {string} reference
  *
- * @returns {null | string}
+ * @returns {null | PresetName}
  */
 const normalizeTypefestConfigName = (reference) => {
-    const dottedMatch = reference.match(/^typefest\.configs\.(.+)$/u);
+    if (Object.hasOwn(typefestConfigReferenceToName, reference)) {
+        const referenceKey =
+            /** @type {keyof typeof typefestConfigReferenceToName} */ (
+                reference
+            );
 
-    if (dottedMatch?.[1]) {
-        return dottedMatch[1];
+        return typefestConfigReferenceToName[referenceKey];
     }
 
-    const bracketedMatch = reference.match(/^typefest\.configs\["(.+)"\]$/u);
+    const presetName = /** @type {PresetName} */ (reference);
 
-    return bracketedMatch?.[1] ?? null;
+    return presetNameSet.has(presetName) ? presetName : null;
 };
 
 /**
@@ -79,6 +80,8 @@ const normalizeTypefestConfigNames = (typefestConfigs) => {
 
     /** @type {PresetName[]} */
     const names = [];
+    /** @type {Set<PresetName>} */
+    const seenPresetNames = new Set();
 
     for (const reference of references) {
         if (typeof reference !== "string") {
@@ -91,16 +94,13 @@ const normalizeTypefestConfigNames = (typefestConfigs) => {
             continue;
         }
 
-        if (!Object.hasOwn(presetIconByName, configName)) {
+        if (!presetNameSet.has(configName)) {
             continue;
         }
 
-        /** @type {PresetName} */
-        const presetName = configName;
-        const presetNameSet = new Set(names);
-
-        if (!presetNameSet.has(presetName)) {
-            names.push(presetName);
+        if (!seenPresetNames.has(configName)) {
+            seenPresetNames.add(configName);
+            names.push(configName);
         }
     }
 
@@ -146,7 +146,7 @@ const getPresetIndicator = (ruleModule) => {
 
     for (const presetName of presetOrder) {
         if (presetNamesSet.has(presetName)) {
-            icons.push(presetIconByName[presetName]);
+            icons.push(typefestConfigMetadataByName[presetName].icon);
         }
     }
 
@@ -189,7 +189,7 @@ export const generateReadmeRulesSectionFromRules = (rules) => {
         "  - `🔧` = autofixable",
         "  - `💡` = suggestions available",
         "  - `—` = report only",
-        "- `Preset key` legend: `🟢 minimal` · `🟡 recommended` · `🟠 recommended-type-checked` · `🔴 strict` · `🟣 all` · `💠 type-fest/types` · `✴️ ts-extras/type-guards`",
+        `- \`Preset key\` legend: ${createPresetLegend()}`,
         "",
         "| Rule | Fix | Preset key |",
         "| --- | :-: | :-- |",

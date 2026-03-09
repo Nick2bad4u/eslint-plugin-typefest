@@ -6,6 +6,10 @@ import type { UnknownRecord } from "type-fest";
 
 import { describe, expect, it } from "vitest";
 
+import {
+    typefestConfigMetadataByName,
+    typefestConfigNames,
+} from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
 
 interface FlatConfigLike {
@@ -117,19 +121,10 @@ describe("typefest plugin configs", () => {
     const rules = getPluginRules(typefestPlugin);
 
     it("exports exactly the supported config keys", () => {
-        const keys = Object.keys(configs ?? {}).toSorted((left, right) =>
-            left.localeCompare(right)
-        );
+        const keys = Object.keys(configs ?? {});
 
-        expect(keys).toStrictEqual([
-            "all",
-            "minimal",
-            "recommended",
-            "recommended-type-checked",
-            "strict",
-            "ts-extras/type-guards",
-            "type-fest/types",
-        ]);
+        expect(keys).toHaveLength(typefestConfigNames.length);
+        expect(new Set(keys)).toStrictEqual(new Set(typefestConfigNames));
     });
 
     it("keeps languageOptions objects isolated per preset", () => {
@@ -260,35 +255,24 @@ describe("typefest plugin configs", () => {
     });
 
     it("enables parser projectService for presets that include typed rules", () => {
-        const recommendedConfig = getConfig(configs, "recommended");
-        const recommendedTypeCheckedConfig = getConfig(
-            configs,
-            "recommended-type-checked"
-        );
-        const minimalConfig = getConfig(configs, "minimal");
+        for (const configName of typefestConfigNames) {
+            const config = getConfig(configs, configName);
 
-        expect(recommendedConfig).toBeDefined();
-        expect(recommendedTypeCheckedConfig).toBeDefined();
-        expect(minimalConfig).toBeDefined();
+            expect(config).toBeDefined();
 
-        expect(minimalConfig?.languageOptions?.parserOptions).toEqual(
-            expect.not.objectContaining({
-                projectService: true,
-            })
-        );
-
-        expect(recommendedConfig?.languageOptions?.parserOptions).toEqual(
-            expect.not.objectContaining({
-                projectService: true,
-            })
-        );
-
-        expect(
-            recommendedTypeCheckedConfig?.languageOptions?.parserOptions
-        ).toEqual(
-            expect.objectContaining({
-                projectService: true,
-            })
-        );
+            if (typefestConfigMetadataByName[configName].requiresTypeChecking) {
+                expect(config?.languageOptions?.parserOptions).toEqual(
+                    expect.objectContaining({
+                        projectService: true,
+                    })
+                );
+            } else {
+                expect(config?.languageOptions?.parserOptions).toEqual(
+                    expect.not.objectContaining({
+                        projectService: true,
+                    })
+                );
+            }
+        }
     });
 });

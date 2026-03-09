@@ -11,7 +11,7 @@ import {
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
-import { assertDefined } from "ts-extras";
+import { assertDefined, isDefined } from "ts-extras";
 
 import type { TypefestConfigReference } from "./typefest-config-references.js";
 
@@ -80,6 +80,8 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
                   ruleNumber: catalogEntry.ruleNumber,
               };
 
+    const metaDefaultOptions = createdRule.meta.defaultOptions;
+
     return {
         ...createdRule,
         create(context) {
@@ -89,6 +91,9 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         },
         meta: {
             ...createdRule.meta,
+            ...(isDefined(metaDefaultOptions)
+                ? { defaultOptions: metaDefaultOptions }
+                : {}),
             docs: docsWithCatalog,
         },
         name: ruleDefinition.name,
