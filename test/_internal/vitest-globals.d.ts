@@ -9,12 +9,13 @@ declare module "vitest" {
          * Support test harness patterns using `vi.doMock(import(...), factory)`
          * with intentionally partial module mocks.
          */
-        doMock: (
+        // eslint-disable-next-line @typescript-eslint/method-signature-style -- interface augmentation overloads must use method signatures for VitestUtils merging.
+        doMock(
             module: Promise<unknown>,
             factory?:
                 | ((...arguments_: readonly unknown[]) => unknown)
                 | Readonly<Record<string, unknown>>
-        ) => void;
+        ): void;
     }
 }
 
