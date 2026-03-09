@@ -117,9 +117,9 @@ const main = async () => {
     const packageJson = await readPackageJson();
 
     /** @type {unknown} */
-    const devDependencies = packageJson.devDependencies;
+    const devDependencies = packageJson["devDependencies"];
     /** @type {unknown} */
-    const peerDependencies = packageJson.peerDependencies;
+    const peerDependencies = packageJson["peerDependencies"];
 
     if (!isRecord(devDependencies) || !isRecord(peerDependencies)) {
         /** @type {string} */
@@ -129,7 +129,7 @@ const main = async () => {
     }
 
     /** @type {unknown} */
-    const devDependencyEslintRange = devDependencies.eslint;
+    const devDependencyEslintRange = devDependencies["eslint"];
 
     if (
         typeof devDependencyEslintRange !== "string" ||
@@ -141,12 +141,12 @@ const main = async () => {
     }
 
     /** @type {string} */
-    const peerFloorRange = resolvePeerFloorRange(peerDependencies.eslint);
+    const peerFloorRange = resolvePeerFloorRange(peerDependencies["eslint"]);
     /** @type {string} */
     const nextPeerEslintRange = `${peerFloorRange} || ${devDependencyEslintRange}`;
 
     /** @type {string} */
-    if (peerDependencies.eslint === nextPeerEslintRange) {
+    if (peerDependencies["eslint"] === nextPeerEslintRange) {
         /** @type {string} */
         console.log(
             `peerDependencies.eslint already aligned: ${nextPeerEslintRange}`
@@ -155,7 +155,7 @@ const main = async () => {
         return;
     }
 
-    peerDependencies.eslint = nextPeerEslintRange;
+    peerDependencies["eslint"] = nextPeerEslintRange;
     try {
         /** @type {string} */
         await writeFile(

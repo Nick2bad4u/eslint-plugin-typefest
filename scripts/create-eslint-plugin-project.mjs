@@ -632,6 +632,10 @@ async function main() {
 
         for (let i = 0; i < chunks.length; i += 1) {
             const chunk = chunks[i];
+            if (chunk === undefined) {
+                continue;
+            }
+
             console.log(
                 `\nInstalling dev chunk ${i + 1}/${chunks.length} (${chunk.length} packages)`
             );

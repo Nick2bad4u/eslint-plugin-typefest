@@ -138,7 +138,7 @@ const assertFixtureExists = (fixturePath) => {
  * @returns {import("eslint").Linter.Config[]}
  */
 const createCompatibilityConfig = (ruleId, typed) => {
-    const recommendedConfig = plugin.configs?.recommended;
+    const recommendedConfig = plugin.configs?.["recommended"];
     if (!isUnknownRecord(recommendedConfig)) {
         throw new Error(
             "Plugin recommended config is unavailable. Compatibility smoke test cannot continue."

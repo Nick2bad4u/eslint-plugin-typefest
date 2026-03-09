@@ -396,7 +396,7 @@ const getPassRules = (pass) => {
         return null;
     }
 
-    const rules = pass.rules;
+    const rules = pass["rules"];
     return isObjectRecord(rules) ? rules : null;
 };
 
@@ -473,7 +473,7 @@ const parseComparableScenario = (scenario, index, comparePath) => {
         throw new TypeError(`${scenarioContext} must be an object.`);
     }
 
-    const wallClock = scenario.wallClock;
+    const wallClock = scenario["wallClock"];
     if (!isObjectRecord(wallClock)) {
         throw new TypeError(`${scenarioContext}.wallClock must be an object.`);
     }
@@ -522,7 +522,7 @@ const loadComparisonScenarioMap = async (comparePath) => {
             throw new TypeError(`${comparePath}: expected a JSON object.`);
         }
 
-        const scenarios = parsedJson.scenarios;
+        const scenarios = parsedJson["scenarios"];
         if (!Array.isArray(scenarios)) {
             throw new TypeError(`${comparePath}: missing 'scenarios' array.`);
         }
@@ -619,17 +619,25 @@ const sortValues = (values, compare) => {
         currentIndex += 1
     ) {
         const currentValue = sortedValues[currentIndex];
-        let scanIndex = currentIndex - 1;
+        if (currentValue !== undefined) {
+            let scanIndex = currentIndex - 1;
 
-        while (
-            scanIndex >= 0 &&
-            compare(sortedValues[scanIndex], currentValue) > 0
-        ) {
-            sortedValues[scanIndex + 1] = sortedValues[scanIndex];
-            scanIndex -= 1;
+            while (scanIndex >= 0) {
+                const scanValue = sortedValues[scanIndex];
+                if (scanValue === undefined) {
+                    break;
+                }
+
+                if (compare(scanValue, currentValue) <= 0) {
+                    break;
+                }
+
+                sortedValues[scanIndex + 1] = scanValue;
+                scanIndex -= 1;
+            }
+
+            sortedValues[scanIndex + 1] = currentValue;
         }
-
-        sortedValues[scanIndex + 1] = currentValue;
     }
 
     return sortedValues;
@@ -758,12 +766,17 @@ const median = (values) => {
     const middleIndex = Math.floor(sortedValues.length / 2);
 
     if (sortedValues.length % 2 === 0) {
-        return (
-            (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) * 0.5
-        );
+        const left = sortedValues[middleIndex - 1];
+        const right = sortedValues[middleIndex];
+
+        if (left === undefined || right === undefined) {
+            return 0;
+        }
+
+        return (left + right) * 0.5;
     }
 
-    return sortedValues[middleIndex];
+    return sortedValues[middleIndex] ?? 0;
 };
 
 /**

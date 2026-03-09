@@ -145,7 +145,10 @@ const resolveRuleSet = (presetName) => {
         configs[presetName],
         `plugin.configs.${presetName}`
     );
-    const rules = ensureRulesRecord(preset.rules, `${presetName} preset rules`);
+    const rules = ensureRulesRecord(
+        preset["rules"],
+        `${presetName} preset rules`
+    );
 
     return Object.freeze({ ...rules });
 };

@@ -1,4 +1,3 @@
-// @ts-nocheck -- ESlint plugins always have wrong or outdated types
 /**
  * Optimized ESLint configuration
  *
@@ -110,18 +109,27 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
     ? { "json-schema-validator/no-invalid": "error" }
     : {};
 
+/**
+ * @param {unknown} pluginValue
+ *
+ * @returns {import("eslint").ESLint.Plugin}
+ */
+const asEslintPlugin = (pluginValue) =>
+    /** @type {import("eslint").ESLint.Plugin} */ (pluginValue);
+
 const canonicalPlugin = fixupPluginRules(pluginCanonical);
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const noExplicitTypeExportsPlugin = fixupPluginRules(noExplicitTypeExports);
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const noUnsanitizedPlugin = fixupPluginRules(nounsanitized);
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const preferArrowPlugin = fixupPluginRules(pluginPreferArrow);
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const sortClassMembersPlugin = fixupPluginRules(pluginSortClassMembers);
+const noExplicitTypeExportsPlugin = fixupPluginRules(
+    asEslintPlugin(noExplicitTypeExports)
+);
+const noUnsanitizedPlugin = fixupPluginRules(asEslintPlugin(nounsanitized));
+const preferArrowPlugin = fixupPluginRules(asEslintPlugin(pluginPreferArrow));
+const sortClassMembersPlugin = fixupPluginRules(
+    asEslintPlugin(pluginSortClassMembers)
+);
 const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
-// @ts-expect-error -- Plugin needs update for Eslint v10
-const pluginLoadableImports = fixupPluginRules(loadbleImportsPlugin);
+const pluginLoadableImports = fixupPluginRules(
+    asEslintPlugin(loadbleImportsPlugin)
+);
 const etc = fixupPluginRules(etcPlugin);
 const jsxA11yPlugin = fixupPluginRules(eslintPluginJsxA11y);
 const eslintReactStrictTypeCheckedConfig = /**
@@ -135,6 +143,54 @@ const eslintReactStrictTypeCheckedConfig = /**
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
 /** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Readonly<Record<string, unknown>>}
+ */
+const isReadonlyRecord = (value) =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * Read `rules` from a flat/legacy ESLint config object safely.
+ *
+ * @param {unknown} configValue
+ *
+ * @returns {Readonly<Record<string, unknown>>}
+ */
+const readConfigRules = (configValue) => {
+    if (!isReadonlyRecord(configValue)) {
+        return {};
+    }
+
+    const { rules } = configValue;
+    return isReadonlyRecord(rules) ? rules : {};
+};
+
+/**
+ * @param {unknown} pluginValue
+ * @param {string} configName
+ *
+ * @returns {Readonly<Record<string, unknown>>}
+ */
+const readPluginConfigRules = (pluginValue, configName) => {
+    if (!isReadonlyRecord(pluginValue)) {
+        return {};
+    }
+
+    const { configs } = pluginValue;
+    if (!isReadonlyRecord(configs)) {
+        return {};
+    }
+
+    if (!Object.hasOwn(configs, configName)) {
+        return {};
+    }
+
+    // eslint-disable-next-line security/detect-object-injection -- configName is a controlled constant, not user input.
+    return readConfigRules(configs[configName]);
+};
 
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
@@ -483,7 +539,7 @@ export default defineConfig([
         },
         rules: {
             ...css.configs.recommended.rules,
-            ...pluginUndefinedCss.configs.recommended.rules,
+            ...readPluginConfigRules(pluginUndefinedCss, "recommended"),
             ...pluginCssModules.configs.recommended.rules,
             // CSS Eslint Rules (css/*)
             "css/no-empty-blocks": "error",
@@ -671,11 +727,11 @@ export default defineConfig([
             // TypeScript backend rules
             ...js.configs.all.rules,
             ...tseslint.configs["recommendedTypeChecked"],
-            ...tseslint.configs["recommended"].rules,
+            ...readConfigRules(tseslint.configs["recommended"]),
             ...tseslint.configs["strictTypeChecked"],
-            ...tseslint.configs["strict"].rules,
+            ...readConfigRules(tseslint.configs["strict"]),
             ...tseslint.configs["stylisticTypeChecked"],
-            ...tseslint.configs["stylistic"].rules,
+            ...readConfigRules(tseslint.configs["stylistic"]),
             ...pluginRegexp.configs.all.rules,
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
@@ -696,9 +752,9 @@ export default defineConfig([
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginMicrosoftSdl.configs.required.rules,
-            ...listeners.configs.strict.rules,
+            ...readPluginConfigRules(listeners, "strict"),
             ...moduleInterop.configs.recommended.rules,
-            ...pluginTotalFunctions.configs.recommended.rules,
+            ...readPluginConfigRules(pluginTotalFunctions, "recommended"),
             // @ts-expect-error -- Plugin needs update for Eslint v10
             ...etc.configs.recommended.rules,
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
@@ -1446,7 +1502,7 @@ export default defineConfig([
             typefest: typefest,
         },
         rules: {
-            ...typefest.configs.all.rules,
+            ...readConfigRules(typefest.configs?.["all"]),
         },
     },
     // #endregion
@@ -1547,11 +1603,11 @@ export default defineConfig([
         rules: {
             ...js.configs.all.rules,
             ...tseslint.configs["recommendedTypeChecked"],
-            ...tseslint.configs["recommended"].rules,
+            ...readConfigRules(tseslint.configs["recommended"]),
             ...tseslint.configs["strictTypeChecked"],
-            ...tseslint.configs["strict"].rules,
+            ...readConfigRules(tseslint.configs["strict"]),
             ...tseslint.configs["stylisticTypeChecked"],
-            ...tseslint.configs["stylistic"].rules,
+            ...readConfigRules(tseslint.configs["stylistic"]),
             ...vitest.configs.all.rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...pluginTestingLibrary.configs["flat/react"].rules,
@@ -2499,7 +2555,7 @@ export default defineConfig([
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
             ...pluginPerfectionist.configs["recommended-natural"].rules,
-            ...pluginRedos.configs.recommended.rules,
+            ...readPluginConfigRules(pluginRedos, "recommended"),
             ...pluginSecurity.configs.recommended.rules,
             ...nodePlugin.configs["flat/recommended"].rules,
             ...eslintPluginMath.configs.recommended.rules,
