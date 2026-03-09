@@ -56,7 +56,6 @@ const preferTsExtrasArrayFindRule: ReturnType<typeof createTypedRule> =
                 recommended: false,
                 requiresTypeChecking: true,
                 typefestConfigs: "typefest.configs.all",
-
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-find",
             },
             fixable: "code",

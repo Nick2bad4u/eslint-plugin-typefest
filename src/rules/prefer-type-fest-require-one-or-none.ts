@@ -84,7 +84,6 @@ const preferTypeFestRequireOneOrNoneRule: ReturnType<typeof createTypedRule> =
                     "typefest.configs.all",
                     "typefest.configs.type-fest/types",
                 ],
-
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-require-one-or-none",
             },
             fixable: "code",
