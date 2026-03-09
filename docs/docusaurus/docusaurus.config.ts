@@ -299,43 +299,43 @@ const config: Config = {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}/releases`,
-                            label: "🆕 Releases",
+                            label: "\uf02b Releases",
                         },
                         {
                             href: `${siteUrl}${baseUrl}eslint-inspector/`,
-                            label: "🔍 ESLint Inspector",
+                            label: "\uf002 ESLint Inspector",
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "📦 ts-extras",
+                            label: "\uf1b3 ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "📦 type-fest",
+                            label: "\uf1b3 type-fest",
                         },
                     ],
-                    title: "🚀 Project",
+                    title: "\uf135 Project",
                 },
                 {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "🔗 GitHub Repository",
+                            label: "\uf0c1 GitHub Repository",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/issues`,
-                            label: "🐛 Report Issues",
+                            label: "\uf188 Report Issues",
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "🎁 NPM",
+                            label: "\uf06b NPM",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/blob/main/CONTRIBUTING.md`,
-                            label: "🤝 Contributing",
+                            label: "\uf0c0 Contributing",
                         },
                     ],
-                    title: "🧰 Support",
+                    title: "\uf0ad Support",
                 },
             ],
             logo: {
@@ -374,13 +374,13 @@ const config: Config = {
                     to: "/blog",
                 },
                 {
-                    label: "🛠️ Dev",
+                    label: "\udb80\ude19 Dev",
                     position: "right",
                     to: "/docs/developer",
                 },
                 {
                     href: `https://github.com/${organizationName}/${projectName}`,
-                    label: "🐙 GitHub",
+                    label: "\ue65b GitHub",
                     position: "right",
                 },
             ],

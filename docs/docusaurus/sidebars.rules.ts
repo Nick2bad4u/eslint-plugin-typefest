@@ -96,7 +96,7 @@ const sidebars: SidebarsConfig = {
                 badge: "presets",
             },
             type: "category",
-            label: "🎛 Presets",
+            label: "Presets",
             link: {
                 type: "doc",
                 id: "presets/index",
@@ -141,7 +141,7 @@ const sidebars: SidebarsConfig = {
                 badge: "rules",
             },
             type: "category",
-            label: "📏 Rules",
+            label: "Rules",
             link: {
                 type: "generated-index",
                 title: "Rule Reference",
@@ -157,7 +157,7 @@ const sidebars: SidebarsConfig = {
                         badge: "ts-extras",
                     },
                     type: "category",
-                    label: "🧰 ts-extras Rules",
+                    label: "ts-extras",
                     link: {
                         type: "generated-index",
                         title: "ts-extras Rules",
@@ -173,7 +173,7 @@ const sidebars: SidebarsConfig = {
                         badge: "type-fest",
                     },
                     type: "category",
-                    label: "✨ type-fest Rules",
+                    label: "type-fest",
                     link: {
                         type: "generated-index",
                         title: "type-fest Rules",

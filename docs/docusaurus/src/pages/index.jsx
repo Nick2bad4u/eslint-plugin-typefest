@@ -39,42 +39,23 @@ const heroStats = [
     },
 ];
 
-const heroQuickLinks = [
-    {
-        label: "Rule index",
-        to: "/docs/rules",
-    },
-    {
-        label: "API docs",
-        to: "/docs/api",
-    },
-    {
-        href: "https://www.npmjs.com/package/eslint-plugin-typefest",
-        label: "npm",
-    },
-    {
-        href: "https://github.com/Nick2bad4u/eslint-plugin-typefest",
-        label: "GitHub",
-    },
-];
-
 const homeCards = [
     {
-        icon: "🚀",
+        icon: "\uf135",
         title: "Get Started",
         description:
             "Install the plugin, enable a preset, and start enforcing type-safe ts-extras and type-fest patterns.",
         to: "/docs/rules/getting-started",
     },
     {
-        icon: "🧭",
+        icon: "\uf14e",
         title: "Presets",
         description:
             "Choose the right preset for your team, from minimal baseline to full strict coverage.",
         to: "/docs/rules/presets",
     },
     {
-        icon: "📚",
+        icon: "\uf02d",
         title: "Rule Reference",
         description:
             "Browse every rule with concrete incorrect/correct examples and migration guidance.",
@@ -105,7 +86,7 @@ export default function Home() {
                                 TypeScript types, type guards, and other
                                 patterns by utilizing{" "}
                                 <Link
-                                    className={styles.heroInlineLink}
+                                    className={`${styles.heroInlineLink} ${styles.heroInlineLinkTypeFest}`}
                                     href="https://github.com/sindresorhus/type-fest"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -114,7 +95,7 @@ export default function Home() {
                                 </Link>{" "}
                                 and{" "}
                                 <Link
-                                    className={styles.heroInlineLink}
+                                    className={`${styles.heroInlineLink} ${styles.heroInlineLinkTsExtras}`}
                                     href="https://github.com/sindresorhus/ts-extras"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -164,33 +145,6 @@ export default function Home() {
                                     Compare Presets
                                 </Link>
                             </div>
-
-                            <nav
-                                aria-label="Quick links"
-                                className={styles.heroQuickLinks}
-                            >
-                                {heroQuickLinks.map((quickLink) =>
-                                    "to" in quickLink ? (
-                                        <Link
-                                            key={quickLink.label}
-                                            className={styles.heroQuickLink}
-                                            to={quickLink.to}
-                                        >
-                                            {quickLink.label}
-                                        </Link>
-                                    ) : (
-                                        <Link
-                                            key={quickLink.label}
-                                            className={styles.heroQuickLink}
-                                            href={quickLink.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            {quickLink.label}
-                                        </Link>
-                                    )
-                                )}
-                            </nav>
                         </div>
 
                         <aside className={styles.heroPanel}>
@@ -231,10 +185,17 @@ export default function Home() {
                     <div className={styles.cardGrid}>
                         {homeCards.map((card) => (
                             <article key={card.title} className={styles.card}>
-                                <p className={styles.cardIcon}>{card.icon}</p>
-                                <Heading as="h2" className={styles.cardTitle}>
-                                    {card.title}
-                                </Heading>
+                                <div className={styles.cardHeader}>
+                                    <p className={styles.cardIcon}>
+                                        {card.icon}
+                                    </p>
+                                    <Heading
+                                        as="h2"
+                                        className={styles.cardTitle}
+                                    >
+                                        {card.title}
+                                    </Heading>
+                                </div>
                                 <p className={styles.cardDescription}>
                                     {card.description}
                                 </p>

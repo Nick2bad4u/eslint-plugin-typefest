@@ -183,14 +183,14 @@
 }
 
 .sb-cat-rules > .menu__list-item-collapsible .menu__link::before {
-    content: "rules";
+    content: "📏";
     background-color: rgb(249 115 22 / 12%);
     border: 1px solid rgb(249 115 22 / 40%);
     color: var(--sb-accent-rules);
 }
 
 .sb-cat-presets > .menu__list-item-collapsible .menu__link::before {
-    content: "presets";
+    content: "🎛";
     background-color: rgb(234 179 8 / 14%);
     border: 1px solid rgb(234 179 8 / 40%);
     color: var(--sb-accent-presets);
@@ -201,7 +201,7 @@
 }
 
 .sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link::before {
-    content: "ts-extras";
+    content: "🧰";
     background-color: rgb(34 197 94 / 12%);
     border: 1px solid rgb(34 197 94 / 40%);
     color: var(--sb-accent-rules-ts);
@@ -212,7 +212,7 @@
 }
 
 .sb-cat-rules-type-fest > .menu__list-item-collapsible .menu__link::before {
-    content: "type-fest";
+    content: "✨";
     background-color: rgb(168 85 247 / 12%);
     border: 1px solid rgb(168 85 247 / 40%);
     color: var(--sb-accent-rules-type-fest);
@@ -295,7 +295,31 @@
 .sb-cat-rules-ts-extras .theme-doc-sidebar-item-link-level-3 > .menu__link,
 .sb-cat-rules-type-fest .theme-doc-sidebar-item-link-level-3 > .menu__link {
     border-inline-start: 3px solid transparent;
+    display: flex;
+    align-items: baseline;
+    gap: 0.46rem;
     padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 3px);
+}
+
+.sb-cat-rules-ts-extras > .menu__list,
+.sb-cat-rules-type-fest > .menu__list {
+    counter-reset: sidebar-rule-number;
+}
+
+.sb-cat-rules-ts-extras
+    .theme-doc-sidebar-item-link-level-3
+    > .menu__link::before,
+.sb-cat-rules-type-fest
+    .theme-doc-sidebar-item-link-level-3
+    > .menu__link::before {
+    content: counter(sidebar-rule-number, decimal-leading-zero);
+    counter-increment: sidebar-rule-number;
+    color: rgb(148 163 184 / 90%);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    inline-size: 1.45rem;
+    text-align: end;
 }
 
 /* ts-extras palette */

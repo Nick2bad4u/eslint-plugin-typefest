@@ -53,7 +53,7 @@ export const getConstrainedTypeAtLocationWithFallback = ({
                 typeof parserServices.getTypeAtLocation !== "function" ||
                 !isDefined(parserServices.program)
             ) {
-                return;
+                return null;
             }
 
             return getConstrainedTypeAtLocation(
@@ -68,7 +68,11 @@ export const getConstrainedTypeAtLocationWithFallback = ({
         reason: `${reason}-constrained`,
     });
 
-    if (constrainedTypeResult.ok && isDefined(constrainedTypeResult.value)) {
+    if (
+        constrainedTypeResult.ok &&
+        constrainedTypeResult.value !== null &&
+        isDefined(constrainedTypeResult.value)
+    ) {
         return constrainedTypeResult.value;
     }
 
@@ -77,7 +81,7 @@ export const getConstrainedTypeAtLocationWithFallback = ({
             const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
 
             if (!isDefined(tsNode)) {
-                return;
+                return null;
             }
 
             const rawType = checker.getTypeAtLocation(tsNode);
@@ -91,7 +95,7 @@ export const getConstrainedTypeAtLocationWithFallback = ({
         reason: `${reason}-fallback`,
     });
 
-    if (!fallbackTypeResult.ok) {
+    if (!fallbackTypeResult.ok || fallbackTypeResult.value === null) {
         return undefined;
     }
 
