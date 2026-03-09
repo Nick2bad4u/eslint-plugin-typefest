@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueReferenceReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { getNullishComparison } from "../_internal/nullish-comparison.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
@@ -58,7 +59,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             return {
@@ -89,7 +90,7 @@ const preferTsExtrasIsDefinedFilterRule: ReturnType<typeof createTypedRule> =
                             context,
                             importedName: "isDefined",
                             imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: callback,
                         }),
                         messageId: "preferTsExtrasIsDefinedFilter",

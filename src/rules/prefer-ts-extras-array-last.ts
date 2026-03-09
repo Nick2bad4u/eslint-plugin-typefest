@@ -14,6 +14,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
     reportWithOptionalFix,
@@ -85,7 +86,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const directImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
             const { checker, parserServices } = getTypedRuleServices(context);
             const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
@@ -117,7 +118,7 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                         importedName: "arrayLast",
                         imports: directImports,
                         memberNode,
-                        sourceModuleName: "ts-extras",
+                        sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                     });
 
                     const outcome = resolveAutofixOrSuggestionOutcome({

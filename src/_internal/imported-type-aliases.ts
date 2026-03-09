@@ -7,6 +7,7 @@ import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { keyIn } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
+import { isAnyLinkedStructureNodeMatching } from "./cycle-safe-linked-search.js";
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     collectNamedImportSpecifierBindingsFromSource,
@@ -18,10 +19,8 @@ import {
     resolveImportInsertionDecisionForReportFix,
 } from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { TYPE_FEST_MODULE_SOURCE } from "./module-source.js";
 import { setContainsValue } from "./set-membership.js";
-
-/** Default module source used for type-fest replacement imports. */
-const TYPE_FEST_MODULE_NAME = "type-fest";
 
 /** Utility wrapper used to preserve explicit readonly semantics in fixes. */
 const READONLY_UTILITY_TYPE_NAME = "Readonly";
@@ -246,30 +245,14 @@ export function isTypeParameterNameShadowed(
     node: Readonly<TSESTree.Node>,
     parameterName: string
 ): boolean {
-    let slowNode: null | Readonly<TSESTree.Node> = node;
-    let fastNode: null | Readonly<TSESTree.Node> = node;
-
-    while (slowNode !== null) {
-        if (ancestorDefinesTypeParameterNamed(slowNode, parameterName)) {
-            return true;
-        }
-
-        slowNode = getParentNode(slowNode) ?? null;
-
-        for (let step = 0; step < 2; step += 1) {
-            if (fastNode === null) {
-                break;
-            }
-
-            fastNode = getParentNode(fastNode) ?? null;
-        }
-
-        if (slowNode !== null && fastNode !== null && slowNode === fastNode) {
-            return false;
-        }
-    }
-
-    return false;
+    return isAnyLinkedStructureNodeMatching<Readonly<TSESTree.Node>>({
+        getNextNode: (
+            currentNode: Readonly<TSESTree.Node>
+        ): null | Readonly<TSESTree.Node> => getParentNode(currentNode) ?? null,
+        isMatch: (currentNode: Readonly<TSESTree.Node>) =>
+            ancestorDefinesTypeParameterNamed(currentNode, parameterName),
+        startNode: node,
+    });
 }
 
 /**
@@ -347,7 +330,7 @@ export const createSafeTypeReferenceReplacementFix = (
     node: Readonly<TSESTree.TSTypeReference>,
     replacementName: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME,
+    sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction => {
     if (node.typeName.type !== "Identifier") {
@@ -384,7 +367,7 @@ export const createSafeTypeNodeTextReplacementFix = (
     replacementName: string,
     replacementText: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME,
+    sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction =>
     createTypeReplacementFix({
@@ -412,7 +395,7 @@ export const createSafeTypeNodeReplacementFix = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME,
+    sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction =>
     createSafeTypeNodeTextReplacementFix(
@@ -480,7 +463,7 @@ export const createSafeTypeNodeTextReplacementFixPreservingReadonly = (
     replacementName: string,
     replacementText: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME,
+    sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction => {
     const replacementTextWithReadonlyPreservation =
@@ -516,7 +499,7 @@ export const createSafeTypeNodeReplacementFixPreservingReadonly = (
     node: Readonly<TSESTree.Node>,
     replacementName: string,
     availableReplacementNames: Readonly<ReadonlySet<string>>,
-    sourceModuleName: string = TYPE_FEST_MODULE_NAME,
+    sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction =>
     createSafeTypeNodeTextReplacementFixPreservingReadonly(

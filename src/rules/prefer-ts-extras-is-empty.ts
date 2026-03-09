@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
@@ -55,7 +56,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
@@ -107,7 +108,7 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                             context,
                             importedName: "isEmpty",
                             imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: node,
                         }),
                         messageId: "preferTsExtrasIsEmpty",

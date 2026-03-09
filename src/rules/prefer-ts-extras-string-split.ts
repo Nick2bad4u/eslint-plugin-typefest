@@ -16,6 +16,7 @@ import { isDefined, isPresent } from "ts-extras";
 import { getConstrainedTypeAtLocationWithFallback } from "../_internal/constrained-type-at-location.js";
 import { memoizeExpressionBooleanPredicate } from "../_internal/expression-boolean-memoizer.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import {
@@ -42,7 +43,7 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);

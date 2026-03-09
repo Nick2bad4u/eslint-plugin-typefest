@@ -6,6 +6,8 @@ import type { TSESTree } from "@typescript-eslint/utils";
 
 import { keyIn } from "ts-extras";
 
+import { resolveFirstValueInLinkedStructure } from "./cycle-safe-linked-search.js";
+
 /**
  * AST node shape that may carry a parser-populated `parent` reference.
  */
@@ -43,28 +45,24 @@ export const getParentNode = (
 export const getProgramNode = (
     node: Readonly<TSESTree.Node>
 ): null | Readonly<TSESTree.Program> => {
-    let slowNode: null | Readonly<TSESTree.Node> = node;
-    let fastNode: null | Readonly<TSESTree.Node> = node;
+    const lookupResult = resolveFirstValueInLinkedStructure<
+        Readonly<TSESTree.Node>,
+        Readonly<TSESTree.Program>
+    >({
+        getNextNode: (
+            currentNode: Readonly<TSESTree.Node>
+        ): null | Readonly<TSESTree.Node> => getParentNode(currentNode) ?? null,
+        resolveValue: (currentNode: Readonly<TSESTree.Node>) =>
+            currentNode.type === "Program"
+                ? {
+                      found: true,
+                      value: currentNode,
+                  }
+                : {
+                      found: false,
+                  },
+        startNode: node,
+    });
 
-    while (slowNode !== null) {
-        if (slowNode.type === "Program") {
-            return slowNode;
-        }
-
-        slowNode = getParentNode(slowNode) ?? null;
-
-        for (let step = 0; step < 2; step += 1) {
-            if (fastNode === null) {
-                break;
-            }
-
-            fastNode = getParentNode(fastNode) ?? null;
-        }
-
-        if (slowNode !== null && fastNode !== null && slowNode === fastNode) {
-            return null;
-        }
-    }
-
-    return null;
+    return lookupResult.found ? lookupResult.value : null;
 };

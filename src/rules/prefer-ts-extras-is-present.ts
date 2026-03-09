@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import {
     flattenLogicalTerms,
@@ -174,7 +175,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
             const shouldSkipComparedExpression =
                 createTypeScriptEslintNodeExpressionSkipChecker(context);
@@ -211,7 +212,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                                       context,
                                       importedName: "isPresent",
                                       imports: tsExtrasImports,
-                                      sourceModuleName: "ts-extras",
+                                      sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                                       targetNode: node,
                                   })
                                 : null,
@@ -231,7 +232,7 @@ const preferTsExtrasIsPresentRule: ReturnType<typeof createTypedRule> =
                                       importedName: "isPresent",
                                       imports: tsExtrasImports,
                                       negated: true,
-                                      sourceModuleName: "ts-extras",
+                                      sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                                       targetNode: node,
                                   })
                                 : null,

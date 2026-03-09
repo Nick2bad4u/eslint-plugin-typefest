@@ -17,6 +17,7 @@ import ts from "typescript";
 import { getConstrainedTypeAtLocationWithFallback } from "../_internal/constrained-type-at-location.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { setContainsValue } from "../_internal/set-membership.js";
@@ -76,7 +77,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);

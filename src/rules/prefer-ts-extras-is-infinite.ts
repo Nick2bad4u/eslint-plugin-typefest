@@ -8,6 +8,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentExpressions } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
@@ -166,7 +167,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
             const shouldSkipComparedExpression =
                 createTypeScriptEslintNodeExpressionSkipChecker(context);
@@ -218,7 +219,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                             context,
                             importedName: "isInfinite",
                             imports: tsExtrasImports,
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: node,
                         }),
                         messageId: "preferTsExtrasIsInfinite",

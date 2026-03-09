@@ -1,9 +1,10 @@
-import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
-import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-from-entries`.
  */
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -17,7 +18,7 @@ const preferTsExtrasObjectFromEntriesRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             return {

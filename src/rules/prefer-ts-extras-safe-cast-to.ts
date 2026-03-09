@@ -19,6 +19,7 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import {
@@ -93,7 +94,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
@@ -167,7 +168,7 @@ const preferTsExtrasSafeCastToRule: ReturnType<typeof createTypedRule> =
                             imports: tsExtrasImports,
                             replacementTextFactory: (replacementName) =>
                                 `${replacementName}<${context.sourceCode.getText(typeAnnotation)}>(${expressionArgumentText})`,
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: node,
                         });
                     },

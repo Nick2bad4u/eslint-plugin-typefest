@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
@@ -83,7 +84,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             /**
@@ -124,7 +125,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
                     imports: tsExtrasImports,
                     replacementTextFactory: (replacementName) =>
                         `${replacementName}(${predicateText})`,
-                    sourceModuleName: "ts-extras",
+                    sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                     targetNode: callbackNode,
                 });
             };

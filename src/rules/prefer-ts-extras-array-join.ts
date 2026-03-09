@@ -5,6 +5,7 @@
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import { reportTsExtrasArrayMethodCall } from "../_internal/array-method-call-rule.js";
 import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import {
     createTypedRule,
     getTypedRuleServices,
@@ -21,7 +22,7 @@ const preferTsExtrasArrayJoinRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);

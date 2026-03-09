@@ -5,7 +5,13 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 
-import { arrayIncludes, isEmpty, isInteger, objectEntries } from "ts-extras";
+import {
+    arrayIncludes,
+    isDefined,
+    isEmpty,
+    isInteger,
+    objectEntries,
+} from "ts-extras";
 
 import type { TypefestRuleNamePattern } from "./rules-registry.js";
 
@@ -55,6 +61,43 @@ type TypefestRuleDocsContract = Readonly<{
         | TypefestConfigReference;
     url: string;
 }>;
+
+const RULE_ID_PREFIX = "R" as const;
+const RULE_ID_LENGTH = 4 as const;
+const RULE_ID_DIGIT_START_INDEX = 1 as const;
+const RULE_ID_DIGIT_END_INDEX = 4 as const;
+const ASCII_ZERO_CODE_POINT = 48 as const;
+const ASCII_NINE_CODE_POINT = 57 as const;
+
+/**
+ * Guard dynamic rule ids to the canonical `R###` identifier contract.
+ */
+const isRuleIdInCanonicalFormat = (value: string): boolean => {
+    if (value.length !== RULE_ID_LENGTH || !value.startsWith(RULE_ID_PREFIX)) {
+        return false;
+    }
+
+    for (
+        let index = RULE_ID_DIGIT_START_INDEX;
+        index < RULE_ID_DIGIT_END_INDEX;
+        index += 1
+    ) {
+        const codePoint = value.codePointAt(index);
+
+        if (!isDefined(codePoint)) {
+            return false;
+        }
+
+        if (
+            codePoint < ASCII_ZERO_CODE_POINT ||
+            codePoint > ASCII_NINE_CODE_POINT
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+};
 
 /**
  * Guard dynamic values to object-shaped records.
@@ -152,7 +195,7 @@ const getRuleDocsContract = (
 
     if (
         typeof ruleId !== "string" ||
-        !/^R\d{3}$/v.test(ruleId) ||
+        !isRuleIdInCanonicalFormat(ruleId) ||
         ruleId.trim().length === 0
     ) {
         throw new TypeError(

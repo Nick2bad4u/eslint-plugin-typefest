@@ -1,11 +1,12 @@
-import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
-import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
-import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
-import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-has-own`.
  */
+import { reportTsExtrasGlobalMemberCall } from "../_internal/global-member-call-rule.js";
+import { collectDirectNamedValueImportsFromSource } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
+import { reportWithTypefestPolicy } from "../_internal/rule-reporting.js";
+import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -19,7 +20,7 @@ const preferTsExtrasObjectHasOwnRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             return {

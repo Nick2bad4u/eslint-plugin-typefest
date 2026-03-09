@@ -10,6 +10,7 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import {
     reportWithOptionalFix,
     reportWithTypefestPolicy,
@@ -97,7 +98,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             return {
@@ -143,7 +144,7 @@ const preferTsExtrasAssertErrorRule: ReturnType<typeof createTypedRule> =
                             replacementTextFactory: (replacementName) =>
                                 `${replacementName}(${guardExpressionArgumentText});`,
                             reportFixIntent: "suggestion",
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: node,
                         });
 

@@ -10,6 +10,7 @@ import {
     type ImportedValueAliasMap,
 } from "./imported-value-symbols.js";
 import { getIdentifierPropertyMemberCall } from "./member-call.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "./module-source.js";
 import {
     reportResolvedAutofixOrSuggestionOutcome,
     resolveAutofixOrSuggestionOutcome,
@@ -78,7 +79,7 @@ export const reportTsExtrasTypedMemberCall = <MessageId extends string>({
         context,
         importedName,
         imports,
-        sourceModuleName: "ts-extras",
+        sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
     });
 
     const shouldAutofix = canAutofix?.(node) ?? true;

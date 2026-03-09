@@ -14,6 +14,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createMemberToFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import {
     reportWithOptionalFix,
     reportWithTypefestPolicy,
@@ -49,7 +50,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const { checker, parserServices } = getTypedRuleServices(context);
@@ -84,7 +85,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
                             importedName: "arrayFirst",
                             imports: tsExtrasImports,
                             memberNode,
-                            sourceModuleName: "ts-extras",
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                         }),
                     });
 

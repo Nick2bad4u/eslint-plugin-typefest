@@ -9,6 +9,7 @@ import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueArgumentFunctionCallFix,
 } from "../_internal/imported-value-symbols.js";
+import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
@@ -179,7 +180,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
             const shouldSkipComparedExpression =
                 createTypeScriptEslintNodeExpressionSkipChecker(context);
@@ -213,7 +214,7 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                                   importedName: "isDefined",
                                   imports: tsExtrasImports,
                                   negated: match.prefersNegatedHelper,
-                                  sourceModuleName: "ts-extras",
+                                  sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                                   targetNode: node,
                               })
                             : null,

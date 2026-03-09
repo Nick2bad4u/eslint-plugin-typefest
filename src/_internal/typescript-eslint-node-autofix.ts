@@ -14,7 +14,9 @@ import {
 } from "@typescript-eslint/type-utils";
 import { isDefined, objectHasOwn, safeCastTo } from "ts-extras";
 
+import { getBoundedCacheValue, setBoundedCacheValue } from "./bounded-cache.js";
 import { getConstrainedTypeAtLocationWithFallback } from "./constrained-type-at-location.js";
+import { TYPESCRIPT_ESLINT_UTILS_MODULE_SOURCE } from "./module-source.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { setContainsValue } from "./set-membership.js";
@@ -25,7 +27,6 @@ import {
 } from "./type-checker-compat.js";
 import { getTypedRuleServices } from "./typed-rule.js";
 
-const TYPESCRIPT_ESLINT_UTILS_MODULE_NAME = "@typescript-eslint/utils" as const;
 const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
 const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
 const PATH_SEPARATOR = "/" as const;
@@ -54,6 +55,16 @@ const namespaceImportNamesBySourceCode = new WeakMap<
 
 const MAX_PARSED_DEFINITION_TEXT_CACHE_ENTRIES = 512 as const;
 
+/**
+ * Upper bound for fallback definition text that may be reparsed as a synthetic
+ * program.
+ *
+ * @remarks
+ * Extremely large definition snippets provide little signal for this fallback
+ * and can degrade lint latency in adversarial files.
+ */
+const MAX_DEFINITION_TEXT_PARSE_LENGTH = 16_384 as const;
+
 const parsedDefinitionTextProgramBySourceText = new Map<
     string,
     null | Readonly<TSESTree.Program>
@@ -66,14 +77,12 @@ const cacheParsedDefinitionTextProgram = ({
     cacheKey: string;
     parsedProgram: null | Readonly<TSESTree.Program>;
 }>): void => {
-    if (
-        parsedDefinitionTextProgramBySourceText.size >=
-        MAX_PARSED_DEFINITION_TEXT_CACHE_ENTRIES
-    ) {
-        parsedDefinitionTextProgramBySourceText.clear();
-    }
-
-    parsedDefinitionTextProgramBySourceText.set(cacheKey, parsedProgram);
+    setBoundedCacheValue({
+        cache: parsedDefinitionTextProgramBySourceText,
+        key: cacheKey,
+        maxEntries: MAX_PARSED_DEFINITION_TEXT_CACHE_ENTRIES,
+        value: parsedProgram,
+    });
 };
 
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
@@ -105,7 +114,10 @@ const createDefinitionTextParseCandidates = (
 ): readonly string[] => {
     const trimmedText = definitionNodeText.trim();
 
-    if (trimmedText.length === 0) {
+    if (
+        trimmedText.length === 0 ||
+        trimmedText.length > MAX_DEFINITION_TEXT_PARSE_LENGTH
+    ) {
         return [];
     }
 
@@ -128,32 +140,39 @@ const parseDefinitionTextProgram = (
         return null;
     }
 
-    const cachedProgram = parsedDefinitionTextProgramBySourceText.get(cacheKey);
+    const cachedProgramLookup = getBoundedCacheValue(
+        parsedDefinitionTextProgramBySourceText,
+        cacheKey
+    );
 
-    if (cachedProgram !== undefined) {
-        return cachedProgram;
+    if (cachedProgramLookup.found) {
+        return cachedProgramLookup.value;
     }
 
     const parseCandidates = createDefinitionTextParseCandidates(cacheKey);
 
     for (const parseCandidate of parseCandidates) {
-        try {
-            const parsedResult = parser.parseForESLint(parseCandidate, {
-                ecmaVersion: "latest",
-                loc: false,
-                range: false,
-                sourceType: "module",
-            });
+        const parsedResult = safeTypeOperation({
+            operation: () =>
+                parser.parseForESLint(parseCandidate, {
+                    ecmaVersion: "latest",
+                    loc: false,
+                    range: false,
+                    sourceType: "module",
+                }),
+            reason: "ts-eslint-node-autofix-parse-definition-candidate-failed",
+        });
 
-            cacheParsedDefinitionTextProgram({
-                cacheKey,
-                parsedProgram: parsedResult.ast,
-            });
-
-            return parsedResult.ast;
-        } catch {
-            // Try next parse candidate.
+        if (!parsedResult.ok) {
+            continue;
         }
+
+        cacheParsedDefinitionTextProgram({
+            cacheKey,
+            parsedProgram: parsedResult.value.ast,
+        });
+
+        return parsedResult.value.ast;
     }
 
     cacheParsedDefinitionTextProgram({
@@ -185,7 +204,7 @@ const getTypeScriptEslintNamespaceImportNames = (
     for (const statement of programStatements) {
         if (
             statement.type !== "ImportDeclaration" ||
-            statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_NAME
+            statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_SOURCE
         ) {
             continue;
         }

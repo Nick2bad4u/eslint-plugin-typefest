@@ -5,9 +5,11 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
 import parser from "@typescript-eslint/parser";
-import { arrayAt, isDefined, isInteger } from "ts-extras";
+import { arrayAt, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
+import { getBoundedCacheValue, setBoundedCacheValue } from "./bounded-cache.js";
+import { safeTypeOperation } from "./safe-type-operation.js";
 import { isKnownWhitespaceCharacter } from "./text-character.js";
 
 /**
@@ -33,6 +35,15 @@ const programInsertionLayoutCache = new WeakMap<
 
 const IMPORT_KEYWORD = "import" as const;
 
+/**
+ * Upper bound for import-text snippets parsed to recover module specifiers.
+ *
+ * @remarks
+ * Fix suggestions can include large synthetic text. Capping parser input keeps
+ * this helper predictable on pathological inputs.
+ */
+const MAX_IMPORT_DECLARATION_TEXT_PARSE_LENGTH = 2048 as const;
+
 const skipLeadingWhitespace = ({
     startIndex,
     text,
@@ -52,6 +63,8 @@ const skipLeadingWhitespace = ({
     return index;
 };
 
+const MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES = 256 as const;
+
 const parsedModuleSpecifierByImportText = new Map<string, null | string>();
 
 const isTrailingImportText = (text: string): boolean => {
@@ -63,28 +76,33 @@ const isTrailingImportText = (text: string): boolean => {
 const parseModuleSpecifierFromImportDeclarationText = (
     importDeclarationText: string
 ): null | string => {
-    try {
-        const parsedResult = parser.parseForESLint(importDeclarationText, {
-            ecmaVersion: "latest",
-            loc: false,
-            range: false,
-            sourceType: "module",
-        });
-        const [firstStatement] = parsedResult.ast.body;
+    const parsedResult = safeTypeOperation({
+        operation: () =>
+            parser.parseForESLint(importDeclarationText, {
+                ecmaVersion: "latest",
+                loc: false,
+                range: false,
+                sourceType: "module",
+            }),
+        reason: "import-insertion-module-specifier-parse-failed",
+    });
 
-        if (
-            parsedResult.ast.body.length !== 1 ||
-            firstStatement?.type !== "ImportDeclaration"
-        ) {
-            return null;
-        }
-
-        const moduleSpecifier = firstStatement.source.value;
-
-        return typeof moduleSpecifier === "string" ? moduleSpecifier : null;
-    } catch {
+    if (!parsedResult.ok) {
         return null;
     }
+
+    const [firstStatement] = parsedResult.value.ast.body;
+
+    if (
+        parsedResult.value.ast.body.length !== 1 ||
+        firstStatement?.type !== "ImportDeclaration"
+    ) {
+        return null;
+    }
+
+    const moduleSpecifier = firstStatement.source.value;
+
+    return typeof moduleSpecifier === "string" ? moduleSpecifier : null;
 };
 
 /**
@@ -95,15 +113,33 @@ const getModuleSpecifierFromImportDeclarationText = (
 ): null | string => {
     const trimmedImportText = importDeclarationText.trim();
 
-    const cachedModuleSpecifier =
-        parsedModuleSpecifierByImportText.get(trimmedImportText);
+    if (trimmedImportText.length > MAX_IMPORT_DECLARATION_TEXT_PARSE_LENGTH) {
+        setBoundedCacheValue({
+            cache: parsedModuleSpecifierByImportText,
+            key: trimmedImportText,
+            maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+            value: null,
+        });
 
-    if (isDefined(cachedModuleSpecifier)) {
-        return cachedModuleSpecifier;
+        return null;
+    }
+
+    const cachedModuleSpecifierLookup = getBoundedCacheValue(
+        parsedModuleSpecifierByImportText,
+        trimmedImportText
+    );
+
+    if (cachedModuleSpecifierLookup.found) {
+        return cachedModuleSpecifierLookup.value ?? null;
     }
 
     if (!trimmedImportText.startsWith(IMPORT_KEYWORD)) {
-        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+        setBoundedCacheValue({
+            cache: parsedModuleSpecifierByImportText,
+            key: trimmedImportText,
+            maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+            value: null,
+        });
 
         return null;
     }
@@ -114,7 +150,12 @@ const getModuleSpecifierFromImportDeclarationText = (
     });
 
     if (importClauseStart >= trimmedImportText.length) {
-        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+        setBoundedCacheValue({
+            cache: parsedModuleSpecifierByImportText,
+            key: trimmedImportText,
+            maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+            value: null,
+        });
 
         return null;
     }
@@ -123,10 +164,12 @@ const getModuleSpecifierFromImportDeclarationText = (
         parseModuleSpecifierFromImportDeclarationText(trimmedImportText);
 
     if (moduleSpecifier !== null) {
-        parsedModuleSpecifierByImportText.set(
-            trimmedImportText,
-            moduleSpecifier
-        );
+        setBoundedCacheValue({
+            cache: parsedModuleSpecifierByImportText,
+            key: trimmedImportText,
+            maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+            value: moduleSpecifier,
+        });
 
         return moduleSpecifier;
     }
@@ -138,12 +181,22 @@ const getModuleSpecifierFromImportDeclarationText = (
             : trimmedImportText.slice(semicolonIndex + 1);
 
     if (!isTrailingImportText(trailingImportText)) {
-        parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+        setBoundedCacheValue({
+            cache: parsedModuleSpecifierByImportText,
+            key: trimmedImportText,
+            maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+            value: null,
+        });
 
         return null;
     }
 
-    parsedModuleSpecifierByImportText.set(trimmedImportText, null);
+    setBoundedCacheValue({
+        cache: parsedModuleSpecifierByImportText,
+        key: trimmedImportText,
+        maxEntries: MAX_PARSED_MODULE_SPECIFIER_CACHE_ENTRIES,
+        value: null,
+    });
 
     return null;
 };

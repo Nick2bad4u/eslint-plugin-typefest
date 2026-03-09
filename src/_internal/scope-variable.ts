@@ -4,7 +4,7 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
-import { isDefined } from "ts-extras";
+import { resolveFirstValueInLinkedStructure } from "./cycle-safe-linked-search.js";
 
 /**
  * Resolve a variable binding by walking the current scope and all parent
@@ -20,33 +20,27 @@ export const getVariableInScopeChain = (
     scope: Readonly<null | Readonly<TSESLint.Scope.Scope>>,
     variableName: string
 ): null | TSESLint.Scope.Variable => {
-    let slowScope = scope;
-    let fastScope = scope;
+    const lookupResult = resolveFirstValueInLinkedStructure<
+        Readonly<TSESLint.Scope.Scope>,
+        TSESLint.Scope.Variable
+    >({
+        getNextNode: (
+            currentScope: Readonly<TSESLint.Scope.Scope>
+        ): null | Readonly<TSESLint.Scope.Scope> => currentScope.upper,
+        resolveValue: (currentScope: Readonly<TSESLint.Scope.Scope>) => {
+            const variable = currentScope.set.get(variableName);
 
-    while (slowScope !== null) {
-        const variable = slowScope.set.get(variableName);
-        if (isDefined(variable)) {
-            return variable;
-        }
+            return variable === undefined
+                ? {
+                      found: false,
+                  }
+                : {
+                      found: true,
+                      value: variable,
+                  };
+        },
+        startNode: scope,
+    });
 
-        slowScope = slowScope.upper;
-
-        for (let step = 0; step < 2; step += 1) {
-            if (fastScope === null) {
-                break;
-            }
-
-            fastScope = fastScope.upper;
-        }
-
-        if (
-            slowScope !== null &&
-            fastScope !== null &&
-            slowScope === fastScope
-        ) {
-            return null;
-        }
-    }
-
-    return null;
+    return lookupResult.found ? lookupResult.value : null;
 };

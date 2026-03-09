@@ -15,6 +15,10 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import {
+    TS_EXTRAS_MODULE_SOURCE,
+    TYPE_FEST_MODULE_SOURCE,
+} from "../_internal/module-source.js";
+import {
     reportWithOptionalFix,
     reportWithTypefestPolicy,
 } from "../_internal/rule-reporting.js";
@@ -23,8 +27,6 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const IS_EQUAL_TYPE_NAME = "IsEqual";
 const IS_EQUAL_TYPE_FUNCTION_NAME = "isEqualType";
-const TS_EXTRAS_PACKAGE_NAME = "ts-extras";
-const TYPE_FEST_PACKAGE_NAME = "type-fest";
 
 /**
  * ESLint rule definition for `prefer-ts-extras-is-equal-type`.
@@ -37,17 +39,17 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const isEqualLocalNames = collectNamedImportLocalNamesFromSource(
                 context.sourceCode,
-                TYPE_FEST_PACKAGE_NAME,
+                TYPE_FEST_MODULE_SOURCE,
                 IS_EQUAL_TYPE_NAME
             );
             const typeFestNamespaceImportNames =
                 collectNamespaceImportLocalNamesFromSource(
                     context.sourceCode,
-                    TYPE_FEST_PACKAGE_NAME
+                    TYPE_FEST_MODULE_SOURCE
                 );
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                TS_EXTRAS_PACKAGE_NAME
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             /**
@@ -142,7 +144,7 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                                 return `${identifierName} = ${runtimePreservingExpression}`;
                             },
                             reportFixIntent: "suggestion",
-                            sourceModuleName: TS_EXTRAS_PACKAGE_NAME,
+                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                             targetNode: node,
                         });
 

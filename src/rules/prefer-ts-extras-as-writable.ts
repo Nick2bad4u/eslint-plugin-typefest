@@ -13,11 +13,14 @@ import {
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
+import {
+    TS_EXTRAS_MODULE_SOURCE,
+    TYPE_FEST_MODULE_SOURCE,
+} from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
-const TYPE_FEST_PACKAGE_NAME = "type-fest" as const;
 const WRITABLE_TYPE_NAME = "Writable" as const;
 
 /**
@@ -31,18 +34,18 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const tsExtrasImports = collectDirectNamedValueImportsFromSource(
                 context.sourceCode,
-                "ts-extras"
+                TS_EXTRAS_MODULE_SOURCE
             );
 
             const writableLocalNames = collectNamedImportLocalNamesFromSource(
                 context.sourceCode,
-                TYPE_FEST_PACKAGE_NAME,
+                TYPE_FEST_MODULE_SOURCE,
                 WRITABLE_TYPE_NAME
             );
             const typeFestNamespaceImportNames =
                 collectNamespaceImportLocalNamesFromSource(
                     context.sourceCode,
-                    TYPE_FEST_PACKAGE_NAME
+                    TYPE_FEST_MODULE_SOURCE
                 );
 
             /**
@@ -113,7 +116,7 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
                     imports: tsExtrasImports,
                     replacementTextFactory: (replacementName) =>
                         `${replacementName}(${expressionArgumentText})`,
-                    sourceModuleName: "ts-extras",
+                    sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                     targetNode: node,
                 });
 
