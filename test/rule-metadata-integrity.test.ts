@@ -7,6 +7,7 @@ import * as path from "node:path";
 import { objectEntries } from "ts-extras";
 import { describe, expect, it } from "vitest";
 
+import { createRuleDocsUrl } from "../src/_internal/rule-docs-url";
 import { isTypefestConfigReference } from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
 
@@ -16,10 +17,6 @@ const expectedRuleTypes = new Set([
     "problem",
     "suggestion",
 ]);
-
-/** Canonical docs URL prefix for every rule docs page. */
-const RULE_DOCS_URL_BASE =
-    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
 
 /** Stable rule-catalog id format used in docs metadata. */
 const ruleCatalogIdPattern = /^R\d{3}$/v;
@@ -250,7 +247,7 @@ const assertDocsContract = ({
 
     expect(ruleId).toBe(`R${String(ruleNumber).padStart(3, "0")}`);
 
-    const expectedRuleUrl = `${RULE_DOCS_URL_BASE}${ruleName}`;
+    const expectedRuleUrl = createRuleDocsUrl(ruleName);
 
     expect(url).toBe(expectedRuleUrl);
 

@@ -15,6 +15,7 @@ import {
 
 import type { TypefestRuleNamePattern } from "./rules-registry.js";
 
+import { createRuleDocsUrl } from "./rule-docs-url.js";
 import {
     isTypefestConfigReference,
     type TypefestConfigName,
@@ -178,6 +179,13 @@ const getRuleDocsContract = (
     if (typeof url !== "string" || url.trim().length === 0) {
         throw new TypeError(
             `Rule '${ruleName}' must declare a non-empty docs.url.`
+        );
+    }
+
+    const expectedRuleDocsUrl = createRuleDocsUrl(ruleName);
+    if (url !== expectedRuleDocsUrl) {
+        throw new TypeError(
+            `Rule '${ruleName}' must declare docs.url as '${expectedRuleDocsUrl}'.`
         );
     }
 

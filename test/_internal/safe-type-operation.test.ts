@@ -4,6 +4,7 @@ import type { SafeTypeOperationFailureObserver } from "../../src/_internal/safe-
 
 import {
     registerSafeTypeOperationFailureObserver,
+    registerSafeTypeOperationObserverFailureObserver,
     safeTypeOperation,
     withSafeTypeOperationFailureObserver,
 } from "../../src/_internal/safe-type-operation";
@@ -61,6 +62,33 @@ describe(safeTypeOperation, () => {
         expect(result.ok).toBeFalsy();
     });
 
+    it("reports local observer failures to observer-failure observers", () => {
+        const observerFailures: string[] = [];
+
+        const unsubscribe = registerSafeTypeOperationObserverFailureObserver(
+            (failure) => {
+                observerFailures.push(failure.observerKind);
+            }
+        );
+
+        try {
+            const result = safeTypeOperation({
+                onFailure: () => {
+                    throw new Error("local observer exploded");
+                },
+                operation: () => {
+                    throw new TypeError("operation exploded");
+                },
+                reason: "local-observer-throws",
+            });
+
+            expect(result.ok).toBeFalsy();
+            expect(observerFailures).toStrictEqual(["local"]);
+        } finally {
+            unsubscribe();
+        }
+    });
+
     it("notifies registered global observers and supports unsubscribe", () => {
         const observedGlobalFailures: TestFailurePayload[] = [];
 
@@ -96,6 +124,13 @@ describe(safeTypeOperation, () => {
     });
 
     it("does not rethrow when a global observer throws", () => {
+        const observerFailures: string[] = [];
+
+        const unsubscribeObserverFailures =
+            registerSafeTypeOperationObserverFailureObserver((failure) => {
+                observerFailures.push(failure.observerKind);
+            });
+
         const throwingObserver: SafeTypeOperationFailureObserver<
             string
         > = () => {
@@ -114,8 +149,10 @@ describe(safeTypeOperation, () => {
             });
 
             expect(result.ok).toBeFalsy();
+            expect(observerFailures).toStrictEqual(["global"]);
         } finally {
             unsubscribe();
+            unsubscribeObserverFailures();
         }
     });
 

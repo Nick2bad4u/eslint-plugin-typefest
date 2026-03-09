@@ -17,6 +17,7 @@ import type { TypefestConfigReference } from "./typefest-config-references.js";
 
 import { registerProgramSettingsForContext } from "./plugin-settings.js";
 import { getRuleCatalogEntryForRuleNameOrNull } from "./rule-catalog.js";
+import { createRuleDocsUrl } from "./rule-docs-url.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
@@ -70,14 +71,19 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
     const ruleDocs = createdRule.meta.docs;
     assertDefined(ruleDocs);
+    const canonicalDocsUrl = createRuleDocsUrl(ruleDefinition.name);
 
     const docsWithCatalog: TSESLint.RuleMetaDataDocs & TypefestRuleDocs =
         catalogEntry === null
-            ? { ...ruleDocs }
+            ? {
+                  ...ruleDocs,
+                  url: canonicalDocsUrl,
+              }
             : {
                   ...ruleDocs,
                   ruleId: catalogEntry.ruleId,
                   ruleNumber: catalogEntry.ruleNumber,
+                  url: canonicalDocsUrl,
               };
 
     const metaDefaultOptions = createdRule.meta.defaultOptions;

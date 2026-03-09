@@ -36,6 +36,7 @@ export const reportTsExtrasGlobalMemberCall = <MessageId extends string>({
     imports,
     memberName,
     messageId,
+    minimumArgumentCount,
     node,
     objectName,
     reportSuggestion,
@@ -47,6 +48,7 @@ export const reportTsExtrasGlobalMemberCall = <MessageId extends string>({
     imports: DirectNamedValueImports;
     memberName: string;
     messageId: MessageId;
+    minimumArgumentCount?: number;
     node: Readonly<TSESTree.CallExpression>;
     objectName: string;
     reportSuggestion?: (
@@ -67,6 +69,13 @@ export const reportTsExtrasGlobalMemberCall = <MessageId extends string>({
     });
 
     if (globalMemberCall === null) {
+        return;
+    }
+
+    if (
+        typeof minimumArgumentCount === "number" &&
+        node.arguments.length < minimumArgumentCount
+    ) {
         return;
     }
 

@@ -6,6 +6,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { parseMarkdownHeadingsAtLevel } from "./_internal/markdown-headings";
+
 interface RuleDocsHeadingSnapshot {
     packageLabel: "none" | "ts-extras" | "type-fest";
     ruleId: string;
@@ -14,10 +16,7 @@ interface RuleDocsHeadingSnapshot {
 
 /** Parse all H2 headings from markdown in order. */
 const parseH2Headings = (markdown: string): readonly string[] =>
-    markdown
-        .split(/\r?\n/v)
-        .filter((line) => line.startsWith("## "))
-        .map((line) => line.slice(3).trim());
+    parseMarkdownHeadingsAtLevel(markdown, 2);
 
 /**
  * Resolve normalized package label marker from docs markdown.

@@ -32,6 +32,22 @@ export type SafeTypeOperationFailureObserver<Reason extends string> = (
 ) => void;
 
 /**
+ * Failure payload emitted when an observer itself throws.
+ */
+export type SafeTypeOperationObserverFailure<Reason extends string> = Readonly<{
+    failure: Readonly<SafeTypeOperationFailure<Reason>>;
+    observerError: unknown;
+    observerKind: "global" | "local";
+}>;
+
+/**
+ * Optional observer called when an operation failure observer throws.
+ */
+export type SafeTypeOperationObserverFailureObserver<Reason extends string> = (
+    failure: Readonly<SafeTypeOperationObserverFailure<Reason>>
+) => void;
+
+/**
  * Shared observer set for operation failures across rule modules.
  *
  * @remarks
@@ -41,6 +57,30 @@ export type SafeTypeOperationFailureObserver<Reason extends string> = (
 const safeTypeOperationFailureObservers = new Set<
     SafeTypeOperationFailureObserver<string>
 >();
+
+/**
+ * Shared observer set for local/global observer failures.
+ */
+const safeTypeOperationObserverFailureObservers = new Set<
+    SafeTypeOperationObserverFailureObserver<string>
+>();
+
+/**
+ * Notify all registered observer-failure observers.
+ *
+ * @param failure - Observer-failure payload.
+ */
+const notifySafeTypeOperationObserverFailureObservers = (
+    failure: Readonly<SafeTypeOperationObserverFailure<string>>
+): void => {
+    for (const observer of safeTypeOperationObserverFailureObservers) {
+        try {
+            observer(failure);
+        } catch {
+            // Observer-failure observers are diagnostics only; never rethrow.
+        }
+    }
+};
 
 /**
  * Notify all registered global failure observers.
@@ -53,10 +93,32 @@ const notifySafeTypeOperationFailureObservers = (
     for (const observer of safeTypeOperationFailureObservers) {
         try {
             observer(failure);
-        } catch {
-            // Observer failures must never break lint execution.
+        } catch (observerError: unknown) {
+            notifySafeTypeOperationObserverFailureObservers({
+                failure,
+                observerError,
+                observerKind: "global",
+            });
         }
     }
+};
+
+/**
+ * Register a process-local observer for observer failures.
+ *
+ * @param observer - Callback invoked when a local/global failure observer
+ *   throws.
+ *
+ * @returns Unsubscribe callback to remove the observer.
+ */
+export const registerSafeTypeOperationObserverFailureObserver = (
+    observer: SafeTypeOperationObserverFailureObserver<string>
+): (() => void) => {
+    safeTypeOperationObserverFailureObservers.add(observer);
+
+    return () => {
+        safeTypeOperationObserverFailureObservers.delete(observer);
+    };
 };
 
 /**
@@ -135,8 +197,12 @@ export const safeTypeOperation = <Result, Reason extends string>({
 
         try {
             onFailure?.(failure);
-        } catch {
-            // Local observers are optional instrumentation; do not rethrow.
+        } catch (observerError: unknown) {
+            notifySafeTypeOperationObserverFailureObservers({
+                failure,
+                observerError,
+                observerKind: "local",
+            });
         }
 
         notifySafeTypeOperationFailureObservers(failure);

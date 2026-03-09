@@ -16,6 +16,11 @@ export type LinkedStructureLookupResult<Value> =
       }>;
 
 /**
+ * Fast-pointer hop count per iteration for Floyd cycle detection.
+ */
+const FLOYD_FAST_POINTER_ADVANCE_STEPS = 2 as const;
+
+/**
  * Resolve the first matching value while traversing a linked structure.
  *
  * @param options - Linked-structure traversal options.
@@ -49,7 +54,7 @@ export const resolveFirstValueInLinkedStructure = <Node, Value>({
 
         slowNode = getNextNode(slowNode);
 
-        for (let step = 0; step < 2; step += 1) {
+        for (let step = 0; step < FLOYD_FAST_POINTER_ADVANCE_STEPS; step += 1) {
             if (fastNode === null) {
                 break;
             }

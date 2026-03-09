@@ -29,10 +29,6 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                 'CallExpression[callee.type="MemberExpression"][callee.object.type="Identifier"][callee.object.name="Reflect"][callee.property.type="Identifier"][callee.property.name="has"]'(
                     node: TSESTree.CallExpression
                 ) {
-                    if (node.arguments.length < 2) {
-                        return;
-                    }
-
                     reportTsExtrasGlobalMemberCall({
                         canAutofix: isTypePredicateExpressionAutofixSafe,
                         context,
@@ -40,6 +36,7 @@ const preferTsExtrasObjectHasInRule: ReturnType<typeof createTypedRule> =
                         imports: tsExtrasImports,
                         memberName: "has",
                         messageId: "preferTsExtrasObjectHasIn",
+                        minimumArgumentCount: 2,
                         node,
                         objectName: "Reflect",
                         reportSuggestion: ({ fix, node: suggestionNode }) => {

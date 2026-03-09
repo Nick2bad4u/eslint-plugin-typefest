@@ -6,10 +6,9 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
+import { createRuleDocsUrl } from "../src/_internal/rule-docs-url";
 import typefestPlugin from "../src/plugin";
-
-const RULE_DOCS_URL_BASE =
-    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/";
+import { parseMarkdownHeadingsAtLevel } from "./_internal/markdown-headings";
 
 interface RuleWithMeta {
     readonly meta?: {
@@ -183,10 +182,7 @@ function isRuleWithMeta(value: unknown): value is RuleWithMeta {
  * @returns Ordered H1 heading names.
  */
 function parseH1Headings(markdown: string): string[] {
-    return markdown
-        .split(/\r?\n/v)
-        .filter((line) => line.startsWith("# "))
-        .map((line) => line.slice(2).trim());
+    return [...parseMarkdownHeadingsAtLevel(markdown, 1)];
 }
 
 /**
@@ -197,10 +193,7 @@ function parseH1Headings(markdown: string): string[] {
  * @returns Ordered H2 heading names.
  */
 function parseH2Headings(markdown: string): string[] {
-    return markdown
-        .split(/\r?\n/v)
-        .filter((line) => line.startsWith("## "))
-        .map((line) => line.slice(3).trim());
+    return [...parseMarkdownHeadingsAtLevel(markdown, 2)];
 }
 
 describe("typefest rule docs", () => {
@@ -219,7 +212,7 @@ describe("typefest rule docs", () => {
             const url = docs?.url;
 
             if (typeof url === "string") {
-                expect(url).toBe(`${RULE_DOCS_URL_BASE}${ruleId}`);
+                expect(url).toBe(createRuleDocsUrl(ruleId));
                 expect(url).not.toContain(".md");
             }
 

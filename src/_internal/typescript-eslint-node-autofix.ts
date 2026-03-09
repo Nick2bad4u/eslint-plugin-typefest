@@ -12,7 +12,13 @@ import {
     isTypeAnyType,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
-import { isDefined, objectHasOwn, safeCastTo } from "ts-extras";
+import {
+    arrayIncludes,
+    isDefined,
+    objectHasOwn,
+    safeCastTo,
+    stringSplit,
+} from "ts-extras";
 
 import { getBoundedCacheValue, setBoundedCacheValue } from "./bounded-cache.js";
 import { getConstrainedTypeAtLocationWithFallback } from "./constrained-type-at-location.js";
@@ -30,9 +36,14 @@ import { getTypedRuleServices } from "./typed-rule.js";
 const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
 const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
 const PATH_SEPARATOR = "/" as const;
-
-const TYPESCRIPT_ESLINT_PACKAGE_PATH_SEGMENT =
-    `${PATH_SEPARATOR}${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}${PATH_SEPARATOR}` as const;
+const ASCII_DIGIT_ZERO_CODE_POINT = 48 as const;
+const ASCII_DIGIT_NINE_CODE_POINT = 57 as const;
+const ASCII_UPPERCASE_A_CODE_POINT = 65 as const;
+const ASCII_UPPERCASE_Z_CODE_POINT = 90 as const;
+const ASCII_UNDERSCORE_CODE_POINT = 95 as const;
+const ASCII_DOLLAR_SIGN_CODE_POINT = 36 as const;
+const ASCII_LOWERCASE_A_CODE_POINT = 97 as const;
+const ASCII_LOWERCASE_Z_CODE_POINT = 122 as const;
 
 /**
  * ESTree metadata keys that never contribute to semantic type-reference
@@ -85,19 +96,68 @@ const cacheParsedDefinitionTextProgram = ({
     });
 };
 
+/**
+ * Determine whether a code point is valid within an ASCII identifier token.
+ */
+const isAsciiIdentifierCodePoint = (codePoint: number): boolean =>
+    (codePoint >= ASCII_UPPERCASE_A_CODE_POINT &&
+        codePoint <= ASCII_UPPERCASE_Z_CODE_POINT) ||
+    (codePoint >= ASCII_LOWERCASE_A_CODE_POINT &&
+        codePoint <= ASCII_LOWERCASE_Z_CODE_POINT) ||
+    (codePoint >= ASCII_DIGIT_ZERO_CODE_POINT &&
+        codePoint <= ASCII_DIGIT_NINE_CODE_POINT) ||
+    codePoint === ASCII_UNDERSCORE_CODE_POINT ||
+    codePoint === ASCII_DOLLAR_SIGN_CODE_POINT;
+
+/**
+ * Determine whether the code point at `index` is outside identifier syntax.
+ */
+const isIdentifierBoundaryAt = (text: string, index: number): boolean => {
+    if (index < 0 || index >= text.length) {
+        return true;
+    }
+
+    const codePoint = text.codePointAt(index);
+    if (!isDefined(codePoint)) {
+        return true;
+    }
+
+    return !isAsciiIdentifierCodePoint(codePoint);
+};
+
+/**
+ * Advance an index over ASCII whitespace.
+ */
+const skipAsciiWhitespace = (text: string, startIndex: number): number => {
+    let index = startIndex;
+
+    while (index < text.length) {
+        const character = text.at(index);
+
+        if (
+            character !== " " &&
+            character !== "\n" &&
+            character !== "\r" &&
+            character !== "\t"
+        ) {
+            break;
+        }
+
+        index += 1;
+    }
+
+    return index;
+};
+
 const isTypeScriptEslintDeclarationPath = (fileName: string): boolean => {
     const normalizedFileName = fileName.replaceAll("\\", PATH_SEPARATOR);
-
-    return (
-        normalizedFileName === TYPESCRIPT_ESLINT_PACKAGE_SEGMENT ||
-        normalizedFileName.startsWith(
-            `${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}${PATH_SEPARATOR}`
-        ) ||
-        normalizedFileName.endsWith(
-            `${PATH_SEPARATOR}${TYPESCRIPT_ESLINT_PACKAGE_SEGMENT}`
-        ) ||
-        normalizedFileName.includes(TYPESCRIPT_ESLINT_PACKAGE_PATH_SEGMENT)
+    const pathSegments = stringSplit(normalizedFileName, PATH_SEPARATOR).filter(
+        (segment) => segment.length > 0
     );
+
+    const packagePathSegment: string = TYPESCRIPT_ESLINT_PACKAGE_SEGMENT;
+
+    return arrayIncludes(pathSegments, packagePathSegment);
 };
 
 const isUnknownRecord = (value: unknown): value is UnknownRecord =>
@@ -322,6 +382,50 @@ const containsTypeScriptEslintTypeReferenceText = (
     namespaceNames: ReadonlySet<string>
 ): boolean => {
     if (namespaceNames.size === 0) {
+        return false;
+    }
+
+    let containsPotentialNamespaceTextReference = false;
+
+    for (const namespaceName of namespaceNames) {
+        let searchStartIndex = 0;
+
+        while (searchStartIndex < text.length) {
+            const namespaceIndex = text.indexOf(
+                namespaceName,
+                searchStartIndex
+            );
+
+            if (namespaceIndex === -1) {
+                break;
+            }
+
+            const afterNamespaceIndex = namespaceIndex + namespaceName.length;
+
+            if (
+                isIdentifierBoundaryAt(text, namespaceIndex - 1) &&
+                isIdentifierBoundaryAt(text, afterNamespaceIndex)
+            ) {
+                const nextTokenIndex = skipAsciiWhitespace(
+                    text,
+                    afterNamespaceIndex
+                );
+
+                if (text.at(nextTokenIndex) === ".") {
+                    containsPotentialNamespaceTextReference = true;
+                    break;
+                }
+            }
+
+            searchStartIndex = afterNamespaceIndex;
+        }
+
+        if (containsPotentialNamespaceTextReference) {
+            break;
+        }
+    }
+
+    if (!containsPotentialNamespaceTextReference) {
         return false;
     }
 
