@@ -23,6 +23,7 @@ import {
     getTypeCheckerIsArrayTypeResult,
     getTypeCheckerIsTupleTypeResult,
 } from "./type-checker-compat.js";
+import { recordTypedPathPrefilterEvaluation } from "./typed-path-telemetry.js";
 
 /**
  * Shared inputs required to evaluate whether an ESTree expression is array-like
@@ -42,6 +43,11 @@ interface ArrayLikeExpressionCheckerOptions {
             readonly get: (key: Readonly<TSESTree.Node>) => ts.Node | undefined;
         };
     };
+
+    /**
+     * Optional file path used by telemetry counters.
+     */
+    readonly telemetryFilePath?: string;
 
     /**
      * How union members should be matched.
@@ -207,6 +213,24 @@ export const isArrayLikeType = (
         unionMatchMode,
     });
 
+const getArrayLikeExpressionPrefilterResult = (
+    expression: Readonly<TSESTree.Expression>
+): boolean | undefined => {
+    if (expression.type === "ArrayExpression") {
+        return true;
+    }
+
+    if (
+        expression.type === "TSAsExpression" ||
+        expression.type === "TSNonNullExpression" ||
+        expression.type === "TSSatisfiesExpression"
+    ) {
+        return getArrayLikeExpressionPrefilterResult(expression.expression);
+    }
+
+    return undefined;
+};
+
 /**
  * Build a safe ESTree expression predicate for array-like type checks.
  *
@@ -217,11 +241,24 @@ export const isArrayLikeType = (
 export const createIsArrayLikeExpressionChecker = ({
     checker,
     parserServices,
+    telemetryFilePath,
     unionMatchMode = "some",
 }: Readonly<ArrayLikeExpressionCheckerOptions>) => {
     const arrayLikeTypeResolutionCache = new Map<Readonly<ts.Type>, boolean>();
 
     return (expression: Readonly<TSESTree.Expression>): boolean => {
+        const prefilterResult =
+            getArrayLikeExpressionPrefilterResult(expression);
+
+        recordTypedPathPrefilterEvaluation({
+            filePath: telemetryFilePath,
+            prefilterHit: isDefined(prefilterResult),
+        });
+
+        if (isDefined(prefilterResult)) {
+            return prefilterResult;
+        }
+
         const result = safeTypeOperation({
             operation: () => {
                 const expressionType = getConstrainedTypeAtLocationWithFallback(

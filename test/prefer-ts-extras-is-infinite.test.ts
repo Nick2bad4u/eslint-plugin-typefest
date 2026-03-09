@@ -83,6 +83,11 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     node: Readonly<{ name?: string; type?: string }>,
@@ -183,6 +188,11 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     node: Readonly<{ name?: string; type?: string }>,
@@ -343,6 +353,11 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
                     node: Readonly<{ name?: string; type?: string }>,

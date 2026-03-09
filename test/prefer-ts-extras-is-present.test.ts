@@ -1314,6 +1314,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1427,6 +1432,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1560,6 +1570,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -1691,6 +1706,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>
@@ -2265,6 +2285,11 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
+                getTypedRuleServices: () => ({
+                    checker: {},
+                    parserServices: {},
+                }),
+                hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
                     expression: Readonly<{ name?: string; type: string }>

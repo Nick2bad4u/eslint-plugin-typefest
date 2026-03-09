@@ -23,12 +23,22 @@ import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
 
 /**
+ * Current rule-catalog revision identifier stamped into `meta.docs`.
+ */
+const RULE_CATALOG_ID = "R002" as const;
+
+/**
  * Parser services and type checker bundle used by typed rules.
  */
-type TypedRuleServices = {
+export type TypedRuleServices = {
     checker: ts.TypeChecker;
     parserServices: ReturnType<typeof ESLintUtils.getParserServices>;
 };
+
+/** Shared typed-rule context contract used by helper utilities. */
+type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+
+export type { TypedRuleContext };
 
 type TypefestRuleCreator = ReturnType<
     typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
@@ -45,6 +55,7 @@ type TypefestRuleCreator = ReturnType<
 type TypefestRuleDocs = {
     recommended?: boolean;
     requiresTypeChecking?: boolean;
+    ruleCatalogId?: string;
     ruleId?: string;
     ruleNumber?: number;
     typefestConfigs?:
@@ -77,10 +88,12 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         catalogEntry === null
             ? {
                   ...ruleDocs,
+                  ruleCatalogId: RULE_CATALOG_ID,
                   url: canonicalDocsUrl,
               }
             : {
                   ...ruleDocs,
+                  ruleCatalogId: RULE_CATALOG_ID,
                   ruleId: catalogEntry.ruleId,
                   ruleNumber: catalogEntry.ruleNumber,
                   url: canonicalDocsUrl,
@@ -118,7 +131,7 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
  *   the current lint run is not configured for type-aware analysis.
  */
 export const getTypedRuleServices = (
-    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>
+    context: TypedRuleContext
 ): TypedRuleServices => {
     const parserServices = ESLintUtils.getParserServices(context, true);
     const program = parserServices.program;
@@ -133,6 +146,24 @@ export const getTypedRuleServices = (
         checker: program.getTypeChecker(),
         parserServices,
     };
+};
+
+/**
+ * Determine whether the current lint context has full type information.
+ *
+ * @param context - Rule context from the current lint evaluation.
+ *
+ * @returns `true` when parser services and `program` are available.
+ */
+export const hasTypeServices = (context: TypedRuleContext): boolean => {
+    const parserServicesResult = safeTypeOperation({
+        operation: () => ESLintUtils.getParserServices(context, true),
+        reason: "typed-rule-services-check-failed",
+    });
+
+    return (
+        parserServicesResult.ok && parserServicesResult.value.program !== null
+    );
 };
 
 /**

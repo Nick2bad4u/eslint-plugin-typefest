@@ -57,6 +57,7 @@ const preferTsExtrasArrayFirstRule: ReturnType<typeof createTypedRule> =
             const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
                 checker,
                 parserServices,
+                telemetryFilePath: context.physicalFilename,
             });
 
             return {

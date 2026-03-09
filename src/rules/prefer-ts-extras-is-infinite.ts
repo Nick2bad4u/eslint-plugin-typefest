@@ -13,6 +13,8 @@ import { areEquivalentExpressions } from "../_internal/normalize-expression-text
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
+    getTypedRuleServices,
+    hasTypeServices,
     isGlobalIdentifierNamed,
 } from "../_internal/typed-rule.js";
 import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
@@ -169,8 +171,14 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 TS_EXTRAS_MODULE_SOURCE
             );
+            const typedServices = hasTypeServices(context)
+                ? getTypedRuleServices(context)
+                : undefined;
             const shouldSkipComparedExpression =
-                createTypeScriptEslintNodeExpressionSkipChecker(context);
+                createTypeScriptEslintNodeExpressionSkipChecker(
+                    context,
+                    typedServices
+                );
 
             return {
                 BinaryExpression(node) {

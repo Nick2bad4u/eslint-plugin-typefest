@@ -16,6 +16,8 @@ import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import {
     createTypedRule,
+    getTypedRuleServices,
+    hasTypeServices,
     isGlobalUndefinedIdentifier,
 } from "../_internal/typed-rule.js";
 import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/typescript-eslint-node-autofix.js";
@@ -182,8 +184,14 @@ const preferTsExtrasIsDefinedRule: ReturnType<typeof createTypedRule> =
                 context.sourceCode,
                 TS_EXTRAS_MODULE_SOURCE
             );
+            const typedServices = hasTypeServices(context)
+                ? getTypedRuleServices(context)
+                : undefined;
             const shouldSkipComparedExpression =
-                createTypeScriptEslintNodeExpressionSkipChecker(context);
+                createTypeScriptEslintNodeExpressionSkipChecker(
+                    context,
+                    typedServices
+                );
 
             return {
                 BinaryExpression(node) {

@@ -11,6 +11,10 @@ import { isDefined, safeCastTo } from "ts-extras";
 
 import { safeTypeOperation } from "./safe-type-operation.js";
 import { getTypeCheckerBaseConstraintType } from "./type-checker-compat.js";
+import {
+    recordTypedPathExpensiveTypeCall,
+    recordTypedPathFallbackInvocation,
+} from "./typed-path-telemetry.js";
 
 type ConstrainedTypeParserServices = Readonly<{
     esTreeNodeToTSNodeMap: Readonly<{
@@ -42,6 +46,17 @@ export const getConstrainedTypeAtLocationWithFallback = (
     parserServices: ConstrainedTypeParserServices,
     reason: string
 ): ts.Type | undefined => {
+    const mappedTsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
+    const telemetryFilePathResult = safeTypeOperation({
+        operation: () => mappedTsNode?.getSourceFile?.().fileName,
+        reason: "constrained-type-telemetry-file-path-resolution-failed",
+    });
+    const telemetryFilePath = telemetryFilePathResult.ok
+        ? telemetryFilePathResult.value
+        : undefined;
+
+    recordTypedPathExpensiveTypeCall(telemetryFilePath);
+
     const constrainedTypeResult = safeTypeOperation({
         operation: () => {
             if (
@@ -71,9 +86,11 @@ export const getConstrainedTypeAtLocationWithFallback = (
         return constrainedTypeResult.value;
     }
 
+    recordTypedPathFallbackInvocation(telemetryFilePath);
+
     const fallbackTypeResult = safeTypeOperation({
         operation: () => {
-            const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
+            const tsNode = mappedTsNode;
 
             if (!isDefined(tsNode)) {
                 return null;

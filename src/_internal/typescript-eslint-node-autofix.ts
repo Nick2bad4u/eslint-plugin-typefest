@@ -20,6 +20,8 @@ import {
     stringSplit,
 } from "ts-extras";
 
+import type { TypedRuleServices } from "./typed-rule.js";
+
 import { getBoundedCacheValue, setBoundedCacheValue } from "./bounded-cache.js";
 import { getConstrainedTypeAtLocationWithFallback } from "./constrained-type-at-location.js";
 import { TYPESCRIPT_ESLINT_UTILS_MODULE_SOURCE } from "./module-source.js";
@@ -31,7 +33,7 @@ import {
     getTypeCheckerBaseConstraintType,
     getTypeCheckerTypeArguments,
 } from "./type-checker-compat.js";
-import { getTypedRuleServices } from "./typed-rule.js";
+import { recordTypedPathPrefilterEvaluation } from "./typed-path-telemetry.js";
 
 const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
 const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
@@ -724,6 +726,8 @@ export const isTypeScriptEslintAstType = (
  * expression resolves to an `@typescript-eslint` AST node.
  *
  * @param context - Rule context for typed parser services.
+ * @param typedServices - Prevalidated typed services. Pass `null`/`undefined`
+ *   to run definition-only fallback logic with no checker calls.
  *
  * @returns Expression predicate that returns `true` when the current rule
  *   should skip reporting/fixing for the expression.
@@ -732,7 +736,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
     MessageIds extends string,
     Options extends Readonly<UnknownArray>,
 >(
-    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>
+    context: Readonly<TSESLint.RuleContext<MessageIds, Options>>,
+    typedServices?: Readonly<TypedRuleServices>
 ): ((expression: Readonly<TSESTree.Expression>) => boolean) => {
     const shouldSkipExpressionCache = new WeakMap<
         Readonly<TSESTree.Expression>,
@@ -748,30 +753,7 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
             context,
             namespaceNames
         );
-
-    const typedServicesResult = safeTypeOperation({
-        operation: () => getTypedRuleServices(context),
-        reason: "ts-eslint-node-autofix-typed-services-unavailable",
-    });
-
-    if (!typedServicesResult.ok) {
-        return (expression) => {
-            const cachedResult = shouldSkipExpressionCache.get(expression);
-
-            if (isDefined(cachedResult)) {
-                return cachedResult;
-            }
-
-            const shouldSkip =
-                isTypeScriptEslintNodeLikeExpressionByDefinition(expression);
-
-            shouldSkipExpressionCache.set(expression, shouldSkip);
-
-            return shouldSkip;
-        };
-    }
-
-    const { checker, parserServices } = typedServicesResult.value;
+    const telemetryFilePath = context.physicalFilename;
 
     return (expression) => {
         const cachedResult = shouldSkipExpressionCache.get(expression);
@@ -779,6 +761,28 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
         if (isDefined(cachedResult)) {
             return cachedResult;
         }
+
+        const shouldSkipByDefinition =
+            isTypeScriptEslintNodeLikeExpressionByDefinition(expression);
+
+        recordTypedPathPrefilterEvaluation({
+            filePath: telemetryFilePath,
+            prefilterHit: shouldSkipByDefinition,
+        });
+
+        if (shouldSkipByDefinition) {
+            shouldSkipExpressionCache.set(expression, true);
+
+            return true;
+        }
+
+        if (!isDefined(typedServices)) {
+            shouldSkipExpressionCache.set(expression, false);
+
+            return false;
+        }
+
+        const { checker, parserServices } = typedServices;
 
         const isNodeTypedExpressionResult = safeTypeOperation({
             operation: () => {
@@ -807,11 +811,8 @@ export const createTypeScriptEslintNodeExpressionSkipChecker = <
             return true;
         }
 
-        const shouldSkip =
-            isTypeScriptEslintNodeLikeExpressionByDefinition(expression);
+        shouldSkipExpressionCache.set(expression, false);
 
-        shouldSkipExpressionCache.set(expression, shouldSkip);
-
-        return shouldSkip;
+        return false;
     };
 };

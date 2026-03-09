@@ -63,10 +63,14 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
             const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
                 checker,
                 parserServices,
+                telemetryFilePath: context.physicalFilename,
                 unionMatchMode: "every",
             });
             const shouldSkipComparedExpression =
-                createTypeScriptEslintNodeExpressionSkipChecker(context);
+                createTypeScriptEslintNodeExpressionSkipChecker(context, {
+                    checker,
+                    parserServices,
+                });
 
             return {
                 BinaryExpression(node) {
