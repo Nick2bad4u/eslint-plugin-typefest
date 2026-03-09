@@ -1,7 +1,7 @@
-import type { MockOptions } from "vitest";
+import type { createTypedRule as createTypedRuleType } from "../../src/_internal/typed-rule.js";
 
 export type CreateTypedRuleSelectorAwarePassThrough =
-    (typeof import("../../src/_internal/typed-rule.js"))["createTypedRule"];
+    typeof createTypedRuleType;
 
 declare module "vitest" {
     interface VitestUtils {
@@ -9,12 +9,12 @@ declare module "vitest" {
          * Support test harness patterns using `vi.doMock(import(...), factory)`
          * with intentionally partial module mocks.
          */
-        doMock(
+        doMock: (
             module: Promise<unknown>,
             factory?:
                 | ((...arguments_: readonly unknown[]) => unknown)
-                | MockOptions
-        ): void;
+                | Readonly<Record<string, unknown>>
+        ) => void;
     }
 }
 
