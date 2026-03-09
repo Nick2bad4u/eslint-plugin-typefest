@@ -273,7 +273,7 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {},
@@ -281,16 +281,22 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
                 }),
             }));
 
-            vi.doMock("../src/_internal/array-like-expression.js", () => ({
-                createIsArrayLikeExpressionChecker: () => () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/array-like-expression.js"),
+                () => ({
+                    createIsArrayLikeExpressionChecker: () => () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createMethodToFunctionCallFix:
-                    createMethodToFunctionCallFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createMethodToFunctionCallFix:
+                        createMethodToFunctionCallFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-array-includes")) as {

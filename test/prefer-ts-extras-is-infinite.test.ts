@@ -81,7 +81,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -90,11 +90,14 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                 ) => node.type === "Identifier" && node.name === name,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueArgumentFunctionCallFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueArgumentFunctionCallFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-infinite")) as {
@@ -178,7 +181,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -187,12 +190,15 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                 ) => node.type === "Identifier" && node.name === name,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueArgumentFunctionCallFix:
-                    createSafeValueArgumentFunctionCallFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueArgumentFunctionCallFix:
+                        createSafeValueArgumentFunctionCallFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-infinite")) as {
@@ -335,7 +341,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -344,12 +350,15 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                 ) => node.type === "Identifier" && node.name === name,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueArgumentFunctionCallFix:
-                    createSafeValueArgumentFunctionCallFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueArgumentFunctionCallFix:
+                        createSafeValueArgumentFunctionCallFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-infinite")) as {

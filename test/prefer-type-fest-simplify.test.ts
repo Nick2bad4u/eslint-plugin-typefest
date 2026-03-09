@@ -218,32 +218,36 @@ describe("prefer-type-fest-simplify source assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map([
-                        [
-                            "Expand",
-                            {
-                                importedName: "Expand",
-                                replacementName: "Simplify",
-                            },
-                        ],
-                        [
-                            "Prettify",
-                            {
-                                importedName: "Prettify",
-                                replacementName: "Simplify",
-                            },
-                        ],
-                    ]),
-                createSafeTypeReferenceReplacementFix:
-                    createSafeTypeReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    collectImportedTypeAliasMatches: () =>
+                        new Map([
+                            [
+                                "Expand",
+                                {
+                                    importedName: "Expand",
+                                    replacementName: "Simplify",
+                                },
+                            ],
+                            [
+                                "Prettify",
+                                {
+                                    importedName: "Prettify",
+                                    replacementName: "Simplify",
+                                },
+                            ],
+                        ]),
+                    createSafeTypeReferenceReplacementFix:
+                        createSafeTypeReferenceReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-simplify")) as {

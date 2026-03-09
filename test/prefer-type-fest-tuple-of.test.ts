@@ -247,36 +247,40 @@ describe("prefer-type-fest-tuple-of source assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map([
-                        [
-                            "ReadonlyTuple",
-                            {
-                                importedName: "ReadonlyTuple",
-                                replacementName:
-                                    "Readonly<TupleOf<Length, Element>>",
-                                sourceValue: "type-aliases",
-                            },
-                        ],
-                        [
-                            "Tuple",
-                            {
-                                importedName: "Tuple",
-                                replacementName: "TupleOf<Length, Element>",
-                                sourceValue: "type-aliases",
-                            },
-                        ],
-                    ]),
-                createSafeTypeNodeTextReplacementFix:
-                    createSafeTypeNodeTextReplacementFixMock,
-                isTypeParameterNameShadowed: () => false,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    collectImportedTypeAliasMatches: () =>
+                        new Map([
+                            [
+                                "ReadonlyTuple",
+                                {
+                                    importedName: "ReadonlyTuple",
+                                    replacementName:
+                                        "Readonly<TupleOf<Length, Element>>",
+                                    sourceValue: "type-aliases",
+                                },
+                            ],
+                            [
+                                "Tuple",
+                                {
+                                    importedName: "Tuple",
+                                    replacementName: "TupleOf<Length, Element>",
+                                    sourceValue: "type-aliases",
+                                },
+                            ],
+                        ]),
+                    createSafeTypeNodeTextReplacementFix:
+                        createSafeTypeNodeTextReplacementFixMock,
+                    isTypeParameterNameShadowed: () => false,
+                })
+            );
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-type-fest-tuple-of")) as {

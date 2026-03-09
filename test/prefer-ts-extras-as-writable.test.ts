@@ -403,31 +403,37 @@ describe("prefer-ts-extras-as-writable internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectNamedImportLocalNamesFromSource: () =>
-                    new Set<string>(["Writable"]),
-                collectNamespaceImportLocalNamesFromSource: () =>
-                    new Set<string>(["TypeFest"]),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectNamedImportLocalNamesFromSource: () =>
+                        new Set<string>(["Writable"]),
+                    collectNamespaceImportLocalNamesFromSource: () =>
+                        new Set<string>(["TypeFest"]),
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix: () => null,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix: () => null,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-as-writable")) as {
@@ -494,32 +500,38 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectNamedImportLocalNamesFromSource: () =>
-                    new Set(["Writable"]),
-                collectNamespaceImportLocalNamesFromSource: () =>
-                    new Set(["TypeFest"]),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectNamedImportLocalNamesFromSource: () =>
+                        new Set(["Writable"]),
+                    collectNamespaceImportLocalNamesFromSource: () =>
+                        new Set(["TypeFest"]),
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-as-writable")) as {

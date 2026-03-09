@@ -155,14 +155,18 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeReplacementFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-json-primitive")) as {
@@ -241,15 +245,19 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFix:
-                    createSafeTypeNodeReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeReplacementFix:
+                        createSafeTypeNodeReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-json-primitive")) as {

@@ -207,20 +207,24 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFixPreservingReadonly: (
-                    ...parameters: Readonly<UnknownArray>
-                ) => {
-                    replacementFixCalls.push(parameters);
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeReplacementFixPreservingReadonly: (
+                        ...parameters: Readonly<UnknownArray>
+                    ) => {
+                        replacementFixCalls.push(parameters);
 
-                    return null;
-                },
-            }));
+                        return null;
+                    },
+                })
+            );
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-type-fest-unknown-array")) as {
@@ -298,15 +302,19 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
                 );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeReplacementFixPreservingReadonly:
-                    createSafeTypeNodeReplacementFixPreservingReadonlyMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeReplacementFixPreservingReadonly:
+                        createSafeTypeNodeReplacementFixPreservingReadonlyMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-unknown-array")) as {

@@ -255,22 +255,26 @@ describe("prefer-type-fest-if source assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map(
-                        Object.entries(ifAliasToReplacement).map(
-                            ([importedName, replacementName]) => [
-                                importedName,
-                                { importedName, replacementName },
-                            ]
-                        )
-                    ),
-                createSafeTypeReferenceReplacementFix:
-                    createSafeTypeReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    collectImportedTypeAliasMatches: () =>
+                        new Map(
+                            Object.entries(ifAliasToReplacement).map(
+                                ([importedName, replacementName]) => [
+                                    importedName,
+                                    { importedName, replacementName },
+                                ]
+                            )
+                        ),
+                    createSafeTypeReferenceReplacementFix:
+                        createSafeTypeReferenceReplacementFixMock,
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 

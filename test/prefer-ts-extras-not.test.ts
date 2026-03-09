@@ -374,12 +374,15 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-not")) as {
@@ -509,12 +512,15 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-not")) as {
@@ -630,12 +636,15 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-not")) as {

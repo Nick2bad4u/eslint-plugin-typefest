@@ -93,7 +93,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
@@ -233,26 +233,30 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
             const capturedReplacementTexts: string[] = [];
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFix: (
-                    _targetNode: unknown,
-                    _importedName: unknown,
-                    replacementText: unknown
-                ) => {
-                    if (typeof replacementText === "string") {
-                        capturedReplacementTexts.push(replacementText);
-                    }
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFix: (
+                        _targetNode: unknown,
+                        _importedName: unknown,
+                        replacementText: unknown
+                    ) => {
+                        if (typeof replacementText === "string") {
+                            capturedReplacementTexts.push(replacementText);
+                        }
 
-                    return null;
-                },
-            }));
+                        return null;
+                    },
+                })
+            );
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-type-fest-literal-union")) as {
@@ -355,14 +359,18 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFix: () => null,
+                })
+            );
 
             const undecoratedRuleModule =
                 (await import("../src/rules/prefer-type-fest-literal-union")) as {
@@ -440,7 +448,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 

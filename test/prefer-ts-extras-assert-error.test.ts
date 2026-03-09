@@ -411,7 +411,7 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -422,20 +422,23 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
                     identifier.name === name,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix: () => null,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix: () => null,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-assert-error")) as {
@@ -499,38 +502,41 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set(["assertError"]),
-                createSafeValueNodeTextReplacementFix:
-                    (
-                        options: Readonly<{
-                            replacementTextFactory: (
-                                replacementName: string
-                            ) => string;
-                            targetNode: unknown;
-                        }>
-                    ) =>
-                    (fixer: ReplaceTextOnlyFixer) =>
-                        fixer.replaceText(
-                            options.targetNode,
-                            options.replacementTextFactory("assertError")
-                        ),
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set(["assertError"]),
+                    createSafeValueNodeTextReplacementFix:
+                        (
+                            options: Readonly<{
+                                replacementTextFactory: (
+                                    replacementName: string
+                                ) => string;
+                                targetNode: unknown;
+                            }>
+                        ) =>
+                        (fixer: ReplaceTextOnlyFixer) =>
+                            fixer.replaceText(
+                                options.targetNode,
+                                options.replacementTextFactory("assertError")
+                            ),
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-assert-error")) as {

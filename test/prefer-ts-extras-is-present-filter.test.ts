@@ -97,7 +97,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -107,11 +107,14 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     expression.name === "undefined",
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueReferenceReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueReferenceReplacementFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
@@ -221,7 +224,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -231,11 +234,14 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     expression.name === "undefined",
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueReferenceReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueReferenceReplacementFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
@@ -329,7 +335,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -339,12 +345,15 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     expression.name === "undefined",
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueReferenceReplacementFix:
-                    createSafeValueReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueReferenceReplacementFix:
+                        createSafeValueReferenceReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {
@@ -460,7 +469,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                 () => "FIX"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -470,12 +479,15 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     expression.name === "undefined",
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueReferenceReplacementFix:
-                    createSafeValueReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueReferenceReplacementFix:
+                        createSafeValueReferenceReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-present-filter")) as {

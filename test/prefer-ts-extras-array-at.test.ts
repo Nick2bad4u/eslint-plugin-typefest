@@ -172,7 +172,7 @@ describe("prefer-ts-extras-array-at source assertions", () => {
 
             const createMethodToFunctionCallFixMock = vi.fn(() => "FIX");
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {},
@@ -180,15 +180,21 @@ describe("prefer-ts-extras-array-at source assertions", () => {
                 }),
             }));
 
-            vi.doMock("../src/_internal/array-like-expression.js", () => ({
-                createIsArrayLikeExpressionChecker: () => () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/array-like-expression.js"),
+                () => ({
+                    createIsArrayLikeExpressionChecker: () => () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Map(),
-                createMethodToFunctionCallFix:
-                    createMethodToFunctionCallFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () => new Map(),
+                    createMethodToFunctionCallFix:
+                        createMethodToFunctionCallFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-array-at")) as {

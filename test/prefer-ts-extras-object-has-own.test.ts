@@ -218,7 +218,7 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -228,12 +228,15 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
                     node.type === "Identifier" && node.name === expectedName,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueReferenceReplacementFix:
-                    createSafeValueReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueReferenceReplacementFix:
+                        createSafeValueReferenceReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-object-has-own")) as {

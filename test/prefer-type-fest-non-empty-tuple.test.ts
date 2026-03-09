@@ -207,7 +207,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
@@ -325,15 +325,19 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
                 );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFixPreservingReadonly:
-                    createSafeTypeNodeTextReplacementFixPreservingReadonlyMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFixPreservingReadonly:
+                        createSafeTypeNodeTextReplacementFixPreservingReadonlyMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-non-empty-tuple")) as {

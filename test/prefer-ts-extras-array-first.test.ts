@@ -193,7 +193,7 @@ describe("prefer-ts-extras-array-first source assertions", () => {
 
             const createMemberToFunctionCallFixMock = vi.fn(() => "FIX");
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {},
@@ -201,16 +201,22 @@ describe("prefer-ts-extras-array-first source assertions", () => {
                 }),
             }));
 
-            vi.doMock("../src/_internal/array-like-expression.js", () => ({
-                createIsArrayLikeExpressionChecker: () => () => true,
-                isWriteTargetMemberExpression: () => false,
-            }));
+            vi.doMock(
+                import("../src/_internal/array-like-expression.js"),
+                () => ({
+                    createIsArrayLikeExpressionChecker: () => () => true,
+                    isWriteTargetMemberExpression: () => false,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () => new Map(),
-                createMemberToFunctionCallFix:
-                    createMemberToFunctionCallFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () => new Map(),
+                    createMemberToFunctionCallFix:
+                        createMemberToFunctionCallFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-array-first")) as {

@@ -57,26 +57,32 @@ describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set(["assertPresent"]),
-                createSafeValueNodeTextReplacementFix: () => () => [],
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set(["assertPresent"]),
+                    createSafeValueNodeTextReplacementFix: () => () => [],
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
-            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
-                areEquivalentExpressions: () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/normalize-expression-text.js"),
+                () => ({
+                    areEquivalentExpressions: () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
@@ -234,43 +240,49 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
             }));
 
-            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
-                areEquivalentExpressions: () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/normalize-expression-text.js"),
+                () => ({
+                    areEquivalentExpressions: () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set(["assertPresent"]),
-                createSafeValueNodeTextReplacementFix:
-                    (
-                        options: Readonly<{
-                            replacementTextFactory: (
-                                replacementName: string
-                            ) => string;
-                            targetNode: unknown;
-                        }>
-                    ) =>
-                    (fixer: ReplaceTextOnlyFixer) =>
-                        fixer.replaceText(
-                            options.targetNode,
-                            options.replacementTextFactory("assertPresent")
-                        ),
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set(["assertPresent"]),
+                    createSafeValueNodeTextReplacementFix:
+                        (
+                            options: Readonly<{
+                                replacementTextFactory: (
+                                    replacementName: string
+                                ) => string;
+                                targetNode: unknown;
+                            }>
+                        ) =>
+                        (fixer: ReplaceTextOnlyFixer) =>
+                            fixer.replaceText(
+                                options.targetNode,
+                                options.replacementTextFactory("assertPresent")
+                            ),
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-assert-present")) as {
@@ -366,43 +378,49 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
             }));
 
-            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
-                areEquivalentExpressions: () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/normalize-expression-text.js"),
+                () => ({
+                    areEquivalentExpressions: () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set(["assertPresent"]),
-                createSafeValueNodeTextReplacementFix:
-                    (
-                        options: Readonly<{
-                            replacementTextFactory: (
-                                replacementName: string
-                            ) => string;
-                            targetNode: unknown;
-                        }>
-                    ) =>
-                    (fixer: ReplaceTextOnlyFixer) =>
-                        fixer.replaceText(
-                            options.targetNode,
-                            options.replacementTextFactory("assertPresent")
-                        ),
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set(["assertPresent"]),
+                    createSafeValueNodeTextReplacementFix:
+                        (
+                            options: Readonly<{
+                                replacementTextFactory: (
+                                    replacementName: string
+                                ) => string;
+                                targetNode: unknown;
+                            }>
+                        ) =>
+                        (fixer: ReplaceTextOnlyFixer) =>
+                            fixer.replaceText(
+                                options.targetNode,
+                                options.replacementTextFactory("assertPresent")
+                            ),
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-assert-present")) as {

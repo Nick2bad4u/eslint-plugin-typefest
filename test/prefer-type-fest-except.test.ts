@@ -168,7 +168,7 @@ describe("prefer-type-fest-except source assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import('../src/_internal/typed-rule.js'), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 

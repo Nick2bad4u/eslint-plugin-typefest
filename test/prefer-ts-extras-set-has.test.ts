@@ -84,7 +84,7 @@ type TypedRuleModuleOverrides = Readonly<{
 }>;
 
 const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
-    vi.doMock("../src/_internal/typed-rule.js", () => ({
+    vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
         ...typedRuleModule,
         createTypedRule: createTypedRuleSelectorAwarePassThrough,
         ...overrides,
@@ -205,11 +205,14 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 }),
             });
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createMethodToFunctionCallFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createMethodToFunctionCallFix: () => null,
+                })
+            );
 
             const createRuleListeners = await loadCreateRuleListeners();
 
@@ -279,11 +282,14 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 }),
             });
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createMethodToFunctionCallFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createMethodToFunctionCallFix: () => null,
+                })
+            );
 
             const createRuleListeners = await loadCreateRuleListeners();
 
@@ -352,11 +358,14 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 }),
             });
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createMethodToFunctionCallFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createMethodToFunctionCallFix: () => null,
+                })
+            );
 
             const createRuleListeners = await loadCreateRuleListeners();
 
@@ -508,11 +517,14 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
                 }),
             });
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createMethodToFunctionCallFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createMethodToFunctionCallFix: () => null,
+                })
+            );
 
             const createRuleListeners = await loadCreateRuleListeners();
 

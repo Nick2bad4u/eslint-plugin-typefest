@@ -159,13 +159,16 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () =>
-                    new Set(["AsyncReturnType"]),
-                createSafeTypeNodeTextReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set(["AsyncReturnType"]),
+                    createSafeTypeNodeTextReplacementFix: () => null,
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
@@ -244,13 +247,17 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFix:
-                    createSafeTypeNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFix:
+                        createSafeTypeNodeTextReplacementFixMock,
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 

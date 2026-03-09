@@ -83,7 +83,7 @@ describe("prefer-type-fest-promisable source assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
@@ -149,18 +149,22 @@ describe("prefer-type-fest-promisable internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map([
-                        ["MaybePromise", { replacementName: "Promisable" }],
-                    ]),
-                createSafeTypeReferenceReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    collectImportedTypeAliasMatches: () =>
+                        new Map([
+                            ["MaybePromise", { replacementName: "Promisable" }],
+                        ]),
+                    createSafeTypeReferenceReplacementFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-promisable")) as {

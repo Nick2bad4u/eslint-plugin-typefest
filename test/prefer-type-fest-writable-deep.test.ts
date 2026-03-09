@@ -260,15 +260,18 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource:
-                    collectDirectNamedImportsFromSourceMock,
-                createSafeTypeReferenceReplacementFix: () => undefined,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource:
+                        collectDirectNamedImportsFromSourceMock,
+                    createSafeTypeReferenceReplacementFix: () => undefined,
+                })
+            );
 
             const moduleUnderTest =
                 (await import("../src/rules/prefer-type-fest-writable-deep")) as unknown as {

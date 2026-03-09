@@ -234,22 +234,28 @@ describe("prefer-ts-extras-is-equal-type internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectNamedImportLocalNamesFromSource: () =>
-                    new Set<string>(["IsEqual"]),
-                collectNamespaceImportLocalNamesFromSource: () =>
-                    new Set<string>(["TypeFest"]),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectNamedImportLocalNamesFromSource: () =>
+                        new Set<string>(["IsEqual"]),
+                    collectNamespaceImportLocalNamesFromSource: () =>
+                        new Set<string>(["TypeFest"]),
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix: () => null,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix: () => null,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {
@@ -320,23 +326,29 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectNamedImportLocalNamesFromSource: () =>
-                    new Set(["IsEqual"]),
-                collectNamespaceImportLocalNamesFromSource: () =>
-                    new Set(["TypeFest"]),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectNamedImportLocalNamesFromSource: () =>
+                        new Set(["IsEqual"]),
+                    collectNamespaceImportLocalNamesFromSource: () =>
+                        new Set(["TypeFest"]),
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-is-equal-type")) as {

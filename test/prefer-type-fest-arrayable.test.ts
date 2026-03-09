@@ -341,20 +341,24 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFix: (
-                    ...parameters: Readonly<UnknownArray>
-                ) => {
-                    replacementFixCalls.push(parameters);
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFix: (
+                        ...parameters: Readonly<UnknownArray>
+                    ) => {
+                        replacementFixCalls.push(parameters);
 
-                    return null;
-                },
-            }));
+                        return null;
+                    },
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-arrayable")) as {
@@ -487,15 +491,18 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () =>
-                    new Set(["Arrayable"]),
-                createSafeTypeNodeTextReplacementFix,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set(["Arrayable"]),
+                    createSafeTypeNodeTextReplacementFix,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-arrayable")) as {

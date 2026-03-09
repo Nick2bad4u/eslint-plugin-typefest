@@ -219,19 +219,26 @@ describe("prefer-type-fest-value-of source assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/normalize-expression-text.js", () => ({
-                areEquivalentTypeNodes: () => true,
-            }));
+            vi.doMock(
+                import("../src/_internal/normalize-expression-text.js"),
+                () => ({
+                    areEquivalentTypeNodes: () => true,
+                })
+            );
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                createSafeTypeNodeTextReplacementFix:
-                    createSafeTypeNodeTextReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeTypeNodeTextReplacementFix:
+                        createSafeTypeNodeTextReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-value-of")) as {

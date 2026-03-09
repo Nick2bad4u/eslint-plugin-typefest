@@ -89,22 +89,25 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set(["assertDefined"]),
-                createSafeValueNodeTextReplacementFix: () => () => [],
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set(["assertDefined"]),
+                    createSafeValueNodeTextReplacementFix: () => () => [],
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
@@ -217,23 +220,26 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map<string, ReadonlySet<string>>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Map<string, ReadonlySet<string>>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,
@@ -380,23 +386,26 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map<string, ReadonlySet<string>>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Map<string, ReadonlySet<string>>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 isGlobalIdentifierNamed: (): boolean => true,
                 isGlobalUndefinedIdentifier: (): boolean => true,

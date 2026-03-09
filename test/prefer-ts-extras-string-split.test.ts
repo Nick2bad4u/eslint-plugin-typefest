@@ -263,7 +263,7 @@ type TypedRuleModuleOverrides = Readonly<{
 }>;
 
 const mockTypedRuleModule = (overrides: TypedRuleModuleOverrides): void => {
-    vi.doMock("../src/_internal/typed-rule.js", () => ({
+    vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
         ...typedRuleModule,
         createTypedRule: createTypedRuleSelectorAwarePassThrough,
         ...overrides,
@@ -705,11 +705,14 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map([["stringSplit", new Set(["stringSplit"])]]),
-                createMethodToFunctionCallFix,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Map([["stringSplit", new Set(["stringSplit"])]]),
+                    createMethodToFunctionCallFix,
+                })
+            );
 
             mockTypedRuleModule({
                 getTypedRuleServices: () => ({

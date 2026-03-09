@@ -336,7 +336,7 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
@@ -363,20 +363,23 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                 isTypeAssignableTo: () => true,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix: () => null,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix: () => null,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
@@ -428,7 +431,7 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
         try {
             vi.resetModules();
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
@@ -452,20 +455,23 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                 isTypeAssignableTo: () => true,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Set<string>(),
-                createSafeValueNodeTextReplacementFix: () => null,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Set<string>(),
+                    createSafeValueNodeTextReplacementFix: () => null,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
@@ -524,7 +530,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
@@ -557,21 +563,24 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                 isTypeAssignableTo: () => true,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map<string, ReadonlySet<string>>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Map<string, ReadonlySet<string>>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {
@@ -718,7 +727,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                 }
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
                 getTypedRuleServices: () => ({
                     checker: {
@@ -737,21 +746,24 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                 isTypeAssignableTo: () => true,
             }));
 
-            vi.doMock("../src/_internal/imported-value-symbols.js", () => ({
-                collectDirectNamedValueImportsFromSource: () =>
-                    new Map<string, ReadonlySet<string>>(),
-                createSafeValueNodeTextReplacementFix:
-                    createSafeValueNodeTextReplacementFixMock,
-                getFunctionCallArgumentText: ({
-                    argumentNode,
-                    sourceCode,
-                }: Readonly<{
-                    argumentNode: unknown;
-                    sourceCode: Readonly<{
-                        getText: (node: unknown) => string;
-                    }>;
-                }>): string => sourceCode.getText(argumentNode).trim(),
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-value-symbols.js"),
+                () => ({
+                    collectDirectNamedValueImportsFromSource: () =>
+                        new Map<string, ReadonlySet<string>>(),
+                    createSafeValueNodeTextReplacementFix:
+                        createSafeValueNodeTextReplacementFixMock,
+                    getFunctionCallArgumentText: ({
+                        argumentNode,
+                        sourceCode,
+                    }: Readonly<{
+                        argumentNode: unknown;
+                        sourceCode: Readonly<{
+                            getText: (node: unknown) => string;
+                        }>;
+                    }>): string => sourceCode.getText(argumentNode).trim(),
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-ts-extras-safe-cast-to")) as {

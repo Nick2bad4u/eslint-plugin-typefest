@@ -172,39 +172,43 @@ describe("prefer-type-fest-iterable-element source assertions", () => {
                     args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
-            vi.doMock("../src/_internal/typed-rule.js", () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
-            vi.doMock("../src/_internal/imported-type-aliases.js", () => ({
-                collectDirectNamedImportsFromSource: () => new Set<string>(),
-                collectImportedTypeAliasMatches: () =>
-                    new Map([
-                        [
-                            "SetElement",
-                            {
-                                importedName: "SetElement",
-                                replacementName: "IterableElement",
-                            },
-                        ],
-                        [
-                            "SetEntry",
-                            {
-                                importedName: "SetEntry",
-                                replacementName: "IterableElement",
-                            },
-                        ],
-                        [
-                            "SetValues",
-                            {
-                                importedName: "SetValues",
-                                replacementName: "IterableElement",
-                            },
-                        ],
-                    ]),
-                createSafeTypeReferenceReplacementFix:
-                    createSafeTypeReferenceReplacementFixMock,
-            }));
+            vi.doMock(
+                import("../src/_internal/imported-type-aliases.js"),
+                () => ({
+                    collectDirectNamedImportsFromSource: () =>
+                        new Set<string>(),
+                    collectImportedTypeAliasMatches: () =>
+                        new Map([
+                            [
+                                "SetElement",
+                                {
+                                    importedName: "SetElement",
+                                    replacementName: "IterableElement",
+                                },
+                            ],
+                            [
+                                "SetEntry",
+                                {
+                                    importedName: "SetEntry",
+                                    replacementName: "IterableElement",
+                                },
+                            ],
+                            [
+                                "SetValues",
+                                {
+                                    importedName: "SetValues",
+                                    replacementName: "IterableElement",
+                                },
+                            ],
+                        ]),
+                    createSafeTypeReferenceReplacementFix:
+                        createSafeTypeReferenceReplacementFixMock,
+                })
+            );
 
             const authoredRuleModule =
                 (await import("../src/rules/prefer-type-fest-iterable-element")) as {
