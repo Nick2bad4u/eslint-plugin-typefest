@@ -20,6 +20,30 @@ declare global {
 /** Delay before re-initializing effects after client-side route transitions. */
 const ROUTE_REFRESH_DELAY_MS = 100;
 
+/** Supported TypeDoc runtime item prefixes rendered in sidebar labels. */
+const runtimeSidebarKindPrefixes = [
+    "Accessor:",
+    "Class:",
+    "Enum:",
+    "Function:",
+    "Interface:",
+    "Method:",
+    "Namespace:",
+    "Property:",
+    "Type Alias:",
+    "Type:",
+    "Variable:",
+] as const;
+
+/** Stored mutation record used to restore labels during cleanup. */
+type SidebarLabelMutation = {
+    element: HTMLAnchorElement;
+    originalLabel: string;
+};
+
+/** Dataset key used to mark links already tokenized by this enhancer. */
+const SIDEBAR_TOKENIZED_DATA_KEY = "sbTokenized";
+
 /**
  * Check whether a node is an {@link HTMLElement}.
  *
@@ -29,6 +53,285 @@ const ROUTE_REFRESH_DELAY_MS = 100;
  */
 function isHTMLElement(element: Element | null): element is HTMLElement {
     return element instanceof HTMLElement;
+}
+
+/**
+ * Check whether a sidebar link belongs to the runtime API category.
+ *
+ * @param link - Candidate sidebar link.
+ *
+ * @returns `true` when link is under `.sb-cat-api-runtime`.
+ */
+function isRuntimeSidebarLink(link: HTMLAnchorElement): boolean {
+    return link.closest(".sb-cat-api-runtime") !== null;
+}
+
+/**
+ * Check whether a sidebar link belongs to a numbered rules subsection.
+ *
+ * @param link - Candidate sidebar link.
+ *
+ * @returns `true` when link is in `ts-extras` or `type-fest` rule lists.
+ */
+function isNumberedRuleSidebarLink(link: HTMLAnchorElement): boolean {
+    return (
+        link.closest(".sb-cat-rules-ts-extras") !== null ||
+        link.closest(".sb-cat-rules-type-fest") !== null
+    );
+}
+
+/**
+ * Detect runtime kind prefix in a sidebar label.
+ *
+ * @param label - Trimmed sidebar label.
+ *
+ * @returns Matching prefix when present.
+ */
+function getRuntimeSidebarKindPrefix(
+    label: string
+): (typeof runtimeSidebarKindPrefixes)[number] | null {
+    for (const prefix of runtimeSidebarKindPrefixes) {
+        if (label.startsWith(`${prefix} `)) {
+            return prefix;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Parse an optional numeric rule prefix from a sidebar label.
+ *
+ * @param label - Trimmed sidebar label.
+ *
+ * @returns Number token and remainder when label begins with digits.
+ */
+function getRuleNumberPrefix(
+    label: string
+): null | Readonly<{ numberToken: string; remainder: string }> {
+    const match = /^(\d{2,3})\s+(.+)$/.exec(label);
+
+    if (match === null) {
+        return null;
+    }
+
+    const [
+        ,
+        numberToken,
+        remainder,
+    ] = match;
+
+    if (numberToken === undefined || remainder === undefined) {
+        return null;
+    }
+
+    return {
+        numberToken,
+        remainder,
+    };
+}
+
+/**
+ * Replace one sidebar link label with a highlighted leading token.
+ *
+ * @param options - Token replacement parameters.
+ */
+function setSidebarLeadingToken(
+    options: Readonly<{
+        link: HTMLAnchorElement;
+        separator?: string;
+        tokenClassName: string;
+        tokenText: string;
+        remainderText: string;
+    }>
+): void {
+    const {
+        link,
+        separator = " ",
+        tokenClassName,
+        tokenText,
+        remainderText,
+    } = options;
+    const token = document.createElement("span");
+
+    token.className = tokenClassName;
+    token.textContent = tokenText;
+    link.dataset[SIDEBAR_TOKENIZED_DATA_KEY] = tokenClassName;
+
+    link.replaceChildren(
+        token,
+        document.createTextNode(`${separator}${remainderText}`)
+    );
+}
+
+/**
+ * Check whether a sidebar link was already tokenized by this enhancer pass.
+ *
+ * @param link - Candidate sidebar link.
+ *
+ * @returns `true` when already tokenized.
+ */
+function isSidebarLinkTokenized(link: HTMLAnchorElement): boolean {
+    const tokenizedValue = link.dataset[SIDEBAR_TOKENIZED_DATA_KEY];
+
+    return tokenizedValue !== undefined && tokenizedValue.length > 0;
+}
+
+/**
+ * Enhance sidebar readability by tinting leading label tokens.
+ *
+ * @returns Cleanup callback that restores original labels.
+ */
+function applySidebarLabelTokenColoring(): CleanupFunction {
+    const mutations: SidebarLabelMutation[] = [];
+
+    const processLinks = (sidebarLinks: readonly HTMLAnchorElement[]): void => {
+        for (const link of sidebarLinks) {
+            if (isSidebarLinkTokenized(link)) {
+                continue;
+            }
+
+            const linkLabel = link.textContent?.trim();
+
+            if (!linkLabel) {
+                continue;
+            }
+
+            if (isRuntimeSidebarLink(link)) {
+                const runtimePrefix = getRuntimeSidebarKindPrefix(linkLabel);
+
+                if (runtimePrefix !== null) {
+                    const remainderText = linkLabel
+                        .slice(runtimePrefix.length)
+                        .trimStart();
+
+                    if (remainderText.length > 0) {
+                        mutations.push({
+                            element: link,
+                            originalLabel: linkLabel,
+                        });
+
+                        setSidebarLeadingToken({
+                            link,
+                            remainderText,
+                            separator: "",
+                            tokenClassName: "sb-inline-runtime-kind",
+                            tokenText: `${runtimePrefix}\u00A0`,
+                        });
+                    }
+
+                    continue;
+                }
+            }
+
+            if (isNumberedRuleSidebarLink(link)) {
+                const ruleNumberPrefix = getRuleNumberPrefix(linkLabel);
+
+                if (ruleNumberPrefix !== null) {
+                    mutations.push({
+                        element: link,
+                        originalLabel: linkLabel,
+                    });
+
+                    setSidebarLeadingToken({
+                        link,
+                        remainderText: ruleNumberPrefix.remainder,
+                        tokenClassName: "sb-inline-rule-number",
+                        tokenText: ruleNumberPrefix.numberToken,
+                    });
+                }
+            }
+        }
+    };
+
+    const processSidebarMenuLinks = (): void => {
+        const sidebarLinks = document.querySelectorAll<HTMLAnchorElement>(
+            ".theme-doc-sidebar-menu .menu__link"
+        );
+
+        processLinks(Array.from(sidebarLinks));
+    };
+
+    processSidebarMenuLinks();
+
+    const sidebarMenu = document.querySelector<HTMLElement>(
+        ".theme-doc-sidebar-menu"
+    );
+
+    let sidebarRefreshTimer: null | ReturnType<typeof setTimeout> = null;
+
+    const scheduleSidebarRefresh = (): void => {
+        if (sidebarRefreshTimer) {
+            clearTimeout(sidebarRefreshTimer);
+        }
+
+        sidebarRefreshTimer = setTimeout(() => {
+            processSidebarMenuLinks();
+            sidebarRefreshTimer = null;
+        }, 0);
+    };
+
+    const handleSidebarInteraction = (): void => {
+        scheduleSidebarRefresh();
+    };
+
+    const sidebarObserver =
+        sidebarMenu === null
+            ? null
+            : new MutationObserver((records) => {
+                  const addedLinks: HTMLAnchorElement[] = [];
+
+                  for (const record of records) {
+                      for (const addedNode of Array.from(record.addedNodes)) {
+                          if (!(addedNode instanceof HTMLElement)) {
+                              continue;
+                          }
+
+                          if (addedNode.matches("a.menu__link")) {
+                              addedLinks.push(addedNode as HTMLAnchorElement);
+                          }
+
+                          const nestedLinks =
+                              addedNode.querySelectorAll<HTMLAnchorElement>(
+                                  "a.menu__link"
+                              );
+                          addedLinks.push(...Array.from(nestedLinks));
+                      }
+                  }
+
+                  if (addedLinks.length > 0) {
+                      processLinks(addedLinks);
+                      return;
+                  }
+
+                  scheduleSidebarRefresh();
+              });
+
+    sidebarObserver?.observe(sidebarMenu ?? document.body, {
+        childList: true,
+        subtree: true,
+    });
+
+    sidebarMenu?.addEventListener("click", handleSidebarInteraction);
+
+    return (): void => {
+        sidebarMenu?.removeEventListener("click", handleSidebarInteraction);
+        sidebarObserver?.disconnect();
+
+        if (sidebarRefreshTimer) {
+            clearTimeout(sidebarRefreshTimer);
+            sidebarRefreshTimer = null;
+        }
+
+        for (const mutation of mutations) {
+            if (!mutation.element.isConnected) {
+                continue;
+            }
+
+            delete mutation.element.dataset[SIDEBAR_TOKENIZED_DATA_KEY];
+            mutation.element.textContent = mutation.originalLabel;
+        }
+    };
 }
 
 /**
@@ -128,6 +431,7 @@ function initializeAdvancedFeatures(): CleanupFunction {
     const cleanupFunctions: CleanupFunction[] = [];
 
     cleanupFunctions.push(createScrollIndicator());
+    cleanupFunctions.push(applySidebarLabelTokenColoring());
 
     if (!prefersReducedMotion) {
         cleanupFunctions.push(applyThemeToggleAnimation());

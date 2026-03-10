@@ -154,7 +154,7 @@ const config: Config = {
         [
             "@docusaurus/plugin-content-docs",
             {
-                editUrl: `https://github.com/${organizationName}/${projectName}/tree/main/`,
+                editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/`,
                 id: "rules",
                 path: "../rules",
                 routeBasePath: "docs/rules",
@@ -174,7 +174,7 @@ const config: Config = {
                     blogSidebarCount: "ALL",
                     blogSidebarTitle: "All posts",
                     blogTitle: "eslint-plugin-typefest Blog",
-                    editUrl: `https://github.com/${organizationName}/${projectName}/tree/main/docs/docusaurus/blog/`,
+                    editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     feedOptions: {
                         type: ["rss", "atom"],
                         xslt: true,
@@ -189,20 +189,19 @@ const config: Config = {
                 },
                 docs: {
                     breadcrumbs: true,
-                    editUrl: `https://github.com/${organizationName}/${projectName}/tree/main/`,
+                    editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     path: "site-docs",
                     includeCurrentVersion: true,
                     onInlineTags: "ignore",
                     routeBasePath: "docs",
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
-                    sidebarCollapsed: false,
+                    sidebarCollapsed: true,
                     sidebarCollapsible: true,
                     sidebarPath: "./sidebars.ts",
                 },
                 pages: {
-                    editUrl:
-                        "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues/new?template=custom-issue.md#",
+                    editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     exclude: [
                         // Declarations (often generated next to CSS modules)
                         // must never become routable pages.

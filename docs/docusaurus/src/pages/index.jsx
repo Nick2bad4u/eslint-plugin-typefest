@@ -133,13 +133,13 @@ export default function Home() {
 
                             <div className={styles.heroActions}>
                                 <Link
-                                    className="button button--primary button--lg"
+                                    className={`button button--lg ${styles.heroActionButton} ${styles.heroActionPrimary}`}
                                     to="/docs/rules/overview"
                                 >
                                     Start with Overview
                                 </Link>
                                 <Link
-                                    className="button button--secondary button--lg"
+                                    className={`button button--lg ${styles.heroActionButton} ${styles.heroActionSecondary}`}
                                     to="/docs/rules/presets"
                                 >
                                     Compare Presets

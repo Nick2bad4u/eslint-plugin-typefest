@@ -10,6 +10,7 @@ import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
 /** Minimal document item shape used by generated rule categories. */
 type SidebarDocItem = {
+    readonly label: string;
     readonly id: string;
     readonly type: "doc";
 };
@@ -33,14 +34,39 @@ const allRuleDocIds = readdirSync(rulesDirectoryPath, {
     .map((entry) => toRuleDocId(entry.name))
     .sort((left, right) => left.localeCompare(right));
 
+/** Rule docs eligible for numbered display in the Rules sidebar section. */
+const allNumberedRuleDocIds = allRuleDocIds.filter((ruleDocId) =>
+    ruleDocId.startsWith("prefer-")
+);
+
+/** Resolve a stable one-based rule number for each numbered rule doc id. */
+const ruleNumberByDocId = new Map<string, number>(
+    allNumberedRuleDocIds.map((ruleDocId, index) => [ruleDocId, index + 1])
+);
+
+/** Format a sidebar label with a stable numeric prefix. */
+const toNumberedRuleLabel = (ruleNumber: number, ruleDocId: string): string =>
+    `${String(ruleNumber).padStart(2, "0")} ${ruleDocId}`;
+
 /** Build sidebar doc items for rule docs matching a given filename prefix. */
 const createRuleItemsByPrefix = (prefix: string): SidebarDocItem[] =>
     allRuleDocIds
         .filter((ruleDocId) => ruleDocId.startsWith(prefix))
-        .map((ruleDocId) => ({
-            id: ruleDocId,
-            type: "doc",
-        }));
+        .map((ruleDocId) => {
+            const ruleNumber = ruleNumberByDocId.get(ruleDocId);
+
+            if (ruleNumber === undefined) {
+                throw new TypeError(
+                    `Missing stable sidebar rule number for '${ruleDocId}'.`
+                );
+            }
+
+            return {
+                id: ruleDocId,
+                label: toNumberedRuleLabel(ruleNumber, ruleDocId),
+                type: "doc",
+            };
+        });
 
 /** Sidebar entries for `prefer-ts-extras-*` rule docs. */
 const tsExtrasRuleItems = createRuleItemsByPrefix("prefer-ts-extras-");
@@ -153,6 +179,7 @@ const sidebars: SidebarsConfig = {
                 {
                     className: "sb-cat-rules-ts-extras",
                     collapsed: true,
+                    collapsible: true,
                     customProps: {
                         badge: "ts-extras",
                     },
@@ -169,6 +196,7 @@ const sidebars: SidebarsConfig = {
                 {
                     className: "sb-cat-rules-type-fest",
                     collapsed: true,
+                    collapsible: true,
                     customProps: {
                         badge: "type-fest",
                     },

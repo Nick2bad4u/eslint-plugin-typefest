@@ -40,10 +40,6 @@ type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
 
 export type { TypedRuleContext };
 
-type TypefestRuleCreator = ReturnType<
-    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
->;
-
 /**
  * Plugin-specific metadata extensions for `meta.docs`.
  *
@@ -55,13 +51,28 @@ type TypefestRuleCreator = ReturnType<
 type TypefestRuleDocs = {
     recommended?: boolean;
     requiresTypeChecking?: boolean;
-    ruleCatalogId?: string;
+    ruleCatalogId: string;
     ruleId?: string;
     ruleNumber?: number;
     typefestConfigs?:
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
 };
+
+/**
+ * Rule authoring metadata contract accepted by `RuleCreator`.
+ *
+ * @remarks
+ * `ruleCatalogId` is injected centrally by `createTypedRule`, so authored rule
+ * modules are not required to provide it.
+ */
+type TypefestRuleInputDocs = Omit<TypefestRuleDocs, "ruleCatalogId"> & {
+    ruleCatalogId?: string;
+};
+
+type TypefestRuleCreator = ReturnType<
+    typeof ESLintUtils.RuleCreator<TypefestRuleInputDocs>
+>;
 
 /**
  * Rule-creator wrapper used by all plugin rules.
@@ -83,6 +94,12 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     const ruleDocs = createdRule.meta.docs;
     assertDefined(ruleDocs);
     const canonicalDocsUrl = createRuleDocsUrl(ruleDefinition.name);
+
+    if (ruleDefinition.name.startsWith("prefer-") && catalogEntry === null) {
+        throw new TypeError(
+            `Rule '${ruleDefinition.name}' is missing from the stable rule catalog.`
+        );
+    }
 
     const docsWithCatalog: TSESLint.RuleMetaDataDocs & TypefestRuleDocs =
         catalogEntry === null

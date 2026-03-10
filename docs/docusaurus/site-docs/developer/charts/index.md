@@ -10,20 +10,20 @@ This section provides high-signal diagrams for the plugin architecture, rule exe
 
 ## Chart set
 
-- System architecture overview
-- Rule lifecycle and autofix flow
-- Docs and API pipeline
-- Rule catalog and docs synchronization
-- Change impact and validation matrix
-- Quality gates and release flow
-- Typed rule semantic analysis flow
-- Import-safe autofix decision tree
-- Preset composition and rule matrix
-- Docs link integrity and anchor stability
-- Typed rule performance budget and hotspots
-- Diagnostics and regression triage loop
-- Preset semver and deprecation lifecycle
-- Rule authoring to release lifecycle
+- [System architecture overview](./system-architecture-overview.md)
+- [Rule lifecycle and autofix flow](./rule-lifecycle-and-autofix-flow.md)
+- [Docs and API pipeline](./docs-and-api-pipeline.md)
+- [Rule catalog and docs synchronization](./rule-catalog-and-doc-sync.md)
+- [Change impact and validation matrix](./change-impact-and-validation-matrix.md)
+- [Quality gates and release flow](./quality-gates-and-release-flow.md)
+- [Typed rule semantic analysis flow](./typed-rule-semantic-analysis-flow.md)
+- [Import-safe autofix decision tree](./import-safe-autofix-decision-tree.md)
+- [Preset composition and rule matrix](./preset-composition-and-rule-matrix.md)
+- [Docs link integrity and anchor stability](./docs-link-integrity-and-anchor-stability.md)
+- [Typed rule performance budget and hotspots](./typed-rule-performance-budget-and-hotspots.md)
+- [Diagnostics and regression triage loop](./diagnostics-and-regression-triage-loop.md)
+- [Preset semver and deprecation lifecycle](./preset-semver-and-deprecation-lifecycle.md)
+- [Rule authoring to release lifecycle](./rule-authoring-to-release-lifecycle.md)
 
 Use the **Charts** category in the Developer sidebar to navigate between these pages.
 

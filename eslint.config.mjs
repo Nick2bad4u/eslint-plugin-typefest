@@ -1035,6 +1035,7 @@ export default defineConfig([
             "@typescript-eslint/unbound-method": "warn",
             "@typescript-eslint/unified-signatures": "warn",
             "@typescript-eslint/use-unknown-in-catch-callback-variable": "warn",
+            "canonical/export-specifier-newline": "off",
             "canonical/filename-match-exported": "off",
             "canonical/filename-match-regex": "off", // Taken care of by unicorn rules
             "canonical/filename-no-index": "error",
@@ -1917,11 +1918,15 @@ export default defineConfig([
             "package-json/require-homepage": "warn",
             "package-json/require-keywords": "warn",
             "package-json/require-license": "warn",
+            "package-json/require-main": "warn",
             "package-json/require-name": "warn",
             "package-json/require-optionalDependencies": "off",
+            "package-json/require-os": "warn",
             // Package.json Plugin Rules (package-json/*)
             "package-json/require-packageManager": "warn",
             "package-json/require-peerDependencies": "warn",
+            "package-json/require-private": "warn",
+            "package-json/require-publishConfig": "warn",
             "package-json/require-repository": "error",
             "package-json/require-scripts": "warn",
             "package-json/require-sideEffects": "warn",
@@ -2811,6 +2816,7 @@ export default defineConfig([
             "callback-return": "off",
             camelcase: "off",
             "canonical/destructuring-property-newline": "off",
+            "canonical/export-specifier-newline": "off",
             "canonical/import-specifier-newline": "off",
             "capitalized-comments": [
                 "error",

@@ -1,5 +1,5 @@
 /** eslint-disable css/use-baseline */
-/* stylelint-disable plugin/no-low-performance-animation-properties, order/properties-order, no-descending-specificity, csstools/use-nesting, a11y/media-prefers-reduced-motion -- Docusaurus CSS breaks these features */
+/* stylelint-disable plugin/no-low-performance-animation-properties, order/properties-order, no-descending-specificity, a11y/media-prefers-reduced-motion -- Docusaurus CSS breaks these features */
 
 /**
  * Global CSS overrides for Docusaurus documentation site.
@@ -37,6 +37,7 @@
     --sb-accent-developer: #8b5cf6;
     --sb-accent-rules: #f97316;
     --sb-accent-presets: #eab308;
+    --sb-accent-guides: #06b6d4;
     --sb-accent-api-overview: #6366f1;
     --sb-accent-api-types: #14b8a6;
     --sb-accent-api-runtime: #f43f5e;
@@ -44,6 +45,7 @@
     --sb-accent-adr: #f59e0b;
     --sb-accent-rules-ts: #22c55e;
     --sb-accent-rules-type-fest: #a855f7;
+    --sb-prefix-rule-number: #52525b;
 }
 
 [data-theme="dark"] {
@@ -59,6 +61,7 @@
     --sb-accent-developer: #c084fc;
     --sb-accent-rules: #fb923c;
     --sb-accent-presets: #facc15;
+    --sb-accent-guides: #67e8f9;
     --sb-accent-api-overview: #a5b4fc;
     --sb-accent-api-types: #2dd4bf;
     --sb-accent-api-runtime: #fb7185;
@@ -66,6 +69,7 @@
     --sb-accent-adr: #fbbf24;
     --sb-accent-rules-ts: #4ade80;
     --sb-accent-rules-type-fest: #c084fc;
+    --sb-prefix-rule-number: #a1a1aa;
 }
 
 .theme-doc-sidebar-item-link-level-1 {
@@ -78,6 +82,24 @@
         background-color 140ms ease-in-out,
         border-color 140ms ease-in-out,
         color 140ms ease-in-out;
+}
+
+.sb-inline-rule-number,
+.sb-inline-runtime-kind {
+    font-weight: 650;
+}
+
+.sb-inline-rule-number {
+    color: var(--sb-prefix-rule-number);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.sb-cat-api-runtime .sb-inline-runtime-kind {
+    color: color-mix(in srgb, var(--sb-accent-api-runtime) 76%, currentcolor);
+    display: inline-block;
+    margin-inline-end: 0.24rem;
+    white-space: nowrap;
 }
 
 .theme-doc-sidebar-menu .menu__link:hover,
@@ -94,12 +116,15 @@
 .sb-doc-overview > .menu__link,
 .sb-doc-getting-started > .menu__link,
 .sb-doc-api-overview > .menu__link,
+.sb-cat-guides > .menu__list-item-collapsible .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
 .sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
 .sb-cat-dev-charts > .menu__list-item-collapsible .menu__link,
+.sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link,
+.sb-cat-rules-type-fest > .menu__list-item-collapsible .menu__link,
 .sb-cat-rules > .menu__list-item-collapsible .menu__link {
     border-inline-start: 4px solid transparent;
     padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 4px);
@@ -115,6 +140,10 @@
 
 .sb-doc-api-overview > .menu__link {
     border-inline-start-color: var(--sb-accent-api-overview);
+}
+
+.sb-cat-guides > .menu__list-item-collapsible .menu__link {
+    border-inline-start-color: var(--sb-accent-guides);
 }
 
 .sb-cat-developer > .menu__list-item-collapsible .menu__link {
@@ -148,6 +177,7 @@
 .sb-cat-developer > .menu__list-item-collapsible .menu__link,
 .sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
+.sb-cat-guides > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-types > .menu__list-item-collapsible .menu__link,
 .sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
 .sb-cat-dev-charts > .menu__list-item-collapsible .menu__link,
@@ -272,6 +302,12 @@
     box-shadow: inset 0 0 0 1px rgb(234 179 8 / 25%);
 }
 
+.sb-cat-guides:not(.menu__list-item--collapsed)
+    > .menu__list-item-collapsible
+    .menu__link {
+    box-shadow: inset 0 0 0 1px rgb(6 182 212 / 28%);
+}
+
 .sb-cat-rules-ts-extras:not(.menu__list-item--collapsed)
     > .menu__list-item-collapsible
     .menu__link {
@@ -310,6 +346,16 @@
     border-inline-start: 2px solid rgb(249 115 22 / 45%);
 }
 
+.sb-cat-guides .theme-doc-sidebar-item-link-level-2 > .menu__link {
+    border-inline-start: 2px solid rgb(6 182 212 / 45%);
+    padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 2px);
+}
+
+.sb-cat-guides .theme-doc-sidebar-item-link-level-3 > .menu__link {
+    border-inline-start: 2px solid rgb(6 182 212 / 36%);
+    padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 2px);
+}
+
 .sb-cat-rules-ts-extras .theme-doc-sidebar-item-link-level-3 > .menu__link,
 .sb-cat-rules-type-fest .theme-doc-sidebar-item-link-level-3 > .menu__link {
     border-inline-start: 3px solid transparent;
@@ -317,26 +363,6 @@
     align-items: baseline;
     gap: 0.46rem;
     padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 3px);
-}
-
-.sb-cat-rules > .menu__list {
-    counter-reset: sidebar-rule-number;
-}
-
-.sb-cat-rules-ts-extras
-    .theme-doc-sidebar-item-link-level-3
-    > .menu__link::before,
-.sb-cat-rules-type-fest
-    .theme-doc-sidebar-item-link-level-3
-    > .menu__link::before {
-    content: counter(sidebar-rule-number, decimal-leading-zero);
-    counter-increment: sidebar-rule-number;
-    color: rgb(186 230 253 / 96%);
-    font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    inline-size: 1.45rem;
-    text-align: end;
 }
 
 /* ts-extras palette */
@@ -418,6 +444,8 @@
 .sb-cat-api-types .theme-doc-sidebar-item-link-level-4 > .menu__link,
 .sb-cat-api-runtime .theme-doc-sidebar-item-link-level-3 > .menu__link,
 .sb-cat-api-runtime .theme-doc-sidebar-item-link-level-4 > .menu__link,
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-5 > .menu__link,
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-6 > .menu__link,
 .sb-cat-dev-charts .theme-doc-sidebar-item-link-level-3 > .menu__link {
     border-inline-start: 3px solid transparent;
     border-radius: 0.42rem;
@@ -426,6 +454,62 @@
     padding-block: 0.28rem;
     padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 3px);
     text-wrap: pretty;
+}
+
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-3
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-4
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-5
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-6
+    > .menu__list-item-collapsible
+    > .menu__link {
+    border-inline-start: 3px solid
+        color-mix(in srgb, var(--sb-accent-api-runtime) 78%, transparent);
+    border-radius: 0.42rem;
+    padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 3px);
+}
+
+/* Runtime API labels are often long; optimize readability over truncation. */
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-3 > .menu__link,
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-4 > .menu__link,
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-5 > .menu__link,
+.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-6 > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-3
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-4
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-5
+    > .menu__list-item-collapsible
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-category-level-6
+    > .menu__list-item-collapsible
+    > .menu__link {
+    line-height: 1.375;
+    overflow-wrap: normal;
+    text-wrap: pretty;
+    white-space: normal;
+    word-break: keep-all;
+}
+
+/* Recover horizontal room at deep levels where TypeDoc paths get very long. */
+.sb-cat-api-runtime .menu__list .menu__list {
+    margin-inline-start: 0.26rem;
+    padding-inline-start: 0.42rem;
 }
 
 /* developer ADR palette */
@@ -496,6 +580,12 @@
     > .menu__link,
 .sb-cat-api-runtime
     .theme-doc-sidebar-item-link-level-4:nth-child(4n + 1)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-5:nth-child(4n + 1)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-6:nth-child(4n + 1)
     > .menu__link {
     border-inline-start-color: #f43f5e;
 }
@@ -505,6 +595,12 @@
     > .menu__link,
 .sb-cat-api-runtime
     .theme-doc-sidebar-item-link-level-4:nth-child(4n + 2)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-5:nth-child(4n + 2)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-6:nth-child(4n + 2)
     > .menu__link {
     border-inline-start-color: #fb7185;
 }
@@ -514,6 +610,12 @@
     > .menu__link,
 .sb-cat-api-runtime
     .theme-doc-sidebar-item-link-level-4:nth-child(4n + 3)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-5:nth-child(4n + 3)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-6:nth-child(4n + 3)
     > .menu__link {
     border-inline-start-color: #e11d48;
 }
@@ -523,6 +625,12 @@
     > .menu__link,
 .sb-cat-api-runtime
     .theme-doc-sidebar-item-link-level-4:nth-child(4n)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-5:nth-child(4n)
+    > .menu__link,
+.sb-cat-api-runtime
+    .theme-doc-sidebar-item-link-level-6:nth-child(4n)
     > .menu__link {
     border-inline-start-color: #be123c;
 }

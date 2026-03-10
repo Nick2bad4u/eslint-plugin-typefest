@@ -16,6 +16,7 @@ interface RuleMetadataSnapshot {
             description?: string;
             recommended?: boolean;
             requiresTypeChecking?: boolean;
+            ruleCatalogId?: string;
             ruleId?: string;
             ruleNumber?: number;
             typefestConfigs?: readonly string[] | string;
@@ -41,9 +42,23 @@ const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
 const isBoolean = (value: unknown): value is boolean =>
     typeof value === "boolean";
 
-/** Validate docs.ruleId and return a normalized string value. */
+/** Stable `R###` identifier format used by docs.ruleId and docs.ruleCatalogId. */
+const ruleIdentifierPattern = /^R\d{3}$/v;
+
+/** Validate docs.ruleCatalogId and return a normalized string value. */
 const getValidatedRuleCatalogId = (value: unknown): string => {
-    expect(typeof value === "string" && /^R\d{3}$/v.test(value)).toBeTruthy();
+    expect(
+        typeof value === "string" && ruleIdentifierPattern.test(value)
+    ).toBeTruthy();
+
+    return typeof value === "string" ? value : "";
+};
+
+/** Validate docs.ruleId and return a normalized string value. */
+const getValidatedRuleId = (value: unknown): string => {
+    expect(
+        typeof value === "string" && ruleIdentifierPattern.test(value)
+    ).toBeTruthy();
 
     return typeof value === "string" ? value : "";
 };
@@ -213,6 +228,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
                 "typefest.configs.recommended-type-checked"
             );
 
+            const docsRuleCatalogId = metadataRule.meta?.docs?.ruleCatalogId;
             const requiresTypeChecking =
                 metadataRule.meta?.docs?.requiresTypeChecking;
             const docsRuleId = metadataRule.meta?.docs?.ruleId;
@@ -220,9 +236,14 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
             expect(isBoolean(requiresTypeChecking)).toBeTruthy();
 
-            const normalizedRuleId = getValidatedRuleCatalogId(docsRuleId);
+            const normalizedRuleCatalogId =
+                getValidatedRuleCatalogId(docsRuleCatalogId);
+            const normalizedRuleId = getValidatedRuleId(docsRuleId);
             const normalizedRuleNumber = getValidatedRuleNumber(docsRuleNumber);
 
+            expect(ruleIdentifierPattern.test(normalizedRuleCatalogId)).toBe(
+                true
+            );
             expect(normalizedRuleId).toBe(
                 `R${String(normalizedRuleNumber).padStart(3, "0")}`
             );
