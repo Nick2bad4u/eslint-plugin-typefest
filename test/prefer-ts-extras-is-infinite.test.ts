@@ -87,6 +87,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -192,6 +193,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,
@@ -357,6 +359,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalIdentifierNamed: (
                     _context: unknown,

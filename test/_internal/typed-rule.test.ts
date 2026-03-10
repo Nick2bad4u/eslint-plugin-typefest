@@ -10,6 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     getSignatureParameterTypeAt,
     getTypedRuleServices,
+    getTypedRuleServicesOrUndefined,
     hasTypeServices,
     isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
@@ -399,6 +400,42 @@ describe(hasTypeServices, () => {
         } as unknown;
 
         expect(hasTypeServices(context as never)).toBeFalsy();
+    });
+});
+
+describe(getTypedRuleServicesOrUndefined, () => {
+    it("returns typed services when parser services include a program", () => {
+        const checker = {} as ts.TypeChecker;
+        const parserServices = createParserServices({
+            getTypeChecker: () => checker,
+        } as ts.Program);
+
+        const context = createTypedRuleContext(parserServices);
+        const typedServices = getTypedRuleServicesOrUndefined(context as never);
+
+        expect(typedServices).toBeDefined();
+        expect(typedServices?.checker).toBe(checker);
+        expect(typedServices?.parserServices).toBe(parserServices);
+    });
+
+    it("returns undefined when parser services do not expose a program", () => {
+        const parserServices = createParserServices(null);
+
+        const context = createTypedRuleContext(parserServices);
+
+        expect(
+            getTypedRuleServicesOrUndefined(context as never)
+        ).toBeUndefined();
+    });
+
+    it("returns undefined when parser-services lookup throws", () => {
+        const context = {
+            sourceCode: {},
+        } as unknown;
+
+        expect(
+            getTypedRuleServicesOrUndefined(context as never)
+        ).toBeUndefined();
     });
 });
 

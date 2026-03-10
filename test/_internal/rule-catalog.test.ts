@@ -8,6 +8,7 @@ import {
     typefestRuleCatalogEntries,
     validateRuleCatalogIntegrity,
 } from "../../src/_internal/rule-catalog";
+import { typefestRules } from "../../src/_internal/rules-registry";
 
 interface MutableRuleCatalogEntry {
     ruleId: `R${string}`;
@@ -38,6 +39,20 @@ const withMutatedCatalogEntry = (
 };
 
 describe("rule-catalog", () => {
+    it("stays synchronized with the runtime rules registry", () => {
+        const catalogRuleNames = typefestRuleCatalogEntries
+            .map((entry) => entry.ruleName)
+            .toSorted((left, right) => left.localeCompare(right));
+        const registryRuleNames = Object.keys(typefestRules).toSorted(
+            (left, right) => left.localeCompare(right)
+        );
+
+        expect(catalogRuleNames).toStrictEqual(registryRuleNames);
+        expect(typefestRuleCatalogEntries).toHaveLength(
+            registryRuleNames.length
+        );
+    });
+
     it("resolves known entries by rule name and id", () => {
         const byName = getRuleCatalogEntryForRuleName(
             "prefer-ts-extras-array-at"

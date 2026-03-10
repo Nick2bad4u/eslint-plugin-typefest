@@ -95,6 +95,12 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     assertDefined(ruleDocs);
     const canonicalDocsUrl = createRuleDocsUrl(ruleDefinition.name);
 
+    if (typeof ruleDocs.url === "string" && ruleDocs.url !== canonicalDocsUrl) {
+        throw new TypeError(
+            `Rule '${ruleDefinition.name}' has non-canonical docs.url '${ruleDocs.url}'. Expected '${canonicalDocsUrl}'.`
+        );
+    }
+
     if (ruleDefinition.name.startsWith("prefer-") && catalogEntry === null) {
         throw new TypeError(
             `Rule '${ruleDefinition.name}' is missing from the stable rule catalog.`
@@ -182,6 +188,18 @@ export const hasTypeServices = (context: TypedRuleContext): boolean => {
         parserServicesResult.ok && parserServicesResult.value.program !== null
     );
 };
+
+/**
+ * Retrieve typed services when available, otherwise return `undefined`.
+ *
+ * @param context - Rule context from the current lint evaluation.
+ *
+ * @returns Typed services when parser services include a TypeScript program.
+ */
+export const getTypedRuleServicesOrUndefined = (
+    context: TypedRuleContext
+): TypedRuleServices | undefined =>
+    hasTypeServices(context) ? getTypedRuleServices(context) : undefined;
 
 /**
  * Determine whether one TypeScript type is assignable to another.

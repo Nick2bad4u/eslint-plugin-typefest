@@ -1318,6 +1318,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -1436,6 +1437,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -1574,6 +1576,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -1710,6 +1713,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,
@@ -2289,6 +2293,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                     checker: {},
                     parserServices: {},
                 }),
+                getTypedRuleServicesOrUndefined: () => undefined,
                 hasTypeServices: () => false,
                 isGlobalUndefinedIdentifier: (
                     _context: unknown,

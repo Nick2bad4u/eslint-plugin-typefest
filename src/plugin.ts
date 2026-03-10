@@ -205,13 +205,7 @@ const derivePresetRuleNamesByConfig = (): Readonly<
     for (const [ruleName] of typefestRuleEntries) {
         const configNames = rulePresetMembership[ruleName];
 
-        if (!isDefined(configNames)) {
-            throw new TypeError(
-                `Rule '${ruleName}' is missing preset membership metadata.`
-            );
-        }
-
-        if (isEmpty(configNames)) {
+        if (!isDefined(configNames) || isEmpty(configNames)) {
             throw new TypeError(
                 `Rule '${ruleName}' is missing preset membership metadata.`
             );

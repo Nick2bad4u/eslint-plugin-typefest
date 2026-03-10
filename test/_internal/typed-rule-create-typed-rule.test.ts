@@ -514,7 +514,6 @@ describe(createTypedRule, () => {
                 docs: {
                     description: "cataloged metadata normalization test",
                     recommended: false,
-                    url: "https://example.invalid/custom-url",
                 },
                 messages: {
                     blocked: "blocked",
@@ -534,6 +533,30 @@ describe(createTypedRule, () => {
         expect(docs.ruleCatalogId).toMatch(/^R\d{3}$/v);
         expect(docs.ruleId).toBe("R001");
         expect(docs.ruleNumber).toBe(1);
+    });
+
+    it("throws when authored docs.url is non-canonical", () => {
+        expect(() =>
+            createTypedRule({
+                create() {
+                    return {};
+                },
+                defaultOptions: [],
+                meta: {
+                    docs: {
+                        description: "non-canonical url test",
+                        recommended: false,
+                        url: "https://example.invalid/custom-url",
+                    },
+                    messages: {
+                        blocked: "blocked",
+                    },
+                    schema: [],
+                    type: "problem",
+                },
+                name: "prefer-ts-extras-array-at",
+            })
+        ).toThrowError(/has non-canonical docs\.url/v);
     });
 
     it("injects ruleCatalogId for non-catalog internal rules without ruleId/ruleNumber", () => {
