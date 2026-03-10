@@ -3,7 +3,7 @@
  * Internal shared utilities used by eslint-plugin-typefest rule modules and
  * plugin wiring.
  */
-import type { UnknownArray } from "type-fest";
+import type { Except, UnknownArray } from "type-fest";
 import type ts from "typescript";
 
 import {
@@ -40,6 +40,10 @@ type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
 
 export type { TypedRuleContext };
 
+type TypefestRuleCreator = ReturnType<
+    typeof ESLintUtils.RuleCreator<TypefestRuleInputDocs>
+>;
+
 /**
  * Plugin-specific metadata extensions for `meta.docs`.
  *
@@ -66,13 +70,9 @@ type TypefestRuleDocs = {
  * `ruleCatalogId` is injected centrally by `createTypedRule`, so authored rule
  * modules are not required to provide it.
  */
-type TypefestRuleInputDocs = Omit<TypefestRuleDocs, "ruleCatalogId"> & {
+type TypefestRuleInputDocs = Except<TypefestRuleDocs, "ruleCatalogId"> & {
     ruleCatalogId?: string;
 };
-
-type TypefestRuleCreator = ReturnType<
-    typeof ESLintUtils.RuleCreator<TypefestRuleInputDocs>
->;
 
 /**
  * Rule-creator wrapper used by all plugin rules.

@@ -5,6 +5,8 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import { ESLintUtils } from "@typescript-eslint/utils";
+import { assertDefined } from "ts-extras";
 import { describe, expect, it, vi } from "vitest";
 
 import { createTypedRule } from "../../src/_internal/typed-rule";
@@ -500,5 +502,148 @@ describe(createTypedRule, () => {
             )
         ).not.toThrowError();
         expect(reportSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("injects canonical docs metadata for cataloged prefer-* rules", () => {
+        const ruleUnderTest = createTypedRule({
+            create() {
+                return {};
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "cataloged metadata normalization test",
+                    recommended: false,
+                    url: "https://example.invalid/custom-url",
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "prefer-ts-extras-array-at",
+        });
+
+        const docs = ruleUnderTest.meta.docs;
+        assertDefined(docs);
+
+        expect(docs.url).toBe(
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-at"
+        );
+        expect(docs.ruleCatalogId).toMatch(/^R\d{3}$/v);
+        expect(docs.ruleId).toBe("R001");
+        expect(docs.ruleNumber).toBe(1);
+    });
+
+    it("injects ruleCatalogId for non-catalog internal rules without ruleId/ruleNumber", () => {
+        const ruleUnderTest = createTypedRule({
+            create() {
+                return {};
+            },
+            defaultOptions: [],
+            meta: {
+                docs: {
+                    description: "internal metadata normalization test",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-metadata-normalization-test-rule",
+        });
+
+        const docs = ruleUnderTest.meta.docs;
+        assertDefined(docs);
+
+        expect(docs.url).toBe(
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/internal-metadata-normalization-test-rule"
+        );
+        expect(docs.ruleCatalogId).toMatch(/^R\d{3}$/v);
+        expect(docs.ruleId).toBeUndefined();
+        expect(docs.ruleNumber).toBeUndefined();
+    });
+
+    it("throws for prefer-* rules missing from the stable catalog", () => {
+        expect(() =>
+            createTypedRule({
+                create() {
+                    return {};
+                },
+                defaultOptions: [],
+                meta: {
+                    docs: {
+                        description: "missing catalog rule test",
+                        recommended: false,
+                    },
+                    messages: {
+                        blocked: "blocked",
+                    },
+                    schema: [],
+                    type: "problem",
+                },
+                name: "prefer-internal-missing-catalog-test-rule",
+            })
+        ).toThrowError(/missing from the stable rule catalog/v);
+    });
+
+    it("preserves meta.defaultOptions when upstream RuleCreator metadata provides it", () => {
+        const syntheticCreatedRule = {
+            create: vi.fn(() => ({})),
+            defaultOptions: [] as const,
+            meta: {
+                defaultOptions: [{ enabled: true }] as const,
+                docs: {
+                    description: "synthetic upstream metadata",
+                    recommended: false,
+                },
+                messages: {
+                    blocked: "blocked",
+                },
+                schema: [],
+                type: "problem",
+            },
+            name: "internal-upstream-default-options-compat-test-rule",
+        };
+
+        const withoutDocsSpy = vi
+            .spyOn(ESLintUtils.RuleCreator, "withoutDocs")
+            .mockReturnValue(
+                syntheticCreatedRule as unknown as ReturnType<
+                    typeof ESLintUtils.RuleCreator.withoutDocs
+                >
+            );
+
+        try {
+            const ruleUnderTest = createTypedRule({
+                create() {
+                    return {};
+                },
+                defaultOptions: [],
+                meta: {
+                    docs: {
+                        description: "compat test",
+                        recommended: false,
+                    },
+                    messages: {
+                        blocked: "blocked",
+                    },
+                    schema: [],
+                    type: "problem",
+                },
+                name: "internal-upstream-default-options-compat-test-rule",
+            });
+
+            expect(ruleUnderTest.meta.defaultOptions).toStrictEqual([
+                {
+                    enabled: true,
+                },
+            ]);
+        } finally {
+            withoutDocsSpy.mockRestore();
+        }
     });
 });

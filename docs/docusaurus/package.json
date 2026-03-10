@@ -30,6 +30,7 @@
         }
     ],
     "sideEffects": false,
+    "main": "docusaurus.config.ts",
     "files": [
         "site-docs"
     ],
@@ -107,5 +108,10 @@
     "engines": {
         "node": ">=24.0.0",
         "npm": ">=11.0.0"
-    }
+    },
+    "os": [
+        "darwin",
+        "linux",
+        "win32"
+    ]
 }

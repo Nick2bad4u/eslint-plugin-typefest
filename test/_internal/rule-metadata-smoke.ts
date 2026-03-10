@@ -45,23 +45,22 @@ const isBoolean = (value: unknown): value is boolean =>
 /** Stable `R###` identifier format used by docs.ruleId and docs.ruleCatalogId. */
 const ruleIdentifierPattern = /^R\d{3}$/v;
 
-/** Validate docs.ruleCatalogId and return a normalized string value. */
-const getValidatedRuleCatalogId = (value: unknown): string => {
+/** Validate an `R###` identifier and return a normalized string value. */
+const getValidatedRuleIdentifier = (value: unknown): string => {
     expect(
         typeof value === "string" && ruleIdentifierPattern.test(value)
     ).toBeTruthy();
 
     return typeof value === "string" ? value : "";
 };
+
+/** Validate docs.ruleCatalogId and return a normalized string value. */
+const getValidatedRuleCatalogId = (value: unknown): string =>
+    getValidatedRuleIdentifier(value);
 
 /** Validate docs.ruleId and return a normalized string value. */
-const getValidatedRuleId = (value: unknown): string => {
-    expect(
-        typeof value === "string" && ruleIdentifierPattern.test(value)
-    ).toBeTruthy();
-
-    return typeof value === "string" ? value : "";
-};
+const getValidatedRuleId = (value: unknown): string =>
+    getValidatedRuleIdentifier(value);
 
 /** Validate docs.ruleNumber and return a normalized numeric value. */
 const getValidatedRuleNumber = (value: unknown): number => {
@@ -241,9 +240,9 @@ export const addTypeFestRuleMetadataSmokeTests = (
             const normalizedRuleId = getValidatedRuleId(docsRuleId);
             const normalizedRuleNumber = getValidatedRuleNumber(docsRuleNumber);
 
-            expect(ruleIdentifierPattern.test(normalizedRuleCatalogId)).toBe(
-                true
-            );
+            expect(
+                ruleIdentifierPattern.test(normalizedRuleCatalogId)
+            ).toBeTruthy();
             expect(normalizedRuleId).toBe(
                 `R${String(normalizedRuleNumber).padStart(3, "0")}`
             );

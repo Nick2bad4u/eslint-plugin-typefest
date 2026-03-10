@@ -102,7 +102,6 @@ export default function Home() {
                                 >
                                     ts-extras
                                 </Link>
-                                .
                             </p>
 
                             <div className={styles.heroBadgeRow}>

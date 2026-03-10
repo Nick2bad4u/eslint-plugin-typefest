@@ -10,6 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     getSignatureParameterTypeAt,
     getTypedRuleServices,
+    hasTypeServices,
     isGlobalIdentifierNamed,
     isGlobalUndefinedIdentifier,
     isTypeAssignableTo,
@@ -237,6 +238,47 @@ describe(isGlobalIdentifierNamed, () => {
             )
         ).toBeFalsy();
     });
+
+    it("returns false for non-identifier expressions", () => {
+        const context = createContextWithScope(
+            createScopeWithBinding({
+                defsLength: 0,
+                identifierName: "Infinity",
+            })
+        );
+
+        expect(
+            isGlobalIdentifierNamed(
+                context,
+                {
+                    type: "Literal",
+                    value: "Infinity",
+                } as unknown as TSESTree.Expression,
+                "Infinity"
+            )
+        ).toBeFalsy();
+    });
+
+    it("returns false when scope resolution throws", () => {
+        const context = {
+            sourceCode: {
+                getScope: () => {
+                    throw new TypeError("scope failure");
+                },
+            },
+        } as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
+
+        expect(
+            isGlobalIdentifierNamed(
+                context,
+                {
+                    name: "Infinity",
+                    type: "Identifier",
+                } as unknown as TSESTree.Expression,
+                "Infinity"
+            )
+        ).toBeFalsy();
+    });
 });
 
 describe(isTypeAssignableTo, () => {
@@ -329,6 +371,34 @@ describe(getTypedRuleServices, () => {
         expect(() => getTypedRuleServices(context as never)).toThrowError(
             /requires parserServices\.program/v
         );
+    });
+});
+
+describe(hasTypeServices, () => {
+    it("returns true when parser services expose a TypeScript program", () => {
+        const parserServices = createParserServices({
+            getTypeChecker: () => ({}) as ts.TypeChecker,
+        } as ts.Program);
+
+        const context = createTypedRuleContext(parserServices);
+
+        expect(hasTypeServices(context as never)).toBeTruthy();
+    });
+
+    it("returns false when parser services do not expose a program", () => {
+        const parserServices = createParserServices(null);
+
+        const context = createTypedRuleContext(parserServices);
+
+        expect(hasTypeServices(context as never)).toBeFalsy();
+    });
+
+    it("returns false when parser-services lookup throws", () => {
+        const context = {
+            sourceCode: {},
+        } as unknown;
+
+        expect(hasTypeServices(context as never)).toBeFalsy();
     });
 });
 
