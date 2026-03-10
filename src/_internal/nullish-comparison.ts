@@ -21,6 +21,14 @@ export type NullishComparisonKind = "null" | "undefined";
 /** Operators supported by nullish comparison extraction. */
 export type NullishComparisonOperator = "!=" | "!==" | "==" | "===";
 
+/** Default accepted operators for nullish comparison parsing. */
+const defaultNullishComparisonOperators = [
+    "!=",
+    "!==",
+    "==",
+    "===",
+] as const satisfies readonly NullishComparisonOperator[];
+
 /**
  * Flatten a logical-expression tree for one specific operator.
  *
@@ -120,12 +128,7 @@ const isExpressionNode = (
  * Extract a normalized nullish comparison from an expression.
  */
 export const getNullishComparison = ({
-    allowedOperators = [
-        "!=",
-        "!==",
-        "==",
-        "===",
-    ],
+    allowedOperators = defaultNullishComparisonOperators,
     allowTypeofComparedIdentifierForUndefined = false,
     comparedIdentifierName,
     expression,
@@ -147,7 +150,10 @@ export const getNullishComparison = ({
         return null;
     }
 
-    if (!arrayIncludes(allowedOperators, expression.operator)) {
+    if (
+        allowedOperators !== defaultNullishComparisonOperators &&
+        !arrayIncludes(allowedOperators, expression.operator)
+    ) {
         return null;
     }
 

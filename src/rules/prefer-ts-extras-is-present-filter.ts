@@ -36,6 +36,8 @@ type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
 
+const nullishInequalityOperators = ["!=", "!=="] as const;
+
 /**
  * Extract one nullish inequality comparison part from an expression.
  *
@@ -51,7 +53,7 @@ const extractNullishInequalityPart = (
     parameterName: string
 ): null | NullishInequalityPart => {
     const comparison = getNullishComparison({
-        allowedOperators: ["!=", "!=="],
+        allowedOperators: nullishInequalityOperators,
         allowTypeofComparedIdentifierForUndefined: true,
         comparedIdentifierName: parameterName,
         expression,
