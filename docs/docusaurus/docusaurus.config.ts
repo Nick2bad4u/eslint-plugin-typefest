@@ -428,6 +428,7 @@ const config: Config = {
                 {
                     label: "\ueaa4 Blog",
                     position: "right",
+                    to: "/blog",
                     items: [
                         {
                             label: "• Latest Posts",
@@ -438,9 +439,6 @@ const config: Config = {
                             to: "/blog/archive",
                         },
                     ],
-                },
-                {
-                    to: "/blog",
                 },
                 {
                     label: "\udb80\ude19 Dev",
