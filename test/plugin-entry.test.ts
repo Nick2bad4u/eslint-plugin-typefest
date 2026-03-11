@@ -3,7 +3,6 @@
  * Vitest coverage for `plugin-entry.test` behavior.
  */
 import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
 
 import { typefestConfigNames } from "../src/_internal/typefest-config-references";
