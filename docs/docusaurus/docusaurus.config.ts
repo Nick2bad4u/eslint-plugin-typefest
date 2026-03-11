@@ -284,7 +284,7 @@ const config: Config = {
                             to: "/docs/rules/getting-started",
                         },
                         {
-                            label: "🎛 Presets",
+                            label: "🛠️ Presets",
                             to: "/docs/rules/presets",
                         },
                         {
@@ -306,11 +306,11 @@ const config: Config = {
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "\uf40d ts-extras",
+                            label: "\uf113 ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "\uf40d type-fest",
+                            label: "\ue65b type-fest",
                         },
                     ],
                     title: "📁 Project",
@@ -327,7 +327,7 @@ const config: Config = {
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "\ue5fa NPM",
+                            label: "\ue616 NPM",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/blob/main/CONTRIBUTING.md`,
@@ -348,12 +348,15 @@ const config: Config = {
         },
         image: "img/logo.svg",
         navbar: {
+            style: "dark",
+            hideOnScroll: true,
             items: [
                 {
                     activeBaseRegex: "^/docs/rules/overview/?$",
-                    label: "\uf02d Docs",
+                    label: "📚 Docs",
                     position: "left",
                     to: "/docs/rules/overview",
+                    type: "dropdown",
                     items: [
                         {
                             label: "• Overview",
@@ -371,9 +374,10 @@ const config: Config = {
                 },
                 {
                     activeBaseRegex: "^/docs/rules(?:/(?!presets(?:/|$)).*)?$",
-                    label: "\uf0ae Rules",
+                    label: "📜 Rules",
                     position: "left",
                     to: "/docs/rules",
+                    type: "dropdown",
                     items: [
                         {
                             label: "• Rule Reference",
@@ -391,9 +395,10 @@ const config: Config = {
                 },
                 {
                     activeBaseRegex: "^/docs/rules/presets(?:/.*)?$",
-                    label: "\uf0ad Presets",
+                    label: "🛠️ Presets",
                     position: "left",
                     to: "/docs/rules/presets",
+                    type: "dropdown",
                     items: [
                         {
                             label: "• Preset Reference",
@@ -429,6 +434,7 @@ const config: Config = {
                     label: "\ueaa4 Blog",
                     position: "right",
                     to: "/blog",
+                    type: "dropdown",
                     items: [
                         {
                             label: "• Latest Posts",
@@ -444,6 +450,7 @@ const config: Config = {
                     label: "\udb80\ude19 Dev",
                     position: "right",
                     to: "/docs/developer",
+                    type: "dropdown",
                     items: [
                         {
                             label: "• Development Guide",
@@ -475,6 +482,35 @@ const config: Config = {
                     href: `https://github.com/${organizationName}/${projectName}`,
                     label: "\ue65b GitHub",
                     position: "right",
+                    type: "dropdown",
+                    items: [
+                        {
+                            href: `https://github.com/${organizationName}/${projectName}`,
+                            label: "• GitHub: Repository",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/${projectName}`,
+                            label: "• NPM: Repository",
+                        },
+                        {
+                            href: `https://github.com/sindresorhus/type-fest`,
+                            className: "navbar-dropdown-divider-before",
+                            label: "• GitHub: type-fest",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/type-fest`,
+                            label: "• NPM: type-fest",
+                        },
+                        {
+                            href: `https://github.com/sindresorhus/ts-extras`,
+                            className: "navbar-dropdown-divider-before",
+                            label: "• GitHub: ts-extras",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/ts-extras`,
+                            label: "• NPM: ts-extras",
+                        },
+                    ],
                 },
             ],
             logo: {

@@ -1,19 +1,15 @@
 /**
  * @packageDocumentation
- * Contract test that keeps README rule matrix synchronized with plugin metadata.
+ * Contract test that keeps presets matrix synchronized with plugin metadata.
  */
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { generateReadmeRulesSectionFromRules } from "../scripts/sync-readme-rules-table.mjs";
+import { generatePresetsRulesMatrixSectionFromRules } from "../scripts/sync-presets-rules-matrix.mjs";
 import typefestPlugin from "../src/plugin";
 
-const RULES_SECTION_HEADING = "## Rules";
-const RULES_SECTION_SNAPSHOT_PATH = path.join(
-    "__snapshots__",
-    "readme-rules-section.generated.md"
-);
+const MATRIX_SECTION_HEADING = "## Rule matrix";
 
 /**
  * Normalize markdown table row spacing so formatter-aligned columns compare
@@ -63,52 +59,48 @@ const normalizeMarkdownTableSpacing = (markdown: string): string =>
         .join("\n");
 
 /**
- * Extract the README rules section body beginning at `## Rules`.
+ * Extract the presets `## Rule matrix` section.
  *
- * @param markdown - Full README markdown source.
+ * @param markdown - Full presets markdown source.
  *
- * @returns Rules section markdown including heading.
+ * @returns Matrix section markdown including heading.
  */
-const extractRulesSection = (markdown: string): string => {
-    const headingOffset = markdown.indexOf(RULES_SECTION_HEADING);
+const extractMatrixSection = (markdown: string): string => {
+    const headingOffset = markdown.indexOf(MATRIX_SECTION_HEADING);
 
     if (headingOffset === -1) {
-        throw new Error("README.md is missing the `## Rules` section heading.");
+        throw new Error(
+            "docs/rules/presets/index.md is missing the `## Rule matrix` section heading."
+        );
     }
 
     const nextHeadingOffset = markdown.indexOf(
         "\n## ",
-        headingOffset + RULES_SECTION_HEADING.length
+        headingOffset + MATRIX_SECTION_HEADING.length
     );
-
     const sectionEndOffset =
         nextHeadingOffset === -1 ? markdown.length : nextHeadingOffset + 1;
 
     return markdown.slice(headingOffset, sectionEndOffset);
 };
 
-describe("readme rules table synchronization", () => {
-    it("matches the canonical rules matrix generated from plugin metadata", async () => {
-        const readmePath = path.join(process.cwd(), "README.md");
-        const readmeMarkdown = await fs.readFile(readmePath, "utf8");
-
-        const readmeRulesSection = extractRulesSection(readmeMarkdown);
-        const expectedRulesSection = generateReadmeRulesSectionFromRules(
-            typefestPlugin.rules
+describe("presets rules matrix synchronization", () => {
+    it("matches the canonical matrix generated from plugin metadata", async () => {
+        const presetsIndexPath = path.join(
+            process.cwd(),
+            "docs",
+            "rules",
+            "presets",
+            "index.md"
         );
+        const presetsMarkdown = await fs.readFile(presetsIndexPath, "utf8");
 
-        expect(normalizeMarkdownTableSpacing(readmeRulesSection)).toBe(
-            normalizeMarkdownTableSpacing(expectedRulesSection)
-        );
-    });
+        const presetsMatrixSection = extractMatrixSection(presetsMarkdown);
+        const expectedMatrixSection =
+            generatePresetsRulesMatrixSectionFromRules(typefestPlugin.rules);
 
-    it("keeps generated rules markdown snapshot-stable", async () => {
-        const generatedRulesSection = generateReadmeRulesSectionFromRules(
-            typefestPlugin.rules
-        );
-
-        await expect(generatedRulesSection).toMatchFileSnapshot(
-            RULES_SECTION_SNAPSHOT_PATH
+        expect(normalizeMarkdownTableSpacing(presetsMatrixSection)).toBe(
+            normalizeMarkdownTableSpacing(expectedMatrixSection)
         );
     });
 });

@@ -113,6 +113,16 @@ const sidebars: SidebarsConfig = {
                     label: "🛡️ Rollout and fix safety",
                     type: "doc",
                 },
+                {
+                    id: "guides/preset-selection-strategy",
+                    label: "💭 Preset selection strategy",
+                    type: "doc",
+                },
+                {
+                    id: "guides/type-aware-linting-readiness",
+                    label: "🧪 Type-aware linting readiness",
+                    type: "doc",
+                },
             ],
         },
         {
@@ -129,31 +139,43 @@ const sidebars: SidebarsConfig = {
             },
             items: [
                 {
+                    className: "sb-preset-minimal",
                     id: "presets/minimal",
                     label: "🟢 Minimal",
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-recommended",
                     id: "presets/recommended",
                     label: "🟡 Recommended",
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-recommended-type-checked",
+                    id: "presets/recommended-type-checked",
+                    label: "🟠 Recommended (type-checked)",
+                    type: "doc",
+                },
+                {
+                    className: "sb-preset-strict",
                     id: "presets/strict",
                     label: "🔴 Strict",
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-all",
                     id: "presets/all",
                     label: "🟣 All",
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-type-fest",
                     id: "presets/type-fest-types",
                     label: "💠 type-fest",
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-type-guards",
                     id: "presets/ts-extras-type-guards",
                     label: "✴️ type-guards",
                     type: "doc",

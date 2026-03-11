@@ -24,6 +24,7 @@ This section provides high-signal diagrams for the plugin architecture, rule exe
 - [Diagnostics and regression triage loop](./diagnostics-and-regression-triage-loop.md)
 - [Preset semver and deprecation lifecycle](./preset-semver-and-deprecation-lifecycle.md)
 - [Rule authoring to release lifecycle](./rule-authoring-to-release-lifecycle.md)
+- [Typed services guard and fallback paths](./typed-services-guard-and-fallback-paths.md)
 
 Use the **Charts** category in the Developer sidebar to navigate between these pages.
 
@@ -43,3 +44,4 @@ Use the **Charts** category in the Developer sidebar to navigate between these p
 12. Use diagnostics triage loop to convert failing gates into root-cause fixes.
 13. Use preset semver lifecycle when modifying preset membership or defaults.
 14. Use rule authoring lifecycle as the contributor handoff/checklist map.
+15. Use typed-services guard paths when debugging type-service availability and fallback behavior.

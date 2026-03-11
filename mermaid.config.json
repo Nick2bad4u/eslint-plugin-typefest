@@ -204,6 +204,10 @@
     },
     "handDrawnSeed": 0,
     "htmlLabels": true,
+    "ishikawa": {
+        "diagramPadding": 20,
+        "useMaxWidth": true
+    },
     "journey": {
         "activationWidth": 10,
         "actorColours": [

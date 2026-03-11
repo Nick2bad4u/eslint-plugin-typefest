@@ -56,7 +56,7 @@ const legacyExampleHeadingLabelPattern =
 
 const unlinkedTopSummaryPattern =
     /^(?:Prefer|Require) `[^`]+` from `(?:ts-extras|type-fest)`/mv;
-const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmu;
+const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmv;
 
 /**
  * Assert canonical heading presence/order and core placement constraints.
@@ -174,9 +174,7 @@ function assertRuleCatalogIdLine(markdown: string): void {
     const ruleCatalogIdLineIndex = lines.findIndex((line) =>
         /^> \*\*Rule catalog ID:\*\* R\d{3}$/v.test(line)
     );
-    const furtherReadingHeadingIndex = lines.findIndex(
-        (line) => line === "## Further reading"
-    );
+    const furtherReadingHeadingIndex = lines.indexOf("## Further reading");
 
     expect(matches).toHaveLength(1);
     expect(ruleCatalogIdLineIndex).toBeGreaterThanOrEqual(0);
