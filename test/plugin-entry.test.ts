@@ -2,10 +2,14 @@
  * @packageDocumentation
  * Vitest coverage for `plugin-entry.test` behavior.
  */
+import { createRequire } from "node:module";
+
 import { describe, expect, it } from "vitest";
 
 import { typefestConfigNames } from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
+
+const requireFromTestModule = createRequire(import.meta.url);
 
 const expectedConfigRegistryShape = expect.objectContaining(
     Object.fromEntries(
@@ -90,6 +94,36 @@ describe("plugin entry module", () => {
                     namespace: "typefest",
                     version: expect.any(String),
                 }),
+            })
+        );
+    });
+
+    it("exports matching runtime plugin shape from dist/plugin.cjs", () => {
+        const runtimePlugin = requireFromTestModule("../dist/plugin.cjs") as {
+            configs?: unknown;
+            meta?: {
+                name?: unknown;
+                namespace?: unknown;
+                version?: unknown;
+            };
+            processors?: unknown;
+            rules?: unknown;
+        };
+
+        expect(runtimePlugin).toEqual(
+            expect.objectContaining({
+                configs: expect.any(Object),
+                meta: expect.any(Object),
+                processors: expect.any(Object),
+                rules: expect.any(Object),
+            })
+        );
+
+        expect(runtimePlugin.meta).toEqual(
+            expect.objectContaining({
+                name: "eslint-plugin-typefest",
+                namespace: "typefest",
+                version: expect.any(String),
             })
         );
     });
