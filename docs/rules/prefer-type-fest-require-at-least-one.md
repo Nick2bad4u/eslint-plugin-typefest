@@ -1,6 +1,6 @@
 # prefer-type-fest-require-at-least-one
 
-Require TypeFest `RequireAtLeastOne<T, Keys>` over imported aliases like
+Require TypeFest [`RequireAtLeastOne<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/require-at-least-one.d.ts) over imported aliases like
 `AtLeastOne`.
 
 ## Targeted pattern scope
@@ -142,7 +142,6 @@ const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
 ````
 
 > **Rule catalog ID:** R057
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

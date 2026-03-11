@@ -1,6 +1,6 @@
 # prefer-type-fest-primitive
 
-Require TypeFest `Primitive` over explicit unions of primitive keyword types.
+Require TypeFest [`Primitive`](https://github.com/sindresorhus/type-fest/blob/main/source/primitive.d.ts) over explicit unions of primitive keyword types.
 
 ## Targeted pattern scope
 
@@ -93,7 +93,6 @@ Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/
 ```
 
 > **Rule catalog ID:** R053
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

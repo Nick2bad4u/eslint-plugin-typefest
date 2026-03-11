@@ -32,18 +32,18 @@ That is enough for TypeScript files (`**/*.{ts,tsx,mts,cts}`).
 
 ## Presets
 
-| Preset                                            |
-| ------------------------------------------------- |
-| 🟢 `typefest.configs.minimal`                     |
-| 🟡 `typefest.configs.recommended`                 |
-| 🟠 `typefest.configs["recommended-type-checked"]` |
-| 🔴 `typefest.configs.strict`                      |
-| 🟣 `typefest.configs.all`                         |
-| 💠 `typefest.configs["type-fest/types"]`          |
-| ✴️ `typefest.configs["ts-extras/type-guards"]`    |
+| Preset                                            | Preset page                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------- |
+| 🟢 `typefest.configs.minimal`                     | [Minimal](./presets/minimal.md)                                     |
+| 🟡 `typefest.configs.recommended`                 | [Recommended](./presets/recommended.md)                             |
+| 🟠 `typefest.configs["recommended-type-checked"]` | [Recommended (type-checked)](./presets/recommended-type-checked.md) |
+| 🔴 `typefest.configs.strict`                      | [Strict](./presets/strict.md)                                       |
+| 🟣 `typefest.configs.all`                         | [All](./presets/all.md)                                             |
+| 💠 `typefest.configs["type-fest/types"]`          | [type-fest/types](./presets/type-fest-types.md)                     |
+| ✴️ `typefest.configs["ts-extras/type-guards"]`    | [ts-extras/type-guards](./presets/ts-extras-type-guards.md)         |
 
 ## Next steps
 
 - Open **Getting Started** in this sidebar.
-- Browse **Presets** for preset-by-preset guidance.
+- Browse [**Presets**](./presets/index.md) for preset-by-preset guidance.
 - Use **Rules** to review every rule with examples.

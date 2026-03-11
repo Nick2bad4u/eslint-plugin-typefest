@@ -1,6 +1,6 @@
 # prefer-type-fest-conditional-pick
 
-Require TypeFest `ConditionalPick<T, Condition>` over imported aliases like `PickByTypes`.
+Require TypeFest [`ConditionalPick<T, Condition>`](https://github.com/sindresorhus/type-fest/blob/main/source/conditional-pick.d.ts) over imported aliases like `PickByTypes`.
 
 ## Targeted pattern scope
 
@@ -127,7 +127,6 @@ type StringKeysOnly = ConditionalPick<Example, string>;
 ````
 
 > **Rule catalog ID:** R038
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

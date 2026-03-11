@@ -124,7 +124,6 @@ objectHasOwn({}, 'toString');
 ````
 
 > **Rule catalog ID:** R029
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

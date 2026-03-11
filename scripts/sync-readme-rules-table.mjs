@@ -36,17 +36,101 @@ const presetOrder = [...typefestConfigNamesByReadmeOrder];
 const presetNameSet = new Set(presetOrder);
 
 const rulesSectionHeading = "## Rules";
+const PRESET_DOCS_URL_BASE =
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/presets";
 
 /**
+ * Normalize markdown table row spacing so formatter-aligned columns compare
+ * equivalently to compact generated rows.
+ *
+ * @param {string} markdown
+ *
  * @returns {string}
  */
-const createPresetLegend = () =>
-    presetOrder
-        .map(
-            (presetName) =>
-                `\`${typefestConfigMetadataByName[presetName].icon} ${presetName}\``
-        )
-        .join(" · ");
+const normalizeRulesSectionMarkdown = (markdown) =>
+    markdown
+        .replace(/\r\n/gv, "\n")
+        .split("\n")
+        .map((line) => {
+            const trimmedLine = line.trimEnd();
+
+            if (!/^\|.*\|$/v.test(trimmedLine)) {
+                return trimmedLine;
+            }
+
+            const cells = trimmedLine
+                .split("|")
+                .slice(1, -1)
+                .map((cell) => {
+                    const trimmedCell = cell.trim();
+
+                    if (!/^:?-+:?$/v.test(trimmedCell)) {
+                        return trimmedCell;
+                    }
+
+                    const hasStartColon = trimmedCell.startsWith(":");
+                    const hasEndColon = trimmedCell.endsWith(":");
+
+                    if (hasStartColon && hasEndColon) {
+                        return ":-:";
+                    }
+
+                    if (hasStartColon) {
+                        return ":--";
+                    }
+
+                    if (hasEndColon) {
+                        return "--:";
+                    }
+
+                    return "---";
+                });
+
+            return `| ${cells.join(" | ")} |`;
+        })
+        .join("\n");
+
+/** @type {Readonly<Record<PresetName, string>>} */
+const presetDocsSlugByName = {
+    all: "all",
+    minimal: "minimal",
+    recommended: "recommended",
+    "recommended-type-checked": "recommended-type-checked",
+    strict: "strict",
+    "ts-extras/type-guards": "ts-extras-type-guards",
+    "type-fest/types": "type-fest-types",
+};
+
+/** @type {Readonly<Record<PresetName, string>>} */
+const presetConfigReferenceByName = {
+    all: "typefest.configs.all",
+    minimal: "typefest.configs.minimal",
+    recommended: "typefest.configs.recommended",
+    "recommended-type-checked": 'typefest.configs["recommended-type-checked"]',
+    strict: "typefest.configs.strict",
+    "ts-extras/type-guards": 'typefest.configs["ts-extras/type-guards"]',
+    "type-fest/types": 'typefest.configs["type-fest/types"]',
+};
+
+/**
+ * @param {PresetName} presetName
+ *
+ * @returns {string}
+ */
+const createPresetDocsUrl = (presetName) =>
+    `${PRESET_DOCS_URL_BASE}/${presetDocsSlugByName[presetName]}`;
+
+/**
+ * @returns {readonly string[]}
+ */
+const createPresetLegendLines = () =>
+    presetOrder.map((presetName) => {
+        const docsUrl = createPresetDocsUrl(presetName);
+        const presetIcon = typefestConfigMetadataByName[presetName].icon;
+        const configReference = presetConfigReferenceByName[presetName];
+
+        return `  - [${presetIcon}](${docsUrl}) — [\`${configReference}\`](${docsUrl})`;
+    });
 
 /**
  * @param {string} reference
@@ -146,7 +230,10 @@ const getPresetIndicator = (ruleModule) => {
 
     for (const presetName of presetOrder) {
         if (presetNamesSet.has(presetName)) {
-            icons.push(typefestConfigMetadataByName[presetName].icon);
+            const docsUrl = createPresetDocsUrl(presetName);
+            const presetIcon = typefestConfigMetadataByName[presetName].icon;
+
+            icons.push(`[${presetIcon}](${docsUrl})`);
         }
     }
 
@@ -189,7 +276,8 @@ export const generateReadmeRulesSectionFromRules = (rules) => {
         "  - `🔧` = autofixable",
         "  - `💡` = suggestions available",
         "  - `—` = report only",
-        `- \`Preset key\` legend: ${createPresetLegend()}`,
+        "- `Preset key` legend:",
+        ...createPresetLegendLines(),
         "",
         "| Rule | Fix | Preset key |",
         "| --- | :-: | :-- |",
@@ -226,6 +314,20 @@ const syncReadmeRulesTable = async ({ writeChanges }) => {
     const generatedRulesSection = generateReadmeRulesSectionFromRules(
         /** @type {ReadmeRulesMap} */ (builtPlugin.rules)
     );
+
+    const existingRulesSection = readmeText.slice(
+        rulesHeadingOffset,
+        sectionEndOffset
+    );
+
+    if (
+        normalizeRulesSectionMarkdown(existingRulesSection) ===
+        normalizeRulesSectionMarkdown(generatedRulesSection)
+    ) {
+        return {
+            changed: false,
+        };
+    }
 
     const nextReadmeText = `${readmePrefix}\n\n${generatedRulesSection}${readmeSuffix}`;
 

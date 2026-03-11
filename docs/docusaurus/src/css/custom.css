@@ -32,6 +32,9 @@
     --ifm-color-primary-lighter: #818cf8;
     --ifm-color-primary-lightest: #a5b4fc;
     --ifm-code-font-size: 95%;
+    --ifm-font-family-base:
+        "Inter var", "Inter", "Segoe UI", "NerdFontSymbols Nerd Font Symbols",
+        system-ui, -apple-system, sans-serif;
     --sb-accent-overview: #22c55e;
     --sb-accent-started: #0ea5e9;
     --sb-accent-developer: #8b5cf6;
@@ -664,4 +667,14 @@
 .markdown h2,
 .markdown h3 {
     scroll-margin-block-start: 6rem;
+}
+
+.token.jsdoc-tag {
+    color: #2563eb;
+    font-style: normal;
+    font-weight: 700;
+
+    [data-theme="dark"] & {
+        color: #93c5fd;
+    }
 }

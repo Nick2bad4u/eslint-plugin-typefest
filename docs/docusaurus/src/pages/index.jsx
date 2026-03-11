@@ -6,39 +6,80 @@ import GitHubStats from "../components/GitHubStats";
 
 import styles from "./index.module.css";
 
+/**
+ * Hero badges Note: These icons are from the "Nerd Font Symbols" font.
+ *
+ * @type {{ label: string; description: string; icon: string }[]}
+ *
+ * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
+ */
 const heroBadges = [
     {
         description: "Drop-in config for ESLint v9+ and modern repos.",
-        icon: "⚙️",
+        icon: "\uf013",
         label: "Flat Config native",
     },
     {
         description: "Type-aware guidance without sacrificing readability.",
-        icon: "🧠",
+        icon: "\ue628",
         label: "TypeScript-first",
     },
     {
         description: "Clear diagnostics with safe autofixes and suggestions.",
-        icon: "🛠️",
+        icon: "\uf0ad",
         label: "Actionable rule docs",
     },
 ];
 
+/**
+ * Hero stats Note: These icons are from the "Nerd Font Symbols" font.
+ *
+ * @type {{ headline: string; description: string }[]}
+ *
+ * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
+ */
 const heroStats = [
     {
         description: "Type-safe patterns from type-fest and ts-extras.",
-        headline: "📏 70+ Rules",
+        headline: "\uf0ca 70+ Rules",
     },
     {
         description: "Start small, then scale to stricter coverage.",
-        headline: "🎛️ 6 Presets",
+        headline: "\ue690 6 Presets",
     },
     {
         description: "Safe rewrites where semantics are preserved.",
-        headline: "✨ DX-first Autofix & Suggestions",
+        headline: "\udb80\udc68 DX-first Autofix & Suggestions",
     },
 ];
 
+/**
+ * Button icons Note: These icons are from the "Nerd Font Symbols" font.
+ *
+ * @type {string}
+ *
+ * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
+ */
+const overviewButtonIcon = "\udb81\udf1d";
+const comparePresetsButtonIcon = "\udb85\udc92";
+const heroKickerIcon = "\uf0ad";
+const heroKickerIcon2 = "\uf135";
+
+/**
+ * Home card icons Note: These icons are from the "Nerd Font Symbols" font,
+ * which is included in the site styles. If you change these icons, make sure to
+ * choose ones that exist in that font or adjust the font-family in the CSS
+ * accordingly.
+ *
+ * @type {{
+ *     icon: string;
+ *     title: string;
+ *     description: string;
+ *     to: string;
+ * }[]}
+ *
+ * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
+ */
 const homeCards = [
     {
         icon: "\uf135",
@@ -48,7 +89,7 @@ const homeCards = [
         to: "/docs/rules/getting-started",
     },
     {
-        icon: "\uf14e",
+        icon: "\ue690",
         title: "Presets",
         description:
             "Choose the right preset for your team, from minimal baseline to full strict coverage.",
@@ -76,7 +117,7 @@ export default function Home() {
                     <div className={styles.heroGrid}>
                         <div>
                             <p className={styles.heroKicker}>
-                                🛠️ ESLint plugin for modern TypeScript teams 🚀
+                                {`${heroKickerIcon} ESLint plugin for modern TypeScript teams ${heroKickerIcon2}`}
                             </p>
                             <Heading as="h1" className={styles.heroTitle}>
                                 eslint-plugin-typefest
@@ -135,13 +176,13 @@ export default function Home() {
                                     className={`button button--lg ${styles.heroActionButton} ${styles.heroActionPrimary}`}
                                     to="/docs/rules/overview"
                                 >
-                                    Start with Overview
+                                    {overviewButtonIcon} Start with Overview
                                 </Link>
                                 <Link
                                     className={`button button--lg ${styles.heroActionButton} ${styles.heroActionSecondary}`}
                                     to="/docs/rules/presets"
                                 >
-                                    Compare Presets
+                                    {comparePresetsButtonIcon} Compare Presets
                                 </Link>
                             </div>
                         </div>

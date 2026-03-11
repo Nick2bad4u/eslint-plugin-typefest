@@ -1,6 +1,6 @@
 # prefer-type-fest-except
 
-Require TypeFest `Except<T, K>` over `Omit<T, K>` when removing keys from object types.
+Require TypeFest [`Except<T, K>`](https://github.com/sindresorhus/type-fest/blob/main/source/except.d.ts) over `Omit<T, K>` when removing keys from object types.
 
 ## Targeted pattern scope
 
@@ -218,7 +218,6 @@ type PostPayloadFixed = Except<UserData, 'email'>;
 ````
 
 > **Rule catalog ID:** R040
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

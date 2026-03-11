@@ -1,6 +1,6 @@
 # prefer-type-fest-require-one-or-none
 
-Require TypeFest `RequireOneOrNone<T, Keys>` over imported aliases like `AtMostOne`.
+Require TypeFest [`RequireOneOrNone<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/require-one-or-none.d.ts) over imported aliases like `AtMostOne`.
 
 ## Targeted pattern scope
 
@@ -152,7 +152,6 @@ const responder3: Responder = {
 ````
 
 > **Rule catalog ID:** R059
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

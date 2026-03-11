@@ -1,6 +1,6 @@
 # prefer-type-fest-promisable
 
-Require TypeFest `Promisable<T>` for sync-or-async callback contracts currently expressed as `Promise<T> | T` unions.
+Require TypeFest [`Promisable<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/promisable.d.ts) for sync-or-async callback contracts currently expressed as `Promise<T> | T` unions.
 
 ## Targeted pattern scope
 
@@ -233,7 +233,6 @@ await logger(() => Promise.resolve('bar'));
 ````
 
 > **Rule catalog ID:** R054
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

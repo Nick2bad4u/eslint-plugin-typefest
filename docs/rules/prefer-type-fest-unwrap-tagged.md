@@ -1,6 +1,6 @@
 # prefer-type-fest-unwrap-tagged
 
-Require TypeFest `UnwrapTagged` over imported aliases like `UnwrapOpaque`.
+Require TypeFest [`UnwrapTagged`](https://github.com/sindresorhus/type-fest/blob/main/source/tagged.d.ts) over imported aliases like `UnwrapOpaque`.
 
 ## Targeted pattern scope
 
@@ -120,7 +120,6 @@ type WontWork = UnwrapTagged<string>;
 ````
 
 > **Rule catalog ID:** R073
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

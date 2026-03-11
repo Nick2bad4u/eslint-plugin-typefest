@@ -1,6 +1,6 @@
 # prefer-type-fest-omit-index-signature
 
-Require TypeFest `OmitIndexSignature<T>` over imported aliases like
+Require TypeFest [`OmitIndexSignature<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/omit-index-signature.d.ts) over imported aliases like
 `RemoveIndexSignature`.
 
 ## Targeted pattern scope
@@ -183,7 +183,6 @@ type ExampleWithoutIndexSignatures = OmitIndexSignature<Example>;
 ````
 
 > **Rule catalog ID:** R051
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

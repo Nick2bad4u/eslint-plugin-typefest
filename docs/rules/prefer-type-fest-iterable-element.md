@@ -1,6 +1,6 @@
 # prefer-type-fest-iterable-element
 
-Require TypeFest `IterableElement<T>` over imported aliases like `SetElement`, `SetEntry`, and `SetValues`.
+Require TypeFest [`IterableElement<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/iterable-element.d.ts) over imported aliases like `SetElement`, `SetEntry`, and `SetValues`.
 
 ## Targeted pattern scope
 
@@ -157,7 +157,6 @@ type Fruit = IterableElement<typeof fruits>;
 ````
 
 > **Rule catalog ID:** R042
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

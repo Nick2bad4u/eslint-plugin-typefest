@@ -1,6 +1,6 @@
 # prefer-type-fest-json-primitive
 
-Require TypeFest `JsonPrimitive` over explicit JSON primitive keyword unions.
+Require TypeFest [`JsonPrimitive`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts) over explicit JSON primitive keyword unions.
 
 ## Targeted pattern scope
 
@@ -92,7 +92,6 @@ Matches any valid JSON primitive value.
 ```
 
 > **Rule catalog ID:** R045
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

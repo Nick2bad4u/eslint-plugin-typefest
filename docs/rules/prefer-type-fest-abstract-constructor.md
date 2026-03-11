@@ -1,6 +1,6 @@
 # prefer-type-fest-abstract-constructor
 
-Require TypeFest `AbstractConstructor` over explicit abstract constructor signatures.
+Require TypeFest [`AbstractConstructor`](https://github.com/sindresorhus/type-fest/blob/main/source/basic.d.ts) over explicit abstract constructor signatures.
 
 ## Targeted pattern scope
 
@@ -75,7 +75,6 @@ Matches an [`abstract class`](https://www.typescriptlang.org/docs/handbook/relea
 ```
 
 > **Rule catalog ID:** R035
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

@@ -103,7 +103,6 @@ A strongly-typed version of `Number.isInteger()`.
 ```
 
 > **Rule catalog ID:** R020
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

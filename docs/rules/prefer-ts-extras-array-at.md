@@ -119,7 +119,6 @@ const maybeItem = arrayAt(array, -1);
 ````
 
 > **Rule catalog ID:** R001
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

@@ -1,6 +1,6 @@
 # prefer-type-fest-readonly-deep
 
-Require TypeFest `ReadonlyDeep` over `DeepReadonly` aliases.
+Require TypeFest [`ReadonlyDeep`](https://github.com/sindresorhus/type-fest/blob/main/source/readonly-deep.d.ts) over `DeepReadonly` aliases.
 
 ## Targeted pattern scope
 
@@ -139,7 +139,6 @@ Note that types containing overloaded functions are not made deeply readonly due
 ````
 
 > **Rule catalog ID:** R055
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

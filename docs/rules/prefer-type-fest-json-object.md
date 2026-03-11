@@ -1,6 +1,6 @@
 # prefer-type-fest-json-object
 
-Require TypeFest `JsonObject` over equivalent explicit `Record<string, JsonValue>` aliases.
+Require TypeFest [`JsonObject`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts) over equivalent explicit `Record<string, JsonValue>` aliases.
 
 ## Targeted pattern scope
 
@@ -94,7 +94,6 @@ This type can be useful to enforce some input to be JSON-compatible or as a supe
 ```
 
 > **Rule catalog ID:** R044
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

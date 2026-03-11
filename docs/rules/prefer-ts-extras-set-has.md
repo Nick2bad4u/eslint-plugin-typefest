@@ -1,6 +1,6 @@
 # prefer-ts-extras-set-has
 
-Prefer direct [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts) from `ts-extras` over `set.has(...)`.
+Prefer [`setHas`](https://github.com/sindresorhus/ts-extras/blob/main/source/set-has.ts) from `ts-extras` over `set.has(...)`.
 
 `setHas(...)` improves narrowing when checking membership in typed sets.
 

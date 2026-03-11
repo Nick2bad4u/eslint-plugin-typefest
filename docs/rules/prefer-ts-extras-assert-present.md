@@ -126,7 +126,6 @@ assertPresent(notUnicorn);
 ````
 
 > **Rule catalog ID:** R013
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

@@ -56,6 +56,7 @@ const legacyExampleHeadingLabelPattern =
 
 const unlinkedTopSummaryPattern =
     /^(?:Prefer|Require) `[^`]+` from `(?:ts-extras|type-fest)`/mv;
+const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmu;
 
 /**
  * Assert canonical heading presence/order and core placement constraints.
@@ -163,6 +164,27 @@ function assertPackageLabel(fileName: string, markdown: string): void {
 }
 
 /**
+ * Assert that each rule doc defines exactly one canonical Rule catalog ID line.
+ *
+ * @param markdown - Rule documentation markdown.
+ */
+function assertRuleCatalogIdLine(markdown: string): void {
+    const matches = markdown.match(ruleCatalogIdLinePattern) ?? [];
+    const lines = markdown.split(/\r?\n/v);
+    const ruleCatalogIdLineIndex = lines.findIndex((line) =>
+        /^> \*\*Rule catalog ID:\*\* R\d{3}$/v.test(line)
+    );
+    const furtherReadingHeadingIndex = lines.findIndex(
+        (line) => line === "## Further reading"
+    );
+
+    expect(matches).toHaveLength(1);
+    expect(ruleCatalogIdLineIndex).toBeGreaterThanOrEqual(0);
+    expect(furtherReadingHeadingIndex).toBeGreaterThanOrEqual(0);
+    expect(ruleCatalogIdLineIndex).toBe(furtherReadingHeadingIndex - 1);
+}
+
+/**
  * Narrow a dynamic plugin rule value to a shape that includes `meta.docs`.
  *
  * @param value - Dynamic rule module candidate.
@@ -257,6 +279,7 @@ describe("typefest rule docs", () => {
             assertCanonicalHeadingSchema(headings);
             assertOptionalDetailHeadingPlacement(markdown);
             assertPackageLabel(fileName, markdown);
+            assertRuleCatalogIdLine(markdown);
         }
     });
 });

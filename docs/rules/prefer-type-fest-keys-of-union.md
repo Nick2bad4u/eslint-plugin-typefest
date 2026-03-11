@@ -1,6 +1,6 @@
 # prefer-type-fest-keys-of-union
 
-Require TypeFest `KeysOfUnion<T>` over imported aliases like `AllKeys`.
+Require TypeFest [`KeysOfUnion<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/keys-of-union.d.ts) over imported aliases like `AllKeys`.
 
 ## Targeted pattern scope
 
@@ -126,7 +126,6 @@ type AllKeys = KeysOfUnion<Union>;
 ````
 
 > **Rule catalog ID:** R047
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

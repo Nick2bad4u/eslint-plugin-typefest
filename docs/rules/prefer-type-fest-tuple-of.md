@@ -237,7 +237,6 @@ Note: If you need a readonly tuple, simply wrap this type with `Readonly`, for e
 ````
 
 > **Rule catalog ID:** R068
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

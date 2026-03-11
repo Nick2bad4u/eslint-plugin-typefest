@@ -1,6 +1,6 @@
 # prefer-type-fest-unknown-set
 
-Require TypeFest `UnknownSet` over `ReadonlySet<unknown>`.
+Require TypeFest [`UnknownSet`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-set.d.ts) over `ReadonlySet<unknown>`.
 
 ## Targeted pattern scope
 
@@ -110,7 +110,6 @@ type C = IsSet<string>;
 ````
 
 > **Rule catalog ID:** R072
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

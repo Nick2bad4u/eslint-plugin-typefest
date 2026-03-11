@@ -1,6 +1,6 @@
 # prefer-type-fest-set-required
 
-Require TypeFest `SetRequired<T, Keys>` over imported aliases like
+Require TypeFest [`SetRequired<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/set-required.d.ts) over imported aliases like
 `RequiredBy`.
 
 ## Targeted pattern scope
@@ -127,7 +127,6 @@ type ArrayExample = SetRequired<[number?, number?, number?], 0 | 1>;
 ````
 
 > **Rule catalog ID:** R065
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

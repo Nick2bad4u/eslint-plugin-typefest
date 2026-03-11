@@ -94,7 +94,6 @@ Matches any valid JSON value.
 ```
 
 > **Rule catalog ID:** R046
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

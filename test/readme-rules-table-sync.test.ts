@@ -16,6 +16,57 @@ const RULES_SECTION_SNAPSHOT_PATH = path.join(
 );
 
 /**
+ * Normalize markdown table row spacing so formatter-aligned columns compare
+ * equivalently to compact generated table rows.
+ *
+ * @param markdown - Rules section markdown.
+ *
+ * @returns Normalized markdown preserving semantics.
+ */
+const normalizeRulesSectionMarkdown = (markdown: string): string =>
+    markdown
+        .replace(/\r\n/gv, "\n")
+        .split("\n")
+        .map((line) => {
+            const trimmedLine = line.trimEnd();
+
+            if (!/^\|.*\|$/v.test(trimmedLine)) {
+                return trimmedLine;
+            }
+
+            const cells = trimmedLine
+                .split("|")
+                .slice(1, -1)
+                .map((cell) => {
+                    const trimmedCell = cell.trim();
+
+                    if (!/^:?-+:?$/v.test(trimmedCell)) {
+                        return trimmedCell;
+                    }
+
+                    const hasStartColon = trimmedCell.startsWith(":");
+                    const hasEndColon = trimmedCell.endsWith(":");
+
+                    if (hasStartColon && hasEndColon) {
+                        return ":-:";
+                    }
+
+                    if (hasStartColon) {
+                        return ":--";
+                    }
+
+                    if (hasEndColon) {
+                        return "--:";
+                    }
+
+                    return "---";
+                });
+
+            return `| ${cells.join(" | ")} |`;
+        })
+        .join("\n");
+
+/**
  * Extract the README rules section body beginning at `## Rules`.
  *
  * @param markdown - Full README markdown source.
@@ -50,7 +101,9 @@ describe("readme rules table synchronization", () => {
             typefestPlugin.rules
         );
 
-        expect(readmeRulesSection).toBe(expectedRulesSection);
+        expect(normalizeRulesSectionMarkdown(readmeRulesSection)).toBe(
+            normalizeRulesSectionMarkdown(expectedRulesSection)
+        );
     });
 
     it("keeps generated rules markdown snapshot-stable", async () => {

@@ -115,7 +115,6 @@ const untypedValues = Object.values(object);
 ````
 
 > **Rule catalog ID:** R031
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

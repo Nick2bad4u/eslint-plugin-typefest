@@ -1,6 +1,6 @@
 # prefer-type-fest-unknown-map
 
-Require TypeFest `UnknownMap` over `ReadonlyMap<unknown, unknown>`.
+Require TypeFest [`UnknownMap`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-map.d.ts) over `ReadonlyMap<unknown, unknown>`.
 
 ## Targeted pattern scope
 
@@ -110,7 +110,6 @@ type C = IsMap<string>;
 ````
 
 > **Rule catalog ID:** R070
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

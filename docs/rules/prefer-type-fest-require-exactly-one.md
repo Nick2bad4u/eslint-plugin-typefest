@@ -1,6 +1,6 @@
 # prefer-type-fest-require-exactly-one
 
-Require TypeFest `RequireExactlyOne<T, Keys>` over imported aliases like `OneOf` or `RequireOnlyOne`.
+Require TypeFest [`RequireExactlyOne<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/require-exactly-one.d.ts) over imported aliases like `OneOf` or `RequireOnlyOne`.
 
 ## Targeted pattern scope
 
@@ -227,7 +227,6 @@ const responder: RequireExactlyOne<Responder, 'text' | 'json'> = {
 ````
 
 > **Rule catalog ID:** R058
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

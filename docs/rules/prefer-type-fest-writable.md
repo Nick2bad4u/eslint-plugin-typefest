@@ -1,6 +1,6 @@
 # prefer-type-fest-writable
 
-Require TypeFest `Writable` over manual mapped types that remove `readonly` with `-readonly`, and over imported aliases like `Mutable`.
+Require TypeFest [`Writable`](https://github.com/sindresorhus/type-fest/blob/main/source/writable.d.ts) over manual mapped types that remove `readonly` with `-readonly`, and over imported aliases like `Mutable`.
 
 ## Targeted pattern scope
 
@@ -126,7 +126,6 @@ writableArray.push(4); // Will work as the array itself is now writable.
 ````
 
 > **Rule catalog ID:** R075
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

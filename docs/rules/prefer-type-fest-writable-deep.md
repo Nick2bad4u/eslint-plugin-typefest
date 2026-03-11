@@ -1,6 +1,6 @@
 # prefer-type-fest-writable-deep
 
-Require TypeFest `WritableDeep` over `DeepMutable` and `MutableDeep` aliases.
+Require TypeFest [`WritableDeep`](https://github.com/sindresorhus/type-fest/blob/main/source/writable-deep.d.ts) over `DeepMutable` and `MutableDeep` aliases.
 
 ## Targeted pattern scope
 
@@ -101,7 +101,6 @@ Note that types containing overloaded functions are not made deeply writable due
 ````
 
 > **Rule catalog ID:** R076
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

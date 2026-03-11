@@ -134,7 +134,6 @@ try {
 ````
 
 > **Rule catalog ID:** R012
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

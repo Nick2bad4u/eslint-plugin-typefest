@@ -1,6 +1,6 @@
 # prefer-type-fest-async-return-type
 
-Require TypeFest `AsyncReturnType<T>` over `Awaited<ReturnType<T>>` compositions.
+Require TypeFest [`AsyncReturnType<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/async-return-type.d.ts) over `Awaited<ReturnType<T>>` compositions.
 
 ## Targeted pattern scope
 
@@ -104,7 +104,6 @@ doSomething(value);
 ````
 
 > **Rule catalog ID:** R037
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

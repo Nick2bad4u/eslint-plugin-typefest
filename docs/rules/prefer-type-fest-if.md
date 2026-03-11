@@ -1,6 +1,6 @@
 # prefer-type-fest-if
 
-Require TypeFest `If` + `Is*` utilities over deprecated aliases like `IfAny`,
+Require TypeFest [`If`](https://github.com/sindresorhus/type-fest/blob/main/source/if.d.ts) + `Is*` utilities over deprecated aliases like `IfAny`,
 `IfNever`, `IfUnknown`, `IfNull`, and `IfEmptyObject`.
 
 ## Targeted pattern scope
@@ -204,7 +204,6 @@ type Works = IncludesWithoutIf<HundredZeroes, '1'>;
 ````
 
 > **Rule catalog ID:** R041
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

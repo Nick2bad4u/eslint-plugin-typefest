@@ -112,7 +112,6 @@ import {isDefined} from 'ts-extras';
 ````
 
 > **Rule catalog ID:** R015
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

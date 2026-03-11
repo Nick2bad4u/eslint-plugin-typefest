@@ -1,6 +1,6 @@
 # prefer-type-fest-set-non-nullable
 
-Require TypeFest `SetNonNullable<T, Keys>` over imported aliases like
+Require TypeFest [`SetNonNullable<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/set-non-nullable.d.ts) over imported aliases like
 `NonNullableBy`.
 
 ## Targeted pattern scope
@@ -132,7 +132,6 @@ type AllNonNullable = SetNonNullable<Foo>;
 ````
 
 > **Rule catalog ID:** R062
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

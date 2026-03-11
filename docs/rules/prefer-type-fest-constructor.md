@@ -1,6 +1,6 @@
 # prefer-type-fest-constructor
 
-Require TypeFest `Constructor` over explicit constructor signatures.
+Require TypeFest [`Constructor`](https://github.com/sindresorhus/type-fest/blob/main/source/basic.d.ts) over explicit constructor signatures.
 
 ## Targeted pattern scope
 
@@ -75,7 +75,6 @@ Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/Jav
 ```
 
 > **Rule catalog ID:** R039
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

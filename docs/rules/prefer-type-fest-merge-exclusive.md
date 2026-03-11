@@ -1,6 +1,6 @@
 # prefer-type-fest-merge-exclusive
 
-Require TypeFest `MergeExclusive` over `XOR` aliases.
+Require TypeFest [`MergeExclusive`](https://github.com/sindresorhus/type-fest/blob/main/source/merge-exclusive.d.ts) over `XOR` aliases.
 
 ## Targeted pattern scope
 
@@ -106,7 +106,6 @@ exclusiveOptions = {exclusive1: true, exclusive2: 'hi'};
 ````
 
 > **Rule catalog ID:** R049
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

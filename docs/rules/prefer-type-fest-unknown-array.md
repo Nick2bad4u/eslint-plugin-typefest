@@ -1,6 +1,6 @@
 # prefer-type-fest-unknown-array
 
-Require TypeFest `UnknownArray` over `readonly unknown[]` and `ReadonlyArray<unknown>`.
+Require TypeFest [`UnknownArray`](https://github.com/sindresorhus/type-fest/blob/main/source/unknown-array.d.ts) over `readonly unknown[]` and `ReadonlyArray<unknown>`.
 
 ## Targeted pattern scope
 
@@ -113,7 +113,6 @@ type C = IsArray<string>;
 ````
 
 > **Rule catalog ID:** R069
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

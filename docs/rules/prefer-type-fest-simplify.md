@@ -1,6 +1,6 @@
 # prefer-type-fest-simplify
 
-Require TypeFest `Simplify<T>` over imported `Prettify<T>` / `Expand<T>` aliases.
+Require TypeFest [`Simplify<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/simplify.d.ts) over imported `Prettify<T>` / `Expand<T>` aliases.
 
 ## Targeted pattern scope
 
@@ -155,7 +155,6 @@ fn(someInterface as Simplify<SomeInterface>); // Good: transform an `interface` 
 ````
 
 > **Rule catalog ID:** R066
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

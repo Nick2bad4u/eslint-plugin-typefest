@@ -50,6 +50,9 @@ const headingOrderIndex = new Map(
 const helperDocPathPattern = /(^|\/)docs\/rules\/prefer-[^/]+\.md$/u;
 const typeFestDocPathPattern = /(^|\/)docs\/rules\/prefer-type-fest-/u;
 const tsExtrasDocPathPattern = /(^|\/)docs\/rules\/prefer-ts-extras-/u;
+const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmu;
+const ruleCatalogIdBeforeFurtherReadingPattern =
+    /^> \*\*Rule catalog ID:\*\* R\d{3}\r?\n## Further reading$/mu;
 
 /**
  * @param {string} path
@@ -391,6 +394,36 @@ export default function remarkLintRuleDocHeadings() {
                 "ts-extras helper docs must include the exact label `ts-extras package documentation:`.",
                 undefined,
                 "remark-lint:rule-doc-headings:ts-extras-label"
+            );
+        }
+
+        const ruleCatalogIdLines =
+            markdownContent.match(ruleCatalogIdLinePattern) ?? [];
+
+        if (ruleCatalogIdLines.length === 0) {
+            file.message(
+                "Rule docs must include a blockquote line in the form `> **Rule catalog ID:** R086`.",
+                undefined,
+                "remark-lint:rule-doc-headings:missing-rule-catalog-id"
+            );
+        }
+
+        if (ruleCatalogIdLines.length > 1) {
+            file.message(
+                "Rule docs must include exactly one Rule catalog ID line.",
+                undefined,
+                "remark-lint:rule-doc-headings:duplicate-rule-catalog-id"
+            );
+        }
+
+        if (
+            ruleCatalogIdLines.length === 1 &&
+            !ruleCatalogIdBeforeFurtherReadingPattern.test(markdownContent)
+        ) {
+            file.message(
+                "Rule catalog ID line must appear immediately before `## Further reading` with no blank line.",
+                undefined,
+                "remark-lint:rule-doc-headings:rule-catalog-id-placement"
             );
         }
     };

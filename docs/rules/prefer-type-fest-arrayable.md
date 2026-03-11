@@ -1,6 +1,6 @@
 # prefer-type-fest-arrayable
 
-Require TypeFest `Arrayable<T>` over `T | T[]` and `T | Array<T>` unions.
+Require TypeFest [`Arrayable<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/arrayable.d.ts) over `T | T[]` and `T | Array<T>` unions.
 
 ## Targeted pattern scope
 
@@ -114,7 +114,6 @@ bundle('src/index.js', ['dist/index.cjs', 'dist/index.mjs']);
 ````
 
 > **Rule catalog ID:** R036
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

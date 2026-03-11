@@ -1,6 +1,6 @@
 # prefer-type-fest-schema
 
-Require TypeFest `Schema<ObjectType, ValueType>` over imported aliases like `RecordDeep`.
+Require TypeFest [`Schema<ObjectType, ValueType>`](https://github.com/sindresorhus/type-fest/blob/main/source/schema.d.ts) over imported aliases like `RecordDeep`.
 
 ## Targeted pattern scope
 
@@ -148,7 +148,6 @@ const userMaskSettings: UserMask = {
 ````
 
 > **Rule catalog ID:** R061
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

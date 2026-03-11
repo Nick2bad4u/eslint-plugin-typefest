@@ -1,6 +1,6 @@
 # prefer-type-fest-required-deep
 
-Require TypeFest `RequiredDeep` over `DeepRequired` aliases.
+Require TypeFest [`RequiredDeep`](https://github.com/sindresorhus/type-fest/blob/main/source/required-deep.d.ts) over `DeepRequired` aliases.
 
 ## Targeted pattern scope
 
@@ -111,7 +111,6 @@ Note that types containing overloaded functions are not made deeply required due
 ````
 
 > **Rule catalog ID:** R060
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

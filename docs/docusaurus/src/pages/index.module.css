@@ -601,8 +601,8 @@
     background: rgb(79 70 229 / 14%);
     block-size: 1.9rem;
     font-family:
-        "Nerd Font Symbols", "Symbols Nerd Font Mono", "Symbols Nerd Font",
-        "FiraCode Nerd Font", var(--ifm-font-family-base);
+        "NerdFontSymbols Nerd Font Symbols", "Symbols Nerd Font Mono",
+        "Segoe UI Emoji", sans-serif;
     font-size: 1.12rem;
     font-variant-ligatures: none;
     inline-size: 1.9rem;

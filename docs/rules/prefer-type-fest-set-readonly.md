@@ -1,6 +1,6 @@
 # prefer-type-fest-set-readonly
 
-Require TypeFest `SetReadonly<T, Keys>` over imported aliases like
+Require TypeFest [`SetReadonly<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/set-readonly.d.ts) over imported aliases like
 `ReadonlyBy`.
 
 ## Targeted pattern scope
@@ -123,7 +123,6 @@ type SomeReadonly = SetReadonly<Foo, 'b' | 'c'>;
 ````
 
 > **Rule catalog ID:** R064
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

@@ -1,6 +1,6 @@
 # prefer-type-fest-literal-union
 
-Require TypeFest `LiteralUnion` over unions that mix primitive keywords with same-family literal members.
+Require TypeFest [`LiteralUnion`](https://github.com/sindresorhus/type-fest/blob/main/source/literal-union.d.ts) over unions that mix primitive keywords with same-family literal members.
 
 ## Targeted pattern scope
 
@@ -106,7 +106,6 @@ const petWithAutoComplete: Pet2 = '';
 ````
 
 > **Rule catalog ID:** R048
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

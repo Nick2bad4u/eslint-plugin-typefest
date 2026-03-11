@@ -111,7 +111,6 @@ const writableContext = asWritable((await import('x')).context);
 ````
 
 > **Rule catalog ID:** R010
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

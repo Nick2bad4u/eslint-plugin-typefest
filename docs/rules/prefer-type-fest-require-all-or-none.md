@@ -1,6 +1,6 @@
 # prefer-type-fest-require-all-or-none
 
-Require TypeFest `RequireAllOrNone<T, Keys>` over imported aliases like
+Require TypeFest [`RequireAllOrNone<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/require-all-or-none.d.ts) over imported aliases like
 `AllOrNone` or `AllOrNothing`.
 
 ## Targeted pattern scope
@@ -136,7 +136,6 @@ const responder2: RequireAllOrNone<Responder, 'text' | 'json'> = {
 ````
 
 > **Rule catalog ID:** R056
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

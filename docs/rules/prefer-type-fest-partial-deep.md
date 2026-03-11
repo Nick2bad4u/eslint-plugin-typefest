@@ -1,6 +1,6 @@
 # prefer-type-fest-partial-deep
 
-Require TypeFest `PartialDeep` over `DeepPartial` aliases.
+Require TypeFest [`PartialDeep`](https://github.com/sindresorhus/type-fest/blob/main/source/partial-deep.d.ts) over `DeepPartial` aliases.
 
 ## Targeted pattern scope
 
@@ -121,7 +121,6 @@ partialShape.dimensions = [15]; // OK
 ````
 
 > **Rule catalog ID:** R052
-
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

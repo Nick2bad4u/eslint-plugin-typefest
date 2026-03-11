@@ -1,6 +1,6 @@
 # prefer-type-fest-value-of
 
-Require TypeFest `ValueOf<T>` over direct `T[keyof T]` indexed-access unions when extracting object value unions.
+Require TypeFest [`ValueOf<T>`](https://github.com/sindresorhus/type-fest/blob/main/source/value-of.d.ts) over direct `T[keyof T]` indexed-access unions when extracting object value unions.
 
 ## Targeted pattern scope
 
@@ -108,7 +108,6 @@ type C = ValueOf<{id: number; name: string; active: boolean}, 'id' | 'name'>;
 ````
 
 > **Rule catalog ID:** R074
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

@@ -1,6 +1,6 @@
 # prefer-type-fest-set-optional
 
-Require TypeFest `SetOptional<T, Keys>` over imported aliases like `PartialBy`.
+Require TypeFest [`SetOptional<T, Keys>`](https://github.com/sindresorhus/type-fest/blob/main/source/set-optional.d.ts) over imported aliases like `PartialBy`.
 
 ## Targeted pattern scope
 
@@ -120,7 +120,6 @@ type SomeOptional = SetOptional<Foo, 'b' | 'c'>;
 ````
 
 > **Rule catalog ID:** R063
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

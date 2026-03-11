@@ -1,6 +1,6 @@
 # prefer-type-fest-json-array
 
-Require TypeFest `JsonArray` over explicit `JsonValue` array-union aliases.
+Require TypeFest [`JsonArray`](https://github.com/sindresorhus/type-fest/blob/main/source/json-value.d.ts) over explicit `JsonValue` array-union aliases.
 
 ## Targeted pattern scope
 
@@ -94,7 +94,6 @@ Matches a JSON array.
 ```
 
 > **Rule catalog ID:** R043
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

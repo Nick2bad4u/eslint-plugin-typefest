@@ -1,6 +1,6 @@
 # prefer-type-fest-non-empty-tuple
 
-Require TypeFest `NonEmptyTuple` over the ad-hoc `readonly [T, ...T[]]` tuple pattern.
+Require TypeFest [`NonEmptyTuple`](https://github.com/sindresorhus/type-fest/blob/main/source/non-empty-tuple.d.ts) over the ad-hoc `readonly [T, ...T[]]` tuple pattern.
 
 ## Targeted pattern scope
 
@@ -102,7 +102,6 @@ sum();
 ````
 
 > **Rule catalog ID:** R050
-
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

@@ -118,7 +118,6 @@ const untypedEntries = Object.fromEntries([['a', 123], ['b', 'someString'], ['c'
 ````
 
 > **Rule catalog ID:** R027
-
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
