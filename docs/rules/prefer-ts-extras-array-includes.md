@@ -122,6 +122,7 @@ if (arrayIncludes(values, valueToCheck)) {
 ````
 
 > **Rule catalog ID:** R007
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

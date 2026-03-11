@@ -175,11 +175,13 @@ function assertRuleCatalogIdLine(markdown: string): void {
         /^> \*\*Rule catalog ID:\*\* R\d{3}$/v.test(line)
     );
     const furtherReadingHeadingIndex = lines.indexOf("## Further reading");
+    const separatorLine = lines[ruleCatalogIdLineIndex + 1];
 
     expect(matches).toHaveLength(1);
     expect(ruleCatalogIdLineIndex).toBeGreaterThanOrEqual(0);
     expect(furtherReadingHeadingIndex).toBeGreaterThanOrEqual(0);
-    expect(ruleCatalogIdLineIndex).toBe(furtherReadingHeadingIndex - 1);
+    expect(separatorLine).toMatch(/^\s*$/v);
+    expect(ruleCatalogIdLineIndex).toBe(furtherReadingHeadingIndex - 2);
 }
 
 /**

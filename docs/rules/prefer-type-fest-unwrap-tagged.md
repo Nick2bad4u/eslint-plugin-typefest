@@ -120,6 +120,7 @@ type WontWork = UnwrapTagged<string>;
 ````
 
 > **Rule catalog ID:** R073
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

@@ -75,6 +75,7 @@ Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/Jav
 ```
 
 > **Rule catalog ID:** R039
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

@@ -119,6 +119,7 @@ const noFirst = arrayFirst(empty);
 ````
 
 > **Rule catalog ID:** R006
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

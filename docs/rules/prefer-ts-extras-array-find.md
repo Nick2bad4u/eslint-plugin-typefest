@@ -95,6 +95,7 @@ Reference links:
 - [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
 
 > **Rule catalog ID:** R003
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

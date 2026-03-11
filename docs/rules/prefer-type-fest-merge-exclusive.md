@@ -106,6 +106,7 @@ exclusiveOptions = {exclusive1: true, exclusive2: 'hi'};
 ````
 
 > **Rule catalog ID:** R049
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

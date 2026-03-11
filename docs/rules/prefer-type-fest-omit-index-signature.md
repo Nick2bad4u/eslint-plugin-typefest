@@ -183,6 +183,7 @@ type ExampleWithoutIndexSignatures = OmitIndexSignature<Example>;
 ````
 
 > **Rule catalog ID:** R051
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

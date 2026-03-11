@@ -125,6 +125,7 @@ const withEmpty = arrayConcat([], ['hello']);
 ````
 
 > **Rule catalog ID:** R002
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

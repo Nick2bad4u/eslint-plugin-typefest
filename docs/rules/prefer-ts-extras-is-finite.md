@@ -103,6 +103,7 @@ A strongly-typed version of `Number.isFinite()`.
 ```
 
 > **Rule catalog ID:** R018
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

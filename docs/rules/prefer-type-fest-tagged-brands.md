@@ -265,6 +265,7 @@ type SpecialCacheKey2 = Tagged<string, 'URL' | 'SpecialCacheKey'>;
 ````
 
 > **Rule catalog ID:** R067
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

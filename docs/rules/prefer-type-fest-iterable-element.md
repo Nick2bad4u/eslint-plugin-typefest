@@ -157,6 +157,7 @@ type Fruit = IterableElement<typeof fruits>;
 ````
 
 > **Rule catalog ID:** R042
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

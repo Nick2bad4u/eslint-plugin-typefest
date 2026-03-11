@@ -155,6 +155,7 @@ fn(someInterface as Simplify<SomeInterface>); // Good: transform an `interface` 
 ````
 
 > **Rule catalog ID:** R066
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

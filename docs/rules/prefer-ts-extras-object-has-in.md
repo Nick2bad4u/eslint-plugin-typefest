@@ -128,6 +128,7 @@ if (objectHasIn(data, 'toString')) {
 ````
 
 > **Rule catalog ID:** R028
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

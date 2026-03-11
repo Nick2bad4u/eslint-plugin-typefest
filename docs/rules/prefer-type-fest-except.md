@@ -218,6 +218,7 @@ type PostPayloadFixed = Except<UserData, 'email'>;
 ````
 
 > **Rule catalog ID:** R040
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

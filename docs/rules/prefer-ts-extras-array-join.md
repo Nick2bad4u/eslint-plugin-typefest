@@ -119,6 +119,7 @@ const dynamicJoined = arrayJoin(dynamic, '-');
 ````
 
 > **Rule catalog ID:** R008
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

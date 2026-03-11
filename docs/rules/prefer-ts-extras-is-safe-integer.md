@@ -103,6 +103,7 @@ A strongly-typed version of `Number.isSafeInteger()`.
 ```
 
 > **Rule catalog ID:** R023
+
 ## Further reading
 
 - [`ts-extras` README](https://github.com/sindresorhus/ts-extras)

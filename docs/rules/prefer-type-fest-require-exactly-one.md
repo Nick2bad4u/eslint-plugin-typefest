@@ -227,6 +227,7 @@ const responder: RequireExactlyOne<Responder, 'text' | 'json'> = {
 ````
 
 > **Rule catalog ID:** R058
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

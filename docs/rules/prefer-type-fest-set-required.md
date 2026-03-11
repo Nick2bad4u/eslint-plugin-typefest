@@ -127,6 +127,7 @@ type ArrayExample = SetRequired<[number?, number?, number?], 0 | 1>;
 ````
 
 > **Rule catalog ID:** R065
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

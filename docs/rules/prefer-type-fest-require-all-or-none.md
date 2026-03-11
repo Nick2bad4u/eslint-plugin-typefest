@@ -136,6 +136,7 @@ const responder2: RequireAllOrNone<Responder, 'text' | 'json'> = {
 ````
 
 > **Rule catalog ID:** R056
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

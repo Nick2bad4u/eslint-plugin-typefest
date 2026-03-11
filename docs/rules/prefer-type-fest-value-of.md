@@ -108,6 +108,7 @@ type C = ValueOf<{id: number; name: string; active: boolean}, 'id' | 'name'>;
 ````
 
 > **Rule catalog ID:** R074
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

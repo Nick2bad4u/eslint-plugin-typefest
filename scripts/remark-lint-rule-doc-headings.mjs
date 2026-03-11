@@ -52,7 +52,7 @@ const typeFestDocPathPattern = /(^|\/)docs\/rules\/prefer-type-fest-/u;
 const tsExtrasDocPathPattern = /(^|\/)docs\/rules\/prefer-ts-extras-/u;
 const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmu;
 const ruleCatalogIdBeforeFurtherReadingPattern =
-    /^> \*\*Rule catalog ID:\*\* R\d{3}\r?\n## Further reading$/mu;
+    /^> \*\*Rule catalog ID:\*\* R\d{3}\r?\n\r?\n## Further reading$/mu;
 
 /**
  * @param {string} path
@@ -421,7 +421,7 @@ export default function remarkLintRuleDocHeadings() {
             !ruleCatalogIdBeforeFurtherReadingPattern.test(markdownContent)
         ) {
             file.message(
-                "Rule catalog ID line must appear immediately before `## Further reading` with no blank line.",
+                "Rule catalog ID line must be followed by exactly one blank line before `## Further reading`.",
                 undefined,
                 "remark-lint:rule-doc-headings:rule-catalog-id-placement"
             );

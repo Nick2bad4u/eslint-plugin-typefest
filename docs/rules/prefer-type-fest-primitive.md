@@ -93,6 +93,7 @@ Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/
 ```
 
 > **Rule catalog ID:** R053
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

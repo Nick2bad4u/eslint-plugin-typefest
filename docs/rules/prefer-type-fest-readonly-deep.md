@@ -139,6 +139,7 @@ Note that types containing overloaded functions are not made deeply readonly due
 ````
 
 > **Rule catalog ID:** R055
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)

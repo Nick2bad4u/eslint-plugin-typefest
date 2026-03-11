@@ -126,6 +126,7 @@ writableArray.push(4); // Will work as the array itself is now writable.
 ````
 
 > **Rule catalog ID:** R075
+
 ## Further reading
 
 - [`type-fest` README](https://github.com/sindresorhus/type-fest)

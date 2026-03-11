@@ -101,6 +101,7 @@ Note that types containing overloaded functions are not made deeply writable due
 ````
 
 > **Rule catalog ID:** R076
+
 ## Further reading
 
 - [TypeFest README](https://github.com/sindresorhus/type-fest)
