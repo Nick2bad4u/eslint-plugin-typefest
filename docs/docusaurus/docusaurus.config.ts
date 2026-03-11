@@ -298,28 +298,28 @@ const config: Config = {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}/releases`,
-                            label: "\uf02b Releases",
+                            label: "\ueb09 Releases",
                         },
                         {
                             href: `${siteUrl}${baseUrl}eslint-inspector/`,
-                            label: "\uf002 ESLint Inspector",
+                            label: "\ue7d2 ESLint Inspector",
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "\uf1b3 ts-extras",
+                            label: "\uf40d ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "\uf1b3 type-fest",
+                            label: "\uf40d type-fest",
                         },
                     ],
-                    title: "\uf135 Project",
+                    title: "📁 Project",
                 },
                 {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "\uf0c1 GitHub Repository",
+                            label: "\uea84 GitHub Repository",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/issues`,
@@ -327,14 +327,14 @@ const config: Config = {
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "\uf06b NPM",
+                            label: "\ue5fa NPM",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/blob/main/CONTRIBUTING.md`,
                             label: "\uf0c0 Contributing",
                         },
                     ],
-                    title: "\uf0ad Support",
+                    title: "⚙️ Support",
                 },
             ],
             logo: {
@@ -351,31 +351,127 @@ const config: Config = {
             items: [
                 {
                     activeBaseRegex: "^/docs/rules/overview/?$",
-                    label: "📚 Docs",
+                    label: "\uf02d Docs",
                     position: "left",
                     to: "/docs/rules/overview",
+                    items: [
+                        {
+                            label: "• Overview",
+                            to: "/docs/rules/overview",
+                        },
+                        {
+                            label: "• Getting Started",
+                            to: "/docs/rules/getting-started",
+                        },
+                        {
+                            label: "• Adoption & Rollout",
+                            to: "/docs/rules/category/-adoption--rollout",
+                        },
+                    ],
                 },
                 {
                     activeBaseRegex: "^/docs/rules(?:/(?!presets(?:/|$)).*)?$",
-                    label: "📏 Rules",
+                    label: "\uf0ae Rules",
                     position: "left",
                     to: "/docs/rules",
+                    items: [
+                        {
+                            label: "• Rule Reference",
+                            to: "/docs/rules",
+                        },
+                        {
+                            label: "• Rules for ts-extras",
+                            to: "/docs/rules/category/ts-extras",
+                        },
+                        {
+                            label: "• Rules for type-fest",
+                            to: "/docs/rules/category/type-fest",
+                        },
+                    ],
                 },
                 {
                     activeBaseRegex: "^/docs/rules/presets(?:/.*)?$",
-                    label: "🎛️ Presets",
+                    label: "\uf0ad Presets",
                     position: "left",
                     to: "/docs/rules/presets",
+                    items: [
+                        {
+                            label: "• Preset Reference",
+                            to: "/docs/rules/presets",
+                        },
+                        {
+                            label: "🟢 Minimal",
+                            to: "/docs/rules/presets/minimal",
+                        },
+                        {
+                            label: "🟡 Recommended",
+                            to: "/docs/rules/presets/recommended",
+                        },
+                        {
+                            label: "🔴 Strict",
+                            to: "/docs/rules/presets/strict",
+                        },
+                        {
+                            label: "🟣 All",
+                            to: "/docs/rules/presets/all",
+                        },
+                        {
+                            label: "💠 type-fest",
+                            to: "/docs/rules/presets/type-fest-types",
+                        },
+                        {
+                            label: "✴️ ts-extras",
+                            to: "/docs/rules/presets/ts-extras-type-guards",
+                        },
+                    ],
                 },
                 {
-                    label: "📰 Blog",
-                    position: "left",
+                    label: "\ueaa4 Blog",
+                    position: "right",
+                    items: [
+                        {
+                            label: "• Latest Posts",
+                            to: "/blog",
+                        },
+                        {
+                            label: "• All Posts",
+                            to: "/blog/archive",
+                        },
+                    ],
+                },
+                {
                     to: "/blog",
                 },
                 {
                     label: "\udb80\ude19 Dev",
                     position: "right",
                     to: "/docs/developer",
+                    items: [
+                        {
+                            label: "• Development Guide",
+                            to: "/docs/developer",
+                        },
+                        {
+                            label: "• API Reference",
+                            to: "/docs/developer/api",
+                        },
+                        {
+                            label: "• ADRs",
+                            to: "/docs/developer/adr",
+                        },
+                        {
+                            label: "• Types",
+                            to: "/docs/category/types",
+                        },
+                        {
+                            label: "• Charts",
+                            to: "/docs/developer/charts",
+                        },
+                        {
+                            label: "• Internals",
+                            to: "/docs/category/runtime",
+                        },
+                    ],
                 },
                 {
                     href: `https://github.com/${organizationName}/${projectName}`,
