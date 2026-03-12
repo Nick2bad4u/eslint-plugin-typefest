@@ -277,6 +277,7 @@
         "all-contributors-cli": "^6.26.1",
         "cognitive-complexity-ts": "^0.8.1",
         "commitlint": "^20.4.3",
+        "commitlint-config-gitmoji": "^2.3.1",
         "cross-env": "^10.1.0",
         "depcheck": "^1.4.7",
         "detect-secrets": "^1.0.6",

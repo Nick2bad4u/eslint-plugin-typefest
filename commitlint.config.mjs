@@ -1,12 +1,11 @@
 /**
  * Commitlint configuration for eslint-plugin-typefest.
  *
- * Enforces conventional commit format with emoji and bracketed type, e.g., "✨
- * [feat] Add dark mode toggle". Each commit bullet point should start with one
- * of the following: 🔧 [build], 🧹 [chore], 👷 [ci], 📝 [docs], ✨ [feat], 🛠️
- * [fix], ⚡ [perf], 🚜 [refactor], ⏪ [revert], 🎨 [style], 🧪 [test] Example: "✨
- * [feat] Add dark mode toggle" Indent any lines that refer to the statement
- * above with a " - ".
+ * Enforces Gitmoji commit format, e.g., ":sparkles: feat(core): add feature".
+ *
+ * Structure: `:gitmoji: type(scope?): subject`
+ *
+ * Example: `:bug: fix(rule): avoid false positive`
  *
  * @type {import("@commitlint/types").UserConfig}
  *
@@ -61,14 +60,14 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
     defaultIgnores: true,
 
     /**
-     * Extends the conventional commit configuration with additional rules.
+     * Extends the Gitmoji commitlint shareable configuration.
      */
-    extends: ["@commitlint/config-conventional"],
+    extends: ["commitlint-config-gitmoji"],
 
     /**
      * Help URL for commit format guidance.
      */
-    helpUrl: "https://www.conventionalcommits.org/",
+    helpUrl: "https://gitmoji.dev/",
 
     /**
      * Ignore certain commit patterns.
@@ -119,69 +118,69 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
             },
             type: {
                 description:
-                    "Select the type of change that you're committing. Start your commit message with the emoji and type in brackets, e.g., '✨ [feat] Add dark mode toggle'.",
+                    "Select the Gitmoji + type prefix for your commit (e.g., ':sparkles: feat'). Final header format: ':gitmoji: type(scope?): subject'.",
                 enum: {
-                    "⏪ [revert]": {
-                        description: "Reverts a previous commit",
-                        emoji: "⏪",
-                        title: "Reverts",
-                    },
-                    "⚡ [perf]": {
-                        description: "A code change that improves performance",
-                        emoji: "⚡",
-                        title: "Performance Improvements",
-                    },
-                    "✨ [feat]": {
-                        description: "A new feature",
-                        emoji: "✨",
-                        title: "Features",
-                    },
-                    "🎨 [style]": {
+                    ":art: style": {
                         description:
                             "Changes that do not affect the meaning of the code",
                         emoji: "🎨",
                         title: "Styles",
                     },
-                    "👷 [ci]": {
-                        description:
-                            "Changes to our CI configuration files and scripts",
-                        emoji: "👷",
-                        title: "Continuous Integrations",
-                    },
-                    "📝 [docs]": {
-                        description: "Documentation only changes",
-                        emoji: "📝",
-                        title: "Documentation",
-                    },
-                    "🔧 [build]": {
-                        description:
-                            "Changes that affect the build system or external dependencies",
-                        emoji: "�",
-                        title: "Builds",
-                    },
-                    "🧪 [test]": {
-                        description:
-                            "Adding missing tests or correcting existing tests",
-                        emoji: "🧪",
-                        title: "Tests",
-                    },
-                    "🧹 [chore]": {
+                    ":broom: chore": {
                         description:
                             "Other changes that don't modify src or test files",
                         emoji: "🧹",
                         title: "Chores",
                     },
-
-                    "🚜 [refactor]": {
+                    ":bug: fix": {
+                        description: "A bug fix",
+                        emoji: "🐛",
+                        title: "Bug Fixes",
+                    },
+                    ":construction_worker: ci": {
+                        description:
+                            "Changes to our CI configuration files and scripts",
+                        emoji: "👷",
+                        title: "Continuous Integrations",
+                    },
+                    ":memo: docs": {
+                        description: "Documentation only changes",
+                        emoji: "📝",
+                        title: "Documentation",
+                    },
+                    ":recycle: refactor": {
                         description:
                             "A code change that neither fixes a bug nor adds a feature",
-                        emoji: "🚜",
+                        emoji: "♻️",
                         title: "Code Refactoring",
                     },
-                    "🛠️ [fix]": {
-                        description: "A bug fix",
-                        emoji: "🛠️",
-                        title: "Bug Fixes",
+                    ":rewind: revert": {
+                        description: "Reverts a previous commit",
+                        emoji: "⏪️",
+                        title: "Reverts",
+                    },
+                    ":sparkles: feat": {
+                        description: "A new feature",
+                        emoji: "✨",
+                        title: "Features",
+                    },
+                    ":white_check_mark: test": {
+                        description:
+                            "Adding missing tests or correcting existing tests",
+                        emoji: "✅",
+                        title: "Tests",
+                    },
+
+                    ":wrench: build": {
+                        description:
+                            "Changes that affect the build system or external dependencies",
+                        emoji: "🔧",
+                        title: "Builds",
+                    },
+                    ":zap: perf": {
+                        description: "A code change that improves performance",
+                        emoji: "⚡",
+                        title: "Performance Improvements",
                     },
                 },
             },
@@ -330,17 +329,18 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
             2,
             "always",
             [
-                "🔧 [build]",
-                "🧹 [chore]",
-                "👷 [ci]",
-                "📝 [docs]",
-                "✨ [feat]",
-                "🛠️ [fix]",
-                "⚡ [perf]",
-                "🚜 [refactor]",
-                "⏪ [revert]",
-                "🎨 [style]",
-                "🧪 [test]",
+                "build",
+                "chore",
+                "ci",
+                "docs",
+                "feat",
+                "fix",
+                "perf",
+                "refactor",
+                "revert",
+                "style",
+                "test",
+                "wip",
             ],
         ],
         "type-max-length": [

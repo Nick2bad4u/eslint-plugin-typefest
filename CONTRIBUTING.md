@@ -118,14 +118,18 @@ Optional focused checks:
 
 ## Commit guidance
 
-Conventional Commits are recommended because release notes and changelog tooling
-are commit-message aware.
+Gitmoji + Conventional type commits are recommended because release notes and
+changelog tooling are commit-message aware.
+
+Format:
+
+- `:gitmoji: type(scope?): subject`
 
 Examples:
 
-- `feat(rule): add prefer-type-fest-xyz`
-- `fix(rule): avoid false positive in union type handling`
-- `docs: clarify configuration for type-aware rules`
+- `:sparkles: feat(rule): add prefer-type-fest-xyz`
+- `:bug: fix(rule): avoid false positive in union type handling`
+- `:memo: docs: clarify configuration for type-aware rules`
 
 ## Pull request expectations
 
