@@ -1318,7 +1318,13 @@ export default defineConfig([
                 },
             ],
             "import-x/no-unresolved": "off",
-            "import-x/no-unused-modules": "warn",
+            "import-x/no-unused-modules": [
+                "warn",
+                {
+                    missingExports: true,
+                    suppressMissingFileEnumeratorAPIWarning: true,
+                },
+            ],
             "import-x/no-useless-path-segments": "warn",
             "import-x/no-webpack-loader-syntax": "warn",
             "import-x/order": "off",
