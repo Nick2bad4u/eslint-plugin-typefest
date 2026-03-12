@@ -515,7 +515,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default
@@ -670,7 +670,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

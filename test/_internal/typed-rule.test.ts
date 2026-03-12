@@ -369,7 +369,7 @@ describe(getTypedRuleServices, () => {
 
         const context = createTypedRuleContext(parserServices);
 
-        expect(() => getTypedRuleServices(context as never)).toThrowError(
+        expect(() => getTypedRuleServices(context as never)).toThrow(
             /requires parserServices\.program/v
         );
     });

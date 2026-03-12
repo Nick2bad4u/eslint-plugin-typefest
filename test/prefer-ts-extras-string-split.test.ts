@@ -423,7 +423,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
             expect(() => {
                 listenerMap.CallExpression?.(splitCallExpression);
-            }).not.toThrowError();
+            }).not.toThrow();
 
             expect(report).not.toHaveBeenCalled();
         } finally {
@@ -849,7 +849,7 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

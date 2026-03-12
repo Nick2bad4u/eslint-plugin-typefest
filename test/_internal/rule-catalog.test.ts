@@ -79,7 +79,7 @@ describe("rule-catalog", () => {
     it("throws for unknown rule names in strict lookup", () => {
         expect(() =>
             getRuleCatalogEntryForRuleName("prefer-internal-non-catalog-rule")
-        ).toThrowError(/missing from the stable rule catalog/v);
+        ).toThrow(/missing from the stable rule catalog/v);
     });
 
     it("returns undefined for unknown rule ids", () => {

@@ -354,7 +354,7 @@ describe("prefer-type-fest-if source assertions", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

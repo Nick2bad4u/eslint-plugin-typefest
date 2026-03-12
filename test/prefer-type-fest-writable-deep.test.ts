@@ -286,7 +286,7 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
                         },
                     },
                 });
-            }).not.toThrowError();
+            }).not.toThrow();
             expect(collectDirectNamedImportsFromSourceMock).toHaveBeenCalled();
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");

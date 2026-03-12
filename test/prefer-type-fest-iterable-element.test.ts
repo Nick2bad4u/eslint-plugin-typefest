@@ -274,7 +274,7 @@ describe("prefer-type-fest-iterable-element source assertions", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

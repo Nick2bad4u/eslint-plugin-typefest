@@ -456,7 +456,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

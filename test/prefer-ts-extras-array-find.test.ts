@@ -287,7 +287,7 @@ describe("prefer-ts-extras-array-find source assertions", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

@@ -1242,7 +1242,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -1309,7 +1309,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -1415,7 +1415,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
                             secondPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -1488,7 +1488,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
 
         expect(() => {
             parser.parseForESLint(fixedCode, parserOptions);
-        }).not.toThrowError();
+        }).not.toThrow();
     });
 
     it("keeps suggestion-intent type fixes self-contained with replacement import insertion", () => {
@@ -1573,7 +1573,7 @@ describe(createSafeTypeReferenceReplacementFixGroup, () => {
         expect(() => {
             parser.parseForESLint(firstSuggestionAppliedCode, parserOptions);
             parser.parseForESLint(secondSuggestionAppliedCode, parserOptions);
-        }).not.toThrowError();
+        }).not.toThrow();
     });
 });
 
@@ -1850,7 +1850,7 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -1919,7 +1919,7 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2028,7 +2028,7 @@ describe(createSafeTypeNodeTextReplacementFixGroup, () => {
                             secondPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2217,7 +2217,7 @@ describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2304,7 +2304,7 @@ describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2390,7 +2390,7 @@ describe(createSafeTypeNodeTextReplacementFixPreservingReadonlyGroup, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default

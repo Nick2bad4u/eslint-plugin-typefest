@@ -697,7 +697,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

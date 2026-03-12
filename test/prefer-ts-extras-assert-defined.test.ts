@@ -356,7 +356,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default
@@ -526,7 +526,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(suggestedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

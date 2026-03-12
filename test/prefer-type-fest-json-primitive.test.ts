@@ -322,7 +322,7 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

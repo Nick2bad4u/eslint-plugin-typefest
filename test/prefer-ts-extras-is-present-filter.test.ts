@@ -447,7 +447,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

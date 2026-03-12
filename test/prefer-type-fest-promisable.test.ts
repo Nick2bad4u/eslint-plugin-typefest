@@ -565,7 +565,7 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                             range: true,
                             sourceType: "module",
                         })
-                    ).not.toThrowError();
+                    ).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -623,7 +623,7 @@ describe("prefer-type-fest-promisable fast-check fix safety", () => {
                             range: true,
                             sourceType: "module",
                         })
-                    ).not.toThrowError();
+                    ).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default

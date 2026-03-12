@@ -1840,7 +1840,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }),
                 fastCheckRunConfig.default
             );
@@ -1932,7 +1932,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
                 expect(() => {
                     parser.parseForESLint(firstPassFixedCode, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const {
                     ast: secondPassAst,
@@ -2052,7 +2052,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                             firstPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const {
                         ast: secondPassAst,
@@ -2480,7 +2480,7 @@ describe("prefer-ts-extras-is-present sequence expression autofix guard", () => 
                             firstPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const {
                         ast: secondPassAst,
@@ -2624,7 +2624,7 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
 
                 expect(() => {
                     parser.parseForESLint(firstPassFixedCode, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 expect(
                     countNamedImportSpecifiersInSource({
@@ -2750,7 +2750,7 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
                             firstPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     expect(
                         countNamedImportSpecifiersInSource({
@@ -2888,7 +2888,7 @@ describe("prefer-ts-extras-is-present local isPresent shadowing", () => {
 
                 expect(() => {
                     parser.parseForESLint(sourceText, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const { ast: secondPassAst, binaryExpression: secondBinary } =
                     parseVariableBinaryExpression(sourceText);
@@ -2980,7 +2980,7 @@ describe("prefer-ts-extras-is-present non-ts-extras isPresent import guard", () 
 
                 expect(() => {
                     parser.parseForESLint(sourceText, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const { ast: secondPassAst, binaryExpression: secondBinary } =
                     parseVariableBinaryExpression(sourceText);
@@ -3088,7 +3088,7 @@ describe("prefer-ts-extras-is-present import insertion setting guard", () => {
 
                 expect(() => {
                     parser.parseForESLint(sourceText, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const { ast: secondPassAst, binaryExpression: secondBinary } =
                     parseVariableBinaryExpression(sourceText);
@@ -3202,7 +3202,7 @@ describe("prefer-ts-extras-is-present global autofix-off setting guard", () => {
 
                 expect(() => {
                     parser.parseForESLint(sourceText, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const { ast: secondPassAst, binaryExpression: secondBinary } =
                     parseVariableBinaryExpression(sourceText);

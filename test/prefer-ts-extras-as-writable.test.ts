@@ -634,7 +634,7 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

@@ -335,7 +335,7 @@ describe(ruleName, () => {
 
         expect(() => {
             mappedTypeListener(mappedTypeNode);
-        }).not.toThrowError();
+        }).not.toThrow();
 
         expect(report).not.toHaveBeenCalled();
     });

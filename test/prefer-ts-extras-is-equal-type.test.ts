@@ -494,7 +494,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

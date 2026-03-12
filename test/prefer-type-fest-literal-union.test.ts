@@ -341,7 +341,7 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
                                 `type Output = ${replacementText};`,
                                 parserOptions
                             );
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

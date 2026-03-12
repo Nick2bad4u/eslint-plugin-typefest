@@ -1677,7 +1677,7 @@ describe(createMethodToFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -1803,7 +1803,7 @@ describe(createMethodToFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -1958,7 +1958,7 @@ describe(createMethodToFunctionCallFix, () => {
                             firstPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2279,7 +2279,7 @@ describe(createMemberToFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -2389,7 +2389,7 @@ describe(createMemberToFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -2506,7 +2506,7 @@ describe(createMemberToFunctionCallFix, () => {
 
                     expect(() => {
                         parseSingleMemberExpressionFromCode(firstPassFixedCode);
-                    }).toThrowError(
+                    }).toThrow(
                         "Expected generated source text to include a variable initialized from a member expression"
                     );
 
@@ -2523,7 +2523,7 @@ describe(createMemberToFunctionCallFix, () => {
                             firstPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -2790,7 +2790,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
         expect(() => {
             parser.parseForESLint(fixedCode, parserOptions);
-        }).not.toThrowError();
+        }).not.toThrow();
     });
 
     it("keeps suggestion-intent fixes self-contained with helper import insertion", () => {
@@ -2909,7 +2909,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
         expect(() => {
             parser.parseForESLint(firstSuggestionAppliedCode, parserOptions);
             parser.parseForESLint(secondSuggestionAppliedCode, parserOptions);
-        }).not.toThrowError();
+        }).not.toThrow();
     });
 
     it("fast-check: emits parseable replacements across argument and negation variants", () => {
@@ -3021,7 +3021,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -3105,7 +3105,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { initializer } =
                         parseSingleVariableInitializerExpressionFromCode(
@@ -3222,7 +3222,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
 
                     const { initializer } =
                         parseSingleVariableInitializerExpressionFromCode(
@@ -3397,7 +3397,7 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
                             secondPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -3734,7 +3734,7 @@ describe(createSafeValueReferenceReplacementFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -3826,7 +3826,7 @@ describe(createSafeValueReferenceReplacementFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default
@@ -3974,7 +3974,7 @@ describe(createSafeValueReferenceReplacementFix, () => {
                             secondPassFixedCode,
                             parserOptions
                         );
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default

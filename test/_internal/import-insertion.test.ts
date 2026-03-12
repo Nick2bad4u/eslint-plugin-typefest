@@ -1157,7 +1157,7 @@ describe(createImportInsertionFix, () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedSourceText, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }
             ),
             fastCheckRunConfig.default

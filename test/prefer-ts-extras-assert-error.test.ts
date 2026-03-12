@@ -401,7 +401,7 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
                 },
                 type: "IfStatement",
             } as never)
-        ).not.toThrowError();
+        ).not.toThrow();
         expect(reportCalls).toHaveLength(0);
     });
 
@@ -628,7 +628,7 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
 
                         expect(() => {
                             parser.parseForESLint(suggestedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

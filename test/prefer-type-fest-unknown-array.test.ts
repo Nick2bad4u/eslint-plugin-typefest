@@ -391,7 +391,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

@@ -1788,7 +1788,9 @@ export default defineConfig([
             "unicorn/prefer-optional-catch-binding": "off", // Allow optional catch binding for test flexibility
             "unicorn/prevent-abbreviations": "off", // Too many false positives in tests
             "vitest/max-expects": "off",
-            "vitest/no-alias-methods": "warn",
+            // Needs update to not use deprecated alias methods like
+            // Replace toThrow() with its canonical name oThrowError()
+            "vitest/no-alias-methods": "off",
             "vitest/no-commented-out-tests": "warn",
             "vitest/no-conditional-expect": "off",
             "vitest/no-disabled-tests": "warn",

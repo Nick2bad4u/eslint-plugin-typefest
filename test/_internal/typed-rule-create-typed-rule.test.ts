@@ -436,7 +436,7 @@ describe(createTypedRule, () => {
             listeners.Program?.(
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
-        ).not.toThrowError();
+        ).not.toThrow();
         expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -500,7 +500,7 @@ describe(createTypedRule, () => {
             listeners.Program?.(
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
-        ).not.toThrowError();
+        ).not.toThrow();
         expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -556,7 +556,7 @@ describe(createTypedRule, () => {
                 },
                 name: "prefer-ts-extras-array-at",
             })
-        ).toThrowError(/has non-canonical docs\.url/v);
+        ).toThrow(/has non-canonical docs\.url/v);
     });
 
     it("injects ruleCatalogId for non-catalog internal rules without ruleId/ruleNumber", () => {
@@ -610,7 +610,7 @@ describe(createTypedRule, () => {
                 },
                 name: "prefer-internal-missing-catalog-test-rule",
             })
-        ).toThrowError(/missing from the stable rule catalog/v);
+        ).toThrow(/missing from the stable rule catalog/v);
     });
 
     it("preserves meta.defaultOptions when upstream RuleCreator metadata provides it", () => {

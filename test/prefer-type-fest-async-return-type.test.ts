@@ -325,7 +325,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }),
                 fastCheckRunConfig.default
             );

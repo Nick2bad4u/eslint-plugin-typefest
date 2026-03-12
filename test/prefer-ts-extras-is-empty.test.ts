@@ -321,7 +321,7 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
 
             expect(() => {
                 listenerMap.BinaryExpression?.(firstDeclarator.init);
-            }).not.toThrowError();
+            }).not.toThrow();
 
             expect(report).not.toHaveBeenCalled();
         } finally {

@@ -598,7 +598,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default

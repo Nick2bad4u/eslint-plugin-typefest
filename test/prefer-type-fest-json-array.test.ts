@@ -544,7 +544,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }),
                 fastCheckRunConfig.default
             );

@@ -206,7 +206,7 @@ describe(safeTypeOperation, () => {
 
                 throw new Error("expected scoped operation failure");
             });
-        }).toThrowError("expected scoped operation failure");
+        }).toThrow("expected scoped operation failure");
 
         safeTypeOperation({
             operation: () => {

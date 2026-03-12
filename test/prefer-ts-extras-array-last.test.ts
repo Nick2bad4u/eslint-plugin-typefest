@@ -441,7 +441,7 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
 
                             expect(() => {
                                 parser.parseForESLint(fixedCode, parserOptions);
-                            }).not.toThrowError();
+                            }).not.toThrow();
 
                             return;
                         }

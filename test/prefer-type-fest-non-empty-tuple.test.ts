@@ -400,7 +400,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
 
                     expect(() => {
                         parser.parseForESLint(fixedCode, parserOptions);
-                    }).not.toThrowError();
+                    }).not.toThrow();
                 }),
                 fastCheckRunConfig.default
             );

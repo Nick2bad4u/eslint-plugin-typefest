@@ -464,7 +464,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
                         expect(() => {
                             parser.parseForESLint(fixedCode, parserOptions);
-                        }).not.toThrowError();
+                        }).not.toThrow();
                     }
                 ),
                 fastCheckRunConfig.default
@@ -546,7 +546,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
                 expect(() => {
                     parser.parseForESLint(firstPassFixedCode, parserOptions);
-                }).not.toThrowError();
+                }).not.toThrow();
 
                 const originalExecutionSnapshot =
                     executeRuntimeIsDefinedSourceText(sourceText);
