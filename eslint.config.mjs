@@ -1893,6 +1893,7 @@ export default defineConfig([
             // do not publish provenance metadata consistently).
             "node-dependencies/require-provenance-deps": "off",
             "node-dependencies/valid-semver": "error",
+            // Package.json Plugin Rules (package-json/*)
             "package-json/bin-name-casing": "warn",
             "package-json/exports-subpaths-style": "warn",
             "package-json/no-empty-fields": "warn",
@@ -1902,11 +1903,19 @@ export default defineConfig([
             "package-json/repository-shorthand": "warn",
             "package-json/require-attribution": "warn",
             "package-json/require-author": "warn",
+            // Not a CLI package.
+            "package-json/require-bin": "off",
             "package-json/require-bugs": "warn",
             "package-json/require-bundleDependencies": "off",
+            // Optional metadata for this repository.
+            "package-json/require-contributors": "warn",
             "package-json/require-dependencies": "warn",
             "package-json/require-description": "warn",
             "package-json/require-devDependencies": "warn",
+            // Optional and currently uncommon metadata field.
+            "package-json/require-devEngines": "warn",
+            // Legacy npm field, not needed for this plugin package.
+            "package-json/require-directories": "off",
             "package-json/require-engines": "warn",
             "package-json/require-exports": [
                 "error",
@@ -1915,14 +1924,17 @@ export default defineConfig([
                 },
             ],
             "package-json/require-files": "warn",
+            // Optional for this project.
+            "package-json/require-funding": "off",
             "package-json/require-homepage": "warn",
             "package-json/require-keywords": "warn",
             "package-json/require-license": "warn",
             "package-json/require-main": "warn",
+            // Not a manpage-distributed package.
+            "package-json/require-man": "off",
             "package-json/require-name": "warn",
             "package-json/require-optionalDependencies": "off",
             "package-json/require-os": "warn",
-            // Package.json Plugin Rules (package-json/*)
             "package-json/require-packageManager": "warn",
             "package-json/require-peerDependencies": "warn",
             "package-json/require-private": "warn",
@@ -1981,13 +1993,14 @@ export default defineConfig([
             "package-json/valid-homepage": "warn",
             "package-json/valid-keywords": "warn",
             "package-json/valid-license": "warn",
-            "package-json/valid-local-dependency": "off",
             "package-json/valid-main": "warn",
             "package-json/valid-man": "warn",
             "package-json/valid-module": "warn",
             "package-json/valid-name": "warn",
             "package-json/valid-optionalDependencies": "warn",
             "package-json/valid-os": "warn",
+            // Deprecated upstream rule; retained as explicit off until removed.
+            "package-json/valid-package-definition": "off",
             "package-json/valid-packageManager": "warn",
             "package-json/valid-peerDependencies": "warn",
             "package-json/valid-private": "warn",
