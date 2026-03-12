@@ -109,6 +109,18 @@
         "node": ">=24.0.0",
         "npm": ">=11.0.0"
     },
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=24.0.0",
+            "onFail": "error"
+        },
+        "packageManager": {
+            "name": "npm",
+            "version": ">=11.0.0",
+            "onFail": "error"
+        }
+    },
     "os": [
         "darwin",
         "linux",

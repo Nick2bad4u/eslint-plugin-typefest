@@ -1,11 +1,13 @@
 /**
  * Commitlint configuration for eslint-plugin-typefest.
  *
- * Enforces Gitmoji commit format, e.g., ":sparkles: feat(core): add feature".
+ * Enforces the repository's hybrid Gitmoji format, e.g.:
  *
- * Structure: `:gitmoji: type(scope?): subject`
+ * - `✨ [feat] Add typed rule metadata`
+ * - `🛠️ [fix](lint) Prevent parser crash on empty scope`
+ * - `:sparkles: [feat] Add typed rule metadata`
  *
- * Example: `:bug: fix(rule): avoid false positive`
+ * Structure: `<gitmoji> [type](scope?)?[:]? <subject>`
  *
  * @type {import("@commitlint/types").UserConfig}
  *
@@ -51,6 +53,224 @@ function isRevertCommit(commit) {
     return commit.includes("Revert");
 }
 
+const hybridCommitTypes = [
+    "build",
+    "chore",
+    "ci",
+    "docs",
+    "feat",
+    "fix",
+    "perf",
+    "refactor",
+    "revert",
+    "style",
+    "test",
+];
+
+const hybridCommitTypesSet = new Set(hybridCommitTypes);
+const gitmojiUnicodePattern = /\p{Extended_Pictographic}/v;
+
+/**
+ * @param {string} header
+ *
+ * @returns {string}
+ */
+function getHeaderPrefixToken(header) {
+    const firstSpaceIndex = header.indexOf(" ");
+
+    if (firstSpaceIndex === -1) {
+        return header;
+    }
+
+    return header.slice(0, firstSpaceIndex);
+}
+
+/**
+ * @param {string} token
+ *
+ * @returns {boolean}
+ */
+function isGitmojiShortcodeToken(token) {
+    if (!token.startsWith(":") || !token.endsWith(":")) {
+        return false;
+    }
+
+    const body = token.slice(1, -1);
+
+    if (body.length === 0) {
+        return false;
+    }
+
+    return [...body].every((character) => {
+        const isLowercaseLetter = character >= "a" && character <= "z";
+        const isNumber = character >= "0" && character <= "9";
+
+        return (
+            isLowercaseLetter ||
+            isNumber ||
+            character === "_" ||
+            character === "+" ||
+            character === "-"
+        );
+    });
+}
+
+/**
+ * @param {string} token
+ *
+ * @returns {boolean}
+ */
+function isGitmojiToken(token) {
+    return isGitmojiShortcodeToken(token) || gitmojiUnicodePattern.test(token);
+}
+
+/**
+ * @param {string} scope
+ *
+ * @returns {boolean}
+ */
+function isValidScope(scope) {
+    if (scope.length === 0) {
+        return false;
+    }
+
+    const [firstCharacter = ""] = scope;
+    const isFirstCharacterValid =
+        (firstCharacter >= "a" && firstCharacter <= "z") ||
+        (firstCharacter >= "0" && firstCharacter <= "9");
+
+    if (!isFirstCharacterValid) {
+        return false;
+    }
+
+    return [...scope].every((character) => {
+        const isLowercaseLetter = character >= "a" && character <= "z";
+        const isNumber = character >= "0" && character <= "9";
+
+        return (
+            isLowercaseLetter ||
+            isNumber ||
+            character === "-" ||
+            character === "/"
+        );
+    });
+}
+
+/**
+ * @param {string} header
+ *
+ * @returns {{
+ *     valid: boolean;
+ *     reason: string;
+ * }}
+ */
+function validateHybridHeader(header) {
+    const firstSpaceIndex = header.indexOf(" ");
+
+    if (firstSpaceIndex <= 0) {
+        return {
+            reason: "missing gitmoji prefix token",
+            valid: false,
+        };
+    }
+
+    const token = getHeaderPrefixToken(header);
+
+    if (!isGitmojiToken(token)) {
+        return {
+            reason: "prefix token must be an emoji or :shortcode:",
+            valid: false,
+        };
+    }
+
+    const remainder = header.slice(firstSpaceIndex + 1);
+
+    if (!remainder.startsWith("[")) {
+        return {
+            reason: "missing [type] marker",
+            valid: false,
+        };
+    }
+
+    const closingBracketIndex = remainder.indexOf("]");
+
+    if (closingBracketIndex <= 1) {
+        return {
+            reason: "[type] marker is malformed",
+            valid: false,
+        };
+    }
+
+    const type = remainder.slice(1, closingBracketIndex);
+
+    if (!hybridCommitTypesSet.has(type)) {
+        return {
+            reason: `unsupported commit type '${type}'`,
+            valid: false,
+        };
+    }
+
+    let cursor = closingBracketIndex + 1;
+
+    if (remainder.charAt(cursor) === "(") {
+        const scopeEndIndex = remainder.indexOf(")", cursor + 1);
+
+        if (scopeEndIndex === -1) {
+            return {
+                reason: "scope is missing closing ')'",
+                valid: false,
+            };
+        }
+
+        const scope = remainder.slice(cursor + 1, scopeEndIndex);
+
+        if (!isValidScope(scope)) {
+            return {
+                reason: "scope must be kebab-case (letters, numbers, '-' and '/')",
+                valid: false,
+            };
+        }
+
+        cursor = scopeEndIndex + 1;
+    }
+
+    if (remainder.charAt(cursor) === "!") {
+        cursor += 1;
+    }
+
+    if (remainder.charAt(cursor) === ":") {
+        cursor += 1;
+    }
+
+    if (remainder.charAt(cursor) !== " ") {
+        return {
+            reason: "missing space before commit subject",
+            valid: false,
+        };
+    }
+
+    const subject = remainder.slice(cursor + 1).trim();
+
+    if (subject.length < 3) {
+        return {
+            reason: "subject must be at least 3 characters",
+            valid: false,
+        };
+    }
+
+    if (subject.endsWith(".")) {
+        return {
+            reason: "subject must not end with a period",
+            valid: false,
+        };
+    }
+
+    return {
+        reason: "",
+        valid: true,
+    };
+}
+
 const commitlintConfig = /** @type {CommitlintConfig} */ ({
     $schema: "https://www.schemastore.org/commitlintrc.json",
 
@@ -58,11 +278,6 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
      * Default ignore patterns.
      */
     defaultIgnores: true,
-
-    /**
-     * Extends the Gitmoji commitlint shareable configuration.
-     */
-    extends: ["commitlint-config-gitmoji"],
 
     /**
      * Help URL for commit format guidance.
@@ -77,6 +292,35 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
         isRevertCommit,
         isReleaseCommit,
         isDependencyBumpCommit,
+    ],
+
+    /**
+     * Custom plugin rules.
+     */
+    plugins: [
+        {
+            rules: {
+                /**
+                 * @param {{ header?: string | null }} parsed
+                 *
+                 * @returns {[boolean, string]}
+                 */
+                "gitmoji-token-valid": (parsed) => {
+                    const header = parsed.header?.trim() ?? "";
+
+                    if (header.length === 0) {
+                        return [false, "commit header must not be empty"];
+                    }
+
+                    const validationResult = validateHybridHeader(header);
+
+                    return [
+                        validationResult.valid,
+                        `commit header must follow '<gitmoji> [type](scope?) subject' format (${validationResult.reason})`,
+                    ];
+                },
+            },
+        },
     ],
 
     /**
@@ -118,7 +362,7 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
             },
             type: {
                 description:
-                    "Select the Gitmoji + type prefix for your commit (e.g., ':sparkles: feat'). Final header format: ':gitmoji: type(scope?): subject'.",
+                    "Select the type. Final header format: '✨ [type](scope?) subject'. Commitlint also accepts ':shortcode: [type] subject'.",
                 enum: {
                     ":art: style": {
                         description:
@@ -214,6 +458,7 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
             100,
         ],
         // Header rules
+        "gitmoji-token-valid": [2, "always"],
         "header-max-length": [
             2,
             "always",
@@ -224,135 +469,12 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
             "always",
             10,
         ],
-
         "header-trim": [2, "always"],
         // References for issue tracking integration
         "references-empty": [0, "never"],
-        // Scope case enforcement
-        "scope-case": [
-            2,
-            "always",
-            "kebab-case",
-        ],
-
-        // Scope validation - project-specific scopes
-        "scope-enum": [
-            2,
-            "always",
-            [
-                // Frontend scopes
-                "ui", // User interface components
-                "components", // React components
-                "stores", // Zustand state management
-                "hooks", // React hooks
-                "services", // Frontend services
-                "utils", // Frontend utilities
-                "theme", // Styling and theming
-                "constants", // Frontend constants
-                "types", // TypeScript type definitions
-
-                // Electron scopes
-                "main", // Electron main process
-                "preload", // Preload scripts
-                "ipc", // Inter-process communication
-                "managers", // Business logic managers
-                "database", // Database operations
-                "events", // Event system
-                "orchestrator", // UptimeOrchestrator
-
-                // Core functionality scopes
-                "monitoring", // Website monitoring features
-                "notifications", // Notification system
-                "analytics", // Analytics and reporting
-                "settings", // Application settings
-                "auth", // Authentication (if applicable)
-
-                // Development scopes
-                "config", // Configuration files
-                "build", // Build system
-                "deps", // Dependencies
-                "test", // Testing
-                "docs", // Documentation
-                "scripts", // Build/deployment scripts
-                "lint", // Linting configuration
-                "format", // Code formatting
-                "security", // Security configuration
-
-                // Infrastructure scopes
-                "docker", // Docker configuration
-                "ci", // Continuous integration
-                "cd", // Continuous deployment
-                "release", // Release process
-                "repo", // Repository-wide changes
-            ],
-        ],
         // Signed-off-by for contribution tracking (optional)
         //        "signed-off-by": [0, "never"],
-        // Subject rules
-        "subject-case": [
-            2,
-            "never",
-            [
-                "sentence-case",
-                "start-case",
-                "pascal-case",
-                "upper-case",
-            ],
-        ],
-
         "subject-empty": [0, "never"],
-        "subject-full-stop": [
-            2,
-            "never",
-            ".",
-        ],
-
-        "subject-max-length": [
-            2,
-            "always",
-            100,
-        ],
-        "subject-min-length": [
-            2,
-            "always",
-            3,
-        ],
-        // Type and case enforcement
-        "type-case": [
-            2,
-            "always",
-            "lower-case",
-        ],
-        "type-empty": [0, "never"],
-        // Type validation - allowed commit types
-        "type-enum": [
-            2,
-            "always",
-            [
-                "build",
-                "chore",
-                "ci",
-                "docs",
-                "feat",
-                "fix",
-                "perf",
-                "refactor",
-                "revert",
-                "style",
-                "test",
-                "wip",
-            ],
-        ],
-        "type-max-length": [
-            2,
-            "always",
-            20,
-        ],
-        "type-min-length": [
-            2,
-            "always",
-            3,
-        ],
     },
 });
 

@@ -4,6 +4,24 @@
 
 - Entire Gitmoji Table Reference below, use for ideas and consistency.
 
+## Commitlint-enforced hybrid header format
+
+- **Preferred header format:** `<emoji> [type] (scope) subject` (where `(scope)` is optional)
+- **Also accepted:** `:shortcode: [type] (scope) subject` (where `(scope)` is optional)
+- Optional punctuation after `[type]` or `[type] (scope)` is allowed (`:` and `!`), but keep headers simple unless needed.
+- In actual commit headers, place `(scope)` immediately after `[type]` with no spaces.
+
+### Allowed `[type]` values
+
+- `[build]`, `[chore]`, `[ci]`, `[docs]`, `[feat]`, `[fix]`, `[perf]`, `[refactor]`, `[revert]`, `[style]`, `[test]`
+
+### Valid header examples
+
+- `✨ [feat] Add parser-service telemetry summary`
+- `🛠️ [fix] (lint) Guard malformed scope parsing`
+- `📝 [docs] (readme) Refresh release checklist`
+- `✨ [feat] Add typed fixture inventory`
+
 | emoji name                | emoji | description, subject, type             |
 | ------------------------- | ----- | -------------------------------------- |
 | art                       | 🎨    | Improve structure / format of the code |
