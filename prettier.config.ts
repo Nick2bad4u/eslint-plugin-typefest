@@ -236,7 +236,3 @@ const config: Config = {
 };
 
 export default config;
-
-// eslint-disable-next-line comment-length/limit-single-line-comments -- need for copy paste
-// Bootstrap prettier for repo
-// npm install --save-dev --force --save-dev prettier prettier-plugin-multiline-arrays prettier-plugin-jsdoc prettier-plugin-interpolated-html-tags @softonus/prettier-plugin-duplicate-remover prettier-plugin-merge prettier-plugin-sort-json prettier-plugin-toml prettier-plugin-sql prettier-plugin-sh prettier-plugin-properties prettier-plugin-ini prettier-plugin-packagejson

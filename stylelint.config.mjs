@@ -1248,9 +1248,3 @@ const config = defineConfig({
 
 // Export the configuration
 export default config;
-
-/**
-// eslint-disable-next-line comment-length/limit-multi-line-comments -- needed for copy paste
-* Boot strap repo with these packages:
-* npm install --save-dev --force stylelint@latest stylelint-actions-formatters@latest stylelint-checkstyle-formatter@latest stylelint-codeframe-formatter@latest stylelint-config-alphabetical-order@latest stylelint-config-idiomatic-order@latest stylelint-config-recess-order@latest stylelint-config-recommended@latest stylelint-config-sass-guidelines@latest stylelint-config-standard@latest stylelint-config-standard-scss@latest stylelint-config-tailwindcss@latest stylelint-declaration-block-no-ignored-properties@latest stylelint-declaration-strict-value@latest stylelint-define-config@latest stylelint-find-new-rules@latest stylelint-formatter-gitlab-code-quality-report@latest stylelint-formatter-pretty@latest stylelint-gamut@latest stylelint-group-selectors@latest stylelint-high-performance-animation@latest stylelint-media-use-custom-media@latest stylelint-no-browser-hacks@latest stylelint-no-indistinguishable-colors@latest stylelint-no-restricted-syntax@latest stylelint-no-unresolved-module@latest stylelint-no-unsupported-browser-features@latest stylelint-order@latest stylelint-plugin-defensive-css@latest stylelint-plugin-logical-css@latest stylelint-plugin-use-baseline@latest stylelint-prettier@latest stylelint-react-native@latest stylelint-scales@latest stylelint-selector-bem-pattern@latest stylelint-use-nesting@latest stylelint-value-no-unknown-custom-properties@latest @stylelint-types/stylelint-order@latest @stylelint-types/stylelint-stylistic@latest @stylistic/stylelint-plugin@latest @double-great/stylelint-a11y@latest @csstools/stylelint-formatter-github@latest
-*/
