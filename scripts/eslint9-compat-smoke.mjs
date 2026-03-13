@@ -40,6 +40,26 @@ const arrayableFixturePath = path.resolve(
 const expectedEslintMajorArgumentPrefix = "--expect-eslint-major=";
 
 /**
+ * @param {string} filePath
+ *
+ * @returns {string}
+ */
+const toPosixPath = (filePath) => filePath.replaceAll("\\", "/");
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {readonly string[]}
+ */
+const collectStringEntries = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter((entry) => typeof entry === "string");
+};
+
+/**
  * @param {unknown} value
  *
  * @returns {value is UnknownRecord}
@@ -134,10 +154,11 @@ const assertFixtureExists = (fixturePath) => {
 /**
  * @param {string} ruleId
  * @param {boolean} typed
+ * @param {string} fixturePath
  *
  * @returns {import("eslint").Linter.Config[]}
  */
-const createCompatibilityConfig = (ruleId, typed) => {
+const createCompatibilityConfig = (ruleId, typed, fixturePath) => {
     const recommendedConfig = plugin.configs?.["recommended"];
     if (!isUnknownRecord(recommendedConfig)) {
         throw new Error(
@@ -156,6 +177,17 @@ const createCompatibilityConfig = (ruleId, typed) => {
     )
         ? baseLanguageOptions["parserOptions"]
         : {};
+    const baseProjectServiceOptions = isUnknownRecord(
+        baseParserOptions["projectService"]
+    )
+        ? baseParserOptions["projectService"]
+        : {};
+    const relativeFixturePath = toPosixPath(
+        path.relative(repositoryRootPath, fixturePath)
+    );
+    const existingAllowDefaultProject = collectStringEntries(
+        baseProjectServiceOptions["allowDefaultProject"]
+    );
 
     return [
         {
@@ -167,9 +199,22 @@ const createCompatibilityConfig = (ruleId, typed) => {
                 parserOptions: {
                     ...baseParserOptions,
                     ecmaVersion: "latest",
-                    project: typed ? "./tsconfig.eslint.json" : undefined,
                     sourceType: "module",
                     tsconfigRootDir: repositoryRootPath,
+                    ...(typed
+                        ? {
+                              projectService: {
+                                  ...baseProjectServiceOptions,
+                                  allowDefaultProject: [
+                                      ...new Set([
+                                          ...existingAllowDefaultProject,
+                                          relativeFixturePath,
+                                      ]),
+                                  ],
+                                  defaultProject: "tsconfig.eslint.json",
+                              },
+                          }
+                        : {}),
                 },
             },
             name: `compat-smoke:${ruleId}`,
@@ -200,7 +245,7 @@ const runScenario = async ({
         cwd: repositoryRootPath,
         fix,
         ignore: false,
-        overrideConfig: createCompatibilityConfig(ruleId, typed),
+        overrideConfig: createCompatibilityConfig(ruleId, typed, fixturePath),
         overrideConfigFile: true,
     });
 

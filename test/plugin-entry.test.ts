@@ -9,6 +9,10 @@ import { typefestConfigNames } from "../src/_internal/typefest-config-references
 import typefestPlugin from "../src/plugin";
 
 const requireFromTestModule = createRequire(import.meta.url);
+const packageJson = requireFromTestModule("../package.json") as {
+    version: string;
+};
+const expectedPluginVersion = packageJson.version;
 
 const expectedConfigRegistryShape = expect.objectContaining(
     Object.fromEntries(
@@ -62,7 +66,7 @@ describe("plugin entry module", () => {
             expect.objectContaining({
                 name: "eslint-plugin-typefest",
                 namespace: "typefest",
-                version: expect.any(String),
+                version: expectedPluginVersion,
             })
         );
     });
@@ -91,7 +95,7 @@ describe("plugin entry module", () => {
                 meta: expect.objectContaining({
                     name: "eslint-plugin-typefest",
                     namespace: "typefest",
-                    version: expect.any(String),
+                    version: expectedPluginVersion,
                 }),
             })
         );
@@ -122,7 +126,55 @@ describe("plugin entry module", () => {
             expect.objectContaining({
                 name: "eslint-plugin-typefest",
                 namespace: "typefest",
-                version: expect.any(String),
+                version: expectedPluginVersion,
+            })
+        );
+    });
+
+    it("resolves package default export through self-reference ESM import", async () => {
+        const packageRuntimeModule =
+            (await import("eslint-plugin-typefest")) as {
+                default: unknown;
+            };
+
+        expect(packageRuntimeModule.default).toEqual(
+            expect.objectContaining({
+                configs: expect.any(Object),
+                meta: expect.objectContaining({
+                    name: "eslint-plugin-typefest",
+                    namespace: "typefest",
+                    version: expectedPluginVersion,
+                }),
+                processors: expect.any(Object),
+                rules: expect.any(Object),
+            })
+        );
+    });
+
+    it("resolves package default export through self-reference CJS require", () => {
+        const packageRuntimePlugin = requireFromTestModule(
+            "eslint-plugin-typefest"
+        ) as {
+            configs?: unknown;
+            meta?: {
+                name?: unknown;
+                namespace?: unknown;
+                version?: unknown;
+            };
+            processors?: unknown;
+            rules?: unknown;
+        };
+
+        expect(packageRuntimePlugin).toEqual(
+            expect.objectContaining({
+                configs: expect.any(Object),
+                meta: expect.objectContaining({
+                    name: "eslint-plugin-typefest",
+                    namespace: "typefest",
+                    version: expectedPluginVersion,
+                }),
+                processors: expect.any(Object),
+                rules: expect.any(Object),
             })
         );
     });

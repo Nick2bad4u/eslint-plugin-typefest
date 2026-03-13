@@ -2,8 +2,6 @@
  * @packageDocumentation
  * Type-level contract tests for public plugin exports.
  */
-import { assertType } from "vitest";
-
 import type {
     TypefestConfigName,
     TypefestConfigs,
@@ -11,7 +9,9 @@ import type {
     TypefestPresetConfig,
     TypefestRuleId,
     TypefestRuleName,
-} from "../src/plugin";
+} from "eslint-plugin-typefest";
+
+import { assertType } from "vitest";
 
 const validConfigName = "recommended-type-checked";
 

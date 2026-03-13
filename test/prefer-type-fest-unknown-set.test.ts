@@ -127,7 +127,7 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
         try {
             vi.resetModules();
 
-            vi.doMock(import('../src/_internal/typed-rule.js'), () => ({
+            vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
             }));
 
