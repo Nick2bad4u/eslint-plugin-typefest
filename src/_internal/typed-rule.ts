@@ -38,6 +38,14 @@ export type TypedRuleServices = {
 /** Shared typed-rule context contract used by helper utilities. */
 type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
 
+type LegacyRuleContextScopeGetter = Readonly<{
+    getScope: () => TSESLint.Scope.Scope;
+}>;
+
+type SourceCodeScopeGetter = Readonly<{
+    getScope: (node: Readonly<TSESTree.Node>) => TSESLint.Scope.Scope;
+}>;
+
 export type { TypedRuleContext };
 
 type TypefestRuleCreator = ReturnType<
@@ -293,7 +301,32 @@ export const isGlobalIdentifierNamed = <
 
     const result = safeTypeOperation({
         operation: () => {
-            const initialScope = context.sourceCode.getScope(expression);
+            const sourceCodeMaybeWithScope = context.sourceCode as
+                | Partial<SourceCodeScopeGetter>
+                | undefined;
+
+            const initialScope =
+                typeof sourceCodeMaybeWithScope?.getScope === "function"
+                    ? sourceCodeMaybeWithScope.getScope(expression)
+                    : (() => {
+                          const contextMaybeWithLegacyScope = context as
+                              | Partial<LegacyRuleContextScopeGetter>
+                              | undefined;
+
+                          if (
+                              typeof contextMaybeWithLegacyScope?.getScope ===
+                              "function"
+                          ) {
+                              return contextMaybeWithLegacyScope.getScope();
+                          }
+
+                          return null;
+                      })();
+
+            if (initialScope === null) {
+                return true;
+            }
+
             const variable = getVariableInScopeChain(
                 initialScope,
                 identifierName

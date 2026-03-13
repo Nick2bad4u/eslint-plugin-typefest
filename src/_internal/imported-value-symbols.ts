@@ -93,6 +93,14 @@ type SafeValueReplacementFixParams = Readonly<{
 /** Scope-chain root used for local-variable resolution helpers. */
 type ScopeChainRoot = Readonly<null | Readonly<TSESLint.Scope.Scope>>;
 
+type LegacyRuleContextScopeGetter = Readonly<{
+    getScope: () => TSESLint.Scope.Scope;
+}>;
+
+type SourceCodeScopeGetter = Readonly<{
+    getScope: (node: Readonly<TSESTree.Node>) => TSESLint.Scope.Scope;
+}>;
+
 /**
  * Parameters for creating a safe function-call replacement fixer.
  */
@@ -133,6 +141,54 @@ const getImportDeclarationParent = (
     }
 
     return nodeParent;
+};
+
+const getFirstImportedAliasName = ({
+    importedName,
+    imports,
+}: Readonly<{
+    importedName: string;
+    imports: ImportedValueAliasMap;
+}>): null | string => {
+    const candidateNames = imports.get(importedName);
+
+    if (!candidateNames || candidateNames.size === 0) {
+        return null;
+    }
+
+    if (candidateNames.has(importedName)) {
+        return importedName;
+    }
+
+    const [firstCandidateName] = candidateNames;
+
+    return firstCandidateName ?? null;
+};
+
+const resolveReferenceScope = ({
+    context,
+    referenceNode,
+}: Readonly<{
+    context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
+    referenceNode: Readonly<TSESTree.Node>;
+}>): ScopeChainRoot => {
+    const sourceCodeMaybeWithScope = context.sourceCode as
+        | Partial<SourceCodeScopeGetter>
+        | undefined;
+
+    if (typeof sourceCodeMaybeWithScope?.getScope === "function") {
+        return sourceCodeMaybeWithScope.getScope(referenceNode);
+    }
+
+    const contextMaybeWithLegacyScope = context as
+        | Partial<LegacyRuleContextScopeGetter>
+        | undefined;
+
+    if (typeof contextMaybeWithLegacyScope?.getScope === "function") {
+        return contextMaybeWithLegacyScope.getScope();
+    }
+
+    return null;
 };
 
 /**
@@ -346,7 +402,17 @@ export const getSafeLocalNameForImportedValue = ({
     referenceNode,
     sourceModuleName,
 }: Readonly<SafeImportedValueNameParams>): null | string => {
-    const sourceScope = context.sourceCode.getScope(referenceNode);
+    const sourceScope = resolveReferenceScope({
+        context,
+        referenceNode,
+    });
+
+    if (sourceScope === null) {
+        return getFirstImportedAliasName({
+            importedName,
+            imports,
+        });
+    }
 
     return getSafeLocalNameForImportedValueInScope({
         importedName,
@@ -379,7 +445,27 @@ const getSafeReplacementNameAndImportFixFactory = ({
     replacementName: string;
     requiresImportInsertion: boolean;
 } => {
-    const sourceScope = context.sourceCode.getScope(referenceNode);
+    const sourceScope = resolveReferenceScope({
+        context,
+        referenceNode,
+    });
+
+    if (sourceScope === null) {
+        const fallbackLocalName = getFirstImportedAliasName({
+            importedName,
+            imports,
+        });
+
+        if (!fallbackLocalName) {
+            return null;
+        }
+
+        return {
+            createImportFix: () => null,
+            replacementName: fallbackLocalName,
+            requiresImportInsertion: false,
+        };
+    }
 
     const existingReplacementName = getSafeLocalNameForImportedValueInScope({
         importedName,

@@ -133,7 +133,15 @@ const toRuleListenerMap = (value: unknown): RuleListenerMap => {
         throw new TypeError("Expected listener map object");
     }
 
-    const callExpressionListener = Reflect.get(value, "CallExpression");
+    const callExpressionListenerDirect = Reflect.get(value, "CallExpression");
+    const callExpressionListener = isUnknownFunction(
+        callExpressionListenerDirect
+    )
+        ? callExpressionListenerDirect
+        : getSelectorAwareNodeListener(
+              value as RuleListenerMap,
+              "CallExpression"
+          );
 
     if (callExpressionListener === undefined) {
         return {};
@@ -216,14 +224,35 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getTypeAtLocation: () => fakeSetType,
+                typeToString: () => "Set<number>",
+            };
+
             const listeners = createRuleListeners({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                 },
             });
@@ -293,14 +322,37 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getTypeAtLocation: () => ({ isUnion: () => false }),
+                typeToString: () => "Set<number>",
+            };
+
             const listeners = createRuleListeners({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => {
+                                throw new Error("lookup failed");
+                            },
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                 },
             });
@@ -369,14 +421,35 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getTypeAtLocation,
+                typeToString: () => "Set<number>",
+            };
+
             const listeners = createRuleListeners({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => undefined,
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                 },
             });
@@ -419,6 +492,13 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
         const setLeafType = {
             getSymbol: () => ({
+                getDeclarations: () => [
+                    {
+                        getSourceFile: () => ({
+                            fileName: "lib.es2015.collection.d.ts",
+                        }),
+                    },
+                ],
                 getName: () => "Set",
             }),
             isIntersection: () => false,
@@ -528,14 +608,49 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getApparentType: (type: unknown) =>
+                    type === apparentTypeSource ? setLeafType : type,
+                getBaseTypes: (type: unknown) => {
+                    if (type === classLikeSetBaseType) {
+                        return [setLeafType];
+                    }
+
+                    if (type === classLikeWithoutBaseTypes) {
+                        return undefined;
+                    }
+
+                    return [];
+                },
+                getTypeAtLocation: () => currentObjectType,
+                typeToString: () => "Set<number>",
+            };
+
             const listeners = createRuleListeners({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                            isSourceFileDefaultLibrary: () => true,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                 },
             });
@@ -613,6 +728,13 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
 
         const setLikeType = {
             getSymbol: () => ({
+                getDeclarations: () => [
+                    {
+                        getSourceFile: () => ({
+                            fileName: "lib.es2015.collection.d.ts",
+                        }),
+                    },
+                ],
                 getName: () => "Set",
             }),
             isIntersection: () => false,
@@ -671,8 +793,22 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                             messageId?: string;
                         }>[] = [];
 
+                        const fallbackChecker = {
+                            getApparentType: (type: unknown) => type,
+                            getBaseTypes: () => [],
+                            getTypeAtLocation: () => setLikeType,
+                            typeToString: () => "Set<number>",
+                        };
+
                         const listeners = createRuleListeners({
                             filename: "src/example.ts",
+                            languageOptions: {
+                                parser: {
+                                    meta: {
+                                        name: "@typescript-eslint/parser",
+                                    },
+                                },
+                            },
                             report: (
                                 descriptor: Readonly<{
                                     fix?: unknown;
@@ -716,6 +852,19 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
                                 }),
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
+                                },
+                                parserServices: {
+                                    esTreeNodeToTSNodeMap: {
+                                        get: () => ({ kind: "Identifier" }),
+                                    },
+                                    program: {
+                                        getTypeChecker: () => fallbackChecker,
+                                        isSourceFileDefaultLibrary: () => true,
+                                    },
+                                    tsNodeToESTreeNodeMap: new WeakMap<
+                                        object,
+                                        object
+                                    >(),
                                 },
                             },
                         });

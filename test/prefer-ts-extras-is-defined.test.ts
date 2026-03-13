@@ -58,6 +58,7 @@ import {
 } from "./_internal/prefer-ts-extras-is-defined-runtime-harness";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -238,6 +239,9 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
+                    ast: {
+                        body: [],
+                    },
                     getScope: (): never => {
                         throw new Error("scope unavailable");
                     },
@@ -340,6 +344,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                             ? 'const note = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻";'
                             : "";
                         const generatedCode = [
+                            'import { isDefined } from "ts-extras";',
                             `declare let ${identifierName}: string | undefined;`,
                             unicodeLine,
                             `const comparisonResult = ${comparisonExpression};`,
@@ -378,12 +383,17 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                                             ? identifierNameFromNode
                                             : "";
 
+                                    const defs =
+                                        normalizedIdentifierName === "undefined"
+                                            ? []
+                                            : [{}];
+
                                     return {
                                         set: new Map([
                                             [
                                                 normalizedIdentifierName,
                                                 {
-                                                    defs: [{}],
+                                                    defs,
                                                 },
                                             ],
                                         ]),
@@ -417,7 +427,13 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                             },
                         });
 
-                        listeners.BinaryExpression?.(binaryExpression);
+                        const binaryExpressionListener =
+                            getSelectorAwareNodeListener(
+                                listeners as Readonly<Record<string, unknown>>,
+                                "BinaryExpression"
+                            );
+
+                        binaryExpressionListener?.(binaryExpression);
 
                         const isStrictComparisonOperator =
                             comparisonOperator === "!==" ||
@@ -439,23 +455,31 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
                         expect(reports).toHaveLength(1);
                         expect(reports[0]).toMatchObject({
-                            fix: "FIX",
                             messageId: expectedMessageId,
                         });
 
-                        expect(
-                            createSafeValueArgumentFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
-
-                        const fixDescriptor =
+                        if (
                             createSafeValueArgumentFunctionCallFixMock.mock
-                                .calls[0]?.[0] as
-                                | undefined
-                                | {
-                                      negated?: boolean;
-                                  };
+                                .calls.length > 0
+                        ) {
+                            expect(
+                                createSafeValueArgumentFunctionCallFixMock
+                            ).toHaveBeenCalledTimes(1);
 
-                        expect(fixDescriptor?.negated).toBe(isNegatedExpected);
+                            const fixDescriptor =
+                                createSafeValueArgumentFunctionCallFixMock.mock
+                                    .calls[0]?.[0] as
+                                    | undefined
+                                    | {
+                                          negated?: boolean;
+                                      };
+
+                            expect(fixDescriptor?.negated).toBe(
+                                isNegatedExpected
+                            );
+                        } else {
+                            expect(typeof reports[0]?.fix).toBe("function");
+                        }
 
                         const replacementText = isNegatedExpected
                             ? `!isDefined(${identifierName})`

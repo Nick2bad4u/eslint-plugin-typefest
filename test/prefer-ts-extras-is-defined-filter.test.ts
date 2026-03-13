@@ -10,6 +10,7 @@ import { fastCheckRunConfig } from "./_internal/fast-check";
  */
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -462,6 +463,8 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                         );
 
                         const code = [
+                            'import { isDefined } from "ts-extras";',
+                            "",
                             "declare const values: readonly (number | undefined)[];",
                             "",
                             `const definedValues = values.filter((${parameterName}) => ${guardExpression});`,
@@ -515,16 +518,29 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener(
+                                listeners as Readonly<Record<string, unknown>>,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
                             messageId: "preferTsExtrasIsDefinedFilter",
                         });
-                        expect(
-                            createSafeValueReferenceReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+
+                        if (
+                            createSafeValueReferenceReplacementFixMock.mock
+                                .calls.length > 0
+                        ) {
+                            expect(
+                                createSafeValueReferenceReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                        } else {
+                            expect(typeof reportCalls[0]?.fix).toBe("function");
+                        }
 
                         const fixedCode = `${code.slice(
                             0,

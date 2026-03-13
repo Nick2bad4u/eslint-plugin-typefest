@@ -366,12 +366,36 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
                     };
                 };
 
+            const fallbackChecker = {
+                getTypeAtLocation: () => ({
+                    getProperty: () => undefined,
+                    isIntersection: () => false,
+                    isUnion: () => false,
+                }),
+            };
+
             const listenerMap = authoredRuleModule.default.create({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report,
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "Identifier" }),
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                 },
             });

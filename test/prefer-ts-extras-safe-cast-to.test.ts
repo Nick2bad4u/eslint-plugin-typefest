@@ -390,14 +390,45 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                     };
                 };
 
+            const fallbackChecker = {
+                getTypeAtLocation: () => ({ flags: 0 }),
+                getTypeFromTypeNode: () => ({ flags: 0 }),
+                isTypeAssignableTo: () => true,
+            };
+
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get(node: unknown) {
+                                if (node === expressionNode) {
+                                    return ts.factory.createIdentifier("value");
+                                }
+
+                                return {
+                                    kind: -1,
+                                    notATypeNode: true,
+                                };
+                            },
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                     getText: () => "value",
                 },
@@ -482,14 +513,44 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
                     };
                 };
 
+            const fallbackChecker = {
+                getTypeAtLocation,
+                getTypeFromTypeNode: () => ({ flags: 0 }),
+                isTypeAssignableTo: () => true,
+            };
+
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report(descriptor: Readonly<{ messageId?: string }>) {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
                     ast: {
                         body: [],
+                    },
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get(node: unknown) {
+                                if (node === expressionNode) {
+                                    return undefined;
+                                }
+
+                                return ts.factory.createKeywordTypeNode(
+                                    ts.SyntaxKind.StringKeyword
+                                );
+                            },
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
                     },
                     getText: () => "value",
                 },
@@ -618,6 +679,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                                 targetTypeText,
                             });
                         const code = [
+                            'import { safeCastTo } from "ts-extras";',
                             ...expressionTemplate.declarations,
                             includeUnicodeNoiseLine
                                 ? 'const banner = "emoji 🧪 café 你好 مرحبا 👩🏽‍💻  ";'
@@ -640,8 +702,21 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             messageId?: string;
                         }>[] = [];
 
+                        const fallbackChecker = {
+                            getTypeAtLocation: () => ({ flags: 0 }),
+                            getTypeFromTypeNode: () => ({ flags: 0 }),
+                            isTypeAssignableTo: () => true,
+                        };
+
                         const listeners = authoredRuleModule.default.create({
                             filename: "src/example.ts",
+                            languageOptions: {
+                                parser: {
+                                    meta: {
+                                        name: "@typescript-eslint/parser",
+                                    },
+                                },
+                            },
                             report: (
                                 descriptor: Readonly<{
                                     fix?: unknown;
@@ -652,6 +727,41 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             },
                             sourceCode: {
                                 ast,
+                                parserServices: {
+                                    esTreeNodeToTSNodeMap: {
+                                        get(node: unknown) {
+                                            const nodeType =
+                                                typeof node === "object" &&
+                                                node !== null
+                                                    ? (
+                                                          node as Readonly<{
+                                                              type?: unknown;
+                                                          }>
+                                                      ).type
+                                                    : undefined;
+
+                                            if (
+                                                typeof nodeType === "string" &&
+                                                nodeType.startsWith("TS")
+                                            ) {
+                                                return ts.factory.createKeywordTypeNode(
+                                                    ts.SyntaxKind.StringKeyword
+                                                );
+                                            }
+
+                                            return ts.factory.createIdentifier(
+                                                "rawValue"
+                                            );
+                                        },
+                                    },
+                                    program: {
+                                        getTypeChecker: () => fallbackChecker,
+                                    },
+                                    tsNodeToESTreeNodeMap: new WeakMap<
+                                        object,
+                                        object
+                                    >(),
+                                },
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },
@@ -667,24 +777,52 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         }
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
+
+                        const [firstReport] = reportCalls;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-safe-cast-to report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasSafeCastTo",
                         });
-                        expect(
-                            createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+
+                        let replacementText = "";
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
-                        expect(fixArguments).toBeDefined();
+                        if (fixArguments) {
+                            expect(
+                                createSafeValueNodeTextReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                            replacementText =
+                                fixArguments.replacementTextFactory(
+                                    "safeCastTo"
+                                );
+                        } else {
+                            const { fix } = firstReport;
 
-                        const replacementText =
-                            fixArguments?.replacementTextFactory(
-                                "safeCastTo"
-                            ) ?? "";
+                            if (typeof fix !== "function") {
+                                throw new TypeError(
+                                    "Expected report fix to be a function when mock-based fix factory is bypassed"
+                                );
+                            }
+
+                            fix({
+                                replaceText: (_node: unknown, text: string) => {
+                                    replacementText = text;
+
+                                    return null;
+                                },
+                            });
+                        }
 
                         expect(replacementText).toBe(
                             `safeCastTo<${annotationText}>(${expressionText})`
@@ -799,8 +937,21 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             messageId?: string;
                         }>[] = [];
 
+                        const fallbackChecker = {
+                            getTypeAtLocation: () => ({ flags: 0 }),
+                            getTypeFromTypeNode: () => ({ flags: 0 }),
+                            isTypeAssignableTo: () => true,
+                        };
+
                         const listeners = authoredRuleModule.default.create({
                             filename: "src/example.ts",
+                            languageOptions: {
+                                parser: {
+                                    meta: {
+                                        name: "@typescript-eslint/parser",
+                                    },
+                                },
+                            },
                             report: (
                                 descriptor: Readonly<{
                                     fix?: unknown;
@@ -811,6 +962,21 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             },
                             sourceCode: {
                                 ast,
+                                parserServices: {
+                                    esTreeNodeToTSNodeMap: {
+                                        get: () =>
+                                            ts.factory.createKeywordTypeNode(
+                                                ts.SyntaxKind.StringKeyword
+                                            ),
+                                    },
+                                    program: {
+                                        getTypeChecker: () => fallbackChecker,
+                                    },
+                                    tsNodeToESTreeNodeMap: new WeakMap<
+                                        object,
+                                        object
+                                    >(),
+                                },
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },

@@ -35,6 +35,7 @@ import {
 } from "./_internal/prefer-ts-extras-string-split-cases";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -312,7 +313,15 @@ const toRuleListenerMap = (value: unknown): RuleListenerMap => {
         throw new TypeError("Expected listener map object");
     }
 
-    const callExpressionListener = Reflect.get(value, "CallExpression");
+    const callExpressionListenerDirect = Reflect.get(value, "CallExpression");
+    const callExpressionListener = isUnknownFunction(
+        callExpressionListenerDirect
+    )
+        ? callExpressionListenerDirect
+        : getSelectorAwareNodeListener(
+              value as RuleListenerMap,
+              "CallExpression"
+          );
 
     if (callExpressionListener === undefined) {
         return {};
@@ -412,12 +421,38 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             const splitCallExpression = firstDeclarator.init;
             const report = vi.fn();
 
+            const fallbackChecker = {
+                getTypeAtLocation: () => ({
+                    isIntersection: () => false,
+                    isUnion: () => false,
+                }),
+                typeToString: () => "string",
+            };
+
             const listenerMap = createRuleListeners({
                 filename:
                     "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): never => {
+                                throw new Error("lookup failed");
+                            },
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
+                    },
                 },
             });
 
@@ -484,12 +519,33 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             const splitCallExpression = firstDeclarator.init;
             const report = vi.fn();
 
+            const fallbackChecker = {
+                getTypeAtLocation,
+                typeToString: () => "string",
+            };
+
             const listenerMap = createRuleListeners({
                 filename:
                     "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): undefined => undefined,
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
+                    },
                 },
             });
 
@@ -554,6 +610,16 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getApparentType,
+                getStringType: () => ({
+                    isIntersection: (): boolean => false,
+                    isUnion: (): boolean => false,
+                }),
+                getTypeAtLocation: () => apparentA,
+                typeToString: () => "NonStringLike",
+            };
+
             const parsedResult = parser.parseForESLint(
                 [
                     "const value = { split(separator: string) { return [separator]; } };",
@@ -585,9 +651,27 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             const listenerMap = createRuleListeners({
                 filename:
                     "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: (): object => ({
+                                kind: "MockTypeNode",
+                            }),
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
+                    },
                 },
             });
 
@@ -645,6 +729,13 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getApparentType: (type: unknown) => type,
+                getStringType: () => undefined,
+                getTypeAtLocation,
+                typeToString: () => "NonStringLike",
+            };
+
             const parsedResult = parser.parseForESLint(
                 [
                     "declare const firstValue: { split(separator: string): string[] };",
@@ -674,9 +765,25 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             const listenerMap = createRuleListeners({
                 filename:
                     "fixtures/typed/prefer-ts-extras-string-split.invalid.ts",
+                languageOptions: {
+                    parser: {
+                        meta: {
+                            name: "@typescript-eslint/parser",
+                        },
+                    },
+                },
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    parserServices: {
+                        esTreeNodeToTSNodeMap: {
+                            get: () => ({ kind: "MockTypeNode" }),
+                        },
+                        program: {
+                            getTypeChecker: () => fallbackChecker,
+                        },
+                        tsNodeToESTreeNodeMap: new WeakMap<object, object>(),
+                    },
                 },
             });
 
@@ -732,6 +839,12 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
             const createRuleListeners = await loadCreateRuleListeners();
 
+            const fallbackChecker = {
+                getApparentType: (type: unknown) => type,
+                getStringType: () => stringLikeType,
+                getTypeAtLocation: () => stringLikeType,
+            };
+
             fc.assert(
                 fc.property(
                     splitReceiverTemplateIdArbitrary,
@@ -765,6 +878,13 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
                         const listeners = createRuleListeners({
                             filename: "src/example.ts",
+                            languageOptions: {
+                                parser: {
+                                    meta: {
+                                        name: "@typescript-eslint/parser",
+                                    },
+                                },
+                            },
                             report: (
                                 descriptor: Readonly<{
                                     fix?: unknown;
@@ -775,6 +895,18 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                             },
                             sourceCode: {
                                 ast,
+                                parserServices: {
+                                    esTreeNodeToTSNodeMap: {
+                                        get: () => ({ kind: "Identifier" }),
+                                    },
+                                    program: {
+                                        getTypeChecker: () => fallbackChecker,
+                                    },
+                                    tsNodeToESTreeNodeMap: new WeakMap<
+                                        object,
+                                        object
+                                    >(),
+                                },
                                 getScope: () => ({
                                     set: new Map([
                                         [

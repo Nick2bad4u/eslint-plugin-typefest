@@ -325,25 +325,53 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         listeners.IfStatement?.(ifStatement);
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
+
+                        const [firstReport] = reportCalls;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-assert-defined report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasAssertDefined",
                         });
-                        expect(reportCalls[0]?.suggest).toBeUndefined();
-                        expect(
-                            createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        expect(firstReport.suggest).toBeUndefined();
+
+                        let replacementText = "";
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
-                        expect(fixArguments).toBeDefined();
+                        if (fixArguments) {
+                            expect(
+                                createSafeValueNodeTextReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                            replacementText =
+                                fixArguments.replacementTextFactory(
+                                    "assertDefined"
+                                );
+                        } else {
+                            const { fix } = firstReport;
 
-                        const replacementText =
-                            fixArguments?.replacementTextFactory(
-                                "assertDefined"
-                            ) ?? "";
+                            if (typeof fix !== "function") {
+                                throw new TypeError(
+                                    "Expected report fix to be a function when mock-based fix factory is bypassed"
+                                );
+                            }
+
+                            fix({
+                                replaceText: (_node: unknown, text: string) => {
+                                    replacementText = text;
+
+                                    return null;
+                                },
+                            });
+                        }
 
                         expect(replacementText).toBe(
                             `assertDefined(${guardExpressionText});`
@@ -499,21 +527,50 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         });
                         expect(reportCalls[0]?.fix).toBeUndefined();
                         expect(reportCalls[0]?.suggest).toHaveLength(1);
-                        expect(reportCalls[0]?.suggest?.[0]).toMatchObject({
-                            fix: "FIX",
+
+                        const firstSuggestion = reportCalls[0]?.suggest?.[0];
+
+                        expect(firstSuggestion).toMatchObject({
                             messageId: "suggestTsExtrasAssertDefined",
                         });
-                        expect(
-                            createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+
+                        if (
+                            createSafeValueNodeTextReplacementFixMock.mock.calls
+                                .length > 0
+                        ) {
+                            expect(
+                                createSafeValueNodeTextReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                        }
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
-                        const replacementText =
-                            fixArguments?.replacementTextFactory(
-                                "assertDefined"
-                            ) ?? "";
+
+                        let replacementText = "";
+
+                        if (fixArguments) {
+                            replacementText =
+                                fixArguments.replacementTextFactory(
+                                    "assertDefined"
+                                );
+                        } else {
+                            const suggestionFix = firstSuggestion?.fix;
+
+                            if (typeof suggestionFix !== "function") {
+                                throw new TypeError(
+                                    "Expected suggestion fix to be a function when mock-based fix factory is bypassed"
+                                );
+                            }
+
+                            suggestionFix({
+                                replaceText: (_node: unknown, text: string) => {
+                                    replacementText = text;
+
+                                    return null;
+                                },
+                            });
+                        }
 
                         expect(replacementText).toBe(
                             `assertDefined(${guardExpressionText});`

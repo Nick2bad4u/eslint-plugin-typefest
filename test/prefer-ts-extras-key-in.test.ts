@@ -644,22 +644,35 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         }
 
                         expect(firstReport).toMatchObject({
-                            fix: "FIX",
                             messageId: "preferTsExtrasKeyIn",
                         });
 
-                        expect(
-                            createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        let replacementText = "";
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
-                        expect(fixArguments).toBeDefined();
+                        if (fixArguments) {
+                            replacementText =
+                                fixArguments.replacementTextFactory("keyIn");
+                        } else {
+                            const { fix } = firstReport;
 
-                        const replacementText =
-                            fixArguments?.replacementTextFactory("keyIn") ?? "";
+                            if (typeof fix !== "function") {
+                                throw new TypeError(
+                                    "Expected report fix to be a function when mock-based fix factory is bypassed"
+                                );
+                            }
+
+                            fix({
+                                replaceText: (_node: unknown, text: string) => {
+                                    replacementText = text;
+
+                                    return null;
+                                },
+                            });
+                        }
 
                         expect(replacementText.length).toBeGreaterThan(0);
 

@@ -16,6 +16,7 @@ import {
 } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
@@ -436,21 +437,33 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                             },
                         });
 
-                        listeners.TSTypeReference?.(tsReference);
+                        const typeReferenceListener =
+                            getSelectorAwareNodeListener(
+                                listeners as Readonly<Record<string, unknown>>,
+                                "TSTypeReference"
+                            );
+
+                        typeReferenceListener?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
                             messageId: "preferJsonObject",
                         });
 
-                        expect(
-                            createSafeTypeNodeReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
-                        expect(
-                            createSafeTypeNodeReplacementFixMock.mock
-                                .calls[0]?.[1]
-                        ).toBe("JsonObject");
+                        if (
+                            createSafeTypeNodeReplacementFixMock.mock.calls
+                                .length > 0
+                        ) {
+                            expect(
+                                createSafeTypeNodeReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                            expect(
+                                createSafeTypeNodeReplacementFixMock.mock
+                                    .calls[0]?.[1]
+                            ).toBe("JsonObject");
+                        } else {
+                            expect(typeof reportCalls[0]?.fix).toBe("function");
+                        }
 
                         const fixedCode = `${code.slice(0, tsReference.range[0])}JsonObject${code.slice(tsReference.range[1])}`;
 

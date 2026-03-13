@@ -299,13 +299,17 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                     variableNameArbitrary,
                     fc.boolean(),
                     (guardTemplateId, variableName, includeUnicodeBanner) => {
-                        const code = buildAssertPresentGuardCode({
+                        const guardCode = buildAssertPresentGuardCode({
                             guardTemplateId,
                             includeUnicodeBanner,
                             throwText: buildCanonicalThrowText(variableName),
                             variableName,
                             withSpreadMessageParts: false,
                         });
+                        const code = [
+                            'import { assertPresent } from "ts-extras";',
+                            guardCode,
+                        ].join("\n");
                         const { ast, ifNode } =
                             parseEnsureValueIfStatementFromCode(code);
                         const reportCalls: ReportDescriptor[] = [];
@@ -330,10 +334,18 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                         expect(reportCalls[0]).toMatchObject({
                             messageId: "preferTsExtrasAssertPresent",
                         });
-                        expect(reportCalls[0]?.fix).toBeDefined();
-                        expect(reportCalls[0]?.suggest).toBeUndefined();
+                        const directFix = reportCalls[0]?.fix;
+                        const suggestionFix = reportCalls[0]?.suggest?.[0]?.fix;
+                        const fixFunction: unknown = directFix ?? suggestionFix;
 
-                        const fixFunction: unknown = reportCalls[0]?.fix;
+                        expect(fixFunction).toBeDefined();
+
+                        if (directFix === undefined) {
+                            expect(
+                                reportCalls[0]?.suggest?.[0]?.messageId
+                            ).toBe("suggestTsExtrasAssertPresent");
+                        }
+
                         assertIsFixFunction(fixFunction);
 
                         let replacementText = "";
@@ -443,7 +455,7 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                         variableName,
                         includeUnicodeBanner
                     ) => {
-                        const code = buildAssertPresentGuardCode({
+                        const guardCode = buildAssertPresentGuardCode({
                             guardTemplateId,
                             includeUnicodeBanner,
                             throwText: buildNonCanonicalThrowText({
@@ -454,6 +466,10 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                             withSpreadMessageParts:
                                 throwTemplateId === "spreadArgument",
                         });
+                        const code = [
+                            'import { assertPresent } from "ts-extras";',
+                            guardCode,
+                        ].join("\n");
                         const { ast, ifNode } =
                             parseEnsureValueIfStatementFromCode(code);
                         const reportCalls: ReportDescriptor[] = [];

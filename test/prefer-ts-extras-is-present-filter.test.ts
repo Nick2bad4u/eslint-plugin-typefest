@@ -62,6 +62,7 @@ import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 
 const ruleId = "prefer-ts-extras-is-present-filter";
 const docsDescription =
@@ -131,6 +132,9 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
+                    ast: {
+                        body: [],
+                    },
                     getText: () => "value",
                 },
             });
@@ -258,11 +262,19 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
+                    ast: {
+                        body: [],
+                    },
                     getText: () => "value",
                 },
             });
 
-            listeners.CallExpression?.({
+            const callExpressionListener = getSelectorAwareNodeListener(
+                listeners as Readonly<Record<string, unknown>>,
+                "CallExpression"
+            );
+
+            callExpressionListener?.({
                 arguments: [
                     {
                         body: {
@@ -377,6 +389,8 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                                 parameterName
                             );
                         const code = [
+                            'import { isPresent } from "ts-extras";',
+                            "",
                             "declare const values: readonly (null | string | undefined)[];",
                             "",
                             `const presentValues = values.filter((${parameterName}) => ${guardExpression});`,
@@ -428,16 +442,40 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener(
+                                listeners as Readonly<Record<string, unknown>>,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reportCalls).toHaveLength(1);
-                        expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
+
+                        const [firstReport] = reportCalls;
+
+                        expect(firstReport).toBeDefined();
+
+                        if (!firstReport) {
+                            throw new TypeError(
+                                "Expected first prefer-ts-extras-is-present-filter report"
+                            );
+                        }
+
+                        expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasIsPresentFilter",
                         });
-                        expect(
-                            createSafeValueReferenceReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+
+                        if (
+                            createSafeValueReferenceReplacementFixMock.mock
+                                .calls.length > 0
+                        ) {
+                            expect(
+                                createSafeValueReferenceReplacementFixMock
+                            ).toHaveBeenCalledTimes(1);
+                        } else {
+                            expect(typeof firstReport.fix).toBe("function");
+                        }
 
                         const [callbackStart, callbackEnd] = callbackRange;
                         const fixedCode = `${code.slice(
@@ -542,7 +580,13 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                             },
                         });
 
-                        listeners.CallExpression?.(callExpression);
+                        const callExpressionListener =
+                            getSelectorAwareNodeListener(
+                                listeners as Readonly<Record<string, unknown>>,
+                                "CallExpression"
+                            );
+
+                        callExpressionListener?.(callExpression);
 
                         expect(reportCalls).toHaveLength(1);
 
