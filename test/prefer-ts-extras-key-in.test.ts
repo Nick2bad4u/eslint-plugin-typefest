@@ -657,15 +657,24 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             replacementText =
                                 fixArguments.replacementTextFactory("keyIn");
                         } else {
-                            const { fix } = firstReport;
+                            const reportFixCandidate: unknown = firstReport.fix;
 
-                            if (typeof fix !== "function") {
+                            if (typeof reportFixCandidate !== "function") {
                                 throw new TypeError(
                                     "Expected report fix to be a function when mock-based fix factory is bypassed"
                                 );
                             }
 
-                            fix({
+                            const reportFix = reportFixCandidate as (
+                                fixer: Readonly<{
+                                    replaceText: (
+                                        node: unknown,
+                                        text: string
+                                    ) => unknown;
+                                }>
+                            ) => unknown;
+
+                            reportFix({
                                 replaceText: (_node: unknown, text: string) => {
                                     replacementText = text;
 

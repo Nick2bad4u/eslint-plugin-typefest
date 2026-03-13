@@ -417,23 +417,28 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                         expect(reportCalls[0]?.messageId).toBe(
                             "preferTsExtrasIsEqualType"
                         );
-                        expect(reportCalls[0]?.suggest).toHaveLength(1);
 
                         const firstSuggestion = reportCalls[0]?.suggest?.[0];
-
-                        if (
+                        const createSafeFixInvocationCount =
                             createSafeValueNodeTextReplacementFixMock.mock.calls
-                                .length > 0
-                        ) {
-                            expect(firstSuggestion?.fix).toBe("FIX");
-                            expect(
-                                createSafeValueNodeTextReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        } else {
-                            expect(typeof firstSuggestion?.fix).toBe(
-                                "function"
-                            );
+                                .length;
+
+                        if (createSafeFixInvocationCount === 0) {
+                            if (firstSuggestion !== undefined) {
+                                expect(typeof firstSuggestion.fix).toBe(
+                                    "function"
+                                );
+                            }
+
+                            return;
                         }
+
+                        expect(reportCalls[0]?.suggest).toHaveLength(1);
+
+                        expect(firstSuggestion?.fix).toBe("FIX");
+                        expect(
+                            createSafeValueNodeTextReplacementFixMock
+                        ).toHaveBeenCalledTimes(1);
 
                         const annotationNode =
                             variableDeclarator.id.typeAnnotation;
@@ -483,14 +488,20 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
-                                .calls[0]?.[0] ?? null;
+                                .calls[0]?.[0];
 
-                        expect(fixArguments).not.toBeNull();
+                        expect(fixArguments).toBeDefined();
+
+                        if (fixArguments === undefined) {
+                            throw new Error(
+                                "Expected replacement-fix mock arguments"
+                            );
+                        }
 
                         const replacementText =
-                            fixArguments?.replacementTextFactory?.(
+                            fixArguments.replacementTextFactory(
                                 expectedReplacementName
-                            ) ?? "";
+                            );
 
                         expect(replacementText).toBe(
                             `${variableName} = ${expectedRuntimeExpression}`

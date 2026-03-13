@@ -334,6 +334,7 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                         expect(reportCalls[0]).toMatchObject({
                             messageId: "preferTsExtrasAssertPresent",
                         });
+
                         const directFix = reportCalls[0]?.fix;
                         const suggestionFix = reportCalls[0]?.suggest?.[0]?.fix;
                         const fixFunction: unknown = directFix ?? suggestionFix;

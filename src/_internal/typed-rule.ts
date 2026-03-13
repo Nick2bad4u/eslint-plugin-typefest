@@ -19,6 +19,7 @@ import { registerProgramSettingsForContext } from "./plugin-settings.js";
 import { getRuleCatalogEntryForRuleNameOrNull } from "./rule-catalog.js";
 import { createRuleDocsUrl } from "./rule-docs-url.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
+import { getScopeFromContextSourceCode } from "./scope-resolution.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
 
@@ -37,14 +38,6 @@ export type TypedRuleServices = {
 
 /** Shared typed-rule context contract used by helper utilities. */
 type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
-
-type LegacyRuleContextScopeGetter = Readonly<{
-    getScope: () => TSESLint.Scope.Scope;
-}>;
-
-type SourceCodeScopeGetter = Readonly<{
-    getScope: (node: Readonly<TSESTree.Node>) => TSESLint.Scope.Scope;
-}>;
 
 export type { TypedRuleContext };
 
@@ -301,27 +294,10 @@ export const isGlobalIdentifierNamed = <
 
     const result = safeTypeOperation({
         operation: () => {
-            const sourceCodeMaybeWithScope = context.sourceCode as
-                | Partial<SourceCodeScopeGetter>
-                | undefined;
-
-            const initialScope =
-                typeof sourceCodeMaybeWithScope?.getScope === "function"
-                    ? sourceCodeMaybeWithScope.getScope(expression)
-                    : (() => {
-                          const contextMaybeWithLegacyScope = context as
-                              | Partial<LegacyRuleContextScopeGetter>
-                              | undefined;
-
-                          if (
-                              typeof contextMaybeWithLegacyScope?.getScope ===
-                              "function"
-                          ) {
-                              return contextMaybeWithLegacyScope.getScope();
-                          }
-
-                          return null;
-                      })();
+            const initialScope = getScopeFromContextSourceCode(
+                context,
+                expression
+            );
 
             if (initialScope === null) {
                 return true;

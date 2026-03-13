@@ -1814,6 +1814,9 @@ export default defineConfig([
             "vitest/prefer-describe-function-title": "warn",
             "vitest/prefer-expect-assertions": "off",
             "vitest/prefer-expect-resolves": "warn",
+            // Vitest's autofix currently rewrites to `expectTypeOf(...).toBeFunction()`
+            // which does not typecheck with the current expect-type typings.
+            "vitest/prefer-expect-type-of": "off",
             "vitest/prefer-mock-return-shorthand": "warn",
             "vitest/prefer-spy-on": "off",
             "vitest/prefer-strict-boolean-matchers": "off",

@@ -437,13 +437,13 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                             },
                         });
 
-                        const typeReferenceListener =
+                        const tsReferenceListener =
                             getSelectorAwareNodeListener(
                                 listeners as Readonly<Record<string, unknown>>,
                                 "TSTypeReference"
                             );
 
-                        typeReferenceListener?.(tsReference);
+                        tsReferenceListener?.(tsReference);
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
@@ -462,7 +462,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                                     .calls[0]?.[1]
                             ).toBe("JsonObject");
                         } else {
-                            expect(typeof reportCalls[0]?.fix).toBe("function");
+                            expect(reportCalls[0]?.fix).toBeTypeOf("function");
                         }
 
                         const fixedCode = `${code.slice(0, tsReference.range[0])}JsonObject${code.slice(tsReference.range[1])}`;

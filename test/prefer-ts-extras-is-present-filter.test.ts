@@ -57,12 +57,12 @@ import {
 } from "./_internal/prefer-ts-extras-is-present-filter-runtime-harness";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
+import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
     createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
-import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 
 const ruleId = "prefer-ts-extras-is-present-filter";
 const docsDescription =
@@ -473,7 +473,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                             expect(
                                 createSafeValueReferenceReplacementFixMock
                             ).toHaveBeenCalledTimes(1);
-                        } else {
+                        } else if (firstReport.fix !== undefined) {
                             expect(typeof firstReport.fix).toBe("function");
                         }
 

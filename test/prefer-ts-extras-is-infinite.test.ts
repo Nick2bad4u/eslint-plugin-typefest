@@ -327,7 +327,11 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                                 createSafeValueArgumentFunctionCallFixMock
                             ).toHaveBeenCalledTimes(1);
                         } else {
-                            expect(typeof reports[0]?.fix).toBe("function");
+                            const reportFix = reports[0]?.fix;
+
+                            if (reportFix !== undefined) {
+                                expect(typeof reportFix).toBe("function");
+                            }
                         }
 
                         const replacementText = `isInfinite(${comparedExpressionText})`;

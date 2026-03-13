@@ -545,7 +545,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                             createSafeTypeNodeReplacementFixMock
                         ).toHaveBeenCalledTimes(1);
                     } else {
-                        expect(typeof reportCalls[0]?.fix).toBe("function");
+                        expect(reportCalls[0]?.fix).toBeTypeOf("function");
                     }
 
                     const calledReplacementName =

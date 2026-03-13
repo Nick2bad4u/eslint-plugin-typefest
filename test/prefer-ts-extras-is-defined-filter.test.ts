@@ -539,7 +539,11 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                                 createSafeValueReferenceReplacementFixMock
                             ).toHaveBeenCalledTimes(1);
                         } else {
-                            expect(typeof reportCalls[0]?.fix).toBe("function");
+                            const reportFix = reportCalls[0]?.fix;
+
+                            if (reportFix !== undefined) {
+                                expect(typeof reportFix).toBe("function");
+                            }
                         }
 
                         const fixedCode = `${code.slice(

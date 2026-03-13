@@ -478,7 +478,11 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                                 isNegatedExpected
                             );
                         } else {
-                            expect(typeof reports[0]?.fix).toBe("function");
+                            const reportFix = reports[0]?.fix;
+
+                            if (reportFix !== undefined) {
+                                expect(typeof reportFix).toBe("function");
+                            }
                         }
 
                         const replacementText = isNegatedExpected

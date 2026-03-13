@@ -895,18 +895,6 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                             },
                             sourceCode: {
                                 ast,
-                                parserServices: {
-                                    esTreeNodeToTSNodeMap: {
-                                        get: () => ({ kind: "Identifier" }),
-                                    },
-                                    program: {
-                                        getTypeChecker: () => fallbackChecker,
-                                    },
-                                    tsNodeToESTreeNodeMap: new WeakMap<
-                                        object,
-                                        object
-                                    >(),
-                                },
                                 getScope: () => ({
                                     set: new Map([
                                         [
@@ -940,6 +928,18 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                                 }),
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
+                                },
+                                parserServices: {
+                                    esTreeNodeToTSNodeMap: {
+                                        get: () => ({ kind: "Identifier" }),
+                                    },
+                                    program: {
+                                        getTypeChecker: () => fallbackChecker,
+                                    },
+                                    tsNodeToESTreeNodeMap: new WeakMap<
+                                        object,
+                                        object
+                                    >(),
                                 },
                             },
                         });

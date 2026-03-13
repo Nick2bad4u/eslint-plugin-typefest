@@ -5,7 +5,7 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
-import { arrayJoin } from "ts-extras";
+import { arrayJoin, setHas } from "ts-extras";
 
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
@@ -21,6 +21,7 @@ import {
     resolveImportInsertionDecisionForReportFix,
 } from "./import-fix-coordinator.js";
 import { createImportInsertionFix } from "./import-insertion.js";
+import { getScopeFromContextSourceCode } from "./scope-resolution.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 
 /**
@@ -93,14 +94,6 @@ type SafeValueReplacementFixParams = Readonly<{
 /** Scope-chain root used for local-variable resolution helpers. */
 type ScopeChainRoot = Readonly<null | Readonly<TSESLint.Scope.Scope>>;
 
-type LegacyRuleContextScopeGetter = Readonly<{
-    getScope: () => TSESLint.Scope.Scope;
-}>;
-
-type SourceCodeScopeGetter = Readonly<{
-    getScope: (node: Readonly<TSESTree.Node>) => TSESLint.Scope.Scope;
-}>;
-
 /**
  * Parameters for creating a safe function-call replacement fixer.
  */
@@ -156,7 +149,7 @@ const getFirstImportedAliasName = ({
         return null;
     }
 
-    if (candidateNames.has(importedName)) {
+    if (setHas(candidateNames, importedName)) {
         return importedName;
     }
 
@@ -171,25 +164,7 @@ const resolveReferenceScope = ({
 }: Readonly<{
     context: Readonly<TSESLint.RuleContext<string, UnknownArray>>;
     referenceNode: Readonly<TSESTree.Node>;
-}>): ScopeChainRoot => {
-    const sourceCodeMaybeWithScope = context.sourceCode as
-        | Partial<SourceCodeScopeGetter>
-        | undefined;
-
-    if (typeof sourceCodeMaybeWithScope?.getScope === "function") {
-        return sourceCodeMaybeWithScope.getScope(referenceNode);
-    }
-
-    const contextMaybeWithLegacyScope = context as
-        | Partial<LegacyRuleContextScopeGetter>
-        | undefined;
-
-    if (typeof contextMaybeWithLegacyScope?.getScope === "function") {
-        return contextMaybeWithLegacyScope.getScope();
-    }
-
-    return null;
-};
+}>): ScopeChainRoot => getScopeFromContextSourceCode(context, referenceNode);
 
 /**
  * Coordination decision used when import insertion is not required.
@@ -456,7 +431,7 @@ const getSafeReplacementNameAndImportFixFactory = ({
             imports,
         });
 
-        if (!fallbackLocalName) {
+        if (fallbackLocalName === null) {
             return null;
         }
 

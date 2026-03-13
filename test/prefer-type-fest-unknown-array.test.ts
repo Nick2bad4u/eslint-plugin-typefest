@@ -365,12 +365,11 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                             },
                         });
 
-                        const typeOperatorListener =
-                            getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
-                                "TSTypeOperator"
-                            );
-                        const typeReferenceListener =
+                        const tsOperatorListener = getSelectorAwareNodeListener(
+                            listeners as Readonly<Record<string, unknown>>,
+                            "TSTypeOperator"
+                        );
+                        const tsReferenceListener =
                             getSelectorAwareNodeListener(
                                 listeners as Readonly<Record<string, unknown>>,
                                 "TSTypeReference"
@@ -379,9 +378,9 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                         if (
                             candidateNode.type === AST_NODE_TYPES.TSTypeOperator
                         ) {
-                            typeOperatorListener?.(candidateNode);
+                            tsOperatorListener?.(candidateNode);
                         } else {
-                            typeReferenceListener?.(candidateNode);
+                            tsReferenceListener?.(candidateNode);
                         }
 
                         expect(reports).toHaveLength(1);
@@ -401,7 +400,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                                     .mock.calls[0]?.[1]
                             ).toBe("UnknownArray");
                         } else {
-                            expect(typeof reports[0]?.fix).toBe("function");
+                            expect(reports[0]?.fix).toBeTypeOf("function");
                         }
 
                         const nodeRange = candidateNode.range;

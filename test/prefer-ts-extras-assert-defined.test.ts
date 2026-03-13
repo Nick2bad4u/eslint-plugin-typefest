@@ -343,7 +343,9 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
 
                         let replacementText = "";
 
-                        const fixArguments =
+                        const fixArguments:
+                            | AssertDefinedFixFactoryArgs
+                            | undefined =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
@@ -351,20 +353,30 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                             expect(
                                 createSafeValueNodeTextReplacementFixMock
                             ).toHaveBeenCalledTimes(1);
+
                             replacementText =
                                 fixArguments.replacementTextFactory(
                                     "assertDefined"
                                 );
                         } else {
-                            const { fix } = firstReport;
+                            const reportFixCandidate: unknown = firstReport.fix;
 
-                            if (typeof fix !== "function") {
+                            if (typeof reportFixCandidate !== "function") {
                                 throw new TypeError(
                                     "Expected report fix to be a function when mock-based fix factory is bypassed"
                                 );
                             }
 
-                            fix({
+                            const reportFix = reportFixCandidate as (
+                                fixer: Readonly<{
+                                    replaceText: (
+                                        node: unknown,
+                                        text: string
+                                    ) => unknown;
+                                }>
+                            ) => unknown;
+
+                            reportFix({
                                 replaceText: (_node: unknown, text: string) => {
                                     replacementText = text;
 
@@ -543,7 +555,9 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                             ).toHaveBeenCalledTimes(1);
                         }
 
-                        const fixArguments =
+                        const fixArguments:
+                            | AssertDefinedFixFactoryArgs
+                            | undefined =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
@@ -555,13 +569,23 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                                     "assertDefined"
                                 );
                         } else {
-                            const suggestionFix = firstSuggestion?.fix;
+                            const suggestionFixCandidate: unknown =
+                                firstSuggestion?.fix;
 
-                            if (typeof suggestionFix !== "function") {
+                            if (typeof suggestionFixCandidate !== "function") {
                                 throw new TypeError(
                                     "Expected suggestion fix to be a function when mock-based fix factory is bypassed"
                                 );
                             }
+
+                            const suggestionFix = suggestionFixCandidate as (
+                                fixer: Readonly<{
+                                    replaceText: (
+                                        node: unknown,
+                                        text: string
+                                    ) => unknown;
+                                }>
+                            ) => unknown;
 
                             suggestionFix({
                                 replaceText: (_node: unknown, text: string) => {

@@ -301,12 +301,12 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                         },
                     });
 
-                    const typeReferenceListener = getSelectorAwareNodeListener(
+                    const tsReferenceListener = getSelectorAwareNodeListener(
                         listeners as Readonly<Record<string, unknown>>,
                         "TSTypeReference"
                     );
 
-                    typeReferenceListener?.(awaitedTypeReference);
+                    tsReferenceListener?.(awaitedTypeReference);
 
                     expect(reportCalls).toHaveLength(1);
                     expect(reportCalls[0]).toMatchObject({

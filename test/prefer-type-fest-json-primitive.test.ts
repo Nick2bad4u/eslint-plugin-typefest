@@ -327,7 +327,7 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
                                     .calls[0]?.[1]
                             ).toBe("JsonPrimitive");
                         } else {
-                            expect(typeof reports[0]?.fix).toBe("function");
+                            expect(reports[0]?.fix).toBeTypeOf("function");
                         }
 
                         const fixedCode = `${generatedCode.slice(0, unionType.range[0])}JsonPrimitive${generatedCode.slice(unionType.range[1])}`;
