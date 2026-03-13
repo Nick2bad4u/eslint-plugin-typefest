@@ -2,6 +2,24 @@
 
 - Use the following commit types for all commit messages, formatted as: `👷 [build]`, `🧹 [chore]`, `📝 [docs]`, `✨ [feat]`, `🐛 [fix]`, `⚡️ [perf]`, `🚜 [refactor]`, `⏪ [revert]`, `🎨 [style]`, `🧪 [test]`
 
+## Format Requirements
+
+- Always start your commit message with the appropriate emoji and type in brackets
+- Example: `"✨ [feat] Add dark mode toggle"`
+- Each commit bullet point should start with one of those emojis (or create a new one if none fit)
+- Each new topic in the commit should start with one of the emojis and tags
+- Indent any lines that refer to the statement above with `" - "`
+
+## Content Guidelines
+
+- **Be as detailed as possible without being excessively wordy.**
+- **Prioritize source code changes above test/dev-only changes** in mixed commits.
+- **List source changes first**, then tests/docs/chore updates.
+- Parse changed code and explain behavior impact step by step.
+- Write like a technical changelog author.
+- Use relevant emojis where useful for readability, not emoji spam, but be through in parsing and describing all meaningful changes that match emojis above.
+- Describe all meaningful changes comprehensively.
+
 - Entire Gitmoji Table Reference below, use for ideas and consistency.
 
 ## Commitlint-enforced hybrid header format
@@ -103,21 +121,3 @@
 | safety_vest               | 🦺    | Validation-related changes             |
 | airplane                  | ✈️    | Improve offline support                |
 | t-rex                     | 🦖    | Add backwards compatibility code       |
-
-## Format Requirements
-
-- Always start your commit message with the appropriate emoji and type in brackets
-- Example: `"✨ [feat] Add dark mode toggle"`
-- Each commit bullet point should start with one of those emojis (or create a new one if none fit)
-- Each new topic in the commit should start with one of the emojis and tags
-- Indent any lines that refer to the statement above with `" - "`
-
-## Content Guidelines
-
-- **Be as detailed as possible without being excessively wordy.**
-- **Prioritize source code changes above test/dev-only changes** in mixed commits.
-- **List source changes first**, then tests/docs/chore updates.
-- Parse changed code and explain behavior impact step by step.
-- Write like a technical changelog author.
-- Use relevant emojis where useful for readability, not emoji spam, but be through in parsing and describing all meaningful changes that match emojis above.
-- Describe all meaningful changes comprehensively.

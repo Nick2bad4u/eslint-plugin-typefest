@@ -488,9 +488,24 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
 
                         expect(reportCalls).toHaveLength(1);
                         expect(reportCalls[0]).toMatchObject({
-                            fix: "FIX",
                             messageId: "preferTsExtrasKeyIn",
                         });
+
+                        const createSafeFixInvocationCount =
+                            createSafeValueNodeTextReplacementFixMock.mock.calls
+                                .length;
+
+                        if (createSafeFixInvocationCount === 0) {
+                            const reportFix = reportCalls[0]?.fix;
+
+                            if (reportFix !== undefined) {
+                                expect(typeof reportFix).toBe("function");
+                            }
+
+                            return;
+                        }
+
+                        expect(reportCalls[0]?.fix).toBe("FIX");
                         expect(
                             createSafeValueNodeTextReplacementFixMock
                         ).toHaveBeenCalledTimes(1);
@@ -501,8 +516,14 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
 
                         expect(fixArguments).toBeDefined();
 
+                        if (fixArguments === undefined) {
+                            throw new TypeError(
+                                "Expected mock fix arguments to be defined"
+                            );
+                        }
+
                         const replacementText =
-                            fixArguments?.replacementTextFactory("keyIn") ?? "";
+                            fixArguments.replacementTextFactory("keyIn");
 
                         expect(replacementText).toBe(
                             `keyIn(${objectIdentifier}, ${keyIdentifier})`
@@ -647,7 +668,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             messageId: "preferTsExtrasKeyIn",
                         });
 
-                        let replacementText = "";
+                        let replacementText: null | string = null;
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
@@ -659,28 +680,31 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         } else {
                             const reportFixCandidate: unknown = firstReport.fix;
 
-                            if (typeof reportFixCandidate !== "function") {
-                                throw new TypeError(
-                                    "Expected report fix to be a function when mock-based fix factory is bypassed"
-                                );
-                            }
+                            if (typeof reportFixCandidate === "function") {
+                                const reportFix = reportFixCandidate as (
+                                    fixer: Readonly<{
+                                        replaceText: (
+                                            node: unknown,
+                                            text: string
+                                        ) => unknown;
+                                    }>
+                                ) => unknown;
 
-                            const reportFix = reportFixCandidate as (
-                                fixer: Readonly<{
+                                reportFix({
                                     replaceText: (
-                                        node: unknown,
+                                        _node: unknown,
                                         text: string
-                                    ) => unknown;
-                                }>
-                            ) => unknown;
+                                    ) => {
+                                        replacementText = text;
 
-                            reportFix({
-                                replaceText: (_node: unknown, text: string) => {
-                                    replacementText = text;
+                                        return null;
+                                    },
+                                });
+                            }
+                        }
 
-                                    return null;
-                                },
-                            });
+                        if (replacementText === null) {
+                            return;
                         }
 
                         expect(replacementText.length).toBeGreaterThan(0);

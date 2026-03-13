@@ -32,6 +32,7 @@
         "test/**/*.d.ts",
         "test/**/*.ts",
         "test/**/*.mjs",
+        "prettier.config.ts",
         "vitest.stryker.config.ts",
         "vite.config.ts",
         "docs/**/*.mjs",
