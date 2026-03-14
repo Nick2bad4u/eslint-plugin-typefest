@@ -11,10 +11,12 @@ applyTo: "docs/docusaurus/**"
   - TypeDoc integration is configured via `docs/docusaurus/typedoc.config.json` and related TS configs (for example `tsconfig.typedoc.json`).
   - Typedoc generates to `docs/docusaurus/site-docs/developer/api`, while hand-authored documents and pages live in `docs/docusaurus/src/pages`, `docs/docusaurus/site-docs` and `docs/rules`. Docusaurus connects the root docs to the site via configuration.
 - Website and build setup:
-  - From the repository root, prefer the `docusaurus:*` and `docs:*` npm scripts (e.g., `npm run docs:start`, `npm run docs:build`) so that TypeDoc and other generated assets are updated before the Docusaurus build.
+  - From the repository root, prefer the `docs:*` npm scripts (for example `npm run docs:start`, `npm run docs:build`, `npm run docs:api`) or the workspace scripts via `npm run --workspace docs/docusaurus <script>`.
+  - There are no root-level `docusaurus:*` scripts in this repo; use the `docs:*` root scripts unless you are intentionally running inside the docs workspace.
   - Do not hand-edit generated TypeDoc output under `docs/docusaurus`; adjust source code or TypeDoc config instead.
 - ESLint Config Inspector integration:
-  - The ESLint configuration inspector is built via the using the eslint inspector build option. `"build:eslint-inspector": "npx -y @eslint/config-inspector@1.4.2 build --outDir \"docs/docusaurus/static/eslint-inspector\" --base \"/repo-name-here/eslint-inspector/\"",`
+  - The ESLint configuration inspector is built from the repository root via `npm run build:eslint-inspector`, which writes to `docs/docusaurus/static/eslint-inspector` with base path `/eslint-plugin-typefest/eslint-inspector/`.
+  - For local inspection, use `npm run build:eslint-inspector:local`.
   - Do not modify the generated files in `static/eslint-inspector` by hand
 - Configuration alignment:
   - Keep Docusaurus `docusaurus.config.ts` and TypeScript configs (`tsconfig.typedoc.json`, etc.) in sync with root TS/Vite settings and path aliases.

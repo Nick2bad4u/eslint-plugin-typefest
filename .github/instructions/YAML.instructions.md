@@ -6,7 +6,7 @@ applyTo: "**/*.{yml,yaml}"
 
 # YAML
 
-Practical guidelines for authoring YAML that works well with modern tools like Grype, yamllint, and CI/CD systems. The goals are:
+Practical guidelines for authoring YAML that works well with this repository’s tooling, especially ESLint-based YAML linting, GitHub Actions workflows, actionlint, and CI/security scanners. The goals are:
 
 1. **Be predictable.** YAML is flexible; these rules make parsing and tooling behavior consistent.
 2. **Be readable.** Prefer structure and clarity over clever tricks.
@@ -58,7 +58,7 @@ These aren't hard rules, but rather recommendations to improve consistency, read
 
 -   **DO** declare `$schema` comments or keys where supported to enable editor validation (e.g. `yaml-language-server`).
 -   **DO** keep ignore lists (like paths excluded from scanning or linting) as YAML sequences of glob patterns, one per line.
--   **PREFER** centralizing YAML linting rules (e.g. in `.yamllint.yml`) and writing new files to comply with them.
+-   **PREFER** centralizing YAML validation in the repository tooling (ESLint for YAML files and actionlint for GitHub workflows) and writing new files to comply with those checks.
 -   **CONSIDER** adding comments for non-obvious values (e.g., timeouts, risk thresholds, feature flags).
 -   **DON'T** rely on tool-specific quirks that contradict standard YAML; prefer portable patterns that work across parsers and CI environments.
--   **Tooling alignment**: Run `npm run lint:yaml` to validate YAML files against the repository’s yamllint configuration before submitting changes.
+-   **Tooling alignment**: Run `npm run lint:yaml` for YAML validation, and run `npm run lint:actions` as well when editing GitHub workflow files.

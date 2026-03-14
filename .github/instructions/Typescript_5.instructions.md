@@ -10,7 +10,7 @@ applyTo: "**/*.ts, **/*.tsx"
 
 - Prefer native features over polyfills and external helpers.
 - Use pure ES modules; never emit `require`, `module.exports`, or CommonJS helpers.
-- Prefer modern core APIs (e.g., `Array.prototype.at`, `Object.hasOwn`, `Promise.allSettled`) when supported by the runtime target.
+- Prefer modern core APIs (e.g., `Array.prototype.at`, `Object.hasOwn`, `Promise.allSettled`) when they align with repository conventions; if a rule, fixer, or docs page intentionally standardizes on `ts-extras` or `type-fest`, follow that project convention instead of defaulting to the native helper.
 
 ---
 
@@ -45,8 +45,8 @@ applyTo: "**/*.ts, **/*.tsx"
 - Use **ESM imports/exports** exclusively:
   - `import` / `export` only; no `require`, `module.exports`, or dynamic `import()` without strong reason.
 - Prefer **named exports** over default exports for better refactoring and discoverability.
-- Ensure internal import paths are stable and non-circular; no barrel files at all.
-- Leverage the configured path aliases (`@app/*`, `@shared/*`, `@electron/*`, `@assets/*`) instead of relative `../../` chains; keep `tsconfig.json` and Vite aliases in sync when introducing new folders.
+- Ensure internal import paths are stable and non-circular; avoid barrel files except at intentional public module boundaries.
+- Leverage the configured path aliases (`@plugin/*`, `@assets/*`) when they improve clarity, and keep `tsconfig.json` and related tooling in sync when introducing new aliases.
 - The project uses `moduleResolution: "bundler"` with extension rewriting—import source files without explicit `.js`/`.ts` extensions so the build can rewrite correctly.
 ---
 
@@ -140,13 +140,13 @@ applyTo: "**/*.ts, **/*.tsx"
     type ApiPayload = JsonValue;
     ```
 
-  - **Branded and opaque types**: `Opaque<Type, Token>` to distinguish IDs and other primitives that share a representation but differ semantically.
+  - **Tagged and branded types**: prefer `Tagged<Type, TagName>` for IDs and other primitives that share a representation but differ semantically. Treat legacy `Opaque`/`Branded` usage as migration territory, not the preferred new pattern.
 
     ```ts
-    import type { Opaque } from "type-fest";
+    import type { Tagged } from "type-fest";
 
-    type UserId = Opaque<string, "UserId">;
-    type OrderId = Opaque<string, "OrderId">;
+    type UserId = Tagged<string, "UserId">;
+    type OrderId = Tagged<string, "OrderId">;
     ```
 
   - **Object refinement**:

@@ -22,7 +22,7 @@ These guidelines focus ESM-first JavaScript using `.mjs` files. These aren't har
 -   Prefer **arrow functions** for short callbacks and inline functions; use `function` declarations for named, reusable logic.
 -   Use template literals (`` `...${value}...` ``) instead of string concatenation.
 -   Prefer destructuring for objects and arrays when it improves clarity.
--   Always strict mode types. Prefer JSDoc type annotations.
+-   Keep `.mjs` modules compatible with strict checking and prefer JSDoc type annotations for public helpers.
 
 ### Async and Promises
 
@@ -35,5 +35,5 @@ These guidelines focus ESM-first JavaScript using `.mjs` files. These aren't har
 -   Prefer JSDoc type annotations or `.d.ts` files for `.mjs` modules.
 -   Document public functions and exports with concise JSDoc comments explaining purpose and parameters.
 -   Repository conventions:
-	-   Target Node.js 24+ (ES2024). Use the `node:`-prefixed built-ins and `import.meta.url` + `fileURLToPath` when you need `__dirname`-style resolution.
-	-   Keep modules compatible with the shared tooling tsconfig (`config/testing/tsconfig.js.json`) so that `npm run check:js` and `npm run lint:js` succeed without extra config.
+	-   Target the repository runtime baseline for root `.mjs` tooling: Node.js `>=20.19.0` with ES2024 output expectations. Use the `node:`-prefixed built-ins and `import.meta.url` + `fileURLToPath` when you need `__dirname`-style resolution.
+	-   Keep modules compatible with `tsconfig.js.json` so that the repository `npm run typecheck` and lint workflows succeed without extra config.
