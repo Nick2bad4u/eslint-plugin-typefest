@@ -5,9 +5,6 @@ import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-do
 import type * as Preset from "@docusaurus/preset-classic";
 import { fileURLToPath } from "node:url";
 
-/** Canonical site origin used for sitemap/canonical URL generation. */
-const siteUrl =
-    process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
 /** Route base path where docs site is deployed (GitHub Pages project path). */
 const baseUrl =
     process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
@@ -301,7 +298,7 @@ const config: Config = {
                             label: "\ueb09 Releases",
                         },
                         {
-                            href: `${siteUrl}${baseUrl}eslint-inspector/`,
+                            href: `https://nick2bad4u.github.io/eslint-plugin-typefest/eslint-inspector/`,
                             label: "\ue7d2 ESLint Inspector",
                         },
                         {
@@ -384,11 +381,11 @@ const config: Config = {
                             to: "/docs/rules",
                         },
                         {
-                            label: "• Rules for ts-extras",
+                            label: "💠 Rules for ts-extras",
                             to: "/docs/rules/category/ts-extras",
                         },
                         {
-                            label: "• Rules for type-fest",
+                            label: "✴️ Rules for type-fest",
                             to: "/docs/rules/category/type-fest",
                         },
                     ],
@@ -486,29 +483,29 @@ const config: Config = {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "• GitHub: Repository",
+                            label: "• \ue709 GitHub",
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "• NPM: Repository",
+                            label: "• \ue616 NPM",
                         },
                         {
                             href: `https://github.com/sindresorhus/type-fest`,
                             className: "navbar-dropdown-divider-before",
-                            label: "• GitHub: type-fest",
+                            label: "💠 \ue709 type-fest",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "• NPM: type-fest",
+                            label: "💠 \ue616 type-fest",
                         },
                         {
                             href: `https://github.com/sindresorhus/ts-extras`,
                             className: "navbar-dropdown-divider-before",
-                            label: "• GitHub: ts-extras",
+                            label: "✴️ \ue709 ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "• NPM: ts-extras",
+                            label: "✴️ \ue616 ts-extras",
                         },
                     ],
                 },
