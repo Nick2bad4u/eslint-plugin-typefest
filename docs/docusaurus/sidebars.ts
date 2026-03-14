@@ -337,22 +337,22 @@ const sidebars: SidebarsConfig = {
             items: [
                 {
                     href: "https://github.com/sindresorhus/ts-extras",
-                    label: "🧰 ts-extras · GitHub",
+                    label: "💠 \ue709 ts-extras",
                     type: "link",
                 },
                 {
                     href: "https://www.npmjs.com/package/ts-extras",
-                    label: "📦 ts-extras · npm",
+                    label: "💠 \ue616 ts-extras",
                     type: "link",
                 },
                 {
                     href: "https://github.com/sindresorhus/type-fest",
-                    label: "✨ type-fest · GitHub",
+                    label: "✴️ \ue709 type-fest",
                     type: "link",
                 },
                 {
                     href: "https://www.npmjs.com/package/type-fest",
-                    label: "📦 type-fest · npm",
+                    label: "✴️ \ue616 type-fest",
                     type: "link",
                 },
                 {

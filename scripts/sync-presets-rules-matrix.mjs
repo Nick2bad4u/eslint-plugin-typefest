@@ -26,13 +26,15 @@ import { generateReadmeRulesSectionFromRules } from "./sync-readme-rules-table.m
 
 /** @typedef {Readonly<Record<string, RuleModule>>} RulesMap */
 
-/** @typedef {"all"
-    | "minimal"
-    | "recommended"
-    | "recommended-type-checked"
-    | "strict"
-    | "ts-extras/type-guards"
-    | "type-fest/types"} PresetConfigName */
+/**
+ * @typedef {"all"
+ *     | "minimal"
+ *     | "recommended"
+ *     | "recommended-type-checked"
+ *     | "strict"
+ *     | "ts-extras/type-guards"
+ *     | "type-fest/types"} PresetConfigName
+ */
 
 const matrixSectionHeading = "## Rule matrix";
 const presetRulesSectionHeading = "## Rules in this preset";
