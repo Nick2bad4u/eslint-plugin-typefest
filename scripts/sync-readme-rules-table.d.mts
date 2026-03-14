@@ -19,3 +19,7 @@ export interface ReadmeRuleModule {
 export function generateReadmeRulesSectionFromRules(
     rules: Readonly<Record<string, ReadmeRuleModule>>
 ): string;
+
+export function syncReadmeRulesTable(input: {
+    readonly writeChanges: boolean;
+}): Promise<Readonly<{ changed: boolean }>>;

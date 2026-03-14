@@ -175,6 +175,8 @@
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
         "sync:presets-rules-matrix": "node scripts/sync-presets-rules-matrix.mjs",
         "sync:readme-rules-table": "node scripts/sync-readme-rules-table.mjs",
+        "sync:readme-rules-table:update": "npm run build && cross-env TYPEFEST_UPDATE_GENERATED_DOCS=1 vitest run test/readme-rules-table-sync.test.ts -u",
+        "sync:readme-rules-table:write": "node scripts/sync-readme-rules-table.mjs --write",
         "pretest": "npm run build",
         "test": "vitest run",
         "test:autofix:fixtures": "cross-env TYPEFEST_AUTOFIX_SMOKE=1 vitest run test/autofix-fixtures-all-rules-smoke.test.ts",

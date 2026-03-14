@@ -287,9 +287,13 @@ export const generateReadmeRulesSectionFromRules = (rules) => {
 };
 
 /**
+ * Synchronize the README rules table with canonical plugin metadata.
+ *
  * @param {{ writeChanges: boolean }} input
+ *
+ * @returns {Promise<Readonly<{ changed: boolean }>>}
  */
-const syncReadmeRulesTable = async ({ writeChanges }) => {
+export const syncReadmeRulesTable = async ({ writeChanges }) => {
     const workspaceRoot = resolve(fileURLToPath(import.meta.url), "../..");
     const readmePath = resolve(workspaceRoot, "README.md");
     const readmeText = await readFile(readmePath, "utf8");
@@ -312,7 +316,7 @@ const syncReadmeRulesTable = async ({ writeChanges }) => {
     const readmeSuffix = readmeText.slice(sectionEndOffset);
 
     const generatedRulesSection = generateReadmeRulesSectionFromRules(
-        /** @type {ReadmeRulesMap} */ (builtPlugin.rules)
+        /** @type {ReadmeRulesMap} */(builtPlugin.rules)
     );
 
     const existingRulesSection = readmeText.slice(
@@ -367,7 +371,7 @@ const runCli = async () => {
     }
 
     console.error(
-        "README rules table is out of sync. Run: node scripts/sync-readme-rules-table.mjs --write"
+        "README rules table is out of sync. Run: npm run sync:readme-rules-table:write (or npm run sync:readme-rules-table:update to refresh snapshots too)."
     );
     process.exitCode = 1;
 };

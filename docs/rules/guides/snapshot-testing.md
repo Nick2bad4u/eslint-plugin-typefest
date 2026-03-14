@@ -81,7 +81,7 @@ Use focused updates first:
 ```bash
 npx vitest run test/plugin-contract-snapshots.test.ts -u
 npx vitest run test/rule-metadata-snapshots.test.ts -u
-npx vitest run test/readme-rules-table-sync.test.ts -u
+npm run sync:readme-rules-table:update
 npx vitest run test/docs-heading-snapshots.test.ts -u
 ```
 

@@ -4,9 +4,12 @@
  */
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
-import { generateReadmeRulesSectionFromRules } from "../scripts/sync-readme-rules-table.mjs";
+import {
+    generateReadmeRulesSectionFromRules,
+    syncReadmeRulesTable,
+} from "../scripts/sync-readme-rules-table.mjs";
 import typefestPlugin from "../src/plugin";
 
 const RULES_SECTION_HEADING = "## Rules";
@@ -14,6 +17,10 @@ const RULES_SECTION_SNAPSHOT_PATH = path.join(
     "__snapshots__",
     "readme-rules-section.generated.md"
 );
+const SHOULD_SYNC_README_IN_UPDATE_MODE =
+    process.argv.includes("-u") ||
+    process.argv.includes("--update") ||
+    process.env["TYPEFEST_UPDATE_GENERATED_DOCS"] === "1";
 
 /**
  * Normalize markdown table row spacing so formatter-aligned columns compare
@@ -88,6 +95,14 @@ const extractRulesSection = (markdown: string): string => {
 };
 
 describe("readme rules table synchronization", () => {
+    beforeAll(async () => {
+        if (!SHOULD_SYNC_README_IN_UPDATE_MODE) {
+            return;
+        }
+
+        await syncReadmeRulesTable({ writeChanges: true });
+    });
+
     it("matches the canonical rules matrix generated from plugin metadata", async () => {
         const readmePath = path.join(process.cwd(), "README.md");
         const readmeMarkdown = await fs.readFile(readmePath, "utf8");

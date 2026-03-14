@@ -68,62 +68,118 @@ Every rule documentation file must follow this exact Markdown structure:
 
   <examples>
 
-## Example Template
+## Example Doc
 
 ```markdown
-# my-plugin/require-readonly-types
+# prefer-ts-extras-array-find-last-index
 
-Enforces that all array and object types are explicitly marked as `readonly`.
+Prefer [`arrayFindLastIndex`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-find-last-index.ts) from `ts-extras` over `array.findLastIndex(...)`.
 
-## Rule Details
+`arrayFindLastIndex(...)` improves predicate inference in typed arrays.
 
-Mutable types in functional programming patterns can lead to accidental side effects. This rule ensures that data passed around your application remains immutable.
+## Targeted pattern scope
 
-### ❌ Incorrect
+This rule focuses on direct `array.findLastIndex(predicate)` calls that can be migrated to `arrayFindLastIndex(array, predicate)` with deterministic fixes.
 
-```ts
-function processItems(items: string[]) {
-  items.push("new"); // Mutation!
-}
+- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
 
-interface User {
-  tags: string[];
-}
-```
+Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayFindLastIndex(array, predicate)` migrations safe.
 
-### ✅ Correct
+## What this rule reports
 
-```ts
-function processItems(items: readonly string[]) {
-  // items.push("new"); // TypeScript Error
-}
+This rule reports `array.findLastIndex(predicate)` call sites when `arrayFindLastIndex(array, predicate)` is the intended replacement.
 
-interface User {
-  tags: ReadonlyArray<string>;
-}
-```
+- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
 
-## Options
+## Why this rule exists
 
-This rule accepts a single option object:
+`arrayFindLastIndex` standardizes reverse index lookup and keeps call signatures aligned with other `ts-extras` search helpers.
+
+- Reverse index scans are explicit at the call site.
+- Search code avoids mixed native/helper patterns.
+- Index-based follow-up logic stays uniform across modules.
+
+## ❌ Incorrect
 
 ```ts
-type Options = {
-  // If true, ignores local variables.
-  ignoreLocals?: boolean;
-}
+const index = monitors.findLastIndex((entry) => entry.id === targetId);
 ```
 
-### `ignoreLocals: true`
-
-Examples of **correct** code with `{ "ignoreLocals": true }`:
+## ✅ Correct
 
 ```ts
-function task() {
-  const localList: string[] = []; // Allowed because it's local
-  localList.push("temp");
-}
+const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
 ```
+
+## Behavior and migration notes
+
+- Runtime behavior matches native `Array.prototype.findLastIndex`.
+- Search still proceeds from right to left.
+- If no element matches, the result is `-1`.
+
+## Additional examples
+
+### ❌ Incorrect — Additional example
+
+```ts
+const index = logs.findLastIndex((entry) => entry.level === "warn");
+```
+
+### ✅ Correct — Additional example
+
+```ts
+const index = arrayFindLastIndex(logs, (entry) => entry.level === "warn");
+```
+
+### ✅ Correct — Repository-wide usage
+
+```ts
+const retryIndex = arrayFindLastIndex(attempts, (attempt) => !attempt.success);
+```
+
+## ESLint flat config example
+
+```ts
+import typefest from "eslint-plugin-typefest";
+
+export default [
+    {
+        plugins: { typefest },
+        rules: {
+            "typefest/prefer-ts-extras-array-find-last-index": "error",
+        },
+    },
+];
+```
+
+## When not to use it
+
+Disable this rule if your codebase has standardized on native `.findLastIndex()`.
+
+## Package documentation
+
+ts-extras package documentation:
+
+`ts-extras@0.17.x` does not currently expose `arrayFindLastIndex` in its published API, so there is no canonical `source/*.ts` link for this helper yet.
+
+Reference links:
+
+- [`ts-extras` API list (README)](https://github.com/sindresorhus/ts-extras/blob/main/readme.md#api)
+- [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
+
+> **Rule catalog ID:** R005
+
+## Further reading
+
+- [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
+- [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
+- [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+
+## Adoption resources
+
+- [Rule adoption checklist](https://example.md)
+- [Rollout and fix safety](https://example.md)
+
 ```
 
   </examples>
