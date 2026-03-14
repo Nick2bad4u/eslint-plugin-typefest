@@ -4,7 +4,7 @@
  */
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
     generateReadmeRulesSectionFromRules,
@@ -17,10 +17,19 @@ const RULES_SECTION_SNAPSHOT_PATH = path.join(
     "__snapshots__",
     "readme-rules-section.generated.md"
 );
+const processEnvironment = globalThis.process.env;
 const SHOULD_SYNC_README_IN_UPDATE_MODE =
     process.argv.includes("-u") ||
     process.argv.includes("--update") ||
-    process.env["TYPEFEST_UPDATE_GENERATED_DOCS"] === "1";
+    processEnvironment["TYPEFEST_UPDATE_GENERATED_DOCS"] === "1";
+
+const syncReadmeRulesTableIfRequested = async (): Promise<void> => {
+    if (!SHOULD_SYNC_README_IN_UPDATE_MODE) {
+        return;
+    }
+
+    await syncReadmeRulesTable({ writeChanges: true });
+};
 
 /**
  * Normalize markdown table row spacing so formatter-aligned columns compare
@@ -95,15 +104,9 @@ const extractRulesSection = (markdown: string): string => {
 };
 
 describe("readme rules table synchronization", () => {
-    beforeAll(async () => {
-        if (!SHOULD_SYNC_README_IN_UPDATE_MODE) {
-            return;
-        }
-
-        await syncReadmeRulesTable({ writeChanges: true });
-    });
-
     it("matches the canonical rules matrix generated from plugin metadata", async () => {
+        await syncReadmeRulesTableIfRequested();
+
         const readmePath = path.join(process.cwd(), "README.md");
         const readmeMarkdown = await fs.readFile(readmePath, "utf8");
 
