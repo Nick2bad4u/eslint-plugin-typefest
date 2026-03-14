@@ -44,7 +44,8 @@ jobs:
               uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
               with:
                   cache: npm
-                  node-version: 20.19.0
+                  cache-dependency-path: package-lock.json
+                  node-version-file: .node-version
 
             - name: Install dependencies
               run: npm ci --force

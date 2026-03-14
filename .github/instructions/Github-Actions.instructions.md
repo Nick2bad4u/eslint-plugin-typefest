@@ -62,8 +62,9 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v6
               with:
-                  node-version: 20.19.0
+                  node-version-file: .node-version
                   cache: npm
+                  cache-dependency-path: package-lock.json
             - name: Install dependencies
               run: |
                   npm ci --force
@@ -246,7 +247,8 @@ jobs:
     -   **Restore Keys:** Use `restore-keys` for fallbacks to older, compatible caches.
     -   **Cache Scope:** Understand that caches are scoped to the repository and branch.
 -   **Guidance for Copilot:**
-    -   In this npm repository, prefer `actions/setup-node` with `cache: npm` before reaching for a custom `actions/cache` block.
+    -   In this npm repository, prefer `actions/setup-node` with `node-version-file: .node-version` and `cache: npm` before reaching for a custom `actions/cache` block.
+    -   Treat `.node-version` as the workflow source of truth and keep `.nvmrc` synchronized with the same exact version for local tooling compatibility.
     -   Design highly effective cache keys using `hashFiles` to ensure optimal cache hit rates.
     -   Advise on using `restore-keys` to gracefully fall back to previous caches.
 -   **Example (Repository-aligned npm caching):**
@@ -255,8 +257,9 @@ jobs:
 - name: Setup Node.js
   uses: actions/setup-node@v6
   with:
-      node-version: 20.19.0
-      cache: npm
+    node-version-file: .node-version
+    cache: npm
+    cache-dependency-path: package-lock.json
 ```
 
 ### **2. Matrix Strategies for Parallelization**
@@ -275,27 +278,37 @@ jobs:
 
 ```yaml
 jobs:
-        compat:
-        runs-on: ${{ matrix.os }}
-        strategy:
-                        fail-fast: false
-            matrix:
-                                include:
-                                        - os: ubuntu-latest
-                                            eslint-version: 9.0.0
-                                        - os: ubuntu-latest
-                                            eslint-version: ^9.39.1
-                                        - os: windows-latest
-                                            eslint-version: ^9.39.1
-        steps:
-                        - uses: actions/checkout@v6
-                        - uses: actions/setup-node@v6
-              with:
-                                    node-version: 20.19.0
-                                    cache: npm
-                        - run: npm ci --force
-                        - run: npm install --no-save --force eslint@${{ matrix.eslint-version }} @eslint/js@${{ matrix.eslint-version }}
-                        - run: npm run lint:compat:eslint9 -- --expect-eslint-major=9
+  compat:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            eslint-version: "9.0.0"
+          - os: ubuntu-latest
+            eslint-version: "^9.39.1"
+          - os: windows-latest
+            eslint-version: "^9.39.1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --force
+
+      - name: Install ESLint
+        run: npm install --no-save --force eslint@${{ matrix.eslint-version }} @eslint/js@${{ matrix.eslint-version }}
+
+      - name: Run compat lint
+        run: npm run lint:compat:eslint9 -- --expect-eslint-major=9
 ```
 
 ### **3. Self-Hosted Runners**
