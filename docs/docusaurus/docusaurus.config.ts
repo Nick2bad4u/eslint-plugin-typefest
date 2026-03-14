@@ -5,9 +5,6 @@ import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-do
 import type * as Preset from "@docusaurus/preset-classic";
 import { fileURLToPath } from "node:url";
 
-/** Canonical site origin used for sitemap/canonical URL generation. */
-const siteUrl =
-    process.env["DOCUSAURUS_SITE_URL"] ?? "https://nick2bad4u.github.io";
 /** Route base path where docs site is deployed (GitHub Pages project path). */
 const baseUrl =
     process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
@@ -301,7 +298,7 @@ const config: Config = {
                             label: "\ueb09 Releases",
                         },
                         {
-                            href: `${siteUrl}${baseUrl}eslint-inspector/`,
+                            href: `https://nick2bad4u.github.io/eslint-plugin-typefest/eslint-inspector/`,
                             label: "\ue7d2 ESLint Inspector",
                         },
                         {
