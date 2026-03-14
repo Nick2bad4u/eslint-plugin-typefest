@@ -26,7 +26,13 @@ import { generateReadmeRulesSectionFromRules } from "./sync-readme-rules-table.m
 
 /** @typedef {Readonly<Record<string, RuleModule>>} RulesMap */
 
-/** @typedef {"all" | "minimal" | "recommended" | "recommended-type-checked" | "strict" | "ts-extras/type-guards" | "type-fest/types"} PresetConfigName */
+/** @typedef {"all"
+    | "minimal"
+    | "recommended"
+    | "recommended-type-checked"
+    | "strict"
+    | "ts-extras/type-guards"
+    | "type-fest/types"} PresetConfigName */
 
 const matrixSectionHeading = "## Rule matrix";
 const presetRulesSectionHeading = "## Rules in this preset";
@@ -401,14 +407,17 @@ export const generatePresetsRulesMatrixSectionFromRules = (rules) => {
  *     writeChanges: boolean;
  * }} input
  */
-const syncPresetsRulesMatrixSection = async ({ workspaceRoot, writeChanges }) => {
+const syncPresetsRulesMatrixSection = async ({
+    workspaceRoot,
+    writeChanges,
+}) => {
     const presetsIndexPath = resolve(
         workspaceRoot,
         "docs/rules/presets/index.md"
     );
     const presetsIndexMarkdown = await readFile(presetsIndexPath, "utf8");
     const generatedSection = generatePresetsRulesMatrixSectionFromRules(
-        /** @type {RulesMap} */(builtPlugin.rules)
+        /** @type {RulesMap} */ (builtPlugin.rules)
     );
 
     const sectionReplacementResult = replaceMarkdownSection({
@@ -429,7 +438,11 @@ const syncPresetsRulesMatrixSection = async ({ workspaceRoot, writeChanges }) =>
         };
     }
 
-    await writeFile(presetsIndexPath, sectionReplacementResult.nextMarkdown, "utf8");
+    await writeFile(
+        presetsIndexPath,
+        sectionReplacementResult.nextMarkdown,
+        "utf8"
+    );
 
     return {
         changed: true,
@@ -453,9 +466,8 @@ const syncPresetPageRuleTables = async ({ workspaceRoot, writeChanges }) => {
             `${presetDocSlugByConfigName[presetConfigName]}.md`
         );
         const presetMarkdown = await readFile(presetDocPath, "utf8");
-        const generatedSection = generateStandardPresetRulesSection(
-            presetConfigName
-        );
+        const generatedSection =
+            generateStandardPresetRulesSection(presetConfigName);
         const replacementResult = replaceMarkdownSection({
             generatedSection,
             headingCandidates: [presetRulesSectionHeading],
@@ -469,7 +481,11 @@ const syncPresetPageRuleTables = async ({ workspaceRoot, writeChanges }) => {
         changed = true;
 
         if (writeChanges) {
-            await writeFile(presetDocPath, replacementResult.nextMarkdown, "utf8");
+            await writeFile(
+                presetDocPath,
+                replacementResult.nextMarkdown,
+                "utf8"
+            );
         }
     }
 
@@ -550,7 +566,9 @@ const runCli = async () => {
     }
 
     if (writeChanges) {
-        console.log("Presets documentation tables synchronized from plugin metadata.");
+        console.log(
+            "Presets documentation tables synchronized from plugin metadata."
+        );
 
         return;
     }
