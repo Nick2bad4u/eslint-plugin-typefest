@@ -1,36 +1,41 @@
 ---
 name: review-hacky-brittle-fixes
-description: "🤖🤖 Use this prompt to perform a comprehensive audit of the repository, focusing on fragile, brittle, or hacky code."
-argument-hint: Provide any trouble spots or specific areas of the codebase to focus on, if applicable.
+description: "🤖🤖 Use this prompt to perform a comprehensive audit of the repository, focusing on fragile, brittle, hacky, or legacy code paths."
+argument-hint: Provide any trouble spots, files, or rule families to focus on, if applicable.
 ---
 
-# Task: Comprehensive Repository Quality & Scalability Audit
+# Task: Looping Audit for Hacky, Brittle, and Legacy Fixes
 
-You are tasked with a deep-scan and refactor of this entire repository. This project is a high-traffic plugin with an expected user base of 300k-500k. Stability, performance, and maintainability are critical.
+Audit this eslint-plugin repository autonomously. Use any user-provided focus areas first; otherwise inspect the full repo.
 
-Search the codebase exhaustively to identify and resolve the following categories of issues:
+## Operating loop
 
-### 1. Fragility & Brittle Implementations
-- **Regex Hardening:** Replace brittle, non-descriptive, or overly complex regex with robust patterns or dedicated parsing logic.
-- **Magic Strings/Numbers:** Identify hardcoded values that should be constants or configuration-driven.
-- **Type Safety:** Fix loose typing or 'any' usage that could lead to runtime crashes.
+Repeat the following until you run out of high-confidence findings:
 
-### 2. Consistency & Standardized Logic
-- **Unified Rule Logic:** Audit all rules/modules. If a fix or optimization was applied to one rule, ensure it is standardized across all similar rules.
-- **Error Handling:** Ensure a consistent error-reporting and recovery strategy across the entire plugin. No silent failures.
+1. Map the next highest-risk area such as `src/rules`, `src/_internal`, `test/`, docs, configs, scripts, or plugin entrypoints.
+2. Identify brittle, hacky, legacy, or overfit implementations such as:
+	- one-off workarounds or special-case branches
+	- regex or string parsing where AST-aware or utility-based logic would be safer
+	- magic constants, hidden assumptions, or copy-pasted compatibility shims
+	- unsafe casts, brittle assertions, or weak type narrowing
+	- fragile autofix logic, import insertion, or fixer ordering
+	- tests that only lock in the current hack instead of the intended contract
+3. Fix a small batch of root-cause issues, not just surface symptoms.
+4. Validate the touched areas with diagnostics, targeted tests, and relevant repo scripts.
+5. Continue with the next batch.
 
-### 3. Architectural Integrity
-- **Pattern Alignment:** Identify "one-off" hacks or weird workarounds. Refactor them to follow the project's primary architectural patterns.
-- **Dependency Review:** Look for unnecessary complexity in how modules interact. Simplify circular dependencies or deep nesting.
+## Standards
 
-### 4. Production Readiness & Best Practices
-- **Performance:** Optimize hot paths (loops, heavy string manipulation) to ensure the plugin doesn't lag for the 500k users.
-- **Syntax & Compatibility:** Ensure modern, clean syntax while maintaining compatibility with the target runtime environments.
+- Prefer shared utilities and established repo patterns over bespoke fixes.
+- Remove legacy or brittle code only when you can preserve or improve behavior safely.
+- Keep fixes minimal, high-signal, and maintainable.
+- If something looks suspicious but cannot be changed safely in the current pass, record it in the follow-up list instead of forcing a speculative edit.
 
-### Execution Plan:
-1. **Search Phase:** Use semantic and lexical search to map out the core logic and identify patterns.
-2. **Analysis Phase:** Flag every instance of the issues listed above.
-3. **Refactor Phase:** Apply fixes iteratively. Priority is given to "breaking" potential and runtime stability.
-4. **Validation:** Double-check that refactors don't introduce regression in existing rules.
+## Deliverables
 
-Treat this as a mission-critical audit. Search hard, be pedantic, and prioritize long-term stability.
+At the end, provide:
+
+- the issues you found
+- what you changed
+- how you validated the work
+- any follow-up items that deserve a separate pass
