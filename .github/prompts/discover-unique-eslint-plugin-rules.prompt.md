@@ -4,9 +4,14 @@ description: "🤖🤖 Use this prompt to discover new ESLint rule ideas that fi
 argument-hint: Provide any rule themes, ecosystems, or rule families to target first, if applicable.
 ---
 
+a
 # Task: Discover Net-New Rule Opportunities for This ESLint Plugin Repository
 
 Research and identify rule ideas that are relevant to this repository's domain and goals but are not already well-covered by other major ESLint plugins.
+
+We want to have rules that are useful, high quality, and arent duplicating any other plugins (unless it has benefit)
+
+Make sure to check the presets and adjust them for the new rules.
 
 Use any user-provided direction first; otherwise scan the current rule catalog and repository goals.
 
@@ -15,7 +20,7 @@ Use any user-provided direction first; otherwise scan the current rule catalog a
 Repeat the following until you exhaust the high-value search space:
 
 1. Inventory the current repo rule set, presets, docs, and utility themes.
-2. Research nearby ecosystems and competing plugins such as `@typescript-eslint`, `eslint-plugin-unicorn`, `eslint-plugin-import`, `eslint-plugin-sonarjs`, `eslint-plugin-regexp`, `eslint-plugin-functional`, and any other relevant plugin families. Use web or research tools when available.
+2. Research nearby ecosystems and competing plugins such as `@typescript-eslint`, `eslint-plugin-unicorn`, `eslint-plugin-import`, `eslint-plugin-sonarjs`, `eslint-plugin-regexp`, `eslint-plugin-functional`, etc, and any other relevant plugin families. Use web or research tools when available.
 3. Identify candidate rule gaps that are:
    - genuinely relevant to this repository's domain, target users, and plugin goals
    - not obvious duplicates of existing mainstream rules
