@@ -40,3 +40,7 @@ node_modules/**/*.d.ts
 node_modules/@typescript-eslint/
 node_modules/@types/
 node_modules/typescript/
+
+# Keep Cache Folder and Temp Folder
+!cache/.gitkeep
+!temp/.gitkeep
