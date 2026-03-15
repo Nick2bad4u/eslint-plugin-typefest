@@ -53,7 +53,7 @@ if [[ -n "${TEMP_PATH}" && -d "${TEMP_PATH}" ]]; then
         esac
     done
 
-    if (( ${#filtered_items[@]} > 0 )); then
+    if ((${#filtered_items[@]} > 0)); then
         if ((WHAT_IF)); then
             for item in "${filtered_items[@]}"; do
                 echo "Would remove: ${item}"
