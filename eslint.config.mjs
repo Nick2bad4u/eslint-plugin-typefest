@@ -33,7 +33,6 @@ import * as pluginCssModules from "eslint-plugin-css-modules";
 import deMorgan from "eslint-plugin-de-morgan";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
-import etcPlugin from "eslint-plugin-etc";
 import progress from "eslint-plugin-file-progress-2";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
@@ -130,7 +129,6 @@ const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 const pluginLoadableImports = fixupPluginRules(
     asEslintPlugin(loadbleImportsPlugin)
 );
-const etc = fixupPluginRules(etcPlugin);
 const jsxA11yPlugin = fixupPluginRules(eslintPluginJsxA11y);
 const eslintReactStrictTypeCheckedConfig = /**
  * @type {{
@@ -698,7 +696,6 @@ export default defineConfig([
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
-            etc: etc,
             "import-x": importX,
             js: js,
             jsdoc: jsdocPlugin,
@@ -755,8 +752,6 @@ export default defineConfig([
             ...readPluginConfigRules(listeners, "strict"),
             ...moduleInterop.configs.recommended.rules,
             ...readPluginConfigRules(pluginTotalFunctions, "recommended"),
-            // @ts-expect-error -- Plugin needs update for Eslint v10
-            ...etc.configs.recommended.rules,
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
             // Deprecated rule - turned off
             "@eslint-community/eslint-comments/no-unused-disable": "off",
@@ -1263,17 +1258,6 @@ export default defineConfig([
             "eslint-plugin/test-case-property-ordering": "warn",
             "eslint-plugin/test-case-shorthand-strings": "error",
             "eslint-plugin/unique-test-case-names": "error",
-            "etc/no-commented-out-code": "off",
-            "etc/no-const-enum": "warn",
-            "etc/no-enum": "off",
-            "etc/no-foreach": "off",
-            "etc/no-internal": "off",
-            "etc/no-misused-generics": "warn",
-            "etc/no-t": "off",
-            "etc/prefer-interface": "off",
-            "etc/prefer-less-than": "off",
-            "etc/throw-error": "warn",
-            "etc/underscore-internal": "off",
             "import-x/consistent-type-specifier-style": "off",
             "import-x/default": "warn",
             "import-x/dynamic-import-chunkname": "off",
@@ -1920,6 +1904,7 @@ export default defineConfig([
             "package-json/require-bundleDependencies": "off",
             // Optional metadata for this repository.
             "package-json/require-contributors": "warn",
+            "package-json/require-cpu": "off",
             "package-json/require-dependencies": "warn",
             "package-json/require-description": "warn",
             "package-json/require-devDependencies": "warn",
@@ -1943,9 +1928,10 @@ export default defineConfig([
             "package-json/require-main": "warn",
             // Not a manpage-distributed package.
             "package-json/require-man": "off",
+            "package-json/require-module": "off",
             "package-json/require-name": "warn",
             "package-json/require-optionalDependencies": "off",
-            "package-json/require-os": "warn",
+            "package-json/require-os": "off",
             "package-json/require-packageManager": "warn",
             "package-json/require-peerDependencies": "warn",
             "package-json/require-private": "warn",
@@ -1996,6 +1982,7 @@ export default defineConfig([
             "package-json/valid-dependencies": "warn",
             "package-json/valid-description": "warn",
             "package-json/valid-devDependencies": "warn",
+            "package-json/valid-devEngines": "warn",
             "package-json/valid-directories": "warn",
             "package-json/valid-engines": "warn",
             "package-json/valid-exports": "warn",

@@ -90,7 +90,7 @@
         "typedoc": "^0.28.17",
         "typedoc-docusaurus-theme": "^1.4.2",
         "typedoc-plugin-coverage": "^4.0.2",
-        "typedoc-plugin-dt-links": "^2.0.45",
+        "typedoc-plugin-dt-links": "^2.0.46",
         "typedoc-plugin-external-package-links": "^0.2.0",
         "typedoc-plugin-markdown": "^4.10.0",
         "typedoc-plugin-mdn-links": "^5.1.1",
@@ -106,13 +106,12 @@
     },
     "packageManager": "npm@11.11.1",
     "engines": {
-        "node": ">=24.0.0",
-        "npm": ">=11.0.0"
+        "node": ">=20.19.0"
     },
     "devEngines": {
         "runtime": {
             "name": "node",
-            "version": ">=24.0.0",
+            "version": ">=20.19.0",
             "onFail": "error"
         },
         "packageManager": {
@@ -120,10 +119,5 @@
             "version": ">=11.0.0",
             "onFail": "error"
         }
-    },
-    "os": [
-        "darwin",
-        "linux",
-        "win32"
-    ]
+    }
 }
