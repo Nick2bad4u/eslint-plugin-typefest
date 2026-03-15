@@ -9,14 +9,13 @@ import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smo
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-record.test` behavior.
  */
-import { getPluginRule } from "./_internal/ruleTester";
+import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
-    createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
-const ruleTester = createTypedRuleTester();
+const ruleTester = createRuleTester();
 const ruleId = "prefer-type-fest-unknown-record";
 const docsDescription =
     "require TypeFest UnknownRecord over Record<string, unknown> in architecture-critical layers.";

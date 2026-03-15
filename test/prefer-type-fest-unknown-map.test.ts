@@ -9,15 +9,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
-import { getPluginRule } from "./_internal/ruleTester";
+import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
-    createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 
 const rule = getPluginRule("prefer-type-fest-unknown-map");
-const ruleTester = createTypedRuleTester();
+const ruleTester = createRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-map.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-map.invalid.ts";

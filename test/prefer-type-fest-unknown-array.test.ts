@@ -12,10 +12,9 @@ import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smo
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-unknown-array.test` behavior.
  */
-import { getPluginRule } from "./_internal/ruleTester";
+import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import { getSelectorAwareNodeListener } from "./_internal/selector-aware-listener";
 import {
-    createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
@@ -27,7 +26,7 @@ const preferUnknownArrayMessage =
     "Prefer `Readonly<UnknownArray>` from type-fest over `readonly unknown[]` or `ReadonlyArray<unknown>`.";
 
 const rule = getPluginRule(ruleId);
-const ruleTester = createTypedRuleTester();
+const ruleTester = createRuleTester();
 
 const validFixtureName = "prefer-type-fest-unknown-array.valid.ts";
 const invalidFixtureName = "prefer-type-fest-unknown-array.invalid.ts";
