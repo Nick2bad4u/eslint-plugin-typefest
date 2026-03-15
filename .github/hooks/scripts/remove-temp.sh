@@ -39,15 +39,28 @@ if [[ -n "${TEMP_PATH}" && -d "${TEMP_PATH}" ]]; then
     items=("${TEMP_PATH}"/*)
     shopt -u dotglob nullglob
 
-    if (((${#items[@]} > 0))); then
+    # Build list of items to remove, skipping placeholder files (e.g. .gitkeep, .githold, .keep, .placeholder)
+    filtered_items=()
+    for item in "${items[@]}"; do
+        basename="${item##*/}"
+        case "$basename" in
+            .gitkeep | .githold | .keep | .placeholder | .empty | .gitignore)
+                ((VERBOSE)) && echo "Skipping placeholder: ${item}"
+                ;;
+            *)
+                filtered_items+=("${item}")
+                ;;
+        esac
+    done
+
+    if (( ${#filtered_items[@]} > 0 )); then
         if ((WHAT_IF)); then
-            for item in "${items[@]}"; do
+            for item in "${filtered_items[@]}"; do
                 echo "Would remove: ${item}"
             done
             echo "[SUCCESS] Dry run completed. No files were deleted."
         else
-            rm -rf -- "${items[@]}"
-            if [[ $? -eq 0 ]]; then
+            if rm -rf -- "${filtered_items[@]}"; then
                 echo "[SUCCESS] Temp directory cleaned successfully."
             else
                 echo "[FAIL] Failed to clean temp directory."

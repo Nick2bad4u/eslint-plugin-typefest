@@ -16,9 +16,12 @@ $ErrorActionPreference = 'Continue'
 
 $tempPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..\..\..\temp'))
 
+$keepFiles = @('.gitkeep', '.nojekyll', '.gitignore', '.keep', '.htaccess')
+
 if (Test-Path -LiteralPath $tempPath) {
     Write-Verbose "Removing contents of: $tempPath"
     Get-ChildItem -LiteralPath $tempPath -Force |
+        Where-Object { $_.Name -notin $keepFiles } |
         Remove-Item -Recurse -Force -WhatIf:$WhatIfPreference
     Write-Verbose 'Temp directory cleaned successfully.'
     Write-Host "Success: Temp directory cleaned."

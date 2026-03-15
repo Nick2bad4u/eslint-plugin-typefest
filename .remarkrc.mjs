@@ -21,6 +21,7 @@ import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.m
 /** @typedef {import("unified").Preset} Preset */
 /** @typedef {import("unified").Plugin} Plugin */
 /** @typedef {import("vfile").VFile} VFile */
+/** @typedef {import("./scripts/remark-lint-rule-doc-headings.d.mts").RemarkLintRuleDocHeadingsOptions} RemarkLintRuleDocHeadingsOptions */
 
 /**
  * @typedef {string
@@ -193,6 +194,41 @@ import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.m
 /** @typedef {{ case?: "lower" | "upper" }} FencedCodeFlagCaseOptions */
 /** @typedef {{ skipUrlPatterns?: (string | RegExp)[] }} NoDeadUrlsOptions */
 
+/**
+ * Default helper-doc heading validation settings.
+ *
+ * Copy this object into other repositories and tweak the values there.
+ * The plugin reads these options from the remark config entry below.
+ *
+ * @type {RemarkLintRuleDocHeadingsOptions}
+ */
+const ruleDocHeadingDefaults = {
+    headings: {
+        targetedPatternScope: true,
+        whatThisRuleReports: true,
+        whyThisRuleExists: true,
+        incorrect: true,
+        correct: true,
+        deprecated: true,
+        behaviorAndMigrationNotes: true,
+        additionalExamples: true,
+        eslintFlatConfigExample: true,
+        whenNotToUseIt: true,
+        packageDocumentation: true,
+        furtherReading: true,
+        adoptionResources: true,
+        matchedPatterns: true,
+        detectionBoundaries: true,
+    },
+    helperDocPathPattern:
+        /(^|\/)docs\/rules\/(?!overview\.md$|getting-started\.md$|presets\/)[^/]+\.md$/u,
+    requirePackageDocumentation: false,
+    requirePackageDocumentationLabel: false,
+    packageDocumentationLabelPattern: /^[^\r\n]+ package documentation:$/mu,
+    ruleCatalogIdLinePattern: /^> \*\*Rule catalog ID:\*\* R\d{3}$/u,
+    ruleNamespaceAliases: [],
+};
+
 /** @type {RemarkConfig} */
 const remarkConfig = {
     // Core plugins for GitHub Flavored Markdown and formatting integration
@@ -214,7 +250,10 @@ const remarkConfig = {
         "@double-great/remark-lint-alt-text", // Require alt text for images
         "remark-lint-heading-whitespace", // Remove trailing whitespace in headings
         "remark-validate-links", // Validate internal links exist
-        remarkLintRuleDocHeadings, // Enforce canonical helper-doc heading schema and package docs placement
+        [
+            remarkLintRuleDocHeadings,
+            ruleDocHeadingDefaults,
+        ], // Enforce canonical helper-doc heading schema; customize here per project
         // Mathematical expressions
         "remark-math",
         "rehype-katex", // If you have math content
