@@ -61,10 +61,9 @@ const readPackageJson = async () => {
         return JSON.parse(packageJsonContent);
         /** @type {Error} */
     } catch (error) {
-        /** @type {Error} */
+        const message = error instanceof Error ? error.message : String(error);
         throw new TypeError(
-            // @ts-expect-error -- error is expected to have a message property, but we can't guarantee that with unknown
-            `Failed to read package.json at ${packageJsonPath}: ${error.message}`,
+            `Failed to read package.json at ${packageJsonPath}: ${message}`,
             { cause: error }
         );
     }

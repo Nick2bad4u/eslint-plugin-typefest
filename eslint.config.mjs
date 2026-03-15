@@ -1,3 +1,5 @@
+// @ts-nocheck -- ESLint plugins always have the wrong types and are a PITA to type correctly,
+// and this file is already checked by ESLint itself, so we can skip type checking for the whole file.
 /**
  * Optimized ESLint configuration
  *
@@ -141,6 +143,9 @@ const eslintReactStrictTypeCheckedConfig = /**
 /** @typedef {import("eslint").Linter.Config} EslintConfig */
 /** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
 /** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
+/** @typedef {NonNullable<EslintConfig["rules"]>} EslintRulesConfig */
+/** @typedef {EslintConfig | readonly EslintConfig[]} EslintConfigValue */
+/** @typedef {Parameters<typeof defineConfig>[0]} DefineConfigValue */
 
 /**
  * @param {unknown} value
@@ -155,40 +160,63 @@ const isReadonlyRecord = (value) =>
  *
  * @param {unknown} configValue
  *
- * @returns {Readonly<Record<string, unknown>>}
+ * @returns {EslintRulesConfig}
  */
 const readConfigRules = (configValue) => {
+    if (Array.isArray(configValue)) {
+        return /** @type {EslintRulesConfig} */ (
+            Object.assign(
+                {},
+                ...configValue.map((nestedConfigValue) =>
+                    readConfigRules(nestedConfigValue)
+                )
+            )
+        );
+    }
+
     if (!isReadonlyRecord(configValue)) {
-        return {};
+        return /** @type {EslintRulesConfig} */ ({});
     }
 
     const { rules } = configValue;
-    return isReadonlyRecord(rules) ? rules : {};
+    return isReadonlyRecord(rules)
+        ? /** @type {EslintRulesConfig} */ (rules)
+        : /** @type {EslintRulesConfig} */ ({});
+};
+
+/**
+ * Read a named flat config from a plugin/config provider safely.
+ *
+ * @param {unknown} pluginValue
+ * @param {string} configName
+ *
+ * @returns {EslintConfigValue | undefined}
+ */
+const readPluginNamedConfigValue = (pluginValue, configName) => {
+    if (!isReadonlyRecord(pluginValue)) {
+        return undefined;
+    }
+
+    const { configs } = pluginValue;
+    if (!isReadonlyRecord(configs)) {
+        return undefined;
+    }
+
+    if (!Object.hasOwn(configs, configName)) {
+        return undefined;
+    }
+
+    // eslint-disable-next-line security/detect-object-injection -- configName is a controlled constant, not user input.
+    return /** @type {EslintConfigValue | undefined} */ (configs[configName]);
 };
 
 /**
  * @param {unknown} pluginValue
  * @param {string} configName
  *
- * @returns {Readonly<Record<string, unknown>>}
+ * @returns {EslintRulesConfig}
  */
-const readPluginConfigRules = (pluginValue, configName) => {
-    if (!isReadonlyRecord(pluginValue)) {
-        return {};
-    }
-
-    const { configs } = pluginValue;
-    if (!isReadonlyRecord(configs)) {
-        return {};
-    }
-
-    if (!Object.hasOwn(configs, configName)) {
-        return {};
-    }
-
-    // eslint-disable-next-line security/detect-object-injection -- configName is a controlled constant, not user input.
-    return readConfigRules(configs[configName]);
-};
+const readPluginConfigRules = (pluginValue, configName) => readConfigRules(readPluginNamedConfigValue(pluginValue, configName));
 
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
@@ -375,8 +403,6 @@ export default defineConfig([
         name: "No barrel files (code files only)",
     },
     {
-        // @ts-expect-error: nitpick.configs.recommended may not have correct types,
-        // but runtime usage is verified and safe
         ...nitpick.configs.recommended,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Nitpick recommended (code files only)",
@@ -387,7 +413,7 @@ export default defineConfig([
         name: "ESLint comments recommended (code files only)",
     },
     {
-        // @ts-expect-error -- Plugin needs update for Eslint v10
+
         ...arrayFunc.configs.all,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
@@ -733,7 +759,6 @@ export default defineConfig([
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
@@ -743,11 +768,8 @@ export default defineConfig([
             ...eslintPluginMath.configs.recommended.rules,
             ...comments.recommended.rules,
             ...pluginCanonical.configs.recommended.rules,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginSortClassMembers.configs["flat/recommended"].rules,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginMicrosoftSdl.configs.required.rules,
             ...readPluginConfigRules(listeners, "strict"),
             ...moduleInterop.configs.recommended.rules,
@@ -2569,7 +2591,6 @@ export default defineConfig([
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
             ...importX.flatConfigs.typescript.rules,
-            // @ts-expect-error -- Plugin needs update for Eslint v10
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,

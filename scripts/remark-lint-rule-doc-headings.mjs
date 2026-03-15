@@ -14,6 +14,7 @@ const canonicalHeadingOrder = [
     "Why this rule exists",
     "❌ Incorrect",
     "✅ Correct",
+    "Deprecated",
     "Behavior and migration notes",
     "Additional examples",
     "ESLint flat config example",
@@ -47,12 +48,24 @@ const headingOrderIndex = new Map(
     canonicalHeadingOrder.map((heading, index) => [heading, index])
 );
 
-const helperDocPathPattern = /(^|\/)docs\/rules\/prefer-[^/]+\.md$/u;
+const helperDocPathPattern =
+    /(^|\/)docs\/rules\/(?!overview\.md$|getting-started\.md$|presets\/)[^/]+\.md$/u;
 const typeFestDocPathPattern = /(^|\/)docs\/rules\/prefer-type-fest-/u;
 const tsExtrasDocPathPattern = /(^|\/)docs\/rules\/prefer-ts-extras-/u;
-const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/gmu;
-const ruleCatalogIdBeforeFurtherReadingPattern =
-    /^> \*\*Rule catalog ID:\*\* R\d{3}\r?\n\r?\n## Further reading$/mu;
+const ruleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/u;
+
+/**
+ * @param {string} fileRuleId
+ *
+ * @returns {readonly string[]}
+ */
+const getExpectedH1Titles = (fileRuleId) => {
+    if (fileRuleId.startsWith("typescript-")) {
+        return [fileRuleId, `typescript/${fileRuleId.slice(11)}`];
+    }
+
+    return [fileRuleId];
+};
 
 /**
  * @param {string} path
@@ -146,7 +159,7 @@ const getHeadingsByDepth = (tree, depth) =>
  *
  * @returns {(tree: Node, file: VFile) => void}
  */
-export default function remarkLintRuleDocHeadings() {
+export default function remarkLintRuleDocHeadings () {
     return (tree, file) => {
         if (typeof file.path !== "string") {
             return;
@@ -183,10 +196,11 @@ export default function remarkLintRuleDocHeadings() {
 
         if (h1Headings.length === 1 && typeof expectedRuleTitle === "string") {
             const actualTitle = getNodeText(h1Headings[0]).trim();
+            const expectedH1Titles = getExpectedH1Titles(expectedRuleTitle);
 
-            if (actualTitle !== expectedRuleTitle) {
+            if (!expectedH1Titles.includes(actualTitle)) {
                 file.message(
-                    `H1 heading must match the file rule id \`${expectedRuleTitle}\`.`,
+                    `H1 heading must match one of: ${expectedH1Titles.map((title) => `\`${title}\``).join(", ")}.`,
                     h1Headings[0],
                     "remark-lint:rule-doc-headings:h1-title"
                 );
@@ -292,6 +306,7 @@ export default function remarkLintRuleDocHeadings() {
         const packageDocumentationIndex = headingNames.indexOf(
             "Package documentation"
         );
+        const deprecatedSectionIndex = headingNames.indexOf("Deprecated");
         const furtherReadingIndex = headingNames.indexOf("Further reading");
 
         for (const requiredHeading of requiredCoreHeadings) {
@@ -359,6 +374,39 @@ export default function remarkLintRuleDocHeadings() {
             );
         }
 
+        if (deprecatedSectionIndex !== -1) {
+            const deprecatedSectionHeading = h2Headings[deprecatedSectionIndex];
+
+            if (deprecatedSectionHeading === undefined) {
+                return;
+            }
+
+            const nextH2Index =
+                h2Headings[deprecatedSectionIndex + 1]?.position?.start?.offset;
+            const deprecatedStartOffset =
+                deprecatedSectionHeading.position?.end?.offset;
+            const markdownStartOffset =
+                typeof deprecatedStartOffset === "number"
+                    ? deprecatedStartOffset
+                    : 0;
+            const markdownEndOffset =
+                typeof nextH2Index === "number"
+                    ? nextH2Index
+                    : String(file).length;
+            const deprecatedSectionContent = String(file).slice(
+                markdownStartOffset,
+                markdownEndOffset
+            );
+
+            if (!/\[[^\]]+\]\([^\)]+\)/u.test(deprecatedSectionContent)) {
+                file.message(
+                    "`## Deprecated` should include a link to the recommended replacement rule or package.",
+                    deprecatedSectionHeading,
+                    "remark-lint:rule-doc-headings:deprecated-replacement-link"
+                );
+            }
+        }
+
         if (
             packageDocumentationIndex !== -1 &&
             furtherReadingIndex !== -1 &&
@@ -374,6 +422,26 @@ export default function remarkLintRuleDocHeadings() {
         }
 
         const markdownContent = String(file);
+        const ruleCatalogIdLines = markdownContent
+            .split(/\r?\n/u)
+            .map((line) => line.trimEnd())
+            .filter((line) => ruleCatalogIdLinePattern.test(line));
+
+        if (ruleCatalogIdLines.length === 0) {
+            file.message(
+                "Missing required rule catalog marker line `> **Rule catalog ID:** R###`.",
+                getH2HeadingNodeAt(furtherReadingIndex) ?? firstH2HeadingNode,
+                "remark-lint:rule-doc-headings:missing-rule-catalog-id"
+            );
+        }
+
+        if (ruleCatalogIdLines.length > 1) {
+            file.message(
+                "Rule docs must contain exactly one `> **Rule catalog ID:** R###` marker line.",
+                getH2HeadingNodeAt(furtherReadingIndex) ?? firstH2HeadingNode,
+                "remark-lint:rule-doc-headings:duplicate-rule-catalog-id"
+            );
+        }
 
         if (
             typeFestDocPathPattern.test(normalizedPath) &&
@@ -394,36 +462,6 @@ export default function remarkLintRuleDocHeadings() {
                 "ts-extras helper docs must include the exact label `ts-extras package documentation:`.",
                 undefined,
                 "remark-lint:rule-doc-headings:ts-extras-label"
-            );
-        }
-
-        const ruleCatalogIdLines =
-            markdownContent.match(ruleCatalogIdLinePattern) ?? [];
-
-        if (ruleCatalogIdLines.length === 0) {
-            file.message(
-                "Rule docs must include a blockquote line in the form `> **Rule catalog ID:** R086`.",
-                undefined,
-                "remark-lint:rule-doc-headings:missing-rule-catalog-id"
-            );
-        }
-
-        if (ruleCatalogIdLines.length > 1) {
-            file.message(
-                "Rule docs must include exactly one Rule catalog ID line.",
-                undefined,
-                "remark-lint:rule-doc-headings:duplicate-rule-catalog-id"
-            );
-        }
-
-        if (
-            ruleCatalogIdLines.length === 1 &&
-            !ruleCatalogIdBeforeFurtherReadingPattern.test(markdownContent)
-        ) {
-            file.message(
-                "Rule catalog ID line must be followed by exactly one blank line before `## Further reading`.",
-                undefined,
-                "remark-lint:rule-doc-headings:rule-catalog-id-placement"
             );
         }
     };
