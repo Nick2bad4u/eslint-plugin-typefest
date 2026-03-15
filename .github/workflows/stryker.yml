@@ -50,6 +50,9 @@ jobs:
             - name: Install dependencies
               run: npm ci --force
 
+            - name: Build package
+              run: npm run build
+
             - if: github.event_name == 'workflow_dispatch' && inputs.mode == 'fast'
               name: Run Stryker (fast)
               run: npm run test:stryker:ci
