@@ -21,6 +21,9 @@
     "exclude": [
         ".cache/**",
         "dist/**",
+        "docs/docusaurus/.docusaurus/**",
+        "docs/docusaurus/build/**",
+        "eslint.config.bundled_*.mjs",
         "node_modules/**",
         "test/**"
     ],

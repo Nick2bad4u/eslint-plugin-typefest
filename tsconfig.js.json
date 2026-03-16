@@ -15,8 +15,11 @@
         ".cache/**",
         "coverage/**",
         "dist/**",
+        "docs/docusaurus/.docusaurus/**",
+        "docs/docusaurus/build/**",
         "eslint.config.bundled_*.mjs",
-        "node_modules/**"
+        "node_modules/**",
+        "test/fixtures/**"
     ],
     "extends": "./tsconfig.json",
     "include": [

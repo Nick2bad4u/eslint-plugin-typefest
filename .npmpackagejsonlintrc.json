@@ -170,7 +170,8 @@
                 "MIT",
                 "Unlicense",
                 "UnLicense",
-                "UNLICENSED"
+                "UNLICENSED",
+                "Apache-2.0"
             ]
         ],
         "valid-values-name-scope": "off",
