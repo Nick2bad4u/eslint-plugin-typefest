@@ -197,8 +197,8 @@ import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.m
 /**
  * Default helper-doc heading validation settings.
  *
- * Copy this object into other repositories and tweak the values there.
- * The plugin reads these options from the remark config entry below.
+ * Copy this object into other repositories and tweak the values there. The
+ * plugin reads these options from the remark config entry below.
  *
  * @type {RemarkLintRuleDocHeadingsOptions}
  */
@@ -250,10 +250,7 @@ const remarkConfig = {
         "@double-great/remark-lint-alt-text", // Require alt text for images
         "remark-lint-heading-whitespace", // Remove trailing whitespace in headings
         "remark-validate-links", // Validate internal links exist
-        [
-            remarkLintRuleDocHeadings,
-            ruleDocHeadingDefaults,
-        ], // Enforce canonical helper-doc heading schema; customize here per project
+        [remarkLintRuleDocHeadings, ruleDocHeadingDefaults], // Enforce canonical helper-doc heading schema; customize here per project
         // Mathematical expressions
         "remark-math",
         "rehype-katex", // If you have math content

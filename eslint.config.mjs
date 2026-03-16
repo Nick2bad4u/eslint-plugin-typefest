@@ -85,6 +85,14 @@ import { fileURLToPath } from "node:url";
 import * as tomlEslintParser from "toml-eslint-parser";
 import * as yamlEslintParser from "yaml-eslint-parser";
 
+/**
+ * @remarks
+ * When bootstrapping a new ESLint plugin, do the following:
+ *
+ * 1. Import `typefest` from the npm package and add it above
+ * 2. Change the `typefest` local import below to be the new plugin's name and path
+ * 3. Setup the `🚢 Local Plugin Import` section below for new plugin
+ */
 import typefest from "./plugin.mjs";
 
 // NOTE: eslint-plugin-json-schema-validator may attempt to fetch remote schemas
@@ -217,7 +225,8 @@ const readPluginNamedConfigValue = (pluginValue, configName) => {
  *
  * @returns {EslintRulesConfig}
  */
-const readPluginConfigRules = (pluginValue, configName) => readConfigRules(readPluginNamedConfigValue(pluginValue, configName));
+const readPluginConfigRules = (pluginValue, configName) =>
+    readConfigRules(readPluginNamedConfigValue(pluginValue, configName));
 
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
@@ -414,7 +423,6 @@ export default defineConfig([
         name: "ESLint comments recommended (code files only)",
     },
     {
-
         ...arrayFunc.configs.all,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Array func all (code files only)",
@@ -674,6 +682,24 @@ export default defineConfig([
         },
     },
     // #endregion
+    // #region 🚢 Local Plugin Import
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // SECTION: 🚢 Local Plugin Import
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // {
+    //     files: [
+    //         "src/**/*.{ts,tsx,mts,cts}",
+    //         //    "test/**/*.{ts,tsx,mts,cts}"
+    //     ],
+    //     name: "Local Plugin Rules from Source",
+    //     plugins: {
+    //         typefest: typefest,
+    //     },
+    //     rules: {
+    //         ...typefest.configs.all.rules,
+    //     },
+    // },
+    // #endregion
     // #region ⌨️ Typefest
     // ═══════════════════════════════════════════════════════════════════════════════
     // SECTION: ⌨️ Typefest (typefest/*)
@@ -771,11 +797,14 @@ export default defineConfig([
             "etc-misc/typescript/no-multi-type-tuples": "off",
             "etc-misc/typescript/no-never": "off",
             "etc-misc/typescript/no-redundant-undefined-const": "off",
-            "etc-misc/typescript/no-redundant-undefined-default-parameter": "off",
+            "etc-misc/typescript/no-redundant-undefined-default-parameter":
+                "off",
             "etc-misc/typescript/no-redundant-undefined-let": "off",
             "etc-misc/typescript/no-redundant-undefined-optional": "off",
-            "etc-misc/typescript/no-redundant-undefined-promise-return-type": "off",
-            "etc-misc/typescript/no-redundant-undefined-readonly-property": "off",
+            "etc-misc/typescript/no-redundant-undefined-promise-return-type":
+                "off",
+            "etc-misc/typescript/no-redundant-undefined-readonly-property":
+                "off",
             "etc-misc/typescript/no-redundant-undefined-return-type": "off",
             "etc-misc/typescript/no-redundant-undefined-var": "off",
             "etc-misc/typescript/no-unsafe-object-assign": "off",

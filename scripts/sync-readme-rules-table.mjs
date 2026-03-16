@@ -316,7 +316,7 @@ export const syncReadmeRulesTable = async ({ writeChanges }) => {
     const readmeSuffix = readmeText.slice(sectionEndOffset);
 
     const generatedRulesSection = generateReadmeRulesSectionFromRules(
-        /** @type {ReadmeRulesMap} */(builtPlugin.rules)
+        /** @type {ReadmeRulesMap} */ (builtPlugin.rules)
     );
 
     const existingRulesSection = readmeText.slice(

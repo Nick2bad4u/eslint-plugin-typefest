@@ -381,7 +381,7 @@ const devDeps = [
  *
  * @returns {ParsedArgs}
  */
-function parseArgs (argv) {
+function parseArgs(argv) {
     const flags = new Set();
     const values = new Map();
 
@@ -420,7 +420,7 @@ const uniq = (arr) => [...new Set(arr ?? [])];
  *
  * @returns {string}
  */
-function pkgName (spec) {
+function pkgName(spec) {
     // If scoped package, find last '@' after the first character
     if (spec.startsWith("@")) {
         const at = spec.lastIndexOf("@");
@@ -438,7 +438,7 @@ function pkgName (spec) {
  *
  * @returns {string[]}
  */
-function overlap (a, b) {
+function overlap(a, b) {
     const bSet = new Set(b.map(pkgName));
     return a.map(pkgName).filter((x) => bSet.has(x));
 }
@@ -453,7 +453,7 @@ function overlap (a, b) {
  *
  * @returns {T[][]} Array of chunks.
  */
-function chunkArray (arr, chunkSize) {
+function chunkArray(arr, chunkSize) {
     const chunks = [];
     for (let i = 0; i < arr.length; i += chunkSize) {
         chunks.push(arr.slice(i, i + chunkSize));
@@ -467,7 +467,7 @@ function chunkArray (arr, chunkSize) {
  *
  * @returns {string}
  */
-function prettyCmd (cmd, args) {
+function prettyCmd(cmd, args) {
     return `${cmd} ${args.map((a) => (a.includes(" ") ? `"${a}"` : a)).join(" ")}`;
 }
 
@@ -478,7 +478,7 @@ function prettyCmd (cmd, args) {
  *
  * @returns {Promise<void>}
  */
-function runCommand (cmd, args, { timeoutMs = 0 } = {}) {
+function runCommand(cmd, args, { timeoutMs = 0 } = {}) {
     return new Promise(
         /**
          * @param {() => void} resolve
@@ -529,7 +529,7 @@ function runCommand (cmd, args, { timeoutMs = 0 } = {}) {
  *
  * @returns {Promise<void>}
  */
-async function runWithRetry (cmd, args, retries, opts) {
+async function runWithRetry(cmd, args, retries, opts) {
     let attempt = 0;
     /** @type {unknown} */
     let lastErr;
@@ -558,14 +558,14 @@ async function runWithRetry (cmd, args, retries, opts) {
  *
  * @returns {void}
  */
-function ensureSafeToInit ({ yes }) {
+function ensureSafeToInit({ yes }) {
     const pkgPath = path.join(process.cwd(), "package.json");
     if (!fs.existsSync(pkgPath)) return;
 
     if (!yes) {
         throw new Error(
             "package.json already exists. Refusing to run npm init -y automatically.\n" +
-            "Use --skip-init to keep existing package.json, or --yes to proceed intentionally."
+                "Use --skip-init to keep existing package.json, or --yes to proceed intentionally."
         );
     }
 }
@@ -573,7 +573,7 @@ function ensureSafeToInit ({ yes }) {
 /**
  * @returns {Promise<void>}
  */
-async function main () {
+async function main() {
     const t0 = Date.now();
     const options = parseArgs(process.argv.slice(2));
 
@@ -627,7 +627,7 @@ async function main () {
         const chunks = chunkArray(dev, options.chunkSize);
         console.log(
             `\nInstalling ${dev.length} devDependencies in ${chunks.length} chunk(s) ` +
-            `(chunk size: ${options.chunkSize})${options.force ? " with --force" : ""}...`
+                `(chunk size: ${options.chunkSize})${options.force ? " with --force" : ""}...`
         );
 
         for (const [i, chunk] of chunks.entries()) {
