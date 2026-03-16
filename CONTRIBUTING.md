@@ -7,7 +7,7 @@ This repository contains an ESLint plugin focused on `type-fest` and
 
 ## Prerequisites
 
-- Node.js `>=20.19.0` (see `package.json#engines`)
+- Node.js `>=22.0.0` (see `package.json#engines`)
 - npm `>=11`
 - Git
 
