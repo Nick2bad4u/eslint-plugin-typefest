@@ -7,7 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -15,6 +15,7 @@ import {
     createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
+    warmTypedParserServices,
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
@@ -80,6 +81,10 @@ const inlineFixableOutput = [
     "const sample = [1, 2, 3] as const;",
     "const merged = arrayConcat(sample, [4]);",
 ].join("\n");
+
+beforeAll(() => {
+    warmTypedParserServices(typedFixturePath(validFixtureName));
+}, 30_000);
 
 type ArrayConcatReportDescriptor = Readonly<{
     fix?: unknown;

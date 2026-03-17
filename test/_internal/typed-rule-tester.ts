@@ -2,6 +2,8 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
+import type { ParserOptions } from "@typescript-eslint/parser";
+
 import tsParser from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import { readFileSync } from "node:fs";
@@ -22,6 +24,25 @@ const typedFixturesRoot = repoPath("test", "fixtures", "typed");
 const carriageReturnAndLineFeed = "\r\n";
 /** Regex matching LF/CRLF line breaks for normalization. */
 const lineFeedPattern = /\r?\n/gv;
+/** Allowed default-project globs used by typed RuleTester suites. */
+const typedRuleTesterAllowDefaultProject = [
+    "file.ts",
+    "test/fixtures/typed/*.ts",
+    "test/fixtures/typed/tests/*.ts",
+];
+/** Shared parser options used by typed RuleTester suites. */
+const typedRuleTesterParserOptions = {
+    ecmaVersion: "latest",
+    projectService: {
+        allowDefaultProject: typedRuleTesterAllowDefaultProject,
+        defaultProject: "tsconfig.eslint.json",
+    },
+    sourceType: "module",
+    tsconfigRootDir: repoPath(),
+} satisfies ParserOptions;
+/** Minimal valid TypeScript module used to warm typed parser services. */
+const typedParserWarmupModuleSource =
+    "export const typedRuleTesterWarmup = [] as const;\n";
 
 /**
  * Normalize fixture source to CRLF line endings for stable RuleTester output
@@ -57,6 +78,26 @@ export const readTypedFixture = (...segments: readonly string[]): string =>
     );
 
 /**
+ * Warm the shared TypeScript project service used by typed RuleTester suites.
+ *
+ * This shifts initial project-service startup out of the first generated
+ * RuleTester case, which helps prevent Windows CI timeouts when coverage is
+ * enabled.
+ *
+ * @param filePath - Representative typed test filename to warm against.
+ * @param sourceText - Optional TypeScript module source to parse.
+ */
+export const warmTypedParserServices = (
+    filePath: string,
+    sourceText: string = typedParserWarmupModuleSource
+): void => {
+    tsParser.parseForESLint(normalizeLineEndingsForRuleTester(sourceText), {
+        ...typedRuleTesterParserOptions,
+        filePath,
+    });
+};
+
+/**
  * Create a RuleTester configured for typed fixture tests.
  *
  * @returns Configured RuleTester instance.
@@ -66,19 +107,7 @@ export const createTypedRuleTester = (): RuleTester =>
         new RuleTester({
             languageOptions: {
                 parser: tsParser,
-                parserOptions: {
-                    ecmaVersion: "latest",
-                    projectService: {
-                        allowDefaultProject: [
-                            "file.ts",
-                            "test/fixtures/typed/*.ts",
-                            "test/fixtures/typed/tests/*.ts",
-                        ],
-                        defaultProject: "tsconfig.eslint.json",
-                    },
-                    sourceType: "module",
-                    tsconfigRootDir: repoPath(),
-                },
+                parserOptions: typedRuleTesterParserOptions,
             },
         })
     );

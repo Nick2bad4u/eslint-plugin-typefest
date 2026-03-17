@@ -5,7 +5,7 @@ import styles from "../pages/index.module.css";
 const liveBadges = [
     {
         alt: "npm license",
-        href: "https://www.npmjs.com/package/eslint-plugin-typefest",
+        href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/LICENSE",
         src: "https://flat.badgen.net/npm/license/eslint-plugin-typefest?color=purple",
     },
     {
@@ -33,10 +33,15 @@ const liveBadges = [
         href: "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues",
         src: "https://flat.badgen.net/github/open-issues/Nick2bad4u/eslint-plugin-typefest?color=red",
     },
+    {
+        alt: "mutation testing badge",
+        href: "https://dashboard.stryker-mutator.io/reports/github.com/Nick2bad4u/eslint-plugin-typefest/main",
+        src: "https://img.shields.io/endpoint?style=flat-square&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FNick2bad4u%2Feslint-plugin-typefest%2Fmain",
+    },
 ];
 
 /**
- * Renders live repository and package badges powered by flat.badgen.net.
+ * Renders live repository, package, and mutation badges.
  *
  * @param {{ className?: string }} [props] - Optional list class override.
  *

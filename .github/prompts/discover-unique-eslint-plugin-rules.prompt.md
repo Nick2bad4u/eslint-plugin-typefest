@@ -1,6 +1,6 @@
 ---
 name: discover-unique-eslint-plugin-rules
-description: "🤖🤖 Use this prompt to discover new ESLint rule ideas that fit the repository's niche and are not already covered by other major plugins, then implement the top candidates."
+description: "🤖🤖 Use this prompt to discover net-new ESLint rules that fit the repository's niche and then IMPLEMENT the best candidates in the repo. This prompt is not just for brainstorming; it must end in real rule implementation work."
 argument-hint: Provide any rule themes, ecosystems, or rule families to target first, if applicable. Optionally specify number of rules to implement.
 ---
 
@@ -8,7 +8,23 @@ argument-hint: Provide any rule themes, ecosystems, or rule families to target f
 
 Research and identify rule ideas that are relevant to this repository's domain and goals but are not already well-covered by other major ESLint plugins.
 
-We want to have rules that are useful, high quality, and arent duplicating any other plugins (unless it has benefit)
+We want rules that are useful, high quality, and not pointless duplicates of other plugins unless there is a compelling repository-specific benefit.
+
+## Critical requirement: always implement, do not stop at ideation
+
+This prompt is for **research + implementation**, not for research-only brainstorming.
+
+You must always:
+
+1. research the gap space
+2. choose the strongest candidate rules
+3. implement the selected rules in the repository
+4. add tests, docs, metadata, and preset wiring
+5. validate the result
+
+Do **not** stop after listing ideas unless the user explicitly tells you to do research only.
+
+If you identify 10 ideas but only 2 are strong enough to build right now, implement those 2. Do not end with a mere suggestion list.
 
 Make sure to check the presets and adjust them for the new rules.
 
@@ -34,5 +50,20 @@ Repeat the following until you exhaust the high-value search space:
    - likely preset placement
    - implementation complexity and risk
 5. Keep iterating until the remaining ideas are low-value, redundant, or too speculative.
-6. Implement all the candidates that you feel would be a good fit for the repository, starting with the highest priority ones. For each implemented rule, add comprehensive tests, documentation, and metadata.
-7. After implementation, run all validation commands and ensure the new rules integrate well with the existing codebase and presets without causing issues. Make any necessary adjustments based on test results or feedback.
+6. Select the strongest candidates that are actually worth shipping now.
+7. Implement those selected candidates in the repository. For each implemented rule, add comprehensive tests, documentation, metadata, and preset integration.
+8. After implementation, run all validation commands and ensure the new rules integrate well with the existing codebase and presets without causing issues. Make any necessary adjustments based on test results or feedback.
+
+## Output expectations
+
+When using this prompt, the final result should be code changes in the repository, not just a recommendation memo.
+
+Your final deliverable should normally include:
+
+- new or updated rule source files
+- tests for each implemented rule
+- docs for each implemented rule
+- plugin/preset/catalog wiring updates
+- validation results
+
+Only leave implementation undone if the user explicitly narrowed the task to discovery-only research.
