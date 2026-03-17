@@ -16,6 +16,10 @@ export interface ReadmeRuleModule {
         | undefined;
 }
 
+export function extractReadmeRulesSection(markdown: string): string;
+
+export function normalizeRulesSectionMarkdown(markdown: string): string;
+
 export function generateReadmeRulesSectionFromRules(
     rules: Readonly<Record<string, ReadmeRuleModule>>
 ): string;

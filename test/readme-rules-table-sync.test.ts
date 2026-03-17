@@ -76,10 +76,12 @@ const normalizeMarkdownTableSpacing = (markdown: string): string =>
                 ? `| ${cells.join(" | ")} |`
                 : trimmedLine;
         })
-        .join("\n");
+        .join("\n")
+        .trimEnd();
 
 /**
- * Extract the README rules section body beginning at `## Rules`.
+ * Extract the README rules section body beginning at `## Rules` without
+ * including the blank separator line before the next heading.
  *
  * @param markdown - Full README markdown source.
  *
@@ -98,7 +100,7 @@ const extractRulesSection = (markdown: string): string => {
     );
 
     const sectionEndOffset =
-        nextHeadingOffset === -1 ? markdown.length : nextHeadingOffset + 1;
+        nextHeadingOffset === -1 ? markdown.length : nextHeadingOffset;
 
     return markdown.slice(headingOffset, sectionEndOffset);
 };

@@ -40,6 +40,45 @@ const PRESET_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/presets";
 
 /**
+ * Locate the rules section bounds within README markdown.
+ *
+ * @param {string} markdown
+ *
+ * @returns {Readonly<{ endOffset: number; startOffset: number }>}
+ */
+const getReadmeRulesSectionBounds = (markdown) => {
+    const startOffset = markdown.indexOf(rulesSectionHeading);
+
+    if (startOffset < 0) {
+        throw new Error("README.md is missing the '## Rules' section heading.");
+    }
+
+    const nextHeadingOffset = markdown.indexOf(
+        "\n## ",
+        startOffset + rulesSectionHeading.length
+    );
+
+    return {
+        endOffset: nextHeadingOffset < 0 ? markdown.length : nextHeadingOffset,
+        startOffset,
+    };
+};
+
+/**
+ * Extract the README rules section without including the blank separator line
+ * that belongs to the following section.
+ *
+ * @param {string} markdown
+ *
+ * @returns {string}
+ */
+export const extractReadmeRulesSection = (markdown) => {
+    const { endOffset, startOffset } = getReadmeRulesSectionBounds(markdown);
+
+    return markdown.slice(startOffset, endOffset);
+};
+
+/**
  * Normalize markdown table row spacing so formatter-aligned columns compare
  * equivalently to compact generated rows.
  *
@@ -47,7 +86,7 @@ const PRESET_DOCS_URL_BASE =
  *
  * @returns {string}
  */
-const normalizeRulesSectionMarkdown = (markdown) =>
+export const normalizeRulesSectionMarkdown = (markdown) =>
     markdown
         .replace(/\r\n/gv, "\n")
         .split("\n")
@@ -88,7 +127,8 @@ const normalizeRulesSectionMarkdown = (markdown) =>
 
             return `| ${cells.join(" | ")} |`;
         })
-        .join("\n");
+        .join("\n")
+        .trimEnd();
 
 /** @type {Readonly<Record<PresetName, string>>} */
 const presetDocsSlugByName = {
@@ -298,31 +338,15 @@ export const syncReadmeRulesTable = async ({ writeChanges }) => {
     const readmePath = resolve(workspaceRoot, "README.md");
     const readmeText = await readFile(readmePath, "utf8");
 
-    const rulesHeadingOffset = readmeText.indexOf(rulesSectionHeading);
-
-    if (rulesHeadingOffset < 0) {
-        throw new Error("README.md is missing the '## Rules' section heading.");
-    }
-
-    const nextHeadingOffset = readmeText.indexOf(
-        "\n## ",
-        rulesHeadingOffset + rulesSectionHeading.length
-    );
-
-    const sectionEndOffset =
-        nextHeadingOffset < 0 ? readmeText.length : nextHeadingOffset + 1;
-
-    const readmePrefix = readmeText.slice(0, rulesHeadingOffset).trimEnd();
-    const readmeSuffix = readmeText.slice(sectionEndOffset);
+    const { endOffset, startOffset } = getReadmeRulesSectionBounds(readmeText);
+    const readmePrefix = readmeText.slice(0, startOffset).trimEnd();
+    const readmeSuffix = readmeText.slice(endOffset);
 
     const generatedRulesSection = generateReadmeRulesSectionFromRules(
         /** @type {ReadmeRulesMap} */ (builtPlugin.rules)
     );
 
-    const existingRulesSection = readmeText.slice(
-        rulesHeadingOffset,
-        sectionEndOffset
-    );
+    const existingRulesSection = extractReadmeRulesSection(readmeText);
 
     if (
         normalizeRulesSectionMarkdown(existingRulesSection) ===
@@ -377,7 +401,7 @@ const runCli = async () => {
 };
 
 if (
-    process.argv[1] &&
+    typeof process.argv[1] === "string" &&
     import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
     await runCli();
