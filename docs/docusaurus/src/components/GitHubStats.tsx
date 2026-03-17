@@ -2,6 +2,16 @@ import Link from "@docusaurus/Link";
 
 import styles from "../pages/index.module.css";
 
+type GitHubStatsProps = {
+    readonly className?: string;
+};
+
+type LiveBadge = {
+    readonly alt: string;
+    readonly href: string;
+    readonly src: string;
+};
+
 const liveBadges = [
     {
         alt: "npm license",
@@ -38,16 +48,16 @@ const liveBadges = [
         href: "https://dashboard.stryker-mutator.io/reports/github.com/Nick2bad4u/eslint-plugin-typefest/main",
         src: "https://img.shields.io/endpoint?style=flat-square&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FNick2bad4u%2Feslint-plugin-typefest%2Fmain",
     },
-];
+] as const satisfies readonly LiveBadge[];
 
 /**
  * Renders live repository, package, and mutation badges.
  *
- * @param {{ className?: string }} [props] - Optional list class override.
+ * @param props - Optional list class override.
  *
- * @returns {JSX.Element} Badge strip with links to package/repository metadata.
+ * @returns Badge strip with links to package/repository metadata.
  */
-export default function GitHubStats({ className = "" } = {}) {
+export default function GitHubStats({ className = "" }: GitHubStatsProps) {
     const badgeListClassName = [styles.liveBadgeList, className]
         .filter(Boolean)
         .join(" ");

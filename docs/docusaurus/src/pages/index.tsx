@@ -6,10 +6,26 @@ import GitHubStats from "../components/GitHubStats";
 
 import styles from "./index.module.css";
 
+type HeroBadge = {
+    readonly description: string;
+    readonly icon: string;
+    readonly label: string;
+};
+
+type HeroStat = {
+    readonly description: string;
+    readonly headline: string;
+};
+
+type HomeCard = {
+    readonly description: string;
+    readonly icon: string;
+    readonly title: string;
+    readonly to: string;
+};
+
 /**
  * Hero badges Note: These icons are from the "Nerd Font Symbols" font.
- *
- * @type {{ label: string; description: string; icon: string }[]}
  *
  * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
  */
@@ -29,12 +45,10 @@ const heroBadges = [
         icon: "\uf0ad",
         label: "Actionable rule docs",
     },
-];
+] as const satisfies readonly HeroBadge[];
 
 /**
  * Hero stats Note: These icons are from the "Nerd Font Symbols" font.
- *
- * @type {{ headline: string; description: string }[]}
  *
  * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
  */
@@ -51,12 +65,10 @@ const heroStats = [
         description: "Safe rewrites where semantics are preserved.",
         headline: "\udb80\udc68 DX-first Autofix & Suggestions",
     },
-];
+] as const satisfies readonly HeroStat[];
 
 /**
  * Button icons Note: These icons are from the "Nerd Font Symbols" font.
- *
- * @type {string}
  *
  * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
  */
@@ -70,13 +82,6 @@ const heroKickerIcon2 = "\uf135";
  * which is included in the site styles. If you change these icons, make sure to
  * choose ones that exist in that font or adjust the font-family in the CSS
  * accordingly.
- *
- * @type {{
- *     icon: string;
- *     title: string;
- *     description: string;
- *     to: string;
- * }[]}
  *
  * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
  */
@@ -102,7 +107,7 @@ const homeCards = [
             "Browse every rule with concrete incorrect/correct examples and migration guidance.",
         to: "/docs/rules",
     },
-];
+] as const satisfies readonly HomeCard[];
 
 export default function Home() {
     const logoSrc = useBaseUrl("/img/logo.svg");

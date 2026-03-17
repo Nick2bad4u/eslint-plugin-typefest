@@ -6,6 +6,7 @@
  * are easier to scan.
  */
 const JSDOC_TAG_PATTERN = /(^\s*\*?\s*)@[a-z][\w-]*/im;
+const COMMENT_TOKEN_NAMES = ["comment", "doc-comment"];
 
 /**
  * @param {import("prismjs").GrammarToken | undefined} commentToken
@@ -35,24 +36,37 @@ const addJsDocTagToken = (commentToken) => {
 };
 
 /**
- * @param {import("prismjs").Grammar} grammar
+ * @param {import("prismjs").GrammarToken
+ *     | readonly import("prismjs").GrammarToken[]
+ *     | undefined} grammarToken
  */
-const addTagsToGrammarComments = (grammar) => {
-    if (!("comment" in grammar)) {
+const addTagsToGrammarToken = (grammarToken) => {
+    if (grammarToken === undefined) {
         return;
     }
 
-    const { comment } = grammar;
-
-    if (Array.isArray(comment)) {
-        for (const commentToken of comment) {
+    if (Array.isArray(grammarToken)) {
+        for (const commentToken of grammarToken) {
             addJsDocTagToken(commentToken);
         }
 
         return;
     }
 
-    addJsDocTagToken(comment);
+    addJsDocTagToken(grammarToken);
+};
+
+/**
+ * @param {import("prismjs").Grammar} grammar
+ */
+const addTagsToGrammarComments = (grammar) => {
+    for (const commentTokenName of COMMENT_TOKEN_NAMES) {
+        if (!(commentTokenName in grammar)) {
+            continue;
+        }
+
+        addTagsToGrammarToken(grammar[commentTokenName]);
+    }
 };
 
 module.exports = function prismIncludeLanguages(PrismObject) {

@@ -20,6 +20,9 @@ declare global {
 /** Delay before re-initializing effects after client-side route transitions. */
 const ROUTE_REFRESH_DELAY_MS = 100;
 
+/** Delay used to let initial React hydration finish before mutating the DOM. */
+const INITIAL_HYDRATION_DELAY_MS = 0;
+
 /** Supported TypeDoc runtime item prefixes rendered in sidebar labels. */
 const runtimeSidebarKindPrefixes = [
     "Accessor:",
@@ -453,24 +456,48 @@ function initializeEnhancements(): CleanupFunction {
     const cleanupRef: CleanupRef = {
         current: null,
     };
+    let initialSetupFrame: null | number = null;
+    let initialSetupTimer: null | ReturnType<typeof setTimeout> = null;
 
     const setupEnhancements = (): void => {
         cleanupRef.current?.();
         cleanupRef.current = initializeAdvancedFeatures();
     };
 
-    const handleDOMContentLoaded = (): void => {
-        setupEnhancements();
-        document.removeEventListener(
-            "DOMContentLoaded",
-            handleDOMContentLoaded
-        );
+    const cancelInitialSetup = (): void => {
+        if (initialSetupFrame !== null) {
+            window.cancelAnimationFrame(initialSetupFrame);
+            initialSetupFrame = null;
+        }
+
+        if (initialSetupTimer !== null) {
+            clearTimeout(initialSetupTimer);
+            initialSetupTimer = null;
+        }
     };
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+    const scheduleInitialSetup = (): void => {
+        cancelInitialSetup();
+
+        initialSetupFrame = window.requestAnimationFrame(() => {
+            initialSetupFrame = null;
+
+            initialSetupTimer = setTimeout(() => {
+                initialSetupTimer = null;
+                setupEnhancements();
+            }, INITIAL_HYDRATION_DELAY_MS);
+        });
+    };
+
+    const handleWindowLoad = (): void => {
+        window.removeEventListener("load", handleWindowLoad);
+        scheduleInitialSetup();
+    };
+
+    if (document.readyState === "complete") {
+        scheduleInitialSetup();
     } else {
-        setupEnhancements();
+        window.addEventListener("load", handleWindowLoad, { once: true });
     }
 
     let routeChangeTimer: null | ReturnType<typeof setTimeout> = null;
@@ -496,6 +523,8 @@ function initializeEnhancements(): CleanupFunction {
     observer.observe(document.body, { childList: true, subtree: true });
 
     const handleBeforeUnload = (): void => {
+        window.removeEventListener("load", handleWindowLoad);
+        cancelInitialSetup();
         cleanupRef.current?.();
 
         if (routeChangeTimer) {

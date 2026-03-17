@@ -27,6 +27,7 @@
         ".remarkrc.mjs",
         "benchmarks/**/*.mjs",
         "benchmarks/**/*.ts",
+        "docs/**/*.d.ts",
         "docs/**/*.mjs",
         "docs/**/*.mts",
         "docs/**/*.ts",
