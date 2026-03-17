@@ -7,7 +7,7 @@ import type { TSESTree } from "@typescript-eslint/utils";
 import parser from "@typescript-eslint/parser";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { getPluginRule } from "./_internal/ruleTester";
@@ -82,9 +82,7 @@ const inlineFixableOutput = [
     "const merged = arrayConcat(sample, [4]);",
 ].join("\n");
 
-beforeAll(() => {
-    warmTypedParserServices(typedFixturePath(validFixtureName));
-}, 30_000);
+warmTypedParserServices(typedFixturePath(validFixtureName));
 
 type ArrayConcatReportDescriptor = Readonly<{
     fix?: unknown;
@@ -308,67 +306,69 @@ describe("prefer-ts-extras-array-concat source assertions", () => {
     });
 });
 
-ruleTester.run(
-    "prefer-ts-extras-array-concat",
-    getPluginRule("prefer-ts-extras-array-concat"),
-    {
-        invalid: [
-            {
-                code: readTypedFixture(invalidFixtureName),
-                errors: [
-                    {
-                        messageId: "preferTsExtrasArrayConcat",
-                    },
-                    {
-                        messageId: "preferTsExtrasArrayConcat",
-                    },
-                ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture array.concat usage",
-            },
-            {
-                code: unionArrayInvalidCode,
-                errors: [{ messageId: "preferTsExtrasArrayConcat" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports union of mutable and readonly arrays",
-                output: unionArrayInvalidOutput,
-            },
-            {
-                code: unionWithCustomValidCode,
-                errors: [{ messageId: "preferTsExtrasArrayConcat" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports union including custom concat receiver",
-                output: unionWithCustomOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasArrayConcat" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes array.concat() when arrayConcat import is in scope",
-                output: inlineFixableOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: computedAccessValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores computed concat member access",
-            },
-            {
-                code: nonArrayReceiverValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores custom non-array concat method",
-            },
-            {
-                code: wrongPropertyValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-concat array method call",
-            },
-        ],
-    }
-);
+describe("prefer-ts-extras-array-concat rule tester", () => {
+    ruleTester.run(
+        "prefer-ts-extras-array-concat",
+        getPluginRule("prefer-ts-extras-array-concat"),
+        {
+            invalid: [
+                {
+                    code: readTypedFixture(invalidFixtureName),
+                    errors: [
+                        {
+                            messageId: "preferTsExtrasArrayConcat",
+                        },
+                        {
+                            messageId: "preferTsExtrasArrayConcat",
+                        },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports fixture array.concat usage",
+                },
+                {
+                    code: unionArrayInvalidCode,
+                    errors: [{ messageId: "preferTsExtrasArrayConcat" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports union of mutable and readonly arrays",
+                    output: unionArrayInvalidOutput,
+                },
+                {
+                    code: unionWithCustomValidCode,
+                    errors: [{ messageId: "preferTsExtrasArrayConcat" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports union including custom concat receiver",
+                    output: unionWithCustomOutput,
+                },
+                {
+                    code: inlineFixableCode,
+                    errors: [{ messageId: "preferTsExtrasArrayConcat" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "autofixes array.concat() when arrayConcat import is in scope",
+                    output: inlineFixableOutput,
+                },
+            ],
+            valid: [
+                {
+                    code: readTypedFixture(validFixtureName),
+                    filename: typedFixturePath(validFixtureName),
+                    name: "accepts fixture-safe patterns",
+                },
+                {
+                    code: computedAccessValidCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores computed concat member access",
+                },
+                {
+                    code: nonArrayReceiverValidCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores custom non-array concat method",
+                },
+                {
+                    code: wrongPropertyValidCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores non-concat array method call",
+                },
+            ],
+        }
+    );
+});
