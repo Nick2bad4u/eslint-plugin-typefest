@@ -34,5 +34,5 @@ Repeat the following until you exhaust the high-value search space:
    - likely preset placement
    - implementation complexity and risk
 5. Keep iterating until the remaining ideas are low-value, redundant, or too speculative.
-6. Implement all the canidates that you feel would be a good fit for the repository, starting with the highest priority ones. For each implemented rule, add comprehensive tests, documentation, and metadata.
+6. Implement all the candidates that you feel would be a good fit for the repository, starting with the highest priority ones. For each implemented rule, add comprehensive tests, documentation, and metadata.
 7. After implementation, run all validation commands and ensure the new rules integrate well with the existing codebase and presets without causing issues. Make any necessary adjustments based on test results or feedback.
