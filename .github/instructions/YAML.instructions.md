@@ -61,4 +61,4 @@ These aren't hard rules, but rather recommendations to improve consistency, read
 -   **PREFER** centralizing YAML validation in the repository tooling (ESLint for YAML files and actionlint for GitHub workflows) and writing new files to comply with those checks.
 -   **CONSIDER** adding comments for non-obvious values (e.g., timeouts, risk thresholds, feature flags).
 -   **DON'T** rely on tool-specific quirks that contradict standard YAML; prefer portable patterns that work across parsers and CI environments.
--   **Tooling alignment**: Run `npm run lint:yaml` for YAML validation, and run `npm run lint:actions` as well when editing GitHub workflow files.
+-   **Tooling alignment**: Run the repository's YAML validation and workflow-lint commands when they exist. In many repos that means a YAML lint script plus a GitHub Actions-specific check such as actionlint, but always use the real local script names.

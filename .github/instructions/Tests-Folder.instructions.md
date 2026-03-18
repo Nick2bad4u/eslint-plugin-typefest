@@ -23,17 +23,17 @@ applyTo: "test/**"
 
 - **Runner:** Vitest (compatible with standard Jest-like APIs).
 - **RuleTester:** ALWAYS use `RuleTester` from `@typescript-eslint/rule-tester`.
-- **Repository Helpers (Required):**
-  - For typed rule tests, use `createTypedRuleTester()` from `test/_internal/typed-rule-tester`.
-  - For parser-agnostic tests, use `createRuleTester()` from `test/_internal/ruleTester`.
-  - Resolve plugin rules through `getPluginRule("<rule-id>")` from `test/_internal/ruleTester`.
+- **Repository Helpers:**
+  - If the repository provides shared helpers for typed rule tests, use them instead of duplicating parser and RuleTester setup in every file.
+  - If the repository provides a helper to resolve rules through the public plugin entrypoint, prefer that over importing individual rule modules directly in rule test files.
+  - The current template often uses helpers such as `createTypedRuleTester()`, `createRuleTester()`, and `getPluginRule("<rule-id>")` under `test/_internal/`; adapt those names and paths to whatever the copied repository actually contains.
 - **Parser Services:**
   - Do **not** hand-roll parser configuration in each test file.
-  - The helper already configures `@typescript-eslint/parser` and `projectService` with `tsconfig.eslint.json`.
+  - Centralize `@typescript-eslint/parser` and typed `projectService` configuration in shared helpers, using the repository's ESLint tsconfig or equivalent typed-lint config.
 - **Fixtures:**
-  - Use `test/fixtures/typed/` for typed rule fixtures.
-  - Use `readTypedFixture()` and `typedFixturePath()` from `test/_internal/typed-rule-tester`.
-  - Keep fixture naming consistent: `<rule-id>.valid.ts`, `<rule-id>.invalid.ts`, and optional `<rule-id>.namespace.valid.ts` / `tests/<rule-id>.skip.ts`.
+  - Use a shared typed-fixture location (commonly `test/fixtures/typed/`) for typed rule fixtures.
+  - If the repository exposes helpers such as `readTypedFixture()` and `typedFixturePath()`, use them; otherwise create equivalent helpers rather than repeating file-resolution logic inline.
+  - Keep fixture naming consistent: `<rule-id>.valid.ts`, `<rule-id>.invalid.ts`, and optional repo-specific variants when needed.
   - Do not mock the parser services unless absolutely necessary; prefer real parsing for accuracy.
 
   </setup>
@@ -43,7 +43,7 @@ applyTo: "test/**"
 ## Writing Tests
 
 ### 1. Structure
-- Every rule test file must follow this pattern:
+- Every rule test file should follow a shared, repository-approved pattern. For example, if the repo exposes shared test helpers, structure tests like this:
   ```ts
   import { getPluginRule } from './_internal/ruleTester';
   import {
@@ -81,7 +81,7 @@ applyTo: "test/**"
 ### 3. Invalid Cases (`invalid`)
 - Include code that *must* trigger the rule.
 - **Errors:** Verify the exact `messageId` or error message structure.
-- **Path-aware typed tests:** Include `filename` via `typedFixturePath(...)` so type-aware behavior mirrors real file resolution.
+- **Path-aware typed tests:** Include a realistic `filename` through the repository helper you use so type-aware behavior mirrors real file resolution.
 - **Output (Autofix):**
   - If the rule has a fixer, you MUST provide an `output` string.
   - The `output` must be valid TypeScript code.
@@ -105,7 +105,7 @@ applyTo: "test/**"
 - **Multiline Code:** Use template literals (backticks) for code readability.
   - Avoid excessive indentation in the template literal; use `.trim()` or a utility helper if needed to normalize whitespace.
 - **Comments:** Put a comment above complex test cases explaining *what* specific edge case is being tested (e.g., `// Should ignore generic constraints`).
-- **Plugin Wiring:** Keep tests coupled to public plugin wiring by using `getPluginRule(...)` instead of importing rule modules directly in rule test files.
+- **Plugin Wiring:** Keep tests coupled to public plugin wiring by using the repository's shared rule-resolution helper when available instead of importing rule modules directly in rule test files.
 - **Performance:**
   - `RuleTester` runs strictly. If a test hangs, check for infinite loops in the rule's traversal or fixer.
 - **Snapshot Testing:**

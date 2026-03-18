@@ -9,8 +9,8 @@ applyTo: "docs/**"
 
 ## Your Goal for ESLint Rule Documentation
 
-- Your goal is to make every ESLint rule documentation file (`docs/rules/<rule-id>.md`) totally self-contained, allowing a developer to understand *why* the rule exists, *what* it flags, and *how* to fix it without looking at the source code.
-- For adjacent docs in `docs/rules/` such as guides, preset pages, `overview.md`, or `getting-started.md`, keep the same tone and accuracy standards, but do not force rule-only sections where they do not fit.
+- Your goal is to make every ESLint rule documentation file (commonly `docs/rules/<rule-id>.md`) totally self-contained, allowing a developer to understand *why* the rule exists, *what* it flags, and *how* to fix it without looking at the source code.
+- For adjacent rule-docs pages such as guides, preset pages, `overview.md`, or `getting-started.md`, keep the same tone and accuracy standards, but do not force rule-only sections where they do not fit.
 - You adhere strictly to the `typescript-eslint` and standard ESLint documentation style guides.
 
   </goal>
@@ -19,9 +19,9 @@ applyTo: "docs/**"
 
 ## Documentation Structure
 
-Rule documentation files in `docs/rules/<rule-id>.md` should follow this structure closely:
+Rule documentation files in the repository's rule-docs location (commonly `docs/rules/<rule-id>.md`) should follow this structure closely:
 
-1.  **Title:** The bare rule ID as the H1 header (e.g., `# prefer-type-fest-arrayable`).
+1.  **Title:** The bare rule ID as the H1 header (e.g., `# no-unsafe-push`).
 2.  **Description:** A short, one-sentence description of what the rule does.
 3.  **Meta Badges (Optional):** Badges for `Recommended`, `Fixable`, or `Type Checked` only if the repository’s current docs pattern uses them.
 4.  **Rule Details:** An explanation of the problem the rule solves. Why is this pattern bad?
@@ -63,7 +63,7 @@ Rule documentation files in `docs/rules/<rule-id>.md` should follow this structu
 - **The "Fix":** If the rule is `fixable`, explicitly state what the auto-fixer does (e.g., "The auto-fixer will replace `var` with `let`.").
 - **Type Information:** If the rule requires type information (`parserServices`), add a specific note at the top of the docs:
   > ⚠️ This rule requires type information to run. It will not work without `projectService` (or equivalent typed parser setup) configured.
-- **Preset awareness:** Repository presets such as `typefest.configs["recommended-type-checked"]`, `typefest.configs.strict`, and `typefest.configs.all` already wire the typed parser setup for you; do not imply that users must always configure it manually.
+- **Preset awareness:** If the repository already exposes presets/configs that wire typed parser setup for users, mention that clearly instead of implying that every consumer must configure typed linting by hand.
 - **Consistency:** Ensure the examples actually trigger the rule. Do not use hypothetical examples that strictly wouldn't fail the specific AST selector of the rule.
 
   </guidelines>
@@ -73,114 +73,127 @@ Rule documentation files in `docs/rules/<rule-id>.md` should follow this structu
 ## Example Doc
 
 ```markdown
-# prefer-ts-extras-array-find-last-index
+# no-unsafe-push
 
-Prefer [`arrayFindLastIndex`](https://github.com/sindresorhus/ts-extras/blob/main/source/array-find-last-index.ts) from `ts-extras` over `array.findLastIndex(...)`.
+Disallow pushing values into arrays when the value type is not safely compatible with the array element type.
 
-`arrayFindLastIndex(...)` improves predicate inference in typed arrays.
+This rule helps preserve type safety in mutation-heavy code paths.
 
 ## Targeted pattern scope
 
-This rule focuses on direct `array.findLastIndex(predicate)` calls that can be migrated to `arrayFindLastIndex(array, predicate)` with deterministic fixes.
+This rule focuses on `.push(...)` calls where the argument type is wider, unknown, or otherwise incompatible with the destination array's element type.
 
-- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
+- `items.push(value)` when `value` is not safely assignable to the array element type.
 
-Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `arrayFindLastIndex(array, predicate)` migrations safe.
+Indirect wrapper helpers and cases without enough information to prove the push is unsafe can be excluded to keep reporting accurate.
 
 ## What this rule reports
 
-This rule reports `array.findLastIndex(predicate)` call sites when `arrayFindLastIndex(array, predicate)` is the intended replacement.
+This rule reports `.push(...)` call sites when the pushed value may violate the declared array element type.
 
-- `array.findLastIndex(predicate)` call sites that can use `arrayFindLastIndex(array, predicate)`.
+- `.push(...)` calls with values that are not safely compatible with the target array.
 
 ## Why this rule exists
 
-`arrayFindLastIndex` standardizes reverse index lookup and keeps call signatures aligned with other `ts-extras` search helpers.
+Unsafe pushes weaken the guarantees that typed arrays are supposed to provide.
 
-- Reverse index scans are explicit at the call site.
-- Search code avoids mixed native/helper patterns.
-- Index-based follow-up logic stays uniform across modules.
+- Invalid values can spread through later reads and force additional runtime checks.
+- The bug often appears far away from the original mutation site.
+- Consistent reporting makes unsafe mutations easier to eliminate across a codebase.
 
 ## ❌ Incorrect
 
 ```ts
-const index = monitors.findLastIndex((entry) => entry.id === targetId);
+const ids: string[] = [];
+const input: unknown = 123;
+
+ids.push(input);
 ```
 
 ## ✅ Correct
 
 ```ts
-const index = arrayFindLastIndex(monitors, (entry) => entry.id === targetId);
+const ids: string[] = [];
+const input = "user-123";
+
+ids.push(input);
 ```
 
 ## Behavior and migration notes
 
-- Runtime behavior matches native `Array.prototype.findLastIndex`.
-- Search still proceeds from right to left.
-- If no element matches, the result is `-1`.
+- Prefer validating or narrowing unknown values before mutating typed collections.
+- Safe local conversions are usually easier to review than broad type assertions.
+- If the rule provides a fixer or suggestion, explain the exact transformation and any safety limitations.
 
 ## Additional examples
 
 ### ❌ Incorrect — Additional example
 
 ```ts
-const index = logs.findLastIndex((entry) => entry.level === "warn");
+const flags: boolean[] = [];
+const value: string | boolean = Math.random() > 0.5 ? true : "yes";
+
+flags.push(value);
 ```
 
 ### ✅ Correct — Additional example
 
 ```ts
-const index = arrayFindLastIndex(logs, (entry) => entry.level === "warn");
+const flags: boolean[] = [];
+const value: string | boolean = Math.random() > 0.5 ? true : "yes";
+
+if (typeof value === "boolean") {
+  flags.push(value);
+}
 ```
 
 ### ✅ Correct — Repository-wide usage
 
 ```ts
-const retryIndex = arrayFindLastIndex(attempts, (attempt) => !attempt.success);
+const names: string[] = [];
+const candidate: unknown = getCandidateName();
+
+if (typeof candidate === "string") {
+  names.push(candidate);
+}
 ```
 
 ## ESLint flat config example
 
 ```ts
-import typefest from "eslint-plugin-typefest";
+import examplePlugin from "eslint-plugin-example";
 
 export default [
     {
-        plugins: { typefest },
+        plugins: { example: examplePlugin },
         rules: {
-            "typefest/prefer-ts-extras-array-find-last-index": "error",
+          "example/no-unsafe-push": "error",
         },
     },
 ];
 ```
 
+> Replace `eslint-plugin-example`, `example`, and `no-unsafe-push` with the actual package name, namespace, and rule ID used in the target repository.
+
 ## When not to use it
 
-Disable this rule if your codebase has standardized on native `.findLastIndex()`.
+Disable this rule if the project intentionally accepts looser array mutation patterns and the added strictness is not worth the migration cost.
 
 ## Package documentation
 
-ts-extras package documentation:
-
-`ts-extras@0.17.x` does not currently expose `arrayFindLastIndex` in its published API, so there is no canonical `source/*.ts` link for this helper yet.
-
-Reference links:
-
-- [`ts-extras` API list (README)](https://github.com/sindresorhus/ts-extras/blob/main/readme.md#api)
-- [`ts-extras` source directory](https://github.com/sindresorhus/ts-extras/tree/main/source)
+Link to the real package, language, or platform documentation that explains the behavior your rule enforces. Avoid copying template-specific dependency links into unrelated plugins.
 
 > **Rule catalog ID:** R005
 
 ## Further reading
 
-- [`ts-extras` README](https://github.com/sindresorhus/ts-extras)
-- [`ts-extras` package reference](https://www.npmjs.com/package/ts-extras)
+- [TypeScript Handbook: Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)
 - [TypeScript Handbook: Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
 
 ## Adoption resources
 
-- [Rule adoption checklist](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/guides/adoption-checklist)
-- [Rollout and fix safety](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/guides/rollout-and-fix-safety)
+- Link to repository-local adoption or rollout guides when they exist.
+- Prefer relative documentation links over hard-coded production URLs when linking within the same repository.
 
 ```
 

@@ -24,4 +24,4 @@ Follow these guidelines for formatting and structuring your markdown content:
 -   **Images**: Use `![alt text](https://example.com/picture.png)` for images. Include a brief description of the image in the alt text.
 -   **Tables**: Use `|` to create tables. Ensure that columns are properly aligned and headers are included.
 -   **Whitespace**: Use blank lines to separate sections and improve readability. Avoid excessive whitespace.
--   **Tooling alignment**: The repository enforces Markdown style via Remark (`.remarkrc.mjs`). Run `npm run lint:remark` for Markdown linting, `npm run remark:fix` for content rewrites, and `npm run docs:check-links` when link integrity for the docs set matters.
+-   **Tooling alignment**: Use the repository's actual Markdown tooling (for example Remark, markdownlint, or docs link-check commands if present). Run the local Markdown lint, fix, and link-check scripts that exist instead of assuming template-specific script names.

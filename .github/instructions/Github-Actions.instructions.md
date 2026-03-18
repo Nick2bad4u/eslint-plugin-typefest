@@ -8,11 +8,11 @@ applyTo: ".github/workflows/*.yml"
 
 ## Your Mission
 
-As GitHub Copilot, you are an expert in designing and optimizing CI/CD pipelines using GitHub Actions. Your mission is to assist developers in creating efficient, secure, and reliable automated workflows for building, testing, verifying, publishing npm packages, and deploying documentation for Node.js/TypeScript repositories such as `eslint-plugin-typefest`. You must prioritize best practices, ensure security, and provide actionable, detailed guidance.
+As GitHub Copilot, you are an expert in designing and optimizing CI/CD pipelines using GitHub Actions. Your mission is to assist developers in creating efficient, secure, and reliable automated workflows for building, testing, verifying, publishing npm packages, and deploying documentation for Node.js/TypeScript repositories, especially ESLint plugins and related tooling packages. You must prioritize best practices, ensure security, and provide actionable, detailed guidance.
 
 ## gh-fix-ci skill
 
--  There is a skill in the repo that allows you to automatically fix CI failures by analyzing logs and suggesting code changes. When you encounter a CI failure in a workflow, use the `gh-fix-ci` skill to:
+-  If the repository includes a `gh-fix-ci` skill, use it when you encounter a CI failure in a workflow to:
     -   Analyze the failure logs and identify the root cause.
     -   Generate a detailed explanation of the issue and how to fix it.
     -   Propose specific code changes to the workflow or related files to resolve the issue.
@@ -44,7 +44,7 @@ As GitHub Copilot, you are an expert in designing and optimizing CI/CD pipelines
     -   **`if` Conditions:** Leverage `if` conditions extensively for conditional execution based on branch names, commit messages, event types, or previous job status (`if: success()`, `if: failure()`, `if: always()`).
     -   **Job Grouping:** Consider breaking large workflows into smaller, more focused jobs that run in parallel or sequence.
 -   **Guidance for Copilot:**
-    -   Define `jobs` with clear `name` and appropriate `runs-on` (e.g., `ubuntu-latest`, `windows-latest`, `self-hosted`). For this repository, prefer jobs like `build`, `typecheck`, `test`, `eslint9-compat`, `docs`, and `publish` over app-style staging/production pipelines.
+    -   Define `jobs` with clear `name` and appropriate `runs-on` (e.g., `ubuntu-latest`, `windows-latest`, `self-hosted`). For ESLint plugin repositories, prefer package-oriented jobs such as `build`, `typecheck`, `test`, `compat`, `docs`, and `publish` over app-style staging/production pipelines unless the repo truly deploys an application.
     -   Use `needs` to define dependencies between jobs, ensuring sequential execution and logical flow.
     -   Employ `outputs` to pass data between jobs efficiently, promoting modularity.
     -   Utilize `if` conditions for conditional job execution (e.g., deploy only on `main` branch pushes, run E2E tests only for certain PRs, skip jobs based on file changes).
@@ -65,8 +65,8 @@ jobs:
                   node-version-file: .node-version
                   cache: npm
                   cache-dependency-path: package-lock.json
-            - name: Install dependencies
-              run: |
+      - name: Install dependencies
+        run: npm ci --force
                   npm ci --force
             - name: Verify package
               run: npm run release:check
@@ -105,7 +105,7 @@ jobs:
 
 -   **Principle:** Steps should be atomic, well-defined, and actions should be versioned for stability and security.
 -   **Deeper Dive:**
-    -   **`uses`:** Referencing marketplace actions (e.g., `actions/checkout@v6`, `actions/setup-node@v6`) or custom actions. In this repository, follow the existing convention of pinning third-party actions to a full commit SHA with the upstream version noted in a comment. Avoid pinning to `main` or `latest`.
+    -   **`uses`:** Referencing marketplace actions (e.g., `actions/checkout@v6`, `actions/setup-node@v6`) or custom actions. If the repository pins third-party actions to a full commit SHA with the upstream version noted in a comment, preserve that convention. Avoid pinning to `main` or `latest`.
     -   **`name`:** Essential for clear logging and debugging. Make step names descriptive.
     -   **`run`:** For executing shell commands. Use multi-line scripts for complex logic and combine commands to optimize layer caching in Docker (if building images).
     -   **`env`:** Define environment variables at the step or job level. Do not hardcode sensitive data here.
@@ -150,7 +150,7 @@ jobs:
 
 ### **2. OpenID Connect (OIDC) and npm Provenance**
 
--   **Principle:** Use OIDC-backed short-lived identity wherever supported. In this repository, the most relevant use is npm provenance during package publish (`id-token: write` + `npm publish --provenance`).
+-   **Principle:** Use OIDC-backed short-lived identity wherever supported. In package repositories, a common high-value use is npm provenance during package publish (`id-token: write` + `npm publish --provenance`).
 -   **Deeper Dive:**
     -   **Short-Lived Credentials:** OIDC exchanges a JWT token for temporary cloud credentials, significantly reducing the attack surface.
     -   **Trust Policies:** Requires configuring identity providers and trust policies in your cloud environment to trust GitHub's OIDC provider.
@@ -247,8 +247,8 @@ jobs:
     -   **Restore Keys:** Use `restore-keys` for fallbacks to older, compatible caches.
     -   **Cache Scope:** Understand that caches are scoped to the repository and branch.
 -   **Guidance for Copilot:**
-    -   In this npm repository, prefer `actions/setup-node` with `node-version-file: .node-version` and `cache: npm` before reaching for a custom `actions/cache` block.
-    -   Treat `.node-version` as the workflow source of truth and keep `.nvmrc` synchronized with the same exact version for local tooling compatibility.
+    -   In Node.js/npm repositories, prefer `actions/setup-node` with `cache: npm` and the repository's existing Node version source (`node-version-file` if the repo keeps one, or an explicit `node-version`) before reaching for a custom `actions/cache` block.
+    -   Keep local tooling version files (such as `.node-version` and `.nvmrc`) synchronized if the repository uses them.
     -   Design highly effective cache keys using `hashFiles` to ensure optimal cache hit rates.
     -   Advise on using `restore-keys` to gracefully fall back to previous caches.
 -   **Example (Repository-aligned npm caching):**
@@ -257,7 +257,7 @@ jobs:
 - name: Setup Node.js
   uses: actions/setup-node@v6
   with:
-    node-version-file: .node-version
+    node-version-file: .node-version # Use the repo's actual version file, or replace with node-version if needed.
     cache: npm
     cache-dependency-path: package-lock.json
 ```
@@ -274,7 +274,7 @@ jobs:
     -   Utilize `strategy.matrix` to test applications against different environments, programming language versions, or operating systems concurrently.
     -   Suggest `include` and `exclude` for specific matrix combinations to optimize test coverage without unnecessary runs.
     -   Advise on setting `fail-fast: true` (default) for quick feedback on critical failures, or `fail-fast: false` for comprehensive test reporting.
--   **Example (Repository-style compatibility matrix):**
+-   **Example (ESLint plugin compatibility matrix):**
 
 ```yaml
 jobs:
@@ -307,8 +307,8 @@ jobs:
       - name: Install ESLint
         run: npm install --no-save --force eslint@${{ matrix.eslint-version }} @eslint/js@${{ matrix.eslint-version }}
 
-      - name: Run compat lint
-        run: npm run lint:compat:eslint9 -- --expect-eslint-major=9
+      - name: Run compatibility check
+        run: npm run lint:compat -- --expect-eslint-major=9
 ```
 
 ### **3. Self-Hosted Runners**
