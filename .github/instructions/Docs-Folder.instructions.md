@@ -13,6 +13,20 @@ applyTo: "docs/**"
 - For adjacent rule-docs pages such as guides, preset pages, `overview.md`, or `getting-started.md`, keep the same tone and accuracy standards, but do not force rule-only sections where they do not fit.
 - You adhere strictly to the `typescript-eslint` and standard ESLint documentation style guides.
 
+## Documentation Quality Bar
+
+- Every rule doc should be **hand-written, specific, and high quality**.
+- Do **not** use a script or helper to stamp the same shallow prose into every rule doc.
+- Do **not** rely on runtime metadata injection to make docs look complete.
+- Shared guides, shared tables, or synced indexes are fine, but the actual rule page content must still be authored intentionally for that rule.
+- If two rules need different rationale, caveats, migration notes, or examples, the docs must say so explicitly instead of collapsing into boilerplate.
+
+## Static docs over generated filler
+
+- Rule docs should not depend on runtime helpers to inject core explanatory content.
+- Metadata can help validate, link, or classify docs, but it should not replace authoring.
+- Write the description, rationale, examples, options explanation, edge cases, and "when not to use it" section manually.
+
   </goal>
 
   <structure>
@@ -65,6 +79,9 @@ Rule documentation files in the repository's rule-docs location (commonly `docs/
   > ⚠️ This rule requires type information to run. It will not work without `projectService` (or equivalent typed parser setup) configured.
 - **Preset awareness:** If the repository already exposes presets/configs that wire typed parser setup for users, mention that clearly instead of implying that every consumer must configure typed linting by hand.
 - **Consistency:** Ensure the examples actually trigger the rule. Do not use hypothetical examples that strictly wouldn't fail the specific AST selector of the rule.
+- **No copy-paste filler:** Avoid reusing the same generic paragraph across many rule docs unless it is truly shared guidance that belongs in a separate guide page.
+- **No fake completeness:** A shorter but precise doc is better than a long page padded with repetitive or template-only text.
+- **Manual curation:** If the repo has scripts that sync rule tables, sidebars, preset matrices, or indexes, use those only for derived navigation/data. They are not a substitute for authoring the page itself.
 
   </guidelines>
 

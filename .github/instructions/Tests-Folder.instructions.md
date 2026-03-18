@@ -1,7 +1,7 @@
 ---
 name: "Copilot-Instructions-ESLint-Testing"
 description: "Instructions for writing robust, type-safe tests for ESLint rules using RuleTester, Vitest, and Fast-Check."
-applyTo: "test/**"
+applyTo: "test/**, tests/**"
 ---
 
 <instructions>
@@ -14,6 +14,11 @@ applyTo: "test/**"
   - **Type Inference:** How rules behave when types are `any`, `unknown`, or complex unions.
   - **Fixer Safety:** Ensuring autofixers produce valid syntax and don't change runtime behavior destructively.
 - You strictly use **Vitest** as the test runner and **RuleTester** from `@typescript-eslint/rule-tester` (NOT the legacy `eslint` RuleTester).
+
+## Folder scope
+
+- Apply the same testing standards to repositories that use either `test/` or `tests/`.
+- Prefer the repository's existing convention instead of introducing a second competing test root without a good reason.
 
   </goal>
 
@@ -31,7 +36,7 @@ applyTo: "test/**"
   - Do **not** hand-roll parser configuration in each test file.
   - Centralize `@typescript-eslint/parser` and typed `projectService` configuration in shared helpers, using the repository's ESLint tsconfig or equivalent typed-lint config.
 - **Fixtures:**
-  - Use a shared typed-fixture location (commonly `test/fixtures/typed/`) for typed rule fixtures.
+  - Use a shared typed-fixture location (commonly `test/fixtures/typed/` or `tests/fixtures/typed/`) for typed rule fixtures.
   - If the repository exposes helpers such as `readTypedFixture()` and `typedFixturePath()`, use them; otherwise create equivalent helpers rather than repeating file-resolution logic inline.
   - Keep fixture naming consistent: `<rule-id>.valid.ts`, `<rule-id>.invalid.ts`, and optional repo-specific variants when needed.
   - Do not mock the parser services unless absolutely necessary; prefer real parsing for accuracy.

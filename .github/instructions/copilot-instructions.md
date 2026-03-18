@@ -36,6 +36,68 @@ applyTo: "**"
 
   </architecture>
 
+  <toolchain>
+
+## Repository Tooling, Quality Gates, and Sync Contracts
+
+- Treat `package.json` scripts and root config files as the operational source of truth for repository workflows.
+- Before changing a config file, check whether there is already a matching script, sync task, or validation step for it.
+
+### Root configs and tool surfaces to respect
+
+- Lint and formatting often flow through files such as:
+  - `eslint.config.mjs`
+  - `tsconfig*.json`
+  - Prettier config
+  - Stylelint config
+  - Markdown/Remark config
+  - Knip / dependency-check config
+  - Vite / Vitest / Docusaurus / TypeDoc config
+- Do not delete and recreate mature config files casually; adapt them.
+
+### Package and publish validation
+
+- When changing package exports, entrypoints, public types, build output layout, or package metadata, verify the repository's package-validation flow too, not just lint/test.
+- In repositories like this template, that often includes:
+  - package-json sorting/linting
+  - `publint`
+  - `attw` / Are The Types Wrong?
+  - dry-run package packing
+
+### Docs and generated-sync workflows
+
+- If rule metadata, presets, README tables, sidebars, or docs indexes are derived by scripts, update the upstream source and rerun the sync scripts instead of hand-editing the generated output.
+- In repositories like this one, sync/validation flows may include:
+  - README rules-table sync
+  - presets matrix sync
+  - TypeDoc generation
+  - docs link checking
+  - docs site typecheck/build validation
+
+### Additional linters and repo-health checks
+
+- Beyond ESLint and TypeScript, many plugin repos also enforce:
+  - Remark / Markdown quality
+  - Stylelint
+  - YAML / workflow linting
+  - actionlint
+  - circular-dependency checks
+  - unused export / dependency analysis
+  - secret scanning
+- If your change touches one of those surfaces, think beyond only unit tests.
+
+### Contributor and maintenance metadata
+
+- If the repository uses all-contributors or similar generated contributor metadata, prefer the repo's contributor scripts over hand-editing generated sections.
+- If the repository syncs Node version files, peer dependency ranges, or release metadata with scripts, use those scripts instead of editing multiple mirrors by hand.
+
+### Build and generated folders
+
+- `dist/`, coverage outputs, docs build output, caches, and other generated folders are inspection targets, not source-of-truth editing targets.
+- Fix the source code or generator config instead of patching generated output.
+
+  </toolchain>
+
   <constraints>
 
 ## Thinking Mode
@@ -72,6 +134,7 @@ applyTo: "**"
 - **Modern ESLint Only:** Assume Flat Config using `eslint.config.mjs`. Do not generate legacy config patterns.
 - **Type-Checked Rules:** When a rule requires type information (e.g., "is this variable a string?"), explicitly use `getParserServices(context)` and the TypeScript Compiler API. Mark the rule as `requiresTypeChecking: true`.
 - **Utility Usage:** Before writing a helper function, check whether the standard library, existing repository helpers, or already-installed dependencies already provide it. Do not reinvent the wheel, and do not add or assume repo-specific helper dependencies without confirming they exist.
+- **Template-aware changes:** When changing rule metadata, docs, presets, package exports, or generated tables, check whether the repository already derives or validates those surfaces through sync scripts or runtime metadata helpers.
 - **Documentation:**
   - Every new rule must have a matching docs page in the repository's rule-docs location (commonly `docs/rules/<rule-id>.md`).
   - Ensure `meta.docs.url` points to that docs page path.
@@ -108,6 +171,8 @@ applyTo: "**"
   - `npm: typecheck`
   - `npm: Test`
   - `npm: Lint:All:Fix`
+- **Package validation:** If exports or public types change, also run the repository's package-validation scripts if they exist (for example package-json lint, `publint`, or `attw`).
+- **Sync workflows:** If you touch generated docs/readme/preset surfaces, run the relevant sync scripts before finalizing.
 - **Diagnostics:** Use `mcp_vscode-mcp_get_diagnostics` for fast feedback on modified files before full runs.
 - **Documentation:** Keep rule docs in the repository's rules documentation location synchronized with rule metadata and tests.
 - **Memory:** Use memory only for durable architectural decisions that should persist across sessions.
