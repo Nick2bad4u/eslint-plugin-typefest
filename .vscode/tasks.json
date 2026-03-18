@@ -8,7 +8,7 @@
                 "color": "terminal.ansiBlue",
                 "id": "package"
             },
-            "isBackground": true,
+            "isBackground": false,
             "label": "Build Application",
             "presentation": {
                 "clear": false,
@@ -62,7 +62,7 @@
                 "color": "terminal.ansiYellow",
                 "id": "cloud-download"
             },
-            "isBackground": true,
+            "isBackground": false,
             "label": "Install Dependencies (UpdateDeps)",
             "options": {
                 "cwd": "${workspaceFolder}"
