@@ -18,6 +18,7 @@
         "knip.config.ts",
         "plugin.d.mts",
         "scripts/**/*.ts",
+        "src/**/*.d.ts",
         "src/**/*.ts",
         "test/**/*.d.ts",
         "test/**/*.ts",

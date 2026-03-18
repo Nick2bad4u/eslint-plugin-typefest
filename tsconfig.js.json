@@ -23,7 +23,9 @@
     ],
     "extends": "./tsconfig.json",
     "include": [
+        "*.cjs",
         "*.d.ts",
+        "*.d.cts",
         "*.mjs",
         "test/_internal/**/*.d.ts"
     ]
