@@ -33,7 +33,7 @@ The source of truth for **rule content** is the source plugin in `./[SOURCE_PLUG
 1. We are adapting an old plugin currently located in the folder: `./[SOURCE_PLUGIN_FOLDER]`
 2. The root of this repository has been scaffolded using my template (based on my `eslint-plugin-typefest` repo). All root `package.json` dependencies & devDependencies are already installed.
 3. The target stack uses TypeScript and a Docusaurus documentation site.
-4. The root contains configuration files copied from my template. Do NOT just delete and recreate them (tsconfig, lint configs, etc.). Instead, **adapt** them. Use the strict rules and configs already present as your baseline.
+4. The root contains configuration files copied from my template. Do NOT just delete and recreate them (tsconfig, lint configs, etc.). Instead, **adapt** them. Use the strict rules and configs already present as your baseline. Keep the Typedoc, ESLint, Remark, tsconfig, testing, Docusaurus, and other configs mostly intact, only making adjustments if absolutely necessary to get the new code working. Scripts may need some slight changes. The Typedoc and Remark plugins are to be used to help keep the docs up to date and in sync with the code.
 
 **Your Instructions:**
 5. **Adapt & Migrate:** Move rules, tests, and docs from `./[SOURCE_PLUGIN_FOLDER]` into the template's strict folder structure (`src/`, `docs/`, `test/`). Only migrate rule behavior that exists in the source plugin or that is explicitly required to support the migration.
@@ -46,6 +46,7 @@ The source of truth for **rule content** is the source plugin in `./[SOURCE_PLUG
 12. **Docusaurus:** Ensure the Docusaurus site is fully functional with the copied config and updated documentation. Make sure any documentation, examples, or site content is updated to reflect the new rules and standards. Look for any references to the old plugin name or rules and update them accordingly.
 13. **Scripts & Misc:** We have a few custom remark plugins and a few scripts that should help you keep the docs and readme in sync and up to date. Update any package.json scripts if needed, most of them should work without changes, but make adjustments if necessary to fit the new plugin's structure and rules.
 14. **Review & Refine:** After you have everything ported and updated, do a thorough review of the entire codebase, documentation, and tests to ensure everything is perfect and meets the standards of my template. Make any necessary refinements or improvements to ensure the highest quality.
+15. **Final Check:** Before considering the task complete, double-check that all migrated rules are updated for ESLint 10, written in TypeScript, and that there are 0 lint warnings/errors, 0 type errors, and 0 failing tests. Also, ensure the Docusaurus site is fully functional with updated documentation for every rule. Then go through all folders and files one last time to make sure there are no leftover references to the old plugin or any content that shouldn't be there.
 
 ## Decision rule when you are unsure
 
