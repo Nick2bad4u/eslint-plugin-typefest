@@ -4,38 +4,6 @@ description: "🤖🤖 Use this prompt to bootstrap a new ESLint plugin reposito
 argument-hint: Provide the folder name of the existing plugin to port, such as `eslint-plugin-legacy`.
 ---
 
-
-## 🚨 ABSOLUTE RULE: REMOVE ALL TYPEFEST-SPECIFIC CONTENT
-
-- **Do NOT** leave any TypeFest or ts-extras rule code, documentation, or examples in the new repository.
-- **Do NOT** create new folders like `src/[New-Plugin-Name]/rules` or `src/[New-Plugin-Name]` unless the source plugin already uses that structure.
-- **Do NOT** keep, rename, or adapt any TypeFest rule implementations, tests, or docs unless the source plugin has a direct equivalent you are intentionally migrating.
-- **Do NOT** leave any references to TypeFest, ts-extras, or their rules, options, or examples anywhere in the codebase, docs, or tests.
-
-## Folder Structure
-
-- All migrated rules must go into `src/rules/` (not `src/[New-Plugin-Name]/rules` or any other subfolder) unless the source plugin uses a different structure.
-- All migrated tests must go into `test/` (not `test/[New-Plugin-Name]` or similar) unless the source plugin uses a different structure.
-- All migrated docs must go into `docs/rules/` (not `docs/[New-Plugin-Name]` or similar) unless the source plugin uses a different structure.
-
-## Migration Steps (Clarified)
-
-1. **Delete all TypeFest rule code, docs, and tests** from the template repo before migrating anything from the source plugin.
-2. **Migrate only the rules, tests, and docs that exist in the source plugin** (in `./[SOURCE_PLUGIN_FOLDER]`). Do not invent new rules or copy anything from TypeFest unless the source plugin has a direct equivalent.
-3. **Update all configs, scripts, and docs** to remove any references to TypeFest, ts-extras, or their rules.
-4. **Do not create new folders or subfolders** for rules, tests, or docs unless the source plugin already uses them.
-5. **After migration, the only rules, tests, and docs present should be those from the source plugin** (migrated and modernized as needed), plus any new ones you are explicitly instructed to add.
-
-## Final Review
-
-- The final repo must have **zero** TypeFest or ts-extras rule code, docs, or references.
-- The folder structure must match the source plugin (or the template’s default: `src/rules/`, `test/`, `docs/rules/`), not invent new subfolders.
-- All configs, scripts, and docs must be updated to reflect the new plugin and its rules only.
-
-**If you are ever unsure, default to deleting TypeFest content and only migrating what exists in the source plugin.**
-
----
-
 This is a comprehensive, multi-step task to bootstrap a new ESLint plugin repository by migrating a source plugin into my standardized modern template. I will repeat this prompt as needed to give you time to accomplish all tasks. Work autonomously and use your intuition to figure out the next logical step. Copilot instructions for specific folders have already been added to the repo, so be sure to follow those as well.
 
 ## Critical framing: use the template as a guide, not as source rule content
@@ -97,3 +65,34 @@ D. The entire project matches the layout, doc standards, and coding standards of
 E. Feel free to make improvements to this template if you see anything that should be added to help with future plugin bootstrapping. I want to make this process as smooth and efficient as possible for future plugins.
 
 Work methodically through these requirements without taking shortcuts or cheating. This prompt will repeat a few times to give you plenty of time to do accurate, high-quality work. If you hit limits, stop at a logical checkpoint so we can continue in the next prompt. Get as much done as you can in each prompt, but prioritize quality and accuracy over quantity. The goal is to have a perfectly bootstrapped plugin that meets all the criteria above.
+
+## 🚨 ABSOLUTE RULE: REMOVE ALL TYPEFEST-SPECIFIC CONTENT
+
+- **Do NOT** leave any TypeFest or ts-extras rule code, documentation, or examples in the new repository.
+- **Do NOT** create new folders like `src/[New-Plugin-Name]/rules` or `src/[New-Plugin-Name]`.
+- **Do NOT** keep, rename, or adapt any TypeFest rule implementations, tests, or docs unless the source plugin has a direct equivalent you are intentionally migrating.
+- **Do NOT** leave any references to TypeFest, ts-extras, or their rules, options, or examples anywhere in the codebase, docs, or tests.
+
+## Folder Structure
+
+- All migrated rules must go into `src/rules/` (not `src/[New-Plugin-Name]/rules` or any other subfolder) unless the source plugin uses a different structure.
+- All migrated tests must go into `test/` (not `test/[New-Plugin-Name]` or similar) unless the source plugin uses a different structure.
+- All migrated docs must go into `docs/rules/` (not `docs/[New-Plugin-Name]` or similar) unless the source plugin uses a different structure.
+
+## Migration Steps (Clarified)
+
+1. **Delete all TypeFest rule code, docs, and tests** from the template repo before migrating anything from the source plugin.
+2. **Migrate only the rules, tests, and docs that exist in the source plugin** (in `./[SOURCE_PLUGIN_FOLDER]`). Do not invent new rules or copy anything from TypeFest unless the source plugin has a direct equivalent.
+3. **Update all configs, scripts, and docs** to remove any references to TypeFest, ts-extras, or their rules.
+4. **Do not create new folders or subfolders** for rules, tests, or docs unless the source plugin already uses them.
+5. **After migration, the only rules, tests, and docs present should be those from the source plugin** (migrated and modernized as needed), plus any new ones you are explicitly instructed to add.
+
+## Final Review
+
+- The final repo must have **zero** TypeFest or ts-extras rule code, docs, or references.
+- The folder structure must match the source plugin (or the template’s default: `src/rules/`, `test/`, `docs/rules/`), not invent new subfolders.
+- All configs, scripts, and docs must be updated to reflect the new plugin and its rules only.
+
+**If you are ever unsure, default to deleting TypeFest content and only migrating what exists in the source plugin.**
+
+---
