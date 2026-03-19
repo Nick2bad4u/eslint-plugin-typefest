@@ -59,10 +59,9 @@ jobs:
                   ISSUE_NUMBER: ${{ github.event.issue.number }}
                   PR_NUMBER: ${{ github.event.pull_request.number }}
                   RESPONSE: ${{ steps.inference.outputs.response }}
-                  prompt-file: ".github/prompts/PR-Review.prompt.md"
-                  system-prompt-file: ".github/prompts/BeastMode.prompt.md"
+                  system-prompt-file: ".github/instructions/copilot-instructions.md"
                   endpoint: "https://models.github.ai/inference"
-                  max-tokens: 2000
+                  max-completion-tokens: 8000
 
             - name: Print Output
               id: output
