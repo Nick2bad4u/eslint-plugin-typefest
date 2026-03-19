@@ -97,6 +97,7 @@ If the package name implies the namespace, use the obvious derived namespace unl
      - proper registration in the plugin and preset/config surfaces
    - Use the template's docs/testing structure as a formatting and quality reference only, not as content to copy blindly.
    - Rule docs must be manually authored and high quality.
+   - If the plugin is about a specfic program, library, or framework, ensure the rules, docs, and tests reflect that context accurately rather than being generic or template-like. Use the web search tools to do as much research as needed to understand the domain and write accurate, relevant rules, docs, and tests.
 
 11. **Strict linting and typing:**
    - Update the repo so it works under the existing strict linting and TypeScript settings.
