@@ -799,6 +799,8 @@ docs/docusaurus/docs/typedoc.json
 docs/docusaurus/docs/typedoc-sidebar.cjs
 docs/docusaurus/docs/_media
 docs/docusaurus/static/eslint-inspector/
+docs/docusaurus/static/stylelint-inspector/
+docs/docusaurus/static/*-inspector/
 docs/docusaurus/static/storybook/
 docs/docusaurus/stylelintcache
 **/docs/docusaurus/.docusaurus

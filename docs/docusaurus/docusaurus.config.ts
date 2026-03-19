@@ -319,16 +319,16 @@ const config: Config = {
                             label: "\uea84 GitHub Repository",
                         },
                         {
+                            href: `https://nick2bad4u.github.io/eslint-plugin-typefest/stylelint-inspector/`,
+                            label: "\ue7d2 Stylelint Inspector",
+                        },
+                        {
                             href: `https://github.com/${organizationName}/${projectName}/issues`,
                             label: "\uf188 Report Issues",
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
                             label: "\ue616 NPM",
-                        },
-                        {
-                            href: `https://github.com/${organizationName}/${projectName}/blob/main/CONTRIBUTING.md`,
-                            label: "\uf0c0 Contributing",
                         },
                     ],
                     title: "⚙️ Support",

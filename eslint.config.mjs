@@ -384,6 +384,8 @@ export default defineConfig([
             "docs/docusaurus/build/**",
             "docs/docusaurus/docs/**",
             "docs/docusaurus/static/eslint-inspector/**",
+            "docs/docusaurus/static/stylelint-inspector/**",
+            "docs/docusaurus/static/*-inspector/**",
             "report/**",
             "reports/**",
             "scripts/devtools-snippets/**",
