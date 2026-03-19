@@ -40,6 +40,44 @@ const removeHeadAttrFlagKey = [
     "gacyPostBuildHeadAttribute",
 ].join("");
 
+const vscodeCssLanguageServiceEsmEntry = fileURLToPath(
+    new URL(
+        "../../node_modules/vscode-css-languageservice/lib/esm/cssLanguageService.js",
+        import.meta.url
+    )
+);
+const vscodeLanguageServerTypesEsmEntry = fileURLToPath(
+    new URL(
+        "../../node_modules/vscode-languageserver-types/lib/esm/main.js",
+        import.meta.url
+    )
+);
+
+const suppressKnownWebpackWarningsPlugin = () => ({
+    configureWebpack() {
+        return {
+            ignoreWarnings: [
+                {
+                    message:
+                        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/u,
+                    module: /vscode-languageserver-types[\\/]lib[\\/]umd[\\/]main\.js/u,
+                },
+            ],
+            resolve: {
+                alias: {
+                    "vscode-css-languageservice$":
+                        vscodeCssLanguageServiceEsmEntry,
+                    "vscode-languageserver-types$":
+                        vscodeLanguageServerTypesEsmEntry,
+                    "vscode-languageserver-types/lib/umd/main.js$":
+                        vscodeLanguageServerTypesEsmEntry,
+                },
+            },
+        };
+    },
+    name: "suppress-known-webpack-warnings",
+});
+
 /** Docusaurus future flags, including optional experimental fast path. */
 const futureConfig = {
     ...(enableExperimentalFaster
@@ -93,6 +131,7 @@ const config: Config = {
     onDuplicateRoutes: "warn",
     organizationName,
     plugins: [
+        suppressKnownWebpackWarningsPlugin,
         "docusaurus-plugin-image-zoom",
         [
             "@docusaurus/plugin-pwa",
