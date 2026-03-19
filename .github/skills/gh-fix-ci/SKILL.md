@@ -1,6 +1,6 @@
 ---
 name: "gh-fix-ci"
-description: "Use when a user asks to debug or fix a failing GitHub Actions run or failing PR checks; use `gh` to inspect workflow runs, jobs, checks, and logs, summarize failure context, draft a fix plan, and implement"
+description: "Use when a user asks to debug or fix a failing GitHub Actions run or failing PR checks; use `gh` to inspect workflow runs, jobs, checks, and logs, identify the root cause, and implement the fix directly"
 argument-hint: "`repo` (optional, default `.`), plus either `run` (workflow run URL/id) or `pr` (optional, defaults to current branch PR)"
 compatibility: "Requires GitHub CLI authentication with appropriate scopes (repo + workflow)."
 disable-model-invocation: false
@@ -9,12 +9,11 @@ license: "Unlicense"
 ---
 
 
-# GitHub Actions Failure Plan Fix
+# GitHub Actions Failure Fix
 
 ## Overview
 
-Use gh to locate failing GitHub Actions workflow runs or failing PR checks, fetch actionable logs, summarize the failure snippet, then propose a fix plan and implement after explicit approval.
-- If a plan-oriented skill (for example `create-plan`) is available, use it; otherwise draft a concise plan inline and request approval before implementing.
+Use gh to locate failing GitHub Actions workflow runs or failing PR checks, fetch actionable logs, identify the root cause from the failure snippet, and implement the fix directly.
 
 Prereq: authenticate with the standard GitHub CLI once (for example, run `gh auth login`), then confirm with `gh auth status` (repo + workflow scopes are typically required).
 
@@ -61,11 +60,12 @@ The bundled helper is repository-agnostic: point `--repo` at any local checkout 
 5. Summarize failures for the user.
    - Provide the failing check name, run URL (if any), and a concise log snippet.
    - Call out missing logs explicitly.
-6. Create a plan.
-   - Use the `create-plan` skill to draft a concise plan and request approval.
-7. Implement after approval.
-   - Apply the approved plan, summarize diffs/tests, and ask about opening a PR.
-8. Recheck status.
+6. Implement the fix.
+   - Identify the root cause from the failure snippet and the surrounding codebase.
+   - Apply the fix directly: edit source files, tests, config, or workflow YAML as needed.
+   - Summarize what was changed and why.
+   - Suggest running the relevant tests locally to confirm, then ask if the user wants to open a PR.
+7. Recheck status.
    - After changes, suggest re-running the relevant tests and either `gh pr checks <pr>` or `gh run view <run_id>` to confirm.
 
 ## Bundled Resources

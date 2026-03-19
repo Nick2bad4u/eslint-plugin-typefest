@@ -27,6 +27,8 @@
         "*.d.ts",
         "*.d.cts",
         "*.mjs",
+        "*.js",
+        "*.mjs",
         "test/_internal/**/*.d.ts"
     ]
 }
