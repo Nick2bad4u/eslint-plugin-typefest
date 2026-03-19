@@ -1,8 +1,9 @@
 import { themes as prismThemes } from "prism-react-renderer";
 
-import type { Config } from "@docusaurus/types";
+import type { Config, PluginModule } from "@docusaurus/types";
 import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-docs";
 import type * as Preset from "@docusaurus/preset-classic";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 /** Route base path where docs site is deployed (GitHub Pages project path). */
@@ -40,43 +41,76 @@ const removeHeadAttrFlagKey = [
     "gacyPostBuildHeadAttribute",
 ].join("");
 
-const vscodeCssLanguageServiceEsmEntry = fileURLToPath(
-    new URL(
-        "../../node_modules/vscode-css-languageservice/lib/esm/cssLanguageService.js",
-        import.meta.url
-    )
+/** Local require helper rooted at the docs workspace config file location. */
+const requireFromDocsWorkspace = createRequire(import.meta.url);
+
+/** Resolve an optional module specifier without throwing when absent. */
+const resolveOptionalModule = (moduleSpecifier: string): string | undefined => {
+    try {
+        return requireFromDocsWorkspace.resolve(moduleSpecifier);
+    } catch {
+        return undefined;
+    }
+};
+
+/**
+ * Optional ESM entry used to avoid webpack warnings from VS Code CSS language
+ * service packages.
+ */
+const vscodeCssLanguageServiceEsmEntry = resolveOptionalModule(
+    "vscode-css-languageservice/lib/esm/cssLanguageService.js"
 );
-const vscodeLanguageServerTypesEsmEntry = fileURLToPath(
-    new URL(
-        "../../node_modules/vscode-languageserver-types/lib/esm/main.js",
-        import.meta.url
-    )
+/**
+ * Optional ESM entry used to avoid webpack warnings from VS Code language
+ * server type packages.
+ */
+const vscodeLanguageServerTypesEsmEntry = resolveOptionalModule(
+    "vscode-languageserver-types/lib/esm/main.js"
 );
 
-const suppressKnownWebpackWarningsPlugin = () => ({
-    configureWebpack() {
-        return {
-            ignoreWarnings: [
-                {
-                    message:
-                        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/u,
-                    module: /vscode-languageserver-types[\\/]lib[\\/]umd[\\/]main\.js/u,
+/**
+ * Alias VS Code language-service packages to their ESM entries when they are
+ * present.
+ *
+ * @remarks
+ * Some transitive editor-style dependencies resolve the UMD build of
+ * `vscode-languageserver-types`, which causes noisy webpack critical-dependency
+ * warnings inside Docusaurus. This plugin only activates when those optional
+ * packages are actually installed in the current workspace.
+ */
+const suppressKnownWebpackWarningsPlugin: PluginModule = () => {
+    if (
+        vscodeCssLanguageServiceEsmEntry === undefined ||
+        vscodeLanguageServerTypesEsmEntry === undefined
+    ) {
+        return null;
+    }
+
+    return {
+        configureWebpack() {
+            return {
+                ignoreWarnings: [
+                    {
+                        message:
+                            /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/u,
+                        module: /vscode-languageserver-types[\\/]lib[\\/]umd[\\/]main\.js/u,
+                    },
+                ],
+                resolve: {
+                    alias: {
+                        "vscode-css-languageservice$":
+                            vscodeCssLanguageServiceEsmEntry,
+                        "vscode-languageserver-types$":
+                            vscodeLanguageServerTypesEsmEntry,
+                        "vscode-languageserver-types/lib/umd/main.js$":
+                            vscodeLanguageServerTypesEsmEntry,
+                    },
                 },
-            ],
-            resolve: {
-                alias: {
-                    "vscode-css-languageservice$":
-                        vscodeCssLanguageServiceEsmEntry,
-                    "vscode-languageserver-types$":
-                        vscodeLanguageServerTypesEsmEntry,
-                    "vscode-languageserver-types/lib/umd/main.js$":
-                        vscodeLanguageServerTypesEsmEntry,
-                },
-            },
-        };
-    },
-    name: "suppress-known-webpack-warnings",
-});
+            };
+        },
+        name: "suppress-known-webpack-warnings",
+    };
+};
 
 /** Docusaurus future flags, including optional experimental fast path. */
 const futureConfig = {
@@ -102,7 +136,7 @@ const futureConfig = {
 
 /** Full Docusaurus site configuration exported to the build/runtime. */
 const config: Config = {
-    baseUrl: "/eslint-plugin-typefest/",
+    baseUrl,
     baseUrlIssueBanner: true,
     deploymentBranch: "gh-pages",
     favicon: "img/logo.svg",

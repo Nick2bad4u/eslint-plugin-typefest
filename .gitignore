@@ -863,3 +863,5 @@ eslint.config.bundled_**
 
 # Docusaurus API reference files (if auto-generated)
 **/site-docs/developer/api/
+# Local Chrome DevTools automatic workspace metadata (machine-specific absolute path)
+docs/docusaurus/static/.well-known/appspecific/com.chrome.devtools.json

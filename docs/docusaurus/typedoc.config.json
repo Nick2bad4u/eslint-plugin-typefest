@@ -595,6 +595,7 @@
     "useTsLinkResolution": true,
     "validation": {
         "invalidLink": true,
+        "invalidPath": true,
         "notDocumented": false,
         "notExported": false,
         "rewrittenLink": true,

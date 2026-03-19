@@ -44,3 +44,5 @@ node_modules/typescript/
 # Keep Cache Folder and Temp Folder
 !cache/.gitkeep
 !temp/.gitkeep
+
+!docs/docusaurus/static/.well-known/appspecific/com.chrome.devtools.json
