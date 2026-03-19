@@ -16,6 +16,7 @@ import {
     createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
+    warmTypedParserServices,
 } from "./_internal/typed-rule-tester";
 
 const ruleTester = createTypedRuleTester();
@@ -29,6 +30,8 @@ const validFixtureName = "prefer-type-fest-require-at-least-one.valid.ts";
 const namespaceValidFixtureName =
     "prefer-type-fest-require-at-least-one.namespace.valid.ts";
 const invalidFixtureName = "prefer-type-fest-require-at-least-one.invalid.ts";
+warmTypedParserServices(typedFixturePath(validFixtureName));
+
 const invalidFixtureCode = readTypedFixture(invalidFixtureName);
 const replaceOrThrow = ({
     replacement,
