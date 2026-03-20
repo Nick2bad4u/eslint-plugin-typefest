@@ -19,6 +19,7 @@ import { dirname, join } from "node:path";
  *     helperDocPathPattern?: RegExp;
  *     requirePackageDocumentation?: boolean;
  *     requirePackageDocumentationLabel?: boolean;
+ *     requireRuleCatalogId?: boolean;
  *     packageDocumentationLabelPattern?: RegExp;
  *     ruleCatalogIdLinePattern?: RegExp;
  *     ruleNamespaceAliases?: readonly string[];
@@ -387,6 +388,9 @@ export default function remarkLintRuleDocHeadings(options = {}) {
     const requirePackageDocumentationLabel =
         options.requirePackageDocumentationLabel ??
         options.packageDocumentationLabelPattern !== undefined;
+    const requireRuleCatalogId =
+        options.requireRuleCatalogId ??
+        options.ruleCatalogIdLinePattern !== undefined;
     const packageDocumentationLabelPattern =
         options.packageDocumentationLabelPattern ??
         defaultPackageDocumentationLabelPattern;
@@ -754,26 +758,30 @@ export default function remarkLintRuleDocHeadings(options = {}) {
             }
         }
 
-        const markdownContent = String(file);
-        const ruleCatalogIdLines = markdownContent
-            .split(/\r?\n/u)
-            .map((line) => line.trimEnd())
-            .filter((line) => ruleCatalogIdLinePattern.test(line));
+        if (requireRuleCatalogId) {
+            const markdownContent = String(file);
+            const ruleCatalogIdLines = markdownContent
+                .split(/\r?\n/u)
+                .map((line) => line.trimEnd())
+                .filter((line) => ruleCatalogIdLinePattern.test(line));
 
-        if (ruleCatalogIdLines.length === 0) {
-            file.message(
-                "Missing required rule catalog marker line `> **Rule catalog ID:** R###`.",
-                getH2HeadingNodeAt(furtherReadingIndex) ?? firstH2HeadingNode,
-                "remark-lint:rule-doc-headings:missing-rule-catalog-id"
-            );
-        }
+            if (ruleCatalogIdLines.length === 0) {
+                file.message(
+                    "Missing required rule catalog marker line `> **Rule catalog ID:** R###`.",
+                    getH2HeadingNodeAt(furtherReadingIndex) ??
+                        firstH2HeadingNode,
+                    "remark-lint:rule-doc-headings:missing-rule-catalog-id"
+                );
+            }
 
-        if (ruleCatalogIdLines.length > 1) {
-            file.message(
-                "Rule docs must contain exactly one `> **Rule catalog ID:** R###` marker line.",
-                getH2HeadingNodeAt(furtherReadingIndex) ?? firstH2HeadingNode,
-                "remark-lint:rule-doc-headings:duplicate-rule-catalog-id"
-            );
+            if (ruleCatalogIdLines.length > 1) {
+                file.message(
+                    "Rule docs must contain exactly one `> **Rule catalog ID:** R###` marker line.",
+                    getH2HeadingNodeAt(furtherReadingIndex) ??
+                        firstH2HeadingNode,
+                    "remark-lint:rule-doc-headings:duplicate-rule-catalog-id"
+                );
+            }
         }
     };
 }

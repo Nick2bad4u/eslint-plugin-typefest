@@ -224,6 +224,7 @@ const ruleDocHeadingDefaults = {
         /(^|\/)docs\/rules\/(?!overview\.md$|getting-started\.md$|presets\/)[^/]+\.md$/u,
     requirePackageDocumentation: false,
     requirePackageDocumentationLabel: false,
+    requireRuleCatalogId: true,
     packageDocumentationLabelPattern: /^[^\r\n]+ package documentation:$/mu,
     ruleCatalogIdLinePattern: /^> \*\*Rule catalog ID:\*\* R\d{3}$/u,
     ruleNamespaceAliases: [],

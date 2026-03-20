@@ -35,6 +35,7 @@ export interface RemarkLintRuleDocHeadingsOptions {
     readonly helperDocPathPattern?: RegExp;
     readonly requirePackageDocumentation?: boolean;
     readonly requirePackageDocumentationLabel?: boolean;
+    readonly requireRuleCatalogId?: boolean;
     readonly packageDocumentationLabelPattern?: RegExp;
     readonly ruleCatalogIdLinePattern?: RegExp;
     readonly ruleNamespaceAliases?: readonly string[];
