@@ -25,6 +25,8 @@ const rawHangingReporterFlag =
     process.env["TYPEFEST_VITEST_HANGING_PROCESS_REPORTER"] ??
     process.env["VITEST_HANGING_PROCESS_REPORTER"] ??
     "false";
+/** Raw flag controlling optional Vitest typecheck execution. */
+const rawVitestTypecheckFlag = process.env["VITEST_TYPECHECK"] ?? "true";
 /** Normalized `true` when hanging-process reporter is explicitly enabled. */
 const shouldEnableHangingProcessReporter = [
     "1",
@@ -32,6 +34,13 @@ const shouldEnableHangingProcessReporter = [
     "true",
     "yes",
 ].includes(rawHangingReporterFlag.toLowerCase());
+/** Normalized `true` when Vitest typecheck execution is explicitly enabled. */
+const shouldEnableVitestTypecheck = [
+    "1",
+    "on",
+    "true",
+    "yes",
+].includes(rawVitestTypecheckFlag.toLowerCase());
 /** Shared reporter list for test runs with optional hanging-process diagnostics. */
 const vitestReporters = shouldEnableHangingProcessReporter
     ? ["default", "hanging-process"]
@@ -252,7 +261,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         typecheck: {
             allowJs: false,
             checker: "tsc",
-            enabled: true,
+            enabled: shouldEnableVitestTypecheck,
             exclude: [
                 "**/.{idea,git,cache,output,temp}/**",
                 "**/dist*/**",

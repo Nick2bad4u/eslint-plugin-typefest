@@ -45,6 +45,7 @@ import preferTypeFestAndAllRule from "../rules/prefer-type-fest-and-all.js";
 import preferTypeFestArrayLengthRule from "../rules/prefer-type-fest-array-length.js";
 import preferTypeFestArrayableRule from "../rules/prefer-type-fest-arrayable.js";
 import preferTypeFestAsyncReturnTypeRule from "../rules/prefer-type-fest-async-return-type.js";
+import preferTypeFestConditionalPickDeepRule from "../rules/prefer-type-fest-conditional-pick-deep.js";
 import preferTypeFestConditionalPickRule from "../rules/prefer-type-fest-conditional-pick.js";
 import preferTypeFestConstructorRule from "../rules/prefer-type-fest-constructor.js";
 import preferTypeFestExceptRule from "../rules/prefer-type-fest-except.js";
@@ -55,6 +56,8 @@ import preferTypeFestJsonObjectRule from "../rules/prefer-type-fest-json-object.
 import preferTypeFestJsonPrimitiveRule from "../rules/prefer-type-fest-json-primitive.js";
 import preferTypeFestJsonValueRule from "../rules/prefer-type-fest-json-value.js";
 import preferTypeFestKeysOfUnionRule from "../rules/prefer-type-fest-keys-of-union.js";
+import preferTypeFestLessThanOrEqualRule from "../rules/prefer-type-fest-less-than-or-equal.js";
+import preferTypeFestLessThanRule from "../rules/prefer-type-fest-less-than.js";
 import preferTypeFestLiteralUnionRule from "../rules/prefer-type-fest-literal-union.js";
 import preferTypeFestMergeExclusiveRule from "../rules/prefer-type-fest-merge-exclusive.js";
 import preferTypeFestNonEmptyTupleRule from "../rules/prefer-type-fest-non-empty-tuple.js";
@@ -79,6 +82,7 @@ import preferTypeFestSimplifyRule from "../rules/prefer-type-fest-simplify.js";
 import preferTypeFestTaggedBrandsRule from "../rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "../rules/prefer-type-fest-tuple-of.js";
 import preferTypeFestUnionMemberRule from "../rules/prefer-type-fest-union-member.js";
+import preferTypeFestUnionToTupleRule from "../rules/prefer-type-fest-union-to-tuple.js";
 import preferTypeFestUnknownArrayRule from "../rules/prefer-type-fest-unknown-array.js";
 import preferTypeFestUnknownMapRule from "../rules/prefer-type-fest-unknown-map.js";
 import preferTypeFestUnknownRecordRule from "../rules/prefer-type-fest-unknown-record.js";
@@ -142,6 +146,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
     "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
     "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
+    "prefer-type-fest-conditional-pick-deep":
+        preferTypeFestConditionalPickDeepRule,
     "prefer-type-fest-constructor": preferTypeFestConstructorRule,
     "prefer-type-fest-except": preferTypeFestExceptRule,
     "prefer-type-fest-if": preferTypeFestIfRule,
@@ -151,6 +157,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-json-primitive": preferTypeFestJsonPrimitiveRule,
     "prefer-type-fest-json-value": preferTypeFestJsonValueRule,
     "prefer-type-fest-keys-of-union": preferTypeFestKeysOfUnionRule,
+    "prefer-type-fest-less-than": preferTypeFestLessThanRule,
+    "prefer-type-fest-less-than-or-equal": preferTypeFestLessThanOrEqualRule,
     "prefer-type-fest-literal-union": preferTypeFestLiteralUnionRule,
     "prefer-type-fest-merge-exclusive": preferTypeFestMergeExclusiveRule,
     "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
@@ -177,6 +185,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
     "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
     "prefer-type-fest-union-member": preferTypeFestUnionMemberRule,
+    "prefer-type-fest-union-to-tuple": preferTypeFestUnionToTupleRule,
     "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
     "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
     "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,

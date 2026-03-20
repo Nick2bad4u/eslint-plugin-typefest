@@ -109,6 +109,10 @@ const orderedRuleNames = [
     "prefer-type-fest-optional",
     "prefer-type-fest-or-all",
     "prefer-type-fest-union-member",
+    "prefer-type-fest-conditional-pick-deep",
+    "prefer-type-fest-union-to-tuple",
+    "prefer-type-fest-less-than",
+    "prefer-type-fest-less-than-or-equal",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>
