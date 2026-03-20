@@ -1,7 +1,7 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
     "name": "eslint-plugin-typefest",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "private": false,
     "description": "ESLint rules for adopting type-fest and ts-extras conventions.",
     "keywords": [
