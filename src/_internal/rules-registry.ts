@@ -41,6 +41,8 @@ import preferTsExtrasSafeCastToRule from "../rules/prefer-ts-extras-safe-cast-to
 import preferTsExtrasSetHasRule from "../rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "../rules/prefer-ts-extras-string-split.js";
 import preferTypeFestAbstractConstructorRule from "../rules/prefer-type-fest-abstract-constructor.js";
+import preferTypeFestAndAllRule from "../rules/prefer-type-fest-and-all.js";
+import preferTypeFestArrayLengthRule from "../rules/prefer-type-fest-array-length.js";
 import preferTypeFestArrayableRule from "../rules/prefer-type-fest-arrayable.js";
 import preferTypeFestAsyncReturnTypeRule from "../rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestConditionalPickRule from "../rules/prefer-type-fest-conditional-pick.js";
@@ -57,6 +59,8 @@ import preferTypeFestLiteralUnionRule from "../rules/prefer-type-fest-literal-un
 import preferTypeFestMergeExclusiveRule from "../rules/prefer-type-fest-merge-exclusive.js";
 import preferTypeFestNonEmptyTupleRule from "../rules/prefer-type-fest-non-empty-tuple.js";
 import preferTypeFestOmitIndexSignatureRule from "../rules/prefer-type-fest-omit-index-signature.js";
+import preferTypeFestOptionalRule from "../rules/prefer-type-fest-optional.js";
+import preferTypeFestOrAllRule from "../rules/prefer-type-fest-or-all.js";
 import preferTypeFestPartialDeepRule from "../rules/prefer-type-fest-partial-deep.js";
 import preferTypeFestPrimitiveRule from "../rules/prefer-type-fest-primitive.js";
 import preferTypeFestPromisableRule from "../rules/prefer-type-fest-promisable.js";
@@ -74,6 +78,7 @@ import preferTypeFestSetRequiredRule from "../rules/prefer-type-fest-set-require
 import preferTypeFestSimplifyRule from "../rules/prefer-type-fest-simplify.js";
 import preferTypeFestTaggedBrandsRule from "../rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "../rules/prefer-type-fest-tuple-of.js";
+import preferTypeFestUnionMemberRule from "../rules/prefer-type-fest-union-member.js";
 import preferTypeFestUnknownArrayRule from "../rules/prefer-type-fest-unknown-array.js";
 import preferTypeFestUnknownMapRule from "../rules/prefer-type-fest-unknown-map.js";
 import preferTypeFestUnknownRecordRule from "../rules/prefer-type-fest-unknown-record.js";
@@ -132,6 +137,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
     "prefer-type-fest-abstract-constructor":
         preferTypeFestAbstractConstructorRule,
+    "prefer-type-fest-and-all": preferTypeFestAndAllRule,
+    "prefer-type-fest-array-length": preferTypeFestArrayLengthRule,
     "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
     "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
     "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
@@ -149,6 +156,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
     "prefer-type-fest-omit-index-signature":
         preferTypeFestOmitIndexSignatureRule,
+    "prefer-type-fest-optional": preferTypeFestOptionalRule,
+    "prefer-type-fest-or-all": preferTypeFestOrAllRule,
     "prefer-type-fest-partial-deep": preferTypeFestPartialDeepRule,
     "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
     "prefer-type-fest-promisable": preferTypeFestPromisableRule,
@@ -167,6 +176,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
     "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
     "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
+    "prefer-type-fest-union-member": preferTypeFestUnionMemberRule,
     "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
     "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
     "prefer-type-fest-unknown-record": preferTypeFestUnknownRecordRule,

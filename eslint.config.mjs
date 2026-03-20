@@ -883,7 +883,7 @@ export default defineConfig([
             "test/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
             "benchmarks/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         ],
-        ignores: [],
+        ignores: ["plugin.mjs"],
         languageOptions: {
             globals: {
                 ...globals.browser,
