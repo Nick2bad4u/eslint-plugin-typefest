@@ -19,7 +19,6 @@ import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import html from "@html-eslint/eslint-plugin";
 import * as htmlParser from "@html-eslint/parser";
-import pluginMicrosoftSdl from "@microsoft/eslint-plugin-sdl";
 import stylistic from "@stylistic/eslint-plugin";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tseslintParser from "@typescript-eslint/parser";
@@ -31,12 +30,14 @@ import arrayFunc from "eslint-plugin-array-func";
 import pluginCanonical from "eslint-plugin-canonical";
 import pluginCasePolice from "eslint-plugin-case-police";
 import eslintPluginCommentLength from "eslint-plugin-comment-length";
+import copilot from "eslint-plugin-copilot";
 import * as pluginCssModules from "eslint-plugin-css-modules";
 import deMorgan from "eslint-plugin-de-morgan";
 import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import etcMisc from "eslint-plugin-etc-misc";
 import progress from "eslint-plugin-file-progress-2";
+import immutable from "eslint-plugin-immutable-2";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
@@ -64,6 +65,7 @@ import pluginPromise from "eslint-plugin-promise";
 import pluginRedos from "eslint-plugin-redos";
 import pluginRegexp from "eslint-plugin-regexp";
 import * as pluginJSDoc from "eslint-plugin-require-jsdoc";
+import sdl from "eslint-plugin-sdl-2";
 import pluginSecurity from "eslint-plugin-security";
 import sonarjs, { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
 import pluginSortClassMembers from "eslint-plugin-sort-class-members";
@@ -75,7 +77,7 @@ import tsdocRequire from "eslint-plugin-tsdoc-require-2";
 import pluginUndefinedCss from "eslint-plugin-undefined-css-classes";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
-import pluginWriteGood from "eslint-plugin-write-good-comments";
+import writeGoodComments from "eslint-plugin-write-good-comments-2";
 import eslintPluginYml from "eslint-plugin-yml";
 import globals from "globals";
 import * as jsoncEslintParser from "jsonc-eslint-parser";
@@ -136,7 +138,6 @@ const preferArrowPlugin = fixupPluginRules(asEslintPlugin(pluginPreferArrow));
 const sortClassMembersPlugin = fixupPluginRules(
     asEslintPlugin(pluginSortClassMembers)
 );
-const writeGoodCommentsPlugin = fixupPluginRules(pluginWriteGood);
 const pluginLoadableImports = fixupPluginRules(
     asEslintPlugin(loadbleImportsPlugin)
 );
@@ -408,6 +409,13 @@ export default defineConfig([
         name: "Import-X TypeScript (code files only)",
     },
     progress.configs["recommended-ci"],
+    copilot.configs.recommended,
+    sdl.configs.required,
+    {
+        ...immutable.configs["functional-lite"],
+        files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
+        name: "Immutable: functional (not used in this repo)",
+    },
     fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
@@ -907,7 +915,6 @@ export default defineConfig([
         },
         name: "ESLint Plugin Source Files - project/**/*.*",
         plugins: {
-            "@microsoft/sdl": pluginMicrosoftSdl,
             "@typescript-eslint": tseslint,
             canonical: canonicalPlugin,
             "comment-length": eslintPluginCommentLength,
@@ -961,7 +968,6 @@ export default defineConfig([
             ...pluginCanonical.configs.recommended.rules,
             ...pluginSortClassMembers.configs["flat/recommended"].rules,
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
-            ...pluginMicrosoftSdl.configs.required.rules,
             ...readPluginConfigRules(listeners, "strict"),
             ...moduleInterop.configs.recommended.rules,
             ...readPluginConfigRules(pluginTotalFunctions, "recommended"),
@@ -970,23 +976,6 @@ export default defineConfig([
             "@eslint-community/eslint-comments/no-unused-disable": "off",
             "@eslint-community/eslint-comments/no-use": "off",
             "@eslint-community/eslint-comments/require-description": "warn",
-            "@microsoft/sdl/no-angular-bypass-sanitizer": "warn",
-            "@microsoft/sdl/no-angular-sanitization-trusted-urls": "warn",
-            "@microsoft/sdl/no-angularjs-bypass-sce": "warn",
-            "@microsoft/sdl/no-angularjs-enable-svg": "warn",
-            "@microsoft/sdl/no-angularjs-sanitization-whitelist": "warn",
-            "@microsoft/sdl/no-cookies": "warn",
-            "@microsoft/sdl/no-document-domain": "warn",
-            "@microsoft/sdl/no-document-write": "warn",
-            "@microsoft/sdl/no-electron-node-integration": "warn",
-            "@microsoft/sdl/no-html-method": "warn",
-            "@microsoft/sdl/no-inner-html": "warn",
-            "@microsoft/sdl/no-insecure-random": "off",
-            "@microsoft/sdl/no-insecure-url": "warn",
-            "@microsoft/sdl/no-msapp-exec-unsafe": "warn",
-            "@microsoft/sdl/no-postmessage-star-origin": "warn",
-            "@microsoft/sdl/no-unsafe-alloc": "warn",
-            "@microsoft/sdl/no-winjs-html-unsafe": "warn",
             "@typescript-eslint/await-thenable": "error", // Prevent awaiting non-promises
             "@typescript-eslint/ban-ts-comment": "warn",
             "@typescript-eslint/ban-tslint-comment": "warn",
@@ -2756,7 +2745,7 @@ export default defineConfig([
             "sort-class-members": sortClassMembersPlugin,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
-            "write-good-comments": writeGoodCommentsPlugin,
+            "write-good-comments": writeGoodComments,
         },
         rules: {
             ...js.configs.all.rules,
@@ -3018,7 +3007,7 @@ export default defineConfig([
             "no-secrets": noSecrets,
             "no-unsanitized": noUnsanitizedPlugin,
             "prefer-arrow": preferArrowPlugin,
-            "write-good-comments": writeGoodCommentsPlugin,
+            "write-good-comments": writeGoodComments,
         },
         rules: {
             "callback-return": "off",

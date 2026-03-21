@@ -4,7 +4,6 @@
  */
 
 import fc from "fast-check";
-import vm from "node:vm";
 
 export type RuntimeComparedExpressionTemplateId =
     | "conditionalExpression"
@@ -332,9 +331,33 @@ const isRuntimeExecutionSnapshot = (
     );
 };
 
-export const executeRuntimeLooseNullSourceText = (
+let runtimeExecutionSequence = 0;
+
+const executeRuntimeSourceText = async (
+    executableSourceText: string
+): Promise<unknown> => {
+    const moduleSourceText = [
+        executableSourceText,
+        "export default {",
+        'counter: typeof counter === "number" ? counter : 0,',
+        "evaluation,",
+        "};",
+    ].join("\n");
+    const moduleSpecifier = `data:text/javascript;charset=utf-8,${encodeURIComponent(moduleSourceText)}#runtime-${String(runtimeExecutionSequence)}`;
+
+    runtimeExecutionSequence += 1;
+
+    // eslint-disable-next-line no-unsanitized/method -- Test-only harness imports a repository-controlled, URI-encoded data module to validate autofix runtime equivalence.
+    const moduleNamespace = (await import(moduleSpecifier)) as Readonly<{
+        default: unknown;
+    }>;
+
+    return moduleNamespace.default;
+};
+
+export const executeRuntimeLooseNullSourceText = async (
     sourceText: string
-): RuntimeExecutionSnapshot => {
+): Promise<RuntimeExecutionSnapshot> => {
     const executableSourceText = sourceText.includes(
         runtimeIsPresentImportStatement
     )
@@ -345,17 +368,8 @@ export const executeRuntimeLooseNullSourceText = (
           })
         : `${runtimeIsPresentShimDeclaration}\n${sourceText}`;
 
-    // eslint-disable-next-line sonarjs/code-eval -- Test-only harness intentionally executes repository-controlled transformed snippets to verify semantic equivalence.
-    const executionResult = vm.runInNewContext(
-        [
-            "(() => {",
-            executableSourceText,
-            "return {",
-            'counter: typeof counter === "number" ? counter : 0,',
-            "evaluation,",
-            "};",
-            "})()",
-        ].join("\n")
+    const executionResult = await executeRuntimeSourceText(
+        [executableSourceText].join("\n")
     );
 
     if (!isRuntimeExecutionSnapshot(executionResult)) {

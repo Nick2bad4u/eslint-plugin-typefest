@@ -3,8 +3,8 @@
  * Focused option coverage for the custom rule-doc remark lint plugin.
  */
 import { remark } from "remark";
-import { describe, expect, it } from "vitest";
 import { VFile } from "vfile";
+import { describe, expect, it } from "vitest";
 
 import remarkLintRuleDocHeadings from "../scripts/remark-lint-rule-doc-headings.mjs";
 
@@ -53,7 +53,7 @@ type RunLintOptions = Parameters<typeof remarkLintRuleDocHeadings>[0];
  */
 const getLintMessageReasons = (
     markdown: string,
-    options: RunLintOptions
+    options: Readonly<RunLintOptions>
 ): readonly string[] => {
     const file = new VFile({
         path: "docs/rules/prefer-demo.md",

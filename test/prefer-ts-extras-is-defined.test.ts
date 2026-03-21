@@ -504,115 +504,126 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
         }
     });
 
-    it("fast-check: executable undefined comparison autofix preserves runtime behavior and remains second-pass stable", () => {
+    it("fast-check: executable undefined comparison autofix preserves runtime behavior and remains second-pass stable", async () => {
         expect.hasAssertions();
 
-        fc.assert(
-            fc.property(runtimeIsDefinedCaseArbitrary, (generatedCase) => {
-                if (!isRuntimeIsDefinedCase(generatedCase)) {
-                    throw new TypeError(
-                        "Expected runtime isDefined fast-check case to match RuntimeIsDefinedCase"
+        await fc.assert(
+            fc.asyncProperty(
+                runtimeIsDefinedCaseArbitrary,
+                async (generatedCase) => {
+                    if (!isRuntimeIsDefinedCase(generatedCase)) {
+                        throw new TypeError(
+                            "Expected runtime isDefined fast-check case to match RuntimeIsDefinedCase"
+                        );
+                    }
+
+                    const sourceText =
+                        buildRuntimeIsDefinedSourceText(generatedCase);
+                    const { ast: firstPassAst, binaryExpression } =
+                        parseUndefinedComparisonFromCode(sourceText);
+                    const firstPassReports: IsDefinedRuleReportDescriptor[] =
+                        [];
+
+                    const firstPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: firstPassAst,
+                            reportCalls: firstPassReports,
+                            sourceText,
+                        }) as RuleCreateContext
                     );
-                }
 
-                const sourceText =
-                    buildRuntimeIsDefinedSourceText(generatedCase);
-                const { ast: firstPassAst, binaryExpression } =
-                    parseUndefinedComparisonFromCode(sourceText);
-                const firstPassReports: IsDefinedRuleReportDescriptor[] = [];
+                    firstPassListeners.BinaryExpression?.(binaryExpression);
 
-                const firstPassListeners = rule.create(
-                    createRuleContextForSource({
-                        ast: firstPassAst,
-                        reportCalls: firstPassReports,
+                    const isStrictComparisonOperator =
+                        generatedCase.operator === "!==" ||
+                        generatedCase.operator === "===";
+
+                    if (!isStrictComparisonOperator) {
+                        expect(firstPassReports).toHaveLength(0);
+
+                        return;
+                    }
+
+                    const expectsNegatedHelper =
+                        generatedCase.operator === "===";
+
+                    expect(firstPassReports).toHaveLength(1);
+                    expect(firstPassReports[0]?.messageId).toBe(
+                        expectsNegatedHelper
+                            ? "preferTsExtrasIsDefinedNegated"
+                            : "preferTsExtrasIsDefined"
+                    );
+
+                    const firstPassFix = firstPassReports[0]?.fix;
+
+                    expect(firstPassFix).toBeTypeOf("function");
+
+                    if (firstPassFix === undefined) {
+                        throw new Error(
+                            "Expected runtime equivalence report to include a fixer"
+                        );
+                    }
+
+                    const firstPassTextEdits =
+                        invokeReportFixToTextEdits(firstPassFix);
+
+                    expect(firstPassTextEdits).toHaveLength(1);
+
+                    assertTextEditsDoNotOverlap(firstPassTextEdits);
+
+                    const firstPassFixedCode = applyTextEdits({
                         sourceText,
-                    }) as RuleCreateContext
-                );
+                        textEdits: firstPassTextEdits,
+                    });
 
-                firstPassListeners.BinaryExpression?.(binaryExpression);
+                    expect(() => {
+                        parser.parseForESLint(
+                            firstPassFixedCode,
+                            parserOptions
+                        );
+                    }).not.toThrow();
 
-                const isStrictComparisonOperator =
-                    generatedCase.operator === "!==" ||
-                    generatedCase.operator === "===";
+                    const originalExecutionSnapshot =
+                        await executeRuntimeIsDefinedSourceText(sourceText);
+                    const fixedExecutionSnapshot =
+                        await executeRuntimeIsDefinedSourceText(
+                            firstPassFixedCode
+                        );
 
-                if (!isStrictComparisonOperator) {
-                    expect(firstPassReports).toHaveLength(0);
-
-                    return;
-                }
-
-                const expectsNegatedHelper = generatedCase.operator === "===";
-
-                expect(firstPassReports).toHaveLength(1);
-                expect(firstPassReports[0]?.messageId).toBe(
-                    expectsNegatedHelper
-                        ? "preferTsExtrasIsDefinedNegated"
-                        : "preferTsExtrasIsDefined"
-                );
-
-                const firstPassFix = firstPassReports[0]?.fix;
-
-                expect(firstPassFix).toBeTypeOf("function");
-
-                if (firstPassFix === undefined) {
-                    throw new Error(
-                        "Expected runtime equivalence report to include a fixer"
+                    expect(fixedExecutionSnapshot).toStrictEqual(
+                        originalExecutionSnapshot
                     );
-                }
 
-                const firstPassTextEdits =
-                    invokeReportFixToTextEdits(firstPassFix);
-
-                expect(firstPassTextEdits).toHaveLength(1);
-
-                assertTextEditsDoNotOverlap(firstPassTextEdits);
-
-                const firstPassFixedCode = applyTextEdits({
-                    sourceText,
-                    textEdits: firstPassTextEdits,
-                });
-
-                expect(() => {
-                    parser.parseForESLint(firstPassFixedCode, parserOptions);
-                }).not.toThrow();
-
-                const originalExecutionSnapshot =
-                    executeRuntimeIsDefinedSourceText(sourceText);
-                const fixedExecutionSnapshot =
-                    executeRuntimeIsDefinedSourceText(firstPassFixedCode);
-
-                expect(fixedExecutionSnapshot).toStrictEqual(
-                    originalExecutionSnapshot
-                );
-
-                const {
-                    ast: secondPassAst,
-                    initializer: secondPassInitializer,
-                } = parseVariableInitializerExpressionByName({
-                    sourceText: firstPassFixedCode,
-                    variableName: "evaluation",
-                });
-
-                const secondPassReports: IsDefinedRuleReportDescriptor[] = [];
-                const secondPassListeners = rule.create(
-                    createRuleContextForSource({
+                    const {
                         ast: secondPassAst,
-                        reportCalls: secondPassReports,
+                        initializer: secondPassInitializer,
+                    } = parseVariableInitializerExpressionByName({
                         sourceText: firstPassFixedCode,
-                    }) as RuleCreateContext
-                );
+                        variableName: "evaluation",
+                    });
 
-                if (
-                    secondPassInitializer.type ===
-                    AST_NODE_TYPES.BinaryExpression
-                ) {
-                    secondPassListeners.BinaryExpression?.(
-                        secondPassInitializer
+                    const secondPassReports: IsDefinedRuleReportDescriptor[] =
+                        [];
+                    const secondPassListeners = rule.create(
+                        createRuleContextForSource({
+                            ast: secondPassAst,
+                            reportCalls: secondPassReports,
+                            sourceText: firstPassFixedCode,
+                        }) as RuleCreateContext
                     );
-                }
 
-                expect(secondPassReports).toHaveLength(0);
-            }),
+                    if (
+                        secondPassInitializer.type ===
+                        AST_NODE_TYPES.BinaryExpression
+                    ) {
+                        secondPassListeners.BinaryExpression?.(
+                            secondPassInitializer
+                        );
+                    }
+
+                    expect(secondPassReports).toHaveLength(0);
+                }
+            ),
             fastCheckRunConfig.default
         );
     });

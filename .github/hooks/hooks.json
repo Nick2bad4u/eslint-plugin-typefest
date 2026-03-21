@@ -1,42 +1,39 @@
 {
     "hooks": {
-        "SessionStart": [
+        "agentStop": [
             {
-                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
+                "bash": "./.github/hooks/scripts/remove-temp.sh",
+                "cwd": ".",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": ".github/hooks/scripts/remove-temp.sh",
-                "osx": ".github/hooks/scripts/remove-temp.sh",
-                "timeout": 10,
-                "type": "command",
-                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/remove-temp.ps1"
+                "powershell": "pwsh -NoLogo -NonInteractive -NoProfile -File \".github/hooks/scripts/remove-temp.ps1\"",
+                "timeoutSec": 10,
+                "type": "command"
             }
         ],
-        "Stop": [
+        "sessionStart": [
             {
-                "command": "\".github/hooks/scripts/remove-temp.ps1\"",
+                "bash": "./.github/hooks/scripts/remove-temp.sh",
+                "cwd": ".",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": ".github/hooks/scripts/remove-temp.sh",
-                "osx": ".github/hooks/scripts/remove-temp.sh",
-                "timeout": 10,
-                "type": "command",
-                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/remove-temp.ps1"
+                "powershell": "pwsh -NoLogo -NonInteractive -NoProfile -File \".github/hooks/scripts/remove-temp.ps1\"",
+                "timeoutSec": 10,
+                "type": "command"
             }
         ],
-        "UserPromptSubmit": [
+        "userPromptSubmitted": [
             {
-                "command": "\".github/hooks/scripts/log-prompt.ps1\"",
+                "bash": "./.github/hooks/scripts/log-prompt.sh",
+                "cwd": ".",
                 "env": {
                     "SUPPRESS_PWSH_DECORATIONS": "1"
                 },
-                "linux": ".github/hooks/scripts/log-prompt.sh",
-                "osx": ".github/hooks/scripts/log-prompt.sh",
-                "timeout": 10,
-                "type": "command",
-                "windows": "powershell -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File .github/hooks/scripts/log-prompt.ps1"
+                "powershell": "pwsh -NoLogo -NonInteractive -NoProfile -File \".github/hooks/scripts/log-prompt.ps1\"",
+                "timeoutSec": 10,
+                "type": "command"
             }
         ]
     },
