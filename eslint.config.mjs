@@ -37,19 +37,18 @@ import depend from "eslint-plugin-depend";
 import eslintPluginEslintPlugin from "eslint-plugin-eslint-plugin";
 import etcMisc from "eslint-plugin-etc-misc";
 import progress from "eslint-plugin-file-progress-2";
+import githubActions from "eslint-plugin-github-actions-2";
 import immutable from "eslint-plugin-immutable-2";
 import { importX } from "eslint-plugin-import-x";
 import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginJsonc from "eslint-plugin-jsonc";
 import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y";
 import listeners from "eslint-plugin-listeners";
-import loadbleImportsPlugin from "eslint-plugin-loadable-imports";
 import eslintPluginMath from "eslint-plugin-math";
 import moduleInterop from "eslint-plugin-module-interop";
 import nodePlugin from "eslint-plugin-n";
 import nitpick from "eslint-plugin-nitpick";
 import noBarrelFiles from "eslint-plugin-no-barrel-files";
-import noExplicitTypeExports from "eslint-plugin-no-explicit-type-exports";
 import * as pluginNFDAR from "eslint-plugin-no-function-declare-after-return";
 import pluginRegexLook from "eslint-plugin-no-lookahead-lookbehind-regexp";
 import pluginNoOnly from "eslint-plugin-no-only-tests";
@@ -59,7 +58,6 @@ import eslintPluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import nodeDependencies from "eslint-plugin-node-dependencies";
 import packageJson from "eslint-plugin-package-json";
 import pluginPerfectionist from "eslint-plugin-perfectionist";
-import pluginPreferArrow from "eslint-plugin-prefer-arrow";
 import pluginPrettier from "eslint-plugin-prettier";
 import pluginPromise from "eslint-plugin-promise";
 import pluginRedos from "eslint-plugin-redos";
@@ -128,18 +126,10 @@ const jsonSchemaValidatorRules = enableJsonSchemaValidation
  */
 const asEslintPlugin = (pluginValue) =>
     /** @type {import("eslint").ESLint.Plugin} */ (pluginValue);
-
 const canonicalPlugin = fixupPluginRules(pluginCanonical);
-const noExplicitTypeExportsPlugin = fixupPluginRules(
-    asEslintPlugin(noExplicitTypeExports)
-);
 const noUnsanitizedPlugin = fixupPluginRules(asEslintPlugin(nounsanitized));
-const preferArrowPlugin = fixupPluginRules(asEslintPlugin(pluginPreferArrow));
 const sortClassMembersPlugin = fixupPluginRules(
     asEslintPlugin(pluginSortClassMembers)
-);
-const pluginLoadableImports = fixupPluginRules(
-    asEslintPlugin(loadbleImportsPlugin)
 );
 const jsxA11yPlugin = fixupPluginRules(eslintPluginJsxA11y);
 const eslintReactStrictTypeCheckedConfig = /**
@@ -411,6 +401,7 @@ export default defineConfig([
     progress.configs["recommended-ci"],
     copilot.configs.recommended,
     sdl.configs.required,
+    githubActions.configs.recommended,
     {
         ...immutable.configs["functional-lite"],
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
@@ -924,7 +915,6 @@ export default defineConfig([
             js: js,
             jsdoc: jsdocPlugin,
             listeners,
-            "loadable-imports": pluginLoadableImports,
             math: eslintPluginMath,
             "module-interop": moduleInterop,
             n: nodePlugin,
@@ -1522,7 +1512,6 @@ export default defineConfig([
             "jsdoc/require-description": "warn",
             "jsdoc/require-param-description": "warn",
             "jsdoc/require-returns-description": "warn",
-            "loadable-imports/sort": "error",
             "math/abs": "warn",
             "math/prefer-exponentiation-operator": "warn",
             "math/prefer-math-sum-precise": "warn",
@@ -1767,7 +1756,6 @@ export default defineConfig([
         plugins: {
             "@typescript-eslint": tseslint,
             "import-x": importX,
-            "loadable-imports": pluginLoadableImports,
             n: nodePlugin,
             "no-only-tests": pluginNoOnly,
             "testing-library": pluginTestingLibrary,
@@ -1824,7 +1812,6 @@ export default defineConfig([
             "func-style": "off",
             "id-length": "off",
             "init-declarations": "off",
-            "loadable-imports/sort": "error",
             "max-classes-per-file": "off",
             "max-depth": "off",
             "max-lines": "off",
@@ -2735,7 +2722,6 @@ export default defineConfig([
             n: nodePlugin,
             "no-unsanitized": noUnsanitizedPlugin,
             perfectionist: pluginPerfectionist,
-            "prefer-arrow": preferArrowPlugin,
             prettier: pluginPrettier,
             promise: pluginPromise,
             redos: pluginRedos,
@@ -3003,10 +2989,8 @@ export default defineConfig([
         name: "Global: Globals",
         plugins: {
             canonical: canonicalPlugin,
-            "no-explicit-type-exports": noExplicitTypeExportsPlugin,
             "no-secrets": noSecrets,
             "no-unsanitized": noUnsanitizedPlugin,
-            "prefer-arrow": preferArrowPlugin,
             "write-good-comments": writeGoodComments,
         },
         rules: {
@@ -3052,7 +3036,6 @@ export default defineConfig([
                 },
             ],
             "no-empty-character-class": "error",
-            "no-explicit-type-exports/no-explicit-type-exports": "error",
             "no-inline-comments": "off",
             "no-invalid-regexp": "error",
             "no-magic-numbers": "off",
@@ -3078,7 +3061,6 @@ export default defineConfig([
                 "warn",
                 { allowNamedFunctions: true, allowUnboundThis: true },
             ],
-            "prefer-arrow/prefer-arrow-functions": "off", // Too strict
             "prettier/prettier": "off", // Using in Prettier directly for less noise for AI
             "require-await": "off",
             "require-unicode-regexp": "off",
