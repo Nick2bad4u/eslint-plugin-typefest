@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
 name: Codecov
 
+run-name: Codecov • ${{ github.ref_name }} @${{ github.actor }}
+
 concurrency:
     group: codecov-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
@@ -8,16 +10,15 @@ concurrency:
 on:
     workflow_dispatch:
 
-permissions:
-    contents: read
-
 jobs:
     coverage:
-        name: Run coverage and upload (${{ matrix.label }})
+        name: Run Coverage And Upload (${{ matrix.label }})
         runs-on: ${{ matrix.os }}
         timeout-minutes: 20
+        permissions:
+            contents: read
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
                 include:
                     - label: linux
@@ -29,6 +30,9 @@ jobs:
                     - label: macos
                       os: macos-latest
                       codecov_flag: os-macos
+        defaults:
+            run:
+                shell: bash
 
         steps:
             - name: Harden the runner (Audit all outbound calls)

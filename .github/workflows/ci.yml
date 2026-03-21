@@ -1,21 +1,29 @@
-name: CI
+name: Continuous Integration
+
+run-name: Continuous Integration • ${{ github.ref_name }} @${{ github.actor }}
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 on:
     push:
         branches:
             - main
     pull_request:
-
-permissions:
-    contents: read
+    merge_group:
+        types:
+            - checks_requested
 
 jobs:
     test:
         name: Test (${{ matrix.label }})
         runs-on: ${{ matrix.os }}
         timeout-minutes: 25
+        permissions:
+            contents: read
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
                 include:
                     - label: linux
@@ -27,6 +35,9 @@ jobs:
                     - label: macos
                       os: macos-latest
                       codecov_flag: os-macos
+        defaults:
+            run:
+                shell: bash
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
@@ -107,8 +118,10 @@ jobs:
         name: ESLint 9 Compatibility (${{ matrix.label }})
         runs-on: ubuntu-latest
         timeout-minutes: 20
+        permissions:
+            contents: read
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
                 include:
                     - eslint-js-version: 9.0.0
@@ -117,6 +130,9 @@ jobs:
                     - eslint-js-version: ^9.39.1
                       eslint-version: ^9.39.1
                       label: 9.latest
+        defaults:
+            run:
+                shell: bash
 
         steps:
             - name: Harden the runner (Audit all outbound calls)

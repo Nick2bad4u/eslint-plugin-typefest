@@ -9,7 +9,13 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: "CodeQL"
+name: Codeql Analysis
+
+run-name: Codeql Analysis • ${{ github.ref_name }} @${{ github.actor }}
+
+concurrency:
+    group: codeql-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 on:
     push:
@@ -17,23 +23,25 @@ on:
     pull_request:
         # The branches below must be a subset of the branches above
         branches: ["main"]
+    merge_group:
+        branches: ["main"]
+        types:
+            - checks_requested
     schedule:
         - cron: "0 0 * * 1"
-
-permissions:
-    contents: read
 
 jobs:
     analyze:
         name: Analyze
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         permissions:
             actions: read
             contents: read
             security-events: write
 
         strategy:
-            fail-fast: false
+            fail-fast: true
             matrix:
                 language: ["javascript", "typescript"]
                 # CodeQL supports [ $supported-codeql-languages ]

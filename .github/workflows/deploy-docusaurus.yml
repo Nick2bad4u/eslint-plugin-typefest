@@ -1,6 +1,8 @@
 # Deploy Docusaurus site to GitHub Pages
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: Deploy Docusaurus to GitHub Pages
+name: Deploy Docusaurus To GitHub Pages
+
+run-name: Deploy Docusaurus • ${{ github.ref_name }} @${{ github.actor }}
 
 on:
     push:
@@ -18,20 +20,22 @@ on:
             - "tsdoc.json"
     workflow_dispatch:
 
-permissions:
-    contents: read
-    pages: write
-    id-token: write
-
 concurrency:
     group: pages
-    cancel-in-progress: false
+    cancel-in-progress: true
 
 jobs:
     build:
-        name: Build docs site
+        name: Build Docs Site
         runs-on: ubuntu-latest
-
+        timeout-minutes: 40
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+        defaults:
+            run:
+                shell: bash
         steps:
             - name: Harden runner
               uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -74,13 +78,16 @@ jobs:
                   path: docs/docusaurus/build
 
     deploy:
-        name: Deploy site
+        name: Deploy Site
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         needs: build
+        permissions:
+            pages: write
+            id-token: write
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
-
         steps:
             - name: Harden runner
               uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2

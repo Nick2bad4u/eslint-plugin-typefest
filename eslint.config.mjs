@@ -399,9 +399,9 @@ export default defineConfig([
         name: "Import-X TypeScript (code files only)",
     },
     progress.configs["recommended-ci"],
-    copilot.configs.recommended,
+    copilot.configs.all,
     sdl.configs.required,
-    githubActions.configs.recommended,
+    githubActions.configs.all,
     {
         ...immutable.configs["functional-lite"],
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],

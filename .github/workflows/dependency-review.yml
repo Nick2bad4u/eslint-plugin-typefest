@@ -1,50 +1,38 @@
 # Dependency Review Action
 #
-# This Action will scan dependency manifest files that change as part of a Pull Request,
+# This Action will scan dependency manifest files that change as part of a pull request,
 # surfacing known-vulnerable versions of the packages declared or updated in the PR.
-# Once installed, if the workflow run is marked as required,
-# PRs introducing known-vulnerable packages will be blocked from merging.
-#
-# Source repository: https://github.com/actions/dependency-review-action
-# This GitHub Actions workflow is named 'Dependency Review'.
-# It is triggered by pull requests.
-#
-# Permissions:
-# - The workflow has read access to the repository contents.
-#
-# Jobs:
-# - dependency-review:
-#   - Runs on the latest Ubuntu runner.
-#   - Steps:
-#     1. Harden Runner:
-#        - Uses the 'step-security/harden-runner' action (version v2.10.4).
-#        - Configured with an egress policy set to audit.
-#     2. Checkout Repository:
-#        - Uses the 'actions/checkout' action (version v4.2.2) to check out the repository.
-#     3. Dependency Review:
-#        - Uses the 'actions/dependency-review-action' (version v4.5.0) to perform a dependency review.
 
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: "Dependency Review"
-on: [pull_request]
+name: Dependency Review
 
-permissions:
-    contents: read
+run-name: Dependency Review • ${{ github.ref_name }} @${{ github.actor }}
+
+on:
+    pull_request:
+    merge_group:
+        types:
+            - checks_requested
 
 concurrency:
     group: dependency-review-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: true
 
 jobs:
     dependency-review:
+        name: Dependency Review
         runs-on: ubuntu-latest
+        timeout-minutes: 20
+        permissions:
+            contents: read
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
               with:
                   egress-policy: audit
 
-            - name: "Checkout Repository"
+            - name: Checkout Repository
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-            - name: "Dependency Review"
+
+            - name: Dependency Review
               uses: actions/dependency-review-action@05fe4576374b728f0c523d6a13d64c25081e0803 # v4.8.3
