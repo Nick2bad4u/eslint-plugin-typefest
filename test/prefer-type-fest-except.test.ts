@@ -16,6 +16,7 @@ import {
     createTypedRuleTester,
     readTypedFixture,
     typedFixturePath,
+    warmTypedParserServices,
 } from "./_internal/typed-rule-tester";
 
 const rule = getPluginRule("prefer-type-fest-except");
@@ -25,6 +26,11 @@ const aliasOnlyOptions = [{ enforceBuiltinOmit: false }] as const;
 
 const validFixtureName = "prefer-type-fest-except.valid.ts";
 const invalidFixtureName = "prefer-type-fest-except.invalid.ts";
+const fixtureSafePatternsValidCase = {
+    code: readTypedFixture(validFixtureName),
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
 const replaceOrThrow = ({
     replacement,
     sourceText,
@@ -151,6 +157,8 @@ const parseExceptTypeReferenceFromCode = (
         "Expected generated source text to include a type alias with a type reference"
     );
 };
+
+warmTypedParserServices(typedFixturePath(validFixtureName));
 
 addTypeFestRuleMetadataSmokeTests("prefer-type-fest-except", {
     defaultOptions,
@@ -287,6 +295,19 @@ describe("prefer-type-fest-except parse-safety guards", () => {
     });
 });
 
+describe(
+    "prefer-type-fest-except RuleTester fixture validity",
+    {
+        timeout: 60_000,
+    },
+    () => {
+        ruleTester.run("prefer-type-fest-except fixture validity", rule, {
+            invalid: [],
+            valid: [fixtureSafePatternsValidCase],
+        });
+    }
+);
+
 ruleTester.run("prefer-type-fest-except", rule, {
     invalid: [
         {
@@ -333,11 +354,6 @@ ruleTester.run("prefer-type-fest-except", rule, {
         },
     ],
     valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
         {
             code: inlineValidNamespaceAliasCode,
             filename: typedFixturePath(validFixtureName),

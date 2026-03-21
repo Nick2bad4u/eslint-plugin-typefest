@@ -782,6 +782,9 @@ release/
 # Coverage directories
 coverage-results.json
 
+# Test reports
+test-report.junit.xml
+
 # Docusaurus
 !docs/docusaurus/static/manifest.json
 docs/docusaurus/.docusaurus
