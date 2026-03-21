@@ -104,6 +104,152 @@ function runTypedoc(cwd, configFile) {
 }
 
 /**
+ * Normalize a Windows path for case-insensitive comparison.
+ *
+ * @param {string} filePath - Path to normalize.
+ *
+ * @returns {string} Normalized path suitable for equality checks.
+ */
+function normalizeWindowsPath(filePath) {
+    return resolve(filePath)
+        .replace(/[\\/]+$/u, "")
+        .toLowerCase();
+}
+
+/**
+ * List active `subst` mappings.
+ *
+ * @returns {ReadonlyArray<{ driveRoot: string; targetPath: string }>} Active
+ *   drive mappings.
+ */
+function getSubstMappings() {
+    const output = execFileSync("subst", {
+        encoding: "utf8",
+        stdio: [
+            "ignore",
+            "pipe",
+            "ignore",
+        ],
+    });
+
+    return output
+        .split(/\r?\n/u)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => {
+            const match =
+                /^(?<driveLetter>[A-Z]):\\: => (?<targetPath>.+)$/u.exec(line);
+
+            if (!match?.groups) {
+                return undefined;
+            }
+
+            return {
+                driveRoot: `${match.groups.driveLetter}:`,
+                targetPath: match.groups.targetPath,
+            };
+        })
+        .filter((mapping) => mapping !== undefined);
+}
+
+/**
+ * Remove a `subst` mapping if it exists.
+ *
+ * @param {string} driveRoot - Drive root such as `X:`.
+ */
+function removeSubstDrive(driveRoot) {
+    if (
+        !getSubstMappings().some(
+            ({ driveRoot: mappedDriveRoot }) => mappedDriveRoot === driveRoot
+        )
+    ) {
+        return;
+    }
+
+    execFileSync("subst", [driveRoot, "/d"], {
+        stdio: "ignore",
+    });
+}
+
+/**
+ * Remove stale temporary `subst` mappings previously created for this
+ * repository root.
+ *
+ * @param {string} repositoryRoot - Absolute repository root directory.
+ */
+function removeStaleRepositorySubstMappings(repositoryRoot) {
+    const normalizedRepositoryRoot = normalizeWindowsPath(repositoryRoot);
+
+    for (const { driveRoot, targetPath } of getSubstMappings()) {
+        if (normalizeWindowsPath(targetPath) !== normalizedRepositoryRoot) {
+            continue;
+        }
+
+        removeSubstDrive(driveRoot);
+    }
+}
+
+/**
+ * Register cleanup handlers so a temporary `subst` mapping is removed on common
+ * process termination paths.
+ *
+ * @param {string} driveRoot - Drive root such as `X:`.
+ *
+ * @returns {() => void} Disposer that removes listeners and performs cleanup.
+ */
+function registerTemporaryDriveCleanup(driveRoot) {
+    let isCleanedUp = false;
+
+    const cleanupOnce = () => {
+        if (isCleanedUp) {
+            return;
+        }
+
+        isCleanedUp = true;
+
+        try {
+            removeSubstDrive(driveRoot);
+        } catch (error) {
+            console.warn(
+                `Warning: failed to remove temporary subst drive ${driveRoot}: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    };
+
+    /** @type {(() => void)[]} */
+    const removeListeners = [];
+
+    /**
+     * @param {NodeJS.Signals | "exit"} eventName - Process event name.
+     * @param {() => void} handler - Listener to register.
+     */
+    const addListener = (eventName, handler) => {
+        process.on(eventName, handler);
+        removeListeners.push(() => {
+            process.off(eventName, handler);
+        });
+    };
+
+    addListener("exit", cleanupOnce);
+    addListener("SIGINT", () => {
+        cleanupOnce();
+        process.exit(130);
+    });
+    addListener("SIGTERM", () => {
+        cleanupOnce();
+        process.exit(143);
+    });
+
+    return () => {
+        cleanupOnce();
+
+        for (const removeListener of removeListeners) {
+            removeListener();
+        }
+    };
+}
+
+/**
  * Pick an unused drive letter suitable for a temporary `subst` mapping.
  *
  * @returns {string} Drive letter (without colon).
@@ -146,12 +292,16 @@ function runViaTemporaryDrive(
     docsWorkspaceRelativePath,
     configFile
 ) {
+    removeStaleRepositorySubstMappings(repositoryRoot);
+
     const driveLetter = getTemporaryDriveLetter();
     const driveRoot = `${driveLetter}:`;
 
     execFileSync("subst", [driveRoot, repositoryRoot], {
         stdio: "ignore",
     });
+
+    const disposeCleanup = registerTemporaryDriveCleanup(driveRoot);
 
     try {
         const mappedDocsWorkspaceDirectory = resolve(
@@ -160,9 +310,7 @@ function runViaTemporaryDrive(
         );
         runTypedoc(mappedDocsWorkspaceDirectory, configFile);
     } finally {
-        execFileSync("subst", [driveRoot, "/d"], {
-            stdio: "ignore",
-        });
+        disposeCleanup();
     }
 }
 
