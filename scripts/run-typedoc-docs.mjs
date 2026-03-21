@@ -132,24 +132,36 @@ function getSubstMappings() {
         ],
     });
 
-    return output
-        .split(/\r?\n/u)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .map((line) => {
-            const match =
-                /^(?<driveLetter>[A-Z]):\\: => (?<targetPath>.+)$/u.exec(line);
+    /** @type {{ driveRoot: string; targetPath: string }[]} */
+    const mappings = [];
 
-            if (!match?.groups) {
-                return undefined;
-            }
+    for (const rawLine of output.split(/\r?\n/u)) {
+        const line = rawLine.trim();
 
-            return {
-                driveRoot: `${match.groups.driveLetter}:`,
-                targetPath: match.groups.targetPath,
-            };
-        })
-        .filter((mapping) => mapping !== undefined);
+        if (line.length === 0) {
+            continue;
+        }
+
+        const match = /^([A-Z]):\\: => (.+)$/u.exec(line);
+
+        if (!match) {
+            continue;
+        }
+
+        const driveLetter = match[1];
+        const targetPath = match[2];
+
+        if (driveLetter === undefined || targetPath === undefined) {
+            continue;
+        }
+
+        mappings.push({
+            driveRoot: `${driveLetter}:`,
+            targetPath,
+        });
+    }
+
+    return mappings;
 }
 
 /**
