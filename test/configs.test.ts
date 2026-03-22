@@ -268,6 +268,9 @@ describe("typefest plugin configs", () => {
 
         const experimentalOnlyRules = [
             "typefest/prefer-ts-extras-object-map-values",
+            "typefest/prefer-type-fest-conditional-except",
+            "typefest/prefer-type-fest-merge",
+            "typefest/prefer-type-fest-stringified",
         ];
 
         for (const ruleName of experimentalOnlyRules) {

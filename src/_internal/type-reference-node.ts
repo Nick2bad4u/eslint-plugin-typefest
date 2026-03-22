@@ -21,3 +21,24 @@ export const isIdentifierTypeReference = (
     node.type === "TSTypeReference" &&
     node.typeName.type === "Identifier" &&
     node.typeName.name === identifierName;
+
+/**
+ * Unwrap transparent parenthesized type nodes.
+ *
+ * @param node - Type node to normalize.
+ *
+ * @returns The innermost non-parenthesized type node.
+ */
+export const unwrapParenthesizedTypeNode = (
+    node: Readonly<TSESTree.TypeNode>
+): Readonly<TSESTree.TypeNode> => {
+    const parenthesizedCandidate = node as unknown as {
+        type: string;
+        typeAnnotation?: Readonly<TSESTree.TypeNode>;
+    };
+
+    return parenthesizedCandidate.type === "TSParenthesizedType" &&
+        parenthesizedCandidate.typeAnnotation !== undefined
+        ? unwrapParenthesizedTypeNode(parenthesizedCandidate.typeAnnotation)
+        : node;
+};

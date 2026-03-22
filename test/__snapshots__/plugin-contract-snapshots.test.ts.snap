@@ -2,7 +2,7 @@
 
 exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
 {
-  "ruleCount": 86,
+  "ruleCount": 89,
   "ruleNames": [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -44,6 +44,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-type-fest-array-length",
     "prefer-type-fest-arrayable",
     "prefer-type-fest-async-return-type",
+    "prefer-type-fest-conditional-except",
     "prefer-type-fest-conditional-pick",
     "prefer-type-fest-conditional-pick-deep",
     "prefer-type-fest-constructor",
@@ -58,6 +59,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-type-fest-less-than",
     "prefer-type-fest-less-than-or-equal",
     "prefer-type-fest-literal-union",
+    "prefer-type-fest-merge",
     "prefer-type-fest-merge-exclusive",
     "prefer-type-fest-non-empty-tuple",
     "prefer-type-fest-omit-index-signature",
@@ -78,6 +80,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-type-fest-set-readonly",
     "prefer-type-fest-set-required",
     "prefer-type-fest-simplify",
+    "prefer-type-fest-stringified",
     "prefer-type-fest-tagged-brands",
     "prefer-type-fest-tuple-of",
     "prefer-type-fest-union-member",
@@ -201,7 +204,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:experimental",
-    "ruleCount": 86,
+    "ruleCount": 89,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -243,6 +246,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-array-length",
       "typefest/prefer-type-fest-arrayable",
       "typefest/prefer-type-fest-async-return-type",
+      "typefest/prefer-type-fest-conditional-except",
       "typefest/prefer-type-fest-conditional-pick",
       "typefest/prefer-type-fest-conditional-pick-deep",
       "typefest/prefer-type-fest-constructor",
@@ -257,6 +261,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-less-than",
       "typefest/prefer-type-fest-less-than-or-equal",
       "typefest/prefer-type-fest-literal-union",
+      "typefest/prefer-type-fest-merge",
       "typefest/prefer-type-fest-merge-exclusive",
       "typefest/prefer-type-fest-non-empty-tuple",
       "typefest/prefer-type-fest-omit-index-signature",
@@ -277,6 +282,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-stringified",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-member",

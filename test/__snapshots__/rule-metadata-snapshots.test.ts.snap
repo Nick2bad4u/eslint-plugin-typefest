@@ -944,6 +944,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
   {
     "defaultOptionsLength": 0,
     "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R087",
+      "ruleNumber": 87,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-except",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferConditionalExcept",
+    ],
+    "ruleId": "prefer-type-fest-conditional-except",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
       "ruleId": "R038",
@@ -1280,6 +1301,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
       "preferLiteralUnion",
     ],
     "ruleId": "prefer-type-fest-literal-union",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R088",
+      "ruleNumber": 88,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-merge",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferMerge",
+    ],
+    "ruleId": "prefer-type-fest-merge",
     "schemaLength": 0,
     "type": "suggestion",
   },
@@ -1762,6 +1804,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
       "preferSimplify",
     ],
     "ruleId": "prefer-type-fest-simplify",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R089",
+      "ruleNumber": 89,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-stringified",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferStringified",
+    ],
+    "ruleId": "prefer-type-fest-stringified",
     "schemaLength": 0,
     "type": "suggestion",
   },

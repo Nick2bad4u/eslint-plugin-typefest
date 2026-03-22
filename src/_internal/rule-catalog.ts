@@ -114,6 +114,9 @@ const orderedRuleNames = [
     "prefer-type-fest-less-than",
     "prefer-type-fest-less-than-or-equal",
     "prefer-ts-extras-object-map-values",
+    "prefer-type-fest-conditional-except",
+    "prefer-type-fest-merge",
+    "prefer-type-fest-stringified",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>

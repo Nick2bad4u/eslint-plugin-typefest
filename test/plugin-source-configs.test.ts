@@ -78,6 +78,15 @@ describe("source plugin config wiring", () => {
         expect(Object.keys(experimental.rules)).toContain(
             "typefest/prefer-ts-extras-object-map-values"
         );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-conditional-except"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-merge"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-stringified"
+        );
         expect(Object.keys(strict.rules)).not.toContain(
             "typefest/prefer-ts-extras-array-find"
         );
@@ -107,6 +116,18 @@ describe("source plugin config wiring", () => {
         );
         expect(experimental.rules).toHaveProperty(
             "typefest/prefer-ts-extras-object-map-values",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-conditional-except",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-merge",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-stringified",
             "error"
         );
         expect(strict.rules).not.toHaveProperty(
