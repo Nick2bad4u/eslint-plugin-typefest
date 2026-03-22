@@ -117,6 +117,13 @@ const orderedRuleNames = [
     "prefer-type-fest-conditional-except",
     "prefer-type-fest-merge",
     "prefer-type-fest-stringified",
+    "prefer-type-fest-union-to-intersection",
+    "prefer-type-fest-distributed-omit",
+    "prefer-type-fest-distributed-pick",
+    "prefer-type-fest-set-return-type",
+    "prefer-type-fest-asyncify",
+    "prefer-type-fest-pick-index-signature",
+    "prefer-type-fest-conditional-keys",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>

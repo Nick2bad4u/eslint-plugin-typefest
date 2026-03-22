@@ -85,7 +85,28 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-type-fest-merge"
         );
         expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-asyncify"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-conditional-keys"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-distributed-omit"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-distributed-pick"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-pick-index-signature"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-set-return-type"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
             "typefest/prefer-type-fest-stringified"
+        );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-type-fest-union-to-intersection"
         );
         expect(Object.keys(strict.rules)).not.toContain(
             "typefest/prefer-ts-extras-array-find"
@@ -127,7 +148,35 @@ describe("source plugin config wiring", () => {
             "error"
         );
         expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-asyncify",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-conditional-keys",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-distributed-omit",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-distributed-pick",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-pick-index-signature",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-set-return-type",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
             "typefest/prefer-type-fest-stringified",
+            "error"
+        );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-type-fest-union-to-intersection",
             "error"
         );
         expect(strict.rules).not.toHaveProperty(

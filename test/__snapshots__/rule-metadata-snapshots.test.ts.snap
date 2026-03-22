@@ -946,6 +946,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R094",
+      "ruleNumber": 94,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-asyncify",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferAsyncify",
+    ],
+    "ruleId": "prefer-type-fest-asyncify",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
       "ruleId": "R087",
       "ruleNumber": 87,
       "typefestConfigs": [
@@ -959,6 +980,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
       "preferConditionalExcept",
     ],
     "ruleId": "prefer-type-fest-conditional-except",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R096",
+      "ruleNumber": 96,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-keys",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferConditionalKeys",
+    ],
+    "ruleId": "prefer-type-fest-conditional-keys",
     "schemaLength": 0,
     "type": "suggestion",
   },
@@ -1031,6 +1073,48 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
       "preferConstructorSignature",
     ],
     "ruleId": "prefer-type-fest-constructor",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R091",
+      "ruleNumber": 91,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-omit",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferDistributedOmit",
+    ],
+    "ruleId": "prefer-type-fest-distributed-omit",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R092",
+      "ruleNumber": 92,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-pick",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferDistributedPick",
+    ],
+    "ruleId": "prefer-type-fest-distributed-pick",
     "schemaLength": 0,
     "type": "suggestion",
   },
@@ -1472,6 +1556,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
   {
     "defaultOptionsLength": 0,
     "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R095",
+      "ruleNumber": 95,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-pick-index-signature",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferPickIndexSignature",
+    ],
+    "ruleId": "prefer-type-fest-pick-index-signature",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
       "ruleId": "R053",
@@ -1786,6 +1891,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
   {
     "defaultOptionsLength": 0,
     "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R093",
+      "ruleNumber": 93,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-set-return-type",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferSetReturnType",
+    ],
+    "ruleId": "prefer-type-fest-set-return-type",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
       "recommended": true,
       "requiresTypeChecking": false,
       "ruleId": "R066",
@@ -1898,6 +2024,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
       "preferUnionMember",
     ],
     "ruleId": "prefer-type-fest-union-member",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
+      "ruleId": "R090",
+      "ruleNumber": 90,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-union-to-intersection",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferUnionToIntersection",
+    ],
+    "ruleId": "prefer-type-fest-union-to-intersection",
     "schemaLength": 0,
     "type": "suggestion",
   },

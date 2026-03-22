@@ -50,9 +50,16 @@ Treat this preset as a proving ground:
 | Rule | Fix |
 | --- | :-: |
 | [`prefer-ts-extras-object-map-values`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-map-values) | — |
+| [`prefer-type-fest-asyncify`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-asyncify) | — |
 | [`prefer-type-fest-conditional-except`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-except) | — |
+| [`prefer-type-fest-conditional-keys`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-keys) | — |
+| [`prefer-type-fest-distributed-omit`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-omit) | — |
+| [`prefer-type-fest-distributed-pick`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-pick) | — |
 | [`prefer-type-fest-merge`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-merge) | — |
+| [`prefer-type-fest-pick-index-signature`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-pick-index-signature) | — |
+| [`prefer-type-fest-set-return-type`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-set-return-type) | — |
 | [`prefer-type-fest-stringified`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-stringified) | — |
+| [`prefer-type-fest-union-to-intersection`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-union-to-intersection) | — |
 
 ### Baseline rules inherited from `all`
 

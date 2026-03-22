@@ -46,10 +46,14 @@ import preferTypeFestAndAllRule from "../rules/prefer-type-fest-and-all.js";
 import preferTypeFestArrayLengthRule from "../rules/prefer-type-fest-array-length.js";
 import preferTypeFestArrayableRule from "../rules/prefer-type-fest-arrayable.js";
 import preferTypeFestAsyncReturnTypeRule from "../rules/prefer-type-fest-async-return-type.js";
+import preferTypeFestAsyncifyRule from "../rules/prefer-type-fest-asyncify.js";
 import preferTypeFestConditionalExceptRule from "../rules/prefer-type-fest-conditional-except.js";
+import preferTypeFestConditionalKeysRule from "../rules/prefer-type-fest-conditional-keys.js";
 import preferTypeFestConditionalPickDeepRule from "../rules/prefer-type-fest-conditional-pick-deep.js";
 import preferTypeFestConditionalPickRule from "../rules/prefer-type-fest-conditional-pick.js";
 import preferTypeFestConstructorRule from "../rules/prefer-type-fest-constructor.js";
+import preferTypeFestDistributedOmitRule from "../rules/prefer-type-fest-distributed-omit.js";
+import preferTypeFestDistributedPickRule from "../rules/prefer-type-fest-distributed-pick.js";
 import preferTypeFestExceptRule from "../rules/prefer-type-fest-except.js";
 import preferTypeFestIfRule from "../rules/prefer-type-fest-if.js";
 import preferTypeFestIterableElementRule from "../rules/prefer-type-fest-iterable-element.js";
@@ -68,6 +72,7 @@ import preferTypeFestOmitIndexSignatureRule from "../rules/prefer-type-fest-omit
 import preferTypeFestOptionalRule from "../rules/prefer-type-fest-optional.js";
 import preferTypeFestOrAllRule from "../rules/prefer-type-fest-or-all.js";
 import preferTypeFestPartialDeepRule from "../rules/prefer-type-fest-partial-deep.js";
+import preferTypeFestPickIndexSignatureRule from "../rules/prefer-type-fest-pick-index-signature.js";
 import preferTypeFestPrimitiveRule from "../rules/prefer-type-fest-primitive.js";
 import preferTypeFestPromisableRule from "../rules/prefer-type-fest-promisable.js";
 import preferTypeFestReadonlyDeepRule from "../rules/prefer-type-fest-readonly-deep.js";
@@ -81,11 +86,13 @@ import preferTypeFestSetNonNullableRule from "../rules/prefer-type-fest-set-non-
 import preferTypeFestSetOptionalRule from "../rules/prefer-type-fest-set-optional.js";
 import preferTypeFestSetReadonlyRule from "../rules/prefer-type-fest-set-readonly.js";
 import preferTypeFestSetRequiredRule from "../rules/prefer-type-fest-set-required.js";
+import preferTypeFestSetReturnTypeRule from "../rules/prefer-type-fest-set-return-type.js";
 import preferTypeFestSimplifyRule from "../rules/prefer-type-fest-simplify.js";
 import preferTypeFestStringifiedRule from "../rules/prefer-type-fest-stringified.js";
 import preferTypeFestTaggedBrandsRule from "../rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "../rules/prefer-type-fest-tuple-of.js";
 import preferTypeFestUnionMemberRule from "../rules/prefer-type-fest-union-member.js";
+import preferTypeFestUnionToIntersectionRule from "../rules/prefer-type-fest-union-to-intersection.js";
 import preferTypeFestUnionToTupleRule from "../rules/prefer-type-fest-union-to-tuple.js";
 import preferTypeFestUnknownArrayRule from "../rules/prefer-type-fest-unknown-array.js";
 import preferTypeFestUnknownMapRule from "../rules/prefer-type-fest-unknown-map.js";
@@ -150,11 +157,15 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-array-length": preferTypeFestArrayLengthRule,
     "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
     "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
+    "prefer-type-fest-asyncify": preferTypeFestAsyncifyRule,
     "prefer-type-fest-conditional-except": preferTypeFestConditionalExceptRule,
+    "prefer-type-fest-conditional-keys": preferTypeFestConditionalKeysRule,
     "prefer-type-fest-conditional-pick": preferTypeFestConditionalPickRule,
     "prefer-type-fest-conditional-pick-deep":
         preferTypeFestConditionalPickDeepRule,
     "prefer-type-fest-constructor": preferTypeFestConstructorRule,
+    "prefer-type-fest-distributed-omit": preferTypeFestDistributedOmitRule,
+    "prefer-type-fest-distributed-pick": preferTypeFestDistributedPickRule,
     "prefer-type-fest-except": preferTypeFestExceptRule,
     "prefer-type-fest-if": preferTypeFestIfRule,
     "prefer-type-fest-iterable-element": preferTypeFestIterableElementRule,
@@ -174,6 +185,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-optional": preferTypeFestOptionalRule,
     "prefer-type-fest-or-all": preferTypeFestOrAllRule,
     "prefer-type-fest-partial-deep": preferTypeFestPartialDeepRule,
+    "prefer-type-fest-pick-index-signature":
+        preferTypeFestPickIndexSignatureRule,
     "prefer-type-fest-primitive": preferTypeFestPrimitiveRule,
     "prefer-type-fest-promisable": preferTypeFestPromisableRule,
     "prefer-type-fest-readonly-deep": preferTypeFestReadonlyDeepRule,
@@ -188,11 +201,14 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-set-optional": preferTypeFestSetOptionalRule,
     "prefer-type-fest-set-readonly": preferTypeFestSetReadonlyRule,
     "prefer-type-fest-set-required": preferTypeFestSetRequiredRule,
+    "prefer-type-fest-set-return-type": preferTypeFestSetReturnTypeRule,
     "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
     "prefer-type-fest-stringified": preferTypeFestStringifiedRule,
     "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
     "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
     "prefer-type-fest-union-member": preferTypeFestUnionMemberRule,
+    "prefer-type-fest-union-to-intersection":
+        preferTypeFestUnionToIntersectionRule,
     "prefer-type-fest-union-to-tuple": preferTypeFestUnionToTupleRule,
     "prefer-type-fest-unknown-array": preferTypeFestUnknownArrayRule,
     "prefer-type-fest-unknown-map": preferTypeFestUnknownMapRule,
