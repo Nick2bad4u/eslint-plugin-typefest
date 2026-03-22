@@ -37,6 +37,7 @@ describe("source plugin config wiring", () => {
             plugin.configs["recommended-type-checked"];
         const strict = plugin.configs.strict;
         const all = plugin.configs.all;
+        const experimental = plugin.configs.experimental;
         const expectedQualifiedRuleIds = Object.keys(plugin.rules).map(
             (ruleName) => `typefest/${ruleName}`
         );
@@ -48,8 +49,9 @@ describe("source plugin config wiring", () => {
         );
         expect(getRuleEntries(strict).length).toBeGreaterThan(0);
         expect(getRuleEntries(all).length).toBeGreaterThan(0);
+        expect(getRuleEntries(experimental).length).toBeGreaterThan(0);
 
-        expect(Object.keys(all.rules)).toEqual(
+        expect(Object.keys(experimental.rules)).toEqual(
             expect.arrayContaining(expectedQualifiedRuleIds)
         );
         expect(Object.keys(recommended.rules)).toContain(
@@ -73,8 +75,14 @@ describe("source plugin config wiring", () => {
         expect(Object.keys(all.rules)).toContain(
             "typefest/prefer-ts-extras-array-find"
         );
+        expect(Object.keys(experimental.rules)).toContain(
+            "typefest/prefer-ts-extras-object-map-values"
+        );
         expect(Object.keys(strict.rules)).not.toContain(
             "typefest/prefer-ts-extras-array-find"
+        );
+        expect(Object.keys(all.rules)).not.toContain(
+            "typefest/prefer-ts-extras-object-map-values"
         );
 
         expect(recommended.rules).toHaveProperty(
@@ -97,8 +105,15 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-ts-extras-array-find",
             "error"
         );
+        expect(experimental.rules).toHaveProperty(
+            "typefest/prefer-ts-extras-object-map-values",
+            "error"
+        );
         expect(strict.rules).not.toHaveProperty(
             "typefest/prefer-ts-extras-array-find"
+        );
+        expect(all.rules).not.toHaveProperty(
+            "typefest/prefer-ts-extras-object-map-values"
         );
 
         for (const configName of typefestConfigNames) {

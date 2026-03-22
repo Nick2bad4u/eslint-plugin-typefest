@@ -113,6 +113,7 @@ const orderedRuleNames = [
     "prefer-type-fest-union-to-tuple",
     "prefer-type-fest-less-than",
     "prefer-type-fest-less-than-or-equal",
+    "prefer-ts-extras-object-map-values",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>

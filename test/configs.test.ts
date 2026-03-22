@@ -178,23 +178,27 @@ describe("typefest plugin configs", () => {
         }
     });
 
-    it("enables every rule in the all preset", () => {
-        const allRules = getConfigRules(configs, "all");
+    it("enables every rule in the experimental preset", () => {
+        const experimentalRules = getConfigRules(configs, "experimental");
 
-        expect(allRules).toBeDefined();
+        expect(experimentalRules).toBeDefined();
 
         for (const ruleId of Object.keys(rules ?? {})) {
-            expect(allRules).toHaveProperty(`typefest/${ruleId}`, "error");
+            expect(experimentalRules).toHaveProperty(
+                `typefest/${ruleId}`,
+                "error"
+            );
         }
     });
 
-    it("keeps minimal ⊂ recommended ⊂ recommended-type-checked ⊂ strict ⊂ all", () => {
+    it("keeps minimal ⊂ recommended ⊂ recommended-type-checked ⊂ strict ⊂ all ⊂ experimental", () => {
         const minimalRules = getConfigRules(configs, "minimal") ?? {};
         const recommendedRules = getConfigRules(configs, "recommended") ?? {};
         const recommendedTypeCheckedRules =
             getConfigRules(configs, "recommended-type-checked") ?? {};
         const strictRules = getConfigRules(configs, "strict") ?? {};
         const allRules = getConfigRules(configs, "all") ?? {};
+        const experimentalRules = getConfigRules(configs, "experimental") ?? {};
 
         for (const ruleName of Object.keys(minimalRules)) {
             expect(recommendedRules).toHaveProperty(ruleName, "error");
@@ -213,6 +217,10 @@ describe("typefest plugin configs", () => {
 
         for (const ruleName of Object.keys(strictRules)) {
             expect(allRules).toHaveProperty(ruleName, "error");
+        }
+
+        for (const ruleName of Object.keys(allRules)) {
+            expect(experimentalRules).toHaveProperty(ruleName, "error");
         }
     });
 
@@ -251,6 +259,20 @@ describe("typefest plugin configs", () => {
         for (const ruleName of allOnlyRules) {
             expect(strictRules).not.toHaveProperty(ruleName);
             expect(allRules).toHaveProperty(ruleName, "error");
+        }
+    });
+
+    it("keeps experimental-only rules excluded from all and included in experimental", () => {
+        const allRules = getConfigRules(configs, "all") ?? {};
+        const experimentalRules = getConfigRules(configs, "experimental") ?? {};
+
+        const experimentalOnlyRules = [
+            "typefest/prefer-ts-extras-object-map-values",
+        ];
+
+        for (const ruleName of experimentalOnlyRules) {
+            expect(allRules).not.toHaveProperty(ruleName);
+            expect(experimentalRules).toHaveProperty(ruleName, "error");
         }
     });
 

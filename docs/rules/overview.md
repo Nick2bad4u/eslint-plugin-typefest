@@ -39,6 +39,7 @@ That is enough for TypeScript files (`**/*.{ts,tsx,mts,cts}`).
 | 🟠 `typefest.configs["recommended-type-checked"]` | [Recommended (type-checked)](./presets/recommended-type-checked.md) |
 | 🔴 `typefest.configs.strict`                      | [Strict](./presets/strict.md)                                       |
 | 🟣 `typefest.configs.all`                         | [All](./presets/all.md)                                             |
+| 🧪 `typefest.configs.experimental`                | [Experimental](./presets/experimental.md)                           |
 | 💠 `typefest.configs["type-fest/types"]`          | [type-fest/types](./presets/type-fest-types.md)                     |
 | ✴️ `typefest.configs["ts-extras/type-guards"]`    | [ts-extras/type-guards](./presets/ts-extras-type-guards.md)         |
 

@@ -64,7 +64,8 @@ Use this pattern when you only extend rules and want full control over parser se
 2. Fix violations in small batches.
 3. Move to `recommended-type-checked` when you are ready for typed rules.
 4. Move to `strict` once your baseline is stable.
-5. Use `all` only when you explicitly want every rule, including experimental rules.
+5. Use `all` when you want every stable rule.
+6. Use `experimental` only when you want report-only candidate rules under active evaluation.
 
 ## Need a subset instead of a full preset?
 

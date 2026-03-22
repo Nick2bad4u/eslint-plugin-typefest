@@ -53,6 +53,13 @@ Choose this when:
 - You want full plugin coverage and can manage incremental cleanup.
 - You actively maintain migration and suppression hygiene.
 
+### `experimental`
+
+Choose this when:
+
+- You want everything from `all` plus lower-confidence candidate rules.
+- You are comfortable evaluating report-only diagnostics before broader rollout.
+
 ### Domain overlays
 
 Layer these when they match your codebase goals:

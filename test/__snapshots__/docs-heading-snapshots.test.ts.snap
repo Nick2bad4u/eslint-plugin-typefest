@@ -544,6 +544,24 @@ exports[`rule docs heading snapshots > keeps canonical rule docs heading matrix 
   },
   {
     "packageLabel": "ts-extras",
+    "ruleId": "prefer-ts-extras-object-map-values",
+    "sectionHeadings": [
+      "Targeted pattern scope",
+      "What this rule reports",
+      "Why this rule exists",
+      "❌ Incorrect",
+      "✅ Correct",
+      "Behavior and migration notes",
+      "Additional examples",
+      "ESLint flat config example",
+      "When not to use it",
+      "Package documentation",
+      "Further reading",
+      "Adoption resources",
+    ],
+  },
+  {
+    "packageLabel": "ts-extras",
     "ruleId": "prefer-ts-extras-object-values",
     "sectionHeadings": [
       "Targeted pattern scope",

@@ -40,6 +40,23 @@ const PRESET_DOCS_URL_BASE =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/presets";
 
 /**
+ * @param {string} markdown
+ *
+ * @returns {"\n" | "\r\n"}
+ */
+const detectLineEnding = (markdown) =>
+    markdown.includes("\r\n") ? "\r\n" : "\n";
+
+/**
+ * @param {string} markdown
+ * @param {"\n" | "\r\n"} lineEnding
+ *
+ * @returns {string}
+ */
+const normalizeMarkdownLineEndings = (markdown, lineEnding) =>
+    markdown.replace(/\r?\n/gv, lineEnding);
+
+/**
  * Locate the rules section bounds within README markdown.
  *
  * @param {string} markdown
@@ -133,6 +150,7 @@ export const normalizeRulesSectionMarkdown = (markdown) =>
 /** @type {Readonly<Record<PresetName, string>>} */
 const presetDocsSlugByName = {
     all: "all",
+    experimental: "experimental",
     minimal: "minimal",
     recommended: "recommended",
     "recommended-type-checked": "recommended-type-checked",
@@ -144,6 +162,7 @@ const presetDocsSlugByName = {
 /** @type {Readonly<Record<PresetName, string>>} */
 const presetConfigReferenceByName = {
     all: "typefest.configs.all",
+    experimental: "typefest.configs.experimental",
     minimal: "typefest.configs.minimal",
     recommended: "typefest.configs.recommended",
     "recommended-type-checked": 'typefest.configs["recommended-type-checked"]',
@@ -337,6 +356,7 @@ export const syncReadmeRulesTable = async ({ writeChanges }) => {
     const workspaceRoot = resolve(fileURLToPath(import.meta.url), "../..");
     const readmePath = resolve(workspaceRoot, "README.md");
     const readmeText = await readFile(readmePath, "utf8");
+    const lineEnding = detectLineEnding(readmeText);
 
     const { endOffset, startOffset } = getReadmeRulesSectionBounds(readmeText);
     const readmePrefix = readmeText.slice(0, startOffset).trimEnd();
@@ -357,7 +377,10 @@ export const syncReadmeRulesTable = async ({ writeChanges }) => {
         };
     }
 
-    const nextReadmeText = `${readmePrefix}\n\n${generatedRulesSection}${readmeSuffix}`;
+    const nextReadmeText = normalizeMarkdownLineEndings(
+        `${readmePrefix}\n\n${generatedRulesSection}${readmeSuffix}`,
+        lineEnding
+    );
 
     if (readmeText === nextReadmeText) {
         return {

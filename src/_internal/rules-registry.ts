@@ -36,6 +36,7 @@ import preferTsExtrasObjectFromEntriesRule from "../rules/prefer-ts-extras-objec
 import preferTsExtrasObjectHasInRule from "../rules/prefer-ts-extras-object-has-in.js";
 import preferTsExtrasObjectHasOwnRule from "../rules/prefer-ts-extras-object-has-own.js";
 import preferTsExtrasObjectKeysRule from "../rules/prefer-ts-extras-object-keys.js";
+import preferTsExtrasObjectMapValuesRule from "../rules/prefer-ts-extras-object-map-values.js";
 import preferTsExtrasObjectValuesRule from "../rules/prefer-ts-extras-object-values.js";
 import preferTsExtrasSafeCastToRule from "../rules/prefer-ts-extras-safe-cast-to.js";
 import preferTsExtrasSetHasRule from "../rules/prefer-ts-extras-set-has.js";
@@ -135,6 +136,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-object-has-in": preferTsExtrasObjectHasInRule,
     "prefer-ts-extras-object-has-own": preferTsExtrasObjectHasOwnRule,
     "prefer-ts-extras-object-keys": preferTsExtrasObjectKeysRule,
+    "prefer-ts-extras-object-map-values": preferTsExtrasObjectMapValuesRule,
     "prefer-ts-extras-object-values": preferTsExtrasObjectValuesRule,
     "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
     "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,

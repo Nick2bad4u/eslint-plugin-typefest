@@ -712,6 +712,27 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
+      "ruleId": "R086",
+      "ruleNumber": 86,
+      "typefestConfigs": [
+        "typefest.configs.experimental",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-map-values",
+    },
+    "fixable": null,
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferTsExtrasObjectMapValues",
+    ],
+    "ruleId": "prefer-ts-extras-object-map-values",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
+      "recommended": false,
+      "requiresTypeChecking": false,
       "ruleId": "R031",
       "ruleNumber": 31,
       "typefestConfigs": [

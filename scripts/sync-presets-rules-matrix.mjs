@@ -28,6 +28,7 @@ import { generateReadmeRulesSectionFromRules } from "./sync-readme-rules-table.m
 
 /**
  * @typedef {"all"
+ *     | "experimental"
  *     | "minimal"
  *     | "recommended"
  *     | "recommended-type-checked"
@@ -40,11 +41,30 @@ const matrixSectionHeading = "## Rule matrix";
 const presetRulesSectionHeading = "## Rules in this preset";
 const recommendedTypeCheckedLegacyHeading =
     "## What this preset adds on top of `recommended`";
+const experimentalLegacyHeading = "## What this preset adds on top of `all`";
 const presetsDocsDirectoryPath = "docs/rules/presets";
+
+/**
+ * @param {string} markdown
+ *
+ * @returns {"\n" | "\r\n"}
+ */
+const detectLineEnding = (markdown) =>
+    markdown.includes("\r\n") ? "\r\n" : "\n";
+
+/**
+ * @param {string} markdown
+ * @param {"\n" | "\r\n"} lineEnding
+ *
+ * @returns {string}
+ */
+const normalizeMarkdownLineEndings = (markdown, lineEnding) =>
+    markdown.replace(/\r?\n/gv, lineEnding);
 
 /** @type {Readonly<Record<PresetConfigName, string>>} */
 const presetDocSlugByConfigName = {
     all: "all",
+    experimental: "experimental",
     minimal: "minimal",
     recommended: "recommended",
     "recommended-type-checked": "recommended-type-checked",
@@ -253,6 +273,33 @@ const generateRecommendedTypeCheckedRulesSection = () => {
 };
 
 /**
+ * @returns {string}
+ */
+const generateExperimentalRulesSection = () => {
+    const allRuleNames = collectPresetRuleNames("all");
+    const experimentalRuleNames = collectPresetRuleNames("experimental");
+    const allRuleNameSet = new Set(allRuleNames);
+    const experimentalOnlyRuleNames = experimentalRuleNames.filter(
+        (ruleName) => !allRuleNameSet.has(ruleName)
+    );
+
+    return [
+        presetRulesSectionHeading,
+        "",
+        ...createFixLegendLines(),
+        "",
+        "### Experimental additions over `all`",
+        "",
+        createPresetRulesTable(experimentalOnlyRuleNames),
+        "",
+        "### Baseline rules inherited from `all`",
+        "",
+        createPresetRulesTable(allRuleNames),
+        "",
+    ].join("\n");
+};
+
+/**
  * @param {string} markdown
  * @param {readonly string[]} headingCandidates
  *
@@ -303,6 +350,7 @@ const replaceMarkdownSection = ({
     generatedSection,
     headingCandidates,
 }) => {
+    const lineEnding = detectLineEnding(markdown);
     const { headingOffset, sectionEndOffset } = findSectionBoundsByHeadings(
         markdown,
         headingCandidates
@@ -321,8 +369,10 @@ const replaceMarkdownSection = ({
 
     const markdownPrefix = markdown.slice(0, headingOffset).trimEnd();
     const markdownSuffix = markdown.slice(sectionEndOffset);
-    const nextMarkdown =
-        `${markdownPrefix}\n\n${generatedSection}` + markdownSuffix;
+    const nextMarkdown = normalizeMarkdownLineEndings(
+        `${markdownPrefix}\n\n${generatedSection}` + markdownSuffix,
+        lineEnding
+    );
 
     return {
         changed: true,
@@ -512,6 +562,36 @@ const syncPresetPageRuleTables = async ({ workspaceRoot, writeChanges }) => {
     });
 
     if (!recommendedTypeCheckedReplacementResult.changed) {
+        // Continue on to the experimental preset page update below.
+    } else {
+        changed = true;
+
+        if (writeChanges) {
+            await writeFile(
+                recommendedTypeCheckedDocPath,
+                recommendedTypeCheckedReplacementResult.nextMarkdown,
+                "utf8"
+            );
+        }
+    }
+
+    const experimentalDocPath = resolve(
+        workspaceRoot,
+        presetsDocsDirectoryPath,
+        `${presetDocSlugByConfigName.experimental}.md`
+    );
+    const experimentalMarkdown = await readFile(experimentalDocPath, "utf8");
+    const experimentalSection = generateExperimentalRulesSection();
+    const experimentalReplacementResult = replaceMarkdownSection({
+        generatedSection: experimentalSection,
+        headingCandidates: [
+            presetRulesSectionHeading,
+            experimentalLegacyHeading,
+        ],
+        markdown: experimentalMarkdown,
+    });
+
+    if (!experimentalReplacementResult.changed) {
         return {
             changed,
         };
@@ -521,8 +601,8 @@ const syncPresetPageRuleTables = async ({ workspaceRoot, writeChanges }) => {
 
     if (writeChanges) {
         await writeFile(
-            recommendedTypeCheckedDocPath,
-            recommendedTypeCheckedReplacementResult.nextMarkdown,
+            experimentalDocPath,
+            experimentalReplacementResult.nextMarkdown,
             "utf8"
         );
     }

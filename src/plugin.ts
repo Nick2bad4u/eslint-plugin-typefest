@@ -218,6 +218,7 @@ const derivePresetRuleNamesByConfig = (): Readonly<
 
     return {
         all: dedupeRuleNames(presetRuleNamesByConfig.all),
+        experimental: dedupeRuleNames(presetRuleNamesByConfig.experimental),
         minimal: dedupeRuleNames(presetRuleNamesByConfig.minimal),
         recommended: dedupeRuleNames(presetRuleNamesByConfig.recommended),
         "recommended-type-checked": dedupeRuleNames(
@@ -281,6 +282,10 @@ const effectivePresetRuleNamesByConfig: Readonly<
     Record<TypefestConfigName, readonly TypefestRuleName[]>
 > = {
     ...presetRuleNamesByConfig,
+    experimental: dedupeRuleNames([
+        ...presetRuleNamesByConfig.all,
+        ...presetRuleNamesByConfig.experimental,
+    ]),
     recommended: recommendedRuleNames,
     "recommended-type-checked": recommendedTypeCheckedRuleNames,
 };

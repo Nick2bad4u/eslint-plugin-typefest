@@ -36,6 +36,7 @@ assertType<TypefestRuleName>(
 );
 assertType<TypefestPresetConfig>(pluginContract.configs.recommended);
 assertType<TypefestPresetConfig>(pluginContract.configs.all);
+assertType<TypefestPresetConfig>(pluginContract.configs.experimental);
 assertType<TypefestConfigs>(pluginContract.configs);
 assertType<string>(pluginContract.meta.name);
 assertType<string>(pluginContract.meta.namespace);

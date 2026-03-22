@@ -7,6 +7,7 @@ import { objectHasOwn } from "ts-extras";
 /** Canonical flat-config preset keys exposed through `plugin.configs`. */
 export const typefestConfigNames = [
     "all",
+    "experimental",
     "minimal",
     "recommended",
     "recommended-type-checked",
@@ -46,6 +47,12 @@ export const typefestConfigMetadataByName: Readonly<
         readmeOrder: 5,
         requiresTypeChecking: true,
     },
+    experimental: {
+        icon: "🧪",
+        presetName: "typefest:experimental",
+        readmeOrder: 6,
+        requiresTypeChecking: true,
+    },
     minimal: {
         icon: "🟢",
         presetName: "typefest:minimal",
@@ -73,13 +80,13 @@ export const typefestConfigMetadataByName: Readonly<
     "ts-extras/type-guards": {
         icon: "✴️",
         presetName: "typefest:ts-extras/type-guards",
-        readmeOrder: 7,
+        readmeOrder: 8,
         requiresTypeChecking: true,
     },
     "type-fest/types": {
         icon: "💠",
         presetName: "typefest:type-fest/types",
-        readmeOrder: 6,
+        readmeOrder: 7,
         requiresTypeChecking: false,
     },
 };
@@ -91,6 +98,7 @@ export const typefestConfigNamesByReadmeOrder: readonly TypefestConfigName[] = [
     "recommended-type-checked",
     "strict",
     "all",
+    "experimental",
     "type-fest/types",
     "ts-extras/type-guards",
 ];
@@ -98,6 +106,7 @@ export const typefestConfigNamesByReadmeOrder: readonly TypefestConfigName[] = [
 /** Metadata references supported in `meta.docs.recommended`. */
 export const typefestConfigReferenceToName: Readonly<{
     "typefest.configs.all": "all";
+    "typefest.configs.experimental": "experimental";
     "typefest.configs.minimal": "minimal";
     "typefest.configs.recommended": "recommended";
     "typefest.configs.recommended-type-checked": "recommended-type-checked";
@@ -109,6 +118,7 @@ export const typefestConfigReferenceToName: Readonly<{
     'typefest.configs["type-fest/types"]': "type-fest/types";
 }> = {
     "typefest.configs.all": "all",
+    "typefest.configs.experimental": "experimental",
     "typefest.configs.minimal": "minimal",
     "typefest.configs.recommended": "recommended",
     "typefest.configs.recommended-type-checked": "recommended-type-checked",
