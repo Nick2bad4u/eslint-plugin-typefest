@@ -22,6 +22,7 @@ Use this skill when a user asks to inspect or manage SonarCloud findings, includ
 - security hotspots
 - hotspot details and review activity
 - measures and metric history
+- Compute Engine task metadata and recent analysis history
 - quality gate status and project gate association
 - quality profile inspection and project association
 - project settings
@@ -143,6 +144,21 @@ python "<path-to-skill>/scripts/manage_sonar_findings.py" quality-profile-change
 python "<path-to-skill>/scripts/manage_sonar_findings.py" set-quality-profile --repo "." --quality-profile <profile-key> --dry-run
 ```
 
+### 10.5 Investigate the common TypeScript tsconfig warning
+
+```powershell
+python "<path-to-skill>/scripts/manage_sonar_findings.py" ce-component --repo "."
+python "<path-to-skill>/scripts/manage_sonar_findings.py" project-analyses --repo "."
+python "<path-to-skill>/scripts/manage_sonar_findings.py" tsconfig-warning-check --repo "." --json
+```
+
+Use this when you need to answer questions like:
+
+- what was the latest analysis task id?
+- did Sonar report analysis warnings on the latest task?
+- is Sonar still likely discovering a docs-workspace tsconfig?
+- should `sonar.typescript.tsconfigPaths` be narrowed to root configs only?
+
 ### 11. Inspect or adjust project settings and tags
 
 ```powershell
@@ -180,6 +196,7 @@ python "<path-to-skill>/scripts/manage_sonar_findings.py" api-call --base-url ht
 3. Inspect current findings.
    - Run `summary` first.
    - Use `list-issues`, `issue-changelog`, `list-hotspots`, and `show-hotspot` when you need fuller detail.
+   - Use `ce-component`, `project-analyses`, and `tsconfig-warning-check` when the problem smells like stale analysis metadata or TypeScript program discovery.
 4. Classify findings.
    - Fix real defects in code or workflow/config when appropriate.
    - Use `falsepositive` or `wontfix` only when you have clear justification.
@@ -214,6 +231,10 @@ Supported commands:
 - `measures`
 - `measures-history`
 - `project-info`
+- `ce-component`
+- `ce-task`
+- `project-analyses`
+- `tsconfig-warning-check`
 - `quality-gate-status`
 - `list-quality-gates`
 - `get-quality-gate`
@@ -241,6 +262,9 @@ python "<path-to-skill>/scripts/manage_sonar_findings.py" list-hotspots --repo "
 python "<path-to-skill>/scripts/manage_sonar_findings.py" transition-issue --repo "." --issue AZ123 --issue AZ124 --transition resolve --comment "Fixed in code."
 python "<path-to-skill>/scripts/manage_sonar_findings.py" review-hotspot --repo "." --hotspot AZ999 --status REVIEWED --resolution SAFE --comment "Reviewed as safe for repo-local tooling."
 python "<path-to-skill>/scripts/manage_sonar_findings.py" measures --repo "." --metric alert_status --metric coverage --json
+python "<path-to-skill>/scripts/manage_sonar_findings.py" ce-component --repo "." --json
+python "<path-to-skill>/scripts/manage_sonar_findings.py" project-analyses --repo "." --json
+python "<path-to-skill>/scripts/manage_sonar_findings.py" tsconfig-warning-check --repo "." --json
 python "<path-to-skill>/scripts/manage_sonar_findings.py" quality-gate-status --repo "." --json
 python "<path-to-skill>/scripts/manage_sonar_findings.py" list-quality-profiles --repo "." --json
 python "<path-to-skill>/scripts/manage_sonar_findings.py" settings-values --repo "." --key sonar.typescript.tsconfigPaths --json
