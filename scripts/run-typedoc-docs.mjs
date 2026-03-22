@@ -11,6 +11,9 @@ const typedocCliPath = resolve(
     "bin",
     "typedoc"
 );
+const windowsSystemRoot =
+    process.env.SystemRoot ?? process.env.WINDIR ?? "C:\\Windows";
+const substExecutablePath = resolve(windowsSystemRoot, "System32", "subst.exe");
 
 /**
  * Parse a `--config FILE` (or `--options FILE`) argument from CLI args.
@@ -123,7 +126,7 @@ function normalizeWindowsPath(filePath) {
  *   drive mappings.
  */
 function getSubstMappings() {
-    const output = execFileSync("subst", {
+    const output = execFileSync(substExecutablePath, {
         encoding: "utf8",
         stdio: [
             "ignore",
@@ -142,16 +145,25 @@ function getSubstMappings() {
             continue;
         }
 
-        const match = /^([A-Z]):\\: => (.+)$/u.exec(line);
+        const driveLetter = line[0];
 
-        if (!match) {
+        if (driveLetter === undefined) {
             continue;
         }
 
-        const driveLetter = match[1];
-        const targetPath = match[2];
+        const driveLetterCode = driveLetter.charCodeAt(0);
 
-        if (driveLetter === undefined || targetPath === undefined) {
+        if (driveLetterCode < 65 || driveLetterCode > 90) {
+            continue;
+        }
+
+        if (!line.startsWith(":\\: => ", 1)) {
+            continue;
+        }
+
+        const targetPath = line.slice(8).trim();
+
+        if (targetPath.length === 0) {
             continue;
         }
 
@@ -178,7 +190,7 @@ function removeSubstDrive(driveRoot) {
         return;
     }
 
-    execFileSync("subst", [driveRoot, "/d"], {
+    execFileSync(substExecutablePath, [driveRoot, "/d"], {
         stdio: "ignore",
     });
 }
@@ -309,7 +321,7 @@ function runViaTemporaryDrive(
     const driveLetter = getTemporaryDriveLetter();
     const driveRoot = `${driveLetter}:`;
 
-    execFileSync("subst", [driveRoot, repositoryRoot], {
+    execFileSync(substExecutablePath, [driveRoot, repositoryRoot], {
         stdio: "ignore",
     });
 

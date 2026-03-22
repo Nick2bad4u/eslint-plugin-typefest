@@ -15,7 +15,6 @@ import { readdirSync } from "node:fs";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
 import pc from "picocolors";
-
 const repoRoot = process.cwd();
 const workflowsDir = path.join(repoRoot, ".github", "workflows");
 const rawArgs = process.argv.slice(2);
