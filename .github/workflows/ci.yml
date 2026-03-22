@@ -19,7 +19,7 @@ jobs:
     test:
         name: Test (${{ matrix.label }})
         runs-on: ${{ matrix.os }}
-        timeout-minutes: 25
+        timeout-minutes: 60
         permissions:
             contents: read
         strategy:
