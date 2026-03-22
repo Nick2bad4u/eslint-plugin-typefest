@@ -8,7 +8,7 @@ if [[ -z "${INPUT//[[:space:]]/}" ]]; then
     exit 1
 fi
 
-if ! command -v jq >/dev/null 2>&1; then
+if ! command -v jq > /dev/null 2>&1; then
     echo "Failure: jq is required for log-prompt.sh." >&2
     exit 1
 fi
@@ -27,7 +27,7 @@ resolve_timestamp_ms() {
     fi
 
     local parsed_timestamp
-    parsed_timestamp="$(date -u -d "$raw_timestamp" +%s%3N 2>/dev/null || true)"
+    parsed_timestamp="$(date -u -d "$raw_timestamp" +%s%3N 2> /dev/null || true)"
 
     if [[ -z "$parsed_timestamp" ]]; then
         echo "Failure: Unsupported timestamp format in hook payload: $raw_timestamp" >&2
@@ -50,7 +50,7 @@ if [[ -z "$PROMPT" ]]; then
 fi
 
 REDACTED_PROMPT="$(printf '%s' "$PROMPT" | sed -E 's/ghp_[A-Za-z0-9]{20,}/[REDACTED_TOKEN]/g')"
-HOSTNAME_VALUE="$(hostname 2>/dev/null || true)"
+HOSTNAME_VALUE="$(hostname 2> /dev/null || true)"
 USERNAME_VALUE="${USER:-${USERNAME:-}}"
 TIMESTAMP_ISO="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
 
@@ -59,15 +59,15 @@ mkdir -p "$LOG_DIR"
 chmod 700 "$LOG_DIR"
 
 jq -cn \
-        --arg sessionid "$SESSION_ID" \
-        --arg timestamp "$TIMESTAMP_ISO" \
-        --argjson timestampms "$TIMESTAMP_MS" \
-        --arg username "$USERNAME_VALUE" \
-        --arg hostname "$HOSTNAME_VALUE" \
-        --arg shellversion "$BASH_VERSION" \
-        --arg event "userPromptSubmitted" \
-        --arg hookeventname "$HOOK_EVENT_NAME" \
-        --arg transcript "$TRANSCRIPT_PATH" \
+    --arg sessionid "$SESSION_ID" \
+    --arg timestamp "$TIMESTAMP_ISO" \
+    --argjson timestampms "$TIMESTAMP_MS" \
+    --arg username "$USERNAME_VALUE" \
+    --arg hostname "$HOSTNAME_VALUE" \
+    --arg shellversion "$BASH_VERSION" \
+    --arg event "userPromptSubmitted" \
+    --arg hookeventname "$HOOK_EVENT_NAME" \
+    --arg transcript "$TRANSCRIPT_PATH" \
     --arg prompt "$REDACTED_PROMPT" \
     '{
             sessionid: $sessionid,

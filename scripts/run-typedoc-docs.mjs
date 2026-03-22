@@ -12,7 +12,7 @@ const typedocCliPath = resolve(
     "typedoc"
 );
 const windowsSystemRoot =
-    process.env.SystemRoot ?? process.env.WINDIR ?? "C:\\Windows";
+    process.env["SystemRoot"] ?? process.env["WINDIR"] ?? "C:\\Windows";
 const substExecutablePath = resolve(windowsSystemRoot, "System32", "subst.exe");
 
 /**
