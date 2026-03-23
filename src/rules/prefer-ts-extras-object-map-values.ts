@@ -301,7 +301,7 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report ts-extras objectFromEntries(objectEntries(...).map(...)) chains that only remap values and can likely use objectMapValues.",
+                    "require ts-extras objectMapValues over objectFromEntries(objectEntries(...).map(...)) chains that only remap values.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

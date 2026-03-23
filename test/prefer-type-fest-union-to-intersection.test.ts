@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-union-to-intersection";
 const docsDescription =
-    "report custom distributive conditional helpers that turn unions into intersections and can likely use TypeFest UnionToIntersection.";
+    "require TypeFest UnionToIntersection over custom distributive conditional helpers that turn unions into intersections.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-union-to-intersection";
 const preferUnionToIntersectionMessage =

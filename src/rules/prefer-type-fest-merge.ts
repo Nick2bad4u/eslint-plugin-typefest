@@ -127,7 +127,7 @@ const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report Except<Destination, keyof Source> & Source intersections that can likely use TypeFest Merge.",
+                    "require TypeFest Merge over Except<Destination, keyof Source> & Source intersections.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

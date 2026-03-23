@@ -14,7 +14,7 @@ import {
  */
 const ruleId = "prefer-ts-extras-object-map-values";
 const docsDescription =
-    "report ts-extras objectFromEntries(objectEntries(...).map(...)) chains that only remap values and can likely use objectMapValues.";
+    "require ts-extras objectMapValues over objectFromEntries(objectEntries(...).map(...)) chains that only remap values.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-object-map-values";
 const preferTsExtrasObjectMapValuesMessage =

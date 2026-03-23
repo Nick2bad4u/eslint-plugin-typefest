@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-asyncify";
 const docsDescription =
-    "report async function-type wrappers built from Parameters + Promise<Awaited<ReturnType<...>>> that can likely use TypeFest Asyncify.";
+    "require TypeFest Asyncify over async function-type wrappers built from Parameters + Promise<Awaited<ReturnType<...>>>.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-asyncify";
 const preferAsyncifyMessage =

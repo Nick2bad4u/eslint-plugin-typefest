@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-distributed-pick";
 const docsDescription =
-    "report distributive conditional helpers of the form T extends unknown ? Pick<T, K> : never that can likely use TypeFest DistributedPick.";
+    "require TypeFest DistributedPick over distributive conditional helpers of the form T extends unknown ? Pick<T, K> : never.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-pick";
 const preferDistributedPickMessage =

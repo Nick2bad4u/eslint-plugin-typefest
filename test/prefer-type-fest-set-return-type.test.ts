@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-set-return-type";
 const docsDescription =
-    "report direct function-type wrappers of the form (...args: Parameters<F>) => R that can likely use TypeFest SetReturnType.";
+    "require TypeFest SetReturnType over direct function-type wrappers of the form (...args: Parameters<F>) => R.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-set-return-type";
 const preferSetReturnTypeMessage =

@@ -10,7 +10,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
  */
 const ruleId = "prefer-type-fest-conditional-except";
 const docsDescription =
-    "report Except<T, ConditionalKeys<T, Condition>> compositions that can likely use TypeFest ConditionalExcept.";
+    "require TypeFest ConditionalExcept over Except<T, ConditionalKeys<T, Condition>> compositions.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-except";
 const preferConditionalExceptMessage =

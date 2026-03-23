@@ -10,7 +10,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
  */
 const ruleId = "prefer-type-fest-stringified";
 const docsDescription =
-    "report manual mapped types of the form { [K in keyof T]: string } that can likely use TypeFest Stringified.";
+    "require TypeFest Stringified over manual mapped types of the form { [K in keyof T]: string }.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-stringified";
 const preferStringifiedMessage =

@@ -118,6 +118,9 @@ const isDistributedPickEquivalent = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-distributed-pick`.
+ */
 const preferTypeFestDistributedPickRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -141,7 +144,7 @@ const preferTypeFestDistributedPickRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report distributive conditional helpers of the form T extends unknown ? Pick<T, K> : never that can likely use TypeFest DistributedPick.",
+                    "require TypeFest DistributedPick over distributive conditional helpers of the form T extends unknown ? Pick<T, K> : never.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

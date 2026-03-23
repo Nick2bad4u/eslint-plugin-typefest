@@ -166,10 +166,9 @@ const loadCreateRuleListeners = async (): Promise<
     if (!isRuleModuleWithDefaultExport(moduleValue)) {
         throw new TypeError("Expected rule module object");
     }
-    const create = moduleValue.default.create;
 
     return (context: unknown): RuleListenerMap =>
-        toRuleListenerMap(create(context));
+        toRuleListenerMap(moduleValue.default.create(context));
 };
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {

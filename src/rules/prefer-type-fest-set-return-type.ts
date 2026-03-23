@@ -10,6 +10,9 @@ import {
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
+/**
+ * ESLint rule definition for `prefer-type-fest-set-return-type`.
+ */
 const preferTypeFestSetReturnTypeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -50,7 +53,7 @@ const preferTypeFestSetReturnTypeRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report direct function-type wrappers of the form (...args: Parameters<F>) => R that can likely use TypeFest SetReturnType.",
+                    "require TypeFest SetReturnType over direct function-type wrappers of the form (...args: Parameters<F>) => R.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

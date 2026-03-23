@@ -104,6 +104,9 @@ const hasPickIndexSignatureMappedTypeShape = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-pick-index-signature`.
+ */
 const preferTypeFestPickIndexSignatureRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -127,7 +130,7 @@ const preferTypeFestPickIndexSignatureRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report manual mapped types that keep only index signatures and can likely use TypeFest PickIndexSignature.",
+                    "require TypeFest PickIndexSignature over manual mapped types that keep only index signatures.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

@@ -59,6 +59,9 @@ const isDistributedOmitEquivalent = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-distributed-omit`.
+ */
 const preferTypeFestDistributedOmitRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -82,7 +85,7 @@ const preferTypeFestDistributedOmitRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report distributive conditional helpers of the form T extends unknown ? Omit<T, K> : never that can likely use TypeFest DistributedOmit.",
+                    "require TypeFest DistributedOmit over distributive conditional helpers of the form T extends unknown ? Omit<T, K> : never.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

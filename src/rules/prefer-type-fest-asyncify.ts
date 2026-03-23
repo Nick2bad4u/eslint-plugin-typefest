@@ -41,6 +41,9 @@ const isAsyncifyEquivalentSetReturnTypeReference = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-asyncify`.
+ */
 const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -104,7 +107,7 @@ const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report async function-type wrappers built from Parameters + Promise<Awaited<ReturnType<...>>> that can likely use TypeFest Asyncify.",
+                    "require TypeFest Asyncify over async function-type wrappers built from Parameters + Promise<Awaited<ReturnType<...>>>.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

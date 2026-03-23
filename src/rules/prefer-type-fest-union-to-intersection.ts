@@ -150,6 +150,9 @@ const isUnionToIntersectionEquivalent = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-union-to-intersection`.
+ */
 const preferTypeFestUnionToIntersectionRule: ReturnType<
     typeof createTypedRule
 > = createTypedRule({
@@ -174,7 +177,7 @@ const preferTypeFestUnionToIntersectionRule: ReturnType<
         deprecated: false,
         docs: {
             description:
-                "report custom distributive conditional helpers that turn unions into intersections and can likely use TypeFest UnionToIntersection.",
+                "require TypeFest UnionToIntersection over custom distributive conditional helpers that turn unions into intersections.",
             frozen: false,
             recommended: false,
             requiresTypeChecking: false,

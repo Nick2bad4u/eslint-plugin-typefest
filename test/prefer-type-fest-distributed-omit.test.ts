@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-distributed-omit";
 const docsDescription =
-    "report distributive conditional helpers of the form T extends unknown ? Omit<T, K> : never that can likely use TypeFest DistributedOmit.";
+    "require TypeFest DistributedOmit over distributive conditional helpers of the form T extends unknown ? Omit<T, K> : never.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-distributed-omit";
 const preferDistributedOmitMessage =

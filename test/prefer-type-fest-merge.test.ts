@@ -10,7 +10,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
  */
 const ruleId = "prefer-type-fest-merge";
 const docsDescription =
-    "report Except<Destination, keyof Source> & Source intersections that can likely use TypeFest Merge.";
+    "require TypeFest Merge over Except<Destination, keyof Source> & Source intersections.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-merge";
 const preferMergeMessage =

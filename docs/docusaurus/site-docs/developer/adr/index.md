@@ -25,6 +25,7 @@ This page acts as the ADR README/index for developer documentation.
 - [ADR 0013: Docs link integrity and anchor stability policy](./0013-docs-link-integrity-and-anchor-stability-policy.md)
 - [ADR 0014: Typed-rule performance budget and instrumentation](./0014-typed-rule-performance-budget-and-instrumentation.md)
 - [ADR 0015: Preset semver and deprecation policy](./0015-preset-semver-and-deprecation-policy.md)
+- [ADR 0016: Experimental rule admission and skip criteria](./0016-experimental-rule-admission-and-skip-criteria.md)
 
 ## How to add a new ADR
 

@@ -131,7 +131,7 @@ const preferTypeFestConditionalExceptRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report Except<T, ConditionalKeys<T, Condition>> compositions that can likely use TypeFest ConditionalExcept.",
+                    "require TypeFest ConditionalExcept over Except<T, ConditionalKeys<T, Condition>> compositions.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

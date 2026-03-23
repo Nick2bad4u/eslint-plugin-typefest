@@ -68,6 +68,9 @@ const hasConditionalKeysKeyRemapShape = (
     );
 };
 
+/**
+ * ESLint rule definition for `prefer-type-fest-conditional-keys`.
+ */
 const preferTypeFestConditionalKeysRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
@@ -91,7 +94,7 @@ const preferTypeFestConditionalKeysRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report keyof-remapped mapped types that filter keys by value condition and can likely use TypeFest ConditionalKeys.",
+                    "require TypeFest ConditionalKeys over keyof-remapped mapped types that filter keys by value condition.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,

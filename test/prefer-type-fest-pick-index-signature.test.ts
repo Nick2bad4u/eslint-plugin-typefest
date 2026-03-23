@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-pick-index-signature";
 const docsDescription =
-    "report manual mapped types that keep only index signatures and can likely use TypeFest PickIndexSignature.";
+    "require TypeFest PickIndexSignature over manual mapped types that keep only index signatures.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-pick-index-signature";
 const preferPickIndexSignatureMessage =

@@ -6,7 +6,7 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
 
 const ruleId = "prefer-type-fest-conditional-keys";
 const docsDescription =
-    "report keyof-remapped mapped types that filter keys by value condition and can likely use TypeFest ConditionalKeys.";
+    "require TypeFest ConditionalKeys over keyof-remapped mapped types that filter keys by value condition.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-keys";
 const preferConditionalKeysMessage =

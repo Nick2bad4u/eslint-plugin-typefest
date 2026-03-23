@@ -14,8 +14,8 @@ import { createTypedRule } from "../_internal/typed-rule.js";
  *
  * @param node - Mapped type node to inspect.
  *
- * @returns `true` when the mapped type has the exact shape `{ [Key in keyof T]:
- *   string }`.
+ * @returns `true` when the mapped type has the exact `Stringified<T>`
+ *   equivalent shape.
  */
 const hasStringifiedMappedTypeShape = (
     node: Readonly<TSESTree.TSMappedType>
@@ -75,7 +75,7 @@ const preferTypeFestStringifiedRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "report manual mapped types of the form { [K in keyof T]: string } that can likely use TypeFest Stringified.",
+                    "require TypeFest Stringified over manual mapped types of the form { [K in keyof T]: string }.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,
