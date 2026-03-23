@@ -75,6 +75,11 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     "",
     "type Wrapper<RequiredDeep> = DeepRequired<User>;",
 ].join("\n");
+const fixtureSafePatternsValidCase = {
+    code: readTypedFixture(validFixtureName),
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -189,6 +194,23 @@ describe("prefer-type-fest-required-deep parse-safety guards", () => {
     });
 });
 
+describe(
+    "prefer-type-fest-required-deep RuleTester fixture validity",
+    {
+        timeout: 120_000,
+    },
+    () => {
+        ruleTester.run(
+            "prefer-type-fest-required-deep fixture validity",
+            getPluginRule("prefer-type-fest-required-deep"),
+            {
+                invalid: [],
+                valid: [fixtureSafePatternsValidCase],
+            }
+        );
+    }
+);
+
 ruleTester.run(
     "prefer-type-fest-required-deep",
     getPluginRule("prefer-type-fest-required-deep"),
@@ -216,12 +238,6 @@ ruleTester.run(
                 output: null,
             },
         ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-        ],
+        valid: [],
     }
 );
