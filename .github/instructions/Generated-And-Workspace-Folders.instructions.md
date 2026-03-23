@@ -13,6 +13,8 @@ These folders are usually infrastructure, not hand-authored source.
 - Inspect them when useful.
 - Debug them when necessary.
 - But fix the upstream source, config, or script that generated them instead of editing the generated output directly.
+- Temporary command outputs and debug logs must be written under `temp/` only (or a subfolder under `temp/`).
+- Do not create transient log/debug artifacts in the repository root (for example `.typecheck-stdout.log` at root).
 
 ## Folder purposes
 
@@ -49,5 +51,6 @@ These folders are usually infrastructure, not hand-authored source.
 ## Good hygiene
 
 - Keep temporary debugging artifacts in `temp/`, not scattered around the repo.
+- Never write ad-hoc debug logs to repository root; use `temp/` consistently.
 - Remove stale temporary files when they are no longer needed.
 - Avoid committing transient cache artifacts unless the repository intentionally tracks them.
