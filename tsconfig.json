@@ -9,7 +9,6 @@
         "allowUnusedLabels": false,
         "alwaysStrict": true,
         "assumeChangesOnlyAffectDirectDependencies": true,
-        "baseUrl": ".",
         "checkJs": false,
         "declaration": true,
         "declarationMap": false,
@@ -18,7 +17,6 @@
         "disableSizeLimit": true,
         "disableSolutionSearching": false,
         "disableSourceOfProjectReferenceRedirect": false,
-        "downlevelIteration": true,
         "emitBOM": false,
         "emitDecoratorMetadata": false,
         "erasableSyntaxOnly": true,
@@ -67,10 +65,10 @@
         "noUnusedParameters": true,
         "paths": {
             "@assets/*": [
-                "assets/*"
+                "./assets/*"
             ],
             "@plugin/*": [
-                "src/*"
+                "./src/*"
             ]
         },
         "preserveConstEnums": true,

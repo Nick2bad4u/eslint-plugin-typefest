@@ -70,9 +70,7 @@ export const getConstrainedTypeAtLocationWithFallback = (
                 parserServices as Parameters<
                     typeof getConstrainedTypeAtLocation
                 >[0],
-                safeCastTo<Parameters<typeof getConstrainedTypeAtLocation>[1]>(
-                    node
-                )
+                safeCastTo(node)
             );
         },
         reason: `${reason}-constrained`,

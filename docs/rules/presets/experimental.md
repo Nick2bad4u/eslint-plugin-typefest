@@ -45,6 +45,8 @@ Not every uncovered `type-fest` or `ts-extras` helper becomes an experimental ru
 - Some candidates have a clear canonical matcher and are good fits for report-only experimentation.
 - Others are intentionally skipped because their hand-written equivalents are too varied or too semantic to lint accurately yet.
 
+Current intentionally skipped examples include `SetParameterType`, `Jsonify`, `SimplifyDeep`, `Entry`, `Entries`, `isPropertyDefined`, and `isPropertyPresent`.
+
 Maintainer policy for that decision is documented in [ADR 0016: Experimental rule admission and skip criteria](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/developer/adr/0016-experimental-rule-admission-and-skip-criteria).
 
 ## Rules in this preset

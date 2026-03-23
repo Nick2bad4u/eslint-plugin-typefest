@@ -19,11 +19,7 @@ export const getTypeCheckerApparentType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): ts.Type | undefined => {
-    const checkerWithApparentType = safeCastTo<
-        ts.TypeChecker & {
-            getApparentType?: (type: Readonly<ts.Type>) => ts.Type;
-        }
-    >(checker);
+    const checkerWithApparentType = safeCastTo(checker);
 
     return checkerWithApparentType.getApparentType?.call(checker, type);
 };
@@ -59,11 +55,7 @@ export const getTypeCheckerBaseTypes = (
 export const getTypeCheckerStringType = (
     checker: Readonly<ts.TypeChecker>
 ): ts.Type | undefined => {
-    const checkerWithStringType = safeCastTo<
-        ts.TypeChecker & {
-            getStringType?: () => ts.Type;
-        }
-    >(checker);
+    const checkerWithStringType = safeCastTo(checker);
 
     return checkerWithStringType.getStringType?.call(checker);
 };
@@ -83,14 +75,7 @@ export const getTypeCheckerIsTypeAssignableToResult = (
     source: Readonly<ts.Type>,
     target: Readonly<ts.Type>
 ): boolean | undefined => {
-    const checkerWithAssignable = safeCastTo<
-        ts.TypeChecker & {
-            isTypeAssignableTo?: (
-                source: Readonly<ts.Type>,
-                target: Readonly<ts.Type>
-            ) => boolean;
-        }
-    >(checker);
+    const checkerWithAssignable = safeCastTo(checker);
 
     return checkerWithAssignable.isTypeAssignableTo?.call(
         checker,
@@ -112,13 +97,7 @@ export const getTypeCheckerBaseConstraintType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): ts.Type | undefined => {
-    const checkerWithBaseConstraint = safeCastTo<
-        ts.TypeChecker & {
-            getBaseConstraintOfType?: (
-                type: Readonly<ts.Type>
-            ) => ts.Type | undefined;
-        }
-    >(checker);
+    const checkerWithBaseConstraint = safeCastTo(checker);
 
     return checkerWithBaseConstraint.getBaseConstraintOfType?.call(
         checker,
@@ -138,11 +117,7 @@ export const getTypeCheckerIsArrayTypeResult = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): boolean | undefined => {
-    const checkerWithArrayType = safeCastTo<
-        ts.TypeChecker & {
-            isArrayType?: (type: Readonly<ts.Type>) => boolean;
-        }
-    >(checker);
+    const checkerWithArrayType = safeCastTo(checker);
 
     return checkerWithArrayType.isArrayType?.call(checker, type);
 };
@@ -159,11 +134,7 @@ export const getTypeCheckerIsTupleTypeResult = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
 ): boolean | undefined => {
-    const checkerWithTupleType = safeCastTo<
-        ts.TypeChecker & {
-            isTupleType?: (type: Readonly<ts.Type>) => boolean;
-        }
-    >(checker);
+    const checkerWithTupleType = safeCastTo(checker);
 
     return checkerWithTupleType.isTupleType?.call(checker, type);
 };
@@ -184,13 +155,7 @@ export const getTypeCheckerTypeArguments = (
         return undefined;
     }
 
-    const checkerWithTypeArguments = safeCastTo<
-        ts.TypeChecker & {
-            getTypeArguments?: (
-                type: Readonly<ts.TypeReference>
-            ) => readonly ts.Type[];
-        }
-    >(checker);
+    const checkerWithTypeArguments = safeCastTo(checker);
 
     return checkerWithTypeArguments.getTypeArguments?.call(checker, type);
 };

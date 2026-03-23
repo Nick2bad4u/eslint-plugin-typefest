@@ -650,7 +650,7 @@ export const isTypeScriptEslintAstType = (
     type: Readonly<ts.Type>
 ): boolean => {
     const visitedTypes = new Set<ts.Type>();
-    const pendingTypes: ts.Type[] = [safeCastTo<ts.Type>(type)];
+    const pendingTypes: ts.Type[] = [safeCastTo(type)];
 
     while (pendingTypes.length > 0) {
         const currentType = pendingTypes.pop();

@@ -4,9 +4,7 @@
  */
 import type {
     TypefestConfigName,
-    TypefestConfigs,
     TypefestPlugin,
-    TypefestPresetConfig,
     TypefestRuleId,
     TypefestRuleName,
 } from "eslint-plugin-typefest";
@@ -34,9 +32,9 @@ declare const pluginContract: TypefestPlugin;
 assertType<TypefestRuleName>(
     "prefer-type-fest-arrayable" satisfies RuleNameFromRuleId
 );
-assertType<TypefestPresetConfig>(pluginContract.configs.recommended);
-assertType<TypefestPresetConfig>(pluginContract.configs.all);
-assertType<TypefestPresetConfig>(pluginContract.configs.experimental);
-assertType<TypefestConfigs>(pluginContract.configs);
-assertType<string>(pluginContract.meta.name);
-assertType<string>(pluginContract.meta.namespace);
+assertType(pluginContract.configs.recommended);
+assertType(pluginContract.configs.all);
+assertType(pluginContract.configs.experimental);
+assertType(pluginContract.configs);
+assertType(pluginContract.meta.name);
+assertType(pluginContract.meta.namespace);

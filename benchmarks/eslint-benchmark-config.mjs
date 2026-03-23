@@ -31,6 +31,17 @@ import plugin from "../plugin.mjs";
  */
 
 /**
+ * @typedef {{
+ *     all: Readonly<BenchmarkRules>;
+ *     minimal: Readonly<BenchmarkRules>;
+ *     recommended: Readonly<BenchmarkRules>;
+ *     strict: Readonly<BenchmarkRules>;
+ *     tsExtrasTypeGuards: Readonly<BenchmarkRules>;
+ *     typeFestTypes: Readonly<BenchmarkRules>;
+ * }} TypefestRuleSets
+ */
+
+/**
  * Check whether a value is an object record.
  *
  * @param {unknown} value - Value to inspect.
@@ -156,6 +167,7 @@ const resolveRuleSet = (presetName) => {
 /**
  * Plugin rule sets used by benchmark scenarios.
  */
+/** @type {Readonly<TypefestRuleSets>} */
 export const typefestRuleSets = Object.freeze({
     all: resolveRuleSet("all"),
     minimal: resolveRuleSet("minimal"),

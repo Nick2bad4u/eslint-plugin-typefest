@@ -49,8 +49,10 @@ The following candidates were reviewed and intentionally not added in the initia
 - `SimplifyDeep`
 - `Entry`
 - `Entries`
+- `isPropertyDefined`
+- `isPropertyPresent`
 
-These were skipped because their hand-rolled equivalents are too varied or too semantically squishy for a narrow, trustworthy rule right now.
+These were skipped because their hand-rolled equivalents are too varied or too semantically squishy for a narrow, trustworthy rule right now. In particular, `isPropertyDefined` and `isPropertyPresent` intentionally operate on own data properties, which does not match the semantics of the common `value.property !== undefined` or `value.property != null` patterns people write by hand.
 
 ## Rationale
 

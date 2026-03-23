@@ -11,4 +11,4 @@ import { setHas } from "ts-extras";
 export const setContainsValue = <Type>(
     set: ReadonlySet<Type>,
     item: Type
-): boolean => setHas<Type>(set, item);
+): boolean => setHas(set, item);
