@@ -403,10 +403,15 @@ export default defineConfig([
     sdl.configs.required,
     githubActions.configs.all,
     {
-        ...immutable.configs["functional-lite"],
+        ...immutable.configs.all,
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Immutable: functional (not used in this repo)",
     },
+    // {
+    //     ...writeGoodComments.configs.all,
+    //     files: ["src/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
+    //     name: "Write Good Comments: (not used in this repo)",
+    // },
     fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
@@ -716,7 +721,7 @@ export default defineConfig([
             typefest: typefest,
         },
         rules: {
-            ...typefest.configs.all.rules,
+            ...typefest.configs.experimental.rules,
         },
     },
     // #endregion
@@ -961,6 +966,7 @@ export default defineConfig([
             ...readPluginConfigRules(listeners, "strict"),
             ...moduleInterop.configs.recommended.rules,
             ...readPluginConfigRules(pluginTotalFunctions, "recommended"),
+
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
             // Deprecated rule - turned off
             "@eslint-community/eslint-comments/no-unused-disable": "off",
@@ -1529,6 +1535,9 @@ export default defineConfig([
             "promise/prefer-await-to-then": "warn",
             "promise/prefer-catch": "warn",
             "promise/spec-only": "warn",
+            "sdl/no-nonnull-assertion-on-security-input": "error",
+            "sdl/no-trusted-types-policy-pass-through": "error",
+            "sdl/no-unsafe-cast-to-trusted-types": "error",
             "security/detect-non-literal-fs-filename": "off",
             "security/detect-object-injection": "off",
             "sort-class-members/sort-class-members": [
