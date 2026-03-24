@@ -82,6 +82,11 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     "",
     'type Wrapper<SetReadonly extends object> = ReadonlyBy<SetReadonly, "id">;',
 ].join("\n");
+const fixtureSafePatternsValidCase = {
+    code: readTypedFixture(validFixtureName),
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -193,6 +198,23 @@ describe("prefer-type-fest-set-readonly parse-safety guards", () => {
     });
 });
 
+describe(
+    "prefer-type-fest-set-readonly RuleTester fixture validity",
+    {
+        timeout: 120_000,
+    },
+    () => {
+        ruleTester.run(
+            "prefer-type-fest-set-readonly fixture validity",
+            getPluginRule(ruleId),
+            {
+                invalid: [],
+                valid: [fixtureSafePatternsValidCase],
+            }
+        );
+    }
+);
+
 ruleTester.run(ruleId, getPluginRule(ruleId), {
     invalid: [
         {
@@ -242,11 +264,6 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
         },
     ],
     valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
         {
             code: readTypedFixture(namespaceValidFixtureName),
             filename: typedFixturePath(namespaceValidFixtureName),
