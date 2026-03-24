@@ -55,6 +55,7 @@ import { getPluginRule } from "./_internal/ruleTester";
 import {
     createTypedRuleTester,
     typedFixturePath,
+    warmTypedParserServices,
 } from "./_internal/typed-rule-tester";
 
 const rule = getPluginRule("prefer-ts-extras-assert-defined");
@@ -63,6 +64,14 @@ const ruleTester = createTypedRuleTester();
 type AssertDefinedFixFactoryArgs = Readonly<{
     replacementTextFactory: (replacementName: string) => string;
 }>;
+
+const fixtureSafePatternsValidCase = {
+    code: validFixtureCode,
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
+
+warmTypedParserServices(typedFixturePath(validFixtureName), validFixtureCode);
 
 addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-defined", {
     defaultOptions: [],
@@ -620,6 +629,23 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
     });
 });
 
+describe(
+    "prefer-ts-extras-assert-defined RuleTester fixture validity",
+    {
+        timeout: 120_000,
+    },
+    () => {
+        ruleTester.run(
+            "prefer-ts-extras-assert-defined fixture validity",
+            rule,
+            {
+                invalid: [],
+                valid: [fixtureSafePatternsValidCase],
+            }
+        );
+    }
+);
+
 ruleTester.run("prefer-ts-extras-assert-defined", rule, {
     invalid: [
         {
@@ -786,11 +812,6 @@ ruleTester.run("prefer-ts-extras-assert-defined", rule, {
         },
     ],
     valid: [
-        {
-            code: validFixtureCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
         {
             code: nonUndefinedValidCode,
             filename: typedFixturePath(validFixtureName),
