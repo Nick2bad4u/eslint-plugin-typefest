@@ -56,6 +56,11 @@ const inlineInvalidOutputCode = [
     'import { isInteger } from "ts-extras";',
     "const result = isInteger(42);",
 ].join("\n");
+const fixtureSafePatternsValidCase = {
+    code: readTypedFixture(validFixtureName),
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
 
 const replaceOrThrow = ({
     replacement,
@@ -220,6 +225,19 @@ describe("prefer-ts-extras-is-integer parse-safety guards", () => {
     });
 });
 
+describe(
+    "prefer-ts-extras-is-integer RuleTester fixture validity",
+    {
+        timeout: 120_000,
+    },
+    () => {
+        ruleTester.run("prefer-ts-extras-is-integer fixture validity", rule, {
+            invalid: [],
+            valid: [fixtureSafePatternsValidCase],
+        });
+    }
+);
+
 ruleTester.run("prefer-ts-extras-is-integer", rule, {
     invalid: [
         {
@@ -251,11 +269,6 @@ ruleTester.run("prefer-ts-extras-is-integer", rule, {
         },
     ],
     valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
         {
             code: computedAccessValidCode,
             filename: typedFixturePath(validFixtureName),
