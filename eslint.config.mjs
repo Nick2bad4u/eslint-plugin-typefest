@@ -22,6 +22,7 @@ import * as htmlParser from "@html-eslint/parser";
 import stylistic from "@stylistic/eslint-plugin";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tseslintParser from "@typescript-eslint/parser";
+import vite from "@typpi/eslint-plugin-vite";
 import vitest from "@vitest/eslint-plugin";
 import gitignore from "eslint-config-flat-gitignore";
 import eslintConfigPrettier from "eslint-config-prettier";
@@ -402,6 +403,7 @@ export default defineConfig([
     copilot.configs.all,
     sdl.configs.required,
     githubActions.configs.all,
+    vite.configs.all,
     {
         ...immutable.configs.all,
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],

@@ -270,6 +270,9 @@ const config: Config = {
                     sidebarCollapsible: true,
                     sidebarPath: "./sidebars.ts",
                 },
+                googleTagManager: {
+                    containerId: "GTM-T8J6HPLF",
+                },
                 pages: {
                     editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     exclude: [

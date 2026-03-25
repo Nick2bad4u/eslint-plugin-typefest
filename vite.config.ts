@@ -154,7 +154,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
 
             reportOnFailure: true,
             reportsDirectory: "./coverage",
-            skipFull: false, // Don't skip full coverage collection
+            skipFull: true, // Don't skip full coverage collection
             // NOTE: Coverage thresholds adjusted after empirical analysis of current
             // instrumentation (November 2025). JSX-heavy components and patched CSS
             // modules generate synthetic branches that Vitest counts but cannot be
@@ -229,7 +229,8 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         // Always run test files in parallel locally for speed.
         // CI disables file-level parallelism for deterministic resource usage.
         fileParallelism: !isCiEnvironment,
-        globals: true,
+        globals: false,
+        hookTimeout: 10_000, // Set hook timeout to 10 seconds
         include: [...testFilePatterns],
         includeTaskLocation: true,
         isolate: true,
@@ -248,6 +249,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         printConsoleTrace: false, // Disable stack trace printing for cleaner output
         // Improve test output
         reporters: vitestReporters,
+        restoreMocks: true,
         retry: 0, // No retries to surface issues immediately
         sequence: {
             // Run projects sequentially to avoid resource contention
@@ -257,6 +259,7 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
         },
         setupFiles: ["./test/_internal/vitest-setup.ts"],
         slowTestThreshold: 300,
+        teardownTimeout: 10_000, // Set teardown timeout to 10 seconds
         testTimeout: 15_000, // Set Vitest timeout to 15 seconds
         typecheck: {
             allowJs: false,

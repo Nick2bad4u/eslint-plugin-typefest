@@ -1,6 +1,6 @@
 {
     "hooks": {
-        "agentStop": [
+        "sessionEnd": [
             {
                 "bash": "./.github/hooks/scripts/remove-temp.sh",
                 "cwd": ".",
