@@ -4,7 +4,7 @@
  */
 import type { TSESLint } from "@typescript-eslint/utils";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ImportInsertionDecision } from "../../src/_internal/import-fix-coordinator";
 
