@@ -14,6 +14,12 @@ const sidebars: SidebarsConfig = {
             type: "doc",
         },
         {
+            className: "sb-cat-developer-ops",
+            id: "developer/deploy-pages-seo-and-indexnow",
+            label: "🚀 Pages SEO & IndexNow",
+            type: "doc",
+        },
+        {
             className: "sb-cat-api-overview",
             collapsed: true,
             collapsible: true,

@@ -19,6 +19,12 @@ on:
             - "src/**"
             - "tsdoc.json"
     workflow_dispatch:
+        inputs:
+            submit_indexnow:
+                default: true
+                description: Submit the deployed sitemap URLs to IndexNow after this manual deploy.
+                required: false
+                type: boolean
 
 concurrency:
     group: pages
@@ -63,7 +69,14 @@ jobs:
               id: indexnow_configuration
               env:
                   INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+                  INDEXNOW_REQUESTED: ${{ github.event_name != 'workflow_dispatch' || inputs.submit_indexnow }}
               run: |
+                  if [ "${INDEXNOW_REQUESTED}" != "true" ]; then
+                    echo "enabled=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice title=IndexNow skipped::This manual workflow_dispatch run disabled IndexNow submission."
+                    exit 0
+                  fi
+
                   if [ -n "${INDEXNOW_KEY}" ]; then
                     echo "enabled=true" >> "$GITHUB_OUTPUT"
                     exit 0

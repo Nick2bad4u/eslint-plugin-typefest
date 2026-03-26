@@ -23,6 +23,7 @@ This section is for contributors and advanced users.
 - [CLI debugging and config inspection (`--print-config`, cache, strict flags)](./cli-debugging-and-print-config.md)
 - [IDE integration (VS Code)](./ide-integration-vscode.md)
 - [Node.js ESLint API usage](./node-api-usage.md)
+- [GitHub Pages SEO and IndexNow deployment behavior](./deploy-pages-seo-and-indexnow.md)
 
 ## Section map
 
