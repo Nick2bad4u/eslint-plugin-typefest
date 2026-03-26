@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
     chunkValues,
+    collectRouteManifestEntriesFromData,
     createIndexNowPayloads,
     decodeXmlEntities,
     deriveSiteConfiguration,
     ensureValidIndexNowKey,
+    isIndexNowVerificationPendingResponse,
+    normalizeDocusaurusSourcePath,
     normalizeSiteUrl,
+    parseGitDiffNameStatus,
     parseSitemapUrls,
+    resolveChangedUrlsFromManifest,
 } from "../scripts/indexnow.mjs";
 
 describe("indexnow script helpers", () => {
@@ -53,6 +58,17 @@ describe("indexnow script helpers", () => {
                 "https://example.com/docs?x=1&amp;y=2&amp;title=Tom&#39;s%20Guide"
             )
         ).toBe("https://example.com/docs?x=1&y=2&title=Tom's%20Guide");
+    });
+
+    it("normalizes Docusaurus source paths to repository-relative paths", () => {
+        expect(
+            normalizeDocusaurusSourcePath(
+                "@site/../rules/prefer-ts-extras-array-at.md"
+            )
+        ).toBe("docs/rules/prefer-ts-extras-array-at.md");
+        expect(normalizeDocusaurusSourcePath("@site/src/pages/index.jsx")).toBe(
+            "docs/docusaurus/src/pages/index.tsx"
+        );
     });
 
     it("parses and deduplicates sitemap URLs", () => {
@@ -129,5 +145,101 @@ describe("indexnow script helpers", () => {
                 ],
             },
         ]);
+    });
+
+    it("collects source/permalink entries from nested Docusaurus metadata", () => {
+        expect(
+            collectRouteManifestEntriesFromData({
+                nested: {
+                    entries: [
+                        {
+                            permalink:
+                                "/eslint-plugin-typefest/docs/rules/getting-started",
+                            source: "@site/../rules/getting-started.md",
+                        },
+                        {
+                            permalink:
+                                "/eslint-plugin-typefest/docs/developer/",
+                            source: "@site/site-docs/developer/index.md",
+                        },
+                    ],
+                },
+            })
+        ).toStrictEqual([
+            {
+                permalink: "/eslint-plugin-typefest/docs/developer/",
+                sourcePath: "docs/docusaurus/site-docs/developer/index.md",
+            },
+            {
+                permalink: "/eslint-plugin-typefest/docs/rules/getting-started",
+                sourcePath: "docs/rules/getting-started.md",
+            },
+        ]);
+    });
+
+    it("parses added, modified, copied, and renamed paths from git diff --name-status output", () => {
+        expect(
+            parseGitDiffNameStatus(
+                [
+                    "A\tdocs/rules/new-rule.md",
+                    "R100\tdocs/rules/old-name.md\tdocs/rules/new-name.md",
+                    "M\tdocs/rules/updated-rule.md",
+                    "C100\tdocs/docusaurus/blog/source.md\tdocs/docusaurus/blog/copied.md",
+                ].join("\n")
+            )
+        ).toStrictEqual([
+            "docs/rules/new-rule.md",
+            "docs/rules/new-name.md",
+            "docs/rules/updated-rule.md",
+            "docs/docusaurus/blog/copied.md",
+        ]);
+    });
+
+    it("resolves changed repository paths into canonical public URLs", () => {
+        expect(
+            resolveChangedUrlsFromManifest({
+                changedPaths: [
+                    "docs/rules/getting-started.md",
+                    "docs/docusaurus/site-docs/developer/index.md",
+                ],
+                manifestEntries: [
+                    {
+                        permalink:
+                            "/eslint-plugin-typefest/docs/rules/getting-started",
+                        sourcePath: "docs/rules/getting-started.md",
+                    },
+                    {
+                        permalink: "/eslint-plugin-typefest/docs/developer/",
+                        sourcePath:
+                            "docs/docusaurus/site-docs/developer/index.md",
+                    },
+                ],
+                siteUrl: "https://nick2bad4u.github.io/eslint-plugin-typefest/",
+            })
+        ).toStrictEqual([
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/getting-started",
+            "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/developer/",
+        ]);
+    });
+
+    it("detects Bing verification-pending responses as retryable", () => {
+        expect(
+            isIndexNowVerificationPendingResponse(
+                403,
+                '{"errorCode":"SiteVerificationNotCompleted","message":"Site Verification is not completed."}'
+            )
+        ).toBeTruthy();
+    });
+
+    it("does not mark unrelated IndexNow failures as retryable", () => {
+        expect(
+            isIndexNowVerificationPendingResponse(
+                403,
+                '{"errorCode":"Forbidden","message":"Some other failure."}'
+            )
+        ).toBeFalsy();
+        expect(
+            isIndexNowVerificationPendingResponse(422, "unprocessable entity")
+        ).toBeFalsy();
     });
 });

@@ -28,13 +28,31 @@ IndexNow is optional and is enabled only when the repository-level GitHub Action
 When that secret is present, the deploy workflow:
 
 1. builds the docs site,
-2. writes `indexnow-key.txt` into the built site output,
-3. deploys GitHub Pages,
-4. waits for the deployed key file and sitemap to become publicly reachable,
-5. fetches the deployed sitemap URLs, and
-6. submits those URLs to the IndexNow endpoint.
+2. generates a route manifest from the Docusaurus build metadata,
+3. writes `indexnow-key.txt` into the built site output,
+4. deploys GitHub Pages,
+5. compares the push diff against the generated route manifest,
+6. resolves changed public URLs, and
+7. submits only those URLs to the IndexNow endpoint.
 
 The key file is **not** committed to the repository. It is generated at build time from the secret so the published site can prove ownership without storing the key in source control.
+
+The route-manifest step is now intentionally more portable across similar ESLint plugin repositories:
+
+- it resolves Docusaurus `@site/...` sources relative to the configured docs app,
+- it can infer the public site URL from package metadata when no explicit override is provided,
+- and it can optionally narrow git-diff scanning through `INDEXNOW_CONTENT_PATHS_JSON` if a copied repository wants stricter path scoping.
+
+## First-time verification timing
+
+The first IndexNow submission for a newly published key can take a little while to become usable because Bing still needs to fetch the key file and complete site verification.
+
+- The protocol documents a pending-validation state (`202 Accepted`).
+- In practice, Bing can also return a temporary `403` with `SiteVerificationNotCompleted` while verification is still propagating.
+
+That response usually means the setup is structurally correct, but Bing has not finished verifying the published key yet.
+
+The automation retries that specific first-run verification state for a bounded window before failing the workflow.
 
 ## Why the key file uses `keyLocation`
 
@@ -56,21 +74,48 @@ The `Deploy Docusaurus To GitHub Pages` workflow also exposes a manual `workflow
 
 Use that input when you want to run a one-off manual deploy but **skip** the post-deploy IndexNow submission.
 
+## Why the workflow no longer re-submits the full sitemap on every push
+
+Continuously re-submitting an entire site sitemap is noisy and unnecessary for a normal docs deployment pipeline.
+
+The default push workflow now derives a delta of **changed public URLs** from:
+
+- the git diff range for the push, and
+- a route manifest generated from the current Docusaurus build metadata.
+
+By default the helper diffs the repository broadly and then intersects those changed files with the generated route manifest. That keeps the logic portable across repos whose public content might not live in exactly the same folders.
+
+If a copied repository wants to constrain the diff to specific content roots, it can set `INDEXNOW_CONTENT_PATHS_JSON` to a JSON string array of repo-relative paths.
+
+That means routine pushes only notify IndexNow about changed public routes instead of replaying the full sitemap every time.
+
+This keeps notifications targeted:
+
+- **new** URLs are submitted,
+- **modified** URLs are re-submitted,
+- **renamed** URLs are submitted at their new location,
+- unchanged existing pages are not replayed.
+
+If you ever need a full replay, the `submit-sitemap` helper still exists as a manual script path, but it is no longer the default workflow behavior.
+
 ### Behavior summary
 
-| Trigger             | `INDEXNOW_KEY` present | `submit_indexnow` | Result                                          |
-| ------------------- | ---------------------- | ----------------- | ----------------------------------------------- |
-| `push` to `main`    | no                     | n/a               | Deploy site only                                |
-| `push` to `main`    | yes                    | n/a               | Deploy site and submit sitemap URLs to IndexNow |
-| `workflow_dispatch` | no                     | `true` or `false` | Deploy site only                                |
-| `workflow_dispatch` | yes                    | `true`            | Deploy site and submit sitemap URLs to IndexNow |
-| `workflow_dispatch` | yes                    | `false`           | Deploy site only                                |
+| Trigger             | `INDEXNOW_KEY` present | `submit_indexnow` | Result                                                                  |
+| ------------------- | ---------------------- | ----------------- | ----------------------------------------------------------------------- |
+| `push` to `main`    | no                     | n/a               | Deploy site only                                                        |
+| `push` to `main`    | yes                    | n/a               | Deploy site and submit changed public URLs to IndexNow                  |
+| `workflow_dispatch` | no                     | `true` or `false` | Deploy site only                                                        |
+| `workflow_dispatch` | yes                    | `true`            | Deploy site, then skip IndexNow if no usable diff baseline is available |
+| `workflow_dispatch` | yes                    | `false`           | Deploy site only                                                        |
 
 ## Operational notes
 
 - If the secret is missing, the workflow emits a notice and continues with a normal deploy.
 - If a manual dispatch explicitly disables IndexNow, the workflow emits a notice and continues with a normal deploy.
 - The post-deploy step reads the **deployed** `page_url`, not a hard-coded local build path, so it validates the public Pages output before submitting URLs.
+- The post-deploy step retries Bing's temporary `SiteVerificationNotCompleted` response instead of failing immediately on the first verification attempt.
+- If the push diff does not contain changed public content files, the workflow logs a skip message and does not submit anything to IndexNow.
+- If a manual `workflow_dispatch` run has no usable `before` SHA to diff against, the delta submission step exits cleanly without submitting anything.
 
 ## Related files
 

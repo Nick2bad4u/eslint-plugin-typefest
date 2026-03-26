@@ -91,6 +91,12 @@ jobs:
             - name: Build Docusaurus site
               run: npm run docs:build
 
+            - name: Write IndexNow route manifest
+              run: >-
+                  node scripts/indexnow.mjs write-route-manifest
+                  --output temp/indexnow-route-manifest.json
+                  --site-directory docs/docusaurus
+
             - name: Write IndexNow key file into built site output
               if: steps.indexnow_configuration.outputs.enabled == 'true'
               env:
@@ -112,6 +118,12 @@ jobs:
               uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
               with:
                   path: docs/docusaurus/build
+
+            - name: Upload IndexNow route manifest artifact
+              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+              with:
+                  name: indexnow-route-manifest
+                  path: temp/indexnow-route-manifest.json
 
     deploy:
         name: Deploy Site
@@ -139,7 +151,7 @@ jobs:
     indexnow:
         name: Notify IndexNow
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 45
         needs:
             - build
             - deploy
@@ -163,9 +175,18 @@ jobs:
               with:
                   node-version-file: .node-version
 
-            - name: Submit deployed sitemap URLs to IndexNow
+            - name: Download IndexNow route manifest artifact
+              uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+              with:
+                  name: indexnow-route-manifest
+                  path: temp
+
+            - name: Submit changed public URLs to IndexNow
               env:
+                  INDEXNOW_BASE_REF: ${{ github.event.before || '0000000000000000000000000000000000000000' }}
                   INDEXNOW_ENDPOINT: https://www.bing.com/indexnow
+                  INDEXNOW_HEAD_REF: ${{ github.sha }}
                   INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+                  INDEXNOW_ROUTE_MANIFEST_PATH: temp/indexnow-route-manifest.json
                   INDEXNOW_SITE_URL: ${{ needs.deploy.outputs.page_url }}
-              run: node scripts/indexnow.mjs submit-sitemap
+              run: node scripts/indexnow.mjs submit-delta

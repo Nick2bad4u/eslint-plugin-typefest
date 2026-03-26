@@ -1,11 +1,16 @@
 import * as fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import * as path from "node:path";
+import { execFile as executeFile } from "node:child_process";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
-/** @typedef {(
-    input: RequestInfo | URL,
-    init?: RequestInit
-) => Promise<Response>} FetchImplementation */
+/**
+ * @typedef {(
+ *     input: RequestInfo | URL,
+ *     init?: RequestInit
+ * ) => Promise<Response>} FetchImplementation
+ */
 
 /**
  * @typedef {{
@@ -29,14 +34,31 @@ const DIRECTORY_NAME = path.dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = path.resolve(DIRECTORY_NAME, "..");
 const DEFAULT_BATCH_SIZE = 10_000;
 const DEFAULT_ENDPOINT = "https://www.bing.com/indexnow";
+const DEFAULT_CONTENT_PATHS = [
+    "docs/rules",
+    "docs/docusaurus/blog",
+    "docs/docusaurus/site-docs",
+    "docs/docusaurus/src/pages",
+];
 const DEFAULT_KEY_FILE_NAME = "indexnow-key.txt";
 const DEFAULT_POLL_INTERVAL_MS = 15_000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+const DEFAULT_SUBMISSION_POLL_INTERVAL_MS = 60_000;
+const DEFAULT_SUBMISSION_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_WAIT_TIMEOUT_MS = 5 * 60 * 1000;
 const INDEXNOW_KEY_PATTERN = /^[A-Za-z0-9\-]{8,128}$/v;
+const RETRYABLE_VERIFICATION_ERROR_CODE = "SiteVerificationNotCompleted";
 const XML_ENTITY_PATTERN =
     /&(?:#(?<decimal>\d+)|#x(?<hexadecimal>[\dA-Fa-f]+)|(?<named>amp|apos|gt|lt|quot));/gu;
 const LOC_ELEMENT_PATTERN = /<loc>\s*(?<loc>[\s\S]*?)\s*<\/loc>/gu;
+const executeFileAsync = promisify(executeFile);
+
+/**
+ * @typedef {{
+ *     readonly permalink: string;
+ *     readonly sourcePath: string;
+ * }} DocusaurusRouteManifestEntry
+ */
 
 /**
  * Pause for the provided number of milliseconds.
@@ -179,6 +201,72 @@ const parsePositiveInteger = (rawValue, defaultValue, label) => {
     }
 
     return numericValue;
+};
+
+/**
+ * Parse an optional JSON string array option.
+ *
+ * @param {string | undefined} rawValue
+ * @param {string} label
+ *
+ * @returns {readonly string[] | undefined}
+ */
+const parseOptionalStringArrayOption = (rawValue, label) => {
+    if (rawValue === undefined || rawValue.trim().length === 0) {
+        return undefined;
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+
+    if (
+        !Array.isArray(parsedValue) ||
+        !parsedValue.every(
+            (value) => typeof value === "string" && value.trim().length > 0
+        )
+    ) {
+        throw new Error(`${label} must be a JSON array of non-empty strings.`);
+    }
+
+    return parsedValue.map((value) => value.replaceAll("\\", "/"));
+};
+
+/**
+ * Read the configured public site URL from package metadata when no explicit
+ * CLI or environment value is provided.
+ *
+ * @param {string} siteDirectory
+ *
+ * @returns {Promise<string>}
+ */
+const readConfiguredSiteUrl = async (siteDirectory) => {
+    const candidatePackageJsonPaths = [
+        path.resolve(REPOSITORY_ROOT, siteDirectory, "package.json"),
+        path.resolve(REPOSITORY_ROOT, "package.json"),
+    ];
+
+    for (const packageJsonPath of candidatePackageJsonPaths) {
+        if (!existsSync(packageJsonPath)) {
+            continue;
+        }
+
+        const parsedPackageJson = JSON.parse(
+            await fs.readFile(packageJsonPath, "utf8")
+        );
+
+        if (
+            typeof parsedPackageJson === "object" &&
+            parsedPackageJson !== null &&
+            "homepage" in parsedPackageJson &&
+            typeof parsedPackageJson.homepage === "string" &&
+            parsedPackageJson.homepage.trim().length > 0
+        ) {
+            return normalizeSiteUrl(parsedPackageJson.homepage);
+        }
+    }
+
+    throw new Error(
+        "Unable to infer the public site URL from package metadata. Provide --site-url or INDEXNOW_SITE_URL explicitly."
+    );
 };
 
 /**
@@ -391,6 +479,524 @@ export const createIndexNowPayloads = ({
     }));
 
 /**
+ * Normalize a Docusaurus `source` field into a repository-relative path.
+ *
+ * @param {string} sourcePath
+ *
+ * @returns {string | undefined}
+ */
+export const normalizeDocusaurusSourcePath = (sourcePath) =>
+    normalizeDocusaurusSourcePathForSiteDirectory(
+        sourcePath,
+        "docs/docusaurus"
+    );
+
+/**
+ * Normalize a Docusaurus `source` field into a repository-relative path using a
+ * specific Docusaurus site directory.
+ *
+ * @param {string} sourcePath
+ * @param {string} siteDirectory
+ *
+ * @returns {string | undefined}
+ */
+const normalizeDocusaurusSourcePathForSiteDirectory = (
+    sourcePath,
+    siteDirectory
+) => {
+    if (!sourcePath.startsWith("@site/")) {
+        return undefined;
+    }
+
+    const resolvedSiteDirectoryPath = path.resolve(
+        REPOSITORY_ROOT,
+        siteDirectory
+    );
+    const sourceRelativePath = sourcePath.slice("@site/".length);
+    const candidateAbsolutePath = path.resolve(
+        resolvedSiteDirectoryPath,
+        sourceRelativePath
+    );
+    const candidatePaths = [
+        candidateAbsolutePath,
+        candidateAbsolutePath.replace(/\.jsx$/u, ".tsx"),
+        candidateAbsolutePath.replace(/\.js$/u, ".ts"),
+    ];
+
+    for (const candidatePath of candidatePaths) {
+        if (!existsSync(candidatePath)) {
+            continue;
+        }
+
+        return path
+            .relative(REPOSITORY_ROOT, candidatePath)
+            .replaceAll("\\", "/");
+    }
+
+    return undefined;
+};
+
+/**
+ * Walk an arbitrary JSON value and collect objects that expose both `source`
+ * and `permalink` string fields.
+ *
+ * @param {unknown} value
+ * @param {string} [siteDirectory] - Docusaurus site directory relative to the
+ *   repository root.
+ *
+ * @returns {readonly DocusaurusRouteManifestEntry[]}
+ */
+export const collectRouteManifestEntriesFromData = (
+    value,
+    siteDirectory = "docs/docusaurus"
+) => {
+    /** @type {DocusaurusRouteManifestEntry[]} */
+    const entries = [];
+    /** @type {unknown[]} */
+    const stack = [value];
+    const seenEntries = new Set();
+
+    while (stack.length > 0) {
+        const currentValue = stack.pop();
+
+        if (Array.isArray(currentValue)) {
+            stack.push(...currentValue);
+            continue;
+        }
+
+        if (typeof currentValue !== "object" || currentValue === null) {
+            continue;
+        }
+
+        const source =
+            "source" in currentValue && typeof currentValue.source === "string"
+                ? currentValue.source
+                : undefined;
+        const permalink =
+            "permalink" in currentValue &&
+            typeof currentValue.permalink === "string"
+                ? currentValue.permalink
+                : undefined;
+
+        if (source !== undefined && permalink !== undefined) {
+            const sourcePath = normalizeDocusaurusSourcePathForSiteDirectory(
+                source,
+                siteDirectory
+            );
+
+            if (sourcePath !== undefined) {
+                const dedupeKey = `${sourcePath}::${permalink}`;
+
+                if (!seenEntries.has(dedupeKey)) {
+                    seenEntries.add(dedupeKey);
+                    entries.push({ permalink, sourcePath });
+                }
+            }
+        }
+
+        stack.push(...Object.values(currentValue));
+    }
+
+    return entries.sort((leftEntry, rightEntry) =>
+        leftEntry.sourcePath.localeCompare(rightEntry.sourcePath)
+    );
+};
+
+/**
+ * Parse `git diff --name-status` output into repository-relative paths that
+ * represent changed public routes.
+ *
+ * @param {string} diffText
+ *
+ * @returns {readonly string[]}
+ */
+export const parseGitDiffNameStatus = (diffText) => {
+    /** @type {string[]} */
+    const paths = [];
+    const seenPaths = new Set();
+
+    for (const line of diffText.split(/\r?\n/u)) {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.length === 0) {
+            continue;
+        }
+
+        const fields = trimmedLine.split("\t");
+        const status = fields[0] ?? "";
+
+        if (
+            status.startsWith("A") ||
+            status.startsWith("C") ||
+            status.startsWith("M")
+        ) {
+            const addedPath = fields.at(-1);
+
+            if (addedPath !== undefined && !seenPaths.has(addedPath)) {
+                seenPaths.add(addedPath);
+                paths.push(addedPath.replaceAll("\\", "/"));
+            }
+
+            continue;
+        }
+
+        if (status.startsWith("R")) {
+            const renamedPath = fields.at(-1);
+
+            if (renamedPath !== undefined && !seenPaths.has(renamedPath)) {
+                seenPaths.add(renamedPath);
+                paths.push(renamedPath.replaceAll("\\", "/"));
+            }
+        }
+    }
+
+    return paths;
+};
+
+/**
+ * Convert changed repository paths into canonical public URLs using a generated
+ * route manifest.
+ *
+ * @param {{
+ *     readonly changedPaths: readonly string[];
+ *     readonly manifestEntries: readonly DocusaurusRouteManifestEntry[];
+ *     readonly siteUrl: string;
+ * }} options
+ *
+ * @returns {readonly string[]}
+ */
+export const resolveChangedUrlsFromManifest = ({
+    changedPaths,
+    manifestEntries,
+    siteUrl,
+}) => {
+    const manifestBySourcePath = new Map(
+        manifestEntries.map((entry) => [entry.sourcePath, entry.permalink])
+    );
+    /** @type {string[]} */
+    const urls = [];
+    const seenUrls = new Set();
+
+    for (const changedPath of changedPaths) {
+        const permalink = manifestBySourcePath.get(changedPath);
+
+        if (permalink === undefined) {
+            continue;
+        }
+
+        const absoluteUrl = new URL(
+            permalink,
+            normalizeSiteUrl(siteUrl)
+        ).toString();
+
+        if (seenUrls.has(absoluteUrl)) {
+            continue;
+        }
+
+        seenUrls.add(absoluteUrl);
+        urls.push(absoluteUrl);
+    }
+
+    return urls;
+};
+
+/**
+ * Recursively collect JSON file paths under a directory.
+ *
+ * @param {string} directoryPath
+ *
+ * @returns {Promise<readonly string[]>}
+ */
+const collectJsonFilePaths = async (directoryPath) => {
+    /** @type {string[]} */
+    const filePaths = [];
+    const directoryEntries = await fs.readdir(directoryPath, {
+        withFileTypes: true,
+    });
+
+    for (const directoryEntry of directoryEntries) {
+        const childPath = path.join(directoryPath, directoryEntry.name);
+
+        if (directoryEntry.isDirectory()) {
+            filePaths.push(...(await collectJsonFilePaths(childPath)));
+            continue;
+        }
+
+        if (directoryEntry.isFile() && childPath.endsWith(".json")) {
+            filePaths.push(childPath);
+        }
+    }
+
+    return filePaths;
+};
+
+/**
+ * Generate a source-to-permalink manifest from the built Docusaurus metadata.
+ *
+ * @param {{
+ *     readonly siteDirectoryPath: string;
+ *     readonly siteUrl: string;
+ * }} options
+ *
+ * @returns {Promise<readonly DocusaurusRouteManifestEntry[]>}
+ */
+const createRouteManifestEntries = async ({ siteDirectoryPath, siteUrl }) => {
+    const docusaurusMetadataDirectoryPath = path.join(
+        siteDirectoryPath,
+        ".docusaurus"
+    );
+    const sitePathnamePrefix = new URL(normalizeSiteUrl(siteUrl)).pathname;
+    const jsonFilePaths = await collectJsonFilePaths(
+        docusaurusMetadataDirectoryPath
+    );
+    /** @type {DocusaurusRouteManifestEntry[]} */
+    const manifestEntries = [];
+    const seenEntries = new Set();
+    const normalizedSiteDirectory = path
+        .relative(REPOSITORY_ROOT, siteDirectoryPath)
+        .replaceAll("\\", "/");
+
+    for (const jsonFilePath of jsonFilePaths) {
+        const parsedJson = JSON.parse(await fs.readFile(jsonFilePath, "utf8"));
+        const entries = collectRouteManifestEntriesFromData(
+            parsedJson,
+            normalizedSiteDirectory
+        );
+
+        for (const entry of entries) {
+            if (!entry.permalink.startsWith(sitePathnamePrefix)) {
+                continue;
+            }
+
+            const dedupeKey = `${entry.sourcePath}::${entry.permalink}`;
+
+            if (seenEntries.has(dedupeKey)) {
+                continue;
+            }
+
+            seenEntries.add(dedupeKey);
+            manifestEntries.push(entry);
+        }
+    }
+
+    return manifestEntries.sort((leftEntry, rightEntry) =>
+        leftEntry.sourcePath.localeCompare(rightEntry.sourcePath)
+    );
+};
+
+/**
+ * Write the generated route manifest to disk for later use in the post-deploy
+ * IndexNow job.
+ *
+ * @param {ReadonlyMap<string, string>} options
+ *
+ * @returns {Promise<void>}
+ */
+const writeRouteManifest = async (options) => {
+    const outputPath = readRequiredOption(
+        options,
+        "output",
+        process.env["INDEXNOW_ROUTE_MANIFEST_OUTPUT_PATH"],
+        "INDEXNOW_ROUTE_MANIFEST_OUTPUT_PATH"
+    );
+    const siteDirectory =
+        readOption(
+            options,
+            "site-directory",
+            process.env["INDEXNOW_SITE_DIRECTORY"]
+        )?.trim() ?? "docs/docusaurus";
+    const siteUrl =
+        readOption(
+            options,
+            "site-url",
+            process.env["INDEXNOW_SITE_URL"]
+        )?.trim() ?? (await readConfiguredSiteUrl(siteDirectory));
+    const resolvedSiteDirectoryPath = path.resolve(
+        REPOSITORY_ROOT,
+        siteDirectory
+    );
+    const resolvedOutputPath = path.resolve(REPOSITORY_ROOT, outputPath);
+    const manifestEntries = await createRouteManifestEntries({
+        siteDirectoryPath: resolvedSiteDirectoryPath,
+        siteUrl,
+    });
+
+    await fs.mkdir(path.dirname(resolvedOutputPath), { recursive: true });
+    await fs.writeFile(
+        resolvedOutputPath,
+        `${JSON.stringify(manifestEntries, null, 2)}\n`,
+        "utf8"
+    );
+
+    console.info(
+        `Wrote IndexNow route manifest with ${String(manifestEntries.length)} entries to ${resolvedOutputPath}.`
+    );
+};
+
+/**
+ * Resolve added, modified, copied, or renamed content files from the git diff
+ * range.
+ *
+ * @param {{
+ *     readonly baseRef: string;
+ *     readonly contentPaths: readonly string[];
+ *     readonly headRef: string;
+ * }} options
+ *
+ * @returns {Promise<readonly string[]>}
+ */
+const collectChangedPathsFromGit = async ({
+    baseRef,
+    contentPaths,
+    headRef,
+}) => {
+    if (/^0+$/u.test(baseRef)) {
+        console.info(
+            "Skipping IndexNow delta submission because the push event does not expose a usable previous commit SHA."
+        );
+        return [];
+    }
+
+    const gitArguments = [
+        "diff",
+        "--name-status",
+        "--find-renames",
+        "--diff-filter=ACMR",
+        baseRef,
+        headRef,
+    ];
+
+    if (contentPaths.length > 0) {
+        gitArguments.push("--", ...contentPaths);
+    }
+
+    const { stdout } = await executeFileAsync("git", gitArguments, {
+        cwd: REPOSITORY_ROOT,
+        maxBuffer: 10 * 1024 * 1024,
+    });
+
+    return parseGitDiffNameStatus(stdout);
+};
+
+/**
+ * Submit only changed public URLs derived from the push diff.
+ *
+ * @param {ReadonlyMap<string, string>} options
+ *
+ * @returns {Promise<void>}
+ */
+const submitDelta = async (options) => {
+    const baseRef = readRequiredOption(
+        options,
+        "base-ref",
+        process.env["INDEXNOW_BASE_REF"],
+        "INDEXNOW_BASE_REF"
+    );
+    const headRef = readRequiredOption(
+        options,
+        "head-ref",
+        process.env["INDEXNOW_HEAD_REF"],
+        "INDEXNOW_HEAD_REF"
+    );
+    const manifestPath = readRequiredOption(
+        options,
+        "manifest",
+        process.env["INDEXNOW_ROUTE_MANIFEST_PATH"],
+        "INDEXNOW_ROUTE_MANIFEST_PATH"
+    );
+    const siteUrl = readRequiredOption(
+        options,
+        "site-url",
+        process.env["INDEXNOW_SITE_URL"],
+        "INDEXNOW_SITE_URL"
+    );
+    const contentPaths =
+        parseOptionalStringArrayOption(
+            readOption(
+                options,
+                "content-paths-json",
+                process.env["INDEXNOW_CONTENT_PATHS_JSON"]
+            ),
+            "IndexNow content paths"
+        ) ?? DEFAULT_CONTENT_PATHS;
+    const resolvedManifestPath = path.resolve(REPOSITORY_ROOT, manifestPath);
+    /** @type {readonly DocusaurusRouteManifestEntry[]} */
+    const manifestEntries = JSON.parse(
+        await fs.readFile(resolvedManifestPath, "utf8")
+    );
+    const changedPaths = await collectChangedPathsFromGit({
+        baseRef,
+        contentPaths,
+        headRef,
+    });
+
+    if (changedPaths.length === 0) {
+        console.info(
+            "No changed public-content files were found in the push diff. Skipping IndexNow submission."
+        );
+        return;
+    }
+
+    const changedUrls = resolveChangedUrlsFromManifest({
+        changedPaths,
+        manifestEntries,
+        siteUrl,
+    });
+
+    if (changedUrls.length === 0) {
+        console.info(
+            "No changed public URLs were derived from the changed content files. Skipping IndexNow submission."
+        );
+        return;
+    }
+
+    console.info(
+        `Resolved ${String(changedUrls.length)} changed public URL(s) from the push diff.`
+    );
+
+    const deltaOptions = new Map(options);
+    deltaOptions.set("batch-size", String(changedUrls.length));
+    deltaOptions.set("urls", JSON.stringify(changedUrls));
+
+    await submitSpecificUrls(deltaOptions);
+};
+
+/**
+ * Detect whether an IndexNow response indicates that site verification is still
+ * pending and should be retried.
+ *
+ * @param {number} statusCode
+ * @param {string} responseText
+ *
+ * @returns {boolean}
+ */
+export const isIndexNowVerificationPendingResponse = (
+    statusCode,
+    responseText
+) => {
+    if (statusCode !== 403) {
+        return false;
+    }
+
+    if (responseText.includes(RETRYABLE_VERIFICATION_ERROR_CODE)) {
+        return true;
+    }
+
+    try {
+        const parsed = JSON.parse(responseText);
+
+        return (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            "errorCode" in parsed &&
+            parsed.errorCode === RETRYABLE_VERIFICATION_ERROR_CODE
+        );
+    } catch {
+        return false;
+    }
+};
+
+/**
  * Fetch text content from a URL with a bounded timeout.
  *
  * @param {FetchImplementation} fetchImplementation
@@ -480,7 +1086,9 @@ const waitForPublishedSiteArtifacts = async ({
  * @param {{
  *     readonly endpoint: string;
  *     readonly fetchImplementation?: FetchImplementation;
+ *     readonly intervalMs?: number;
  *     readonly payloads: readonly IndexNowPayload[];
+ *     readonly timeoutMs?: number;
  * }} options
  *
  * @returns {Promise<void>}
@@ -488,20 +1096,52 @@ const waitForPublishedSiteArtifacts = async ({
 const submitPayloads = async ({
     endpoint,
     fetchImplementation = globalThis.fetch,
+    intervalMs = DEFAULT_SUBMISSION_POLL_INTERVAL_MS,
     payloads,
+    timeoutMs = DEFAULT_SUBMISSION_TIMEOUT_MS,
 }) => {
     for (const [payloadIndex, payload] of payloads.entries()) {
-        const response = await fetchImplementation(endpoint, {
-            body: JSON.stringify(payload),
-            headers: {
-                "content-type": "application/json; charset=utf-8",
-            },
-            method: "POST",
-            signal: AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS),
-        });
+        const startedAt = Date.now();
+        let attemptNumber = 1;
 
-        if (!response.ok) {
+        while (true) {
+            const response = await fetchImplementation(endpoint, {
+                body: JSON.stringify(payload),
+                headers: {
+                    "content-type": "application/json; charset=utf-8",
+                },
+                method: "POST",
+                signal: AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS),
+            });
             const responseText = (await response.text()).trim();
+
+            if (response.ok) {
+                console.info(
+                    `Submitted IndexNow batch ${String(payloadIndex + 1)}/${String(payloads.length)} containing ${String(payload.urlList.length)} URLs.`
+                );
+                break;
+            }
+
+            if (
+                isIndexNowVerificationPendingResponse(
+                    response.status,
+                    responseText
+                )
+            ) {
+                if (Date.now() - startedAt >= timeoutMs) {
+                    throw new Error(
+                        `IndexNow site verification did not complete within ${String(timeoutMs)}ms for batch ${String(payloadIndex + 1)}/${String(payloads.length)}. Last response body: ${responseText}`
+                    );
+                }
+
+                console.info(
+                    `IndexNow site verification is still pending for batch ${String(payloadIndex + 1)}/${String(payloads.length)} (attempt ${String(attemptNumber)}). Retrying in ${String(intervalMs)}ms.`
+                );
+                attemptNumber += 1;
+                await delay(intervalMs);
+                continue;
+            }
+
             const responseBodySuffix =
                 responseText.length === 0
                     ? ""
@@ -511,10 +1151,6 @@ const submitPayloads = async ({
                 `IndexNow rejected batch ${String(payloadIndex + 1)}/${String(payloads.length)} with HTTP ${String(response.status)}.${responseBodySuffix}`
             );
         }
-
-        console.info(
-            `Submitted IndexNow batch ${String(payloadIndex + 1)}/${String(payloads.length)} containing ${String(payload.urlList.length)} URLs.`
-        );
     }
 };
 
@@ -549,13 +1185,14 @@ const writeKeyFile = async (options) => {
 };
 
 /**
- * Fetch the deployed sitemap, derive the IndexNow payloads, and submit them.
+ * Submit a specific set of URLs after verifying that the public key file is
+ * available on the deployed site.
  *
  * @param {ReadonlyMap<string, string>} options
  *
  * @returns {Promise<void>}
  */
-const submitSitemap = async (options) => {
+const submitSpecificUrls = async (options) => {
     const key = ensureValidIndexNowKey(
         readRequiredOption(
             options,
@@ -601,20 +1238,42 @@ const submitSitemap = async (options) => {
         DEFAULT_WAIT_TIMEOUT_MS,
         "IndexNow readiness timeout"
     );
-
-    const siteConfiguration = deriveSiteConfiguration(siteUrl, keyFileName);
-    console.info(
-        `Preparing IndexNow submission for ${siteConfiguration.siteUrl} via ${endpoint}.`
+    const submissionIntervalMs = parsePositiveInteger(
+        readOption(
+            options,
+            "submission-poll-interval-ms",
+            process.env["INDEXNOW_SUBMISSION_POLL_INTERVAL_MS"]
+        ),
+        DEFAULT_SUBMISSION_POLL_INTERVAL_MS,
+        "IndexNow submission poll interval"
     );
+    const submissionTimeoutMs = parsePositiveInteger(
+        readOption(
+            options,
+            "submission-timeout-ms",
+            process.env["INDEXNOW_SUBMISSION_TIMEOUT_MS"]
+        ),
+        DEFAULT_SUBMISSION_TIMEOUT_MS,
+        "IndexNow submission timeout"
+    );
+    const urlsJson = readRequiredOption(
+        options,
+        "urls",
+        process.env["INDEXNOW_URLS_JSON"],
+        "INDEXNOW_URLS_JSON"
+    );
+    /** @type {readonly string[]} */
+    const urlList = JSON.parse(urlsJson);
+    const siteConfiguration = deriveSiteConfiguration(siteUrl, keyFileName);
 
-    const sitemapXml = await waitForPublishedSiteArtifacts({
+    await waitForPublishedSiteArtifacts({
         intervalMs,
         key,
         keyFileUrl: siteConfiguration.keyFileUrl,
         sitemapUrl: siteConfiguration.sitemapUrl,
         timeoutMs,
     });
-    const urlList = parseSitemapUrls(sitemapXml);
+
     const payloads = createIndexNowPayloads({
         batchSize,
         host: siteConfiguration.host,
@@ -624,9 +1283,82 @@ const submitSitemap = async (options) => {
     });
 
     console.info(
-        `Submitting ${String(urlList.length)} sitemap URLs across ${String(payloads.length)} IndexNow batch(es).`
+        `Submitting ${String(urlList.length)} URL(s) across ${String(payloads.length)} IndexNow batch(es).`
     );
-    await submitPayloads({ endpoint, payloads });
+    await submitPayloads({
+        endpoint,
+        intervalMs: submissionIntervalMs,
+        payloads,
+        timeoutMs: submissionTimeoutMs,
+    });
+};
+
+/**
+ * Fetch the deployed sitemap, derive the IndexNow payloads, and submit them.
+ *
+ * @param {ReadonlyMap<string, string>} options
+ *
+ * @returns {Promise<void>}
+ */
+const submitSitemap = async (options) => {
+    const siteUrl = readRequiredOption(
+        options,
+        "site-url",
+        process.env["INDEXNOW_SITE_URL"],
+        "INDEXNOW_SITE_URL"
+    );
+    const endpoint =
+        readOption(
+            options,
+            "endpoint",
+            process.env["INDEXNOW_ENDPOINT"]
+        )?.trim() ?? DEFAULT_ENDPOINT;
+
+    console.info(
+        `Preparing IndexNow submission for ${normalizeSiteUrl(siteUrl)} via ${endpoint}.`
+    );
+
+    const key = ensureValidIndexNowKey(
+        readRequiredOption(
+            options,
+            "key",
+            process.env["INDEXNOW_KEY"],
+            "INDEXNOW_KEY"
+        )
+    );
+    const keyFileName =
+        readOption(
+            options,
+            "key-file-name",
+            process.env["INDEXNOW_KEY_FILE_NAME"]
+        )?.trim() ?? DEFAULT_KEY_FILE_NAME;
+    const intervalMs = parsePositiveInteger(
+        readOption(
+            options,
+            "poll-interval-ms",
+            process.env["INDEXNOW_POLL_INTERVAL_MS"]
+        ),
+        DEFAULT_POLL_INTERVAL_MS,
+        "IndexNow poll interval"
+    );
+    const timeoutMs = parsePositiveInteger(
+        readOption(options, "timeout-ms", process.env["INDEXNOW_TIMEOUT_MS"]),
+        DEFAULT_WAIT_TIMEOUT_MS,
+        "IndexNow readiness timeout"
+    );
+    const siteConfiguration = deriveSiteConfiguration(siteUrl, keyFileName);
+    const sitemapXml = await waitForPublishedSiteArtifacts({
+        intervalMs,
+        key,
+        keyFileUrl: siteConfiguration.keyFileUrl,
+        sitemapUrl: siteConfiguration.sitemapUrl,
+        timeoutMs,
+    });
+    const urlList = parseSitemapUrls(sitemapXml);
+    const specificUrlOptions = new Map(options);
+
+    specificUrlOptions.set("urls", JSON.stringify(urlList));
+    await submitSpecificUrls(specificUrlOptions);
 };
 
 /**
@@ -638,8 +1370,18 @@ const main = async () => {
     const { command, options } = parseCliArguments(process.argv.slice(2));
 
     switch (command) {
+        case "submit-delta": {
+            await submitDelta(options);
+            return;
+        }
+
         case "submit-sitemap": {
             await submitSitemap(options);
+            return;
+        }
+
+        case "write-route-manifest": {
+            await writeRouteManifest(options);
             return;
         }
 
@@ -650,7 +1392,7 @@ const main = async () => {
 
         default: {
             throw new Error(
-                "Unknown command. Use `write-key-file` or `submit-sitemap`."
+                "Unknown command. Use `submit-delta`, `submit-sitemap`, `write-key-file`, or `write-route-manifest`."
             );
         }
     }

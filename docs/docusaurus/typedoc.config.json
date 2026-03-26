@@ -1,5 +1,5 @@
 {
-    "$schema": "https://typedoc.org/schema.json",
+    "$schema": "https://typedoc-plugin-markdown.org/schema.json",
     "alwaysCreateEntryPointModule": false,
     "blockTags": [
         "@defaultValue",
@@ -390,14 +390,11 @@
             "z.ZodError": "https://zod.dev/?id=error-handling"
         }
     },
-    "favicon": "./static/img/logo.svg",
     "formatWithPrettier": true,
     "gitRemote": "origin",
     "gitRevision": "main",
-    "githubPages": true,
     "groupReferencesByType": false,
     "headings": true,
-    "hideGenerator": false,
     "highlightLanguages": [
         "bash",
         "console",
@@ -421,7 +418,6 @@
     ],
     "hostedBaseUrl": "https://nick2bad4u.github.io/eslint-plugin-typefest/",
     "includeDocCommentReferences": false,
-    "includeHierarchySummary": true,
     "includeVersion": true,
     "inlineTags": [
         "@link",
@@ -566,14 +562,6 @@
     },
     "resolveUtilityTypes": true,
     "sanitizeComments": false,
-    "searchGroupBoosts": {
-        "Classes": 1.5,
-        "Functions": 1.2,
-        "Interfaces": 1.3,
-        "Types": 1.1
-    },
-    "searchInComments": true,
-    "searchInDocuments": true,
     "showConfig": false,
     "skipErrorChecking": false,
     "sort": [
@@ -581,7 +569,6 @@
         "alphabetical"
     ],
     "sortEntryPoints": true,
-    "sourceLinkExternal": true,
     "strikeDeprecatedPageTitles": true,
     "suppressCommentWarningsInDeclarationFiles": true,
     "theme": "markdown",
