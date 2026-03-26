@@ -17,6 +17,17 @@ const enableExperimentalFaster =
 const organizationName = "Nick2bad4u";
 /** Repository name used for edit links and project metadata. */
 const projectName = "eslint-plugin-typefest";
+/** Public origin for the published documentation site. */
+const siteOrigin = "https://nick2bad4u.github.io";
+/** Canonical public site URL including the GitHub Pages project path. */
+const siteUrl = `${siteOrigin}${baseUrl}`;
+/** Global site description used for SEO and social cards. */
+const siteDescription =
+    "Type-safe ESLint rules for adopting type-fest and ts-extras patterns in modern TypeScript codebases.";
+/** Social preview image used for Open Graph and Twitter cards. */
+const socialCardImagePath = "img/logo.png";
+/** Absolute social preview image URL. */
+const socialCardImageUrl = new URL(socialCardImagePath, siteUrl).toString();
 /** Client module path for runtime DOM enhancement bootstrap script. */
 const modernEnhancementsClientModule = fileURLToPath(
     new URL("src/js/modernEnhancements.ts", import.meta.url)
@@ -143,6 +154,41 @@ const config: Config = {
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: futureConfig,
     clientModules: [modernEnhancementsClientModule],
+    headTags: [
+        {
+            attributes: {
+                href: siteOrigin,
+                rel: "preconnect",
+            },
+            tagName: "link",
+        },
+        {
+            attributes: {
+                href: "https://github.com",
+                rel: "preconnect",
+            },
+            tagName: "link",
+        },
+        {
+            attributes: {
+                type: "application/ld+json",
+            },
+            innerHTML: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                description: siteDescription,
+                image: socialCardImageUrl,
+                name: "eslint-plugin-typefest",
+                publisher: {
+                    "@type": "Person",
+                    name: "Nick2bad4u",
+                    url: "https://github.com/Nick2bad4u",
+                },
+                url: siteUrl,
+            }),
+            tagName: "script",
+        },
+    ],
     i18n: {
         defaultLocale: "en",
         locales: ["en"],
@@ -294,12 +340,12 @@ const config: Config = {
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
                 },
+                debug:
+                    process.env["DOCUSAURUS_PRESET_CLASSIC_DEBUG"] === "true",
                 sitemap: {
-                    changefreq: "weekly",
                     filename: "sitemap.xml",
                     ignorePatterns: ["/tests/**"],
                     lastmod: "datetime",
-                    priority: 0.5,
                 },
                 svgr: {
                     svgrConfig: {
@@ -342,8 +388,25 @@ const config: Config = {
         },
         metadata: [
             {
-                content: "eslint-plugin-typefest",
+                content:
+                    "eslint, eslint-plugin, type-fest, ts-extras, typescript, flat config, static analysis",
                 name: "keywords",
+            },
+            {
+                content: "summary_large_image",
+                name: "twitter:card",
+            },
+            {
+                content: "eslint-plugin-typefest",
+                property: "og:site_name",
+            },
+            {
+                content: socialCardImageUrl,
+                property: "og:image",
+            },
+            {
+                content: socialCardImageUrl,
+                name: "twitter:image",
             },
         ],
         footer: {
@@ -422,7 +485,7 @@ const config: Config = {
             },
             style: "dark",
         },
-        image: "img/logo.svg",
+        image: socialCardImagePath,
         navbar: {
             style: "dark",
             hideOnScroll: true,
@@ -657,7 +720,7 @@ const config: Config = {
     ],
     title: "eslint-plugin-typefest",
     trailingSlash: false,
-    url: "https://nick2bad4u.github.io",
+    url: siteOrigin,
 };
 
 export default config;

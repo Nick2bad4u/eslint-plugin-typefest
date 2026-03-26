@@ -29,6 +29,8 @@ jobs:
         name: Build Docs Site
         runs-on: ubuntu-latest
         timeout-minutes: 40
+        outputs:
+            indexnow_enabled: ${{ steps.indexnow_configuration.outputs.enabled }}
         permissions:
             contents: read
             pages: write
@@ -57,11 +59,32 @@ jobs:
             - name: Install dependencies
               run: npm ci --force
 
+            - name: Detect IndexNow configuration
+              id: indexnow_configuration
+              env:
+                  INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+              run: |
+                  if [ -n "${INDEXNOW_KEY}" ]; then
+                    echo "enabled=true" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  echo "enabled=false" >> "$GITHUB_OUTPUT"
+                  echo "::notice title=IndexNow skipped::Set the INDEXNOW_KEY repository secret to generate the verification file and notify IndexNow after deploy."
+
             - name: Build before TypeDoc
               run: npm run build
 
             - name: Build Docusaurus site
               run: npm run docs:build
+
+            - name: Write IndexNow key file into built site output
+              if: steps.indexnow_configuration.outputs.enabled == 'true'
+              env:
+                  INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+              run: >-
+                  node scripts/indexnow.mjs write-key-file
+                  --output docs/docusaurus/build/indexnow-key.txt
 
             - name: List TypeDoc output directories
               run: |
@@ -82,6 +105,8 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 20
         needs: build
+        outputs:
+            page_url: ${{ steps.deployment.outputs.page_url }}
         permissions:
             pages: write
             id-token: write
@@ -97,3 +122,37 @@ jobs:
             - name: Deploy to GitHub Pages
               id: deployment
               uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+    indexnow:
+        name: Notify IndexNow
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        needs:
+            - build
+            - deploy
+        if: needs.build.outputs.indexnow_enabled == 'true'
+        permissions:
+            contents: read
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Harden runner
+              uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+              with:
+                  egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+            - name: Setup Node.js
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+              with:
+                  node-version-file: .node-version
+
+            - name: Submit deployed sitemap URLs to IndexNow
+              env:
+                  INDEXNOW_ENDPOINT: https://www.bing.com/indexnow
+                  INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+                  INDEXNOW_SITE_URL: ${{ needs.deploy.outputs.page_url }}
+              run: node scripts/indexnow.mjs submit-sitemap

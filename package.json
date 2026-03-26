@@ -278,7 +278,7 @@
         "@types/sloc": "^0.2.3",
         "@typescript-eslint/eslint-plugin": "^8.57.2",
         "@typescript-eslint/rule-tester": "^8.57.2",
-        "@typpi/eslint-plugin-vite": "^1.0.10",
+        "@typpi/eslint-plugin-vite": "^1.0.11",
         "@vitest/coverage-v8": "^4.1.1",
         "@vitest/eslint-plugin": "^1.6.13",
         "@vitest/ui": "^4.1.1",

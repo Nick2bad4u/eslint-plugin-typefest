@@ -1,3 +1,4 @@
+import Head from "@docusaurus/Head";
 import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import Layout from "@theme/Layout";
@@ -76,6 +77,25 @@ const overviewButtonIcon = "\udb81\udf1d";
 const comparePresetsButtonIcon = "\udb85\udc92";
 const heroKickerIcon = "\uf0ad";
 const heroKickerIcon2 = "\uf135";
+const homepageDescription =
+    "Explore eslint-plugin-typefest documentation, presets, and rule references for adopting type-fest and ts-extras patterns in modern TypeScript projects.";
+const homepageKeywords =
+    "eslint-plugin-typefest, type-fest, ts-extras, eslint rules, typescript linting, flat config";
+const homepageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    codeRepository: "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    description: homepageDescription,
+    image: "https://nick2bad4u.github.io/eslint-plugin-typefest/img/logo.png",
+    license:
+        "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/LICENSE",
+    name: "eslint-plugin-typefest",
+    programmingLanguage: "TypeScript",
+    runtimePlatform: "Node.js",
+    url: "https://nick2bad4u.github.io/eslint-plugin-typefest/",
+} as const;
+const homepageSocialImageUrl =
+    "https://nick2bad4u.github.io/eslint-plugin-typefest/img/logo.png";
 
 /**
  * Home card icons Note: These icons are from the "Nerd Font Symbols" font,
@@ -114,9 +134,18 @@ export default function Home() {
 
     return (
         <Layout
-            title="eslint-plugin-typefest docs"
-            description="Documentation for eslint-plugin-typefest"
+            title="Type-safe ESLint rules for type-fest and ts-extras"
+            description={homepageDescription}
         >
+            <Head>
+                <meta content={homepageKeywords} name="keywords" />
+                <meta content={homepageSocialImageUrl} property="og:image" />
+                <meta content="summary_large_image" name="twitter:card" />
+                <meta content={homepageSocialImageUrl} name="twitter:image" />
+                <script type="application/ld+json">
+                    {JSON.stringify(homepageStructuredData)}
+                </script>
+            </Head>
             <header className={styles.heroBanner}>
                 <div className={`container ${styles.heroContent}`}>
                     <div className={styles.heroGrid}>
