@@ -101,9 +101,7 @@ const config: Config = {
                 jsdocVerticalAlignment: false,
                 plugins: [
                     "prettier-plugin-multiline-arrays",
-                    "prettier-plugin-sort-json",
                     "prettier-plugin-jsdoc",
-                    "prettier-plugin-merge",
                 ],
                 tabWidth: 1,
                 useTabs: false,
@@ -128,9 +126,7 @@ const config: Config = {
                 jsdocVerticalAlignment: false,
                 plugins: [
                     "prettier-plugin-multiline-arrays",
-                    "prettier-plugin-sort-json",
                     "prettier-plugin-jsdoc",
-                    "prettier-plugin-merge",
                 ],
                 printWidth: 100,
                 tabWidth: 2,

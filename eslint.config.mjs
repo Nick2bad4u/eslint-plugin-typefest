@@ -409,11 +409,19 @@ export default defineConfig([
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Immutable: functional (not used in this repo)",
     },
-    // {
-    //     ...writeGoodComments.configs.all,
-    //     files: ["src/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
-    //     name: "Write Good Comments: (not used in this repo)",
-    // },
+    {
+        ...writeGoodComments.configs.all,
+        files: ["src/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
+        name: "Write Good Comments: (not used in this repo)",
+        rules: {
+            "write-good-comments/inclusive-language-comments": "off",
+            "write-good-comments/no-profane-comments": "off",
+            "write-good-comments/readability-comments": "off",
+            "write-good-comments/spellcheck-comments": "off",
+            "write-good-comments/task-comment-format": "off",
+            "write-good-comments/write-good-comments": "off",
+        },
+    },
     fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
@@ -1155,7 +1163,6 @@ export default defineConfig([
             ],
             "@typescript-eslint/prefer-optional-chain": "error", // Use optional chaining instead of logical AND
             "@typescript-eslint/prefer-promise-reject-errors": "warn",
-            // "write-good-comments/write-good-comments": "warn",
             // Backend-specific type safety
             "@typescript-eslint/prefer-readonly": "warn", // Prefer readonly for service class properties
             // Keep signal strong on explicitly typed APIs while avoiding noisy
@@ -2219,8 +2226,8 @@ export default defineConfig([
             markdown: markdown,
         },
         rules: {
-            // Markdown Plugin Eslint Rules (markdown/*)
             "markdown/fenced-code-language": "warn",
+            "markdown/fenced-code-meta": ["warn", "never"],
             "markdown/heading-increment": "warn",
             "markdown/no-bare-urls": "warn",
             "markdown/no-duplicate-definitions": "warn",
@@ -2742,7 +2749,6 @@ export default defineConfig([
             "sort-class-members": sortClassMembersPlugin,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
-            "write-good-comments": writeGoodComments,
         },
         rules: {
             ...js.configs.all.rules,
@@ -3002,7 +3008,6 @@ export default defineConfig([
             canonical: canonicalPlugin,
             "no-secrets": noSecrets,
             "no-unsanitized": noUnsanitizedPlugin,
-            "write-good-comments": writeGoodComments,
         },
         rules: {
             "callback-return": "off",
@@ -3076,7 +3081,6 @@ export default defineConfig([
             "require-await": "off",
             "require-unicode-regexp": "off",
             "sonarjs/different-types-comparison": "off",
-            "write-good-comments/write-good-comments": "off", // Too strict,
         },
     },
     {

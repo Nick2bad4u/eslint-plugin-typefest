@@ -105,9 +105,7 @@
                 "jsdocVerticalAlignment": false,
                 "plugins": [
                     "prettier-plugin-multiline-arrays",
-                    "prettier-plugin-sort-json",
-                    "prettier-plugin-jsdoc",
-                    "prettier-plugin-merge"
+                    "prettier-plugin-jsdoc"
                 ],
                 "tabWidth": 1,
                 "useTabs": false
@@ -133,9 +131,7 @@
                 "jsdocVerticalAlignment": false,
                 "plugins": [
                     "prettier-plugin-multiline-arrays",
-                    "prettier-plugin-sort-json",
-                    "prettier-plugin-jsdoc",
-                    "prettier-plugin-merge"
+                    "prettier-plugin-jsdoc"
                 ],
                 "printWidth": 100,
                 "tabWidth": 2,
