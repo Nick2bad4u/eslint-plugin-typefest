@@ -47,10 +47,11 @@ const DEFAULT_SUBMISSION_POLL_INTERVAL_MS = 60_000;
 const DEFAULT_SUBMISSION_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_WAIT_TIMEOUT_MS = 5 * 60 * 1000;
 const INDEXNOW_KEY_PATTERN = /^[A-Za-z0-9\-]{8,128}$/v;
+const LOC_CLOSE_TAG = "</loc>";
+const LOC_OPEN_TAG = "<loc>";
 const RETRYABLE_VERIFICATION_ERROR_CODE = "SiteVerificationNotCompleted";
 const XML_ENTITY_PATTERN =
     /&(?:#(?<decimal>\d+)|#x(?<hexadecimal>[\dA-Fa-f]+)|(?<named>amp|apos|gt|lt|quot));/gu;
-const LOC_ELEMENT_PATTERN = /<loc>\s*(?<loc>[\s\S]*?)\s*<\/loc>/gu;
 const executeFileAsync = promisify(executeFile);
 
 /**
@@ -91,7 +92,7 @@ const parseCliArguments = (argv) => {
     for (let index = 0; index < rawArguments.length; index += 1) {
         const rawArgument = rawArguments.at(index);
 
-        if (rawArgument === undefined || !rawArgument.startsWith("--")) {
+        if (!rawArgument?.startsWith("--")) {
             throw new Error(
                 `Unexpected argument \`${rawArgument ?? "<missing>"}\`. Use --name value or --name=value options.`
             );
@@ -178,6 +179,203 @@ const readRequiredOption = (
     }
 
     return optionValue.trim();
+};
+
+/**
+ * Determine whether a value is an object-like record.
+ *
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+const isRecord = (value) => typeof value === "object" && value !== null;
+
+/**
+ * Read a string property from an arbitrary record.
+ *
+ * @param {Record<string, unknown>} value
+ * @param {string} propertyName
+ *
+ * @returns {string | undefined}
+ */
+const readStringProperty = (value, propertyName) => {
+    const propertyValue = value[propertyName];
+
+    return typeof propertyValue === "string" ? propertyValue : undefined;
+};
+
+/**
+ * Derive a route manifest entry candidate and dedupe key from a metadata node.
+ *
+ * @param {Record<string, unknown>} value
+ * @param {string} siteDirectory
+ *
+ * @returns {{
+ *           readonly dedupeKey: string;
+ *           readonly entry: DocusaurusRouteManifestEntry;
+ *       }
+ *     | undefined}
+ */
+const createRouteManifestEntryCandidate = (value, siteDirectory) => {
+    const source = readStringProperty(value, "source");
+    const permalink = readStringProperty(value, "permalink");
+
+    if (source === undefined || permalink === undefined) {
+        return undefined;
+    }
+
+    const sourcePath = normalizeDocusaurusSourcePathForSiteDirectory(
+        source,
+        siteDirectory
+    );
+
+    if (sourcePath === undefined) {
+        return undefined;
+    }
+
+    return {
+        dedupeKey: `${sourcePath}::${permalink}`,
+        entry: { permalink, sourcePath },
+    };
+};
+
+/**
+ * Find the next `&lt;loc&gt;...&lt;/loc&gt;` segment in a sitemap string.
+ *
+ * @param {string} sitemapXml
+ * @param {number} searchStart
+ *
+ * @returns {{
+ *           readonly rawLocation: string;
+ *           readonly nextSearchStart: number;
+ *       }
+ *     | undefined}
+ */
+const findNextLocElementValue = (sitemapXml, searchStart) => {
+    const openingTagOffset = sitemapXml.indexOf(LOC_OPEN_TAG, searchStart);
+
+    if (openingTagOffset === -1) {
+        return undefined;
+    }
+
+    const rawLocationStart = openingTagOffset + LOC_OPEN_TAG.length;
+    const closingTagOffset = sitemapXml.indexOf(
+        LOC_CLOSE_TAG,
+        rawLocationStart
+    );
+
+    if (closingTagOffset === -1) {
+        throw new Error(
+            "Encountered a <loc> element without a closing </loc> tag in the sitemap."
+        );
+    }
+
+    return {
+        nextSearchStart: closingTagOffset + LOC_CLOSE_TAG.length,
+        rawLocation: sitemapXml.slice(rawLocationStart, closingTagOffset),
+    };
+};
+
+/**
+ * Build the request init used for each IndexNow submission attempt.
+ *
+ * @param {IndexNowPayload} payload
+ *
+ * @returns {RequestInit}
+ */
+const createIndexNowSubmissionRequest = (payload) => ({
+    body: JSON.stringify(payload),
+    headers: {
+        "content-type": "application/json; charset=utf-8",
+    },
+    method: "POST",
+    signal: AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS),
+});
+
+/**
+ * Create a stable human-readable batch label for logs and errors.
+ *
+ * @param {number} payloadIndex
+ * @param {number} payloadCount
+ *
+ * @returns {string}
+ */
+const createPayloadBatchLabel = (payloadIndex, payloadCount) =>
+    `batch ${String(payloadIndex + 1)}/${String(payloadCount)}`;
+
+/**
+ * Report a successful IndexNow payload submission.
+ *
+ * @param {{
+ *     readonly batchLabel: string;
+ *     readonly urlCount: number;
+ * }} options
+ *
+ * @returns {void}
+ */
+const logSuccessfulPayloadSubmission = ({ batchLabel, urlCount }) => {
+    console.info(
+        `Submitted IndexNow ${batchLabel} containing ${String(urlCount)} URLs.`
+    );
+};
+
+/**
+ * Throw when IndexNow verification has taken too long, otherwise log the retry
+ * and wait before the next attempt.
+ *
+ * @param {{
+ *     readonly attemptNumber: number;
+ *     readonly batchLabel: string;
+ *     readonly intervalMs: number;
+ *     readonly responseText: string;
+ *     readonly startedAt: number;
+ *     readonly timeoutMs: number;
+ * }} options
+ *
+ * @returns {Promise<void>}
+ */
+const waitForNextVerificationAttempt = async ({
+    attemptNumber,
+    batchLabel,
+    intervalMs,
+    responseText,
+    startedAt,
+    timeoutMs,
+}) => {
+    if (Date.now() - startedAt >= timeoutMs) {
+        throw new Error(
+            `IndexNow site verification did not complete within ${String(timeoutMs)}ms for ${batchLabel}. Last response body: ${responseText}`
+        );
+    }
+
+    console.info(
+        `IndexNow site verification is still pending for ${batchLabel} (attempt ${String(attemptNumber)}). Retrying in ${String(intervalMs)}ms.`
+    );
+    await delay(intervalMs);
+};
+
+/**
+ * Create an actionable rejection error for a failed IndexNow submission.
+ *
+ * @param {{
+ *     readonly batchLabel: string;
+ *     readonly responseStatus: number;
+ *     readonly responseText: string;
+ * }} options
+ *
+ * @returns {Error}
+ */
+const createRejectedPayloadError = ({
+    batchLabel,
+    responseStatus,
+    responseText,
+}) => {
+    const responseBodySuffix =
+        responseText.length === 0 ? "" : ` Response body: ${responseText}`;
+
+    return new Error(
+        `IndexNow rejected ${batchLabel} with HTTP ${String(responseStatus)}.${responseBodySuffix}`
+    );
 };
 
 /**
@@ -400,10 +598,22 @@ export const parseSitemapUrls = (sitemapXml) => {
     const urls = [];
     const seenUrls = new Set();
 
-    for (const match of sitemapXml.matchAll(LOC_ELEMENT_PATTERN)) {
-        const rawLocation = match.groups?.["loc"]?.trim();
+    let searchStart = 0;
 
-        if (rawLocation === undefined || rawLocation.length === 0) {
+    while (true) {
+        const locElementValue = findNextLocElementValue(
+            sitemapXml,
+            searchStart
+        );
+
+        if (locElementValue === undefined) {
+            break;
+        }
+
+        searchStart = locElementValue.nextSearchStart;
+        const rawLocation = locElementValue.rawLocation.trim();
+
+        if (rawLocation.length === 0) {
             continue;
         }
 
@@ -564,34 +774,21 @@ export const collectRouteManifestEntriesFromData = (
             continue;
         }
 
-        if (typeof currentValue !== "object" || currentValue === null) {
+        if (!isRecord(currentValue)) {
             continue;
         }
 
-        const source =
-            "source" in currentValue && typeof currentValue.source === "string"
-                ? currentValue.source
-                : undefined;
-        const permalink =
-            "permalink" in currentValue &&
-            typeof currentValue.permalink === "string"
-                ? currentValue.permalink
-                : undefined;
+        const routeManifestEntryCandidate = createRouteManifestEntryCandidate(
+            currentValue,
+            siteDirectory
+        );
 
-        if (source !== undefined && permalink !== undefined) {
-            const sourcePath = normalizeDocusaurusSourcePathForSiteDirectory(
-                source,
-                siteDirectory
-            );
-
-            if (sourcePath !== undefined) {
-                const dedupeKey = `${sourcePath}::${permalink}`;
-
-                if (!seenEntries.has(dedupeKey)) {
-                    seenEntries.add(dedupeKey);
-                    entries.push({ permalink, sourcePath });
-                }
-            }
+        if (
+            routeManifestEntryCandidate !== undefined &&
+            !seenEntries.has(routeManifestEntryCandidate.dedupeKey)
+        ) {
+            seenEntries.add(routeManifestEntryCandidate.dedupeKey);
+            entries.push(routeManifestEntryCandidate.entry);
         }
 
         stack.push(...Object.values(currentValue));
@@ -1107,55 +1304,50 @@ const submitPayloads = async ({
     timeoutMs = DEFAULT_SUBMISSION_TIMEOUT_MS,
 }) => {
     for (const [payloadIndex, payload] of payloads.entries()) {
+        const batchLabel = createPayloadBatchLabel(
+            payloadIndex,
+            payloads.length
+        );
         const startedAt = Date.now();
         let attemptNumber = 1;
 
         while (true) {
-            const response = await fetchImplementation(endpoint, {
-                body: JSON.stringify(payload),
-                headers: {
-                    "content-type": "application/json; charset=utf-8",
-                },
-                method: "POST",
-                signal: AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS),
-            });
+            const response = await fetchImplementation(
+                endpoint,
+                createIndexNowSubmissionRequest(payload)
+            );
             const responseText = (await response.text()).trim();
 
             if (response.ok) {
-                console.info(
-                    `Submitted IndexNow batch ${String(payloadIndex + 1)}/${String(payloads.length)} containing ${String(payload.urlList.length)} URLs.`
-                );
+                logSuccessfulPayloadSubmission({
+                    batchLabel,
+                    urlCount: payload.urlList.length,
+                });
                 break;
             }
 
             if (
-                isIndexNowVerificationPendingResponse(
+                !isIndexNowVerificationPendingResponse(
                     response.status,
                     responseText
                 )
             ) {
-                if (Date.now() - startedAt >= timeoutMs) {
-                    throw new Error(
-                        `IndexNow site verification did not complete within ${String(timeoutMs)}ms for batch ${String(payloadIndex + 1)}/${String(payloads.length)}. Last response body: ${responseText}`
-                    );
-                }
-
-                console.info(
-                    `IndexNow site verification is still pending for batch ${String(payloadIndex + 1)}/${String(payloads.length)} (attempt ${String(attemptNumber)}). Retrying in ${String(intervalMs)}ms.`
-                );
-                attemptNumber += 1;
-                await delay(intervalMs);
-                continue;
+                throw createRejectedPayloadError({
+                    batchLabel,
+                    responseStatus: response.status,
+                    responseText,
+                });
             }
 
-            const responseBodySuffix =
-                responseText.length === 0
-                    ? ""
-                    : ` Response body: ${responseText}`;
-
-            throw new Error(
-                `IndexNow rejected batch ${String(payloadIndex + 1)}/${String(payloads.length)} with HTTP ${String(response.status)}.${responseBodySuffix}`
-            );
+            await waitForNextVerificationAttempt({
+                attemptNumber,
+                batchLabel,
+                intervalMs,
+                responseText,
+                startedAt,
+                timeoutMs,
+            });
+            attemptNumber += 1;
         }
     }
 };

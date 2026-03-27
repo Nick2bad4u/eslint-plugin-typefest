@@ -90,13 +90,16 @@ jobs:
             - name: Resolve delta refs
               id: delta_refs
               if: inputs.submission_mode == 'delta'
+              env:
+                  INDEXNOW_INPUT_BASE_REF: ${{ inputs.base_ref }}
+                  INDEXNOW_INPUT_HEAD_REF: ${{ inputs.head_ref }}
               run: |
-                  HEAD_REF='${{ inputs.head_ref }}'
+                  HEAD_REF="${INDEXNOW_INPUT_HEAD_REF}"
                   if [ -z "${HEAD_REF}" ]; then
                     HEAD_REF="$(git rev-parse HEAD)"
                   fi
 
-                  BASE_REF='${{ inputs.base_ref }}'
+                  BASE_REF="${INDEXNOW_INPUT_BASE_REF}"
                   if [ -z "${BASE_REF}" ]; then
                     BASE_REF="$(git rev-parse "${HEAD_REF}^" 2>/dev/null || printf '0000000000000000000000000000000000000000')"
                   fi

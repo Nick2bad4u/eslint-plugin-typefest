@@ -91,6 +91,12 @@ describe("indexnow script helpers", () => {
         ]);
     });
 
+    it("fails fast for malformed sitemap loc elements", () => {
+        expect(() =>
+            parseSitemapUrls("<urlset><url><loc>https://example.com/")
+        ).toThrow(/closing <\/loc> tag/v);
+    });
+
     it("splits URL lists into stable batches", () => {
         expect(
             chunkValues(
