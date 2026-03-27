@@ -904,12 +904,18 @@ const submitDelta = async (options) => {
         process.env["INDEXNOW_ROUTE_MANIFEST_PATH"],
         "INDEXNOW_ROUTE_MANIFEST_PATH"
     );
-    const siteUrl = readRequiredOption(
-        options,
-        "site-url",
-        process.env["INDEXNOW_SITE_URL"],
-        "INDEXNOW_SITE_URL"
-    );
+    const siteDirectory =
+        readOption(
+            options,
+            "site-directory",
+            process.env["INDEXNOW_SITE_DIRECTORY"]
+        )?.trim() ?? "docs/docusaurus";
+    const siteUrl =
+        readOption(
+            options,
+            "site-url",
+            process.env["INDEXNOW_SITE_URL"]
+        )?.trim() ?? (await readConfiguredSiteUrl(siteDirectory));
     const contentPaths =
         parseOptionalStringArrayOption(
             readOption(
@@ -1213,12 +1219,18 @@ const submitSpecificUrls = async (options) => {
             "key-file-name",
             process.env["INDEXNOW_KEY_FILE_NAME"]
         )?.trim() ?? DEFAULT_KEY_FILE_NAME;
-    const siteUrl = readRequiredOption(
-        options,
-        "site-url",
-        process.env["INDEXNOW_SITE_URL"],
-        "INDEXNOW_SITE_URL"
-    );
+    const siteDirectory =
+        readOption(
+            options,
+            "site-directory",
+            process.env["INDEXNOW_SITE_DIRECTORY"]
+        )?.trim() ?? "docs/docusaurus";
+    const siteUrl =
+        readOption(
+            options,
+            "site-url",
+            process.env["INDEXNOW_SITE_URL"]
+        )?.trim() ?? (await readConfiguredSiteUrl(siteDirectory));
     const batchSize = parsePositiveInteger(
         readOption(options, "batch-size", process.env["INDEXNOW_BATCH_SIZE"]),
         DEFAULT_BATCH_SIZE,
@@ -1301,12 +1313,18 @@ const submitSpecificUrls = async (options) => {
  * @returns {Promise<void>}
  */
 const submitSitemap = async (options) => {
-    const siteUrl = readRequiredOption(
-        options,
-        "site-url",
-        process.env["INDEXNOW_SITE_URL"],
-        "INDEXNOW_SITE_URL"
-    );
+    const siteDirectory =
+        readOption(
+            options,
+            "site-directory",
+            process.env["INDEXNOW_SITE_DIRECTORY"]
+        )?.trim() ?? "docs/docusaurus";
+    const siteUrl =
+        readOption(
+            options,
+            "site-url",
+            process.env["INDEXNOW_SITE_URL"]
+        )?.trim() ?? (await readConfiguredSiteUrl(siteDirectory));
     const endpoint =
         readOption(
             options,
