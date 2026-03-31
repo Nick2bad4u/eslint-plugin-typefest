@@ -127,6 +127,7 @@ If the package name implies the namespace, use the obvious derived namespace unl
 12. **Docusaurus and docs site:**
    - Ensure the Docusaurus site is fully functional with the new plugin name, links, docs, sidebar content, and generated API/doc tooling.
    - Look for stale template branding, URLs, nav links, sidebar items, generated-doc assumptions, or inspector output paths and update them appropriately.
+   - Make the website look almost the same as our template's Docusaurus site, but with the new plugin's identity and content instead of TypeFest-specific content, along with theming and branding adjustments as needed. We want to keep the layout almost 100% the same to save time, but the content must reflect the new plugin, not TypeFest. Do not leave any TypeFest-specific content in the docs site.
 
 13. **Scripts, sync flows, and package quality:**
    - Update package scripts only where necessary.
