@@ -62,6 +62,7 @@
     --sb-accent-overview: #22c55e;
     --sb-accent-started: #0ea5e9;
     --sb-accent-developer: #8b5cf6;
+    --sb-accent-developer-ops: #ec4899;
     --sb-accent-rules: #f97316;
     --sb-accent-presets: #eab308;
     --sb-accent-guides: #06b6d4;
@@ -79,6 +80,7 @@
     --sb-preset-recommended-type-checked: #fb923c;
     --sb-preset-strict: #f43f5e;
     --sb-preset-all: #a855f7;
+    --sb-preset-experimental: #38bdf8;
     --sb-preset-type-fest: #60a5fa;
     --sb-preset-type-guards: #fb923c;
 }
@@ -94,6 +96,7 @@
     --sb-accent-overview: #4ade80;
     --sb-accent-started: #38bdf8;
     --sb-accent-developer: #c084fc;
+    --sb-accent-developer-ops: #f472b6;
     --sb-accent-rules: #fb923c;
     --sb-accent-presets: #facc15;
     --sb-accent-guides: #67e8f9;
@@ -111,6 +114,7 @@
     --sb-preset-recommended-type-checked: #fdba74;
     --sb-preset-strict: #fb7185;
     --sb-preset-all: #c084fc;
+    --sb-preset-experimental: #7dd3fc;
     --sb-preset-type-fest: #93c5fd;
     --sb-preset-type-guards: #fdba74;
 }
@@ -165,6 +169,8 @@
 .sb-doc-overview > .menu__link,
 .sb-doc-getting-started > .menu__link,
 .sb-cat-developer > .menu__link,
+.sb-cat-developer-ops > .menu__link,
+.sb-doc-site-contract > .menu__link,
 .sb-cat-api-overview > .menu__list-item-collapsible .menu__link,
 .sb-cat-guides > .menu__list-item-collapsible .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
@@ -190,6 +196,11 @@
 
 .sb-cat-developer > .menu__link {
     border-inline-start-color: var(--sb-accent-developer);
+}
+
+.sb-cat-developer-ops > .menu__link,
+.sb-doc-site-contract > .menu__link {
+    border-inline-start-color: var(--sb-accent-developer-ops);
 }
 
 .sb-cat-guides > .menu__list-item-collapsible .menu__link {
@@ -866,6 +877,11 @@
 .sb-cat-presets .sb-preset-all > .menu__link,
 .sb-cat-presets .menu__link.sb-preset-all {
     border-inline-start-color: var(--sb-preset-all);
+}
+
+.sb-cat-presets .sb-preset-experimental > .menu__link,
+.sb-cat-presets .menu__link.sb-preset-experimental {
+    border-inline-start-color: var(--sb-preset-experimental);
 }
 
 .sb-cat-presets .sb-preset-type-fest > .menu__link,

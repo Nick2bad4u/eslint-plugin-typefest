@@ -560,6 +560,10 @@ const config: Config = {
                             to: "/docs/rules/presets/all",
                         },
                         {
+                            label: "🧪 Experimental",
+                            to: "/docs/rules/presets/experimental",
+                        },
+                        {
                             label: "💠 type-fest",
                             to: "/docs/rules/presets/type-fest-types",
                         },
@@ -570,18 +574,36 @@ const config: Config = {
                     ],
                 },
                 {
-                    label: "\ueaa4 Blog",
+                    href: `https://github.com/${organizationName}/${projectName}`,
+                    label: "\ue65b GitHub",
                     position: "right",
-                    to: "/blog",
                     type: "dropdown",
                     items: [
                         {
-                            label: "• Latest Posts",
-                            to: "/blog",
+                            href: `https://github.com/${organizationName}/${projectName}`,
+                            label: "• \ue709 GitHub",
                         },
                         {
-                            label: "• All Posts",
-                            to: "/blog/archive",
+                            href: `https://www.npmjs.com/package/${projectName}`,
+                            label: "• \ue616 NPM",
+                        },
+                        {
+                            href: `https://github.com/sindresorhus/type-fest`,
+                            className: "navbar-dropdown-divider-before",
+                            label: "💠 \ue709 type-fest",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/type-fest`,
+                            label: "💠 \ue616 type-fest",
+                        },
+                        {
+                            href: `https://github.com/sindresorhus/ts-extras`,
+                            className: "navbar-dropdown-divider-before",
+                            label: "✴️ \ue709 ts-extras",
+                        },
+                        {
+                            href: `https://www.npmjs.com/package/ts-extras`,
+                            label: "✴️ \ue616 ts-extras",
                         },
                     ],
                 },
@@ -618,36 +640,18 @@ const config: Config = {
                     ],
                 },
                 {
-                    href: `https://github.com/${organizationName}/${projectName}`,
-                    label: "\ue65b GitHub",
+                    label: "\ueaa4 Blog",
                     position: "right",
+                    to: "/blog",
                     type: "dropdown",
                     items: [
                         {
-                            href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "• \ue709 GitHub",
+                            label: "• Latest Posts",
+                            to: "/blog",
                         },
                         {
-                            href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "• \ue616 NPM",
-                        },
-                        {
-                            href: `https://github.com/sindresorhus/type-fest`,
-                            className: "navbar-dropdown-divider-before",
-                            label: "💠 \ue709 type-fest",
-                        },
-                        {
-                            href: `https://www.npmjs.com/package/type-fest`,
-                            label: "💠 \ue616 type-fest",
-                        },
-                        {
-                            href: `https://github.com/sindresorhus/ts-extras`,
-                            className: "navbar-dropdown-divider-before",
-                            label: "✴️ \ue709 ts-extras",
-                        },
-                        {
-                            href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "✴️ \ue616 ts-extras",
+                            label: "• All Posts",
+                            to: "/blog/archive",
                         },
                     ],
                 },
@@ -708,7 +712,7 @@ const config: Config = {
                 language: ["en"],
                 removeDefaultStemmer: true,
                 removeDefaultStopWordFilter: false,
-                searchBarPosition: "right",
+                searchBarPosition: "left",
                 searchBarShortcut: true,
                 searchBarShortcutHint: true,
                 searchBarShortcutKeymap: "ctrl+k",

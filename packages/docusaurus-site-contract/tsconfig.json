@@ -1,0 +1,19 @@
+{
+    "$schema": "https://www.schemastore.org/tsconfig.json",
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "erasableSyntaxOnly": true,
+        "isolatedDeclarations": false,
+        "noEmit": true,
+        "rootDir": ".",
+        "types": [
+            "node"
+        ]
+    },
+    "extends": "../../tsconfig.json",
+    "include": [
+        "*.d.mts",
+        "*.mjs"
+    ]
+}

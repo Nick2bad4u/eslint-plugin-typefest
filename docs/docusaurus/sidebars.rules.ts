@@ -169,6 +169,12 @@ const sidebars: SidebarsConfig = {
                     type: "doc",
                 },
                 {
+                    className: "sb-preset-experimental",
+                    id: "presets/experimental",
+                    label: "🧪 Experimental",
+                    type: "doc",
+                },
+                {
                     className: "sb-preset-type-fest",
                     id: "presets/type-fest-types",
                     label: "💠 type-fest",

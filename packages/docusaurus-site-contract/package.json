@@ -1,0 +1,90 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "docusaurus-site-contract",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Workspace package for validating Docusaurus docs-site contracts in template-derived repositories.",
+    "keywords": [
+        "contract",
+        "docusaurus",
+        "docs",
+        "tooling",
+        "validation"
+    ],
+    "homepage": "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    "bugs": {
+        "url": "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-typefest.git"
+    },
+    "license": "MIT",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://github.com/Nick2bad4u"
+        }
+    ],
+    "sideEffects": false,
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./index.d.mts",
+            "default": "./index.mjs"
+        },
+        "./cli": {
+            "types": "./cli.d.mts",
+            "default": "./cli.mjs"
+        },
+        "./package.json": "./package.json"
+    },
+    "main": "./index.mjs",
+    "bin": {
+        "docusaurus-site-contract": "./cli.mjs"
+    },
+    "scripts": {
+        "typecheck": "tsc --project tsconfig.json --noEmit"
+    },
+    "dependencies": {
+        "typescript": "^6.0.2"
+    },
+    "devDependencies": {
+        "@docusaurus/core": "^3.9.2",
+        "@docusaurus/faster": "^3.9.2",
+        "@docusaurus/plugin-content-docs": "^3.9.2",
+        "@docusaurus/plugin-pwa": "^3.9.2",
+        "@docusaurus/preset-classic": "^3.9.2",
+        "@docusaurus/theme-mermaid": "^3.9.2",
+        "@docusaurus/types": "^3.9.2",
+        "@easyops-cn/docusaurus-search-local": "^0.55.1",
+        "@types/node": "^25.5.0",
+        "clsx": "^2.1.1",
+        "prism-react-renderer": "^2.4.1"
+    },
+    "peerDependencies": {
+        "@docusaurus/core": "^3.9.2",
+        "@docusaurus/faster": "^3.9.2",
+        "@docusaurus/plugin-content-docs": "^3.9.2",
+        "@docusaurus/plugin-pwa": "^3.9.2",
+        "@docusaurus/preset-classic": "^3.9.2",
+        "@docusaurus/theme-mermaid": "^3.9.2",
+        "@docusaurus/types": "^3.9.2",
+        "@easyops-cn/docusaurus-search-local": "^0.55.1",
+        "clsx": "^2.1.1",
+        "prism-react-renderer": "^2.4.1"
+    },
+    "packageManager": "npm@11.12.1",
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=22.0.0",
+            "onFail": "error"
+        }
+    }
+}

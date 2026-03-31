@@ -10,15 +10,17 @@ This section is for contributors and advanced users.
 
 ## Quick navigation
 
-- [📘 API Overview](./api/index.md)
+- [🧭 Docusaurus site contract](./docusaurus-site-contract.md)
+- [📘 API Overview](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/developer/api)
 - [🧭 Architecture Decisions (ADR)](./adr/index.md)
 - [📊 Architecture and operations charts](./charts/index.md)
 - [🧬 Typed service path inventory](./typed-paths.md)
-- [🧠 Type aliases reference](./api/plugin/type-aliases/TypefestPlugin.md)
-- [⚙️ Runtime exports reference](./api/plugin/variables/typefestPlugin.md)
+- [🧠 Type aliases reference](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/developer/api/plugin/type-aliases/TypefestPlugin)
+- [⚙️ Runtime exports reference](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/developer/api/plugin/variables/typefestPlugin)
 
 ## Maintainer operations guides
 
+- [Docusaurus site contract blueprint and validator](./docusaurus-site-contract.md)
 - [Maintainer performance profiling with `--stats`](./maintainer-stats-and-performance.md)
 - [CLI debugging and config inspection (`--print-config`, cache, strict flags)](./cli-debugging-and-print-config.md)
 - [IDE integration (VS Code)](./ide-integration-vscode.md)
@@ -75,7 +77,7 @@ From the repository root, you can also run:
 npm run docs:build
 ```
 
-That command loads rule docs directly from `docs/rules`, generates TypeDoc output, and builds the Docusaurus site.
+That command now validates the docs site contract, loads rule docs directly from `docs/rules`, generates TypeDoc output, and builds the Docusaurus site.
 
 ## Project and community links
 
