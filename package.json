@@ -55,7 +55,7 @@
     ],
     "workspaces": [
         "docs/docusaurus",
-        "packages/docusaurus-site-contract"
+        "packages/*"
     ],
     "scripts": {
         "prebench": "npm run build",

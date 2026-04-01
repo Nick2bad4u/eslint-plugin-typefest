@@ -531,5 +531,5 @@ That means a drifted docs site should fail long before publish time.
 
 ## Related maintainer references
 
-- [Developer docs index](./index.md)
-- [GitHub Pages SEO and IndexNow deployment behavior](./deploy-pages-seo-and-indexnow.md)
+- [Developer docs index](../../docs/docusaurus/site-docs/developer/index.md)
+- [GitHub Pages SEO and IndexNow deployment behavior](../../docs/docusaurus/site-docs/developer/deploy-pages-seo-and-indexnow.md)
