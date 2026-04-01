@@ -201,6 +201,25 @@ const isUnknownRecord = (value) =>
     typeof value === "object" && value !== null && !Array.isArray(value);
 
 /**
+ * Extract a URL-like string from repository metadata.
+ *
+ * @param {unknown} value
+ *
+ * @returns {string | undefined}
+ */
+const getRepositoryMetadataUrl = (value) => {
+    if (typeof value === "string") {
+        return value;
+    }
+
+    if (isUnknownRecord(value) && typeof value["url"] === "string") {
+        return value["url"];
+    }
+
+    return undefined;
+};
+
+/**
  * Extract a GitHub owner/repository tuple from repository-like metadata.
  *
  * @param {Readonly<Record<string, unknown>>} packageJson
@@ -208,21 +227,12 @@ const isUnknownRecord = (value) =>
  * @returns {Readonly<{ owner?: string; repo?: string }>}
  */
 const inferRepositoryMetadata = (packageJson) => {
-    const repositoryValue = packageJson["repository"];
-    const bugsValue = packageJson["bugs"];
     const candidates = [
         typeof packageJson["homepage"] === "string"
             ? packageJson["homepage"]
             : undefined,
-        typeof repositoryValue === "string"
-            ? repositoryValue
-            : isUnknownRecord(repositoryValue) &&
-                typeof repositoryValue["url"] === "string"
-              ? repositoryValue["url"]
-              : undefined,
-        isUnknownRecord(bugsValue) && typeof bugsValue["url"] === "string"
-            ? bugsValue["url"]
-            : undefined,
+        getRepositoryMetadataUrl(packageJson["repository"]),
+        getRepositoryMetadataUrl(packageJson["bugs"]),
     ];
 
     for (const candidate of candidates) {
@@ -232,7 +242,7 @@ const inferRepositoryMetadata = (packageJson) => {
 
         const normalizedCandidate = candidate.replace(/^git\+/v, "");
         const match =
-            /github\.com(?:\/|:)(?<owner>[^\/]+)\/(?<repo>[^\/.?#]+)(?:\.git)?/v.exec(
+            /github\.com[\/:](?<owner>[^\/]+)\/(?<repo>[^\/.?#]+)(?:\.git)?/v.exec(
                 normalizedCandidate
             );
 

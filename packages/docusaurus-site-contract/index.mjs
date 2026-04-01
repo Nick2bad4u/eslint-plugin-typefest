@@ -957,6 +957,812 @@ const validateRequiredFiles = async (rootDirectoryPath, requiredFiles) => {
 };
 
 /**
+ * Validate one required package script.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} packageJsonPath
+ * @param {RequiredPackageJsonScript} requiredScript
+ * @param {string | undefined} actualScript
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateRequiredPackageScript = (
+    absoluteFilePath,
+    packageJsonPath,
+    requiredScript,
+    actualScript
+) => {
+    if (typeof actualScript !== "string") {
+        return [
+            createViolation(
+                "package-script-missing",
+                absoluteFilePath,
+                `Expected script '${requiredScript.name}' in ${packageJsonPath}.`
+            ),
+        ];
+    }
+
+    const violations = [];
+
+    if (
+        requiredScript.includes !== undefined &&
+        !actualScript.includes(requiredScript.includes)
+    ) {
+        violations.push(
+            createViolation(
+                "package-script-mismatch",
+                absoluteFilePath,
+                `Script '${requiredScript.name}' must include ${JSON.stringify(requiredScript.includes)}.`
+            )
+        );
+    }
+
+    if (
+        requiredScript.pattern !== undefined &&
+        !requiredScript.pattern.test(actualScript)
+    ) {
+        violations.push(
+            createViolation(
+                "package-script-mismatch",
+                absoluteFilePath,
+                `Script '${requiredScript.name}' must match ${requiredScript.pattern.toString()}.`
+            )
+        );
+    }
+
+    return violations;
+};
+
+/**
+ * Validate manifest field equality requirements.
+ *
+ * @param {{ [key: string]: unknown }} manifest
+ * @param {ManifestContract} manifestContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateManifestRequiredFields = (
+    manifest,
+    manifestContract,
+    absoluteFilePath
+) => {
+    const violations = [];
+
+    for (const [fieldName, expectedValue] of Object.entries(
+        manifestContract.requiredFields ?? {}
+    )) {
+        const actualValue = manifest[fieldName];
+
+        if (actualValue !== expectedValue) {
+            violations.push(
+                createViolation(
+                    "manifest-field-mismatch",
+                    absoluteFilePath,
+                    `Manifest field '${fieldName}' must equal ${JSON.stringify(expectedValue)}.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
+ * Validate manifest icon-count requirements.
+ *
+ * @param {readonly { src?: string }[]} icons
+ * @param {ManifestContract} manifestContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateManifestIconCount = (
+    icons,
+    manifestContract,
+    absoluteFilePath
+) => {
+    const minimumIcons = manifestContract.minimumIcons ?? 0;
+
+    if (icons.length >= minimumIcons) {
+        return [];
+    }
+
+    return [
+        createViolation(
+            "manifest-icons-missing",
+            absoluteFilePath,
+            `Manifest must declare at least ${minimumIcons} icon(s); found ${icons.length}.`
+        ),
+    ];
+};
+
+/**
+ * Validate manifest icon src values and on-disk files.
+ *
+ * @param {string} absoluteFilePath
+ * @param {readonly { src?: string }[]} icons
+ *
+ * @returns {Promise<ContractViolation[]>}
+ */
+const validateManifestIconFiles = async (absoluteFilePath, icons) => {
+    const violations = [];
+
+    for (const icon of icons) {
+        const iconSrc = typeof icon.src === "string" ? icon.src : undefined;
+
+        if (iconSrc === undefined) {
+            violations.push(
+                createViolation(
+                    "manifest-icon-src-missing",
+                    absoluteFilePath,
+                    "Manifest icon entries must include a string 'src' value."
+                )
+            );
+            continue;
+        }
+
+        const absoluteIconPath = resolve(dirname(absoluteFilePath), iconSrc);
+
+        if (!(await fileExists(absoluteIconPath))) {
+            violations.push(
+                createViolation(
+                    "manifest-icon-file-missing",
+                    absoluteFilePath,
+                    `Manifest icon '${iconSrc}' does not exist on disk.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
+ * Validate required source snippets.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly string[]} requiredSnippets
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateRequiredSourceSnippets = (
+    absoluteFilePath,
+    sourceText,
+    requiredSnippets
+) =>
+    requiredSnippets.flatMap((requiredSnippet) =>
+        sourceText.includes(requiredSnippet)
+            ? []
+            : [
+                  createViolation(
+                      "source-required-snippet-missing",
+                      absoluteFilePath,
+                      `Source must include snippet ${JSON.stringify(requiredSnippet)}.`
+                  ),
+              ]
+    );
+
+/**
+ * Validate forbidden source snippets.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly string[]} forbiddenSnippets
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateForbiddenSourceSnippets = (
+    absoluteFilePath,
+    sourceText,
+    forbiddenSnippets
+) =>
+    forbiddenSnippets.flatMap((forbiddenSnippet) =>
+        sourceText.includes(forbiddenSnippet)
+            ? [
+                  createViolation(
+                      "source-forbidden-snippet-present",
+                      absoluteFilePath,
+                      `Source must not include snippet ${JSON.stringify(forbiddenSnippet)}.`
+                  ),
+              ]
+            : []
+    );
+
+/**
+ * Validate snippet ordering requirements.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly string[]} orderedSnippets
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateOrderedSourceSnippets = (
+    absoluteFilePath,
+    sourceText,
+    orderedSnippets
+) => {
+    const violations = [];
+    let lastSnippetOffset = -1;
+
+    for (const orderedSnippet of orderedSnippets) {
+        const snippetOffset = sourceText.indexOf(orderedSnippet);
+
+        if (snippetOffset === -1) {
+            violations.push(
+                createViolation(
+                    "source-ordered-snippet-missing",
+                    absoluteFilePath,
+                    `Source must include ordered snippet ${JSON.stringify(orderedSnippet)}.`
+                )
+            );
+            continue;
+        }
+
+        if (snippetOffset < lastSnippetOffset) {
+            violations.push(
+                createViolation(
+                    "source-order-violation",
+                    absoluteFilePath,
+                    `Ordered snippet ${JSON.stringify(orderedSnippet)} appears out of sequence.`
+                )
+            );
+        }
+
+        lastSnippetOffset = snippetOffset;
+    }
+
+    return violations;
+};
+
+/**
+ * Validate ordered pattern requirements.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly PatternExpectation[]} orderedPatterns
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateOrderedSourcePatterns = (
+    absoluteFilePath,
+    sourceText,
+    orderedPatterns
+) => {
+    const violations = [];
+    let lastPatternOffset = -1;
+
+    for (const orderedPattern of orderedPatterns) {
+        const patternOffset = findFirstPatternOffset(
+            sourceText,
+            orderedPattern.pattern
+        );
+
+        if (patternOffset === -1) {
+            violations.push(
+                createViolation(
+                    "source-ordered-pattern-missing",
+                    absoluteFilePath,
+                    `Source must include ordered pattern ${orderedPattern.description ?? orderedPattern.pattern.toString()}.`
+                )
+            );
+            continue;
+        }
+
+        if (patternOffset < lastPatternOffset) {
+            violations.push(
+                createViolation(
+                    "source-pattern-order-violation",
+                    absoluteFilePath,
+                    `Ordered pattern ${orderedPattern.description ?? orderedPattern.pattern.toString()} appears out of sequence.`
+                )
+            );
+        }
+
+        lastPatternOffset = patternOffset;
+    }
+
+    return violations;
+};
+
+/**
+ * Validate required source patterns.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly PatternExpectation[]} requiredPatterns
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateRequiredSourcePatterns = (
+    absoluteFilePath,
+    sourceText,
+    requiredPatterns
+) => {
+    const violations = [];
+
+    for (const requiredPattern of requiredPatterns) {
+        const matchCount = countPatternMatches(
+            sourceText,
+            requiredPattern.pattern
+        );
+        const minimumMatches = requiredPattern.minMatches ?? 1;
+
+        if (matchCount < minimumMatches) {
+            violations.push(
+                createViolation(
+                    "source-required-pattern-missing",
+                    absoluteFilePath,
+                    `Source must match ${requiredPattern.description ?? requiredPattern.pattern.toString()} at least ${minimumMatches} time(s); found ${matchCount}.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
+ * Validate forbidden source patterns.
+ *
+ * @param {string} absoluteFilePath
+ * @param {string} sourceText
+ * @param {readonly PatternExpectation[]} forbiddenPatterns
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateForbiddenSourcePatterns = (
+    absoluteFilePath,
+    sourceText,
+    forbiddenPatterns
+) => {
+    const violations = [];
+
+    for (const forbiddenPattern of forbiddenPatterns) {
+        if (countPatternMatches(sourceText, forbiddenPattern.pattern) > 0) {
+            violations.push(
+                createViolation(
+                    "source-forbidden-pattern-present",
+                    absoluteFilePath,
+                    `Source must not match ${forbiddenPattern.description ?? forbiddenPattern.pattern.toString()}.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
+ * Validate one source-file contract.
+ *
+ * @param {string} rootDirectoryPath
+ * @param {SourceFileContract} sourceFileContract
+ *
+ * @returns {Promise<ContractViolation[]>}
+ */
+const validateSingleSourceFileContract = async (
+    rootDirectoryPath,
+    sourceFileContract
+) => {
+    const absoluteFilePath = resolveFromRoot(
+        rootDirectoryPath,
+        sourceFileContract.path
+    );
+
+    if (!(await fileExists(absoluteFilePath))) {
+        return [
+            createViolation(
+                "source-file-missing",
+                absoluteFilePath,
+                `Source file '${sourceFileContract.path}' is missing.`
+            ),
+        ];
+    }
+
+    const sourceText = await readUtf8File(absoluteFilePath);
+
+    return [
+        ...validateRequiredSourceSnippets(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.requiredSnippets ?? []
+        ),
+        ...validateForbiddenSourceSnippets(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.forbiddenSnippets ?? []
+        ),
+        ...validateOrderedSourceSnippets(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.orderedSnippets ?? []
+        ),
+        ...validateOrderedSourcePatterns(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.orderedPatterns ?? []
+        ),
+        ...validateRequiredSourcePatterns(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.requiredPatterns ?? []
+        ),
+        ...validateForbiddenSourcePatterns(
+            absoluteFilePath,
+            sourceText,
+            sourceFileContract.forbiddenPatterns ?? []
+        ),
+    ];
+};
+
+/**
+ * Validate required Docusaurus config lists such as themes or plugins.
+ *
+ * @param {readonly string[]} actualValues
+ * @param {readonly string[]} requiredValues
+ * @param {string} code
+ * @param {string} absoluteFilePath
+ * @param {(requiredValue: string) => string} createMessage
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateRequiredStringValues = (
+    actualValues,
+    requiredValues,
+    code,
+    absoluteFilePath,
+    createMessage
+) =>
+    requiredValues.flatMap((requiredValue) =>
+        actualValues.includes(requiredValue)
+            ? []
+            : [
+                  createViolation(
+                      code,
+                      absoluteFilePath,
+                      createMessage(requiredValue)
+                  ),
+              ]
+    );
+
+/**
+ * Validate top-level, plugin, theme, and client-module expectations.
+ *
+ * @param {ParsedDocusaurusConfig} parsedConfig
+ * @param {DocusaurusConfigContract} docusaurusConfigContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateDocusaurusConfigRequiredEntries = (
+    parsedConfig,
+    docusaurusConfigContract,
+    absoluteFilePath
+) => [
+    ...validateRequiredStringValues(
+        parsedConfig.topLevelPropertyNames,
+        docusaurusConfigContract.requiredTopLevelProperties ?? [],
+        "config-property-missing",
+        absoluteFilePath,
+        (propertyName) =>
+            `Docusaurus config must define top-level property '${propertyName}'.`
+    ),
+    ...validateRequiredStringValues(
+        parsedConfig.pluginNames,
+        docusaurusConfigContract.requiredPluginNames ?? [],
+        "config-plugin-missing",
+        absoluteFilePath,
+        (requiredPluginName) =>
+            `Docusaurus config must include plugin '${requiredPluginName}'.`
+    ),
+    ...validateRequiredStringValues(
+        parsedConfig.themeNames,
+        docusaurusConfigContract.requiredThemeNames ?? [],
+        "config-theme-missing",
+        absoluteFilePath,
+        (requiredThemeName) =>
+            `Docusaurus config must include theme '${requiredThemeName}'.`
+    ),
+    ...validateRequiredStringValues(
+        parsedConfig.clientModuleIdentifiers,
+        docusaurusConfigContract.requiredClientModuleIdentifiers ?? [],
+        "config-client-module-missing",
+        absoluteFilePath,
+        (requiredIdentifier) =>
+            `Docusaurus config must reference client module identifier '${requiredIdentifier}'.`
+    ),
+];
+
+/**
+ * Validate favicon, image, and logo requirements.
+ *
+ * @param {ParsedDocusaurusConfig} parsedConfig
+ * @param {DocusaurusConfigContract} docusaurusConfigContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateDocusaurusConfigAssetRequirements = (
+    parsedConfig,
+    docusaurusConfigContract,
+    absoluteFilePath
+) => {
+    const violations = [];
+
+    if (
+        docusaurusConfigContract.requireFavicon &&
+        (parsedConfig.faviconValue === null ||
+            parsedConfig.faviconValue.length === 0)
+    ) {
+        violations.push(
+            createViolation(
+                "config-favicon-missing",
+                absoluteFilePath,
+                "Docusaurus config must define a favicon."
+            )
+        );
+    }
+
+    if (
+        docusaurusConfigContract.requireThemeImage &&
+        (parsedConfig.themeImageValue === null ||
+            parsedConfig.themeImageValue.length === 0)
+    ) {
+        violations.push(
+            createViolation(
+                "config-theme-image-missing",
+                absoluteFilePath,
+                "Docusaurus themeConfig must define a social/share image."
+            )
+        );
+    }
+
+    if (
+        docusaurusConfigContract.navbar?.requireLogo &&
+        !parsedConfig.hasNavbarLogo
+    ) {
+        violations.push(
+            createViolation(
+                "navbar-logo-missing",
+                absoluteFilePath,
+                "Navbar must define a logo block."
+            )
+        );
+    }
+
+    if (
+        docusaurusConfigContract.footer?.requireLogo &&
+        !parsedConfig.hasFooterLogo
+    ) {
+        violations.push(
+            createViolation(
+                "footer-logo-missing",
+                absoluteFilePath,
+                "Footer must define a logo block."
+            )
+        );
+    }
+
+    return violations;
+};
+
+/**
+ * Validate navbar ordering and per-item requirements.
+ *
+ * @param {ParsedDocusaurusConfig} parsedConfig
+ * @param {NavbarContract | undefined} navbarContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateNavbarContract = (
+    parsedConfig,
+    navbarContract,
+    absoluteFilePath
+) => {
+    if (navbarContract === undefined) {
+        return [];
+    }
+
+    const violations = [];
+    let lastMatchedNavbarIndex = -1;
+
+    for (const navbarItemContract of navbarContract.orderedItems) {
+        const matchedNavbarItem = findNavbarItemByLabel(
+            parsedConfig.navbarItems,
+            navbarItemContract
+        );
+
+        if (matchedNavbarItem === null) {
+            violations.push(
+                createViolation(
+                    "navbar-item-missing",
+                    absoluteFilePath,
+                    `Navbar must include an item whose label matches ${navbarItemContract.labelPattern.toString()}.`
+                )
+            );
+            continue;
+        }
+
+        if (
+            !navbarItemMatchesContract(
+                matchedNavbarItem.item,
+                navbarItemContract
+            )
+        ) {
+            violations.push(
+                createViolation(
+                    "navbar-item-property-mismatch",
+                    absoluteFilePath,
+                    `Navbar item ${JSON.stringify(matchedNavbarItem.item.labelValue ?? "<unknown>")} does not satisfy the contract for ${navbarItemContract.labelPattern.toString()}.`
+                )
+            );
+        }
+
+        if (matchedNavbarItem.index < lastMatchedNavbarIndex) {
+            violations.push(
+                createViolation(
+                    "navbar-item-order-violation",
+                    absoluteFilePath,
+                    `Navbar item ${navbarItemContract.labelPattern.toString()} appears out of the required order.`
+                )
+            );
+        }
+
+        lastMatchedNavbarIndex = Math.max(
+            lastMatchedNavbarIndex,
+            matchedNavbarItem.index
+        );
+    }
+
+    return violations;
+};
+
+/**
+ * Validate footer column, title, link, and balance requirements.
+ *
+ * @param {ParsedDocusaurusConfig} parsedConfig
+ * @param {FooterContract | undefined} footerContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateFooterContract = (
+    parsedConfig,
+    footerContract,
+    absoluteFilePath
+) => {
+    if (footerContract === undefined) {
+        return [];
+    }
+
+    const footerColumns = parsedConfig.footerColumns;
+    const itemCounts = footerColumns.map((column) => column.itemCount);
+    const allFooterItemLabels = footerColumns.flatMap(
+        (column) => column.itemLabels
+    );
+    const violations = [];
+    const minColumns = footerContract.minColumns ?? 0;
+
+    if (footerColumns.length < minColumns) {
+        violations.push(
+            createViolation(
+                "footer-columns-missing",
+                absoluteFilePath,
+                `Footer must define at least ${minColumns} column(s); found ${footerColumns.length}.`
+            )
+        );
+    }
+
+    for (const requiredTitle of footerContract.requiredTitles ?? []) {
+        if (
+            !footerColumns.some((column) =>
+                matchesPatternLike(column.titleValue, requiredTitle)
+            )
+        ) {
+            violations.push(
+                createViolation(
+                    "footer-column-missing",
+                    absoluteFilePath,
+                    `Footer must include a column title matching ${describePatternLike(requiredTitle)}.`
+                )
+            );
+        }
+    }
+
+    for (const requiredLinkLabel of footerContract.requiredLinkLabelPatterns ??
+        []) {
+        if (
+            !allFooterItemLabels.some((itemLabel) =>
+                matchesPatternLike(itemLabel, requiredLinkLabel)
+            )
+        ) {
+            violations.push(
+                createViolation(
+                    "footer-link-missing",
+                    absoluteFilePath,
+                    `Footer must include a link label matching ${describePatternLike(requiredLinkLabel)}.`
+                )
+            );
+        }
+    }
+
+    if (itemCounts.length > 1) {
+        const maximumCount = Math.max(...itemCounts);
+        const minimumCount = Math.min(...itemCounts);
+        const allowedDelta = footerContract.maxItemCountDelta;
+
+        if (
+            allowedDelta !== undefined &&
+            maximumCount - minimumCount > allowedDelta
+        ) {
+            violations.push(
+                createViolation(
+                    "footer-balance-violation",
+                    absoluteFilePath,
+                    `Footer columns must stay within ${allowedDelta} item(s) of each other; saw a delta of ${maximumCount - minimumCount}.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
+ * Validate search-theme requirements.
+ *
+ * @param {ParsedDocusaurusConfig} parsedConfig
+ * @param {SearchPluginContract | undefined} searchPluginContract
+ * @param {string} absoluteFilePath
+ *
+ * @returns {ContractViolation[]}
+ */
+const validateSearchPluginContract = (
+    parsedConfig,
+    searchPluginContract,
+    absoluteFilePath
+) => {
+    if (searchPluginContract === undefined) {
+        return [];
+    }
+
+    const violations = [];
+    const requiredSearchThemeName = searchPluginContract.packageName;
+
+    if (!parsedConfig.themeNames.includes(requiredSearchThemeName)) {
+        violations.push(
+            createViolation(
+                "search-plugin-missing",
+                absoluteFilePath,
+                `Docusaurus config must include search theme '${requiredSearchThemeName}'.`
+            )
+        );
+    }
+
+    for (const [optionName, expectedValue] of Object.entries(
+        searchPluginContract.requiredOptions ?? {}
+    )) {
+        const actualValue = parsedConfig.searchPluginOptions?.[optionName];
+
+        if (actualValue !== expectedValue) {
+            violations.push(
+                createViolation(
+                    "search-plugin-option-mismatch",
+                    absoluteFilePath,
+                    `Search option '${optionName}' must equal ${JSON.stringify(expectedValue)}; found ${JSON.stringify(actualValue)}.`
+                )
+            );
+        }
+    }
+
+    return violations;
+};
+
+/**
  * Validate package.json script expectations.
  *
  * @param {string} rootDirectoryPath
@@ -994,44 +1800,14 @@ const validatePackageJsonContracts = async (
 
         for (const requiredScript of packageJsonContract.requiredScripts ??
             []) {
-            const actualScript = scripts[requiredScript.name];
-
-            if (typeof actualScript !== "string") {
-                violations.push(
-                    createViolation(
-                        "package-script-missing",
-                        absoluteFilePath,
-                        `Expected script '${requiredScript.name}' in ${packageJsonContract.path}.`
-                    )
-                );
-                continue;
-            }
-
-            if (
-                requiredScript.includes !== undefined &&
-                !actualScript.includes(requiredScript.includes)
-            ) {
-                violations.push(
-                    createViolation(
-                        "package-script-mismatch",
-                        absoluteFilePath,
-                        `Script '${requiredScript.name}' must include ${JSON.stringify(requiredScript.includes)}.`
-                    )
-                );
-            }
-
-            if (
-                requiredScript.pattern !== undefined &&
-                !requiredScript.pattern.test(actualScript)
-            ) {
-                violations.push(
-                    createViolation(
-                        "package-script-mismatch",
-                        absoluteFilePath,
-                        `Script '${requiredScript.name}' must match ${requiredScript.pattern.toString()}.`
-                    )
-                );
-            }
+            violations.push(
+                ...validateRequiredPackageScript(
+                    absoluteFilePath,
+                    packageJsonContract.path,
+                    requiredScript,
+                    scripts[requiredScript.name]
+                )
+            );
         }
     }
 
@@ -1074,66 +1850,23 @@ const validateManifestContracts = async (
         const manifest = JSON.parse(rawManifest);
         const icons = Array.isArray(manifest.icons) ? manifest.icons : [];
 
-        for (const [fieldName, expectedValue] of Object.entries(
-            manifestContract.requiredFields ?? {}
-        )) {
-            const actualValue = manifest[fieldName];
-
-            if (actualValue !== expectedValue) {
-                violations.push(
-                    createViolation(
-                        "manifest-field-mismatch",
-                        absoluteFilePath,
-                        `Manifest field '${fieldName}' must equal ${JSON.stringify(expectedValue)}.`
-                    )
-                );
-            }
-        }
-
-        const minimumIcons = manifestContract.minimumIcons ?? 0;
-
-        if (icons.length < minimumIcons) {
-            violations.push(
-                createViolation(
-                    "manifest-icons-missing",
-                    absoluteFilePath,
-                    `Manifest must declare at least ${minimumIcons} icon(s); found ${icons.length}.`
-                )
-            );
-        }
+        violations.push(
+            ...validateManifestRequiredFields(
+                manifest,
+                manifestContract,
+                absoluteFilePath
+            ),
+            ...validateManifestIconCount(
+                icons,
+                manifestContract,
+                absoluteFilePath
+            )
+        );
 
         if (manifestContract.requireExistingIconFiles) {
-            for (const icon of icons) {
-                const iconSrc =
-                    typeof icon.src === "string" ? icon.src : undefined;
-
-                if (iconSrc === undefined) {
-                    violations.push(
-                        createViolation(
-                            "manifest-icon-src-missing",
-                            absoluteFilePath,
-                            "Manifest icon entries must include a string 'src' value."
-                        )
-                    );
-                    continue;
-                }
-
-                const absoluteIconPath = resolve(
-                    dirname(absoluteFilePath),
-                    iconSrc
-                );
-                const exists = await fileExists(absoluteIconPath);
-
-                if (!exists) {
-                    violations.push(
-                        createViolation(
-                            "manifest-icon-file-missing",
-                            absoluteFilePath,
-                            `Manifest icon '${iconSrc}' does not exist on disk.`
-                        )
-                    );
-                }
-            }
+            violations.push(
+                ...(await validateManifestIconFiles(absoluteFilePath, icons))
+            );
         }
     }
 
@@ -1155,142 +1888,12 @@ const validateSourceFileContracts = async (
     const violations = [];
 
     for (const sourceFileContract of sourceFileContracts) {
-        const absoluteFilePath = resolveFromRoot(
-            rootDirectoryPath,
-            sourceFileContract.path
+        violations.push(
+            ...(await validateSingleSourceFileContract(
+                rootDirectoryPath,
+                sourceFileContract
+            ))
         );
-
-        if (!(await fileExists(absoluteFilePath))) {
-            violations.push(
-                createViolation(
-                    "source-file-missing",
-                    absoluteFilePath,
-                    `Source file '${sourceFileContract.path}' is missing.`
-                )
-            );
-            continue;
-        }
-
-        const sourceText = await readUtf8File(absoluteFilePath);
-
-        for (const requiredSnippet of sourceFileContract.requiredSnippets ??
-            []) {
-            if (!sourceText.includes(requiredSnippet)) {
-                violations.push(
-                    createViolation(
-                        "source-required-snippet-missing",
-                        absoluteFilePath,
-                        `Source must include snippet ${JSON.stringify(requiredSnippet)}.`
-                    )
-                );
-            }
-        }
-
-        for (const forbiddenSnippet of sourceFileContract.forbiddenSnippets ??
-            []) {
-            if (sourceText.includes(forbiddenSnippet)) {
-                violations.push(
-                    createViolation(
-                        "source-forbidden-snippet-present",
-                        absoluteFilePath,
-                        `Source must not include snippet ${JSON.stringify(forbiddenSnippet)}.`
-                    )
-                );
-            }
-        }
-
-        let lastSnippetOffset = -1;
-
-        for (const orderedSnippet of sourceFileContract.orderedSnippets ?? []) {
-            const snippetOffset = sourceText.indexOf(orderedSnippet);
-
-            if (snippetOffset === -1) {
-                violations.push(
-                    createViolation(
-                        "source-ordered-snippet-missing",
-                        absoluteFilePath,
-                        `Source must include ordered snippet ${JSON.stringify(orderedSnippet)}.`
-                    )
-                );
-                continue;
-            }
-
-            if (snippetOffset < lastSnippetOffset) {
-                violations.push(
-                    createViolation(
-                        "source-order-violation",
-                        absoluteFilePath,
-                        `Ordered snippet ${JSON.stringify(orderedSnippet)} appears out of sequence.`
-                    )
-                );
-            }
-
-            lastSnippetOffset = snippetOffset;
-        }
-
-        let lastPatternOffset = -1;
-
-        for (const orderedPattern of sourceFileContract.orderedPatterns ?? []) {
-            const patternOffset = findFirstPatternOffset(
-                sourceText,
-                orderedPattern.pattern
-            );
-
-            if (patternOffset === -1) {
-                violations.push(
-                    createViolation(
-                        "source-ordered-pattern-missing",
-                        absoluteFilePath,
-                        `Source must include ordered pattern ${orderedPattern.description ?? orderedPattern.pattern.toString()}.`
-                    )
-                );
-                continue;
-            }
-
-            if (patternOffset < lastPatternOffset) {
-                violations.push(
-                    createViolation(
-                        "source-pattern-order-violation",
-                        absoluteFilePath,
-                        `Ordered pattern ${orderedPattern.description ?? orderedPattern.pattern.toString()} appears out of sequence.`
-                    )
-                );
-            }
-
-            lastPatternOffset = patternOffset;
-        }
-
-        for (const requiredPattern of sourceFileContract.requiredPatterns ??
-            []) {
-            const matchCount = countPatternMatches(
-                sourceText,
-                requiredPattern.pattern
-            );
-            const minimumMatches = requiredPattern.minMatches ?? 1;
-
-            if (matchCount < minimumMatches) {
-                violations.push(
-                    createViolation(
-                        "source-required-pattern-missing",
-                        absoluteFilePath,
-                        `Source must match ${requiredPattern.description ?? requiredPattern.pattern.toString()} at least ${minimumMatches} time(s); found ${matchCount}.`
-                    )
-                );
-            }
-        }
-
-        for (const forbiddenPattern of sourceFileContract.forbiddenPatterns ??
-            []) {
-            if (countPatternMatches(sourceText, forbiddenPattern.pattern) > 0) {
-                violations.push(
-                    createViolation(
-                        "source-forbidden-pattern-present",
-                        absoluteFilePath,
-                        `Source must not match ${forbiddenPattern.description ?? forbiddenPattern.pattern.toString()}.`
-                    )
-                );
-            }
-        }
     }
 
     return violations;
@@ -1417,270 +2020,33 @@ const validateDocusaurusConfigContract = async (
         ];
     }
 
-    for (const propertyName of docusaurusConfigContract.requiredTopLevelProperties ??
-        []) {
-        if (!parsedConfig.topLevelPropertyNames.includes(propertyName)) {
-            violations.push(
-                createViolation(
-                    "config-property-missing",
-                    absoluteFilePath,
-                    `Docusaurus config must define top-level property '${propertyName}'.`
-                )
-            );
-        }
-    }
-
-    for (const requiredPluginName of docusaurusConfigContract.requiredPluginNames ??
-        []) {
-        if (!parsedConfig.pluginNames.includes(requiredPluginName)) {
-            violations.push(
-                createViolation(
-                    "config-plugin-missing",
-                    absoluteFilePath,
-                    `Docusaurus config must include plugin '${requiredPluginName}'.`
-                )
-            );
-        }
-    }
-
-    for (const requiredThemeName of docusaurusConfigContract.requiredThemeNames ??
-        []) {
-        if (!parsedConfig.themeNames.includes(requiredThemeName)) {
-            violations.push(
-                createViolation(
-                    "config-theme-missing",
-                    absoluteFilePath,
-                    `Docusaurus config must include theme '${requiredThemeName}'.`
-                )
-            );
-        }
-    }
-
-    for (const requiredIdentifier of docusaurusConfigContract.requiredClientModuleIdentifiers ??
-        []) {
-        if (
-            !parsedConfig.clientModuleIdentifiers.includes(requiredIdentifier)
-        ) {
-            violations.push(
-                createViolation(
-                    "config-client-module-missing",
-                    absoluteFilePath,
-                    `Docusaurus config must reference client module identifier '${requiredIdentifier}'.`
-                )
-            );
-        }
-    }
-
-    if (
-        docusaurusConfigContract.requireFavicon &&
-        (parsedConfig.faviconValue === null ||
-            parsedConfig.faviconValue.length === 0)
-    ) {
-        violations.push(
-            createViolation(
-                "config-favicon-missing",
-                absoluteFilePath,
-                "Docusaurus config must define a favicon."
-            )
-        );
-    }
-
-    if (
-        docusaurusConfigContract.requireThemeImage &&
-        (parsedConfig.themeImageValue === null ||
-            parsedConfig.themeImageValue.length === 0)
-    ) {
-        violations.push(
-            createViolation(
-                "config-theme-image-missing",
-                absoluteFilePath,
-                "Docusaurus themeConfig must define a social/share image."
-            )
-        );
-    }
-
-    if (
-        docusaurusConfigContract.navbar?.requireLogo &&
-        !parsedConfig.hasNavbarLogo
-    ) {
-        violations.push(
-            createViolation(
-                "navbar-logo-missing",
-                absoluteFilePath,
-                "Navbar must define a logo block."
-            )
-        );
-    }
-
-    if (
-        docusaurusConfigContract.footer?.requireLogo &&
-        !parsedConfig.hasFooterLogo
-    ) {
-        violations.push(
-            createViolation(
-                "footer-logo-missing",
-                absoluteFilePath,
-                "Footer must define a logo block."
-            )
-        );
-    }
-
-    if (docusaurusConfigContract.navbar !== undefined) {
-        let lastMatchedNavbarIndex = -1;
-
-        for (const navbarItemContract of docusaurusConfigContract.navbar
-            .orderedItems) {
-            const matchedNavbarItem = findNavbarItemByLabel(
-                parsedConfig.navbarItems,
-                navbarItemContract
-            );
-
-            if (matchedNavbarItem === null) {
-                violations.push(
-                    createViolation(
-                        "navbar-item-missing",
-                        absoluteFilePath,
-                        `Navbar must include an item whose label matches ${navbarItemContract.labelPattern.toString()}.`
-                    )
-                );
-                continue;
-            }
-
-            if (
-                !navbarItemMatchesContract(
-                    matchedNavbarItem.item,
-                    navbarItemContract
-                )
-            ) {
-                violations.push(
-                    createViolation(
-                        "navbar-item-property-mismatch",
-                        absoluteFilePath,
-                        `Navbar item ${JSON.stringify(matchedNavbarItem.item.labelValue ?? "<unknown>")} does not satisfy the contract for ${navbarItemContract.labelPattern.toString()}.`
-                    )
-                );
-            }
-
-            if (matchedNavbarItem.index < lastMatchedNavbarIndex) {
-                violations.push(
-                    createViolation(
-                        "navbar-item-order-violation",
-                        absoluteFilePath,
-                        `Navbar item ${navbarItemContract.labelPattern.toString()} appears out of the required order.`
-                    )
-                );
-            }
-
-            lastMatchedNavbarIndex = Math.max(
-                lastMatchedNavbarIndex,
-                matchedNavbarItem.index
-            );
-        }
-    }
-
-    if (docusaurusConfigContract.footer !== undefined) {
-        const footerColumns = parsedConfig.footerColumns;
-        const minColumns = docusaurusConfigContract.footer.minColumns ?? 0;
-        const itemCounts = footerColumns.map((column) => column.itemCount);
-        const allFooterItemLabels = footerColumns.flatMap(
-            (column) => column.itemLabels
-        );
-
-        if (footerColumns.length < minColumns) {
-            violations.push(
-                createViolation(
-                    "footer-columns-missing",
-                    absoluteFilePath,
-                    `Footer must define at least ${minColumns} column(s); found ${footerColumns.length}.`
-                )
-            );
-        }
-
-        for (const requiredTitle of docusaurusConfigContract.footer
-            .requiredTitles ?? []) {
-            const hasTitle = footerColumns.some((column) =>
-                matchesPatternLike(column.titleValue, requiredTitle)
-            );
-
-            if (!hasTitle) {
-                violations.push(
-                    createViolation(
-                        "footer-column-missing",
-                        absoluteFilePath,
-                        `Footer must include a column title matching ${describePatternLike(requiredTitle)}.`
-                    )
-                );
-            }
-        }
-
-        for (const requiredLinkLabel of docusaurusConfigContract.footer
-            .requiredLinkLabelPatterns ?? []) {
-            const hasFooterLink = allFooterItemLabels.some((itemLabel) =>
-                matchesPatternLike(itemLabel, requiredLinkLabel)
-            );
-
-            if (!hasFooterLink) {
-                violations.push(
-                    createViolation(
-                        "footer-link-missing",
-                        absoluteFilePath,
-                        `Footer must include a link label matching ${describePatternLike(requiredLinkLabel)}.`
-                    )
-                );
-            }
-        }
-
-        if (itemCounts.length > 1) {
-            const maximumCount = Math.max(...itemCounts);
-            const minimumCount = Math.min(...itemCounts);
-            const allowedDelta =
-                docusaurusConfigContract.footer.maxItemCountDelta;
-
-            if (
-                allowedDelta !== undefined &&
-                maximumCount - minimumCount > allowedDelta
-            ) {
-                violations.push(
-                    createViolation(
-                        "footer-balance-violation",
-                        absoluteFilePath,
-                        `Footer columns must stay within ${allowedDelta} item(s) of each other; saw a delta of ${maximumCount - minimumCount}.`
-                    )
-                );
-            }
-        }
-    }
-
-    if (docusaurusConfigContract.searchPlugin !== undefined) {
-        const requiredSearchThemeName =
-            docusaurusConfigContract.searchPlugin.packageName;
-
-        if (!parsedConfig.themeNames.includes(requiredSearchThemeName)) {
-            violations.push(
-                createViolation(
-                    "search-plugin-missing",
-                    absoluteFilePath,
-                    `Docusaurus config must include search theme '${requiredSearchThemeName}'.`
-                )
-            );
-        }
-
-        for (const [optionName, expectedValue] of Object.entries(
-            docusaurusConfigContract.searchPlugin.requiredOptions ?? {}
-        )) {
-            const actualValue = parsedConfig.searchPluginOptions?.[optionName];
-
-            if (actualValue !== expectedValue) {
-                violations.push(
-                    createViolation(
-                        "search-plugin-option-mismatch",
-                        absoluteFilePath,
-                        `Search option '${optionName}' must equal ${JSON.stringify(expectedValue)}; found ${JSON.stringify(actualValue)}.`
-                    )
-                );
-            }
-        }
-    }
+    violations.push(
+        ...validateDocusaurusConfigRequiredEntries(
+            parsedConfig,
+            docusaurusConfigContract,
+            absoluteFilePath
+        ),
+        ...validateDocusaurusConfigAssetRequirements(
+            parsedConfig,
+            docusaurusConfigContract,
+            absoluteFilePath
+        ),
+        ...validateNavbarContract(
+            parsedConfig,
+            docusaurusConfigContract.navbar,
+            absoluteFilePath
+        ),
+        ...validateFooterContract(
+            parsedConfig,
+            docusaurusConfigContract.footer,
+            absoluteFilePath
+        ),
+        ...validateSearchPluginContract(
+            parsedConfig,
+            docusaurusConfigContract.searchPlugin,
+            absoluteFilePath
+        )
+    );
 
     return violations;
 };

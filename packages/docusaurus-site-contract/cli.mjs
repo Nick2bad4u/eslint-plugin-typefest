@@ -17,6 +17,67 @@ import { runInitCommand } from "./init.mjs";
 const defaultContractPath = "docs/docusaurus/site-contract.config.mjs";
 
 /**
+ * Create a reusable CLI flag reader.
+ *
+ * @param {readonly string[]} commandArguments
+ *
+ * @returns {(flagName: string) => string | undefined}
+ */
+const createCliFlagValueReader = (commandArguments) => (flagName) => {
+    const equalsPrefix = `${flagName}=`;
+    const equalsArgument = commandArguments.find((argument) =>
+        argument.startsWith(equalsPrefix)
+    );
+
+    if (equalsArgument !== undefined) {
+        return equalsArgument.slice(equalsPrefix.length);
+    }
+
+    const flagIndex = commandArguments.indexOf(flagName);
+
+    if (flagIndex === -1) {
+        return undefined;
+    }
+
+    return commandArguments[flagIndex + 1];
+};
+
+/**
+ * Build init options from CLI arguments.
+ *
+ * @param {readonly string[]} commandArguments
+ *
+ * @returns {Readonly<{
+ *     dryRun: boolean;
+ *     force: boolean;
+ *     packageName?: string;
+ *     repoName?: string;
+ *     repositoryOwner?: string;
+ *     rootDirectoryPath: string;
+ *     skipDocsGuide: boolean;
+ *     skipDocsRegistration: boolean;
+ *     skipVendorPackage: boolean;
+ * }>}
+ */
+const createInitOptionsFromCli = (commandArguments) => {
+    const readCliFlagValue = createCliFlagValueReader(commandArguments);
+
+    return {
+        dryRun: commandArguments.includes("--dry-run"),
+        force: commandArguments.includes("--force"),
+        packageName: readCliFlagValue("--package-name"),
+        repoName: readCliFlagValue("--repo"),
+        repositoryOwner: readCliFlagValue("--owner"),
+        rootDirectoryPath: readCliFlagValue("--root") ?? process.cwd(),
+        skipDocsGuide: commandArguments.includes("--skip-docs-guide"),
+        skipDocsRegistration: commandArguments.includes(
+            "--skip-docs-registration"
+        ),
+        skipVendorPackage: commandArguments.includes("--skip-vendor-package"),
+    };
+};
+
+/**
  * Print CLI usage guidance.
  */
 const printHelp = () => {
@@ -135,136 +196,131 @@ const printValidationError = ({
 };
 
 /**
- * Execute the CLI.
+ * Print init results in either JSON or human-readable form.
  *
- * @param {readonly string[]} argv
+ * @param {Readonly<{
+ *     actions: readonly import("./init.mjs").InitAction[];
+ *     dryRun: boolean;
+ *     rootDirectoryPath: string;
+ *     useJsonOutput: boolean;
+ * }>} report
  */
-const runCli = async (argv = process.argv.slice(2)) => {
-    const subcommand = argv[0]?.startsWith("-") ? undefined : argv[0];
-    const commandArguments = subcommand === undefined ? argv : argv.slice(1);
-    const showHelp = argv.includes("--help") || argv.includes("-h");
-    const useJsonOutput = argv.includes("--json");
-    /**
-     * @param {string} flagName
-     *
-     * @returns {string | undefined}
-     */
-    const readCliFlagValue = (flagName) => {
-        const equalsPrefix = `${flagName}=`;
-        const equalsArgument = commandArguments.find((argument) =>
-            argument.startsWith(equalsPrefix)
-        );
-
-        if (equalsArgument !== undefined) {
-            return equalsArgument.slice(equalsPrefix.length);
-        }
-
-        const flagIndex = commandArguments.indexOf(flagName);
-
-        if (flagIndex === -1) {
-            return undefined;
-        }
-
-        return commandArguments[flagIndex + 1];
-    };
-
-    if (showHelp) {
-        printHelp();
-        return;
-    }
-
-    if (subcommand === "init") {
-        const requestedRootDirectoryPath =
-            readCliFlagValue("--root") ?? process.cwd();
-        const dryRun = commandArguments.includes("--dry-run");
-        const actions = await runInitCommand({
-            dryRun,
-            force: commandArguments.includes("--force"),
-            packageName: readCliFlagValue("--package-name"),
-            repoName: readCliFlagValue("--repo"),
-            repositoryOwner: readCliFlagValue("--owner"),
-            rootDirectoryPath: requestedRootDirectoryPath,
-            skipDocsGuide: commandArguments.includes("--skip-docs-guide"),
-            skipDocsRegistration: commandArguments.includes(
-                "--skip-docs-registration"
-            ),
-            skipVendorPackage: commandArguments.includes(
-                "--skip-vendor-package"
-            ),
-        });
-
-        if (useJsonOutput) {
-            console.log(
-                JSON.stringify(
-                    {
-                        actionCount: actions.length,
-                        actions,
-                        dryRun,
-                        ok: true,
-                        rootDirectoryPath: requestedRootDirectoryPath,
-                        subcommand: "init",
-                    },
-                    null,
-                    2
-                )
-            );
-            return;
-        }
-
+const printInitReport = ({
+    actions,
+    dryRun,
+    rootDirectoryPath,
+    useJsonOutput,
+}) => {
+    if (useJsonOutput) {
         console.log(
-            dryRun
-                ? "✅ Docusaurus site contract dry-run complete."
-                : "✅ Docusaurus site contract bootstrap complete."
+            JSON.stringify(
+                {
+                    actionCount: actions.length,
+                    actions,
+                    dryRun,
+                    ok: true,
+                    rootDirectoryPath,
+                    subcommand: "init",
+                },
+                null,
+                2
+            )
         );
-
-        if (actions.length === 0) {
-            console.log(
-                dryRun ? "No changes would be made." : "No files changed."
-            );
-            return;
-        }
-
-        for (const action of actions) {
-            console.log(`- ${action.action}: ${action.path}`);
-        }
-
         return;
     }
 
+    console.log(
+        dryRun
+            ? "✅ Docusaurus site contract dry-run complete."
+            : "✅ Docusaurus site contract bootstrap complete."
+    );
+
+    if (actions.length === 0) {
+        console.log(dryRun ? "No changes would be made." : "No files changed.");
+        return;
+    }
+
+    for (const action of actions) {
+        console.log(`- ${action.action}: ${action.path}`);
+    }
+};
+
+/**
+ * Handle the `init` CLI subcommand.
+ *
+ * @param {readonly string[]} commandArguments
+ * @param {boolean} useJsonOutput
+ *
+ * @returns {Promise<void>}
+ */
+const handleInitSubcommand = async (commandArguments, useJsonOutput) => {
+    const initOptions = createInitOptionsFromCli(commandArguments);
+    const actions = await runInitCommand(initOptions);
+
+    printInitReport({
+        actions,
+        dryRun: initOptions.dryRun,
+        rootDirectoryPath: initOptions.rootDirectoryPath,
+        useJsonOutput,
+    });
+};
+
+/**
+ * Load a site contract module from disk.
+ *
+ * @param {string} rootDirectoryPath
+ * @param {string} contractPath
+ *
+ * @returns {Promise<import("./index.mjs").DocusaurusSiteContract>}
+ */
+const loadSiteContractFromFile = async (rootDirectoryPath, contractPath) => {
+    const absoluteContractPath = resolve(rootDirectoryPath, contractPath);
+    const contractModuleSpecifier = pathToFileURL(absoluteContractPath).href;
+    const contractModule =
+        // eslint-disable-next-line no-unsanitized/method -- Controlled local file path resolved from --config/--root for repository tooling.
+        await import(contractModuleSpecifier);
+    const loadedContract =
+        contractModule.default ?? contractModule.siteContract;
+
+    if (loadedContract === undefined || loadedContract === null) {
+        throw new TypeError(
+            `Contract file '${contractPath}' must export either 'default' or 'siteContract'.`
+        );
+    }
+
+    return {
+        ...loadedContract,
+        rootDirectoryPath:
+            loadedContract.rootDirectoryPath ?? rootDirectoryPath,
+    };
+};
+
+/**
+ * Validate a site contract file and print the result.
+ *
+ * @param {readonly string[]} commandArguments
+ * @param {boolean} useJsonOutput
+ *
+ * @returns {Promise<void>}
+ */
+const handleValidationCommand = async (commandArguments, useJsonOutput) => {
+    const readCliFlagValue = createCliFlagValueReader(commandArguments);
     const requestedRootDirectoryPath =
         readCliFlagValue("--root") ?? process.cwd();
     const requestedContractPath =
         readCliFlagValue("--config") ?? defaultContractPath;
-    const absoluteContractPath = resolve(
-        requestedRootDirectoryPath,
-        requestedContractPath
-    );
 
     try {
-        const contractModuleSpecifier =
-            pathToFileURL(absoluteContractPath).href;
-        const contractModule =
-            // eslint-disable-next-line no-unsanitized/method -- Controlled local file path resolved from --config/--root for repository tooling.
-            await import(contractModuleSpecifier);
-        const loadedContract =
-            contractModule.default ?? contractModule.siteContract;
-
-        if (loadedContract === undefined || loadedContract === null) {
-            throw new TypeError(
-                `Contract file '${requestedContractPath}' must export either 'default' or 'siteContract'.`
-            );
-        }
-
-        const siteContract = {
-            ...loadedContract,
-            rootDirectoryPath:
-                loadedContract.rootDirectoryPath ?? requestedRootDirectoryPath,
-        };
+        const siteContract = await loadSiteContractFromFile(
+            requestedRootDirectoryPath,
+            requestedContractPath
+        );
         const violations = await validateDocusaurusSiteContract(siteContract);
 
         printValidationReport({
             contractPath: requestedContractPath,
-            rootDirectoryPath: siteContract.rootDirectoryPath,
+            rootDirectoryPath:
+                siteContract.rootDirectoryPath ?? requestedRootDirectoryPath,
             useJsonOutput,
             violations,
         });
@@ -281,6 +337,30 @@ const runCli = async (argv = process.argv.slice(2)) => {
         });
         process.exitCode = 1;
     }
+};
+
+/**
+ * Execute the CLI.
+ *
+ * @param {readonly string[]} argv
+ */
+const runCli = async (argv = process.argv.slice(2)) => {
+    const subcommand = argv[0]?.startsWith("-") ? undefined : argv[0];
+    const commandArguments = subcommand === undefined ? argv : argv.slice(1);
+    const showHelp = argv.includes("--help") || argv.includes("-h");
+    const useJsonOutput = argv.includes("--json");
+
+    if (showHelp) {
+        printHelp();
+        return;
+    }
+
+    if (subcommand === "init") {
+        await handleInitSubcommand(commandArguments, useJsonOutput);
+        return;
+    }
+
+    await handleValidationCommand(commandArguments, useJsonOutput);
 };
 
 export { runCli };
