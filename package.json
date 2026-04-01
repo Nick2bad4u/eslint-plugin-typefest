@@ -98,6 +98,7 @@
         "clean:docs": "rimraf docs/docusaurus/.docusaurus/** docs/docusaurus/build/** docs/docusaurus/site-docs/developer/api/**",
         "clean:docusaurus": "npm run clean:docs && npm run --workspace docs/docusaurus clear",
         "cognitive-complexity": "cognitive-complexity-ts --threshold 10",
+        "precommit": "npm run sync:readme-rules-table:write && npm run sync:presets-rules-matrix",
         "commit": "git-cz",
         "contrib": "all-contributors",
         "contrib:add": "all-contributors add",
