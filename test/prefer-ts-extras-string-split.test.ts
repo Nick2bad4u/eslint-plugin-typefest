@@ -366,6 +366,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-string-split", {
 
 describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     it("handles parser-service lookup failures without reporting", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -418,7 +420,8 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             }
 
             const splitCallExpression = firstDeclarator.init;
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const fallbackChecker = {
                 getTypeAtLocation: () => ({
@@ -467,7 +470,11 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     });
 
     it("skips reporting when parser services cannot map the receiver expression", async () => {
-        const getTypeAtLocation = vi.fn(() => ({
+        expect.hasAssertions();
+
+        const getTypeAtLocation = vi.fn<
+            () => { isIntersection: () => false; isUnion: () => false }
+        >(() => ({
             isIntersection: () => false,
             isUnion: () => false,
         }));
@@ -516,7 +523,8 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             }
 
             const splitCallExpression = firstDeclarator.init;
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const fallbackChecker = {
                 getTypeAtLocation,
@@ -559,6 +567,8 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     });
 
     it("guards apparent-type recursion cycles without reporting", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -573,17 +583,19 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                 isUnion: (): boolean => false,
             };
 
-            const getApparentType = vi.fn((candidate: unknown): unknown => {
-                if (candidate === apparentA) {
-                    return apparentB;
-                }
+            const getApparentType = vi.fn<(candidate: unknown) => unknown>(
+                (candidate: unknown): unknown => {
+                    if (candidate === apparentA) {
+                        return apparentB;
+                    }
 
-                if (candidate === apparentB) {
-                    return apparentA;
-                }
+                    if (candidate === apparentB) {
+                        return apparentA;
+                    }
 
-                return candidate;
-            });
+                    return candidate;
+                }
+            );
 
             mockTypedRuleModule({
                 getTypedRuleServices: () => ({
@@ -645,7 +657,8 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             }
 
             const splitCallExpression = firstDeclarator.init;
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const listenerMap = createRuleListeners({
                 filename:
@@ -676,7 +689,8 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
 
             listenerMap.CallExpression?.(splitCallExpression);
 
-            expect(getApparentType).toHaveBeenCalled();
+            expect(getApparentType).toHaveBeenNthCalledWith(1, apparentA);
+            expect(getApparentType).toHaveBeenNthCalledWith(2, apparentB);
             expect(report).not.toHaveBeenCalled();
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
@@ -685,7 +699,9 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     });
 
     it("reuses cached type resolutions for duplicate union branches and across expressions", async () => {
-        const report = vi.fn();
+        expect.hasAssertions();
+
+        const report = vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         const nonStringLeafType: Readonly<{
             getSymbol: () => undefined;
@@ -704,7 +720,18 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
             types: [nonStringLeafType, nonStringLeafType],
         };
 
-        const getTypeAtLocation = vi.fn(() => duplicateBranchUnionType);
+        const getTypeAtLocation = vi.fn<
+            () => {
+                getSymbol: () => undefined;
+                isIntersection: () => boolean;
+                isUnion: () => boolean;
+                types: Readonly<{
+                    getSymbol: () => undefined;
+                    isIntersection: () => false;
+                    isUnion: () => false;
+                }>[];
+            }
+        >(() => duplicateBranchUnionType);
 
         try {
             vi.resetModules();

@@ -96,6 +96,7 @@ const getPresetContractSnapshot = (): readonly PresetContractSnapshot[] =>
 
 describe("plugin contract snapshots", () => {
     it("keeps stable exported rule names", () => {
+        expect.hasAssertions();
         expect({
             ruleCount: Object.keys(typefestPlugin.rules).length,
             ruleNames: Object.keys(typefestPlugin.rules).toSorted(
@@ -105,10 +106,12 @@ describe("plugin contract snapshots", () => {
     });
 
     it("keeps stable preset contract matrix", () => {
+        expect.hasAssertions();
         expect(getPresetContractSnapshot()).toMatchSnapshot();
     });
 
     it("keeps stable plugin identity metadata", () => {
+        expect.hasAssertions();
         expect({
             name: typefestPlugin.meta.name,
             namespace: typefestPlugin.meta.namespace,

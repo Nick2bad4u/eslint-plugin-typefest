@@ -89,12 +89,15 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-defined", {
 
 describe("prefer-ts-extras-assert-defined metadata assertions", () => {
     it("retains hasSuggestions metadata for assert-defined", () => {
+        expect.hasAssertions();
         expect(rule.meta?.hasSuggestions).toBeTruthy();
     });
 });
 
 describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
     it("handles defensive consequent re-evaluation branch when synthetic AST nodes drift across reads", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -185,7 +188,8 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
                 },
             });
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
                     "fixtures/typed/prefer-ts-extras-assert-defined.invalid.ts",
@@ -198,7 +202,7 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
 
             listenerMap.IfStatement?.(ifStatementNode);
 
-            expect(report).toHaveBeenCalledTimes(1);
+            expect(report).toHaveBeenCalledOnce();
             expect(
                 (report.mock.calls[0]?.[0] as { suggest?: unknown }).suggest
             ).toBeDefined();
@@ -217,17 +221,17 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: AssertDefinedFixFactoryArgs): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: AssertDefinedFixFactoryArgs) => string
+            >((options: AssertDefinedFixFactoryArgs): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(
                 import("../src/_internal/imported-value-symbols.js"),
@@ -358,11 +362,13 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
-                        if (fixArguments) {
-                            expect(
-                                createSafeValueNodeTextReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
+                        expect(
+                            !fixArguments ||
+                                createSafeValueNodeTextReplacementFixMock.mock
+                                    .calls.length === 1
+                        ).toBeTruthy();
 
+                        if (fixArguments) {
                             replacementText =
                                 fixArguments.replacementTextFactory(
                                     "assertDefined"
@@ -423,17 +429,17 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: AssertDefinedFixFactoryArgs): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: AssertDefinedFixFactoryArgs) => string
+            >((options: AssertDefinedFixFactoryArgs): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(
                 import("../src/_internal/imported-value-symbols.js"),
@@ -555,14 +561,10 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                             messageId: "suggestTsExtrasAssertDefined",
                         });
 
-                        if (
+                        expect(
                             createSafeValueNodeTextReplacementFixMock.mock.calls
-                                .length > 0
-                        ) {
-                            expect(
-                                createSafeValueNodeTextReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        }
+                                .length <= 1
+                        ).toBeTruthy();
 
                         const fixArguments:
                             | AssertDefinedFixFactoryArgs

@@ -220,6 +220,8 @@ function parseH2Headings(markdown: string): string[] {
 
 describe("typefest rule docs", () => {
     it("every rule has a docs url and a matching docs/rules/<id>.md file", () => {
+        expect.hasAssertions();
+
         const { rules } = typefestPlugin;
 
         expect(rules).toBeDefined();
@@ -233,10 +235,12 @@ describe("typefest rule docs", () => {
 
             const url = docs?.url;
 
-            if (typeof url === "string") {
-                expect(url).toBe(createRuleDocsUrl(ruleId));
-                expect(url).not.toContain(".md");
-            }
+            expect(
+                typeof url !== "string" || url === createRuleDocsUrl(ruleId)
+            ).toBeTruthy();
+            expect(
+                typeof url !== "string" || !url.includes(".md")
+            ).toBeTruthy();
 
             const description = docs?.description;
 
@@ -249,6 +253,8 @@ describe("typefest rule docs", () => {
     });
 
     it("rule docs keep a canonical heading schema and package documentation placement", async () => {
+        expect.hasAssertions();
+
         const docsDir = path.join(process.cwd(), "docs", "rules");
 
         const ruleDocFiles = fs

@@ -7,6 +7,8 @@ import {
 
 describe("bounded cache helpers", () => {
     it("stores and reads nullable values without treating them as cache misses", () => {
+        expect.hasAssertions();
+
         const cache = new Map<string, null | string>();
 
         setBoundedCacheValue({
@@ -24,6 +26,8 @@ describe("bounded cache helpers", () => {
     });
 
     it("treats cached undefined as a cache hit", () => {
+        expect.hasAssertions();
+
         const cache = new Map<string, number | undefined>();
 
         setBoundedCacheValue({
@@ -40,6 +44,8 @@ describe("bounded cache helpers", () => {
     });
 
     it("evicts least-recently-used entries when max size is exceeded", () => {
+        expect.hasAssertions();
+
         const cache = new Map<string, number>();
 
         setBoundedCacheValue({
@@ -74,6 +80,8 @@ describe("bounded cache helpers", () => {
     });
 
     it("does nothing when maxEntries is invalid", () => {
+        expect.hasAssertions();
+
         const cache = new Map<string, number>();
 
         setBoundedCacheValue({

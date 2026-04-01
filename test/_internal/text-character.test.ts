@@ -7,6 +7,7 @@ import {
 
 describe(isAsciiIdentifierPartCharacter, () => {
     it("returns true for ascii letters, digits, dollar sign, and underscore", () => {
+        expect.hasAssertions();
         expect(isAsciiIdentifierPartCharacter("a")).toBeTruthy();
         expect(isAsciiIdentifierPartCharacter("Z")).toBeTruthy();
         expect(isAsciiIdentifierPartCharacter("7")).toBeTruthy();
@@ -15,6 +16,7 @@ describe(isAsciiIdentifierPartCharacter, () => {
     });
 
     it("returns false for punctuation, whitespace, and empty strings", () => {
+        expect.hasAssertions();
         expect(isAsciiIdentifierPartCharacter(".")).toBeFalsy();
         expect(isAsciiIdentifierPartCharacter("-")).toBeFalsy();
         expect(isAsciiIdentifierPartCharacter(" ")).toBeFalsy();
@@ -22,6 +24,7 @@ describe(isAsciiIdentifierPartCharacter, () => {
     });
 
     it("returns false for non-ascii unicode letters", () => {
+        expect.hasAssertions();
         expect(isAsciiIdentifierPartCharacter("λ")).toBeFalsy();
         expect(isAsciiIdentifierPartCharacter("你")).toBeFalsy();
     });
@@ -29,6 +32,7 @@ describe(isAsciiIdentifierPartCharacter, () => {
 
 describe(isKnownWhitespaceCharacter, () => {
     it("returns true for common js whitespace characters", () => {
+        expect.hasAssertions();
         expect(isKnownWhitespaceCharacter(" ")).toBeTruthy();
         expect(isKnownWhitespaceCharacter("\t")).toBeTruthy();
         expect(isKnownWhitespaceCharacter("\n")).toBeTruthy();
@@ -42,6 +46,7 @@ describe(isKnownWhitespaceCharacter, () => {
     });
 
     it("returns false for identifier and punctuation characters", () => {
+        expect.hasAssertions();
         expect(isKnownWhitespaceCharacter("a")).toBeFalsy();
         expect(isKnownWhitespaceCharacter("0")).toBeFalsy();
         expect(isKnownWhitespaceCharacter(".")).toBeFalsy();

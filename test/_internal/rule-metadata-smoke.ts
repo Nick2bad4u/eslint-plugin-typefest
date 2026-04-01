@@ -175,6 +175,8 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
     describe(`${ruleId} metadata`, () => {
         it("exports expected metadata baseline", async () => {
+            expect.hasAssertions();
+
             const metadataRule = (await importRuleModule(ruleId)).default;
             const metadataDefaultOptions = metadataRule.defaultOptions;
             const expectedDocsDescription =

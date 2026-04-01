@@ -173,6 +173,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-except", {
 
 describe("prefer-type-fest-except source assertions", () => {
     it("reports builtin Omit type references in undecorated visitor", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -217,7 +219,8 @@ describe("prefer-type-fest-except source assertions", () => {
                 throw new Error("Expected a type reference in the type alias");
             }
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const listenerMap = undecoratedRuleModule.default.create({
                 filename: "fixtures/typed/prefer-type-fest-except.invalid.ts",
@@ -229,8 +232,7 @@ describe("prefer-type-fest-except source assertions", () => {
 
             listenerMap.TSTypeReference?.(aliasAnnotation);
 
-            expect(report).toHaveBeenCalledTimes(1);
-            expect(report).toHaveBeenCalledWith(
+            expect(report).toHaveBeenCalledExactlyOnceWith(
                 expect.objectContaining({
                     messageId: "preferExcept",
                     node: aliasAnnotation,
@@ -282,10 +284,14 @@ describe("prefer-type-fest-except parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("Except");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("Except");
 
                     expect(tsReference.typeArguments?.params).toHaveLength(2);
                 }

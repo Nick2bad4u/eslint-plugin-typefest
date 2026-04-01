@@ -189,12 +189,16 @@ describe("prefer-ts-extras-array-find-last-index parse-safety guards", () => {
                     );
 
                     if (
-                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                        callExpression.callee.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(callExpression.callee.name).toBe(
-                            "arrayFindLastIndex"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(callExpression.callee.name).toBe(
+                        "arrayFindLastIndex"
+                    );
                 }
             ),
             fastCheckRunConfig.default

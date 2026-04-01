@@ -1576,13 +1576,17 @@ describe(createMethodToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayIncludes"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe(
+                        "arrayIncludes"
+                    );
 
                     expect(fixedCallExpression.arguments).toHaveLength(
                         callExpression.arguments.length + 1
@@ -1687,13 +1691,17 @@ describe(createMethodToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayIncludes"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe(
+                        "arrayIncludes"
+                    );
 
                     expect(fixedCallExpression.arguments).toHaveLength(
                         argumentExpressions.length + 1
@@ -1813,13 +1821,17 @@ describe(createMethodToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayIncludes"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe(
+                        "arrayIncludes"
+                    );
 
                     expect(fixedCallExpression.arguments).toHaveLength(
                         argumentExpressions.length + 1
@@ -2191,13 +2203,15 @@ describe(createMemberToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayFirst"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe("arrayFirst");
 
                     expect(fixedCallExpression.arguments).toHaveLength(1);
                 }
@@ -2289,13 +2303,15 @@ describe(createMemberToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayFirst"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe("arrayFirst");
 
                     expect(fixedCallExpression.arguments).toHaveLength(1);
                 }
@@ -2399,13 +2415,15 @@ describe(createMemberToFunctionCallFix, () => {
                     );
 
                     if (
-                        fixedCallExpression.callee.type ===
+                        fixedCallExpression.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(fixedCallExpression.callee.name).toBe(
-                            "arrayFirst"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(fixedCallExpression.callee.name).toBe("arrayFirst");
 
                     expect(fixedCallExpression.arguments).toHaveLength(1);
                 }
@@ -2496,13 +2514,15 @@ describe(createMemberToFunctionCallFix, () => {
                     );
 
                     if (
-                        secondInitializer.callee.type ===
+                        secondInitializer.callee.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(secondInitializer.callee.name).toBe(
-                            "arrayFirst"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(secondInitializer.callee.name).toBe("arrayFirst");
 
                     expect(() => {
                         parseSingleMemberExpressionFromCode(firstPassFixedCode);

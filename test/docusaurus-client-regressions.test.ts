@@ -57,6 +57,8 @@ const restoreGlobalTestEnvironment = (): void => {
 describe("docusaurus client regressions", () => {
     describe("prism customization", () => {
         it("highlights JSDoc tags inside TypeScript doc-comment blocks", () => {
+            expect.hasAssertions();
+
             try {
                 prismIncludeLanguages(Prism);
                 const fallbackGrammar = Prism.languages.extend("clike", {});
@@ -86,6 +88,8 @@ describe("docusaurus client regressions", () => {
 
     describe("client enhancement bootstrap", () => {
         it("uses the window load event instead of DOMContentLoaded for initial setup", () => {
+            expect.hasAssertions();
+
             try {
                 const sourceText = fs.readFileSync(
                     modernEnhancementsPath,

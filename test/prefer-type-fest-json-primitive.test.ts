@@ -151,6 +151,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-json-primitive", {
 
 describe("prefer-type-fest-json-primitive internal listener guards", () => {
     it("reports without fix when replacement builder returns null", async () => {
+        expect.hasAssertions();
+
         const reportCalls: unknown[] = [];
 
         try {
@@ -241,9 +243,10 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeNodeReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeNodeReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -315,20 +318,20 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
                             messageId: "preferJsonPrimitive",
                         });
 
-                        if (
+                        const fixFactoryCallCount =
                             createSafeTypeNodeReplacementFixMock.mock.calls
-                                .length > 0
-                        ) {
-                            expect(
-                                createSafeTypeNodeReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                            expect(
-                                createSafeTypeNodeReplacementFixMock.mock
-                                    .calls[0]?.[1]
-                            ).toBe("JsonPrimitive");
-                        } else {
-                            expect(reports[0]?.fix).toBeTypeOf("function");
-                        }
+                                .length;
+                        const usesInlineFix = fixFactoryCallCount === 0;
+
+                        expect(
+                            usesInlineFix || fixFactoryCallCount === 1
+                        ).toBeTruthy();
+                        expect(
+                            usesInlineFix
+                                ? typeof reports[0]?.fix
+                                : createSafeTypeNodeReplacementFixMock.mock
+                                      .calls[0]?.[1]
+                        ).toBe(usesInlineFix ? "function" : "JsonPrimitive");
 
                         const fixedCode = `${generatedCode.slice(0, unionType.range[0])}JsonPrimitive${generatedCode.slice(unionType.range[1])}`;
 

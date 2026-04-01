@@ -13,7 +13,11 @@ const createIdentifierExpression = (
 
 describe(memoizeExpressionBooleanPredicate, () => {
     it("memoizes by expression identity and avoids duplicate predicate calls", () => {
-        const evaluate = vi.fn(
+        expect.hasAssertions();
+
+        const evaluate = vi.fn<
+            (expression: Readonly<TSESTree.Expression>) => boolean
+        >(
             (expression: Readonly<TSESTree.Expression>) =>
                 expression.type === AST_NODE_TYPES.Identifier &&
                 expression.name === "value"
@@ -24,22 +28,28 @@ describe(memoizeExpressionBooleanPredicate, () => {
 
         expect(memoizedPredicate(expressionNode)).toBeTruthy();
         expect(memoizedPredicate(expressionNode)).toBeTruthy();
-        expect(evaluate).toHaveBeenCalledTimes(1);
+        expect(evaluate).toHaveBeenCalledOnce();
     });
 
     it("caches false results and returns them without recomputation", () => {
-        const evaluate = vi.fn(() => false);
+        expect.hasAssertions();
+
+        const evaluate = vi.fn<() => boolean>(() => false);
 
         const memoizedPredicate = memoizeExpressionBooleanPredicate(evaluate);
         const expressionNode = createIdentifierExpression("other");
 
         expect(memoizedPredicate(expressionNode)).toBeFalsy();
         expect(memoizedPredicate(expressionNode)).toBeFalsy();
-        expect(evaluate).toHaveBeenCalledTimes(1);
+        expect(evaluate).toHaveBeenCalledOnce();
     });
 
     it("keeps separate cache entries for different expression nodes", () => {
-        const evaluate = vi.fn(
+        expect.hasAssertions();
+
+        const evaluate = vi.fn<
+            (expression: Readonly<TSESTree.Expression>) => boolean
+        >(
             (expression: Readonly<TSESTree.Expression>) =>
                 expression.type === AST_NODE_TYPES.Identifier &&
                 expression.name.length > 3

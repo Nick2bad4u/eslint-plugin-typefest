@@ -76,7 +76,9 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-infinite", {
 
 describe("prefer-ts-extras-is-infinite internal listener guards", () => {
     it("ignores strict disjunctions when one Number member is non-infinity", async () => {
-        const report = vi.fn();
+        expect.hasAssertions();
+
+        const report = vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         try {
             vi.resetModules();
@@ -183,9 +185,9 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -319,20 +321,17 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                             messageId: "preferTsExtrasIsInfinite",
                         });
 
-                        if (
+                        const fixFactoryCallCount =
                             createSafeValueArgumentFunctionCallFixMock.mock
-                                .calls.length > 0
-                        ) {
-                            expect(
-                                createSafeValueArgumentFunctionCallFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        } else {
-                            const reportFix = reports[0]?.fix;
+                                .calls.length;
+                        const reportFix = reports[0]?.fix;
 
-                            if (reportFix !== undefined) {
-                                expect(typeof reportFix).toBe("function");
-                            }
-                        }
+                        expect(
+                            fixFactoryCallCount > 0
+                                ? fixFactoryCallCount === 1
+                                : reportFix === undefined ||
+                                      typeof reportFix === "function"
+                        ).toBeTruthy();
 
                         const replacementText = `isInfinite(${comparedExpressionText})`;
                         const fixedCode =
@@ -360,9 +359,9 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,

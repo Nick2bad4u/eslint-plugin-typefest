@@ -296,11 +296,15 @@ describe("prefer-type-fest-tagged-brands parse-safety guards", () => {
                     );
 
                     if (
-                        taggedReference.typeName.type ===
+                        taggedReference.typeName.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(taggedReference.typeName.name).toBe("Tagged");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(taggedReference.typeName.name).toBe("Tagged");
                 }
             ),
             fastCheckRunConfig.default

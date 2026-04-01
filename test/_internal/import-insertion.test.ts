@@ -282,14 +282,18 @@ const createProgram = (
 
 describe(createImportInsertionFix, () => {
     it("returns null for blank import text", () => {
+        expect.hasAssertions();
+
         const program = createProgram([]);
         const referenceNode = {
             parent: program,
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        const insertAfter = vi.fn();
-        const insertBeforeRange = vi.fn();
+        const insertAfter =
+            vi.fn<(...arguments_: readonly unknown[]) => unknown>();
+        const insertBeforeRange =
+            vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         const fixer = {
             insertTextAfter: insertAfter,
@@ -308,6 +312,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("trims import text before insertion", () => {
+        expect.hasAssertions();
+
         const importDeclaration = {
             range: [0, 20],
             source: {
@@ -349,6 +355,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts bare-module imports after the last non-relative import", () => {
+        expect.hasAssertions();
+
         const externalImport = {
             range: [0, 44],
             source: {
@@ -379,7 +387,8 @@ describe(createImportInsertionFix, () => {
 
                 return text;
             },
-            insertTextBeforeRange: vi.fn(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -398,6 +407,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts bare-module imports before relative imports when none are non-relative", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -418,7 +429,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -445,6 +457,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts side-effect bare-module imports before relative imports when none are non-relative", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -465,7 +479,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -492,6 +507,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("accepts empty-string side-effect module specifiers when positioning before relative imports", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -512,7 +529,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -539,6 +557,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("accepts empty-string from-clause module specifiers when positioning before relative imports", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -559,7 +579,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -586,6 +607,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("uses moduleSpecifierHint for placement when import text parsing cannot infer a specifier", () => {
+        expect.hasAssertions();
+
         const externalImport = {
             range: [0, 44],
             source: {
@@ -616,7 +639,8 @@ describe(createImportInsertionFix, () => {
 
                 return text;
             },
-            insertTextBeforeRange: vi.fn(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -637,6 +661,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts named imports whose local bindings include `from` before relative imports", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -657,7 +683,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -685,6 +712,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("treats escaped quote characters inside from-clause module specifiers as valid module text", () => {
+        expect.hasAssertions();
+
         const relativeImport = {
             range: [20, 60],
             source: {
@@ -705,7 +734,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -732,6 +762,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts side-effect bare-module imports after the last non-relative import", () => {
+        expect.hasAssertions();
+
         const externalImport = {
             range: [0, 44],
             source: {
@@ -762,7 +794,8 @@ describe(createImportInsertionFix, () => {
 
                 return text;
             },
-            insertTextBeforeRange: vi.fn(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -781,6 +814,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("does not treat non-directive string literals as directive prologue", () => {
+        expect.hasAssertions();
+
         const nonDirectiveStringStatement = {
             expression: {
                 type: "Literal",
@@ -795,7 +830,8 @@ describe(createImportInsertionFix, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        const insertAfter = vi.fn();
+        const insertAfter =
+            vi.fn<(...arguments_: readonly unknown[]) => unknown>();
         const insertBeforeRangeCalls: (readonly [
             readonly [number, number],
             string,
@@ -827,6 +863,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts after real directive prologue statements", () => {
+        expect.hasAssertions();
+
         const directiveStatement = {
             directive: "use client",
             expression: {
@@ -847,7 +885,8 @@ describe(createImportInsertionFix, () => {
         } as unknown as TSESTree.Node;
 
         const insertAfterCalls: (readonly [unknown, string])[] = [];
-        const insertBeforeRange = vi.fn();
+        const insertBeforeRange =
+            vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         const fixer = {
             insertTextAfter: (target: unknown, text: string) => {
@@ -872,13 +911,17 @@ describe(createImportInsertionFix, () => {
     });
 
     it("returns null when reference node is not attached to a Program", () => {
+        expect.hasAssertions();
+
         const detachedReferenceNode = {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
         const fixer = {
-            insertTextAfter: vi.fn(),
-            insertTextBeforeRange: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -891,6 +934,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("does not read plugin settings directly when creating insertion edits", () => {
+        expect.hasAssertions();
+
         const program = createProgram([]);
         const referenceNode = {
             parent: program,
@@ -903,7 +948,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -930,6 +976,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("falls back to inserting at file end when first statement range is malformed", () => {
+        expect.hasAssertions();
+
         const firstStatementWithoutRange = {
             type: "ExpressionStatement",
         } as unknown as TSESTree.ProgramStatement;
@@ -948,7 +996,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -975,6 +1024,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("inserts without a leading newline when inserting into an empty file", () => {
+        expect.hasAssertions();
+
         const emptyProgramAtZero = {
             ...createProgram([]),
             range: [0, 0],
@@ -990,7 +1041,8 @@ describe(createImportInsertionFix, () => {
         }[] = [];
 
         const fixer = {
-            insertTextAfter: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
             insertTextBeforeRange: (
                 range: readonly [number, number],
                 text: string
@@ -1017,6 +1069,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("returns null when program range end cannot be derived", () => {
+        expect.hasAssertions();
+
         const programWithInvalidRange = {
             ...createProgram([]),
             range: [0, -1],
@@ -1027,8 +1081,10 @@ describe(createImportInsertionFix, () => {
         } as unknown as TSESTree.Node;
 
         const fixer = {
-            insertTextAfter: vi.fn(),
-            insertTextBeforeRange: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({
@@ -1041,6 +1097,8 @@ describe(createImportInsertionFix, () => {
     });
 
     it("returns null when program range is not an array", () => {
+        expect.hasAssertions();
+
         const programWithNonArrayRange = {
             ...createProgram([]),
             range: "invalid",
@@ -1051,8 +1109,10 @@ describe(createImportInsertionFix, () => {
         } as unknown as TSESTree.Node;
 
         const fixer = {
-            insertTextAfter: vi.fn(),
-            insertTextBeforeRange: vi.fn(),
+            insertTextAfter:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
+            insertTextBeforeRange:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as TSESLint.RuleFixer;
 
         const fix = createImportInsertionFix({

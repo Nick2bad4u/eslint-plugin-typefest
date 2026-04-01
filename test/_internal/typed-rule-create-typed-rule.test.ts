@@ -109,6 +109,8 @@ describe(createTypedRule, () => {
         }) as unknown as TSESLint.RuleContext<RuleMessageIds, UnknownArray>;
 
     it("keeps fix callbacks when disableAllAutofixes is not enabled", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -127,7 +129,7 @@ describe(createTypedRule, () => {
             context.sourceCode.ast as unknown as TSESTree.Program
         );
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -137,6 +139,8 @@ describe(createTypedRule, () => {
     });
 
     it("removes fix callbacks while keeping suggestions when disableAllAutofixes is enabled", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -159,7 +163,7 @@ describe(createTypedRule, () => {
             context.sourceCode.ast as unknown as TSESTree.Program
         );
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -170,6 +174,8 @@ describe(createTypedRule, () => {
     });
 
     it("preserves top-level fix and suggestions when both are present", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -225,7 +231,7 @@ describe(createTypedRule, () => {
             context.sourceCode.ast as unknown as TSESTree.Program
         );
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -236,6 +242,8 @@ describe(createTypedRule, () => {
     });
 
     it("does not mutate original report descriptor when stripping fix", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -290,7 +298,7 @@ describe(createTypedRule, () => {
             context.sourceCode.ast as unknown as TSESTree.Program
         );
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
         expect(originalDescriptor).toBeDefined();
 
         const ensuredDescriptor =
@@ -300,6 +308,8 @@ describe(createTypedRule, () => {
     });
 
     it("does not strip non-function fix values", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -348,7 +358,7 @@ describe(createTypedRule, () => {
             context.sourceCode.ast as unknown as TSESTree.Program
         );
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -358,6 +368,8 @@ describe(createTypedRule, () => {
     });
 
     it("falls back safely when fix descriptor lookup returns undefined", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -437,10 +449,12 @@ describe(createTypedRule, () => {
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
         ).not.toThrow();
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
     });
 
     it("does not crash when fix getter throws", () => {
+        expect.hasAssertions();
+
         const reportSpy =
             vi.fn<
                 TSESLint.RuleContext<RuleMessageIds, UnknownArray>["report"]
@@ -463,7 +477,7 @@ describe(createTypedRule, () => {
                             node,
                         } as TSESLint.ReportDescriptor<RuleMessageIds>;
 
-                        const fixGetter = vi.fn(() => {
+                        const fixGetter = vi.fn<() => never>(() => {
                             throw new TypeError("boom");
                         });
 
@@ -501,10 +515,12 @@ describe(createTypedRule, () => {
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
         ).not.toThrow();
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
     });
 
     it("injects canonical docs metadata for cataloged prefer-* rules", () => {
+        expect.hasAssertions();
+
         const ruleUnderTest = createTypedRule({
             create() {
                 return {};
@@ -536,6 +552,7 @@ describe(createTypedRule, () => {
     });
 
     it("throws when authored docs.url is non-canonical", () => {
+        expect.hasAssertions();
         expect(() =>
             createTypedRule({
                 create() {
@@ -560,6 +577,8 @@ describe(createTypedRule, () => {
     });
 
     it("injects ruleCatalogId for non-catalog internal rules without ruleId/ruleNumber", () => {
+        expect.hasAssertions();
+
         const ruleUnderTest = createTypedRule({
             create() {
                 return {};
@@ -591,6 +610,7 @@ describe(createTypedRule, () => {
     });
 
     it("throws for prefer-* rules missing from the stable catalog", () => {
+        expect.hasAssertions();
         expect(() =>
             createTypedRule({
                 create() {
@@ -614,8 +634,10 @@ describe(createTypedRule, () => {
     });
 
     it("preserves meta.defaultOptions when upstream RuleCreator metadata provides it", () => {
+        expect.hasAssertions();
+
         const syntheticCreatedRule = {
-            create: vi.fn(() => ({})),
+            create: vi.fn<() => object>(() => ({})),
             defaultOptions: [] as const,
             meta: {
                 defaultOptions: [{ enabled: true }] as const,

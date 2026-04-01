@@ -262,6 +262,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-not", {
 
 describe("prefer-ts-extras-not internal listener guards", () => {
     it("reports without a fix when predicate text trims to empty", async () => {
+        expect.hasAssertions();
+
         const reportCalls: Readonly<{ fix?: unknown; messageId?: string }>[] =
             [];
 
@@ -370,9 +372,9 @@ describe("prefer-ts-extras-not internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(
                 import("../src/_internal/imported-value-symbols.js"),
@@ -479,7 +481,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         });
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const [callbackStart, callbackEnd] = callbackRange;
                         const replacedCode = `${generatedCode.slice(
@@ -508,9 +510,9 @@ describe("prefer-ts-extras-not internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(
                 import("../src/_internal/imported-value-symbols.js"),
@@ -632,9 +634,9 @@ describe("prefer-ts-extras-not internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(
                 import("../src/_internal/imported-value-symbols.js"),

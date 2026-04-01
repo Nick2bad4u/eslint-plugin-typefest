@@ -198,6 +198,8 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-unknown-array internal readonly-array identifier guard", () => {
     it("reports ReadonlyArray<unknown> but ignores other generic identifiers", async () => {
+        expect.hasAssertions();
+
         const reportCalls: {
             messageId?: string;
             node?: unknown;
@@ -298,8 +300,9 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             vi.resetModules();
 
             const createSafeTypeNodeReplacementFixPreservingReadonlyMock =
-                vi.fn((...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+                vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">(
+                    (...args: readonly unknown[]) =>
+                        args.length >= 0 ? "FIX" : "UNREACHABLE"
                 );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -387,20 +390,20 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                             messageId: "preferUnknownArray",
                         });
 
-                        if (
+                        const fixFactoryCallCount =
                             createSafeTypeNodeReplacementFixPreservingReadonlyMock
-                                .mock.calls.length > 0
-                        ) {
-                            expect(
-                                createSafeTypeNodeReplacementFixPreservingReadonlyMock
-                            ).toHaveBeenCalledTimes(1);
-                            expect(
-                                createSafeTypeNodeReplacementFixPreservingReadonlyMock
-                                    .mock.calls[0]?.[1]
-                            ).toBe("UnknownArray");
-                        } else {
-                            expect(reports[0]?.fix).toBeTypeOf("function");
-                        }
+                                .mock.calls.length;
+                        const usesInlineFix = fixFactoryCallCount === 0;
+
+                        expect(
+                            usesInlineFix || fixFactoryCallCount === 1
+                        ).toBeTruthy();
+                        expect(
+                            usesInlineFix
+                                ? typeof reports[0]?.fix
+                                : createSafeTypeNodeReplacementFixPreservingReadonlyMock
+                                      .mock.calls[0]?.[1]
+                        ).toBe(usesInlineFix ? "function" : "UnknownArray");
 
                         const nodeRange = candidateNode.range;
                         const fixedCode = `${generatedCode.slice(0, nodeRange[0])}Readonly<UnknownArray>${generatedCode.slice(nodeRange[1])}`;

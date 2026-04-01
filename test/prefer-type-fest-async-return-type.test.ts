@@ -157,6 +157,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-async-return-type", {
 
 describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
     it("handles defensive malformed-type-argument fallback without reporting", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -216,7 +218,8 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                 }
             );
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
                     "fixtures/typed/prefer-type-fest-async-return-type.invalid.ts",
@@ -243,9 +246,10 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeNodeTextReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeNodeTextReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(
@@ -313,14 +317,10 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                         messageId: "preferAsyncReturnType",
                     });
 
-                    if (
+                    expect(
                         createSafeTypeNodeTextReplacementFixMock.mock.calls
-                            .length > 0
-                    ) {
-                        expect(
-                            createSafeTypeNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
-                    }
+                            .length <= 1
+                    ).toBeTruthy();
 
                     const replacementText =
                         createSafeTypeNodeTextReplacementFixMock.mock

@@ -56,6 +56,8 @@ const getAliasTypeAnnotation = (annotationText: string): TSESTree.TypeNode => {
 
 describe(areEquivalentExpressions, () => {
     it("treats identical expressions as equivalent", () => {
+        expect.hasAssertions();
+
         const left = getInitializerExpression("user.profile.id");
         const right = getInitializerExpression("user.profile.id");
 
@@ -63,6 +65,8 @@ describe(areEquivalentExpressions, () => {
     });
 
     it("treats different expressions as non-equivalent", () => {
+        expect.hasAssertions();
+
         const left = getInitializerExpression("user.profile.id");
         const right = getInitializerExpression("user.profile.name");
 
@@ -70,6 +74,8 @@ describe(areEquivalentExpressions, () => {
     });
 
     it("unwraps TS assertion wrappers for equivalence", () => {
+        expect.hasAssertions();
+
         const left = getInitializerExpression("value as string");
         const right = getInitializerExpression("value");
 
@@ -77,6 +83,8 @@ describe(areEquivalentExpressions, () => {
     });
 
     it("unwraps non-null and satisfies wrappers for equivalence", () => {
+        expect.hasAssertions();
+
         const left = getInitializerExpression("value!");
         const right = getInitializerExpression("value satisfies unknown");
 
@@ -84,6 +92,8 @@ describe(areEquivalentExpressions, () => {
     });
 
     it("unwraps TypeScript angle-bracket assertions for equivalence", () => {
+        expect.hasAssertions();
+
         const left = getInitializerExpression("<string>value");
         const right = getInitializerExpression("value");
 
@@ -91,6 +101,8 @@ describe(areEquivalentExpressions, () => {
     });
 
     it("handles cyclic wrapper expressions without infinite recursion", () => {
+        expect.hasAssertions();
+
         const cyclicAsExpression = {
             expression: undefined,
             type: AST_NODE_TYPES.TSAsExpression,
@@ -115,6 +127,8 @@ describe(areEquivalentExpressions, () => {
 
 describe(areEquivalentTypeNodes, () => {
     it("treats equivalent type nodes as equivalent", () => {
+        expect.hasAssertions();
+
         const left = getAliasTypeAnnotation("Readonly<{ alpha: string }>");
         const right = getAliasTypeAnnotation("Readonly<{ alpha: string }>");
 
@@ -122,6 +136,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("treats different type nodes as non-equivalent", () => {
+        expect.hasAssertions();
+
         const left = getAliasTypeAnnotation("Readonly<{ alpha: string }>");
         const right = getAliasTypeAnnotation("Readonly<{ beta: string }>");
 
@@ -129,6 +145,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false for array-vs-non-array structures", () => {
+        expect.hasAssertions();
+
         const left = ["alpha"] as unknown as TSESTree.TypeNode;
         const right = { alpha: true } as unknown as TSESTree.TypeNode;
 
@@ -136,6 +154,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false when compared values have mismatched runtime types", () => {
+        expect.hasAssertions();
+
         const left = 42 as unknown as TSESTree.TypeNode;
         const right = "42" as unknown as TSESTree.TypeNode;
 
@@ -143,6 +163,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false when one side is null", () => {
+        expect.hasAssertions();
+
         const left = null as unknown as TSESTree.TypeNode;
         const right = { alpha: true } as unknown as TSESTree.TypeNode;
 
@@ -150,6 +172,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false for arrays with different lengths", () => {
+        expect.hasAssertions();
+
         const left = ["alpha"] as unknown as TSESTree.TypeNode;
         const right = ["alpha", "beta"] as unknown as TSESTree.TypeNode;
 
@@ -157,6 +181,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false for non-comparable primitive-like values", () => {
+        expect.hasAssertions();
+
         const left = 1 as unknown as TSESTree.TypeNode;
         const right = 2 as unknown as TSESTree.TypeNode;
 
@@ -164,6 +190,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false for object nodes with different comparable key counts", () => {
+        expect.hasAssertions();
+
         const left = { alpha: 1, beta: 2 } as unknown as TSESTree.TypeNode;
         const right = { alpha: 1 } as unknown as TSESTree.TypeNode;
 
@@ -171,6 +199,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false for object nodes with different comparable key names", () => {
+        expect.hasAssertions();
+
         const left = { alpha: 1 } as unknown as TSESTree.TypeNode;
         const right = { beta: 1 } as unknown as TSESTree.TypeNode;
 
@@ -178,6 +208,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("supports cyclic object graphs by reusing seen-pair tracking", () => {
+        expect.hasAssertions();
+
         const left: { self?: unknown } = {};
         const right: { self?: unknown } = {};
 
@@ -193,6 +225,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("supports repeated array pair checks through seen-pair tracking", () => {
+        expect.hasAssertions();
+
         const left: unknown[] = [];
         const right: unknown[] = [];
 
@@ -208,6 +242,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("returns false when right-side own keys are removed between key scan and property comparison", () => {
+        expect.hasAssertions();
+
         const right: { alpha?: number } = { alpha: 1 };
         let descriptorReadCount = 0;
 
@@ -244,6 +280,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("tracks multiple right-side pairs for the same left-side node", () => {
+        expect.hasAssertions();
+
         const sharedLeft = {
             value: 1,
         };
@@ -272,6 +310,8 @@ describe(areEquivalentTypeNodes, () => {
     });
 
     it("fails closed for deeply nested structures to avoid stack overflows", () => {
+        expect.hasAssertions();
+
         const leftRoot: { child?: unknown } = {};
         const rightRoot: { child?: unknown } = {};
 

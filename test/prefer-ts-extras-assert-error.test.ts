@@ -351,6 +351,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-assert-error metadata literals", () => {
     it("declares authored docs URL and hasSuggestions literals", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
         expect(rule.meta.hasSuggestions).toBeTruthy();
     });
@@ -358,6 +359,8 @@ describe("prefer-ts-extras-assert-error metadata literals", () => {
 
 describe("prefer-ts-extras-assert-error internal listener guards", () => {
     it("ignores synthetic PrivateIdentifier instanceof guards without crashing", () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         const listeners = rule.create({
@@ -406,6 +409,8 @@ describe("prefer-ts-extras-assert-error internal listener guards", () => {
     });
 
     it("returns early for bare PrivateIdentifier targets under mocked global Error resolution", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -609,7 +614,7 @@ describe("prefer-ts-extras-assert-error fast-check suggestion safety", () => {
 
                         suggestionFix({
                             replaceText(node, text): unknown {
-                                expect(node).toEqual(ifNode);
+                                expect(node).toStrictEqual(ifNode);
 
                                 replacementText = text;
 

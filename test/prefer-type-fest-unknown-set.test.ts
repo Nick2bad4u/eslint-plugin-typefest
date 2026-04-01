@@ -123,6 +123,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-unknown-set", {
 
 describe("prefer-type-fest-unknown-set source assertions", () => {
     it("matches ReadonlySet<unknown> in undecorated visitor", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -167,7 +169,8 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
                 throw new Error("Expected a type reference in the type alias");
             }
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
@@ -180,8 +183,7 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
 
             listenerMap.TSTypeReference?.(aliasAnnotation);
 
-            expect(report).toHaveBeenCalledTimes(1);
-            expect(report).toHaveBeenCalledWith(
+            expect(report).toHaveBeenCalledExactlyOnceWith(
                 expect.objectContaining({
                     messageId: "preferUnknownSet",
                     node: aliasAnnotation,
@@ -228,10 +230,14 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("Readonly");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("Readonly");
                 }
             ),
             fastCheckRunConfig.default

@@ -204,6 +204,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-non-empty-tuple", {
 
 describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
     it("returns early before text extraction for optional/rest tuple heads", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -273,24 +275,29 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
                 },
             };
 
-            const report = vi.fn();
-            const getText = vi.fn((node: unknown): string => {
-                const nodeType =
-                    typeof node === "object" && node !== null && "type" in node
-                        ? (node as { type?: string }).type
-                        : undefined;
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
+            const getText = vi.fn<(node: unknown) => string>(
+                (node: unknown): string => {
+                    const nodeType =
+                        typeof node === "object" &&
+                        node !== null &&
+                        "type" in node
+                            ? (node as { type?: string }).type
+                            : undefined;
 
-                if (
-                    nodeType === "TSOptionalType" ||
-                    nodeType === "TSRestType"
-                ) {
-                    throw new Error(
-                        "Optional/rest tuple heads should return before text extraction"
-                    );
+                    if (
+                        nodeType === "TSOptionalType" ||
+                        nodeType === "TSRestType"
+                    ) {
+                        throw new Error(
+                            "Optional/rest tuple heads should return before text extraction"
+                        );
+                    }
+
+                    return "string";
                 }
-
-                return "string";
-            });
+            );
 
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
@@ -321,8 +328,9 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
             vi.resetModules();
 
             const createSafeTypeNodeTextReplacementFixPreservingReadonlyMock =
-                vi.fn((...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+                vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">(
+                    (...args: readonly unknown[]) =>
+                        args.length >= 0 ? "FIX" : "UNREACHABLE"
                 );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -386,7 +394,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
 
                     expect(
                         createSafeTypeNodeTextReplacementFixPreservingReadonlyMock
-                    ).toHaveBeenCalledTimes(1);
+                    ).toHaveBeenCalledOnce();
                     expect(
                         createSafeTypeNodeTextReplacementFixPreservingReadonlyMock
                             .mock.calls[0]?.[1]

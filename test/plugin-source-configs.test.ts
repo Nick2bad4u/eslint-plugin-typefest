@@ -30,6 +30,8 @@ const getRuleEntries = (
 
 describe("source plugin config wiring", () => {
     it("builds non-empty layered rule presets from src/plugin", async () => {
+        expect.hasAssertions();
+
         const plugin = await loadSourcePlugin();
         const minimal = plugin.configs.minimal;
         const recommended = plugin.configs.recommended;
@@ -51,7 +53,7 @@ describe("source plugin config wiring", () => {
         expect(getRuleEntries(all).length).toBeGreaterThan(0);
         expect(getRuleEntries(experimental).length).toBeGreaterThan(0);
 
-        expect(Object.keys(experimental.rules)).toEqual(
+        expect(Object.keys(experimental.rules)).toStrictEqual(
             expect.arrayContaining(expectedQualifiedRuleIds)
         );
         expect(Object.keys(recommended.rules)).toContain(
@@ -196,6 +198,8 @@ describe("source plugin config wiring", () => {
     });
 
     it("registers parser defaults, files, and plugin namespace", async () => {
+        expect.hasAssertions();
+
         const plugin = await loadSourcePlugin();
         const recommendedConfig = plugin.configs.recommended;
 
@@ -208,7 +212,9 @@ describe("source plugin config wiring", () => {
         expect(recommendedConfig.languageOptions).toHaveProperty(
             "parserOptions"
         );
-        expect(recommendedConfig.languageOptions?.["parserOptions"]).toEqual({
+        expect(
+            recommendedConfig.languageOptions?.["parserOptions"]
+        ).toStrictEqual({
             ecmaVersion: "latest",
             sourceType: "module",
         });
@@ -217,26 +223,22 @@ describe("source plugin config wiring", () => {
             const parserOptions =
                 plugin.configs[configName].languageOptions?.["parserOptions"];
 
-            expect(parserOptions).toEqual(
+            expect(parserOptions).toStrictEqual(
                 expect.objectContaining({
                     ecmaVersion: "latest",
                     sourceType: "module",
                 })
             );
 
-            if (typefestConfigMetadataByName[configName].requiresTypeChecking) {
-                expect(parserOptions).toEqual(
-                    expect.objectContaining({
-                        projectService: true,
-                    })
-                );
-            } else {
-                expect(parserOptions).toEqual(
-                    expect.not.objectContaining({
-                        projectService: true,
-                    })
-                );
-            }
+            const hasProjectServiceEnabled =
+                typeof parserOptions === "object" &&
+                parserOptions !== null &&
+                "projectService" in parserOptions &&
+                Reflect.get(parserOptions, "projectService") === true;
+
+            expect(hasProjectServiceEnabled).toBe(
+                typefestConfigMetadataByName[configName].requiresTypeChecking
+            );
         }
     });
 });

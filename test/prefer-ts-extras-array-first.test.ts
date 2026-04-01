@@ -191,7 +191,9 @@ describe("prefer-ts-extras-array-first source assertions", () => {
         try {
             vi.resetModules();
 
-            const createMemberToFunctionCallFixMock = vi.fn(() => "FIX");
+            const createMemberToFunctionCallFixMock = vi.fn<() => string>(
+                () => "FIX"
+            );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -274,7 +276,7 @@ describe("prefer-ts-extras-array-first source assertions", () => {
                         });
                         expect(
                             createMemberToFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const receiverText = getSourceTextForNode({
                             code,

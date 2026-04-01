@@ -374,6 +374,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-key-in metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
@@ -385,17 +386,17 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: KeyInFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: KeyInFixFactoryArguments) => string
+            >((options: KeyInFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -498,8 +499,13 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         if (createSafeFixInvocationCount === 0) {
                             const reportFix = reportCalls[0]?.fix;
 
-                            if (reportFix !== undefined) {
-                                expect(typeof reportFix).toBe("function");
+                            if (
+                                reportFix !== undefined &&
+                                typeof reportFix !== "function"
+                            ) {
+                                throw new TypeError(
+                                    "Expected fallback keyIn fix to be a function"
+                                );
                             }
 
                             return;
@@ -508,13 +514,11 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         expect(reportCalls[0]?.fix).toBe("FIX");
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
-
-                        expect(fixArguments).toBeDefined();
 
                         if (fixArguments === undefined) {
                             throw new TypeError(
@@ -554,17 +558,17 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: KeyInFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: KeyInFixFactoryArguments) => string
+            >((options: KeyInFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,

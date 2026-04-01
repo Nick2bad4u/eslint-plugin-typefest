@@ -173,9 +173,10 @@ describe("prefer-type-fest-abstract-constructor source assertions", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeNodeTextReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeNodeTextReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -243,7 +244,7 @@ describe("prefer-type-fest-abstract-constructor source assertions", () => {
                         });
                         expect(
                             createSafeTypeNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const replacementText =
                             createSafeTypeNodeTextReplacementFixMock.mock

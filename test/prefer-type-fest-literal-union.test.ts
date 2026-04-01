@@ -83,6 +83,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-literal-union", {
 
 describe("prefer-type-fest-literal-union runtime safety assertions", () => {
     it("tSUnionType visitor handles bigint-literal variants and rejects cross-family unions", async () => {
+        expect.hasAssertions();
+
         const code = [
             "type BigIntValue = bigint | 1n;",
             "type BigIntText = bigint | 2n;",
@@ -197,7 +199,8 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
                 },
             };
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
@@ -424,6 +427,8 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
     });
 
     it("handles defensive fallback branches when union members change across successive reads", async () => {
+        expect.hasAssertions();
+
         const createBigIntKeywordMember = () => ({
             type: "TSBigIntKeyword",
         });
@@ -461,7 +466,8 @@ describe("prefer-type-fest-literal-union runtime safety assertions", () => {
                     };
                 };
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
                     "fixtures/typed/prefer-type-fest-literal-union.invalid.ts",

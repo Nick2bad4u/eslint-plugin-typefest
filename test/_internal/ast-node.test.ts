@@ -17,6 +17,8 @@ const createProgramNode = (): TSESTree.Program =>
 
 describe(getParentNode, () => {
     it("returns parent when node has one", () => {
+        expect.hasAssertions();
+
         const parentNode = createProgramNode();
         const childNode = {
             parent: parentNode,
@@ -27,6 +29,8 @@ describe(getParentNode, () => {
     });
 
     it("returns undefined when node has no parent", () => {
+        expect.hasAssertions();
+
         const nodeWithoutParent = {
             type: "Identifier",
         } as unknown as TSESTree.Node;
@@ -37,6 +41,8 @@ describe(getParentNode, () => {
 
 describe(getProgramNode, () => {
     it("finds program node through parent chain", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
         const nestedNode = {
             parent: {
@@ -50,6 +56,8 @@ describe(getProgramNode, () => {
     });
 
     it("returns null when program ancestor does not exist", () => {
+        expect.hasAssertions();
+
         const orphanNode = {
             parent: {
                 type: "ExpressionStatement",
@@ -61,6 +69,8 @@ describe(getProgramNode, () => {
     });
 
     it("returns null for cyclic parent chains", () => {
+        expect.hasAssertions();
+
         const cyclicNode = {
             type: "Identifier",
         } as unknown as TSESTree.Node;

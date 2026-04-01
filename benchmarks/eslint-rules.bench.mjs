@@ -1,5 +1,5 @@
 import { ESLint } from "eslint";
-import { bench, describe } from "vitest";
+import { bench, describe, expect } from "vitest";
 
 import {
     benchmarkFileGlobs,
@@ -214,6 +214,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "recommended preset on full invalid typed fixture corpus",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.typedInvalidFixtures,
                 fix: false,
@@ -231,6 +233,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "strict preset on full invalid typed fixture corpus",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.typedInvalidFixtures,
                 fix: false,
@@ -248,6 +252,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "recommended preset on full valid typed fixture corpus",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.typedValidFixtures,
                 fix: false,
@@ -266,6 +272,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "recommended preset on curated zero-message corpus",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.recommendedZeroMessageFixture,
                 fix: false,
@@ -284,6 +292,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "ts-extras type-guards preset on ts-extras invalid fixtures",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.tsExtrasInvalidFixtures,
                 fix: false,
@@ -301,6 +311,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "type-fest types preset on type-fest invalid fixtures",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.typeFestInvalidFixtures,
                 fix: false,
@@ -318,6 +330,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "recommended preset (fix=true) on ts-extras invalid fixtures",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.tsExtrasInvalidFixtures,
                 fix: true,
@@ -335,6 +349,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-ts-extras-is-present on stress fixture",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.isPresentStressFixture,
                 fix: false,
@@ -357,6 +373,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-ts-extras-safe-cast-to on stress fixture",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.safeCastToStressFixture,
                 fix: false,
@@ -379,6 +397,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-ts-extras-set-has on stress fixture",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.setHasStressFixture,
                 fix: false,
@@ -401,6 +421,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-ts-extras-string-split on stress fixture",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.stringSplitStressFixture,
                 fix: false,
@@ -423,6 +445,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-ts-extras-safe-cast-to on stress fixture (fix=true)",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.safeCastToStressFixture,
                 fix: true,
@@ -446,6 +470,8 @@ describe("eslint-plugin-typefest meaningful benchmarks", () => {
     bench(
         "single rule prefer-type-fest-arrayable on stress fixture",
         async () => {
+            expect.hasAssertions();
+
             const lintResults = await lintScenario({
                 filePatterns: benchmarkFileGlobs.arrayableStressFixture,
                 fix: false,

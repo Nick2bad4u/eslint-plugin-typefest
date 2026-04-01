@@ -3,7 +3,7 @@
  * Vitest coverage for `prefer-ts-extras-is-defined.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESLint } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -84,6 +84,142 @@ type IsDefinedReportDescriptor = Readonly<{
 
 type RuleCreateContext = Readonly<Parameters<typeof rule.create>[0]>;
 
+const createUndefinedComparisonScope = (
+    identifierNameFromNode: unknown
+): TSESLint.Scope.Scope => {
+    const normalizedIdentifierName =
+        typeof identifierNameFromNode === "string"
+            ? identifierNameFromNode
+            : "";
+    const defs = normalizedIdentifierName === "undefined" ? [] : [{}];
+
+    return {
+        set: new Map([
+            [
+                normalizedIdentifierName,
+                {
+                    defs,
+                },
+            ],
+        ]),
+        upper: null,
+    } as unknown as TSESLint.Scope.Scope;
+};
+
+const createUndefinedComparisonTestContext = ({
+    ast,
+    generatedCode,
+    reports,
+}: Readonly<{
+    ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    generatedCode: string;
+    reports: IsDefinedReportDescriptor[];
+}>): RuleCreateContext =>
+    ({
+        filename: "fixtures/typed/prefer-ts-extras-is-defined.invalid.ts",
+        report: (descriptor: IsDefinedReportDescriptor) => {
+            reports.push(descriptor);
+        },
+        sourceCode: {
+            ast,
+            getScope(node: unknown): TSESLint.Scope.Scope {
+                const identifierNameFromNode =
+                    typeof node === "object" && node !== null && "name" in node
+                        ? (node as Readonly<{ name?: unknown }>).name
+                        : undefined;
+
+                return createUndefinedComparisonScope(identifierNameFromNode);
+            },
+            getText(node: unknown): string {
+                if (
+                    typeof node !== "object" ||
+                    node === null ||
+                    !("range" in node)
+                ) {
+                    return "";
+                }
+
+                const nodeRange = (
+                    node as Readonly<{ range?: readonly [number, number] }>
+                ).range;
+
+                if (nodeRange === undefined) {
+                    return "";
+                }
+
+                return generatedCode.slice(nodeRange[0], nodeRange[1]);
+            },
+        },
+    }) as unknown as RuleCreateContext;
+
+const assertNoUndefinedComparisonReport = ({
+    createSafeValueArgumentFunctionCallFixMock,
+    reports,
+}: Readonly<{
+    createSafeValueArgumentFunctionCallFixMock: ReturnType<
+        typeof vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">
+    >;
+    reports: readonly IsDefinedReportDescriptor[];
+}>): void => {
+    if (reports.length > 0) {
+        throw new Error(
+            "Expected non-strict undefined comparisons to produce no reports"
+        );
+    }
+
+    if (createSafeValueArgumentFunctionCallFixMock.mock.calls.length > 0) {
+        throw new Error(
+            "Expected non-strict undefined comparisons to skip fix generation"
+        );
+    }
+};
+
+const assertStrictUndefinedComparisonFixBehavior = ({
+    createSafeValueArgumentFunctionCallFixMock,
+    isNegatedExpected,
+    reports,
+}: Readonly<{
+    createSafeValueArgumentFunctionCallFixMock: ReturnType<
+        typeof vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">
+    >;
+    isNegatedExpected: boolean;
+    reports: readonly IsDefinedReportDescriptor[];
+}>): void => {
+    const fixCallCount =
+        createSafeValueArgumentFunctionCallFixMock.mock.calls.length;
+
+    if (fixCallCount > 0) {
+        if (fixCallCount !== 1) {
+            throw new Error(
+                "Expected strict undefined comparisons to invoke the fix factory at most once"
+            );
+        }
+
+        const fixDescriptor = createSafeValueArgumentFunctionCallFixMock.mock
+            .calls[0]?.[0] as
+            | undefined
+            | {
+                  negated?: boolean;
+              };
+
+        if (fixDescriptor?.negated !== isNegatedExpected) {
+            throw new Error(
+                "Expected fix descriptor negation to match the strict-comparison helper polarity"
+            );
+        }
+
+        return;
+    }
+
+    const reportFix = reports[0]?.fix;
+
+    if (reportFix !== undefined && typeof reportFix !== "function") {
+        throw new TypeError(
+            "Expected fallback strict undefined comparison fix to be a function"
+        );
+    }
+};
+
 const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
     for (const [firstIndex, firstEdit] of textEdits.entries()) {
         for (const [secondIndex, secondEdit] of textEdits.entries()) {
@@ -111,12 +247,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-is-defined metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-is-defined internal create guards", () => {
     it("uses empty filename fallback when context filename is undefined", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -193,6 +332,8 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
     });
 
     it("gracefully skips typeof comparisons when scope lookup throws", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -280,9 +421,10 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -357,75 +499,13 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                             parseUndefinedComparisonFromCode(generatedCode);
                         const reports: IsDefinedReportDescriptor[] = [];
 
-                        const listeners = authoredRuleModule.default.create({
-                            filename:
-                                "fixtures/typed/prefer-ts-extras-is-defined.invalid.ts",
-                            report: (descriptor: IsDefinedReportDescriptor) => {
-                                reports.push(descriptor);
-                            },
-                            sourceCode: {
+                        const listeners = authoredRuleModule.default.create(
+                            createUndefinedComparisonTestContext({
                                 ast,
-                                getScope(node: unknown): unknown {
-                                    const identifierNameFromNode =
-                                        typeof node === "object" &&
-                                        node !== null &&
-                                        "name" in node
-                                            ? (
-                                                  node as Readonly<{
-                                                      name?: unknown;
-                                                  }>
-                                              ).name
-                                            : undefined;
-
-                                    const normalizedIdentifierName =
-                                        typeof identifierNameFromNode ===
-                                        "string"
-                                            ? identifierNameFromNode
-                                            : "";
-
-                                    const defs =
-                                        normalizedIdentifierName === "undefined"
-                                            ? []
-                                            : [{}];
-
-                                    return {
-                                        set: new Map([
-                                            [
-                                                normalizedIdentifierName,
-                                                {
-                                                    defs,
-                                                },
-                                            ],
-                                        ]),
-                                        upper: null,
-                                    };
-                                },
-                                getText(node: unknown): string {
-                                    if (
-                                        typeof node !== "object" ||
-                                        node === null ||
-                                        !("range" in node)
-                                    ) {
-                                        return "";
-                                    }
-
-                                    const nodeRange = (
-                                        node as Readonly<{
-                                            range?: readonly [number, number];
-                                        }>
-                                    ).range;
-
-                                    if (nodeRange === undefined) {
-                                        return "";
-                                    }
-
-                                    return generatedCode.slice(
-                                        nodeRange[0],
-                                        nodeRange[1]
-                                    );
-                                },
-                            },
-                        });
+                                generatedCode,
+                                reports,
+                            })
+                        );
 
                         const binaryExpressionListener =
                             getSelectorAwareNodeListener(
@@ -440,11 +520,10 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                             comparisonOperator === "===";
 
                         if (!isStrictComparisonOperator) {
-                            expect(reports).toHaveLength(0);
-                            expect(
-                                createSafeValueArgumentFunctionCallFixMock
-                            ).not.toHaveBeenCalled();
-
+                            assertNoUndefinedComparisonReport({
+                                createSafeValueArgumentFunctionCallFixMock,
+                                reports,
+                            });
                             return;
                         }
 
@@ -458,32 +537,11 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                             messageId: expectedMessageId,
                         });
 
-                        if (
-                            createSafeValueArgumentFunctionCallFixMock.mock
-                                .calls.length > 0
-                        ) {
-                            expect(
-                                createSafeValueArgumentFunctionCallFixMock
-                            ).toHaveBeenCalledTimes(1);
-
-                            const fixDescriptor =
-                                createSafeValueArgumentFunctionCallFixMock.mock
-                                    .calls[0]?.[0] as
-                                    | undefined
-                                    | {
-                                          negated?: boolean;
-                                      };
-
-                            expect(fixDescriptor?.negated).toBe(
-                                isNegatedExpected
-                            );
-                        } else {
-                            const reportFix = reports[0]?.fix;
-
-                            if (reportFix !== undefined) {
-                                expect(typeof reportFix).toBe("function");
-                            }
-                        }
+                        assertStrictUndefinedComparisonFixBehavior({
+                            createSafeValueArgumentFunctionCallFixMock,
+                            isNegatedExpected,
+                            reports,
+                        });
 
                         const replacementText = isNegatedExpected
                             ? `!isDefined(${identifierName})`
@@ -539,7 +597,11 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
                         generatedCase.operator === "===";
 
                     if (!isStrictComparisonOperator) {
-                        expect(firstPassReports).toHaveLength(0);
+                        if (firstPassReports.length > 0) {
+                            throw new Error(
+                                "Expected non-strict runtime undefined comparisons to produce no reports"
+                            );
+                        }
 
                         return;
                     }

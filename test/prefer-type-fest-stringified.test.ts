@@ -30,6 +30,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-stringified metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });

@@ -107,6 +107,8 @@ const extractRulesSection = (markdown: string): string => {
 
 describe("readme rules table synchronization", () => {
     it("matches the canonical rules matrix generated from plugin metadata", async () => {
+        expect.hasAssertions();
+
         await syncReadmeRulesTableIfRequested();
 
         const readmePath = path.join(process.cwd(), "README.md");
@@ -123,6 +125,8 @@ describe("readme rules table synchronization", () => {
     });
 
     it("keeps generated rules markdown snapshot-stable", async () => {
+        expect.hasAssertions();
+
         const generatedRulesSection = generateReadmeRulesSectionFromRules(
             typefestPlugin.rules
         );

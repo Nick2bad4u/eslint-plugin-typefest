@@ -37,6 +37,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-object-map-values metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });

@@ -7,6 +7,8 @@ import { isIdentifierTypeReference } from "../../src/_internal/type-reference-no
 /** Contract tests for identifier-only `TSTypeReference` detection. */
 describe(isIdentifierTypeReference, () => {
     it("returns true for matching identifier type references", () => {
+        expect.hasAssertions();
+
         const node = {
             type: "TSTypeReference",
             typeName: {
@@ -19,6 +21,8 @@ describe(isIdentifierTypeReference, () => {
     });
 
     it("returns false for non-matching identifier names", () => {
+        expect.hasAssertions();
+
         const node = {
             type: "TSTypeReference",
             typeName: {
@@ -31,6 +35,8 @@ describe(isIdentifierTypeReference, () => {
     });
 
     it("returns false for non-type-reference nodes", () => {
+        expect.hasAssertions();
+
         const node = {
             type: "TSStringKeyword",
         } as unknown as TSESTree.TypeNode;

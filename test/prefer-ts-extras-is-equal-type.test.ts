@@ -200,6 +200,8 @@ const loadIsEqualTypeRuleMetadata =
 
 describe("prefer-ts-extras-is-equal-type metadata", () => {
     it("exposes stable report and suggestion messages", async () => {
+        expect.hasAssertions();
+
         const metadataRule = await loadIsEqualTypeRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
@@ -230,7 +232,9 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
 
 describe("prefer-ts-extras-is-equal-type internal listener guards", () => {
     it("ignores IsEqual-like references with malformed non-qualified typeName nodes", async () => {
-        const report = vi.fn();
+        expect.hasAssertions();
+
+        const report = vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         try {
             vi.resetModules();
@@ -315,17 +319,17 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: IsEqualFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: IsEqualFixFactoryArguments) => string
+            >((options: IsEqualFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -423,13 +427,13 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                             createSafeValueNodeTextReplacementFixMock.mock.calls
                                 .length;
 
-                        if (createSafeFixInvocationCount === 0) {
-                            if (firstSuggestion !== undefined) {
-                                expect(typeof firstSuggestion.fix).toBe(
-                                    "function"
-                                );
-                            }
+                        expect(
+                            createSafeFixInvocationCount !== 0 ||
+                                firstSuggestion === undefined ||
+                                typeof firstSuggestion.fix === "function"
+                        ).toBeTruthy();
 
+                        if (createSafeFixInvocationCount === 0) {
                             return;
                         }
 
@@ -438,7 +442,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                         expect(firstSuggestion?.fix).toBe("FIX");
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const annotationNode =
                             variableDeclarator.id.typeAnnotation;

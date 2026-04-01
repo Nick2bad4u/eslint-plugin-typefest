@@ -183,12 +183,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-object-from-entries metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-object-from-entries internal listener guards", () => {
     it("ignores non-Identifier Object property access", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -303,12 +306,16 @@ describe("prefer-ts-extras-object-from-entries parse-safety guards", () => {
                     );
 
                     if (
-                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                        callExpression.callee.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(callExpression.callee.name).toBe(
-                            "objectFromEntries"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(callExpression.callee.name).toBe(
+                        "objectFromEntries"
+                    );
                 }
             ),
             fastCheckRunConfig.default

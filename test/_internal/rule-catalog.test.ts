@@ -40,6 +40,8 @@ const withMutatedCatalogEntry = (
 
 describe("rule-catalog", () => {
     it("stays synchronized with the runtime rules registry", () => {
+        expect.hasAssertions();
+
         const catalogRuleNames = typefestRuleCatalogEntries
             .map((entry) => entry.ruleName)
             .toSorted((left, right) => left.localeCompare(right));
@@ -54,6 +56,8 @@ describe("rule-catalog", () => {
     });
 
     it("resolves known entries by rule name and id", () => {
+        expect.hasAssertions();
+
         const byName = getRuleCatalogEntryForRuleName(
             "prefer-ts-extras-array-at"
         );
@@ -66,6 +70,7 @@ describe("rule-catalog", () => {
     });
 
     it("returns null for non-catalog or non-prefer rule names", () => {
+        expect.hasAssertions();
         expect(
             getRuleCatalogEntryForRuleNameOrNull("internal-helper-rule")
         ).toBeNull();
@@ -77,20 +82,25 @@ describe("rule-catalog", () => {
     });
 
     it("throws for unknown rule names in strict lookup", () => {
+        expect.hasAssertions();
         expect(() =>
             getRuleCatalogEntryForRuleName("prefer-internal-non-catalog-rule")
         ).toThrow(/missing from the stable rule catalog/v);
     });
 
     it("returns undefined for unknown rule ids", () => {
+        expect.hasAssertions();
         expect(getRuleCatalogEntryForRuleId("R999")).toBeUndefined();
     });
 
     it("reports valid baseline catalog integrity", () => {
+        expect.hasAssertions();
         expect(validateRuleCatalogIntegrity()).toBeTruthy();
     });
 
     it("detects duplicate rule ids", () => {
+        expect.hasAssertions();
+
         const firstEntry = typefestRuleCatalogEntries.at(0);
         assertDefined(firstEntry);
 
@@ -106,6 +116,8 @@ describe("rule-catalog", () => {
     });
 
     it("detects out-of-sequence rule numbers", () => {
+        expect.hasAssertions();
+
         withMutatedCatalogEntry(
             0,
             {
@@ -118,6 +130,8 @@ describe("rule-catalog", () => {
     });
 
     it("detects mismatched rule ids for a valid index", () => {
+        expect.hasAssertions();
+
         withMutatedCatalogEntry(
             0,
             {

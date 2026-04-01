@@ -62,6 +62,8 @@ const createChecker = ({
 
 describe(isArrayLikeType, () => {
     it("returns true for direct array-like types", () => {
+        expect.hasAssertions();
+
         const arrayType = createFakeType({});
         const checker = createChecker({
             isArrayType: (candidateType) => candidateType === arrayType,
@@ -71,6 +73,8 @@ describe(isArrayLikeType, () => {
     });
 
     it("supports union match modes for mixed unions", () => {
+        expect.hasAssertions();
+
         const arrayType = createFakeType({});
         const scalarType = createFakeType({});
         const mixedUnion = createFakeType({
@@ -87,6 +91,8 @@ describe(isArrayLikeType, () => {
     });
 
     it("returns true when an intersection contains at least one array-like type", () => {
+        expect.hasAssertions();
+
         const arrayType = createFakeType({});
         const scalarType = createFakeType({});
         const intersectionType = createFakeType({
@@ -102,6 +108,8 @@ describe(isArrayLikeType, () => {
     });
 
     it("follows base constraints when available", () => {
+        expect.hasAssertions();
+
         const constrainedType = createFakeType({});
         const arrayConstraint = createFakeType({});
 
@@ -114,6 +122,8 @@ describe(isArrayLikeType, () => {
     });
 
     it("falls back to apparent type resolution", () => {
+        expect.hasAssertions();
+
         const sourceType = createFakeType({});
         const apparentArrayType = createFakeType({});
 
@@ -126,6 +136,8 @@ describe(isArrayLikeType, () => {
     });
 
     it("stops recursion when revisiting the same type", () => {
+        expect.hasAssertions();
+
         const recursiveUnionType = createFakeType({ isUnion: true });
 
         (
@@ -146,6 +158,8 @@ describe(createIsArrayLikeExpressionChecker, () => {
     } as unknown as TSESTree.Expression;
 
     it("returns false when parser services cannot map the expression", () => {
+        expect.hasAssertions();
+
         const checker = createChecker();
         const isArrayLikeExpression = createIsArrayLikeExpressionChecker({
             checker,
@@ -160,6 +174,8 @@ describe(createIsArrayLikeExpressionChecker, () => {
     });
 
     it("returns false when checker.getTypeAtLocation throws", () => {
+        expect.hasAssertions();
+
         const checker = {
             getApparentType: (candidateType: Readonly<ts.Type>) =>
                 candidateType,
@@ -185,6 +201,8 @@ describe(createIsArrayLikeExpressionChecker, () => {
     });
 
     it("returns true for mapped array-like expression types", () => {
+        expect.hasAssertions();
+
         const arrayType = createFakeType({});
         const checker = createChecker({
             expressionType: arrayType,
@@ -206,10 +224,12 @@ describe(createIsArrayLikeExpressionChecker, () => {
     });
 
     it("memoizes array-like type resolution across repeated expression checks", () => {
+        expect.hasAssertions();
+
         const arrayType = createFakeType({});
-        const isArrayType = vi.fn(
-            (candidateType: Readonly<ts.Type>) => candidateType === arrayType
-        );
+        const isArrayType = vi.fn<
+            (candidateType: Readonly<ts.Type>) => boolean
+        >((candidateType: Readonly<ts.Type>) => candidateType === arrayType);
         const checker = createChecker({
             expressionType: arrayType,
             isArrayType,
@@ -228,7 +248,7 @@ describe(createIsArrayLikeExpressionChecker, () => {
 
         expect(isArrayLikeExpression(expression)).toBeTruthy();
         expect(isArrayLikeExpression(expression)).toBeTruthy();
-        expect(isArrayType).toHaveBeenCalledTimes(1);
+        expect(isArrayType).toHaveBeenCalledOnce();
     });
 });
 
@@ -249,12 +269,15 @@ describe(isWriteTargetMemberExpression, () => {
         }) as unknown as TSESTree.MemberExpression;
 
     it("returns false when the node has no parent", () => {
+        expect.hasAssertions();
         expect(
             isWriteTargetMemberExpression(createMemberExpressionNode())
         ).toBeFalsy();
     });
 
     it("returns true only for assignment left-hand targets", () => {
+        expect.hasAssertions();
+
         const memberNode = createMemberExpressionNode();
         const assignmentParent = {
             left: memberNode,
@@ -292,6 +315,8 @@ describe(isWriteTargetMemberExpression, () => {
     });
 
     it("returns true for delete targets and false for other unary operators", () => {
+        expect.hasAssertions();
+
         const deleteTargetNode = createMemberExpressionNode();
         const deleteParent = {
             argument: deleteTargetNode,
@@ -320,6 +345,8 @@ describe(isWriteTargetMemberExpression, () => {
     });
 
     it("returns true only when used as the update expression argument", () => {
+        expect.hasAssertions();
+
         const updateTargetNode = createMemberExpressionNode();
         const updateParent = {
             argument: updateTargetNode,

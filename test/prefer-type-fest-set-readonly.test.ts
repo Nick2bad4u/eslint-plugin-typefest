@@ -187,10 +187,14 @@ describe("prefer-type-fest-set-readonly parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("SetReadonly");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("SetReadonly");
                 }
             ),
             fastCheckRunConfig.default

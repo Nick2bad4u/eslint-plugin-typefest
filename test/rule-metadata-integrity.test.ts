@@ -388,11 +388,14 @@ const assertMessageAndFixContract = ({
 
 describe("rule metadata integrity", () => {
     it("exports processors for plugin shape parity", () => {
+        expect.hasAssertions();
         expect(typefestPlugin).toHaveProperty("processors");
-        expect(typefestPlugin.processors).toEqual({});
+        expect(typefestPlugin.processors).toStrictEqual({});
     });
 
     it("keeps src/rules file names in sync with registered rule names", () => {
+        expect.hasAssertions();
+
         const registeredRuleNames = Object.keys(typefestPlugin.rules).toSorted(
             (left, right) => left.localeCompare(right)
         );
@@ -401,6 +404,8 @@ describe("rule metadata integrity", () => {
     });
 
     it("enforces required metadata invariants for every rule", () => {
+        expect.hasAssertions();
+
         const ruleEntries = objectEntries(typefestPlugin.rules);
         const seenRuleCatalogIds = new Set<string>();
         const seenRuleIds = new Set<string>();

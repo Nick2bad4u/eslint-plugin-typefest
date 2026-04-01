@@ -324,6 +324,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-safe-cast-to", {
 
 describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
     it("skips reporting when parser services return a non-TypeNode annotation mapping", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
         const expressionNode = {
             name: "value",
@@ -449,8 +451,12 @@ describe("prefer-ts-extras-safe-cast-to internal listener guards", () => {
     });
 
     it("skips reporting when parser services cannot map the assertion expression node", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
-        const getTypeAtLocation = vi.fn(() => ({ flags: 0 }));
+        const getTypeAtLocation = vi.fn<() => { flags: number }>(() => ({
+            flags: 0,
+        }));
         const expressionNode = {
             name: "value",
             type: "Identifier",
@@ -579,17 +585,17 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: SafeCastFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: SafeCastFixFactoryArguments) => string
+            >((options: SafeCastFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -800,11 +806,13 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
-                        if (fixArguments) {
-                            expect(
-                                createSafeValueNodeTextReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
+                        expect(
+                            !fixArguments ||
+                                createSafeValueNodeTextReplacementFixMock.mock
+                                    .calls.length === 1
+                        ).toBeTruthy();
 
+                        if (fixArguments) {
                             replacementText =
                                 fixArguments.replacementTextFactory(
                                     "safeCastTo"
@@ -865,17 +873,17 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: SafeCastFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: SafeCastFixFactoryArguments) => string
+            >((options: SafeCastFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,

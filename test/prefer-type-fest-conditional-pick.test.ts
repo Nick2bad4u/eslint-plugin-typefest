@@ -152,6 +152,8 @@ const loadConditionalPickRuleMetadata =
 
 describe("prefer-type-fest-conditional-pick metadata", () => {
     it("exports expected metadata", async () => {
+        expect.hasAssertions();
+
         const metadataRule = await loadConditionalPickRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
@@ -208,12 +210,14 @@ describe("prefer-type-fest-conditional-pick parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe(
-                            "ConditionalPick"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(tsReference.typeName.name).toBe("ConditionalPick");
                 }
             ),
             fastCheckRunConfig.default

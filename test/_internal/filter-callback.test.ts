@@ -21,6 +21,8 @@ const createProgramNode = (): TSESTree.Program =>
 
 describe(isWithinFilterCallback, () => {
     it("returns true for nodes inside .filter callback", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const callbackNode = {
@@ -57,6 +59,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for nodes outside .filter callback", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const callbackNode = {
@@ -93,6 +97,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for function passed as second .filter argument", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const actualCallbackNode = {
@@ -137,6 +143,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for computed member access filter calls", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const callbackNode = {
@@ -173,6 +181,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for non-member filter calls", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const callbackNode = {
@@ -202,6 +212,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for cyclic parent chains", () => {
+        expect.hasAssertions();
+
         const cycleA = {
             type: "Identifier",
         } as unknown as TSESTree.Node;
@@ -216,6 +228,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false when callback-like node is not parented by a call expression", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const detachedFunctionNode = {
@@ -232,6 +246,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for optional-chain filter calls", () => {
+        expect.hasAssertions();
+
         const optionalFilterCallNode = {
             arguments: [],
             callee: {
@@ -255,6 +271,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns false for optional member invocation filter calls", () => {
+        expect.hasAssertions();
+
         const optionalMemberFilterCallNode = {
             arguments: [],
             callee: {
@@ -280,6 +298,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("extracts single-parameter expression arrow callbacks", () => {
+        expect.hasAssertions();
+
         const callback = {
             body: {
                 left: {
@@ -330,6 +350,8 @@ describe(isWithinFilterCallback, () => {
     });
 
     it("returns null for block-bodied filter arrow callbacks", () => {
+        expect.hasAssertions();
+
         const callback = {
             body: {
                 body: [],

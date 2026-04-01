@@ -187,12 +187,14 @@ describe("prefer-type-fest-require-all-or-none parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe(
-                            "RequireAllOrNone"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(tsReference.typeName.name).toBe("RequireAllOrNone");
                 }
             ),
             fastCheckRunConfig.default

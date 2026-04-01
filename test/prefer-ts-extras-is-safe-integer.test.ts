@@ -212,12 +212,14 @@ describe("prefer-ts-extras-is-safe-integer parse-safety guards", () => {
                     );
 
                     if (
-                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                        callExpression.callee.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(callExpression.callee.name).toBe(
-                            "isSafeInteger"
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
                         );
                     }
+
+                    expect(callExpression.callee.name).toBe("isSafeInteger");
                 }
             ),
             fastCheckRunConfig.default

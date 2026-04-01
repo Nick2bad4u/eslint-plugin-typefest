@@ -501,6 +501,8 @@ const expectNoMissingRuleCoverage = ({
 
 describe("fixer parse-safety coverage", () => {
     it("ensures each fixable/suggestion rule test includes parser-backed fast-check parse guards", async () => {
+        expect.hasAssertions();
+
         const ruleIds = collectRuleIdsRequiringParseSafety();
 
         expect(ruleIds.length).toBeGreaterThan(0);

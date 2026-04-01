@@ -313,17 +313,17 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createMemberToFunctionCallFixMock = vi.fn(
-                (options: ArrayLastFixFactoryArguments): string => {
-                    if (typeof options.memberNode !== "object") {
-                        throw new TypeError(
-                            "Expected memberNode to be an object-like node"
-                        );
-                    }
-
-                    return "FIX";
+            const createMemberToFunctionCallFixMock = vi.fn<
+                (options: ArrayLastFixFactoryArguments) => string
+            >((options: ArrayLastFixFactoryArguments): string => {
+                if (typeof options.memberNode !== "object") {
+                    throw new TypeError(
+                        "Expected memberNode to be an object-like node"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -398,16 +398,30 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                         );
 
                         if (isAutofixExpectedForTemplate(templateId)) {
-                            expect(reportCalls[0]?.fix).toBe("FIX");
-                            expect(
-                                createMemberToFunctionCallFixMock
-                            ).toHaveBeenCalledTimes(1);
+                            if (reportCalls[0]?.fix !== "FIX") {
+                                throw new Error(
+                                    "Expected autofix-enabled template to report the mock fix"
+                                );
+                            }
+
+                            if (
+                                createMemberToFunctionCallFixMock.mock.calls
+                                    .length !== 1
+                            ) {
+                                throw new Error(
+                                    "Expected autofix-enabled template to invoke the fix factory exactly once"
+                                );
+                            }
 
                             const fixArguments =
                                 createMemberToFunctionCallFixMock.mock
                                     .calls[0]?.[0] ?? null;
 
-                            expect(fixArguments).not.toBeNull();
+                            if (fixArguments === null) {
+                                throw new Error(
+                                    "Expected autofix-enabled template to provide fix arguments"
+                                );
+                            }
 
                             const fixedMemberExpression = (
                                 fixArguments as ArrayLastFixFactoryArguments
@@ -422,11 +436,13 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                             });
                             const replacementText = `arrayLast(${objectText})`;
 
-                            expect(replacementText).toBeTruthy();
+                            if (!replacementText) {
+                                throw new Error(
+                                    "Expected generated arrayLast replacement text to be non-empty"
+                                );
+                            }
 
                             const memberRange = memberExpression.range;
-
-                            expect(memberRange).toBeDefined();
 
                             if (memberRange === undefined) {
                                 throw new Error(
@@ -439,9 +455,14 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                                 replacementText +
                                 code.slice(memberRange[1]);
 
-                            expect(() => {
+                            try {
                                 parser.parseForESLint(fixedCode, parserOptions);
-                            }).not.toThrow();
+                            } catch (error) {
+                                throw new Error(
+                                    "Expected autofix-enabled template to produce parseable code",
+                                    { cause: error }
+                                );
+                            }
 
                             return;
                         }
@@ -454,7 +475,7 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                         expect(reportCalls[0]?.suggest?.[0]?.fix).toBe("FIX");
                         expect(
                             createMemberToFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
                     }
                 ),
                 fastCheckRunConfig.default

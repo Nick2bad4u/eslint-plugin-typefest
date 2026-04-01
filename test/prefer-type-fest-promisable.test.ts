@@ -69,6 +69,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-type-fest-promisable", {
 
 describe("prefer-type-fest-promisable source assertions", () => {
     it("tSUnionType visitor reports only strict Promise<T> | T pairs", async () => {
+        expect.hasAssertions();
+
         const code = [
             'import type { Promisable } from "type-fest";',
             "type ShouldReportPromiseFirst = Promise<string> | string;",
@@ -103,7 +105,8 @@ describe("prefer-type-fest-promisable source assertions", () => {
                 sourceType: "module",
             });
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
@@ -144,6 +147,8 @@ describe("prefer-type-fest-promisable source assertions", () => {
 
 describe("prefer-type-fest-promisable internal listener guards", () => {
     it("handles missing alias fixes and malformed two-member unions", async () => {
+        expect.hasAssertions();
+
         const reportCalls: Readonly<{ messageId?: string }>[] = [];
 
         try {

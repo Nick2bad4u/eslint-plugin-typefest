@@ -398,6 +398,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-as-writable", {
 
 describe("prefer-ts-extras-as-writable internal listener guards", () => {
     it("ignores malformed non-qualified Writable type-name nodes", async () => {
+        expect.hasAssertions();
+
         const reportCalls: unknown[] = [];
 
         try {
@@ -488,17 +490,17 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueNodeTextReplacementFixMock = vi.fn(
-                (options: WritableFixFactoryArguments): string => {
-                    if (typeof options.replacementTextFactory !== "function") {
-                        throw new TypeError(
-                            "Expected replacementTextFactory to be callable"
-                        );
-                    }
-
-                    return "FIX";
+            const createSafeValueNodeTextReplacementFixMock = vi.fn<
+                (options: WritableFixFactoryArguments) => string
+            >((options: WritableFixFactoryArguments): string => {
+                if (typeof options.replacementTextFactory !== "function") {
+                    throw new TypeError(
+                        "Expected replacementTextFactory to be callable"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -602,11 +604,11 @@ describe("prefer-ts-extras-as-writable fast-check fix safety", () => {
                             node: assertionNode.expression,
                         });
 
-                        if (fixArguments) {
-                            expect(
-                                createSafeValueNodeTextReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        }
+                        expect(
+                            !fixArguments ||
+                                createSafeValueNodeTextReplacementFixMock.mock
+                                    .calls.length === 1
+                        ).toBeTruthy();
 
                         const replacementText =
                             fixArguments?.replacementTextFactory(

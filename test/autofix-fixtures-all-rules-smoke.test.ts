@@ -283,6 +283,8 @@ describe.runIf(shouldRunFixtureAutofixSmoke)(
     "all-rules fixture autofix smoke",
     () => {
         it("runs typefest.configs.all against fixture files and executes in-memory autofix", async () => {
+            expect.hasAssertions();
+
             const fixtureDirectoryPath = getFixtureDirectoryPath();
             const fixtureFilePaths =
                 collectLintableFixtureFiles(fixtureDirectoryPath);

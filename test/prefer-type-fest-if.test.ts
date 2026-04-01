@@ -223,6 +223,8 @@ const loadIfRuleMetadata = async (): Promise<IfRuleMetadataSnapshot> => {
 
 describe("prefer-type-fest-if metadata", () => {
     it("exports expected metadata", async () => {
+        expect.hasAssertions();
+
         const metadataRule = await loadIfRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
@@ -250,9 +252,10 @@ describe("prefer-type-fest-if source assertions", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeReferenceReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeReferenceReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(
@@ -342,7 +345,7 @@ describe("prefer-type-fest-if source assertions", () => {
                         });
                         expect(
                             createSafeTypeReferenceReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const calledReplacementName =
                             createSafeTypeReferenceReplacementFixMock.mock

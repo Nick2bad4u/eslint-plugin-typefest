@@ -121,6 +121,8 @@ describe("typefest plugin configs", () => {
     const rules = getPluginRules(typefestPlugin);
 
     it("exports exactly the supported config keys", () => {
+        expect.hasAssertions();
+
         const keys = Object.keys(configs ?? {});
 
         expect(keys).toHaveLength(typefestConfigNames.length);
@@ -128,6 +130,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps languageOptions objects isolated per preset", () => {
+        expect.hasAssertions();
+
         const recommendedConfig = getConfig(configs, "recommended");
         const strictConfig = getConfig(configs, "strict");
         const allConfig = getConfig(configs, "all");
@@ -156,8 +160,10 @@ describe("typefest plugin configs", () => {
     });
 
     it("every exported config registers plugin and TypeScript parser defaults", () => {
+        expect.hasAssertions();
+
         for (const config of Object.values(configs ?? {}) as FlatConfigLike[]) {
-            expect(config).toEqual(
+            expect(config).toStrictEqual(
                 expect.objectContaining({
                     files: ["**/*.{ts,tsx,mts,cts}"],
                     plugins: expect.objectContaining({
@@ -166,7 +172,7 @@ describe("typefest plugin configs", () => {
                 })
             );
 
-            expect(config.languageOptions).toEqual(
+            expect(config.languageOptions).toStrictEqual(
                 expect.objectContaining({
                     parser: expect.anything(),
                     parserOptions: expect.objectContaining({
@@ -179,6 +185,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("enables every rule in the experimental preset", () => {
+        expect.hasAssertions();
+
         const experimentalRules = getConfigRules(configs, "experimental");
 
         expect(experimentalRules).toBeDefined();
@@ -192,6 +200,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps minimal ⊂ recommended ⊂ recommended-type-checked ⊂ strict ⊂ all ⊂ experimental", () => {
+        expect.hasAssertions();
+
         const minimalRules = getConfigRules(configs, "minimal") ?? {};
         const recommendedRules = getConfigRules(configs, "recommended") ?? {};
         const recommendedTypeCheckedRules =
@@ -225,6 +235,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps type-fest/types focused to type-fest rules", () => {
+        expect.hasAssertions();
+
         const festTypeRulesPreset =
             getConfigRules(configs, "type-fest/types") ?? {};
 
@@ -236,6 +248,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps ts-extras/type-guards focused to ts-extras rules", () => {
+        expect.hasAssertions();
+
         const tsExtrasRules =
             getConfigRules(configs, "ts-extras/type-guards") ?? {};
 
@@ -247,6 +261,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps all-only rules excluded from strict and included in all", () => {
+        expect.hasAssertions();
+
         const strictRules = getConfigRules(configs, "strict") ?? {};
         const allRules = getConfigRules(configs, "all") ?? {};
 
@@ -263,6 +279,8 @@ describe("typefest plugin configs", () => {
     });
 
     it("keeps experimental-only rules excluded from all and included in experimental", () => {
+        expect.hasAssertions();
+
         const allRules = getConfigRules(configs, "all") ?? {};
         const experimentalRules = getConfigRules(configs, "experimental") ?? {};
 
@@ -280,24 +298,21 @@ describe("typefest plugin configs", () => {
     });
 
     it("enables parser projectService for presets that include typed rules", () => {
+        expect.hasAssertions();
+
         for (const configName of typefestConfigNames) {
             const config = getConfig(configs, configName);
 
             expect(config).toBeDefined();
 
-            if (typefestConfigMetadataByName[configName].requiresTypeChecking) {
-                expect(config?.languageOptions?.parserOptions).toEqual(
-                    expect.objectContaining({
-                        projectService: true,
-                    })
-                );
-            } else {
-                expect(config?.languageOptions?.parserOptions).toEqual(
-                    expect.not.objectContaining({
-                        projectService: true,
-                    })
-                );
-            }
+            const parserOptions = config?.languageOptions?.parserOptions;
+            const hasProjectServiceEnabled =
+                isObject(parserOptions) &&
+                parserOptions["projectService"] === true;
+
+            expect(hasProjectServiceEnabled).toBe(
+                typefestConfigMetadataByName[configName].requiresTypeChecking
+            );
         }
     });
 });

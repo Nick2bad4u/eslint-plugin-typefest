@@ -71,6 +71,8 @@ const createSourceCode = (
 
 describe(collectNamedImportSpecifierBindingsFromSource, () => {
     it("collects named import bindings for a source module", () => {
+        expect.hasAssertions();
+
         const sourceCode = createSourceCode([
             createImportDeclaration("ts-extras", [
                 createImportSpecifier({
@@ -97,6 +99,8 @@ describe(collectNamedImportSpecifierBindingsFromSource, () => {
 
 describe(collectNamedImportLocalNamesByImportedNameFromSource, () => {
     it("groups local aliases by imported symbol name", () => {
+        expect.hasAssertions();
+
         const sourceCode = createSourceCode([
             createImportDeclaration("ts-extras", [
                 createImportSpecifier({
@@ -122,6 +126,8 @@ describe(collectNamedImportLocalNamesByImportedNameFromSource, () => {
     });
 
     it("recomputes fresh alias sets across calls even if prior results are mutated", () => {
+        expect.hasAssertions();
+
         const sourceCode = createSourceCode([
             createImportDeclaration("ts-extras", [
                 createImportSpecifier({
@@ -157,6 +163,8 @@ describe(collectNamedImportLocalNamesByImportedNameFromSource, () => {
 
 describe(collectNamespaceImportLocalNamesFromSourceModule, () => {
     it("collects namespace import local names for a source module", () => {
+        expect.hasAssertions();
+
         const sourceCode = createSourceCode([
             createImportDeclaration("type-fest", [
                 createImportNamespaceSpecifier("typeFest"),
@@ -176,6 +184,8 @@ describe(collectNamespaceImportLocalNamesFromSourceModule, () => {
     });
 
     it("returns fresh namespace sets across calls even if prior results are mutated", () => {
+        expect.hasAssertions();
+
         const sourceCode = createSourceCode([
             createImportDeclaration("type-fest", [
                 createImportNamespaceSpecifier("typeFest"),

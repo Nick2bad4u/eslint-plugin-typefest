@@ -248,6 +248,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-empty", {
 
 describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
     it("skips reports when parser services fail during type lookup", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -310,7 +312,8 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
                 throw new Error("Expected binary expression initializer");
             }
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
             const listenerMap = undecoratedRuleModule.default.create({
                 filename: "fixtures/typed/prefer-ts-extras-is-empty.invalid.ts",
                 report,
@@ -331,7 +334,9 @@ describe("prefer-ts-extras-is-empty runtime safety assertions", () => {
     });
 
     it("handles unstable synthetic length members without reporting", async () => {
-        const report = vi.fn();
+        expect.hasAssertions();
+
+        const report = vi.fn<(...arguments_: readonly unknown[]) => unknown>();
 
         try {
             vi.resetModules();
@@ -488,10 +493,14 @@ describe("prefer-ts-extras-is-empty parse-safety guards", () => {
                     );
 
                     if (
-                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                        callExpression.callee.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(callExpression.callee.name).toBe("isEmpty");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(callExpression.callee.name).toBe("isEmpty");
 
                     expect(callExpression.arguments).toHaveLength(1);
                 }

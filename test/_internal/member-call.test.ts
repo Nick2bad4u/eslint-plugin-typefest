@@ -13,6 +13,8 @@ import {
 
 describe(getIdentifierMemberCall, () => {
     it("matches direct identifier receiver/member calls", () => {
+        expect.hasAssertions();
+
         const node = {
             callee: {
                 computed: false,
@@ -41,6 +43,8 @@ describe(getIdentifierMemberCall, () => {
     });
 
     it("returns null when receiver object name does not match", () => {
+        expect.hasAssertions();
+
         const node = {
             callee: {
                 computed: false,
@@ -71,6 +75,8 @@ describe(getIdentifierMemberCall, () => {
 
 describe(getIdentifierPropertyMemberCall, () => {
     it("matches identifier-property member calls", () => {
+        expect.hasAssertions();
+
         const node = {
             callee: {
                 computed: false,
@@ -98,6 +104,8 @@ describe(getIdentifierPropertyMemberCall, () => {
     });
 
     it("returns null when member-call receiver is super", () => {
+        expect.hasAssertions();
+
         const node = {
             callee: {
                 computed: false,

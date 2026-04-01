@@ -261,17 +261,17 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
         try {
             vi.resetModules();
 
-            const createMethodToFunctionCallFixMock = vi.fn(
-                (options: ArrayIncludesFixFactoryArguments): string => {
-                    if (typeof options.callNode !== "object") {
-                        throw new TypeError(
-                            "Expected callNode to be an object-like node"
-                        );
-                    }
-
-                    return "FIX";
+            const createMethodToFunctionCallFixMock = vi.fn<
+                (options: ArrayIncludesFixFactoryArguments) => string
+            >((options: ArrayIncludesFixFactoryArguments): string => {
+                if (typeof options.callNode !== "object") {
+                    throw new TypeError(
+                        "Expected callNode to be an object-like node"
+                    );
                 }
-            );
+
+                return "FIX";
+            });
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -348,7 +348,7 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
                         });
                         expect(
                             createMethodToFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const fixArguments =
                             createMethodToFunctionCallFixMock.mock

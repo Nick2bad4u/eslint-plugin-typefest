@@ -179,10 +179,14 @@ describe("prefer-type-fest-set-required parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("SetRequired");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("SetRequired");
                 }
             ),
             fastCheckRunConfig.default

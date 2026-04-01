@@ -112,6 +112,8 @@ describe(isGlobalUndefinedIdentifier, () => {
     } as unknown as TSESTree.Expression;
 
     it("returns true for identifier references resolved to global undefined", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(() => createScope({}));
 
         expect(
@@ -120,6 +122,8 @@ describe(isGlobalUndefinedIdentifier, () => {
     });
 
     it("returns false when undefined is shadowed with local definitions", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(() =>
             createScope({
                 defsLength: 1,
@@ -132,6 +136,8 @@ describe(isGlobalUndefinedIdentifier, () => {
     });
 
     it("walks parent scopes when current scope does not define undefined", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(() =>
             createScope({
                 upper: createScope({
@@ -146,6 +152,8 @@ describe(isGlobalUndefinedIdentifier, () => {
     });
 
     it("returns false when sourceCode.getScope throws", () => {
+        expect.hasAssertions();
+
         const context = {
             sourceCode: {
                 getScope: () => {
@@ -160,6 +168,8 @@ describe(isGlobalUndefinedIdentifier, () => {
     });
 
     it("returns false for non-identifier expressions", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(() => createScope({}));
 
         expect(
@@ -201,6 +211,8 @@ describe(isGlobalIdentifierNamed, () => {
         }) as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
 
     it("returns true for unshadowed global-like identifier references", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(
             createScopeWithBinding({
                 defsLength: 0,
@@ -221,6 +233,8 @@ describe(isGlobalIdentifierNamed, () => {
     });
 
     it("returns false for shadowed identifier references", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(
             createScopeWithBinding({
                 defsLength: 1,
@@ -241,6 +255,8 @@ describe(isGlobalIdentifierNamed, () => {
     });
 
     it("returns false for non-identifier expressions", () => {
+        expect.hasAssertions();
+
         const context = createContextWithScope(
             createScopeWithBinding({
                 defsLength: 0,
@@ -261,6 +277,8 @@ describe(isGlobalIdentifierNamed, () => {
     });
 
     it("returns false when scope resolution throws", () => {
+        expect.hasAssertions();
+
         const context = {
             sourceCode: {
                 getScope: () => {
@@ -287,6 +305,8 @@ describe(isTypeAssignableTo, () => {
     const targetType = {} as ts.Type;
 
     it("uses checker.isTypeAssignableTo when available", () => {
+        expect.hasAssertions();
+
         const isTypeAssignableToMock = vi
             .fn<
                 (
@@ -310,6 +330,8 @@ describe(isTypeAssignableTo, () => {
     });
 
     it("falls back to strict identity when native assignability API is unavailable", () => {
+        expect.hasAssertions();
+
         const checker = {
             typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
@@ -320,6 +342,8 @@ describe(isTypeAssignableTo, () => {
     });
 
     it("fails gracefully and falls back to identity when native assignability API throws", () => {
+        expect.hasAssertions();
+
         const checker = {
             isTypeAssignableTo: vi
                 .fn<
@@ -341,6 +365,8 @@ describe(isTypeAssignableTo, () => {
     });
 
     it("returns false for non-identical types when assignability API is unavailable", () => {
+        expect.hasAssertions();
+
         const checker = {
             typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
@@ -351,6 +377,8 @@ describe(isTypeAssignableTo, () => {
 
 describe(getTypedRuleServices, () => {
     it("returns parser services and type checker when program is available", () => {
+        expect.hasAssertions();
+
         const checker = {} as ts.TypeChecker;
         const parserServices = createParserServices({
             getTypeChecker: () => checker,
@@ -365,6 +393,8 @@ describe(getTypedRuleServices, () => {
     });
 
     it("throws when parser services do not expose a TypeScript program", () => {
+        expect.hasAssertions();
+
         const parserServices = createParserServices(null);
 
         const context = createTypedRuleContext(parserServices);
@@ -377,6 +407,8 @@ describe(getTypedRuleServices, () => {
 
 describe(hasTypeServices, () => {
     it("returns true when parser services expose a TypeScript program", () => {
+        expect.hasAssertions();
+
         const parserServices = createParserServices({
             getTypeChecker: () => ({}) as ts.TypeChecker,
         } as ts.Program);
@@ -387,6 +419,8 @@ describe(hasTypeServices, () => {
     });
 
     it("returns false when parser services do not expose a program", () => {
+        expect.hasAssertions();
+
         const parserServices = createParserServices(null);
 
         const context = createTypedRuleContext(parserServices);
@@ -395,6 +429,8 @@ describe(hasTypeServices, () => {
     });
 
     it("returns false when parser-services lookup throws", () => {
+        expect.hasAssertions();
+
         const context = {
             sourceCode: {},
         } as unknown;
@@ -405,6 +441,8 @@ describe(hasTypeServices, () => {
 
 describe(getTypedRuleServicesOrUndefined, () => {
     it("returns typed services when parser services include a program", () => {
+        expect.hasAssertions();
+
         const checker = {} as ts.TypeChecker;
         const parserServices = createParserServices({
             getTypeChecker: () => checker,
@@ -419,6 +457,8 @@ describe(getTypedRuleServicesOrUndefined, () => {
     });
 
     it("returns undefined when parser services do not expose a program", () => {
+        expect.hasAssertions();
+
         const parserServices = createParserServices(null);
 
         const context = createTypedRuleContext(parserServices);
@@ -429,6 +469,8 @@ describe(getTypedRuleServicesOrUndefined, () => {
     });
 
     it("returns undefined when parser-services lookup throws", () => {
+        expect.hasAssertions();
+
         const context = {
             sourceCode: {},
         } as unknown;
@@ -443,8 +485,11 @@ describe(getSignatureParameterTypeAt, () => {
     const location = {} as ts.Node;
 
     it("returns undefined when the parameter index is out of range", () => {
+        expect.hasAssertions();
+
         const checker = {
-            getTypeOfSymbolAtLocation: vi.fn(),
+            getTypeOfSymbolAtLocation:
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
         } as unknown as ts.TypeChecker;
         const signature = {
             parameters: [],
@@ -461,6 +506,8 @@ describe(getSignatureParameterTypeAt, () => {
     });
 
     it("delegates to checker.getTypeOfSymbolAtLocation when parameter exists", () => {
+        expect.hasAssertions();
+
         const parameter = {} as ts.Symbol;
         const signature = {
             parameters: [parameter],
@@ -468,7 +515,9 @@ describe(getSignatureParameterTypeAt, () => {
         const expectedType = {} as ts.Type;
 
         const checkerWithSpy = {
-            getTypeOfSymbolAtLocation: vi.fn().mockReturnValue(expectedType),
+            getTypeOfSymbolAtLocation: vi
+                .fn<(...arguments_: readonly unknown[]) => unknown>()
+                .mockReturnValue(expectedType),
         } as unknown as ts.TypeChecker;
 
         expect(

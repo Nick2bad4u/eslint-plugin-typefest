@@ -54,6 +54,8 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-present", {
 
 describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
     it("handles defensive nullish-guard branches for synthetic AST drift", async () => {
+        expect.hasAssertions();
+
         try {
             vi.resetModules();
 
@@ -152,7 +154,8 @@ describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
                 },
             });
 
-            const report = vi.fn();
+            const report =
+                vi.fn<(...arguments_: readonly unknown[]) => unknown>();
             const listenerMap = undecoratedRuleModule.default.create({
                 filename:
                     "fixtures/typed/prefer-ts-extras-assert-present.invalid.ts",
@@ -341,11 +344,11 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
 
                         expect(fixFunction).toBeDefined();
 
-                        if (directFix === undefined) {
-                            expect(
-                                reportCalls[0]?.suggest?.[0]?.messageId
-                            ).toBe("suggestTsExtrasAssertPresent");
-                        }
+                        expect(
+                            directFix !== undefined ||
+                                reportCalls[0]?.suggest?.[0]?.messageId ===
+                                    "suggestTsExtrasAssertPresent"
+                        ).toBeTruthy();
 
                         assertIsFixFunction(fixFunction);
 
@@ -353,7 +356,7 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
 
                         fixFunction({
                             replaceText(node, text): unknown {
-                                expect(node).toEqual(ifNode);
+                                expect(node).toStrictEqual(ifNode);
 
                                 replacementText = text;
 
@@ -510,7 +513,7 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
 
                         suggestionFix({
                             replaceText(node, text): unknown {
-                                expect(node).toEqual(ifNode);
+                                expect(node).toStrictEqual(ifNode);
 
                                 replacementText = text;
 

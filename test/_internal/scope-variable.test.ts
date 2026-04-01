@@ -27,10 +27,13 @@ const createVariable = (name: string): TSESLint.Scope.Variable =>
 
 describe(getVariableInScopeChain, () => {
     it("returns null when scope is null", () => {
+        expect.hasAssertions();
         expect(getVariableInScopeChain(null, "value")).toBeNull();
     });
 
     it("returns variable from current scope", () => {
+        expect.hasAssertions();
+
         const localVariable = createVariable("value");
         const scope = createScope(new Map([["value", localVariable]]));
 
@@ -38,6 +41,8 @@ describe(getVariableInScopeChain, () => {
     });
 
     it("walks parent scopes when missing in current scope", () => {
+        expect.hasAssertions();
+
         const parentVariable = createVariable("value");
         const parentScope = createScope(new Map([["value", parentVariable]]));
         const childScope = createScope(new Map(), parentScope);
@@ -48,6 +53,8 @@ describe(getVariableInScopeChain, () => {
     });
 
     it("returns nearest shadowed variable in nested scopes", () => {
+        expect.hasAssertions();
+
         const outerVariable = createVariable("value");
         const innerVariable = createVariable("value");
 
@@ -63,12 +70,16 @@ describe(getVariableInScopeChain, () => {
     });
 
     it("returns null when variable is missing from entire scope chain", () => {
+        expect.hasAssertions();
+
         const scope = createScope(new Map());
 
         expect(getVariableInScopeChain(scope, "missing")).toBeNull();
     });
 
     it("returns null when the scope chain contains a cycle", () => {
+        expect.hasAssertions();
+
         const firstScope = createScope(new Map());
         const secondScope = createScope(new Map(), firstScope);
 
@@ -82,6 +93,8 @@ describe(getVariableInScopeChain, () => {
     });
 
     it("returns a variable in a cyclic chain when encountered before cycle detection", () => {
+        expect.hasAssertions();
+
         const targetVariable = createVariable("value");
         const firstScope = createScope(new Map());
         const secondScope = createScope(

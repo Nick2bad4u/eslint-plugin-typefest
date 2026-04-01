@@ -183,12 +183,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-set-has metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-set-has internal listener guards", () => {
     it("ignores non-Identifier member property even when object type is Set-like", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         const fakeSetType = {
@@ -289,6 +292,8 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("swallows parser-service failures without reporting", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -389,8 +394,12 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("skips reporting when parser services cannot map the receiver expression", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
-        const getTypeAtLocation = vi.fn(() => ({ isUnion: () => false }));
+        const getTypeAtLocation = vi.fn<() => { isUnion: () => false }>(() => ({
+            isUnion: () => false,
+        }));
 
         try {
             vi.resetModules();
@@ -487,6 +496,8 @@ describe("prefer-ts-extras-set-has internal listener guards", () => {
     });
 
     it("handles recursive unions, intersections, apparent types, and non-member callees", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         const setLeafType = {

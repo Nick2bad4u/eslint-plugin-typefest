@@ -29,14 +29,6 @@ interface ExecFileOutput {
     readonly stdout: string;
 }
 
-interface ParsedCliReport {
-    readonly contractPath: string;
-    readonly ok: boolean;
-    readonly rootDirectoryPath: string;
-    readonly violationCount: number;
-    readonly violations: readonly { readonly code: string }[];
-}
-
 interface RootFixturePackageJson {
     readonly homepage?: string;
     readonly repository?: Readonly<{
@@ -95,8 +87,7 @@ const runNodeFile = async (
  *
  * @returns Parsed JSON value.
  */
-const parseJson = (jsonText: string): unknown =>
-    JSON.parse(jsonText) as unknown;
+const parseJson = (jsonText: string): unknown => JSON.parse(jsonText);
 
 /**
  * Check whether a caught error carries captured stdout from {@link runNodeFile}.
@@ -161,13 +152,17 @@ const cleanupTemporaryDirectories = async (): Promise<void> => {
 
 describe("docusaurus site contract validator", () => {
     it("passes for the repository's current docs-site blueprint", async () => {
+        expect.hasAssertions();
+
         const violations =
             await validateDocusaurusSiteContract(currentSiteContract);
 
-        expect(violations).toEqual([]);
+        expect(violations).toStrictEqual([]);
     });
 
     it("reports clear failures for missing assets and drifted config structure", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {
@@ -323,7 +318,7 @@ describe("docusaurus site contract validator", () => {
                 repositoryRootPath
             );
 
-            expect(violationCodes).toEqual(
+            expect(violationCodes).toStrictEqual(
                 new Set([
                     "config-favicon-missing",
                     "config-plugin-missing",
@@ -349,6 +344,8 @@ describe("docusaurus site contract validator", () => {
     });
 
     it("supports ordered regex pattern checks in source-file contracts", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {
@@ -381,7 +378,7 @@ describe("docusaurus site contract validator", () => {
                 ],
             });
 
-            expect(violations).toEqual([
+            expect(violations).toStrictEqual([
                 expect.objectContaining({
                     code: "source-pattern-order-violation",
                 }),
@@ -392,6 +389,8 @@ describe("docusaurus site contract validator", () => {
     });
 
     it("emits machine-readable JSON from the CLI", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {
@@ -411,39 +410,45 @@ describe("docusaurus site contract validator", () => {
                 "docusaurus-site-contract",
                 "cli.mjs"
             );
-            const { stdout } = await runNodeFile(cliPath, [
-                "--root",
-                repositoryRootPath,
-                "--config",
-                "contract.mjs",
-                "--json",
-            ]);
-            const parsedReport = parseJson(stdout) as ParsedCliReport;
+            let parsedReport: unknown = undefined;
 
-            expect(parsedReport.ok).toBeFalsy();
-            expect(parsedReport.contractPath).toBe("contract.mjs");
-            expect(parsedReport.rootDirectoryPath).toBe(repositoryRootPath);
-            expect(parsedReport.violationCount).toBe(1);
-            expect(parsedReport.violations[0]?.code).toBe("missing-file");
-        } catch (error) {
-            if (isExecFileFailure(error)) {
-                const parsedReport = parseJson(error.stdout) as Pick<
-                    ParsedCliReport,
-                    "ok" | "violationCount" | "violations"
-                >;
+            try {
+                const { stdout } = await runNodeFile(cliPath, [
+                    "--root",
+                    repositoryRootPath,
+                    "--config",
+                    "contract.mjs",
+                    "--json",
+                ]);
 
-                expect(parsedReport.ok).toBeFalsy();
-                expect(parsedReport.violationCount).toBe(1);
-                expect(parsedReport.violations[0]?.code).toBe("missing-file");
-            } else {
-                throw error;
+                parsedReport = parseJson(stdout);
+            } catch (error) {
+                if (!isExecFileFailure(error)) {
+                    throw error;
+                }
+
+                parsedReport = parseJson(error.stdout);
             }
+
+            expect(parsedReport).toStrictEqual(
+                expect.objectContaining({
+                    ok: false,
+                    violationCount: 1,
+                    violations: [
+                        expect.objectContaining({
+                            code: "missing-file",
+                        }),
+                    ],
+                })
+            );
         } finally {
             await cleanupTemporaryDirectories();
         }
     });
 
     it("bootstraps a target repository with the init subcommand", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {
@@ -682,6 +687,8 @@ describe("docusaurus site contract validator", () => {
     });
 
     it("supports dry-run init previews without mutating the target repository", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {
@@ -748,6 +755,8 @@ describe("docusaurus site contract validator", () => {
     });
 
     it("supports init for installed-package usage without workspace-specific wiring", async () => {
+        expect.hasAssertions();
+
         const repositoryRootPath = await createTemporaryRepositoryRoot();
 
         try {

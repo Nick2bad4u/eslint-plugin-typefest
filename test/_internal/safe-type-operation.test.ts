@@ -16,6 +16,8 @@ type TestFailurePayload = Readonly<{
 
 describe(safeTypeOperation, () => {
     it("returns successful result when operation does not throw", () => {
+        expect.hasAssertions();
+
         const result = safeTypeOperation({
             operation: () => 42,
             reason: "noop",
@@ -29,6 +31,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("returns failure result and calls local observer when operation throws", () => {
+        expect.hasAssertions();
+
         const observedFailures: TestFailurePayload[] = [];
         const operationError = new TypeError("boom");
 
@@ -49,6 +53,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("does not rethrow when local observer throws", () => {
+        expect.hasAssertions();
+
         const result = safeTypeOperation({
             onFailure: () => {
                 throw new Error("observer exploded");
@@ -63,6 +69,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("reports local observer failures to observer-failure observers", () => {
+        expect.hasAssertions();
+
         const observerFailures: string[] = [];
 
         const unsubscribe = registerSafeTypeOperationObserverFailureObserver(
@@ -90,6 +98,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("notifies registered global observers and supports unsubscribe", () => {
+        expect.hasAssertions();
+
         const observedGlobalFailures: TestFailurePayload[] = [];
 
         const observer: SafeTypeOperationFailureObserver<string> = (
@@ -124,6 +134,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("does not rethrow when a global observer throws", () => {
+        expect.hasAssertions();
+
         const observerFailures: string[] = [];
 
         const unsubscribeObserverFailures =
@@ -157,6 +169,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("withSafeTypeOperationFailureObserver unregisters observer after completion", () => {
+        expect.hasAssertions();
+
         const observedFailures: TestFailurePayload[] = [];
         const observer: SafeTypeOperationFailureObserver<string> = (
             failure
@@ -188,6 +202,8 @@ describe(safeTypeOperation, () => {
     });
 
     it("withSafeTypeOperationFailureObserver unregisters observer when operation throws", () => {
+        expect.hasAssertions();
+
         const observedFailures: TestFailurePayload[] = [];
         const observer: SafeTypeOperationFailureObserver<string> = (
             failure

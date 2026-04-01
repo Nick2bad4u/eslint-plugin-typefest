@@ -26,6 +26,7 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-union-to-intersection metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });

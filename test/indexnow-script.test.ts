@@ -17,10 +17,12 @@ import {
 
 describe("indexnow script helpers", () => {
     it("validates accepted IndexNow keys", () => {
+        expect.hasAssertions();
         expect(ensureValidIndexNowKey("abcd1234-XYZ")).toBe("abcd1234-XYZ");
     });
 
     it("rejects invalid IndexNow keys", () => {
+        expect.hasAssertions();
         expect(() => ensureValidIndexNowKey("bad key")).toThrow(
             /INDEXNOW_KEY must be 8-128 characters long/v
         );
@@ -30,6 +32,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("normalizes deployed site URLs for relative asset resolution", () => {
+        expect.hasAssertions();
         expect(
             normalizeSiteUrl(
                 "https://nick2bad4u.github.io/eslint-plugin-typefest?ref=main#docs"
@@ -38,6 +41,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("derives sitemap and key-file URLs from a project site URL", () => {
+        expect.hasAssertions();
         expect(
             deriveSiteConfiguration(
                 "https://nick2bad4u.github.io/eslint-plugin-typefest/"
@@ -53,6 +57,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("decodes sitemap XML entities", () => {
+        expect.hasAssertions();
         expect(
             decodeXmlEntities(
                 "https://example.com/docs?x=1&amp;y=2&amp;title=Tom&#39;s%20Guide"
@@ -61,6 +66,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("normalizes Docusaurus source paths to repository-relative paths", () => {
+        expect.hasAssertions();
         expect(
             normalizeDocusaurusSourcePath(
                 "@site/../rules/prefer-ts-extras-array-at.md"
@@ -72,6 +78,8 @@ describe("indexnow script helpers", () => {
     });
 
     it("parses and deduplicates sitemap URLs", () => {
+        expect.hasAssertions();
+
         const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
             <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                 <url>
@@ -92,12 +100,14 @@ describe("indexnow script helpers", () => {
     });
 
     it("fails fast for malformed sitemap loc elements", () => {
+        expect.hasAssertions();
         expect(() =>
             parseSitemapUrls("<urlset><url><loc>https://example.com/")
         ).toThrow(/closing <\/loc> tag/v);
     });
 
     it("splits URL lists into stable batches", () => {
+        expect.hasAssertions();
         expect(
             chunkValues(
                 [
@@ -117,6 +127,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("builds IndexNow payload batches with the expected metadata", () => {
+        expect.hasAssertions();
         expect(
             createIndexNowPayloads({
                 batchSize: 2,
@@ -154,6 +165,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("collects source/permalink entries from nested Docusaurus metadata", () => {
+        expect.hasAssertions();
         expect(
             collectRouteManifestEntriesFromData({
                 nested: {
@@ -184,6 +196,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("parses added, modified, copied, and renamed paths from git diff --name-status output", () => {
+        expect.hasAssertions();
         expect(
             parseGitDiffNameStatus(
                 [
@@ -202,6 +215,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("resolves changed repository paths into canonical public URLs", () => {
+        expect.hasAssertions();
         expect(
             resolveChangedUrlsFromManifest({
                 changedPaths: [
@@ -229,6 +243,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("detects Bing verification-pending responses as retryable", () => {
+        expect.hasAssertions();
         expect(
             isIndexNowVerificationPendingResponse(
                 403,
@@ -238,6 +253,7 @@ describe("indexnow script helpers", () => {
     });
 
     it("does not mark unrelated IndexNow failures as retryable", () => {
+        expect.hasAssertions();
         expect(
             isIndexNowVerificationPendingResponse(
                 403,

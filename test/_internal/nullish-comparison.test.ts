@@ -55,6 +55,8 @@ const createDeepLogicalExpression = (
 
 describe(flattenLogicalTerms, () => {
     it("flattens nested chains that use the same operator", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression(
             "value !== null && (value !== undefined && isReady)"
         );
@@ -71,6 +73,8 @@ describe(flattenLogicalTerms, () => {
     });
 
     it("does not flatten across different logical operators", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression(
             "value !== null && (value !== undefined || isReady)"
         );
@@ -85,6 +89,8 @@ describe(flattenLogicalTerms, () => {
     });
 
     it("handles deeply nested logical chains without recursion overflow", () => {
+        expect.hasAssertions();
+
         const chainDepth = 15_000;
         const expression = createDeepLogicalExpression(chainDepth, "&&");
 
@@ -107,6 +113,8 @@ describe(flattenLogicalTerms, () => {
 
 describe(getNullishComparison, () => {
     it("parses direct null comparisons", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression("value != null");
 
         const comparison = getNullishComparison({
@@ -114,7 +122,7 @@ describe(getNullishComparison, () => {
             isGlobalUndefinedIdentifier: () => false,
         });
 
-        expect(comparison).toEqual({
+        expect(comparison).toStrictEqual({
             comparedExpression: expect.objectContaining({
                 name: "value",
                 type: "Identifier",
@@ -125,6 +133,8 @@ describe(getNullishComparison, () => {
     });
 
     it("parses global undefined identifier comparisons", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression("undefined === value");
 
         const comparison = getNullishComparison({
@@ -134,7 +144,7 @@ describe(getNullishComparison, () => {
                 candidateExpression.name === "undefined",
         });
 
-        expect(comparison).toEqual({
+        expect(comparison).toStrictEqual({
             comparedExpression: expect.objectContaining({
                 name: "value",
                 type: "Identifier",
@@ -145,6 +155,8 @@ describe(getNullishComparison, () => {
     });
 
     it("respects compared identifier name filters", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression("other !== undefined");
 
         const comparison = getNullishComparison({
@@ -157,6 +169,8 @@ describe(getNullishComparison, () => {
     });
 
     it("supports typeof guards when explicitly enabled", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression('typeof value !== "undefined"');
 
         const comparison = getNullishComparison({
@@ -166,7 +180,7 @@ describe(getNullishComparison, () => {
             isGlobalUndefinedIdentifier: () => false,
         });
 
-        expect(comparison).toEqual({
+        expect(comparison).toStrictEqual({
             comparedExpression: expect.objectContaining({
                 name: "value",
                 type: "Identifier",
@@ -177,6 +191,8 @@ describe(getNullishComparison, () => {
     });
 
     it("does not treat typeof guards as undefined checks when disabled", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression('typeof value !== "undefined"');
 
         const comparison = getNullishComparison({
@@ -189,6 +205,8 @@ describe(getNullishComparison, () => {
     });
 
     it("obeys allowed-operator constraints", () => {
+        expect.hasAssertions();
+
         const expression = parseExpression("value == null");
 
         const comparison = getNullishComparison({

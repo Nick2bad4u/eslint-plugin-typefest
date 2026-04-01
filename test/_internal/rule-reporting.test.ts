@@ -50,6 +50,8 @@ const createContext = () => {
 
 describe("rule-reporting helpers", () => {
     it("reportWithOptionalFix reports message-only descriptor when fix is null", () => {
+        expect.hasAssertions();
+
         const { context, report } = createContext();
 
         reportWithOptionalFix({
@@ -59,7 +61,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledOnce();
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             messageId: "preferTsExtrasAssertDefined",
             node,
@@ -68,6 +70,8 @@ describe("rule-reporting helpers", () => {
     });
 
     it("reportWithOptionalFix reports direct fix when provided", () => {
+        expect.hasAssertions();
+
         const { context, report } = createContext();
         const fix = createFix();
 
@@ -78,7 +82,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledOnce();
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             fix,
             messageId: "preferTsExtrasAssertDefined",
@@ -87,6 +91,8 @@ describe("rule-reporting helpers", () => {
     });
 
     it("reportWithOptionalFix includes report data when provided", () => {
+        expect.hasAssertions();
+
         const { context, report } = createContext();
 
         reportWithOptionalFix({
@@ -100,7 +106,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledOnce();
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             data: {
                 alias: "OldAlias",
@@ -112,6 +118,8 @@ describe("rule-reporting helpers", () => {
     });
 
     it("reportWithOptionalFix strips top-level fix when disableAllAutofixes is enabled", () => {
+        expect.hasAssertions();
+
         const { context, report } = createContext();
         const fix = createFix();
 
@@ -128,7 +136,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledOnce();
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             messageId: "preferTsExtrasAssertDefined",
             node,

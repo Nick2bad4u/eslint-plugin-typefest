@@ -43,6 +43,8 @@ const SKIP_IMPORT_INSERTION_BLOCK_REPLACEMENT: ImportInsertionDecision = {
 
 describe(createImportAwareFixes, () => {
     it("returns replacement only when import insertion is not required", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
             createReplacementFix: () => createRuleFix("replacement"),
@@ -55,6 +57,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns import and replacement when insertion is required and included", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
             createReplacementFix: () => createRuleFix("replacement"),
@@ -67,6 +71,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns import only when separate-pass strategy is selected for autofix", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             autofixImportInsertionStrategy: "separate-pass",
             createImportFix: () => createRuleFix("import"),
@@ -81,6 +87,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("keeps import plus replacement for suggestions even with separate-pass strategy", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             autofixImportInsertionStrategy: "separate-pass",
             createImportFix: () => createRuleFix("import"),
@@ -95,6 +103,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns replacement only when insertion is skipped but replacement allowed", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
             createReplacementFix: () => createRuleFix("replacement"),
@@ -108,6 +118,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns replacement when non-autofix paths skip insertion but allow replacement", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
             createReplacementFix: () => createRuleFix("replacement"),
@@ -121,6 +133,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns null when separate-pass autofix skips import insertion on duplicate claims", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             autofixImportInsertionStrategy: "separate-pass",
             createImportFix: () => createRuleFix("import"),
@@ -135,6 +149,8 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns null when insertion is skipped and replacement blocked", () => {
+        expect.hasAssertions();
+
         const fixes = createImportAwareFixes({
             createImportFix: () => createRuleFix("import"),
             createReplacementFix: () => createRuleFix("replacement"),
@@ -147,7 +163,11 @@ describe(createImportAwareFixes, () => {
     });
 
     it("returns null when required import insertion fix cannot be created", () => {
-        const createReplacementFix = vi.fn(() => createRuleFix("replacement"));
+        expect.hasAssertions();
+
+        const createReplacementFix = vi.fn<() => TSESLint.RuleFix>(() =>
+            createRuleFix("replacement")
+        );
 
         const fixes = createImportAwareFixes({
             createImportFix: () => null,

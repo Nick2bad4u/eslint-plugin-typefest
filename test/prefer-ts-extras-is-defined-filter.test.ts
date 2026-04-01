@@ -309,12 +309,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-is-defined-filter metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
     it("ignores non-Identifier filter property and non-callback first argument", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -418,9 +421,9 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueReferenceReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueReferenceReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -531,20 +534,17 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                             messageId: "preferTsExtrasIsDefinedFilter",
                         });
 
-                        if (
+                        const fixFactoryCallCount =
                             createSafeValueReferenceReplacementFixMock.mock
-                                .calls.length > 0
-                        ) {
-                            expect(
-                                createSafeValueReferenceReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        } else {
-                            const reportFix = reportCalls[0]?.fix;
+                                .calls.length;
+                        const reportFix = reportCalls[0]?.fix;
 
-                            if (reportFix !== undefined) {
-                                expect(typeof reportFix).toBe("function");
-                            }
-                        }
+                        expect(
+                            fixFactoryCallCount > 0
+                                ? fixFactoryCallCount === 1
+                                : reportFix === undefined ||
+                                      typeof reportFix === "function"
+                        ).toBeTruthy();
 
                         const fixedCode = `${code.slice(
                             0,

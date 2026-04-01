@@ -183,10 +183,14 @@ describe("prefer-type-fest-writable-deep parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("WritableDeep");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("WritableDeep");
                 }
             ),
             fastCheckRunConfig.default
@@ -217,6 +221,8 @@ const loadWritableDeepRuleMetadata =
 
 describe("prefer-type-fest-writable-deep metadata", () => {
     it("declares stable metadata values", async () => {
+        expect.assertions(6);
+
         const metadataRule = await loadWritableDeepRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
@@ -253,9 +259,9 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
     it("keeps create callable when filename is omitted", async () => {
         expect.hasAssertions();
 
-        const collectDirectNamedImportsFromSourceMock = vi.fn(
-            () => new Set<string>()
-        );
+        const collectDirectNamedImportsFromSourceMock = vi.fn<
+            () => Set<string>
+        >(() => new Set<string>());
 
         try {
             vi.resetModules();
@@ -287,7 +293,16 @@ describe("prefer-type-fest-writable-deep filename fallback", () => {
                     },
                 });
             }).not.toThrow();
-            expect(collectDirectNamedImportsFromSourceMock).toHaveBeenCalled();
+            expect(
+                collectDirectNamedImportsFromSourceMock
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ast: {
+                        body: [],
+                    },
+                }),
+                "type-fest"
+            );
         } finally {
             vi.doUnmock("../src/_internal/typed-rule.js");
             vi.doUnmock("../src/_internal/imported-type-aliases.js");

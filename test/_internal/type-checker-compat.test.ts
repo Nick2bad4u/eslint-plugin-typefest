@@ -26,6 +26,8 @@ describe("type-checker-compat", () => {
     const targetType = {} as ts.Type;
 
     it("returns undefined from optional helpers when methods are unavailable", () => {
+        expect.hasAssertions();
+
         const checker = {} as ts.TypeChecker;
 
         expect(getTypeCheckerApparentType(checker, sourceType)).toBeUndefined();
@@ -53,6 +55,8 @@ describe("type-checker-compat", () => {
     });
 
     it("does not invoke type-argument lookup for non-reference types", () => {
+        expect.hasAssertions();
+
         const checker = {
             getTypeArguments: vi
                 .fn<
@@ -76,6 +80,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates apparent type lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const expectedType = {} as ts.Type;
 
         const checker = {
@@ -97,6 +103,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates base type lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const expectedBaseTypes = [{}] as unknown as readonly ts.BaseType[];
 
         const checker = {
@@ -121,6 +129,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates assignability lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const checker = {
             isTypeAssignableTo: vi
                 .fn<
@@ -153,6 +163,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates string type lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const expectedStringType = {} as ts.Type;
 
         const checker = {
@@ -169,6 +181,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates base-constraint lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const expectedConstraint = {} as ts.Type;
 
         const checker = {
@@ -193,6 +207,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates array and tuple lookups with checker-bound this", () => {
+        expect.hasAssertions();
+
         const checker = {
             isArrayType: vi
                 .fn<
@@ -225,6 +241,8 @@ describe("type-checker-compat", () => {
     });
 
     it("delegates type-argument lookup with checker-bound this", () => {
+        expect.hasAssertions();
+
         const expectedTypeArguments = [{}] as unknown as readonly ts.Type[];
 
         const checker = {

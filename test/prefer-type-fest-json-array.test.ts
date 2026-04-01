@@ -291,6 +291,8 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
     it("reports only native/generic JsonValue array union pairs", async () => {
+        expect.hasAssertions();
+
         const replacementFixCalls: Readonly<UnknownArray>[] = [];
         const reportCalls: {
             messageId?: string;
@@ -474,9 +476,10 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeNodeReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeNodeReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -537,26 +540,22 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                         messageId: "preferJsonArray",
                     });
 
-                    if (
-                        createSafeTypeNodeReplacementFixMock.mock.calls.length >
-                        0
-                    ) {
-                        expect(
-                            createSafeTypeNodeReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
-                    } else {
-                        expect(reportCalls[0]?.fix).toBeTypeOf("function");
-                    }
+                    const fixFactoryCallCount =
+                        createSafeTypeNodeReplacementFixMock.mock.calls.length;
+                    const usesInlineFix = fixFactoryCallCount === 0;
+
+                    expect(
+                        usesInlineFix || fixFactoryCallCount === 1
+                    ).toBeTruthy();
 
                     const calledReplacementName =
                         createSafeTypeNodeReplacementFixMock.mock.calls[0]?.[1];
 
-                    if (
-                        createSafeTypeNodeReplacementFixMock.mock.calls.length >
-                        0
-                    ) {
-                        expect(calledReplacementName).toBe("JsonArray");
-                    }
+                    expect(
+                        usesInlineFix
+                            ? typeof reportCalls[0]?.fix
+                            : calledReplacementName
+                    ).toBe(usesInlineFix ? "function" : "JsonArray");
 
                     const fixedCode = `${code.slice(0, unionType.range[0])}JsonArray${code.slice(unionType.range[1])}`;
 

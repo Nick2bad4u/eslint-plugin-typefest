@@ -213,9 +213,10 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueReferenceReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeValueReferenceReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -304,7 +305,7 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
 
                         expect(
                             createSafeValueReferenceReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         const fixDescriptor =
                             createSafeValueReferenceReplacementFixMock.mock

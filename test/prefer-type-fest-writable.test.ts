@@ -207,7 +207,7 @@ const createWritableMappedTypeListenerHarness = ({
     mappedTypeListener: (node: Readonly<WritableMappedTypeNode>) => void;
     report: ReturnType<typeof vi.fn>;
 } => {
-    const report = vi.fn();
+    const report = vi.fn<(...arguments_: readonly unknown[]) => unknown>();
     const sourceCode = {
         ast: {
             body: [],
@@ -255,6 +255,8 @@ const createWritableIndexedAccessType = ({
 
 describe(ruleName, () => {
     it("exports expected metadata", async () => {
+        expect.hasAssertions();
+
         const metadataRule = await loadWritableRuleMetadata();
         const metadataDefaultOptions =
             "defaultOptions" in metadataRule
@@ -304,15 +306,21 @@ describe(ruleName, () => {
                     AST_NODE_TYPES.Identifier
                 );
 
-                if (tsReference.typeName.type === AST_NODE_TYPES.Identifier) {
-                    expect(tsReference.typeName.name).toBe("Writable");
+                if (tsReference.typeName.type !== AST_NODE_TYPES.Identifier) {
+                    throw new Error(
+                        "Expected conditional test precondition to hold."
+                    );
                 }
+
+                expect(tsReference.typeName.name).toBe("Writable");
             }),
             fastCheckRunConfig.default
         );
     });
 
     it("does not throw when mapped constraint is missing", () => {
+        expect.hasAssertions();
+
         const baseTypeNode = {
             type: "TSTypeReference",
         } as unknown as TSESTree.TypeNode;
@@ -341,6 +349,8 @@ describe(ruleName, () => {
     });
 
     it("ignores mapped nodes with missing base type annotation", () => {
+        expect.hasAssertions();
+
         const mappedTypeNode = createWritableMappedTypeNode({
             constraint: {
                 operator: "keyof",
@@ -368,6 +378,8 @@ describe(ruleName, () => {
     });
 
     it("ignores mapped nodes when key is not an identifier", () => {
+        expect.hasAssertions();
+
         const baseTypeNode = {
             type: "TSTypeReference",
         } as unknown as TSESTree.TypeNode;
@@ -398,6 +410,8 @@ describe(ruleName, () => {
     });
 
     it("matches mapped type shape without text normalization", () => {
+        expect.hasAssertions();
+
         const baseTypeNode = {
             type: "TSTypeReference",
         } as unknown as TSESTree.TypeNode;
@@ -416,7 +430,7 @@ describe(ruleName, () => {
                 objectType: baseTypeNode,
             }),
         });
-        const getText = vi.fn(() => "T  \n\tU");
+        const getText = vi.fn<() => string>(() => "T  \n\tU");
         const { mappedTypeListener, report } =
             createWritableMappedTypeListenerHarness({
                 getText,
@@ -425,7 +439,7 @@ describe(ruleName, () => {
         mappedTypeListener(mappedTypeNode);
 
         expect(getText).not.toHaveBeenCalled();
-        expect(report).toHaveBeenCalledTimes(1);
+        expect(report).toHaveBeenCalledOnce();
     });
 });
 

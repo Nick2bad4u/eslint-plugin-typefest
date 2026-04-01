@@ -135,6 +135,8 @@ const createTypeWithDeclarationPath = (fileName: string): Readonly<ts.Type> =>
 
 describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     it("returns true for definition nodes containing qualified TSESTree type references", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             id: {
                 name: "nodeLike",
@@ -184,6 +186,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("returns false when no @typescript-eslint namespace import exists even if text contains TSESTree.", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -207,6 +211,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("skips scope traversal entirely when no namespace imports are present", () => {
+        expect.hasAssertions();
+
         const context = {
             sourceCode: {
                 ast: {
@@ -231,6 +237,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("returns true for imported aliases referenced in definition text fallback", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -258,6 +266,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("returns true for namespace imports referenced in definition text fallback", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -285,6 +295,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("uses namespace-boundary matching for text fallback", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -312,6 +324,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("does not match namespace text appearing only inside string literals in parser-backed fallback", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -339,6 +353,8 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("gracefully handles SourceCode objects without ast/body", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
@@ -363,11 +379,13 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
     });
 
     it("memoizes fallback skip-check decisions per expression node", () => {
+        expect.hasAssertions();
+
         const definitionNode = {
             type: "VariableDeclarator",
         } as unknown as TSESTree.VariableDeclarator;
 
-        const getScope = vi.fn(() =>
+        const getScope = vi.fn<() => Readonly<TSESLint.Scope.Scope>>(() =>
             createScopeWithVariable("nodeLike", definitionNode)
         );
         const expressionNode = {
@@ -394,12 +412,14 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
 
         expect(shouldSkipExpression(expressionNode)).toBeTruthy();
         expect(shouldSkipExpression(expressionNode)).toBeTruthy();
-        expect(getScope).toHaveBeenCalledTimes(1);
+        expect(getScope).toHaveBeenCalledOnce();
     });
 });
 
 describe(isTypeScriptEslintAstType, () => {
     it("matches declaration paths containing an @typescript-eslint path segment", () => {
+        expect.hasAssertions();
+
         const utils = createTypeCheckerForAstTypeTests();
         const type = createTypeWithDeclarationPath(
             String.raw`C:\repo\node_modules\@typescript-eslint\utils\dist\index.d.ts`
@@ -409,6 +429,8 @@ describe(isTypeScriptEslintAstType, () => {
     });
 
     it("does not match package-like names when @typescript-eslint is not a full path segment", () => {
+        expect.hasAssertions();
+
         const utils = createTypeCheckerForAstTypeTests();
         const type = createTypeWithDeclarationPath(
             String.raw`C:\repo\node_modules\@typescript-eslint-tools\utils\dist\index.d.ts`
@@ -418,6 +440,8 @@ describe(isTypeScriptEslintAstType, () => {
     });
 
     it("ignores lexical typeToString text when declaration metadata is absent", () => {
+        expect.hasAssertions();
+
         const utils = createTypeCheckerWithRenderedType("TSESTree.Node");
         const astTypeWithoutDeclarations = {
             aliasSymbol: undefined,

@@ -16,6 +16,8 @@ type MessageIds = "blocked";
 
 describe(omitAutofixFromReportDescriptor, () => {
     it("returns original descriptor when fix property is absent", () => {
+        expect.hasAssertions();
+
         const descriptor = {
             messageId: "blocked",
             node: {} as never,
@@ -27,6 +29,8 @@ describe(omitAutofixFromReportDescriptor, () => {
     });
 
     it("strips function-valued top-level fix while preserving suggest entries", () => {
+        expect.hasAssertions();
+
         const descriptor = {
             fix: () => null,
             messageId: "blocked",
@@ -47,6 +51,8 @@ describe(omitAutofixFromReportDescriptor, () => {
     });
 
     it("does not mutate original descriptor object", () => {
+        expect.hasAssertions();
+
         const descriptor = {
             fix: () => null,
             messageId: "blocked",
@@ -60,6 +66,8 @@ describe(omitAutofixFromReportDescriptor, () => {
     });
 
     it("preserves non-function fix values", () => {
+        expect.hasAssertions();
+
         const descriptor = {
             fix: null,
             messageId: "blocked",
@@ -75,6 +83,8 @@ describe(omitAutofixFromReportDescriptor, () => {
 
 describe(createReportWithoutAutofixes, () => {
     it("reports with top-level autofix removed", () => {
+        expect.hasAssertions();
+
         const reportSpy = vi.fn<(descriptor: Readonly<Descriptor>) => void>();
         const reportWithoutAutofixes = createReportWithoutAutofixes(reportSpy);
 
@@ -90,7 +100,7 @@ describe(createReportWithoutAutofixes, () => {
             ],
         });
 
-        expect(reportSpy).toHaveBeenCalledTimes(1);
+        expect(reportSpy).toHaveBeenCalledOnce();
 
         const [reportedDescriptor] = reportSpy.mock.calls[0] as [Descriptor];
 

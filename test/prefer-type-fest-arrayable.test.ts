@@ -301,6 +301,8 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
     it("reports only matching Array<T> union shapes", async () => {
+        expect.hasAssertions();
+
         const replacementFixCalls: Readonly<UnknownArray>[] = [];
         const reportCalls: {
             messageId?: string;

@@ -60,6 +60,8 @@ const createRuleContext = ({
 
 describe(resolveImportInsertionDecisionForReportFix, () => {
     it("always includes import insertion for suggestion fixes", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
 
         const decision = resolveDecision({
@@ -77,6 +79,8 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
     });
 
     it("blocks replacement when import insertion fixes are disabled", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
 
         registerProgramSettingsForContext(
@@ -105,6 +109,8 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
     });
 
     it("blocks duplicate autofix replacements by default after first claim", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
 
         const firstDecision = resolveDecision({
@@ -135,6 +141,8 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
     });
 
     it("treats distinct imports as separate coordination claims", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
 
         const firstDecision = resolveDecision({
@@ -164,6 +172,8 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
     });
 
     it("treats value and type claims as distinct for same import name", () => {
+        expect.hasAssertions();
+
         const programNode = createProgramNode();
 
         const valueDecision = resolveDecision({
@@ -193,6 +203,8 @@ describe(resolveImportInsertionDecisionForReportFix, () => {
     });
 
     it("falls back to inclusion when program cannot be resolved", () => {
+        expect.hasAssertions();
+
         const orphanNode = {
             type: "Identifier",
         } as unknown as Readonly<TSESTree.Node>;

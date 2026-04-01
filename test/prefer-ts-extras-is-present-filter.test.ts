@@ -87,12 +87,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-is-present-filter metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
     it("ignores non-Identifier filter property and non-callback first argument", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -223,6 +226,8 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
     });
 
     it("ignores logical-or callback bodies that do not match strict present filter guards", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -343,9 +348,9 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueReferenceReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueReferenceReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -466,16 +471,16 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                             messageId: "preferTsExtrasIsPresentFilter",
                         });
 
-                        if (
+                        const fixFactoryCallCount =
                             createSafeValueReferenceReplacementFixMock.mock
-                                .calls.length > 0
-                        ) {
-                            expect(
-                                createSafeValueReferenceReplacementFixMock
-                            ).toHaveBeenCalledTimes(1);
-                        } else if (firstReport.fix !== undefined) {
-                            expect(typeof firstReport.fix).toBe("function");
-                        }
+                                .calls.length;
+
+                        expect(
+                            fixFactoryCallCount > 0
+                                ? fixFactoryCallCount === 1
+                                : firstReport.fix === undefined ||
+                                      typeof firstReport.fix === "function"
+                        ).toBeTruthy();
 
                         const [callbackStart, callbackEnd] = callbackRange;
                         const fixedCode = `${code.slice(
@@ -503,9 +508,9 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueReferenceReplacementFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueReferenceReplacementFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,

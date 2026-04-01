@@ -54,6 +54,8 @@ const createNodeInProgram = (program: TSESTree.Program): TSESTree.Node =>
 
 describe(registerProgramSettingsForContext, () => {
     it("reads disableImportInsertionFixes from settings", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -72,6 +74,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("reads disableAllAutofixes from settings", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -89,6 +93,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("reuses cached settings for the same program", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
 
         const firstContext = createContext({
@@ -117,6 +123,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("does not share cached settings across different programs", () => {
+        expect.hasAssertions();
+
         const firstProgram = createProgramNode();
         const secondProgram = createProgramNode();
 
@@ -147,6 +155,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("treats non-object settings as disabled", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -160,6 +170,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("treats non-object typefest settings as disabled", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -175,6 +187,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("treats non-boolean settings values as disabled", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -193,6 +207,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("treats inherited non-boolean settings values as disabled", () => {
+        expect.hasAssertions();
+
         const inheritedSettings = {
             disableAllAutofixes: "true",
             disableImportInsertionFixes: 1,
@@ -214,6 +230,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("ignores inherited disableImportInsertionFixes property", () => {
+        expect.hasAssertions();
+
         const inheritedTypefestSettings = Object.create({
             disableImportInsertionFixes: true,
         });
@@ -232,6 +250,8 @@ describe(registerProgramSettingsForContext, () => {
     });
 
     it("ignores inherited disableAllAutofixes property", () => {
+        expect.hasAssertions();
+
         const inheritedTypefestSettings = Object.create({
             disableAllAutofixes: true,
         });
@@ -252,6 +272,8 @@ describe(registerProgramSettingsForContext, () => {
 
 describe(isImportInsertionFixesDisabledForNode, () => {
     it("returns true when disableImportInsertionFixes is enabled", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,
@@ -270,6 +292,8 @@ describe(isImportInsertionFixesDisabledForNode, () => {
     });
 
     it("returns true when only disableAllAutofixes is enabled", () => {
+        expect.hasAssertions();
+
         const program = createProgramNode();
         const context = createContext({
             program,

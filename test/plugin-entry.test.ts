@@ -53,7 +53,8 @@ const expectedRuleRegistryShape = expect.objectContaining({
 
 describe("plugin entry module", () => {
     it("exports default plugin object with rule and config registries", () => {
-        expect(typefestPlugin).toEqual(
+        expect.hasAssertions();
+        expect(typefestPlugin).toStrictEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.any(Object),
@@ -62,7 +63,7 @@ describe("plugin entry module", () => {
             })
         );
 
-        expect(typefestPlugin.meta).toEqual(
+        expect(typefestPlugin.meta).toStrictEqual(
             expect.objectContaining({
                 name: "eslint-plugin-typefest",
                 namespace: "typefest",
@@ -72,16 +73,21 @@ describe("plugin entry module", () => {
     });
 
     it("exposes critical presets and latest rule registrations", () => {
-        expect(typefestPlugin.configs).toEqual(expectedConfigRegistryShape);
-        expect(typefestPlugin.rules).toEqual(expectedRuleRegistryShape);
+        expect.hasAssertions();
+        expect(typefestPlugin.configs).toStrictEqual(
+            expectedConfigRegistryShape
+        );
+        expect(typefestPlugin.rules).toStrictEqual(expectedRuleRegistryShape);
     });
 
     it("exports matching runtime plugin shape from plugin.mjs", async () => {
+        expect.hasAssertions();
+
         const runtimePluginModule = (await import("../plugin.mjs")) as {
             default: unknown;
         };
 
-        expect(runtimePluginModule.default).toEqual(
+        expect(runtimePluginModule.default).toStrictEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.any(Object),
@@ -90,7 +96,7 @@ describe("plugin entry module", () => {
             })
         );
 
-        expect(runtimePluginModule.default).toEqual(
+        expect(runtimePluginModule.default).toStrictEqual(
             expect.objectContaining({
                 meta: expect.objectContaining({
                     name: "eslint-plugin-typefest",
@@ -102,6 +108,8 @@ describe("plugin entry module", () => {
     });
 
     it("exports matching runtime plugin shape from dist/plugin.cjs", () => {
+        expect.hasAssertions();
+
         const runtimePlugin = requireFromTestModule("../dist/plugin.cjs") as {
             configs?: unknown;
             meta?: {
@@ -113,7 +121,7 @@ describe("plugin entry module", () => {
             rules?: unknown;
         };
 
-        expect(runtimePlugin).toEqual(
+        expect(runtimePlugin).toStrictEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.any(Object),
@@ -122,7 +130,7 @@ describe("plugin entry module", () => {
             })
         );
 
-        expect(runtimePlugin.meta).toEqual(
+        expect(runtimePlugin.meta).toStrictEqual(
             expect.objectContaining({
                 name: "eslint-plugin-typefest",
                 namespace: "typefest",
@@ -132,12 +140,14 @@ describe("plugin entry module", () => {
     });
 
     it("resolves package default export through self-reference ESM import", async () => {
+        expect.hasAssertions();
+
         const packageRuntimeModule =
             (await import("eslint-plugin-typefest")) as {
                 default: unknown;
             };
 
-        expect(packageRuntimeModule.default).toEqual(
+        expect(packageRuntimeModule.default).toStrictEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.objectContaining({
@@ -152,6 +162,8 @@ describe("plugin entry module", () => {
     });
 
     it("resolves package default export through self-reference CJS require", () => {
+        expect.hasAssertions();
+
         const packageRuntimePlugin = requireFromTestModule(
             "eslint-plugin-typefest"
         ) as {
@@ -165,7 +177,7 @@ describe("plugin entry module", () => {
             rules?: unknown;
         };
 
-        expect(packageRuntimePlugin).toEqual(
+        expect(packageRuntimePlugin).toStrictEqual(
             expect.objectContaining({
                 configs: expect.any(Object),
                 meta: expect.objectContaining({

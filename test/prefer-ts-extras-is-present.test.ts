@@ -1153,6 +1153,33 @@ const createRuleContextForSource = ({
     } as unknown as Parameters<typeof rule.create>[0];
 };
 
+const getNodeText = (
+    node: Readonly<{
+        name?: string;
+        raw?: string;
+        text?: string;
+        value?: unknown;
+    }>
+): string => {
+    if (typeof node.text === "string") {
+        return node.text;
+    }
+
+    if (typeof node.name === "string") {
+        return node.name;
+    }
+
+    if (typeof node.raw === "string") {
+        return node.raw;
+    }
+
+    if (node.value === null) {
+        return "null";
+    }
+
+    return "";
+};
+
 const normalizeRuleFixes = (
     fixResult: unknown
 ): readonly Readonly<TSESLint.RuleFix>[] => {
@@ -1275,39 +1302,15 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-ts-extras-is-present metadata literals", () => {
     it("declares the authored docs URL literal", () => {
+        expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
     });
 });
 
 describe("prefer-ts-extras-is-present internal filter guards", () => {
-    const getNodeText = (
-        node: Readonly<{
-            name?: string;
-            raw?: string;
-            text?: string;
-            value?: unknown;
-        }>
-    ): string => {
-        if (typeof node.text === "string") {
-            return node.text;
-        }
-
-        if (typeof node.name === "string") {
-            return node.name;
-        }
-
-        if (typeof node.raw === "string") {
-            return node.raw;
-        }
-
-        if (node.value === null) {
-            return "null";
-        }
-
-        return "";
-    };
-
     it("reports strict checks for non-function filter arguments", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -1433,6 +1436,8 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
     });
 
     it("does not treat private filter-like call as filter callback", async () => {
+        expect.hasAssertions();
+
         const reportCalls: { messageId?: string }[] = [];
 
         try {
@@ -1722,9 +1727,9 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -1845,11 +1850,13 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
                     if (
                         createSafeValueArgumentFunctionCallFixMock.mock.calls
-                            .length > 0
+                            .length > 0 &&
+                        createSafeValueArgumentFunctionCallFixMock.mock.calls
+                            .length !== 1
                     ) {
-                        expect(
-                            createSafeValueArgumentFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        throw new Error(
+                            "Expected present-check fix factory to run at most once"
+                        );
                     }
 
                     const callText = `isPresent(${comparedExpressionText})`;
@@ -2223,13 +2230,6 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                         const firstStatement = fixedAst.body[0];
                         const secondStatement = fixedAst.body[1];
 
-                        expect(firstStatement?.type).toBe(
-                            AST_NODE_TYPES.ExpressionStatement
-                        );
-                        expect(secondStatement?.type).toBe(
-                            AST_NODE_TYPES.ImportDeclaration
-                        );
-
                         if (
                             firstStatement?.type !==
                             AST_NODE_TYPES.ExpressionStatement
@@ -2239,7 +2239,20 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
                             );
                         }
 
-                        expect(firstStatement.directive).toBe("use strict");
+                        if (
+                            secondStatement?.type !==
+                            AST_NODE_TYPES.ImportDeclaration
+                        ) {
+                            throw new TypeError(
+                                "Expected import insertion to keep the import immediately after the directive"
+                            );
+                        }
+
+                        if (firstStatement.directive !== "use strict") {
+                            throw new TypeError(
+                                'Expected first directive statement to remain "use strict"'
+                            );
+                        }
                     }
 
                     const {
@@ -2307,9 +2320,9 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
         try {
             vi.resetModules();
 
-            const createSafeValueArgumentFunctionCallFixMock = vi.fn(
-                () => "FIX"
-            );
+            const createSafeValueArgumentFunctionCallFixMock = vi.fn<
+                () => string
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -2547,11 +2560,15 @@ describe("prefer-ts-extras-is-present sequence expression autofix guard", () => 
                     );
 
                     if (
-                        secondSequenceOperand?.type ===
+                        secondSequenceOperand?.type !==
                         AST_NODE_TYPES.Identifier
                     ) {
-                        expect(secondSequenceOperand.name).toBe("maybeValue");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(secondSequenceOperand.name).toBe("maybeValue");
 
                     expect(secondPassInitializer.type).not.toBe(
                         AST_NODE_TYPES.BinaryExpression
@@ -2614,7 +2631,11 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
                     firstPassListeners.BinaryExpression?.(binaryExpression);
 
                     if (generatedCase.nullishKind === "undefined") {
-                        expect(firstPassReports).toHaveLength(0);
+                        if (firstPassReports.length > 0) {
+                            throw new Error(
+                                "Expected undefined loose-null cases to produce no first-pass reports"
+                            );
+                        }
 
                         return;
                     }
@@ -2741,14 +2762,23 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
                     firstPassListeners.BinaryExpression?.(binaryExpression);
 
                     if (generatedCase.nullishKind === "undefined") {
-                        expect(firstPassReports).toHaveLength(0);
-                        expect(
+                        if (firstPassReports.length > 0) {
+                            throw new Error(
+                                "Expected undefined loose-null import cases to produce no first-pass reports"
+                            );
+                        }
+
+                        if (
                             countNamedImportSpecifiersInSource({
                                 importedName: "isPresent",
                                 sourceModuleName: "ts-extras",
                                 sourceText,
-                            })
-                        ).toBe(0);
+                            }) !== 0
+                        ) {
+                            throw new Error(
+                                "Expected undefined loose-null import cases to avoid adding an isPresent import"
+                            );
+                        }
 
                         return;
                     }
@@ -2800,13 +2830,6 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
                         const firstStatement = fixedAst.body[0];
                         const secondStatement = fixedAst.body[1];
 
-                        expect(firstStatement?.type).toBe(
-                            AST_NODE_TYPES.ExpressionStatement
-                        );
-                        expect(secondStatement?.type).toBe(
-                            AST_NODE_TYPES.ImportDeclaration
-                        );
-
                         if (
                             firstStatement?.type !==
                             AST_NODE_TYPES.ExpressionStatement
@@ -2816,7 +2839,20 @@ describe("prefer-ts-extras-is-present runtime equivalence guard", () => {
                             );
                         }
 
-                        expect(firstStatement.directive).toBe("use strict");
+                        if (
+                            secondStatement?.type !==
+                            AST_NODE_TYPES.ImportDeclaration
+                        ) {
+                            throw new TypeError(
+                                "Expected import insertion to keep the import immediately after the directive"
+                            );
+                        }
+
+                        if (firstStatement.directive !== "use strict") {
+                            throw new TypeError(
+                                'Expected first directive statement to remain "use strict"'
+                            );
+                        }
                     }
 
                     const originalExecutionSnapshot =

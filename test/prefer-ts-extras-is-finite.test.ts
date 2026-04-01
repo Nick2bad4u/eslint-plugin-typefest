@@ -205,10 +205,14 @@ describe("prefer-ts-extras-is-finite parse-safety guards", () => {
                     );
 
                     if (
-                        callExpression.callee.type === AST_NODE_TYPES.Identifier
+                        callExpression.callee.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(callExpression.callee.name).toBe("isFinite");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(callExpression.callee.name).toBe("isFinite");
                 }
             ),
             fastCheckRunConfig.default

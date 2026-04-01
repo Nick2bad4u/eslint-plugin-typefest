@@ -167,9 +167,10 @@ describe("prefer-type-fest-iterable-element source assertions", () => {
         try {
             vi.resetModules();
 
-            const createSafeTypeReferenceReplacementFixMock = vi.fn(
-                (...args: readonly unknown[]) =>
-                    args.length >= 0 ? "FIX" : "UNREACHABLE"
+            const createSafeTypeReferenceReplacementFixMock = vi.fn<
+                (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
+            >((...args: readonly unknown[]) =>
+                args.length >= 0 ? "FIX" : "UNREACHABLE"
             );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
@@ -264,7 +265,7 @@ describe("prefer-type-fest-iterable-element source assertions", () => {
 
                         expect(
                             createSafeTypeReferenceReplacementFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
                         expect(
                             createSafeTypeReferenceReplacementFixMock.mock
                                 .calls[0]?.[1]

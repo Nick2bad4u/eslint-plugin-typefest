@@ -165,6 +165,8 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 
 describe("prefer-type-fest-json-value metadata", () => {
     it("declares authored hasSuggestions metadata literal", async () => {
+        expect.hasAssertions();
+
         const authoredRuleModule =
             (await import("../src/rules/prefer-type-fest-json-value")) as {
                 default: {
@@ -180,6 +182,8 @@ describe("prefer-type-fest-json-value metadata", () => {
 
 describe("prefer-type-fest-json-value internal listener guards", () => {
     it("reports without suggestions when replacement fix is unavailable", async () => {
+        expect.hasAssertions();
+
         const reportCalls: unknown[] = [];
 
         try {
@@ -286,10 +290,14 @@ describe("prefer-type-fest-json-value parse-safety guards", () => {
                     );
 
                     if (
-                        tsReference.typeName.type === AST_NODE_TYPES.Identifier
+                        tsReference.typeName.type !== AST_NODE_TYPES.Identifier
                     ) {
-                        expect(tsReference.typeName.name).toBe("JsonObject");
+                        throw new Error(
+                            "Expected conditional test precondition to hold."
+                        );
                     }
+
+                    expect(tsReference.typeName.name).toBe("JsonObject");
                 }
             ),
             fastCheckRunConfig.default

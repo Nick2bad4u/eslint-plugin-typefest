@@ -166,7 +166,9 @@ describe("prefer-ts-extras-array-find-last source assertions", () => {
         try {
             vi.resetModules();
 
-            const createMethodToFunctionCallFixMock = vi.fn(() => "FIX");
+            const createMethodToFunctionCallFixMock = vi.fn<() => string>(
+                () => "FIX"
+            );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,
@@ -257,7 +259,7 @@ describe("prefer-ts-extras-array-find-last source assertions", () => {
                         });
                         expect(
                             createMethodToFunctionCallFixMock
-                        ).toHaveBeenCalledTimes(1);
+                        ).toHaveBeenCalledOnce();
 
                         if (
                             callExpression.callee.type !==
