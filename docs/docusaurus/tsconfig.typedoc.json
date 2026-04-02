@@ -1,6 +1,9 @@
 {
     "$schema": "https://www.schemastore.org/tsconfig.json",
     "compilerOptions": {
+        "composite": false,
+        "declaration": true,
+        "emitDeclarationOnly": false,
         "noEmit": true,
         "types": [
             "node"
@@ -14,6 +17,6 @@
     ],
     "extends": "../../tsconfig.json",
     "include": [
-        "../../src/plugin.ts"
+        "../../src/**/*.ts"
     ]
 }
