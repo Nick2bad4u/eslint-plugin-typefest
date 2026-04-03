@@ -121,7 +121,6 @@ const preferTsExtrasIsEmptyRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

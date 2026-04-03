@@ -71,7 +71,6 @@ const preferTypeFestRequireAllOrNoneRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

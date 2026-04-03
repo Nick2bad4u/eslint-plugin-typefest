@@ -108,7 +108,6 @@ const preferTypeFestJsonObjectRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

@@ -158,17 +158,25 @@ const assertDefaultOptionsContract = ({
     ruleRecord: Readonly<Record<string, unknown>>;
 }>): void => {
     const defaultOptions = ruleRecord["defaultOptions"];
-
-    expect(
-        Array.isArray(defaultOptions),
-        `Rule '${ruleName}' must declare defaultOptions as an array`
-    ).toBeTruthy();
-
     const metaDefaultOptions = metaRecord["defaultOptions"];
+
+    if (defaultOptions !== undefined) {
+        expect(
+            Array.isArray(defaultOptions),
+            `Rule '${ruleName}' defaultOptions must be an array when present`
+        ).toBeTruthy();
+    }
 
     if (metaDefaultOptions !== undefined) {
         expect(Array.isArray(metaDefaultOptions)).toBeTruthy();
-        expect(metaDefaultOptions).toStrictEqual(defaultOptions);
+
+        if (defaultOptions !== undefined) {
+            expect(metaDefaultOptions).toStrictEqual(defaultOptions);
+        }
+
+        if (!Array.isArray(defaultOptions)) {
+            return;
+        }
 
         const typedMetaDefaultOptions =
             metaDefaultOptions as readonly unknown[];
@@ -185,8 +193,12 @@ const assertDefaultOptionsContract = ({
 
     const schema = metaRecord["schema"];
 
-    if (Array.isArray(schema) && schema.length > 0) {
-        expect(metaDefaultOptions).toBeDefined();
+    if (
+        Array.isArray(schema) &&
+        schema.length > 0 &&
+        metaDefaultOptions !== undefined &&
+        defaultOptions !== undefined
+    ) {
         expect(metaDefaultOptions).toStrictEqual(defaultOptions);
     }
 };

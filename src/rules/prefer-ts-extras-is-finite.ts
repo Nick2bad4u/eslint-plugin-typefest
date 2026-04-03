@@ -37,7 +37,6 @@ const preferTsExtrasIsFiniteRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

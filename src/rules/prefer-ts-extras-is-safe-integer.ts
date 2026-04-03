@@ -37,7 +37,6 @@ const preferTsExtrasIsSafeIntegerRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

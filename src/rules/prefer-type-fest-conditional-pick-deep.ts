@@ -72,7 +72,6 @@ const preferTypeFestConditionalPickDeepRule: ReturnType<
             },
         };
     },
-    defaultOptions: [],
     meta: {
         deprecated: false,
         docs: {

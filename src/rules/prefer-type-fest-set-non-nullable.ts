@@ -70,7 +70,6 @@ const preferTypeFestSetNonNullableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

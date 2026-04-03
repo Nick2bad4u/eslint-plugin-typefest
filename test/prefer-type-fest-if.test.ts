@@ -232,7 +232,7 @@ describe("prefer-type-fest-if metadata", () => {
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-type-fest-if");
-        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataDefaultOptions).toBeUndefined();
         expect(metadataRule.meta?.docs?.description).toBe(
             "require TypeFest If + Is* utilities over deprecated If* aliases."
         );

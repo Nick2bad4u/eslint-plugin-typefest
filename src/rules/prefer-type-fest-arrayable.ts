@@ -136,7 +136,6 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

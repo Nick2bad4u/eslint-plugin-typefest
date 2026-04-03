@@ -68,7 +68,6 @@ const preferTsExtrasArrayIncludesRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

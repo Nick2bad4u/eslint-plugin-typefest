@@ -315,7 +315,6 @@ const preferTsExtrasIsPresentFilterRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

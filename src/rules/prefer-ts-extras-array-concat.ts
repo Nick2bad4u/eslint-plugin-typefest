@@ -48,7 +48,6 @@ const preferTsExtrasArrayConcatRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

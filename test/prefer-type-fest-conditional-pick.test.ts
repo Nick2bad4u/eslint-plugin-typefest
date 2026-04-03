@@ -161,7 +161,7 @@ describe("prefer-type-fest-conditional-pick metadata", () => {
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-type-fest-conditional-pick");
-        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataDefaultOptions).toBeUndefined();
         expect(metadataRule.meta?.docs?.description).toBe(
             "require TypeFest ConditionalPick over imported aliases such as PickByTypes."
         );

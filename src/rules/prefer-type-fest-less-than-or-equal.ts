@@ -227,7 +227,6 @@ const preferTypeFestLessThanOrEqualRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

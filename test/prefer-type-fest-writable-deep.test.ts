@@ -229,7 +229,7 @@ describe("prefer-type-fest-writable-deep metadata", () => {
                 ? (metadataRule as { defaultOptions?: unknown }).defaultOptions
                 : undefined;
 
-        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataDefaultOptions).toBeUndefined();
         expect(metadataRule.name).toBe("prefer-type-fest-writable-deep");
         expect(metadataRule.meta?.docs?.description).toBe(
             "require TypeFest WritableDeep over `DeepMutable` and `MutableDeep` aliases."

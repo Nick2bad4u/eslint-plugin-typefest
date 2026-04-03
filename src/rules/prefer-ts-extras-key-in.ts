@@ -16,12 +16,16 @@ import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
+type RuleContext = Readonly<
+    Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
+>;
+
 /**
  * Determine whether a key expression can be safely reordered into `keyIn(...)`
  * argument position without changing side-effect semantics.
  */
 const isAutofixSafeKeyExpression = (
-    context: Readonly<TSESLint.RuleContext<string, readonly []>>,
+    context: RuleContext,
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Expression => {
     if (node.type === "PrivateIdentifier") {
@@ -132,7 +136,6 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

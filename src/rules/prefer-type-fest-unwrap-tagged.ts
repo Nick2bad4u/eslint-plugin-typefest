@@ -70,7 +70,6 @@ const preferTypeFestUnwrapTaggedRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

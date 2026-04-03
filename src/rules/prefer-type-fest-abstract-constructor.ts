@@ -59,7 +59,6 @@ const preferTypeFestAbstractConstructorRule: ReturnType<
             },
         };
     },
-    defaultOptions: [],
     meta: {
         docs: {
             description:

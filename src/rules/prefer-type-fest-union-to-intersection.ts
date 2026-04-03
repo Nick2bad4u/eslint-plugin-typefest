@@ -172,7 +172,6 @@ const preferTypeFestUnionToIntersectionRule: ReturnType<
             },
         };
     },
-    defaultOptions: [],
     meta: {
         deprecated: false,
         docs: {

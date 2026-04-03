@@ -264,7 +264,7 @@ describe(ruleName, () => {
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-type-fest-writable");
-        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataDefaultOptions).toBeUndefined();
         expect(metadataRule.meta?.docs?.description).toBe(
             "require TypeFest Writable over manual mapped types that strip readonly with -readonly."
         );

@@ -156,7 +156,6 @@ const preferTsExtrasArrayLastRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

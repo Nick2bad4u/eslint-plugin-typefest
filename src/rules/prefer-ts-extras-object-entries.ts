@@ -37,7 +37,6 @@ const preferTsExtrasObjectEntriesRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

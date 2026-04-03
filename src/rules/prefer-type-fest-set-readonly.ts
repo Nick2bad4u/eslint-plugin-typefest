@@ -70,7 +70,6 @@ const preferTypeFestSetReadonlyRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

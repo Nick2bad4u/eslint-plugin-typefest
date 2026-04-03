@@ -70,7 +70,6 @@ const preferTypeFestSchemaRule: ReturnType<typeof createTypedRule> =
                 },
             };
         },
-        defaultOptions: [],
         meta: {
             deprecated: false,
             docs: {

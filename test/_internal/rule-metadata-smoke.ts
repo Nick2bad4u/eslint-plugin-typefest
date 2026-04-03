@@ -164,7 +164,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
     ruleId: string,
     expectations: TypeFestRuleMetadataExpectations = {}
 ): void => {
-    const expectedDefaultOptions = expectations.defaultOptions ?? [];
+    const expectedDefaultOptions = expectations.defaultOptions;
     const expectedDocsUrl = `${docsBaseUrl}/${ruleId}`;
     const expectedRuleName = expectations.name ?? ruleId;
 
@@ -193,9 +193,21 @@ export const addTypeFestRuleMetadataSmokeTests = (
             } as const;
 
             expect(metadataRule.name).toBe(expectedRuleName);
-            expect(metadataDefaultOptions).toStrictEqual(
-                expectedDefaultOptions
-            );
+
+            if (expectedDefaultOptions === undefined) {
+                expect(metadataDefaultOptions).toBeUndefined();
+            } else if (expectedDefaultOptions.length === 0) {
+                expect(
+                    metadataDefaultOptions === undefined ||
+                        (Array.isArray(metadataDefaultOptions) &&
+                            metadataDefaultOptions.length === 0)
+                ).toBeTruthy();
+            } else {
+                expect(metadataDefaultOptions).toStrictEqual(
+                    expectedDefaultOptions
+                );
+            }
+
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 
             expect(metadataRule.meta?.docs?.description).toBe(

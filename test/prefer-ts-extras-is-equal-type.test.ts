@@ -209,7 +209,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
                 : undefined;
 
         expect(metadataRule.name).toBe("prefer-ts-extras-is-equal-type");
-        expect(metadataDefaultOptions).toStrictEqual([]);
+        expect(metadataDefaultOptions).toBeUndefined();
         expect(metadataRule.meta?.docs?.description).toBe(
             "require ts-extras isEqualType over IsEqual<T, U> boolean assertion variables."
         );
