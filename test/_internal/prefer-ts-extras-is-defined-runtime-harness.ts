@@ -49,7 +49,6 @@ const runtimeScalarArbitrary = fc.constantFrom(
     false
 );
 
-// eslint-disable-next-line total-functions/no-hidden-type-assertions -- fast-check tuple composition intentionally relies on inferred literal generics to keep case-shape precision.
 export const runtimeIsDefinedCaseArbitrary: fc.Arbitrary<unknown> = fc
     .tuple(
         runtimeScalarArbitrary,

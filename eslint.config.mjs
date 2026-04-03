@@ -11,7 +11,6 @@
 import pluginDocusaurus from "@docusaurus/eslint-plugin";
 import comments from "@eslint-community/eslint-plugin-eslint-comments/configs";
 import eslintReactPlugin from "@eslint-react/eslint-plugin";
-import { fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "@eslint/config-helpers";
 import css from "@eslint/css";
 import js from "@eslint/js";
@@ -58,7 +57,7 @@ import nounsanitized from "eslint-plugin-no-unsanitized";
 import eslintPluginNoUseExtendNative from "eslint-plugin-no-use-extend-native";
 import nodeDependencies from "eslint-plugin-node-dependencies";
 import packageJson from "eslint-plugin-package-json";
-import pluginPerfectionist from "eslint-plugin-perfectionist";
+import perfectionist from "eslint-plugin-perfectionist";
 import pluginPrettier from "eslint-plugin-prettier";
 import pluginPromise from "eslint-plugin-promise";
 import pluginRedos from "eslint-plugin-redos";
@@ -67,10 +66,8 @@ import * as pluginJSDoc from "eslint-plugin-require-jsdoc";
 import sdl from "eslint-plugin-sdl-2";
 import pluginSecurity from "eslint-plugin-security";
 import sonarjs, { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
-import pluginSortClassMembers from "eslint-plugin-sort-class-members";
 import pluginTestingLibrary from "eslint-plugin-testing-library";
 import eslintPluginToml from "eslint-plugin-toml";
-import pluginTotalFunctions from "eslint-plugin-total-functions";
 import pluginTsdoc from "eslint-plugin-tsdoc";
 import tsdocRequire from "eslint-plugin-tsdoc-require-2";
 import pluginUndefinedCss from "eslint-plugin-undefined-css-classes";
@@ -119,106 +116,6 @@ const jsonSchemaValidatorPlugins = enableJsonSchemaValidation
 const jsonSchemaValidatorRules = enableJsonSchemaValidation
     ? { "json-schema-validator/no-invalid": "error" }
     : {};
-
-/**
- * @param {unknown} pluginValue
- *
- * @returns {import("eslint").ESLint.Plugin}
- */
-const asEslintPlugin = (pluginValue) =>
-    /** @type {import("eslint").ESLint.Plugin} */ (pluginValue);
-const canonicalPlugin = fixupPluginRules(pluginCanonical);
-const noUnsanitizedPlugin = fixupPluginRules(asEslintPlugin(nounsanitized));
-const sortClassMembersPlugin = fixupPluginRules(
-    asEslintPlugin(pluginSortClassMembers)
-);
-const jsxA11yPlugin = fixupPluginRules(eslintPluginJsxA11y);
-const eslintReactStrictTypeCheckedConfig = /**
- * @type {{
- *     plugins: Record<string, unknown>;
- *     rules: Record<string, unknown>;
- *     settings: Record<string, unknown>;
- * }}
- */ (eslintReactPlugin.configs["strict-type-checked"]);
-
-/** @typedef {import("eslint").Linter.Config} EslintConfig */
-/** @typedef {import("eslint").Linter.BaseConfig} BaseEslintConfig */
-/** @typedef {import("eslint").Linter.LinterOptions} LinterOptions */
-/** @typedef {NonNullable<EslintConfig["rules"]>} EslintRulesConfig */
-/** @typedef {EslintConfig | readonly EslintConfig[]} EslintConfigValue */
-/** @typedef {Parameters<typeof defineConfig>[0]} DefineConfigValue */
-
-/**
- * @param {unknown} value
- *
- * @returns {value is Readonly<Record<string, unknown>>}
- */
-const isReadonlyRecord = (value) =>
-    typeof value === "object" && value !== null && !Array.isArray(value);
-
-/**
- * Read `rules` from a flat/legacy ESLint config object safely.
- *
- * @param {unknown} configValue
- *
- * @returns {EslintRulesConfig}
- */
-const readConfigRules = (configValue) => {
-    if (Array.isArray(configValue)) {
-        return /** @type {EslintRulesConfig} */ (
-            Object.assign(
-                {},
-                ...configValue.map((nestedConfigValue) =>
-                    readConfigRules(nestedConfigValue)
-                )
-            )
-        );
-    }
-
-    if (!isReadonlyRecord(configValue)) {
-        return /** @type {EslintRulesConfig} */ ({});
-    }
-
-    const { rules } = configValue;
-    return isReadonlyRecord(rules)
-        ? /** @type {EslintRulesConfig} */ (rules)
-        : /** @type {EslintRulesConfig} */ ({});
-};
-
-/**
- * Read a named flat config from a plugin/config provider safely.
- *
- * @param {unknown} pluginValue
- * @param {string} configName
- *
- * @returns {EslintConfigValue | undefined}
- */
-const readPluginNamedConfigValue = (pluginValue, configName) => {
-    if (!isReadonlyRecord(pluginValue)) {
-        return undefined;
-    }
-
-    const { configs } = pluginValue;
-    if (!isReadonlyRecord(configs)) {
-        return undefined;
-    }
-
-    if (!Object.hasOwn(configs, configName)) {
-        return undefined;
-    }
-
-    // eslint-disable-next-line security/detect-object-injection -- configName is a controlled constant, not user input.
-    return /** @type {EslintConfigValue | undefined} */ (configs[configName]);
-};
-
-/**
- * @param {unknown} pluginValue
- * @param {string} configName
- *
- * @returns {EslintRulesConfig}
- */
-const readPluginConfigRules = (pluginValue, configName) =>
-    readConfigRules(readPluginNamedConfigValue(pluginValue, configName));
 
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line unicorn/prefer-import-meta-properties -- n/no-unsupported-features reports import.meta.dirname as unsupported in this config context.
@@ -455,8 +352,8 @@ export default defineConfig([
     // `eslint-plugin-github` rules are written for JS/TS and assume the ESLint
     // rule context supports scope analysis (e.g. `context.getScope`). When
     // ESLint is linting non-JS languages (YAML via `yaml-eslint-parser`, TOML,
-    // etc.), that API surface is not available and @eslint/compat will crash
-    // while trying to bind missing methods.
+    // etc.), that API surface is not available and those rules can crash while
+    // trying to bind missing methods.
     //
     // Scope GitHub rules to code files only so they never run on `.yml` like
     // `.codecov.yml`.
@@ -613,7 +510,7 @@ export default defineConfig([
         },
         rules: {
             ...css.configs.recommended.rules,
-            ...readPluginConfigRules(pluginUndefinedCss, "recommended"),
+            ...pluginUndefinedCss.default?.configs?.recommended?.rules,
             ...pluginCssModules.configs.recommended.rules,
             // CSS Eslint Rules (css/*)
             "css/no-empty-blocks": "error",
@@ -664,23 +561,22 @@ export default defineConfig([
         },
         name: "Docusaurus Workspace Files",
         plugins: {
-            ...eslintReactStrictTypeCheckedConfig.plugins,
             "@docusaurus": pluginDocusaurus,
             "@eslint-react": eslintReactPlugin,
-            "jsx-a11y": jsxA11yPlugin,
+            "jsx-a11y": eslintPluginJsxA11y,
         },
         rules: {
-            ...eslintReactStrictTypeCheckedConfig.rules,
+            ...eslintReactPlugin.configs["strict-type-checked"].rules,
             ...eslintPluginJsxA11y.flatConfigs.recommended.rules,
             "@docusaurus/no-html-links": "warn",
             "@docusaurus/no-untranslated-text": "off",
             "@docusaurus/prefer-docusaurus-heading": "warn",
             "@docusaurus/string-literal-i18n-messages": "off",
-            "@eslint-react/dom/prefer-namespace-import": "warn",
+            // Keep only the @eslint-react rules that are not already covered by
+            // the current strict-type-checked preset and still exist after the
+            // plugin upgrade.
+            "@eslint-react/dom-prefer-namespace-import": "warn",
             "@eslint-react/immutability": "warn",
-            "@eslint-react/jsx-dollar": "warn",
-            "@eslint-react/jsx-shorthand-boolean": "warn",
-            "@eslint-react/jsx-shorthand-fragment": "warn",
             "@eslint-react/no-duplicate-key": "warn",
             "@eslint-react/no-implicit-children": "warn",
             "@eslint-react/no-implicit-key": "warn",
@@ -689,14 +585,69 @@ export default defineConfig([
             "@eslint-react/no-missing-context-display-name": "warn",
             "@eslint-react/prefer-namespace-import": "warn",
             "@eslint-react/refs": "warn",
-            "@eslint-react/unstable-rules-of-props": "warn",
-            "@eslint-react/unstable-rules-of-state": "warn",
+            "@eslint-react/x-component-hook-factories": "warn",
+            "@eslint-react/x-error-boundaries": "warn",
+            "@eslint-react/x-exhaustive-deps": "warn",
+            "@eslint-react/x-immutability": "warn",
+            "@eslint-react/x-no-access-state-in-setstate": "warn",
+            "@eslint-react/x-no-array-index-key": "warn",
+            "@eslint-react/x-no-children-count": "warn",
+            "@eslint-react/x-no-children-for-each": "warn",
+            "@eslint-react/x-no-children-map": "warn",
+            "@eslint-react/x-no-children-only": "warn",
+            "@eslint-react/x-no-children-to-array": "warn",
+            "@eslint-react/x-no-class-component": "warn",
+            "@eslint-react/x-no-clone-element": "warn",
+            "@eslint-react/x-no-component-will-mount": "warn",
+            "@eslint-react/x-no-component-will-receive-props": "warn",
+            "@eslint-react/x-no-component-will-update": "warn",
+            "@eslint-react/x-no-context-provider": "warn",
+            "@eslint-react/x-no-create-ref": "warn",
+            "@eslint-react/x-no-direct-mutation-state": "warn",
+            "@eslint-react/x-no-duplicate-key": "warn",
+            "@eslint-react/x-no-forward-ref": "warn",
+            "@eslint-react/x-no-implicit-children": "warn",
+            "@eslint-react/x-no-implicit-key": "warn",
+            "@eslint-react/x-no-implicit-ref": "warn",
+            "@eslint-react/x-no-leaked-conditional-rendering": "warn",
+            "@eslint-react/x-no-missing-component-display-name": "warn",
+            "@eslint-react/x-no-missing-context-display-name": "warn",
+            "@eslint-react/x-no-missing-key": "warn",
+            "@eslint-react/x-no-misused-capture-owner-stack": "warn",
+            "@eslint-react/x-no-nested-component-definitions": "warn",
+            "@eslint-react/x-no-nested-lazy-component-declarations": "warn",
+            "@eslint-react/x-no-redundant-should-component-update": "warn",
+            "@eslint-react/x-no-set-state-in-component-did-mount": "warn",
+            "@eslint-react/x-no-set-state-in-component-did-update": "warn",
+            "@eslint-react/x-no-set-state-in-component-will-update": "warn",
+            "@eslint-react/x-no-unnecessary-use-callback": "warn",
+            "@eslint-react/x-no-unnecessary-use-memo": "warn",
+            "@eslint-react/x-no-unnecessary-use-prefix": "warn",
+            "@eslint-react/x-no-unsafe-component-will-mount": "warn",
+            "@eslint-react/x-no-unsafe-component-will-receive-props": "warn",
+            "@eslint-react/x-no-unsafe-component-will-update": "warn",
+            "@eslint-react/x-no-unstable-context-value": "warn",
+            "@eslint-react/x-no-unstable-default-props": "warn",
+            "@eslint-react/x-no-unused-class-component-members": "warn",
+            "@eslint-react/x-no-unused-props": "warn",
+            "@eslint-react/x-no-unused-state": "warn",
+            "@eslint-react/x-no-use-context": "warn",
+            "@eslint-react/x-prefer-destructuring-assignment": "warn",
+            "@eslint-react/x-prefer-namespace-import": "warn",
+            "@eslint-react/x-purity": "warn",
+            "@eslint-react/x-refs": "warn",
+            "@eslint-react/x-rules-of-hooks": "warn",
+            "@eslint-react/x-set-state-in-effect": "warn",
+            "@eslint-react/x-set-state-in-render": "warn",
+            "@eslint-react/x-unsupported-syntax": "warn",
+            "@eslint-react/x-use-memo": "warn",
+            "@eslint-react/x-use-state": "warn",
             "jsx-a11y/lang": "warn",
             "jsx-a11y/no-aria-hidden-on-focusable": "warn",
             "jsx-a11y/prefer-tag-over-role": "warn",
         },
         settings: {
-            ...eslintReactStrictTypeCheckedConfig.settings,
+            ...eslintReactPlugin.configs["strict-type-checked"]?.settings,
         },
     },
     // #endregion
@@ -923,7 +874,7 @@ export default defineConfig([
         name: "ESLint Plugin Source Files - project/**/*.*",
         plugins: {
             "@typescript-eslint": tseslint,
-            canonical: canonicalPlugin,
+            canonical: pluginCanonical,
             "comment-length": eslintPluginCommentLength,
             "eslint-comments": comments,
             "eslint-plugin": eslintPluginEslintPlugin,
@@ -937,15 +888,13 @@ export default defineConfig([
             "no-function-declare-after-return": pluginNFDAR,
             "no-lookahead-lookbehind-regexp": pluginRegexLook,
             "no-use-extend-native": eslintPluginNoUseExtendNative,
-            perfectionist: pluginPerfectionist,
+            perfectionist: perfectionist,
             promise: pluginPromise,
             redos: pluginRedos,
             regexp: pluginRegexp,
             "require-jsdoc": pluginJSDoc,
             security: pluginSecurity,
             sonarjs: sonarjs,
-            "sort-class-members": sortClassMembersPlugin,
-            "total-functions": fixupPluginRules(pluginTotalFunctions),
             "tsdoc-require-2": tsdocRequire,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
@@ -954,11 +903,11 @@ export default defineConfig([
             // TypeScript backend rules
             ...js.configs.all.rules,
             ...tseslint.configs["recommendedTypeChecked"],
-            ...readConfigRules(tseslint.configs["recommended"]),
+            ...tseslint.configs["recommended"]?.rules,
             ...tseslint.configs["strictTypeChecked"],
-            ...readConfigRules(tseslint.configs["strict"]),
+            ...tseslint.configs["strict"]?.rules,
             ...tseslint.configs["stylisticTypeChecked"],
-            ...readConfigRules(tseslint.configs["stylistic"]),
+            ...tseslint.configs["stylistic"]?.rules,
             ...pluginRegexp.configs.all.rules,
             ...importX.flatConfigs.recommended.rules,
             ...importX.flatConfigs.electron.rules,
@@ -966,17 +915,15 @@ export default defineConfig([
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs["recommended-natural"].rules,
+            ...perfectionist.configs["recommended-natural"].rules,
             ...pluginSecurity.configs.recommended.rules,
             ...nodePlugin.configs["flat/all"].rules,
             ...eslintPluginMath.configs.recommended.rules,
             ...comments.recommended.rules,
             ...pluginCanonical.configs.recommended.rules,
-            ...pluginSortClassMembers.configs["flat/recommended"].rules,
             ...eslintPluginNoUseExtendNative.configs.recommended.rules,
-            ...readPluginConfigRules(listeners, "strict"),
+            ...listeners.configs.strict?.rules,
             ...moduleInterop.configs.recommended.rules,
-            ...readPluginConfigRules(pluginTotalFunctions, "recommended"),
 
             "@eslint-community/eslint-comments/no-restricted-disable": "warn",
             // Deprecated rule - turned off
@@ -1088,8 +1035,7 @@ export default defineConfig([
             "@typescript-eslint/no-redeclare": "warn",
             "@typescript-eslint/no-redundant-type-constituents": "warn",
             "@typescript-eslint/no-require-imports": "warn",
-            // Note: granular-selectors plugin rules need to be added manually since
-            // Note: The plugin config are not available after fixupPluginRules wrapping (Below)
+            // Granular selector rules still need to be added manually here.
             "@typescript-eslint/no-restricted-imports": "warn",
             "@typescript-eslint/no-restricted-types": [
                 "error",
@@ -1540,6 +1486,24 @@ export default defineConfig([
             // ESLint 10 without legacy context helpers.
             "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp":
                 "off",
+            "perfectionist/sort-arrays": [
+                "warn",
+                {
+                    customGroups: [],
+                    fallbackSort: { type: "unsorted" },
+                    groups: ["literal"],
+                    ignoreCase: true,
+                    newlinesBetween: "ignore",
+                    newlinesInside: "ignore",
+                    order: "asc",
+                    partitionByNewLine: false,
+                    specialCharacters: "keep",
+                    type: "natural",
+                    useConfigurationIf: {
+                        matchesAstSelector: "TSAsExpression > ArrayExpression",
+                    },
+                },
+            ],
             "promise/no-multiple-resolved": "warn",
             "promise/prefer-await-to-callbacks": "off",
             "promise/prefer-await-to-then": "warn",
@@ -1550,36 +1514,6 @@ export default defineConfig([
             "sdl/no-unsafe-cast-to-trusted-types": "error",
             "security/detect-non-literal-fs-filename": "off",
             "security/detect-object-injection": "off",
-            "sort-class-members/sort-class-members": [
-                "warn",
-                {
-                    accessorPairPositioning: "together",
-                    order: [
-                        "[static-properties]",
-                        "[properties]",
-                        "[conventional-private-properties]",
-                        "[arrow-function-properties]",
-                        "[everything-else]",
-                        "[accessor-pairs]",
-                        "[getters]",
-                        "[setters]",
-                        "[static-methods]",
-                        "[async-methods]",
-                        "[methods]",
-                        "[conventional-private-methods]",
-                    ],
-                    sortInterfaces: true,
-                    stopAfterFirstProblem: false,
-                },
-            ],
-            "total-functions/no-hidden-type-assertions": "warn",
-            "total-functions/no-nested-fp-ts-effects": "warn",
-            "total-functions/no-partial-division": "warn",
-            "total-functions/no-partial-url-constructor": "warn",
-            "total-functions/no-unsafe-mutable-readonly-assignment": "off",
-            "total-functions/no-unsafe-readonly-mutable-assignment": "off",
-            "total-functions/no-unsafe-type-assertion": "off",
-            "total-functions/require-strict-mode": "warn",
             "unused-imports/no-unused-imports": "error",
             "unused-imports/no-unused-vars": "error",
         },
@@ -1785,11 +1719,11 @@ export default defineConfig([
         rules: {
             ...js.configs.all.rules,
             ...tseslint.configs["recommendedTypeChecked"],
-            ...readConfigRules(tseslint.configs["recommended"]),
+            ...tseslint.configs["recommended"]?.rules,
             ...tseslint.configs["strictTypeChecked"],
-            ...readConfigRules(tseslint.configs["strict"]),
+            ...tseslint.configs["strict"]?.rules,
             ...tseslint.configs["stylisticTypeChecked"],
-            ...readConfigRules(tseslint.configs["stylistic"]),
+            ...tseslint.configs["stylistic"]?.rules,
             ...vitest.configs.all.rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...pluginTestingLibrary.configs["flat/react"].rules,
@@ -2742,15 +2676,14 @@ export default defineConfig([
             js: js,
             math: eslintPluginMath,
             n: nodePlugin,
-            "no-unsanitized": noUnsanitizedPlugin,
-            perfectionist: pluginPerfectionist,
+            "no-unsanitized": nounsanitized,
+            perfectionist: perfectionist,
             prettier: pluginPrettier,
             promise: pluginPromise,
             redos: pluginRedos,
             regexp: pluginRegexp,
             security: pluginSecurity,
             sonarjs: sonarjs,
-            "sort-class-members": sortClassMembersPlugin,
             unicorn: eslintPluginUnicorn,
             "unused-imports": pluginUnusedImports,
         },
@@ -2763,11 +2696,12 @@ export default defineConfig([
             ...pluginPromise.configs["flat/recommended"].rules,
             ...eslintPluginUnicorn.configs.all.rules,
             ...sonarjsConfigs.recommended.rules,
-            ...pluginPerfectionist.configs["recommended-natural"].rules,
-            ...readPluginConfigRules(pluginRedos, "recommended"),
+            ...perfectionist.configs["recommended-natural"].rules,
+            ...pluginRedos.configs.recommended?.rules,
             ...pluginSecurity.configs.recommended.rules,
             ...nodePlugin.configs["flat/recommended"].rules,
             ...eslintPluginMath.configs.recommended.rules,
+
             camelcase: "off",
             "capitalized-comments": [
                 "error",
@@ -2807,6 +2741,24 @@ export default defineConfig([
             "no-void": "off",
             "object-shorthand": "off",
             "one-var": "off",
+            "perfectionist/sort-arrays": [
+                "warn",
+                {
+                    customGroups: [],
+                    fallbackSort: { type: "unsorted" },
+                    groups: ["literal"],
+                    ignoreCase: true,
+                    newlinesBetween: "ignore",
+                    newlinesInside: "ignore",
+                    order: "asc",
+                    partitionByNewLine: false,
+                    specialCharacters: "keep",
+                    type: "natural",
+                    useConfigurationIf: {
+                        matchesAstSelector: "TSAsExpression > ArrayExpression",
+                    },
+                },
+            ],
             "prefer-arrow-callback": [
                 "warn",
                 { allowNamedFunctions: true, allowUnboundThis: true },
@@ -3009,9 +2961,9 @@ export default defineConfig([
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
         name: "Global: Globals",
         plugins: {
-            canonical: canonicalPlugin,
+            canonical: pluginCanonical,
             "no-secrets": noSecrets,
-            "no-unsanitized": noUnsanitizedPlugin,
+            "no-unsanitized": nounsanitized,
         },
         rules: {
             "callback-return": "off",

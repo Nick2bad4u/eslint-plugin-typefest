@@ -45,7 +45,6 @@ export const parserOptions = {
     sourceType: "module",
 } as const;
 
-/* eslint-disable total-functions/no-hidden-type-assertions -- fast-check tuple composition depends on inferred literal generics to retain case-shape precision. */
 export const generatedFixableDisjunctionCaseArbitrary: fc.Arbitrary<GeneratedFixableDisjunctionCase> =
     fc
         .tuple(
@@ -105,8 +104,6 @@ export const generatedMismatchedDisjunctionCaseArbitrary: fc.Arbitrary<Generated
                 secondOrientation,
             })
         );
-/* eslint-enable total-functions/no-hidden-type-assertions -- restore default lint behavior after tuple-based arbitrary construction. */
-
 const comparedExpressionTemplates: Readonly<
     Record<
         ComparedExpressionTemplateId,

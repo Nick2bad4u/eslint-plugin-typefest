@@ -207,7 +207,6 @@ const identifierTailArbitrary = fc
         }
     )
     .map((characters) => characters.join(""));
-// eslint-disable-next-line total-functions/no-hidden-type-assertions -- Fast-check generic inference is intentional for this local arbitrary composition.
 const generatedIdentifierArbitrary = fc
     .record({
         head: identifierHeadArbitrary,

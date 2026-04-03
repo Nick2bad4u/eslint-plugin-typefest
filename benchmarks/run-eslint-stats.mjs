@@ -597,7 +597,6 @@ const sum = (values) => {
  * @returns {number | undefined} Quotient when denominator is non-zero.
  */
 const divide = (numerator, denominator) =>
-    // eslint-disable-next-line total-functions/no-partial-division -- Guard above guarantees denominator is non-zero on this branch.
     denominator === 0 ? undefined : numerator / denominator;
 
 /**

@@ -1,17 +1,7 @@
 type EslintPluginModule = Readonly<Record<string, unknown>>;
 type RemarkPluginModule = (...arguments_: readonly unknown[]) => unknown;
 
-declare module "@microsoft/eslint-plugin-sdl" {
-    const plugin: EslintPluginModule;
-    export = plugin;
-}
-
 declare module "eslint-plugin-array-func" {
-    const plugin: EslintPluginModule;
-    export = plugin;
-}
-
-declare module "eslint-plugin-etc" {
     const plugin: EslintPluginModule;
     export = plugin;
 }
@@ -71,22 +61,7 @@ declare module "eslint-plugin-require-jsdoc" {
     export = plugin;
 }
 
-declare module "eslint-plugin-sort-class-members" {
-    const plugin: EslintPluginModule;
-    export = plugin;
-}
-
-declare module "eslint-plugin-total-functions" {
-    const plugin: EslintPluginModule;
-    export = plugin;
-}
-
 declare module "eslint-plugin-undefined-css-classes" {
-    const plugin: EslintPluginModule;
-    export = plugin;
-}
-
-declare module "eslint-plugin-write-good-comments" {
     const plugin: EslintPluginModule;
     export = plugin;
 }

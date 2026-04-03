@@ -20,28 +20,28 @@ interface RuleWithMeta {
 }
 
 const canonicalHeadingOrder = [
+    "✅ Correct",
+    "❌ Incorrect",
+    "Additional examples",
+    "Adoption resources",
+    "Behavior and migration notes",
+    "ESLint flat config example",
+    "Further reading",
+    "Package documentation",
     "Targeted pattern scope",
     "What this rule reports",
-    "Why this rule exists",
-    "❌ Incorrect",
-    "✅ Correct",
-    "Behavior and migration notes",
-    "Additional examples",
-    "ESLint flat config example",
     "When not to use it",
-    "Package documentation",
-    "Further reading",
-    "Adoption resources",
+    "Why this rule exists",
 ] as const;
 
 const requiredCoreHeadings = [
+    "✅ Correct",
+    "❌ Incorrect",
+    "Further reading",
+    "Package documentation",
     "Targeted pattern scope",
     "What this rule reports",
     "Why this rule exists",
-    "❌ Incorrect",
-    "✅ Correct",
-    "Package documentation",
-    "Further reading",
 ] as const;
 
 const canonicalHeadingOrderIndex = new Map<string, number>(
