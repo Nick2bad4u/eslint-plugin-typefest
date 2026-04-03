@@ -68,6 +68,7 @@ Derived rates included in snapshot totals:
 
 ## Metadata note
 
-Rule metadata now includes a catalog revision marker on every rule docs payload:
+Rule metadata now includes per-rule stable catalog identifiers on public rule docs payloads:
 
-- `meta.docs.ruleCatalogId: "R002"`
+- `meta.docs.ruleId: "R###"`
+- `meta.docs.ruleNumber: <number>`

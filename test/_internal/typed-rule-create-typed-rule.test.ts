@@ -546,7 +546,6 @@ describe(createTypedRule, () => {
         expect(docs.url).toBe(
             "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-at"
         );
-        expect(docs.ruleCatalogId).toMatch(/^R\d{3}$/v);
         expect(docs.ruleId).toBe("R001");
         expect(docs.ruleNumber).toBe(1);
     });
@@ -576,7 +575,7 @@ describe(createTypedRule, () => {
         ).toThrow(/has non-canonical docs\.url/v);
     });
 
-    it("injects ruleCatalogId for non-catalog internal rules without ruleId/ruleNumber", () => {
+    it("keeps non-catalog internal rules without ruleId/ruleNumber", () => {
         expect.hasAssertions();
 
         const ruleUnderTest = createTypedRule({
@@ -604,7 +603,6 @@ describe(createTypedRule, () => {
         expect(docs.url).toBe(
             "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/internal-metadata-normalization-test-rule"
         );
-        expect(docs.ruleCatalogId).toMatch(/^R\d{3}$/v);
         expect(docs.ruleId).toBeUndefined();
         expect(docs.ruleNumber).toBeUndefined();
     });

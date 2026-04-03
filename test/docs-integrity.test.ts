@@ -19,7 +19,6 @@ interface RuleWithMeta {
     };
 }
 
-/* eslint-disable perfectionist/sort-arrays -- Maintain logical grouping of canonical heading order and core heading subsets. */
 const canonicalHeadingOrder = [
     "Targeted pattern scope",
     "What this rule reports",
@@ -34,7 +33,6 @@ const canonicalHeadingOrder = [
     "Further reading",
     "Adoption resources",
 ] as const;
-/* eslint-enable perfectionist/sort-arrays -- Maintain logical grouping of canonical heading order and core heading subsets. */
 
 const requiredCoreHeadings = [
     "✅ Correct",

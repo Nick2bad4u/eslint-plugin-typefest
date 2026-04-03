@@ -204,7 +204,6 @@ const assertDocsContract = ({
     const description = docsRecord["description"];
     const recommended = docsRecord["recommended"];
     const requiresTypeChecking = docsRecord["requiresTypeChecking"];
-    const ruleCatalogId = docsRecord["ruleCatalogId"];
     const ruleId = docsRecord["ruleId"];
     const ruleNumber = docsRecord["ruleNumber"];
     const typefestConfigs = docsRecord["typefestConfigs"];
@@ -223,11 +222,6 @@ const assertDocsContract = ({
         `Rule '${ruleName}' must provide boolean docs.requiresTypeChecking`
     ).toBeTruthy();
     expect(
-        typeof ruleCatalogId === "string" &&
-            ruleCatalogIdPattern.test(ruleCatalogId),
-        `Rule '${ruleName}' must provide docs.ruleCatalogId in 'R###' format`
-    ).toBeTruthy();
-    expect(
         typeof ruleId === "string" && ruleCatalogIdPattern.test(ruleId),
         `Rule '${ruleName}' must provide docs.ruleId in 'R###' format`
     ).toBeTruthy();
@@ -244,7 +238,6 @@ const assertDocsContract = ({
 
     if (
         !isNonEmptyString(url) ||
-        typeof ruleCatalogId !== "string" ||
         typeof recommended !== "boolean" ||
         typeof ruleId !== "string" ||
         typeof ruleNumber !== "number"
@@ -407,7 +400,6 @@ describe("rule metadata integrity", () => {
         expect.hasAssertions();
 
         const ruleEntries = objectEntries(typefestPlugin.rules);
-        const seenRuleCatalogIds = new Set<string>();
         const seenRuleIds = new Set<string>();
         const seenRuleNumbers = new Set<number>();
 
@@ -438,12 +430,7 @@ describe("rule metadata integrity", () => {
             });
 
             const docsRuleId = docsRecord["ruleId"];
-            const docsRuleCatalogId = docsRecord["ruleCatalogId"];
             const docsRuleNumber = docsRecord["ruleNumber"];
-
-            if (typeof docsRuleCatalogId === "string") {
-                seenRuleCatalogIds.add(docsRuleCatalogId);
-            }
 
             if (typeof docsRuleId === "string") {
                 seenRuleIds.add(docsRuleId);
@@ -454,7 +441,6 @@ describe("rule metadata integrity", () => {
             }
         }
 
-        expect(seenRuleCatalogIds.size).toBe(1);
         expect(seenRuleIds.size).toBe(ruleEntries.length);
         expect(seenRuleNumbers.size).toBe(ruleEntries.length);
         expect(getSortedRuleNumberValues(seenRuleNumbers)).toStrictEqual(

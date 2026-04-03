@@ -3,7 +3,7 @@
  * Internal shared utilities used by eslint-plugin-typefest rule modules and
  * plugin wiring.
  */
-import type { Except, UnknownArray } from "type-fest";
+import type { UnknownArray } from "type-fest";
 import type ts from "typescript";
 
 import {
@@ -24,11 +24,6 @@ import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
 
 /**
- * Current rule-catalog revision identifier stamped into `meta.docs`.
- */
-const RULE_CATALOG_ID = "R002" as const;
-
-/**
  * Parser services and type checker bundle used by typed rules.
  */
 export type TypedRuleServices = {
@@ -42,7 +37,7 @@ type TypedRuleContext = Readonly<TSESLint.RuleContext<string, UnknownArray>>;
 export type { TypedRuleContext };
 
 type TypefestRuleCreator = ReturnType<
-    typeof ESLintUtils.RuleCreator<TypefestRuleInputDocs>
+    typeof ESLintUtils.RuleCreator<TypefestRuleDocs>
 >;
 
 /**
@@ -56,23 +51,11 @@ type TypefestRuleCreator = ReturnType<
 type TypefestRuleDocs = {
     recommended?: boolean;
     requiresTypeChecking?: boolean;
-    ruleCatalogId: string;
     ruleId?: string;
     ruleNumber?: number;
     typefestConfigs?:
         | readonly TypefestConfigReference[]
         | TypefestConfigReference;
-};
-
-/**
- * Rule authoring metadata contract accepted by `RuleCreator`.
- *
- * @remarks
- * `ruleCatalogId` is injected centrally by `createTypedRule`, so authored rule
- * modules are not required to provide it.
- */
-type TypefestRuleInputDocs = Except<TypefestRuleDocs, "ruleCatalogId"> & {
-    ruleCatalogId?: string;
 };
 
 /**
@@ -112,12 +95,10 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         catalogEntry === null
             ? {
                   ...ruleDocs,
-                  ruleCatalogId: RULE_CATALOG_ID,
                   url: canonicalDocsUrl,
               }
             : {
                   ...ruleDocs,
-                  ruleCatalogId: RULE_CATALOG_ID,
                   ruleId: catalogEntry.ruleId,
                   ruleNumber: catalogEntry.ruleNumber,
                   url: canonicalDocsUrl,

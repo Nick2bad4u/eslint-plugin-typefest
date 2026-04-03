@@ -1487,7 +1487,7 @@ export default defineConfig([
             "no-lookahead-lookbehind-regexp/no-lookahead-lookbehind-regexp":
                 "off",
             "perfectionist/sort-arrays": [
-                "warn",
+                "off",
                 {
                     customGroups: [],
                     fallbackSort: { type: "unsorted" },
@@ -2742,7 +2742,7 @@ export default defineConfig([
             "object-shorthand": "off",
             "one-var": "off",
             "perfectionist/sort-arrays": [
-                "warn",
+                "off",
                 {
                     customGroups: [],
                     fallbackSort: { type: "unsorted" },
