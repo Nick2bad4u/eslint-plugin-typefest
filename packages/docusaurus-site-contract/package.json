@@ -60,7 +60,7 @@
         "@docusaurus/theme-mermaid": "^3.9.2",
         "@docusaurus/types": "^3.9.2",
         "@easyops-cn/docusaurus-search-local": "^0.55.1",
-        "@types/node": "^25.5.0",
+        "@types/node": "^25.5.2",
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1"
     },
