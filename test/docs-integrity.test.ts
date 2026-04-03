@@ -19,20 +19,22 @@ interface RuleWithMeta {
     };
 }
 
+/* eslint-disable perfectionist/sort-arrays -- Maintain logical grouping of canonical heading order and core heading subsets. */
 const canonicalHeadingOrder = [
-    "✅ Correct",
-    "❌ Incorrect",
-    "Additional examples",
-    "Adoption resources",
-    "Behavior and migration notes",
-    "ESLint flat config example",
-    "Further reading",
-    "Package documentation",
     "Targeted pattern scope",
     "What this rule reports",
-    "When not to use it",
     "Why this rule exists",
+    "❌ Incorrect",
+    "✅ Correct",
+    "Behavior and migration notes",
+    "Additional examples",
+    "ESLint flat config example",
+    "When not to use it",
+    "Package documentation",
+    "Further reading",
+    "Adoption resources",
 ] as const;
+/* eslint-enable perfectionist/sort-arrays -- Maintain logical grouping of canonical heading order and core heading subsets. */
 
 const requiredCoreHeadings = [
     "✅ Correct",
