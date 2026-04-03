@@ -47,6 +47,10 @@ type TypefestRuleCreator = ReturnType<
  * `eslint-plugin/require-meta-docs-recommended` expects `meta.docs.recommended`
  * to be boolean. Preset membership is tracked separately via
  * `meta.docs.typefestConfigs`.
+ *
+ * `ruleId` and `ruleNumber` are injected centrally by `createTypedRule` for
+ * cataloged `prefer-*` rules. Rule authors should not hand-author those fields
+ * in individual rule modules.
  */
 type TypefestRuleDocs = {
     recommended?: boolean;
@@ -62,7 +66,9 @@ type TypefestRuleDocs = {
  * Rule-creator wrapper used by all plugin rules.
  *
  * @remarks
- * This wrapper automatically registers per-program plugin settings.
+ * This wrapper automatically registers per-program plugin settings and injects
+ * canonical `meta.docs.ruleId` / `meta.docs.ruleNumber` values for cataloged
+ * public rules.
  *
  * @param ruleDefinition - Rule module definition passed to
  *   `ESLintUtils.RuleCreator`.

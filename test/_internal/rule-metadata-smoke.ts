@@ -194,19 +194,24 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
             expect(metadataRule.name).toBe(expectedRuleName);
 
-            if (expectedDefaultOptions === undefined) {
-                expect(metadataDefaultOptions).toBeUndefined();
-            } else if (expectedDefaultOptions.length === 0) {
-                expect(
-                    metadataDefaultOptions === undefined ||
-                        (Array.isArray(metadataDefaultOptions) &&
-                            metadataDefaultOptions.length === 0)
-                ).toBeTruthy();
-            } else {
-                expect(metadataDefaultOptions).toStrictEqual(
-                    expectedDefaultOptions
-                );
-            }
+            const normalizedExpectedDefaultOptions =
+                expectedDefaultOptions ?? [];
+            const normalizedMetadataDefaultOptions = Array.isArray(
+                metadataDefaultOptions
+            )
+                ? metadataDefaultOptions
+                : [];
+            const shouldAllowOmittedDefaultOptions =
+                expectedDefaultOptions === undefined ||
+                expectedDefaultOptions.length === 0;
+
+            expect(normalizedMetadataDefaultOptions).toStrictEqual(
+                normalizedExpectedDefaultOptions
+            );
+            expect(
+                shouldAllowOmittedDefaultOptions ||
+                    Array.isArray(metadataDefaultOptions)
+            ).toBeTruthy();
 
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 

@@ -72,7 +72,7 @@
         "bench:ui": "vitest bench --ui",
         "prebench:watch": "npm run build",
         "bench:watch": "vitest bench",
-        "build": "tsc -p tsconfig.build.json && npm run build:types:cjs && npm run build:cjs",
+        "build": "tsc -b tsconfig.build.json --force && npm run build:types:cjs && npm run build:cjs",
         "build:cjs": "esbuild dist/plugin.js --bundle --format=cjs --platform=node --packages=external --sourcemap --outfile=dist/plugin.cjs --footer:js=\"module.exports = module.exports.default;\"",
         "build:clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
         "build:eslint-inspector": "npx -y @eslint/config-inspector@1.4.2 build --outDir \"docs/docusaurus/static/eslint-inspector\" --base \"/eslint-plugin-typefest/eslint-inspector/\"",

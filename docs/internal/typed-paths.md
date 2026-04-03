@@ -72,3 +72,6 @@ Rule metadata now includes per-rule stable catalog identifiers on public rule do
 
 - `meta.docs.ruleId: "R###"`
 - `meta.docs.ruleNumber: <number>`
+
+These values are injected centrally by `createTypedRule` from the stable rule
+catalog. Individual rule modules should not hand-author them.
