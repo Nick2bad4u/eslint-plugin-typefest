@@ -73,6 +73,7 @@
                 ]
             }
         ],
+        "prefer-no-bin": "error",
         "prefer-no-engineStrict": "error",
         "prefer-no-version-zero-dependencies": "off",
         "prefer-no-version-zero-devDependencies": "off",
