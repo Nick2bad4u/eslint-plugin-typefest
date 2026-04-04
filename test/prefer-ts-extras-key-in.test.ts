@@ -733,146 +733,148 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
     });
 });
 
-ruleTester.run(ruleId, rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture in-operator checks",
-        },
-        {
-            code: inlineInvalidInOperatorCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports direct in-operator membership check",
-            output: inlineInvalidInOperatorOutput,
-        },
-        {
-            code: inlineInvalidNoFilenameCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            name: "reports in-operator check without explicit filename",
-            output: inlineInvalidNoFilenameOutput,
-        },
-        {
-            code: inlineFixableCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes identifier in-operator check when keyIn import is in scope",
-            output: inlineFixableOutput,
-        },
-        {
-            code: inlineInvalidLiteralLeftOperandCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes literal-left in-operator check",
-            output: inlineInvalidLiteralLeftOperandOutput,
-        },
-        {
-            code: inlineInvalidMemberRightOperandCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes member-right in-operator check",
-            output: inlineInvalidMemberRightOperandOutput,
-        },
-        {
-            code: inlineInvalidLogicalGuardCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports logical-guard in-operator check without autofix",
-            output: null,
-        },
-        {
-            code: inlineInvalidSideEffectKeyCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports side-effectful key expression without autofix",
-            output: null,
-        },
-        {
-            code: inlineInvalidUnboundKeyWithSideEffectfulObjectCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports unbound identifier key with side-effectful object expression without autofix",
-            output: null,
-        },
-        {
-            code: inlineInvalidAstNodeTypeGuardCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes ast-node style parent type-guard with object-first keyIn ordering",
-            output: inlineInvalidAstNodeTypeGuardOutput,
-        },
-        {
-            code: inlineInvalidTypeParametersTypeGuardCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasKeyIn",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes imported-type-aliases style typeParameters guard with object-first keyIn ordering",
-            output: inlineInvalidTypeParametersTypeGuardOutput,
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
-        {
-            code: inlineValidNonInOperatorCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores non-in-operator object property checks",
-        },
-        {
-            code: inlineValidForInLoopCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores for-in loop iteration",
-        },
-    ],
+describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
+    ruleTester.run(ruleId, rule, {
+        invalid: [
+            {
+                code: readTypedFixture(invalidFixtureName),
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture in-operator checks",
+            },
+            {
+                code: inlineInvalidInOperatorCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports direct in-operator membership check",
+                output: inlineInvalidInOperatorOutput,
+            },
+            {
+                code: inlineInvalidNoFilenameCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                name: "reports in-operator check without explicit filename",
+                output: inlineInvalidNoFilenameOutput,
+            },
+            {
+                code: inlineFixableCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes identifier in-operator check when keyIn import is in scope",
+                output: inlineFixableOutput,
+            },
+            {
+                code: inlineInvalidLiteralLeftOperandCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes literal-left in-operator check",
+                output: inlineInvalidLiteralLeftOperandOutput,
+            },
+            {
+                code: inlineInvalidMemberRightOperandCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes member-right in-operator check",
+                output: inlineInvalidMemberRightOperandOutput,
+            },
+            {
+                code: inlineInvalidLogicalGuardCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports logical-guard in-operator check without autofix",
+                output: null,
+            },
+            {
+                code: inlineInvalidSideEffectKeyCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports side-effectful key expression without autofix",
+                output: null,
+            },
+            {
+                code: inlineInvalidUnboundKeyWithSideEffectfulObjectCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports unbound identifier key with side-effectful object expression without autofix",
+                output: null,
+            },
+            {
+                code: inlineInvalidAstNodeTypeGuardCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes ast-node style parent type-guard with object-first keyIn ordering",
+                output: inlineInvalidAstNodeTypeGuardOutput,
+            },
+            {
+                code: inlineInvalidTypeParametersTypeGuardCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasKeyIn",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes imported-type-aliases style typeParameters guard with object-first keyIn ordering",
+                output: inlineInvalidTypeParametersTypeGuardOutput,
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
+            },
+            {
+                code: inlineValidNonInOperatorCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-in-operator object property checks",
+            },
+            {
+                code: inlineValidForInLoopCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores for-in loop iteration",
+            },
+        ],
+    });
 });

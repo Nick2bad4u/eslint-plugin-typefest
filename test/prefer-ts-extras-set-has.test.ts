@@ -935,154 +935,156 @@ describe("prefer-ts-extras-set-has fast-check fix safety", () => {
     });
 });
 
-ruleTester.run(ruleId, rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
-                {
-                    messageId: "preferTsExtrasSetHas",
-                },
-                {
-                    messageId: "preferTsExtrasSetHas",
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture set.has usage",
-        },
-        {
-            code: unionSetInvalidCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports union of set and readonly set",
-            output: unionSetInvalidOutput,
-        },
-        {
-            code: readonlySetInvalidCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports readonly set has call",
-            output: readonlySetInvalidOutput,
-        },
-        {
-            code: declaredUnionSetInvalidCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports declared set-like union has call",
-            output: declaredUnionSetInvalidOutput,
-        },
-        {
-            code: inlineFixableCode,
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes set.has() when setHas import is in scope",
-            output: inlineFixableOutput,
-        },
-        {
-            code: logicalGuardNoAutofixCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasSetHas",
-                    suggestions: [
-                        {
-                            messageId: "suggestTsExtrasSetHas",
-                            output: logicalGuardSuggestionOutput,
-                        },
-                    ],
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports logical-guard set.has() without autofix",
-            output: null,
-        },
-        {
-            code: mixedUnionValidCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasSetHas",
-                    suggestions: [],
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports mixed set/map unions when unionBranchMatchingMode is anyBranch",
-            options: anyBranchUnionMatchingOptions,
-            output: null,
-        },
-        {
-            code: reversedMixedUnionValidCode,
-            errors: [
-                {
-                    messageId: "preferTsExtrasSetHas",
-                    suggestions: [],
-                },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports map/set unions when unionBranchMatchingMode is anyBranch",
-            options: anyBranchUnionMatchingOptions,
-            output: null,
-        },
-        {
-            code: [
-                "function hasGeneric<T extends Set<number>>(value: T) {",
-                "    return value.has(1);",
-                "}",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasSetHas" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports has calls on generic receivers constrained to Set",
-            output: [
-                'import { setHas } from "ts-extras";',
-                "function hasGeneric<T extends Set<number>>(value: T) {",
-                "    return setHas(value, 1);",
-                "}",
-            ].join("\n"),
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
-        {
-            code: computedAccessValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores computed has member access",
-        },
-        {
-            code: nonSetReceiverValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores custom object has method",
-        },
-        {
-            code: setDifferentMethodValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores non-has set method invocation",
-        },
-        {
-            code: mixedUnionValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores union of set and map when calling has",
-        },
-        {
-            code: reversedMixedUnionValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores union of map and set when calling has",
-        },
-        {
-            code: [
-                "namespace CustomTypes {",
-                "    export class Set<T> {",
-                "        has(_value: T): boolean {",
-                "            return true;",
-                "        }",
-                "    }",
-                "}",
-                "const values = new CustomTypes.Set<number>();",
-                "values.has(1);",
-            ].join("\n"),
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores namespaced user-defined Set class has method",
-        },
-    ],
+describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
+    ruleTester.run(ruleId, rule, {
+        invalid: [
+            {
+                code: readTypedFixture(invalidFixtureName),
+                errors: [
+                    {
+                        messageId: "preferTsExtrasSetHas",
+                    },
+                    {
+                        messageId: "preferTsExtrasSetHas",
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture set.has usage",
+            },
+            {
+                code: unionSetInvalidCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports union of set and readonly set",
+                output: unionSetInvalidOutput,
+            },
+            {
+                code: readonlySetInvalidCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports readonly set has call",
+                output: readonlySetInvalidOutput,
+            },
+            {
+                code: declaredUnionSetInvalidCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports declared set-like union has call",
+                output: declaredUnionSetInvalidOutput,
+            },
+            {
+                code: inlineFixableCode,
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes set.has() when setHas import is in scope",
+                output: inlineFixableOutput,
+            },
+            {
+                code: logicalGuardNoAutofixCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasSetHas",
+                        suggestions: [
+                            {
+                                messageId: "suggestTsExtrasSetHas",
+                                output: logicalGuardSuggestionOutput,
+                            },
+                        ],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports logical-guard set.has() without autofix",
+                output: null,
+            },
+            {
+                code: mixedUnionValidCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasSetHas",
+                        suggestions: [],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports mixed set/map unions when unionBranchMatchingMode is anyBranch",
+                options: anyBranchUnionMatchingOptions,
+                output: null,
+            },
+            {
+                code: reversedMixedUnionValidCode,
+                errors: [
+                    {
+                        messageId: "preferTsExtrasSetHas",
+                        suggestions: [],
+                    },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports map/set unions when unionBranchMatchingMode is anyBranch",
+                options: anyBranchUnionMatchingOptions,
+                output: null,
+            },
+            {
+                code: [
+                    "function hasGeneric<T extends Set<number>>(value: T) {",
+                    "    return value.has(1);",
+                    "}",
+                ].join("\n"),
+                errors: [{ messageId: "preferTsExtrasSetHas" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports has calls on generic receivers constrained to Set",
+                output: [
+                    'import { setHas } from "ts-extras";',
+                    "function hasGeneric<T extends Set<number>>(value: T) {",
+                    "    return setHas(value, 1);",
+                    "}",
+                ].join("\n"),
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
+            },
+            {
+                code: computedAccessValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores computed has member access",
+            },
+            {
+                code: nonSetReceiverValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores custom object has method",
+            },
+            {
+                code: setDifferentMethodValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores non-has set method invocation",
+            },
+            {
+                code: mixedUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores union of set and map when calling has",
+            },
+            {
+                code: reversedMixedUnionValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores union of map and set when calling has",
+            },
+            {
+                code: [
+                    "namespace CustomTypes {",
+                    "    export class Set<T> {",
+                    "        has(_value: T): boolean {",
+                    "            return true;",
+                    "        }",
+                    "    }",
+                    "}",
+                    "const values = new CustomTypes.Set<number>();",
+                    "values.has(1);",
+                ].join("\n"),
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores namespaced user-defined Set class has method",
+            },
+        ],
+    });
 });

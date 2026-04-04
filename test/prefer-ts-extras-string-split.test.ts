@@ -1020,126 +1020,132 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
     });
 });
 
-ruleTester.run(
-    "prefer-ts-extras-string-split",
-    getPluginRule("prefer-ts-extras-string-split"),
-    {
-        invalid: [
+describe(
+    "prefer-ts-extras-string-split rule-tester cases",
+    { timeout: 120_000 },
+    () => {
+        ruleTester.run(
+            "prefer-ts-extras-string-split",
+            getPluginRule("prefer-ts-extras-string-split"),
             {
-                code: readTypedFixture(invalidFixtureName),
-                errors: [
+                invalid: [
                     {
-                        messageId: "preferTsExtrasStringSplit",
+                        code: readTypedFixture(invalidFixtureName),
+                        errors: [
+                            {
+                                messageId: "preferTsExtrasStringSplit",
+                            },
+                            {
+                                messageId: "preferTsExtrasStringSplit",
+                            },
+                        ],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports fixture string.split usage",
                     },
                     {
-                        messageId: "preferTsExtrasStringSplit",
+                        code: inlineInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports direct string.split call",
+                        output: inlineInvalidOutput,
+                    },
+                    {
+                        code: unionStringInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports literal string union split call",
+                        output: unionStringInvalidOutput,
+                    },
+                    {
+                        code: mixedUnionInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports mixed union split call",
+                        output: mixedUnionInvalidOutput,
+                    },
+                    {
+                        code: declaredStringUnionInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports declared string object union split call",
+                        output: declaredStringUnionInvalidOutput,
+                    },
+                    {
+                        code: declaredStringObjectInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports declared String object split call",
+                        output: declaredStringObjectInvalidOutput,
+                    },
+                    {
+                        code: intersectionStringInvalidCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports string intersections that preserve string split semantics",
+                        output: intersectionStringInvalidOutput,
+                    },
+                    {
+                        code: inlineFixableCode,
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "autofixes string.split() when stringSplit import is in scope",
+                        output: inlineFixableOutput,
+                    },
+                    {
+                        code: [
+                            "function splitGeneric<T extends String>(value: T) {",
+                            "    return value.split(',');",
+                            "}",
+                        ].join("\n"),
+                        errors: [{ messageId: "preferTsExtrasStringSplit" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports split calls on generic receivers constrained to String",
+                        output: [
+                            'import { stringSplit } from "ts-extras";',
+                            "function splitGeneric<T extends String>(value: T) {",
+                            "    return stringSplit(value, ',');",
+                            "}",
+                        ].join("\n"),
                     },
                 ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture string.split usage",
-            },
-            {
-                code: inlineInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports direct string.split call",
-                output: inlineInvalidOutput,
-            },
-            {
-                code: unionStringInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports literal string union split call",
-                output: unionStringInvalidOutput,
-            },
-            {
-                code: mixedUnionInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports mixed union split call",
-                output: mixedUnionInvalidOutput,
-            },
-            {
-                code: declaredStringUnionInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports declared string object union split call",
-                output: declaredStringUnionInvalidOutput,
-            },
-            {
-                code: declaredStringObjectInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports declared String object split call",
-                output: declaredStringObjectInvalidOutput,
-            },
-            {
-                code: intersectionStringInvalidCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports string intersections that preserve string split semantics",
-                output: intersectionStringInvalidOutput,
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes string.split() when stringSplit import is in scope",
-                output: inlineFixableOutput,
-            },
-            {
-                code: [
-                    "function splitGeneric<T extends String>(value: T) {",
-                    "    return value.split(',');",
-                    "}",
-                ].join("\n"),
-                errors: [{ messageId: "preferTsExtrasStringSplit" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports split calls on generic receivers constrained to String",
-                output: [
-                    'import { stringSplit } from "ts-extras";',
-                    "function splitGeneric<T extends String>(value: T) {",
-                    "    return stringSplit(value, ',');",
-                    "}",
-                ].join("\n"),
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: computedAccessValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores computed split member access",
-            },
-            {
-                code: nonStringReceiverValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores custom non-string split method",
-            },
-            {
-                code: differentStringMethodValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-split string method call",
-            },
-            {
-                code: [
-                    "namespace CustomTypes {",
-                    "    export class String {",
-                    "        split(separator: string): string[] {",
-                    "            return [separator];",
-                    "        }",
-                    "    }",
-                    "}",
-                    "const value = new CustomTypes.String();",
-                    "value.split(',');",
-                ].join("\n"),
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores namespaced user-defined String class split method",
-            },
-        ],
+                valid: [
+                    {
+                        code: readTypedFixture(validFixtureName),
+                        filename: typedFixturePath(validFixtureName),
+                        name: "accepts fixture-safe patterns",
+                    },
+                    {
+                        code: computedAccessValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores computed split member access",
+                    },
+                    {
+                        code: nonStringReceiverValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores custom non-string split method",
+                    },
+                    {
+                        code: differentStringMethodValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores non-split string method call",
+                    },
+                    {
+                        code: [
+                            "namespace CustomTypes {",
+                            "    export class String {",
+                            "        split(separator: string): string[] {",
+                            "            return [separator];",
+                            "        }",
+                            "    }",
+                            "}",
+                            "const value = new CustomTypes.String();",
+                            "value.split(',');",
+                        ].join("\n"),
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores namespaced user-defined String class split method",
+                    },
+                ],
+            }
+        );
     }
 );

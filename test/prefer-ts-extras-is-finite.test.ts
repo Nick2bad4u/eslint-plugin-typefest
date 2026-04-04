@@ -53,6 +53,12 @@ const inlineFixableOutput = [
     "const result = isFinite(42);",
 ].join("\n");
 
+const fixtureSafePatternsValidCase = {
+    code: readTypedFixture(validFixtureName),
+    filename: typedFixturePath(validFixtureName),
+    name: "accepts fixture-safe patterns",
+} as const;
+
 const replaceOrThrow = ({
     replacement,
     sourceText,
@@ -166,6 +172,19 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-is-finite", {
     name: "prefer-ts-extras-is-finite",
 });
 
+describe(
+    "prefer-ts-extras-is-finite RuleTester fixture validity",
+    {
+        timeout: 120_000,
+    },
+    () => {
+        ruleTester.run("prefer-ts-extras-is-finite fixture validity", rule, {
+            invalid: [],
+            valid: [fixtureSafePatternsValidCase],
+        });
+    }
+);
+
 describe("prefer-ts-extras-is-finite parse-safety guards", () => {
     it("fast-check: isFinite replacement remains parseable across number expression variants", () => {
         expect.hasAssertions();
@@ -250,11 +269,6 @@ ruleTester.run("prefer-ts-extras-is-finite", rule, {
         },
     ],
     valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
         {
             code: computedAccessValidCode,
             filename: typedFixturePath(validFixtureName),

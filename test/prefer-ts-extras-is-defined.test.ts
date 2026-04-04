@@ -691,112 +691,114 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
     });
 });
 
-ruleTester.run(ruleId, rule, {
-    invalid: [
-        {
-            code: invalidFixtureCode,
-            errors: [
-                { messageId: "preferTsExtrasIsDefined" },
-                { messageId: "preferTsExtrasIsDefined" },
-                { messageId: "preferTsExtrasIsDefined" },
-                { messageId: "preferTsExtrasIsDefinedNegated" },
-                { messageId: "preferTsExtrasIsDefinedNegated" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture strict defined and undefined comparisons",
-            output: null,
-        },
-        {
-            code: inlineFixableDefinedCode,
-            errors: [{ messageId: "preferTsExtrasIsDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes undefined inequality when isDefined import is in scope",
-            output: inlineFixableDefinedOutput,
-        },
-        {
-            code: inlineFixableNegatedCode,
-            errors: [{ messageId: "preferTsExtrasIsDefinedNegated" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes undefined equality when isDefined import is in scope",
-            output: inlineFixableNegatedOutput,
-        },
-        {
-            code: inlineMapCallbackInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports undefined comparison in non-filter callback",
-            output: inlineMapCallbackInvalidOutput,
-        },
-        {
-            code: inlineTypeofReverseInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes reversed typeof undefined inequality",
-            output: inlineTypeofReverseInvalidOutput,
-        },
-        {
-            code: inlineTypeofNonIdentifierInvalidCode,
-            errors: [{ messageId: "preferTsExtrasIsDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes typeof checks over non-identifier expressions",
-            output: inlineTypeofNonIdentifierInvalidOutput,
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
-        {
-            code: filterArrowCallbackValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores undefined comparison inside filter arrow callback",
-        },
-        {
-            code: filterFunctionCallbackValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores undefined comparison inside filter function callback",
-        },
-        {
-            code: typeofWithNonTypeofOperatorValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores void unary comparison against undefined string literal",
-        },
-        {
-            code: reversedTypeofWithNonTypeofOperatorValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores reversed void unary comparison against undefined string literal",
-        },
-        {
-            code: shadowedUndefinedBindingValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores comparisons against shadowed undefined bindings",
-        },
-        {
-            code: looseUndefinedInequalityValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores loose undefined inequality comparisons",
-        },
-        {
-            code: looseUndefinedEqualityValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores loose undefined equality comparisons",
-        },
-        {
-            code: undeclaredTypeofInequalityValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores typeof inequality checks against undeclared identifiers",
-        },
-        {
-            code: undeclaredTypeofEqualityValidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores reversed typeof equality checks against undeclared identifiers",
-        },
-        {
-            code: inlineAstNodeNegatedInvalidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores AST-node undefined equality comparisons",
-        },
-    ],
+describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
+    ruleTester.run(ruleId, rule, {
+        invalid: [
+            {
+                code: invalidFixtureCode,
+                errors: [
+                    { messageId: "preferTsExtrasIsDefined" },
+                    { messageId: "preferTsExtrasIsDefined" },
+                    { messageId: "preferTsExtrasIsDefined" },
+                    { messageId: "preferTsExtrasIsDefinedNegated" },
+                    { messageId: "preferTsExtrasIsDefinedNegated" },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports fixture strict defined and undefined comparisons",
+                output: null,
+            },
+            {
+                code: inlineFixableDefinedCode,
+                errors: [{ messageId: "preferTsExtrasIsDefined" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes undefined inequality when isDefined import is in scope",
+                output: inlineFixableDefinedOutput,
+            },
+            {
+                code: inlineFixableNegatedCode,
+                errors: [{ messageId: "preferTsExtrasIsDefinedNegated" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes undefined equality when isDefined import is in scope",
+                output: inlineFixableNegatedOutput,
+            },
+            {
+                code: inlineMapCallbackInvalidCode,
+                errors: [{ messageId: "preferTsExtrasIsDefined" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "reports undefined comparison in non-filter callback",
+                output: inlineMapCallbackInvalidOutput,
+            },
+            {
+                code: inlineTypeofReverseInvalidCode,
+                errors: [{ messageId: "preferTsExtrasIsDefined" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes reversed typeof undefined inequality",
+                output: inlineTypeofReverseInvalidOutput,
+            },
+            {
+                code: inlineTypeofNonIdentifierInvalidCode,
+                errors: [{ messageId: "preferTsExtrasIsDefined" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes typeof checks over non-identifier expressions",
+                output: inlineTypeofNonIdentifierInvalidOutput,
+            },
+        ],
+        valid: [
+            {
+                code: readTypedFixture(validFixtureName),
+                filename: typedFixturePath(validFixtureName),
+                name: "accepts fixture-safe patterns",
+            },
+            {
+                code: filterArrowCallbackValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined comparison inside filter arrow callback",
+            },
+            {
+                code: filterFunctionCallbackValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores undefined comparison inside filter function callback",
+            },
+            {
+                code: typeofWithNonTypeofOperatorValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores void unary comparison against undefined string literal",
+            },
+            {
+                code: reversedTypeofWithNonTypeofOperatorValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores reversed void unary comparison against undefined string literal",
+            },
+            {
+                code: shadowedUndefinedBindingValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores comparisons against shadowed undefined bindings",
+            },
+            {
+                code: looseUndefinedInequalityValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores loose undefined inequality comparisons",
+            },
+            {
+                code: looseUndefinedEqualityValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores loose undefined equality comparisons",
+            },
+            {
+                code: undeclaredTypeofInequalityValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores typeof inequality checks against undeclared identifiers",
+            },
+            {
+                code: undeclaredTypeofEqualityValidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores reversed typeof equality checks against undeclared identifiers",
+            },
+            {
+                code: inlineAstNodeNegatedInvalidCode,
+                filename: typedFixturePath(validFixtureName),
+                name: "ignores AST-node undefined equality comparisons",
+            },
+        ],
+    });
 });

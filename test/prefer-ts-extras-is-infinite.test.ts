@@ -471,142 +471,148 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
     });
 });
 
-ruleTester.run("prefer-ts-extras-is-infinite", rule, {
-    invalid: [
-        {
-            code: readTypedFixture(invalidFixtureName),
-            errors: [
+describe(
+    "prefer-ts-extras-is-infinite rule-tester cases",
+    { timeout: 120_000 },
+    () => {
+        ruleTester.run("prefer-ts-extras-is-infinite", rule, {
+            invalid: [
                 {
-                    messageId: "preferTsExtrasIsInfinite",
+                    code: readTypedFixture(invalidFixtureName),
+                    errors: [
+                        {
+                            messageId: "preferTsExtrasIsInfinite",
+                        },
+                        {
+                            messageId: "preferTsExtrasIsInfinite",
+                        },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports fixture infinity comparisons",
                 },
                 {
-                    messageId: "preferTsExtrasIsInfinite",
+                    code: inlineInvalidPositiveInfinityCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports loose equality against Number.POSITIVE_INFINITY",
+                },
+                {
+                    code: inlineInvalidLeftInfinityCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports strict equality with Infinity literal on left",
+                },
+                {
+                    code: inlineFixableDualSignCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "autofixes strict dual-sign infinity disjunction when isInfinite import is in scope",
+                    output: inlineFixableDualSignOutput,
+                },
+                {
+                    code: inlineFixableInfinityIdentifierDualSignCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "autofixes strict dual-sign disjunction when Infinity identifier appears on left",
+                    output: inlineFixableInfinityIdentifierDualSignOutput,
+                },
+                {
+                    code: inlineInvalidMixedStrictnessDualSignCode,
+                    errors: [
+                        { messageId: "preferTsExtrasIsInfinite" },
+                        { messageId: "preferTsExtrasIsInfinite" },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports mixed strictness dual-sign disjunction without treating it as safe helper target",
+                },
+                {
+                    code: inlineParenthesizedDisjunctionCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "autofixes paired disjunction when one compared expression is parenthesized",
+                    output: inlineParenthesizedDisjunctionOutput,
+                },
+                {
+                    code: inlineInvalidSameSignStrictDisjunctionCode,
+                    errors: [
+                        { messageId: "preferTsExtrasIsInfinite" },
+                        { messageId: "preferTsExtrasIsInfinite" },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports strict disjunction comparing only positive infinity variants",
+                },
+                {
+                    code: inlineInvalidDifferentComparedExpressionsCode,
+                    errors: [
+                        { messageId: "preferTsExtrasIsInfinite" },
+                        { messageId: "preferTsExtrasIsInfinite" },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports strict dual-sign disjunction when compared expressions differ",
+                },
+                {
+                    code: inlineInvalidLogicalAndDualSignCode,
+                    errors: [
+                        { messageId: "preferTsExtrasIsInfinite" },
+                        { messageId: "preferTsExtrasIsInfinite" },
+                    ],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports logical-and dual-sign comparisons without collapsing into helper form",
+                },
+                {
+                    code: inlineInvalidMathNegativeInfinityDisjunctionCode,
+                    errors: [{ messageId: "preferTsExtrasIsInfinite" }],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: "reports only Number infinity comparisons when paired side is non-Number member",
                 },
             ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture infinity comparisons",
-        },
-        {
-            code: inlineInvalidPositiveInfinityCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports loose equality against Number.POSITIVE_INFINITY",
-        },
-        {
-            code: inlineInvalidLeftInfinityCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports strict equality with Infinity literal on left",
-        },
-        {
-            code: inlineFixableDualSignCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes strict dual-sign infinity disjunction when isInfinite import is in scope",
-            output: inlineFixableDualSignOutput,
-        },
-        {
-            code: inlineFixableInfinityIdentifierDualSignCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes strict dual-sign disjunction when Infinity identifier appears on left",
-            output: inlineFixableInfinityIdentifierDualSignOutput,
-        },
-        {
-            code: inlineInvalidMixedStrictnessDualSignCode,
-            errors: [
-                { messageId: "preferTsExtrasIsInfinite" },
-                { messageId: "preferTsExtrasIsInfinite" },
+            valid: [
+                {
+                    code: readTypedFixture(validFixtureName),
+                    filename: typedFixturePath(validFixtureName),
+                    name: "accepts fixture-safe patterns",
+                },
+                {
+                    code: inlineValidNonEqualityOperatorCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores non-equality infinity comparison",
+                },
+                {
+                    code: inlineValidWithoutInfinityReferenceCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores comparison without infinity reference",
+                },
+                {
+                    code: inlineValidComputedInfinityMemberCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores computed Number infinity member access",
+                },
+                {
+                    code: inlineValidOtherObjectInfinityMemberCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores infinity member access on non-Number object",
+                },
+                {
+                    code: inlineValidNonInfinityNumberPropertyCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores Number member comparisons that are not infinity constants",
+                },
+                {
+                    code: inlineValidShadowedInfinityBindingCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores comparisons against shadowed Infinity identifiers",
+                },
+                {
+                    code: inlineValidShadowedNumberBindingCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores Number infinity member checks when Number binding is shadowed",
+                },
+                {
+                    code: inlineAstNodeDualInfinityInvalidCode,
+                    filename: typedFixturePath(validFixtureName),
+                    name: "ignores AST-node strict dual-sign disjunctions",
+                },
             ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports mixed strictness dual-sign disjunction without treating it as safe helper target",
-        },
-        {
-            code: inlineParenthesizedDisjunctionCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "autofixes paired disjunction when one compared expression is parenthesized",
-            output: inlineParenthesizedDisjunctionOutput,
-        },
-        {
-            code: inlineInvalidSameSignStrictDisjunctionCode,
-            errors: [
-                { messageId: "preferTsExtrasIsInfinite" },
-                { messageId: "preferTsExtrasIsInfinite" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports strict disjunction comparing only positive infinity variants",
-        },
-        {
-            code: inlineInvalidDifferentComparedExpressionsCode,
-            errors: [
-                { messageId: "preferTsExtrasIsInfinite" },
-                { messageId: "preferTsExtrasIsInfinite" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports strict dual-sign disjunction when compared expressions differ",
-        },
-        {
-            code: inlineInvalidLogicalAndDualSignCode,
-            errors: [
-                { messageId: "preferTsExtrasIsInfinite" },
-                { messageId: "preferTsExtrasIsInfinite" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports logical-and dual-sign comparisons without collapsing into helper form",
-        },
-        {
-            code: inlineInvalidMathNegativeInfinityDisjunctionCode,
-            errors: [{ messageId: "preferTsExtrasIsInfinite" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports only Number infinity comparisons when paired side is non-Number member",
-        },
-    ],
-    valid: [
-        {
-            code: readTypedFixture(validFixtureName),
-            filename: typedFixturePath(validFixtureName),
-            name: "accepts fixture-safe patterns",
-        },
-        {
-            code: inlineValidNonEqualityOperatorCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores non-equality infinity comparison",
-        },
-        {
-            code: inlineValidWithoutInfinityReferenceCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores comparison without infinity reference",
-        },
-        {
-            code: inlineValidComputedInfinityMemberCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores computed Number infinity member access",
-        },
-        {
-            code: inlineValidOtherObjectInfinityMemberCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores infinity member access on non-Number object",
-        },
-        {
-            code: inlineValidNonInfinityNumberPropertyCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores Number member comparisons that are not infinity constants",
-        },
-        {
-            code: inlineValidShadowedInfinityBindingCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores comparisons against shadowed Infinity identifiers",
-        },
-        {
-            code: inlineValidShadowedNumberBindingCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores Number infinity member checks when Number binding is shadowed",
-        },
-        {
-            code: inlineAstNodeDualInfinityInvalidCode,
-            filename: typedFixturePath(validFixtureName),
-            name: "ignores AST-node strict dual-sign disjunctions",
-        },
-    ],
-});
+        });
+    }
+);

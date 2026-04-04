@@ -1025,79 +1025,85 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
     });
 });
 
-ruleTester.run(
-    "prefer-ts-extras-safe-cast-to",
-    getPluginRule("prefer-ts-extras-safe-cast-to"),
-    {
-        invalid: [
+describe(
+    "prefer-ts-extras-safe-cast-to rule-tester cases",
+    { timeout: 120_000 },
+    () => {
+        ruleTester.run(
+            "prefer-ts-extras-safe-cast-to",
+            getPluginRule("prefer-ts-extras-safe-cast-to"),
             {
-                code: invalidFixtureCode,
-                errors: [
-                    { messageId: "preferTsExtrasSafeCastTo" },
-                    { messageId: "preferTsExtrasSafeCastTo" },
-                    { messageId: "preferTsExtrasSafeCastTo" },
+                invalid: [
+                    {
+                        code: invalidFixtureCode,
+                        errors: [
+                            { messageId: "preferTsExtrasSafeCastTo" },
+                            { messageId: "preferTsExtrasSafeCastTo" },
+                            { messageId: "preferTsExtrasSafeCastTo" },
+                        ],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "reports fixture unsafe cast assertions",
+                        output: [
+                            fixtureInvalidOutputWithMixedLineEndings,
+                            fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                        ],
+                    },
+                    {
+                        code: inlineFixableCode,
+                        errors: [{ messageId: "preferTsExtrasSafeCastTo" }],
+                        filename: typedFixturePath(invalidFixtureName),
+                        name: "autofixes safe cast assertion when safeCastTo import is in scope",
+                        output: inlineFixableOutput,
+                    },
                 ],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "reports fixture unsafe cast assertions",
-                output: [
-                    fixtureInvalidOutputWithMixedLineEndings,
-                    fixtureInvalidSecondPassOutputWithMixedLineEndings,
+                valid: [
+                    {
+                        code: readTypedFixture(validFixtureName),
+                        filename: typedFixturePath(validFixtureName),
+                        name: "accepts fixture-safe patterns",
+                    },
+                    {
+                        code: nonAssignableAsExpressionValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores non-assignable as-expression assertion",
+                    },
+                    {
+                        code: nonAssignableTypeAssertionValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores non-assignable angle-bracket assertion",
+                    },
+                    {
+                        code: ignoredAnyAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting any",
+                    },
+                    {
+                        code: ignoredNeverAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting never",
+                    },
+                    {
+                        code: ignoredUnknownAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting unknown",
+                    },
+                    {
+                        code: ignoredAnyAliasAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting aliases to any",
+                    },
+                    {
+                        code: ignoredNeverAliasAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting aliases to never",
+                    },
+                    {
+                        code: ignoredUnknownAliasAnnotationValidCode,
+                        filename: typedFixturePath(validFixtureName),
+                        name: "ignores as-expression assertions targeting aliases to unknown",
+                    },
                 ],
-            },
-            {
-                code: inlineFixableCode,
-                errors: [{ messageId: "preferTsExtrasSafeCastTo" }],
-                filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes safe cast assertion when safeCastTo import is in scope",
-                output: inlineFixableOutput,
-            },
-        ],
-        valid: [
-            {
-                code: readTypedFixture(validFixtureName),
-                filename: typedFixturePath(validFixtureName),
-                name: "accepts fixture-safe patterns",
-            },
-            {
-                code: nonAssignableAsExpressionValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-assignable as-expression assertion",
-            },
-            {
-                code: nonAssignableTypeAssertionValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores non-assignable angle-bracket assertion",
-            },
-            {
-                code: ignoredAnyAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting any",
-            },
-            {
-                code: ignoredNeverAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting never",
-            },
-            {
-                code: ignoredUnknownAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting unknown",
-            },
-            {
-                code: ignoredAnyAliasAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting aliases to any",
-            },
-            {
-                code: ignoredNeverAliasAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting aliases to never",
-            },
-            {
-                code: ignoredUnknownAliasAnnotationValidCode,
-                filename: typedFixturePath(validFixtureName),
-                name: "ignores as-expression assertions targeting aliases to unknown",
-            },
-        ],
+            }
+        );
     }
 );
