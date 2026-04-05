@@ -1,22 +1,94 @@
 {
+    "$schema": "https://www.schemastore.org/web-manifest-combined.json",
     "background_color": "#2E2A33",
-    "description": "eslint-plugin-typefest documentation, architecture notes, and API references.",
+    "categories": [
+        "developer tools",
+        "documentation",
+        "education",
+        "productivity"
+    ],
+    "description": "Documentation site for eslint-plugin-typefest, including rule reference, presets, architecture notes, and API docs.",
+    "dir": "ltr",
     "display": "standalone",
+    "display_override": [
+        "window-controls-overlay",
+        "standalone",
+        "browser"
+    ],
     "icons": [
         {
+            "purpose": "any",
+            "sizes": "any",
+            "src": "img/logo.svg",
+            "type": "image/svg+xml"
+        },
+        {
+            "purpose": "any",
             "sizes": "192x192",
             "src": "img/logo_192x192.png",
             "type": "image/png"
         },
         {
+            "purpose": "any",
             "sizes": "512x512",
             "src": "img/logo.png",
             "type": "image/png"
+        },
+        {
+            "purpose": "any",
+            "sizes": "32x32",
+            "src": "img/favicon.ico",
+            "type": "image/x-icon"
         }
     ],
+    "id": "./",
+    "lang": "en",
     "name": "eslint-plugin-typefest Documentation",
+    "orientation": "any",
+    "prefer_related_applications": false,
     "scope": ".",
     "short_name": "Typefest Docs",
+    "shortcuts": [
+        {
+            "description": "Browse the full eslint-plugin-typefest rule catalog.",
+            "icons": [
+                {
+                    "sizes": "192x192",
+                    "src": "img/logo_192x192.png",
+                    "type": "image/png"
+                }
+            ],
+            "name": "Rule Reference",
+            "short_name": "Rules",
+            "url": "./docs/rules"
+        },
+        {
+            "description": "Compare the shipped preset bundles and included rules.",
+            "icons": [
+                {
+                    "sizes": "192x192",
+                    "src": "img/logo_192x192.png",
+                    "type": "image/png"
+                }
+            ],
+            "name": "Preset Matrix",
+            "short_name": "Presets",
+            "url": "./docs/rules/presets"
+        },
+        {
+            "description": "Open maintainer and architecture documentation for the docs site and plugin internals.",
+            "icons": [
+                {
+                    "sizes": "192x192",
+                    "src": "img/logo_192x192.png",
+                    "type": "image/png"
+                }
+            ],
+            "name": "Developer Docs",
+            "short_name": "Developer",
+            "url": "./docs/developer"
+        }
+    ],
     "start_url": ".",
     "theme_color": "#2E2A33"
 }

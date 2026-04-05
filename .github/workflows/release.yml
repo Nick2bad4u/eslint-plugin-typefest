@@ -57,6 +57,7 @@ jobs:
             DEFAULT_RELEASE_BRANCH: "main"
             NPM_REGISTRY_URL: "https://registry.npmjs.org"
             RELEASE_NOTES_PATH: temp/release-notes.md
+            RELEASE_ASSETS_DIR: temp/release-assets
         concurrency:
             group: release-pipeline
             cancel-in-progress: false
@@ -201,6 +202,10 @@ jobs:
                   echo "npm_release_url=$npm_release_url" >> "$GITHUB_OUTPUT"
                   echo "github_release_url=$github_release_url" >> "$GITHUB_OUTPUT"
 
+            - name: Rebuild package after manual version bump
+              if: github.event_name == 'workflow_dispatch'
+              run: npm run build
+
             - name: Check whether version is already published
               id: npm_check
               env:
@@ -263,28 +268,54 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Check whether GitHub release already exists
-              id: gh_release_check
+            - name: Create release archives
+              id: release_assets
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  TAG: ${{ steps.version.outputs.tag }}
+                  PACKAGE_NAME: ${{ steps.version.outputs.package_name }}
+                  VERSION: ${{ steps.version.outputs.version }}
               run: |
                   set -euo pipefail
-                  if gh release view "$TAG" >/dev/null 2>&1; then
-                    echo "exists=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "exists=false" >> "$GITHUB_OUTPUT"
-                  fi
+
+                  assets_dir="${RELEASE_ASSETS_DIR}"
+                  unpack_dir="temp/release-package"
+                  pack_metadata_path="${assets_dir}/npm-pack.json"
+                  mkdir -p "$assets_dir"
+                  rm -rf "$unpack_dir"
+
+                  npm pack --json --pack-destination "$assets_dir" > "$pack_metadata_path"
+
+                  tarball_filename=$(node -e "const fs = require('node:fs'); const packMetadata = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); process.stdout.write(packMetadata[0].filename);" "$pack_metadata_path")
+                  tarball_path="${assets_dir}/${tarball_filename}"
+                  safe_package_name=$(printf '%s' "$PACKAGE_NAME" | sed 's/^@//; s#/#-#g')
+                  zip_basename="${safe_package_name}-${VERSION}"
+
+                  mkdir -p "$unpack_dir"
+                  tar -xzf "$tarball_path" -C "$unpack_dir"
+                  mv "$unpack_dir/package" "$unpack_dir/${zip_basename}"
+
+                  (
+                    cd "$unpack_dir"
+                    zip -rq "../release-assets/${zip_basename}.zip" "${zip_basename}"
+                  )
+
+                  echo "tarball_path=$tarball_path" >> "$GITHUB_OUTPUT"
+                  echo "zip_path=${assets_dir}/${zip_basename}.zip" >> "$GITHUB_OUTPUT"
+                  echo "tarball_name=$tarball_filename" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${zip_basename}.zip" >> "$GITHUB_OUTPUT"
 
             - name: Create GitHub release
-              if: steps.gh_release_check.outputs.exists != 'true'
               uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
               with:
                   tag_name: ${{ steps.version.outputs.tag }}
                   name: ${{ steps.version.outputs.tag }}
                   body_path: ${{ env.RELEASE_NOTES_PATH }}
                   draft: false
+                  files: |
+                      ${{ steps.release_assets.outputs.tarball_path }}
+                      ${{ steps.release_assets.outputs.zip_path }}
+                  fail_on_unmatched_files: true
                   generate_release_notes: false
+                  overwrite_files: true
                   prerelease: false
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -305,4 +336,5 @@ jobs:
                     echo "- Already published on npm: \`${{ steps.npm_check.outputs.already_published }}\`"
                     echo "- npm package: [${{ steps.version.outputs.package_name }}@${{ steps.version.outputs.version }}](${{ steps.version.outputs.npm_release_url }})"
                     echo "- GitHub release: [${{ steps.version.outputs.tag }}](${{ steps.version.outputs.github_release_url }})"
+                    echo "- Release assets: \`${{ steps.release_assets.outputs.tarball_name }}\`, \`${{ steps.release_assets.outputs.zip_name }}\`"
                   } >> "$GITHUB_STEP_SUMMARY"

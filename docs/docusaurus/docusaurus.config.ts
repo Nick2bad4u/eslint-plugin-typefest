@@ -244,18 +244,18 @@ const config: Config = {
                         tagName: "meta",
                     },
                     {
-                        href: `${baseUrl}img/icon-192.png`,
+                        href: `${baseUrl}img/logo_192x192.png`,
                         rel: "apple-touch-icon",
                         tagName: "link",
                     },
                     {
                         color: pwaMaskIconColor,
-                        href: `${baseUrl}img/icon-512.svg`,
+                        href: `${baseUrl}img/logo.svg`,
                         rel: "mask-icon",
                         tagName: "link",
                     },
                     {
-                        content: `${baseUrl}img/icon-192.png`,
+                        content: `${baseUrl}img/logo_192x192.png`,
                         name: "msapplication-TileImage",
                         tagName: "meta",
                     },
