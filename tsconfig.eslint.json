@@ -30,7 +30,6 @@
         "*.ts",
         "*.mts",
         "*.cts",
-        "*.d.mts",
         ".remarkrc.mjs",
         "benchmarks/**/*.mjs",
         "benchmarks/**/*.ts",
