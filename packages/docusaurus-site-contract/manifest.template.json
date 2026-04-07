@@ -1,26 +1,12 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
-    "name": "docusaurus-site-contract",
-    "version": "0.1.0",
-    "private": true,
-    "description": "Workspace package for validating Docusaurus docs-site contracts in template-derived repositories.",
-    "keywords": [
-        "contract",
-        "docusaurus",
-        "docs",
-        "tooling",
-        "validation"
-    ],
-    "homepage": "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+    "bin": {
+        "docusaurus-site-contract": "./cli.mjs"
+    },
     "bugs": {
         "url": "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues"
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-typefest.git"
-    },
-    "license": "MIT",
-    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
     "contributors": [
         {
             "name": "Nick2bad4u",
@@ -28,29 +14,10 @@
             "url": "https://github.com/Nick2bad4u"
         }
     ],
-    "sideEffects": false,
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./index.d.mts",
-            "default": "./index.mjs"
-        },
-        "./cli": {
-            "types": "./cli.d.mts",
-            "default": "./cli.mjs"
-        },
-        "./package.json": "./package.json"
-    },
-    "main": "./index.mjs",
-    "bin": {
-        "docusaurus-site-contract": "./cli.mjs"
-    },
-    "scripts": {
-        "typecheck": "tsc --project tsconfig.json --noEmit"
-    },
     "dependencies": {
         "typescript": "^6.0.2"
     },
+    "description": "Local package for validating Docusaurus docs-site contracts in template-derived repositories.",
     "devDependencies": {
         "@docusaurus/core": "^3.9.2",
         "@docusaurus/faster": "^3.9.2",
@@ -64,6 +31,39 @@
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1"
     },
+    "devEngines": {
+        "runtime": {
+            "name": "node",
+            "version": ">=22.0.0",
+            "onFail": "error"
+        }
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "exports": {
+        ".": {
+            "types": "./index.d.mts",
+            "default": "./index.mjs"
+        },
+        "./cli": {
+            "types": "./cli.d.mts",
+            "default": "./cli.mjs"
+        },
+        "./package.json": "./package.json"
+    },
+    "homepage": "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    "keywords": [
+        "contract",
+        "docusaurus",
+        "docs",
+        "tooling",
+        "validation"
+    ],
+    "license": "MIT",
+    "main": "./index.mjs",
+    "name": "docusaurus-site-contract",
+    "packageManager": "npm@11.12.1",
     "peerDependencies": {
         "@docusaurus/core": "^3.9.2",
         "@docusaurus/faster": "^3.9.2",
@@ -76,15 +76,15 @@
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1"
     },
-    "packageManager": "npm@11.12.1",
-    "engines": {
-        "node": ">=22.0.0"
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-typefest.git"
     },
-    "devEngines": {
-        "runtime": {
-            "name": "node",
-            "version": ">=22.0.0",
-            "onFail": "error"
-        }
-    }
+    "scripts": {
+        "typecheck": "tsc --project tsconfig.json --noEmit"
+    },
+    "sideEffects": false,
+    "type": "module",
+    "version": "0.1.0"
 }

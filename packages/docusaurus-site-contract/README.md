@@ -1,6 +1,6 @@
 # docusaurus-site-contract
 
-Internal workspace package that owns the reusable Docusaurus site-contract validator used by this template repository.
+Internal vendorable source that owns the reusable Docusaurus site-contract validator used by this template repository.
 
 It is designed to stay reusable across **ESLint plugin repositories that use Docusaurus** without forcing every copied repo to keep the validator implementation scattered across `scripts/`, docs files, and one-off utilities.
 
@@ -12,7 +12,7 @@ The intended long-term reuse model is:
 
 - keep the validator engine and CLI in a package
 - keep one repo-local contract file near the docs site
-- keep one root script that runs the contract check
+- keep thin repo-local script wrappers that run validation and init manually
 
 ## Exports
 
@@ -29,6 +29,12 @@ import {
 ### CLI
 
 ```bash
+node scripts/validate-docusaurus-site-contract.mjs
+```
+
+The direct package CLI is still available when you need it:
+
+```bash
 docusaurus-site-contract --config docs/docusaurus/site-contract.config.mjs
 ```
 
@@ -37,7 +43,7 @@ docusaurus-site-contract --config docs/docusaurus/site-contract.config.mjs
 #### When the package is already vendored in the repo
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package
+node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package
 ```
 
 #### When the package is installed from npm or linked locally
@@ -49,7 +55,7 @@ docusaurus-site-contract init --root . --skip-vendor-package
 #### When bootstrapping another ESLint-plugin repo from a template repo that already has the package
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs init --root ../your-eslint-plugin-repo
+node scripts/init-docusaurus-site-contract.mjs --root ../your-eslint-plugin-repo
 ```
 
 Preview changes without writing files:
@@ -64,7 +70,7 @@ repositories. It can:
 - vendor the local package into `packages/docusaurus-site-contract`
 - create `docs/docusaurus/site-contract.config.mjs`
 - create a maintainer guide page under `docs/docusaurus/site-docs/developer/`
-- patch root/docs workspace package scripts
+- create repo-local script wrappers under `scripts/`
 - register the maintainer guide in `sidebars.ts` and `site-docs/developer/index.md` when those files use recognizable template structure
 
 ## Starter-contract philosophy

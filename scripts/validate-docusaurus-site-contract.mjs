@@ -2,7 +2,8 @@
 
 /**
  * @packageDocumentation
- * Compatibility wrapper that delegates to the workspace-owned CLI entrypoint.
+ * Repository-local wrapper that runs the vendored Docusaurus site contract CLI
+ * manually without package.json script wiring.
  */
 
 import { runCli } from "../packages/docusaurus-site-contract/cli.mjs";

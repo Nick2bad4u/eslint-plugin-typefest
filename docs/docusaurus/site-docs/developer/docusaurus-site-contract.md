@@ -5,11 +5,11 @@ description: Build-time contract validation for the Docusaurus docs site, with r
 
 # Docusaurus site contract
 
-This repository validates its Docusaurus site against a source-level contract before docs builds, broader lint workflows, and release verification.
+This repository keeps a source-level contract for its Docusaurus site that maintainers can validate manually during docs, lint, and release work.
 
 The goal is to stop template drift early.
 
-Instead of relying on maintainers to remember a long checklist of nav items, preset pages, inspector links, favicons, sidebar hooks, hero content, and docs workspace scripts, the repository keeps those expectations in one contract file and validates them automatically.
+Instead of relying on maintainers to remember a long checklist of nav items, preset pages, inspector links, favicons, sidebar hooks, hero content, and repo-local validation entrypoints, the repository keeps those expectations in one contract file and validates them through thin script wrappers.
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ They are usually cross-file site-contract problems, such as:
 - preset pages existing but not being linked from the sidebar or navbar
 - logo, favicon, or manifest assets going stale
 - sidebar styling hooks getting renamed without updating CSS
-- docs workspace build scripts forgetting required prebuild steps
+- repo-local validation wrappers disappearing during refactors
 - inspector links or hero cards disappearing during refactors
 
 That is why this feature is implemented as a dedicated validator script instead of an ESLint rule.
@@ -63,7 +63,7 @@ These are repo-agnostic text and filesystem checks:
 From the repository root:
 
 ```bash
-npm run docs:check-site-contract
+node scripts/validate-docusaurus-site-contract.mjs
 ```
 
 You can also invoke the CLI directly:
@@ -75,7 +75,7 @@ node packages/docusaurus-site-contract/cli.mjs --config docs/docusaurus/site-con
 Validate a different contract file relative to a target repository root:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs \
+node scripts/validate-docusaurus-site-contract.mjs \
   --root ../your-plugin-repo \
   --config docs/docusaurus/site-contract.config.mjs
 ```
@@ -83,13 +83,13 @@ node packages/docusaurus-site-contract/cli.mjs \
 Emit machine-readable JSON for CI or editor tooling:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs --json --config docs/docusaurus/site-contract.config.mjs
+node scripts/validate-docusaurus-site-contract.mjs --json --config docs/docusaurus/site-contract.config.mjs
 ```
 
 Show built-in help:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs --help
+node scripts/validate-docusaurus-site-contract.mjs --help
 ```
 
 ## Core files
@@ -99,11 +99,11 @@ The feature is split into two real layers plus one repo-local contract:
 1. `packages/docusaurus-site-contract/index.mjs`
 
 - Generic validation engine.
-- Internal workspace package source of truth.
+- Vendored implementation source of truth.
 
 2. `packages/docusaurus-site-contract/cli.mjs`
 
-- Workspace-owned CLI entrypoint.
+- Vendored CLI entrypoint.
 - Supports `validate` behavior by default plus the `init` subcommand.
 - Supports `--help`, `--json`, `--root`, and `--config`.
 
@@ -115,19 +115,19 @@ The feature is split into two real layers plus one repo-local contract:
 
 Yes, there is an easier way.
 
-The current repository layout no longer needs a copied `scripts/` layer.
+The current repository layout keeps the validator out of `package.json` so copied plugin repos can remove it cleanly.
 
 The intended local-private model is:
 
-- generic engine
-- package CLI
-- repo-local contract file
+- generic engine + CLI in `packages/docusaurus-site-contract`
+- thin repo-local wrappers in `scripts/`
+- one repo-local contract file
 
 That means the minimum durable setup is now:
 
 1. the local private package under `packages/docusaurus-site-contract`
-2. one repo-local contract file under `docs/docusaurus/`
-3. root/docs `package.json` wiring
+2. thin repo-local wrappers under `scripts/`
+3. one repo-local contract file under `docs/docusaurus/`
 
 If you are working inside a repo copied from this template, the package should already be present.
 
@@ -135,10 +135,10 @@ If you are retrofitting an existing repo, use the `init` command to vendor and w
 
 ## Using `init` in projects
 
-If the target repository already contains the vendored package:
+If you are already inside a repo that has the repo-local wrappers:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package
+node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package
 ```
 
 If the target repository installs the package from npm or links it locally instead:
@@ -150,27 +150,21 @@ docusaurus-site-contract init --root . --skip-vendor-package
 If you are bootstrapping a different ESLint-plugin repo from this template repository:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs init --root ../your-eslint-plugin-repo
-```
-
-Or via the root script this template now exposes:
-
-```bash
-npm run docs:site-contract:init
+node scripts/init-docusaurus-site-contract.mjs --root ../your-eslint-plugin-repo
 ```
 
 Preview the bootstrap without mutating files:
 
 ```bash
-node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package --dry-run --json
+node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package --dry-run --json
 ```
 
 By default, `init` will:
 
 - vendor the private package into `packages/docusaurus-site-contract`
-- add `docs:check-site-contract` to the root `package.json`
-- add `docs:site-contract:init` to the root `package.json`
-- patch `docs/docusaurus/package.json` build scripts to run the check first
+- create `scripts/docusaurus-site-contract.mjs`
+- create `scripts/validate-docusaurus-site-contract.mjs`
+- create `scripts/init-docusaurus-site-contract.mjs`
 - generate `docs/docusaurus/site-contract.config.mjs`
 - generate `docs/docusaurus/site-docs/developer/docusaurus-site-contract.md`
 - register the guide in `docs/docusaurus/sidebars.ts` when the developer sidebar follows recognizable template structure
@@ -209,7 +203,7 @@ That means a new repo should not blindly inherit this repository's exact preset 
 - optional search-plugin and manifest rules
 - any stricter source snippets that should be unique to the target repo
 
-4. Then run `npm run docs:check-site-contract`.
+4. Then run `node scripts/validate-docusaurus-site-contract.mjs`.
 
 If you skip that review step, the contract may be too strict for the new repo for the wrong reasons.
 
@@ -227,7 +221,7 @@ Treat these as strong default candidates:
 
 - having a Docusaurus config file
 - having a favicon / theme image / manifest
-- wiring a docs-site contract check into docs builds
+- keeping repo-local validation wrappers available
 - requiring generated assets and key docs entry files to exist
 - validating basic navbar/footer structure once the repo settles on names
 
@@ -520,14 +514,13 @@ If you need to enforce things like exact theme-toggle placement relative to sear
 
 ## Workflow integration in this repo
 
-This repository currently runs the contract through:
+This repository intentionally keeps the contract available through manual entrypoints:
 
-- `npm run docs:check-site-contract`
-- docs workspace build commands
-- broader lint-all workflows
-- release verification
+- `node scripts/validate-docusaurus-site-contract.mjs`
+- `node scripts/init-docusaurus-site-contract.mjs`
+- direct CLI access through `packages/docusaurus-site-contract/cli.mjs`
 
-That means a drifted docs site should fail long before publish time.
+That keeps the feature easy to remove from template-derived repos while still making validation easy to run on demand.
 
 ## Related maintainer references
 

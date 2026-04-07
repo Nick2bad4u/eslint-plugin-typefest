@@ -54,8 +54,7 @@
         "CHANGELOG.md"
     ],
     "workspaces": [
-        "docs/docusaurus",
-        "packages/*"
+        "docs/docusaurus"
     ],
     "scripts": {
         "prebench": "npm run build",
@@ -111,10 +110,8 @@
         "docs:build": "npm run --workspace docs/docusaurus build",
         "docs:build:local": "npm run --workspace docs/docusaurus build:local",
         "docs:check-links": "npm run docs:api && node ./scripts/check-doc-links.mjs",
-        "docs:check-site-contract": "node packages/docusaurus-site-contract/cli.mjs --config docs/docusaurus/site-contract.config.mjs",
         "docs:devtools:metadata": "node scripts/generate-devtools-workspace-metadata.mjs",
         "docs:serve": "npm run --workspace docs/docusaurus serve",
-        "docs:site-contract:init": "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package",
         "docs:start": "npm run --workspace docs/docusaurus start",
         "docs:start:devtools": "npm run docs:devtools:metadata && npm run docs:api:local && npm run --workspace docs/docusaurus start:devtools",
         "docs:toc": "remark docs --use remark-toc --output",

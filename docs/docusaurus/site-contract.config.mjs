@@ -9,7 +9,7 @@
  * strict and tailored to eslint-plugin-typefest specifically.
  */
 
-import { defineDocusaurusSiteContract } from "../../packages/docusaurus-site-contract/index.mjs";
+import { defineDocusaurusSiteContract } from "../../scripts/docusaurus-site-contract.mjs";
 
 const presetPageSlugs = [
     "all",
@@ -147,47 +147,12 @@ const siteContract = defineDocusaurusSiteContract({
             path: "package.json",
             requiredScripts: [
                 {
-                    includes:
-                        "node packages/docusaurus-site-contract/cli.mjs --config docs/docusaurus/site-contract.config.mjs",
-                    name: "docs:check-site-contract",
-                },
-                {
-                    includes:
-                        "node packages/docusaurus-site-contract/cli.mjs init --root .",
-                    name: "docs:site-contract:init",
-                },
-                {
                     includes: "docs/docusaurus/static/eslint-inspector",
                     name: "build:eslint-inspector",
                 },
                 {
                     includes: "docs/docusaurus/static/stylelint-inspector",
                     name: "build:stylelint-inspector",
-                },
-            ],
-        },
-        {
-            path: "docs/docusaurus/package.json",
-            requiredScripts: [
-                {
-                    includes: "npm --prefix ../.. run docs:check-site-contract",
-                    name: "build",
-                },
-                {
-                    includes: "npm --prefix ../.. run docs:check-site-contract",
-                    name: "build:fast",
-                },
-                {
-                    includes: "npm --prefix ../.. run docs:check-site-contract",
-                    name: "build:local",
-                },
-                {
-                    includes: "build:eslint-inspector",
-                    name: "build",
-                },
-                {
-                    includes: "build:stylelint-inspector",
-                    name: "build",
                 },
             ],
         },
@@ -216,6 +181,11 @@ const siteContract = defineDocusaurusSiteContract({
         "docs/rules/presets/strict.md",
         "docs/rules/presets/ts-extras-type-guards.md",
         "docs/rules/presets/type-fest-types.md",
+        "packages/docusaurus-site-contract/cli.mjs",
+        "packages/docusaurus-site-contract/index.mjs",
+        "scripts/docusaurus-site-contract.mjs",
+        "scripts/init-docusaurus-site-contract.mjs",
+        "scripts/validate-docusaurus-site-contract.mjs",
     ],
     sourceFiles: [
         {
@@ -337,12 +307,13 @@ const siteContract = defineDocusaurusSiteContract({
             ],
             path: "docs/docusaurus/site-docs/developer/docusaurus-site-contract.md",
             requiredSnippets: [
-                "npm run docs:check-site-contract",
-                "docs:site-contract:init",
+                "node scripts/validate-docusaurus-site-contract.mjs",
+                "node scripts/init-docusaurus-site-contract.mjs",
                 "--json",
                 "init --root .",
                 "orderedPatterns",
                 "not an ESLint rule",
+                "scripts/docusaurus-site-contract.mjs",
                 "packages/docusaurus-site-contract/index.mjs",
             ],
         },

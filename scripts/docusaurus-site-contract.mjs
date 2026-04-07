@@ -1,7 +1,7 @@
 /**
  * @packageDocumentation
- * Compatibility wrapper that re-exports the workspace-owned Docusaurus site
- * contract package.
+ * Repository-local compatibility wrapper that re-exports the vendored
+ * Docusaurus site contract implementation.
  */
 
 import {

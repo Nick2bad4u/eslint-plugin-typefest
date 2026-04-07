@@ -580,6 +580,30 @@ describe("docusaurus site contract validator", () => {
                 ),
                 "utf8"
             );
+            const generatedApiWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
+            const generatedValidateWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "validate-docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
+            const generatedInitWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "init-docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
             const vendoredPackageJson = parseJson(
                 await fs.readFile(
                     path.join(
@@ -623,32 +647,32 @@ describe("docusaurus site contract validator", () => {
                 )
             ).resolves.toBeDefined();
 
-            expect(rootPackageJson.workspaces).toContain(
-                "packages/docusaurus-site-contract"
-            );
+            expect(rootPackageJson.workspaces).toBeUndefined();
             expect(rootPackageJson.scripts?.["docs:check-site-contract"]).toBe(
-                "node packages/docusaurus-site-contract/cli.mjs --config docs/docusaurus/site-contract.config.mjs"
+                undefined
             );
             expect(rootPackageJson.scripts?.["docs:site-contract:init"]).toBe(
-                "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package"
+                undefined
             );
-            expect(rootPackageJson.scripts?.["typecheck"]).toContain(
-                "npm run --workspace packages/docusaurus-site-contract typecheck"
+            expect(rootPackageJson.scripts?.["typecheck"]).toBe("tsc --noEmit");
+            expect(rootPackageJson.scripts?.["lint:package-sort"]).toBe(
+                'sort-package-json "./package.json"'
             );
-            expect(rootPackageJson.scripts?.["lint:package-sort"]).toContain(
-                '"./packages/docusaurus-site-contract/package.json"'
+            expect(rootPackageJson.scripts?.["lint:package-sort-check"]).toBe(
+                'sort-package-json --check "./package.json"'
             );
-            expect(docsPackageJson.scripts?.["build"]).toContain(
-                "npm --prefix ../.. run docs:check-site-contract"
+            expect(docsPackageJson.scripts?.["build"]).toBe("docusaurus build");
+            expect(docsPackageJson.scripts?.["build:fast"]).toBe(
+                "docusaurus build"
             );
-            expect(docsPackageJson.scripts?.["build:fast"]).toContain(
-                "npm --prefix ../.. run docs:check-site-contract"
-            );
-            expect(docsPackageJson.scripts?.["build:local"]).toContain(
-                "npm --prefix ../.. run docs:check-site-contract"
+            expect(docsPackageJson.scripts?.["build:local"]).toBe(
+                "docusaurus build"
             );
             expect(generatedContract).toContain(
-                'import { defineDocusaurusSiteContract } from "../../packages/docusaurus-site-contract/index.mjs";'
+                'import { defineDocusaurusSiteContract } from "../../scripts/docusaurus-site-contract.mjs";'
+            );
+            expect(generatedContract).toContain(
+                '"scripts/validate-docusaurus-site-contract.mjs"'
             );
             expect(generatedContract).toContain(
                 "* - package: eslint-plugin-example"
@@ -663,14 +687,26 @@ describe("docusaurus site contract validator", () => {
                 "        requireThemeImage:"
             );
             expect(generatedGuide).toContain(
-                "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package"
+                "node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package"
+            );
+            expect(generatedGuide).toContain(
+                "node scripts/validate-docusaurus-site-contract.mjs"
+            );
+            expect(generatedApiWrapper).toContain(
+                'from "../packages/docusaurus-site-contract/index.mjs";'
+            );
+            expect(generatedValidateWrapper).toContain(
+                'from "../packages/docusaurus-site-contract/cli.mjs";'
+            );
+            expect(generatedInitWrapper).toContain(
+                'await runCli(["init", ...process.argv.slice(2)]);'
             );
             expect(vendoredPackageJson.homepage).toBeUndefined();
             expect(vendoredPackageJson.repository?.url).toBe(
                 "git+https://github.com/acme/eslint-plugin-example.git"
             );
             expect(vendoredPackageJson.description).toBe(
-                "Workspace package for validating Docusaurus docs-site contracts in this repository."
+                "Local package for validating Docusaurus docs-site contracts in this repository."
             );
             expect(patchedSidebar).toContain(
                 'id: "developer/docusaurus-site-contract"'
@@ -737,6 +773,12 @@ describe("docusaurus site contract validator", () => {
                 expect.objectContaining({
                     action: "would-create",
                     path: "docs/docusaurus/site-contract.config.mjs",
+                })
+            );
+            expect(parsedReport.actions).toContainEqual(
+                expect.objectContaining({
+                    action: "would-create",
+                    path: "scripts/validate-docusaurus-site-contract.mjs",
                 })
             );
             await expect(
@@ -838,6 +880,30 @@ describe("docusaurus site contract validator", () => {
                 ),
                 "utf8"
             );
+            const generatedApiWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
+            const generatedValidateWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "validate-docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
+            const generatedInitWrapper = await fs.readFile(
+                path.join(
+                    repositoryRootPath,
+                    "scripts",
+                    "init-docusaurus-site-contract.mjs"
+                ),
+                "utf8"
+            );
 
             await expect(
                 fs.stat(
@@ -852,20 +918,29 @@ describe("docusaurus site contract validator", () => {
 
             expect(rootPackageJson.workspaces).toBeUndefined();
             expect(rootPackageJson.scripts?.["docs:check-site-contract"]).toBe(
-                "docusaurus-site-contract --config docs/docusaurus/site-contract.config.mjs"
+                undefined
             );
             expect(rootPackageJson.scripts?.["docs:site-contract:init"]).toBe(
-                "docusaurus-site-contract init --root . --skip-vendor-package"
+                undefined
             );
             expect(rootPackageJson.scripts?.["typecheck"]).toBe("tsc --noEmit");
             expect(rootPackageJson.scripts?.["lint:package-sort"]).toBe(
                 'sort-package-json "./package.json"'
             );
             expect(generatedContract).toContain(
-                'import { defineDocusaurusSiteContract } from "docusaurus-site-contract";'
+                'import { defineDocusaurusSiteContract } from "../../scripts/docusaurus-site-contract.mjs";'
             );
             expect(generatedGuide).toContain(
-                "docusaurus-site-contract init --root . --skip-vendor-package"
+                "node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package"
+            );
+            expect(generatedApiWrapper).toContain(
+                'from "docusaurus-site-contract";'
+            );
+            expect(generatedValidateWrapper).toContain(
+                'from "docusaurus-site-contract/cli";'
+            );
+            expect(generatedInitWrapper).toContain(
+                'from "docusaurus-site-contract/cli";'
             );
         } finally {
             await cleanupTemporaryDirectories();

@@ -2,8 +2,8 @@
 
 /**
  * @packageDocumentation
- * Project bootstrap helpers for vendoring and wiring the local Docusaurus site
- * contract package into another repository.
+ * Project bootstrap helpers for vendoring and scaffolding the local
+ * Docusaurus site contract tooling into another repository.
  */
 
 import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -26,19 +26,46 @@ import { fileURLToPath } from "node:url";
  * }>} InitOptions
  */
 
-/** @type {readonly string[]} */
+/** @type {readonly Readonly<{
+    destinationFileName: string;
+    sourceFileName: string;
+}>[]} */
 const packageFilesToVendor = [
-    "README.md",
-    "cli.d.mts",
-    "cli.mjs",
-    "index.d.mts",
-    "index.mjs",
-    "init.mjs",
-    "package.json",
-    "tsconfig.json",
+    {
+        destinationFileName: "README.md",
+        sourceFileName: "README.md",
+    },
+    {
+        destinationFileName: "cli.d.mts",
+        sourceFileName: "cli.d.mts",
+    },
+    {
+        destinationFileName: "cli.mjs",
+        sourceFileName: "cli.mjs",
+    },
+    {
+        destinationFileName: "index.d.mts",
+        sourceFileName: "index.d.mts",
+    },
+    {
+        destinationFileName: "index.mjs",
+        sourceFileName: "index.mjs",
+    },
+    {
+        destinationFileName: "init.mjs",
+        sourceFileName: "init.mjs",
+    },
+    {
+        destinationFileName: "package.json",
+        sourceFileName: "manifest.template.json",
+    },
+    {
+        destinationFileName: "tsconfig.json",
+        sourceFileName: "tsconfig.json",
+    },
 ];
 
-/** Directory containing the workspace package sources. */
+/** Directory containing the vendorable package sources. */
 const packageDirectoryPath = dirname(fileURLToPath(import.meta.url));
 /** Relative destination directory used when vendoring this package. */
 const vendoredPackageDirectoryRelativePath =
@@ -66,6 +93,21 @@ const defaultDeveloperIndexRelativePath = join(
     "site-docs",
     "developer",
     "index.md"
+);
+/** Default repository-local API wrapper path. */
+const defaultScriptApiWrapperRelativePath = join(
+    "scripts",
+    "docusaurus-site-contract.mjs"
+);
+/** Default repository-local validation wrapper path. */
+const defaultScriptValidateWrapperRelativePath = join(
+    "scripts",
+    "validate-docusaurus-site-contract.mjs"
+);
+/** Default repository-local init wrapper path. */
+const defaultScriptInitWrapperRelativePath = join(
+    "scripts",
+    "init-docusaurus-site-contract.mjs"
 );
 
 /**
@@ -171,26 +213,6 @@ const writeJsonFile = async (absolutePath, value) => {
 };
 
 /**
- * Upsert a string into an array if it is not already present.
- *
- * @param {unknown} currentValue
- * @param {string} entry
- *
- * @returns {string[]}
- */
-const upsertStringArrayEntry = (currentValue, entry) => {
-    const arrayValue = Array.isArray(currentValue)
-        ? currentValue.filter((item) => typeof item === "string")
-        : [];
-
-    if (!arrayValue.includes(entry)) {
-        arrayValue.push(entry);
-    }
-
-    return arrayValue;
-};
-
-/**
  * Check whether an unknown value is a plain record.
  *
  * @param {unknown} value
@@ -261,8 +283,6 @@ const inferRepositoryMetadata = (packageJson) => {
  * Create the generated contract file contents.
  *
  * @param {Readonly<{
- *     cliInvocationSnippet: string;
- *     packageImportPath: string;
  *     packageName: string;
  *     repositoryOwner: string;
  *     repoName: string;
@@ -271,8 +291,6 @@ const inferRepositoryMetadata = (packageJson) => {
  * @returns {string}
  */
 const createSiteContractTemplate = ({
-    cliInvocationSnippet,
-    packageImportPath,
     packageName,
     repoName,
     repositoryOwner,
@@ -292,7 +310,7 @@ const createSiteContractTemplate = ({
  * - repo: ${repoName}
  */
 
-import { defineDocusaurusSiteContract } from ${JSON.stringify(packageImportPath)};
+import { defineDocusaurusSiteContract } from "../../scripts/docusaurus-site-contract.mjs";
 
 const siteContract = defineDocusaurusSiteContract({
     docusaurusConfig: {
@@ -302,29 +320,12 @@ const siteContract = defineDocusaurusSiteContract({
             "themeConfig",
         ],
     },
-    packageJsonFiles: [
-        {
-            path: "package.json",
-            requiredScripts: [
-                {
-                    includes: ${JSON.stringify(cliInvocationSnippet)},
-                    name: "docs:check-site-contract",
-                },
-            ],
-        },
-        {
-            path: "docs/docusaurus/package.json",
-            requiredScripts: [
-                {
-                    includes: "docs:check-site-contract",
-                    name: "build",
-                },
-            ],
-        },
-    ],
     requiredFiles: [
         "docs/docusaurus/docusaurus.config.ts",
         "docs/docusaurus/site-contract.config.mjs",
+        "scripts/docusaurus-site-contract.mjs",
+        "scripts/init-docusaurus-site-contract.mjs",
+        "scripts/validate-docusaurus-site-contract.mjs",
     ],
     // Optional once the repository settles on stronger docs-site conventions:
     // manifestFiles: [
@@ -352,13 +353,12 @@ export default siteContract;
  * Create the generated maintainer guide contents.
  *
  * @param {Readonly<{
- *     useVendoredPackage: boolean;
  *     packageName: string;
  * }>} options
  *
  * @returns {string}
  */
-const createGuideTemplate = ({ packageName, useVendoredPackage }) =>
+const createGuideTemplate = ({ packageName }) =>
     [
         "---",
         "title: Docusaurus site contract",
@@ -367,44 +367,37 @@ const createGuideTemplate = ({ packageName, useVendoredPackage }) =>
         "",
         "# Docusaurus site contract",
         "",
-        "This repository uses the private local `docusaurus-site-contract` workspace package to validate docs-site structure before docs builds and release checks.",
+        "This repository keeps the Docusaurus site contract runnable through repository-local scripts so template-derived repos can remove the package cleanly without first editing npm package files.",
         "",
         "## Quick start",
         "",
-        useVendoredPackage
-            ? "If this repository already contains the private workspace package, run the initializer from the repository root:"
-            : "If this repository already has the package installed from npm or linked locally, run the initializer from the repository root:",
+        "If this repository already contains the vendored package or has it installed from npm, run the initializer from the repository root:",
         "",
         "```bash",
-        useVendoredPackage
-            ? "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package"
-            : "docusaurus-site-contract init --root . --skip-vendor-package",
+        "node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package",
         "```",
-        "",
-        "If the repository exposes a root npm script for initialization, you can use that instead.",
         "",
         "To bootstrap a different ESLint-plugin repository from a template repo that already contains this package, run the command from the source repo and point `--root` at the target repo:",
         "",
         "```bash",
-        "node packages/docusaurus-site-contract/cli.mjs init --root ../your-eslint-plugin-repo",
+        "node scripts/init-docusaurus-site-contract.mjs --root ../your-eslint-plugin-repo",
         "```",
         "",
         "Preview the bootstrap plan without mutating files:",
         "",
         "```bash",
-        useVendoredPackage
-            ? "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package --dry-run --json"
-            : "docusaurus-site-contract init --root . --skip-vendor-package --dry-run --json",
+        "node scripts/init-docusaurus-site-contract.mjs --root . --skip-vendor-package --dry-run --json",
         "```",
         "",
         "## What init writes",
         "",
         "The init command can scaffold and patch the following surfaces:",
         "",
+        "- `scripts/docusaurus-site-contract.mjs`",
+        "- `scripts/init-docusaurus-site-contract.mjs`",
+        "- `scripts/validate-docusaurus-site-contract.mjs`",
         "- `docs/docusaurus/site-contract.config.mjs`",
         "- `docs/docusaurus/site-docs/developer/docusaurus-site-contract.md`",
-        "- root `package.json` script wiring",
-        "- docs workspace build-script wiring",
         "- developer docs registration in `sidebars.ts` and `site-docs/developer/index.md` when those files follow recognizable template structure",
         "- the local private package under `packages/docusaurus-site-contract` when vendoring is enabled",
         "",
@@ -420,11 +413,110 @@ const createGuideTemplate = ({ packageName, useVendoredPackage }) =>
         "   - package-specific links and badges",
         "   - optional search-plugin and manifest requirements",
         "3. Confirm that `sidebars.ts` and the developer docs index were patched the way you want. If their layout was too custom for automatic registration, add the guide link manually.",
-        "4. Run `npm run docs:check-site-contract`.",
+        "4. Run `node scripts/validate-docusaurus-site-contract.mjs`.",
         "5. Run the repo's docs build and link validation.",
         "6. Commit the generated package, contract file, and docs updates together.",
         "",
     ].join("\n");
+
+/**
+ * Create the generated repository-local API wrapper.
+ *
+ * @param {Readonly<{
+ *     packageImportPath: string;
+ * }>} options
+ *
+ * @returns {string}
+ */
+const createApiWrapperTemplate = ({ packageImportPath }) => `/**
+ * @packageDocumentation
+ * Repository-local compatibility wrapper that re-exports the Docusaurus site
+ * contract implementation.
+ */
+
+import {
+    defineDocusaurusSiteContract as defineDocusaurusSiteContractFromPackage,
+    formatDocusaurusSiteContractViolations as formatDocusaurusSiteContractViolationsFromPackage,
+    validateDocusaurusSiteContract as validateDocusaurusSiteContractFromPackage,
+} from ${JSON.stringify(packageImportPath)};
+
+/**
+ * @param {import(${JSON.stringify(packageImportPath)}).DocusaurusSiteContract} siteContract
+ */
+const defineDocusaurusSiteContract = (siteContract) =>
+    defineDocusaurusSiteContractFromPackage(siteContract);
+
+/**
+ * @param {readonly import(${JSON.stringify(packageImportPath)}).ContractViolation[]} violations
+ * @param {string} rootDirectoryPath
+ */
+const formatDocusaurusSiteContractViolations = (
+    violations,
+    rootDirectoryPath
+) =>
+    formatDocusaurusSiteContractViolationsFromPackage(
+        violations,
+        rootDirectoryPath
+    );
+
+/**
+ * @param {import(${JSON.stringify(packageImportPath)}).DocusaurusSiteContract} siteContract
+ */
+const validateDocusaurusSiteContract = async (siteContract) =>
+    validateDocusaurusSiteContractFromPackage(siteContract);
+
+export {
+    defineDocusaurusSiteContract,
+    formatDocusaurusSiteContractViolations,
+    validateDocusaurusSiteContract,
+};
+`;
+
+/**
+ * Create the generated repository-local validation wrapper.
+ *
+ * @param {Readonly<{
+ *     cliImportPath: string;
+ * }>} options
+ *
+ * @returns {string}
+ */
+const createValidateWrapperTemplate = ({
+    cliImportPath,
+}) => `#!/usr/bin/env node
+
+/**
+ * @packageDocumentation
+ * Repository-local wrapper that runs the Docusaurus site contract validator
+ * manually without package.json script wiring.
+ */
+
+import { runCli } from ${JSON.stringify(cliImportPath)};
+
+await runCli(process.argv.slice(2));
+`;
+
+/**
+ * Create the generated repository-local init wrapper.
+ *
+ * @param {Readonly<{
+ *     cliImportPath: string;
+ * }>} options
+ *
+ * @returns {string}
+ */
+const createInitWrapperTemplate = ({ cliImportPath }) => `#!/usr/bin/env node
+
+/**
+ * @packageDocumentation
+ * Repository-local wrapper that runs the Docusaurus site contract initializer
+ * manually without package.json script wiring.
+ */
+
+import { runCli } from ${JSON.stringify(cliImportPath)};
+
+await runCli(["init", ...process.argv.slice(2)]);
+`;
 
 /**
  * Update a text file when present using a string transformer.
@@ -587,41 +679,7 @@ const patchDeveloperIndexRegistration = async (
 };
 
 /**
- * Prefix a script with another command when it is not already present.
- *
- * @param {string} commandPrefix
- * @param {string | undefined} existingScript
- *
- * @returns {string}
- */
-const prefixScript = (commandPrefix, existingScript) => {
-    if (existingScript === undefined || existingScript.trim().length === 0) {
-        return commandPrefix;
-    }
-
-    if (existingScript.includes(commandPrefix)) {
-        return existingScript;
-    }
-
-    return `${commandPrefix} && ${existingScript}`;
-};
-
-/**
- * Remove an exact command fragment from an `&&`-chained npm script.
- *
- * @param {string} existingScript
- * @param {string} fragment
- *
- * @returns {string}
- */
-const removeChainedCommandFragment = (existingScript, fragment) =>
-    existingScript
-        .split(" && ")
-        .filter((command) => command.trim() !== fragment)
-        .join(" && ");
-
-/**
- * Create the vendored workspace package manifest for a target repository.
+ * Create the vendored package manifest for a target repository.
  *
  * @param {Readonly<Record<string, unknown>>} sourcePackageJson
  * @param {Readonly<Record<string, unknown>>} targetRootPackageJson
@@ -636,7 +694,7 @@ const createVendoredPackageJson = (
     const vendoredPackageJson = {
         ...sourcePackageJson,
         description:
-            "Workspace package for validating Docusaurus docs-site contracts in this repository.",
+            "Local package for validating Docusaurus docs-site contracts in this repository.",
         private: true,
     };
 
@@ -653,7 +711,7 @@ const createVendoredPackageJson = (
 };
 
 /**
- * Copy the local workspace package into another repository.
+ * Copy the local vendorable package into another repository.
  *
  * @param {string} targetRootDirectoryPath
  * @param {Readonly<Record<string, unknown>>} targetRootPackageJson
@@ -679,9 +737,15 @@ const vendorWorkspacePackage = async (
         await mkdir(targetPackageDirectoryPath, { recursive: true });
     }
 
-    for (const fileName of packageFilesToVendor) {
-        const sourcePath = resolve(packageDirectoryPath, fileName);
-        const destinationPath = resolve(targetPackageDirectoryPath, fileName);
+    for (const {
+        destinationFileName,
+        sourceFileName,
+    } of packageFilesToVendor) {
+        const sourcePath = resolve(packageDirectoryPath, sourceFileName);
+        const destinationPath = resolve(
+            targetPackageDirectoryPath,
+            destinationFileName
+        );
 
         if (sourcePath === destinationPath) {
             continue;
@@ -694,7 +758,7 @@ const vendorWorkspacePackage = async (
         }
 
         if (!dryRun) {
-            if (fileName === "package.json") {
+            if (destinationFileName === "package.json") {
                 const sourcePackageJson = await readJsonFile(sourcePath);
                 const vendoredPackageJson = createVendoredPackageJson(
                     sourcePackageJson,
@@ -757,162 +821,51 @@ const writeGeneratedFile = async (
 };
 
 /**
- * Update the target repository root package.json.
+ * Write repository-local script wrappers that delegate to the package CLI and
+ * library entrypoints.
  *
  * @param {string} targetRootDirectoryPath
- * @param {boolean} useVendoredPackage
+ * @param {Readonly<{
+ *     cliImportPath: string;
+ *     packageImportPath: string;
+ * }>} options
+ * @param {boolean} force
  * @param {InitAction[]} actions
  * @param {boolean} dryRun
  *
  * @returns {Promise<void>}
  */
-const patchRootPackageJson = async (
+const writeScriptWrappers = async (
     targetRootDirectoryPath,
-    useVendoredPackage,
+    { cliImportPath, packageImportPath },
+    force,
     actions,
     dryRun
 ) => {
-    const packageJsonPath = resolve(targetRootDirectoryPath, "package.json");
-    const originalContents = await readFile(packageJsonPath, "utf8");
-    /** @type {Record<string, unknown>} */
-    const packageJson = JSON.parse(originalContents);
-    const scripts =
-        typeof packageJson["scripts"] === "object" &&
-        packageJson["scripts"] !== null
-            ? /** @type {Record<string, string>} */ (packageJson["scripts"])
-            : {};
-    const checkCommand = useVendoredPackage
-        ? "node packages/docusaurus-site-contract/cli.mjs --config docs/docusaurus/site-contract.config.mjs"
-        : "docusaurus-site-contract --config docs/docusaurus/site-contract.config.mjs";
-
-    scripts["docs:check-site-contract"] = checkCommand;
-    scripts["docs:site-contract:init"] = useVendoredPackage
-        ? "node packages/docusaurus-site-contract/cli.mjs init --root . --skip-vendor-package"
-        : "docusaurus-site-contract init --root . --skip-vendor-package";
-
-    if (typeof scripts["typecheck"] === "string") {
-        const workspaceTypecheckCommand =
-            "npm run --workspace packages/docusaurus-site-contract typecheck";
-
-        if (useVendoredPackage) {
-            if (!scripts["typecheck"].includes(workspaceTypecheckCommand)) {
-                scripts["typecheck"] =
-                    `${scripts["typecheck"]} && ${workspaceTypecheckCommand}`;
-            }
-        } else {
-            scripts["typecheck"] = removeChainedCommandFragment(
-                scripts["typecheck"],
-                workspaceTypecheckCommand
-            );
-        }
-    }
-
-    /**
-     * @param {string} scriptName
-     */
-    const updatePackageSortScript = (scriptName) => {
-        const scriptValue = scripts[scriptName];
-
-        if (typeof scriptValue !== "string") {
-            return;
-        }
-
-        const packagePath =
-            '"./packages/docusaurus-site-contract/package.json"';
-
-        if (useVendoredPackage && !scriptValue.includes(packagePath)) {
-            scripts[scriptName] = `${scriptValue} ${packagePath}`;
-            return;
-        }
-
-        if (!useVendoredPackage && scriptValue.includes(packagePath)) {
-            scripts[scriptName] = scriptValue.replace(` ${packagePath}`, "");
-        }
-    };
-
-    updatePackageSortScript("lint:package-sort");
-    updatePackageSortScript("lint:package-sort-check");
-
-    packageJson["scripts"] = scripts;
-
-    if (useVendoredPackage) {
-        packageJson["workspaces"] = upsertStringArrayEntry(
-            packageJson["workspaces"],
-            vendoredPackageDirectoryRelativePath
-        );
-    }
-
-    const nextContents = `${JSON.stringify(packageJson, null, 4)}\n`;
-
-    if (nextContents === originalContents) {
-        return;
-    }
-
-    if (!dryRun) {
-        await writeJsonFile(packageJsonPath, packageJson);
-    }
-
-    recordInitAction(actions, "updated", "package.json", dryRun);
-};
-
-/**
- * Update the docs workspace package.json when present.
- *
- * @param {string} targetRootDirectoryPath
- * @param {InitAction[]} actions
- * @param {boolean} dryRun
- *
- * @returns {Promise<void>}
- */
-const patchDocsWorkspacePackageJson = async (
-    targetRootDirectoryPath,
-    actions,
-    dryRun
-) => {
-    const docsPackageJsonRelativePath = join(
-        "docs",
-        "docusaurus",
-        "package.json"
-    );
-    const docsPackageJsonPath = resolve(
+    await writeGeneratedFile(
         targetRootDirectoryPath,
-        docsPackageJsonRelativePath
+        defaultScriptApiWrapperRelativePath,
+        createApiWrapperTemplate({ packageImportPath }),
+        force,
+        actions,
+        dryRun
     );
-
-    if (!(await pathExists(docsPackageJsonPath))) {
-        return;
-    }
-
-    const originalContents = await readFile(docsPackageJsonPath, "utf8");
-    /** @type {Record<string, unknown>} */
-    const packageJson = JSON.parse(originalContents);
-    const scripts =
-        typeof packageJson["scripts"] === "object" &&
-        packageJson["scripts"] !== null
-            ? /** @type {Record<string, string>} */ (packageJson["scripts"])
-            : {};
-    const checkCommand = "npm --prefix ../.. run docs:check-site-contract";
-
-    for (const scriptName of [
-        "build",
-        "build:fast",
-        "build:local",
-    ]) {
-        scripts[scriptName] = prefixScript(checkCommand, scripts[scriptName]);
-    }
-
-    packageJson["scripts"] = scripts;
-    const nextContents = `${JSON.stringify(packageJson, null, 4)}\n`;
-
-    if (nextContents === originalContents) {
-        return;
-    }
-
-    if (!dryRun) {
-        await writeJsonFile(docsPackageJsonPath, packageJson);
-    }
-
-    recordInitAction(actions, "updated", docsPackageJsonRelativePath, dryRun);
+    await writeGeneratedFile(
+        targetRootDirectoryPath,
+        defaultScriptValidateWrapperRelativePath,
+        createValidateWrapperTemplate({ cliImportPath }),
+        force,
+        actions,
+        dryRun
+    );
+    await writeGeneratedFile(
+        targetRootDirectoryPath,
+        defaultScriptInitWrapperRelativePath,
+        createInitWrapperTemplate({ cliImportPath }),
+        force,
+        actions,
+        dryRun
+    );
 };
 
 /**
@@ -966,11 +919,11 @@ const runInitCommand = async (options) => {
     const useVendoredPackage =
         shouldVendorPackage || localVendoredPackageAlreadyExists;
     const packageImportPath = useVendoredPackage
-        ? "../../packages/docusaurus-site-contract/index.mjs"
+        ? "../packages/docusaurus-site-contract/index.mjs"
         : "docusaurus-site-contract";
-    const cliInvocationSnippet = useVendoredPackage
-        ? "packages/docusaurus-site-contract/cli.mjs"
-        : "docusaurus-site-contract";
+    const cliImportPath = useVendoredPackage
+        ? "../packages/docusaurus-site-contract/cli.mjs"
+        : "docusaurus-site-contract/cli";
     /** @type {InitAction[]} */
     const actions = [];
 
@@ -984,14 +937,13 @@ const runInitCommand = async (options) => {
         );
     }
 
-    await patchRootPackageJson(
+    await writeScriptWrappers(
         targetRootDirectoryPath,
-        useVendoredPackage,
-        actions,
-        dryRun
-    );
-    await patchDocsWorkspacePackageJson(
-        targetRootDirectoryPath,
+        {
+            cliImportPath,
+            packageImportPath,
+        },
+        force,
         actions,
         dryRun
     );
@@ -999,8 +951,6 @@ const runInitCommand = async (options) => {
         targetRootDirectoryPath,
         defaultContractRelativePath,
         createSiteContractTemplate({
-            cliInvocationSnippet,
-            packageImportPath,
             packageName,
             repoName,
             repositoryOwner,
@@ -1014,10 +964,7 @@ const runInitCommand = async (options) => {
         await writeGeneratedFile(
             targetRootDirectoryPath,
             defaultGuideRelativePath,
-            createGuideTemplate({
-                packageName,
-                useVendoredPackage,
-            }),
+            createGuideTemplate({ packageName }),
             force,
             actions,
             dryRun

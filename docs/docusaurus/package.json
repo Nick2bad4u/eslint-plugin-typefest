@@ -35,9 +35,9 @@
         "site-docs"
     ],
     "scripts": {
-        "build": "npm --prefix ../.. run docs:check-site-contract && npm run docs:api && npm --prefix ../.. run build:eslint-inspector && npm --prefix ../.. run build:stylelint-inspector && docusaurus build",
-        "build:fast": "npm --prefix ../.. run docs:check-site-contract && cross-env DOCUSAURUS_ENABLE_EXPERIMENTAL=true docusaurus build",
-        "build:local": "npm --prefix ../.. run docs:check-site-contract && npm run docs:api:local && npm --prefix ../.. run build:eslint-inspector:local && npm --prefix ../.. run build:stylelint-inspector:local && cross-env NODE_OPTIONS=--no-deprecation docusaurus build",
+        "build": "npm run docs:api && npm --prefix ../.. run build:eslint-inspector && npm --prefix ../.. run build:stylelint-inspector && docusaurus build",
+        "build:fast": "cross-env DOCUSAURUS_ENABLE_EXPERIMENTAL=true docusaurus build",
+        "build:local": "npm run docs:api:local && npm --prefix ../.. run build:eslint-inspector:local && npm --prefix ../.. run build:stylelint-inspector:local && cross-env NODE_OPTIONS=--no-deprecation docusaurus build",
         "clear": "docusaurus clear",
         "deploy": "docusaurus deploy",
         "docs:api": "node -e \"const { execSync } = require('node:child_process'); const isCi = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true'; const command = isCi ? 'typedoc --options typedoc.config.json' : 'node ../../scripts/run-typedoc-docs.mjs --config typedoc.config.json'; execSync(command, { stdio: 'inherit' });\"",
