@@ -26,10 +26,12 @@ import { fileURLToPath } from "node:url";
  * }>} InitOptions
  */
 
-/** @type {readonly Readonly<{
-    destinationFileName: string;
-    sourceFileName: string;
-}>[]} */
+/**
+ * @type {readonly Readonly<{
+ *     destinationFileName: string;
+ *     sourceFileName: string;
+ * }>[]}
+ */
 const packageFilesToVendor = [
     {
         destinationFileName: "README.md",
