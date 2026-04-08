@@ -66,10 +66,12 @@ import * as pluginJSDoc from "eslint-plugin-require-jsdoc";
 import sdl from "eslint-plugin-sdl-2";
 import pluginSecurity from "eslint-plugin-security";
 import sonarjs, { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
+import stylelint2 from "eslint-plugin-stylelint-2";
 import pluginTestingLibrary from "eslint-plugin-testing-library";
 import eslintPluginToml from "eslint-plugin-toml";
 import pluginTsdoc from "eslint-plugin-tsdoc";
 import tsdocRequire from "eslint-plugin-tsdoc-require-2";
+import typedocPlugin from "eslint-plugin-typedoc";
 import pluginUndefinedCss from "eslint-plugin-undefined-css-classes";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
@@ -149,7 +151,6 @@ const HIDE_PROGRESS_FILENAMES = ESLINT_PROGRESS_MODE === "nofile";
 /** @type {import("eslint").Linter.Config} */
 const fileProgressOverridesConfig = {
     name: "CLI: file progress overrides",
-    plugins: { "file-progress": progress },
     rules: {
         // The preset already auto-hides on CI, but we also support explicit
         // local toggles.
@@ -301,6 +302,20 @@ export default defineConfig([
     sdl.configs.required,
     githubActions.configs.all,
     vite.configs.all,
+    stylelint2.configs.all,
+    {
+        ...typedocPlugin.configs.recommended,
+        name: "TypeDoc recommended (repo tuned)",
+        rules: {
+            ...typedocPlugin.configs.recommended.rules,
+            "typedoc/no-unknown-tags": [
+                "error",
+                {
+                    additionalTags: ["typescript-eslint"],
+                },
+            ],
+        },
+    },
     {
         ...immutable.configs.all,
         files: ["functional/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
@@ -3044,13 +3059,14 @@ export default defineConfig([
             "**/*.test.{ts,tsx}",
             "**/*.spec.{ts,tsx}",
             "src/test/**/*.{ts,tsx}",
-            "tests/**/*.{ts,tsx}",
+            "{tests,test}/**/*.{ts,tsx}",
         ],
         name: "Tests: relax strict void rules",
         rules: {
             // This rule is extremely noisy in tests (especially property-based
             // tests) where callback return values are often incidental.
             "@typescript-eslint/strict-void-return": "off",
+            "typedoc/require-exported-doc-comment": "off", // Tests often have non-exported members where doc comments would be low-value and high-effort.
         },
     },
     {
@@ -3064,6 +3080,7 @@ export default defineConfig([
             // Scripts commonly use void/Promise-returning callbacks where the
             // return value is intentionally ignored.
             "@typescript-eslint/strict-void-return": "off",
+            "typedoc/require-exported-doc-comment": "off", // Benchmarks and scripts often have non-exported members where doc comments would be low-value and high-effort.
         },
     },
     {

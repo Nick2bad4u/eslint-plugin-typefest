@@ -129,6 +129,9 @@ const homeCards = [
     },
 ] as const satisfies readonly HomeCard[];
 
+/**
+ * Render the Docusaurus landing page for the documentation site.
+ */
 export default function Home() {
     const logoSrc = useBaseUrl("/img/logo.svg");
 

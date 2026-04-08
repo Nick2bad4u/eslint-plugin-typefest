@@ -9,8 +9,8 @@
     },
     "contributors": [
         {
-            "name": "Nick2bad4u",
             "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "name": "Nick2bad4u",
             "url": "https://github.com/Nick2bad4u"
         }
     ],
@@ -34,8 +34,8 @@
     "devEngines": {
         "runtime": {
             "name": "node",
-            "version": ">=22.0.0",
-            "onFail": "error"
+            "onFail": "error",
+            "version": ">=22.0.0"
         }
     },
     "engines": {
@@ -43,12 +43,12 @@
     },
     "exports": {
         ".": {
-            "types": "./index.d.mts",
-            "default": "./index.mjs"
+            "default": "./index.mjs",
+            "types": "./index.d.mts"
         },
         "./cli": {
-            "types": "./cli.d.mts",
-            "default": "./cli.mjs"
+            "default": "./cli.mjs",
+            "types": "./cli.d.mts"
         },
         "./package.json": "./package.json"
     },

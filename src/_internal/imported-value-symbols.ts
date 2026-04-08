@@ -197,8 +197,7 @@ export const collectDirectNamedValueImportsFromSource = (
  * Verify that a local identifier resolves to an import binding from the
  * expected module at a specific reference location.
  *
- * @param sourceCode - SourceCode instance for scope resolution.
- * @param referenceNode - AST node where the identifier will be referenced.
+ * @param sourceScope - Scope chain root used to resolve the local name.
  * @param localName - Candidate local alias name.
  * @param sourceModuleName - Expected source module for the import binding.
  *

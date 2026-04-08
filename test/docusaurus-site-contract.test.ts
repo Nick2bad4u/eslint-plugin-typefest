@@ -648,12 +648,12 @@ describe("docusaurus site contract validator", () => {
             ).resolves.toBeDefined();
 
             expect(rootPackageJson.workspaces).toBeUndefined();
-            expect(rootPackageJson.scripts?.["docs:check-site-contract"]).toBe(
-                undefined
-            );
-            expect(rootPackageJson.scripts?.["docs:site-contract:init"]).toBe(
-                undefined
-            );
+            expect(
+                rootPackageJson.scripts?.["docs:check-site-contract"]
+            ).toBeUndefined();
+            expect(
+                rootPackageJson.scripts?.["docs:site-contract:init"]
+            ).toBeUndefined();
             expect(rootPackageJson.scripts?.["typecheck"]).toBe("tsc --noEmit");
             expect(rootPackageJson.scripts?.["lint:package-sort"]).toBe(
                 'sort-package-json "./package.json"'
@@ -917,12 +917,12 @@ describe("docusaurus site contract validator", () => {
             ).rejects.toThrow("ENOENT: no such file or directory, stat");
 
             expect(rootPackageJson.workspaces).toBeUndefined();
-            expect(rootPackageJson.scripts?.["docs:check-site-contract"]).toBe(
-                undefined
-            );
-            expect(rootPackageJson.scripts?.["docs:site-contract:init"]).toBe(
-                undefined
-            );
+            expect(
+                rootPackageJson.scripts?.["docs:check-site-contract"]
+            ).toBeUndefined();
+            expect(
+                rootPackageJson.scripts?.["docs:site-contract:init"]
+            ).toBeUndefined();
             expect(rootPackageJson.scripts?.["typecheck"]).toBe("tsc --noEmit");
             expect(rootPackageJson.scripts?.["lint:package-sort"]).toBe(
                 'sort-package-json "./package.json"'
