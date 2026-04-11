@@ -104,7 +104,7 @@ const suppressKnownWebpackWarningsPlugin: PluginModule = () => {
                      * not a site-level problem.
                      */
                     (warning: unknown) => {
-                        const warningRecord = warning as unknown as
+                        const warningRecord = warning as
                             | Readonly<Record<string, unknown>>
                             | undefined;
                         const warningMessage = warningRecord?.["message"];
