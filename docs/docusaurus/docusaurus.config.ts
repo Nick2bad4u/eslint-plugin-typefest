@@ -127,7 +127,7 @@ const suppressKnownWebpackWarningsPlugin: PluginModule = () => {
 const futureConfig = {
     ...(enableExperimentalFaster
         ? {
-              experimental_faster: {
+              faster: {
                   mdxCrossCompilerCache: true,
                   rspackBundler: true,
                   rspackPersistentCache: true,
@@ -141,16 +141,24 @@ const futureConfig = {
         // (CssMinimizer parsing errors -> large chunks of CSS dropped), which
         // makes many Infima (--ifm-*) variables undefined across the site.
         // Re-enable only after verifying the build output CSS is valid.
+        siteStorageNamespacing: true,
+        fasterByDefault: true,
+        removeLegacyPostBuildHeadAttribute: true,
+        mdx1CompatDisabledByDefault: true,
         useCssCascadeLayers: false,
     },
 } satisfies Config["future"];
 
 /** Full Docusaurus site configuration exported to the build/runtime. */
 const config: Config = {
+    storage: {
+        type: "localStorage",
+        namespace: true,
+    },
     baseUrl,
     baseUrlIssueBanner: true,
     deploymentBranch: "gh-pages",
-    favicon: "img/logo.svg",
+    favicon: "img/favicon.ico",
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: futureConfig,
     clientModules: [modernEnhancementsClientModule],
@@ -294,6 +302,11 @@ const config: Config = {
                     feedOptions: {
                         type: ["rss", "atom"],
                         xslt: true,
+                        title: "eslint-plugin-typefest Blog",
+                        copyright: `© ${new Date().getFullYear()} Nick2bad4u`,
+                        description:
+                            "Updates, architecture notes, and practical guidance for eslint-plugin-typefest users.",
+                        language: "en",
                     },
                     onInlineAuthors: "warn",
                     onInlineTags: "warn",
