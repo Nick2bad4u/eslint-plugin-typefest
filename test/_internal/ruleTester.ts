@@ -12,6 +12,13 @@ import { afterAll, describe, it } from "vitest";
 
 import typefestPlugin from "../../src/plugin";
 
+/** Shared timeout applied to RuleTester-generated Vitest cases. */
+const ruleTesterCaseTimeoutMilliseconds = 120_000;
+/** Stable Vitest options object used for every RuleTester case wrapper. */
+const ruleTesterCaseTimeoutOptions = Object.freeze({
+    timeout: ruleTesterCaseTimeoutMilliseconds,
+});
+
 /**
  * Assert that a dynamic runtime value is callable for RuleTester hook wiring.
  *
@@ -32,19 +39,74 @@ const assertRuleTesterHook: (
     }
 };
 
+/** Callback shape used by RuleTester-generated Vitest test cases. */
+type RuleTesterCaseCallback = Parameters<typeof RuleTester.it>[1];
+
+/**
+ * Vitest `it`-style hook shape that accepts per-test options.
+ *
+ * @remarks
+ * `@typescript-eslint/rule-tester` invokes its framework adapter as `(name,
+ * callback)`. That means an outer `describe(..., {timeout})` does not reliably
+ * propagate to the inner generated Vitest test cases. We therefore inject the
+ * timeout at the `it(...)` boundary itself.
+ */
+type TimedVitestTestHook = (
+    text: string,
+    options: Readonly<{ timeout: number }>,
+    callback: RuleTesterCaseCallback
+) => unknown;
+
+/**
+ * Run a Vitest `it`-style hook with the repository-standard RuleTester timeout.
+ *
+ * @param callback - RuleTester-generated test body.
+ * @param hook - Vitest test hook to execute.
+ * @param hookName - Human-readable hook label for diagnostics.
+ * @param text - Display name for the test case.
+ */
+const runTimedRuleTesterCase = ({
+    callback,
+    hook,
+    hookName,
+    text,
+}: Readonly<{
+    callback: RuleTesterCaseCallback;
+    hook: unknown;
+    hookName: string;
+    text: string;
+}>): void => {
+    assertRuleTesterHook(hook, hookName);
+    Reflect.apply(hook as TimedVitestTestHook, undefined, [
+        text,
+        ruleTesterCaseTimeoutOptions,
+        callback,
+    ]);
+};
+
 assertRuleTesterHook(afterAll, "afterAll");
 RuleTester.afterAll = afterAll as unknown as typeof RuleTester.afterAll;
 assertRuleTesterHook(describe, "describe");
 RuleTester.describe = describe as unknown as typeof RuleTester.describe;
 assertRuleTesterHook(it, "it");
-RuleTester.it = it;
+RuleTester.it = ((text, callback) => {
+    runTimedRuleTesterCase({
+        callback,
+        hook: it,
+        hookName: "it",
+        text,
+    });
+}) as typeof RuleTester.it;
 const vitestItOnly: unknown = Reflect.get(it, "only");
 assertRuleTesterHook(vitestItOnly, "it.only");
-RuleTester.itOnly = (
-    ...arguments_: readonly [...Parameters<typeof RuleTester.itOnly>]
-) => {
-    Reflect.apply(vitestItOnly, undefined, arguments_);
-};
+RuleTester.itOnly = ((text, callback) => {
+    runTimedRuleTesterCase({
+        callback,
+        hook: vitestItOnly,
+        hookName: "it.only",
+        text,
+    });
+}) as typeof RuleTester.itOnly;
 
 /** Rule module parameter type accepted by `RuleTester#run`. */
 type PluginRuleModule = Parameters<RuleTester["run"]>[1];
