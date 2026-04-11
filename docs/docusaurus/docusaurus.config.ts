@@ -90,31 +90,49 @@ const vscodeLanguageServerTypesEsmEntry = resolveOptionalModule(
  * packages are actually installed in the current workspace.
  */
 const suppressKnownWebpackWarningsPlugin: PluginModule = () => {
-    if (
-        vscodeCssLanguageServiceEsmEntry === undefined ||
-        vscodeLanguageServerTypesEsmEntry === undefined
-    ) {
-        return null;
-    }
-
     return {
         configureWebpack() {
             return {
                 ignoreWarnings: [
-                    {
-                        message:
-                            /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/u,
-                        module: /vscode-languageserver-types[\\/]lib[\\/]umd[\\/]main\.js/u,
+                    /**
+                     * Suppress the known webpack critical-dependency warning
+                     * emitted by the UMD build of vscode-languageserver-types.
+                     *
+                     * We already alias to the ESM entry when available, but
+                     * some transitive resolution paths still surface the UMD
+                     * warning during docs builds. This is third-party noise,
+                     * not a site-level problem.
+                     */
+                    (warning: unknown) => {
+                        const warningRecord = warning as unknown as
+                            | Readonly<Record<string, unknown>>
+                            | undefined;
+                        const warningMessage = warningRecord?.["message"];
+
+                        return (
+                            typeof warningMessage === "string" &&
+                            warningMessage.includes(
+                                "Critical dependency: require function is used in a way in which dependencies cannot be statically extracted"
+                            )
+                        );
                     },
                 ],
                 resolve: {
                     alias: {
-                        "vscode-css-languageservice$":
-                            vscodeCssLanguageServiceEsmEntry,
-                        "vscode-languageserver-types$":
-                            vscodeLanguageServerTypesEsmEntry,
-                        "vscode-languageserver-types/lib/umd/main.js$":
-                            vscodeLanguageServerTypesEsmEntry,
+                        ...(vscodeCssLanguageServiceEsmEntry === undefined
+                            ? {}
+                            : {
+                                  "vscode-css-languageservice$":
+                                      vscodeCssLanguageServiceEsmEntry,
+                              }),
+                        ...(vscodeLanguageServerTypesEsmEntry === undefined
+                            ? {}
+                            : {
+                                  "vscode-languageserver-types$":
+                                      vscodeLanguageServerTypesEsmEntry,
+                                  "vscode-languageserver-types/lib/umd/main.js$":
+                                      vscodeLanguageServerTypesEsmEntry,
+                              }),
                     },
                 },
             };
