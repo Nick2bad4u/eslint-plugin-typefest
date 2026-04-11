@@ -204,7 +204,7 @@ const siteContract = defineDocusaurusSiteContract({
                 },
             ],
             requiredSnippets: [
-                'favicon: "img/logo.svg"',
+                'favicon: "img/favicon.ico"',
                 'searchBarPosition: "left"',
                 'label: "🧪 Experimental"',
             ],
