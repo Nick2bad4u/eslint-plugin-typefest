@@ -32,10 +32,6 @@ declare const styles: {
     readonly heroStats: string;
     readonly heroSubtitle: string;
     readonly heroTitle: string;
-    readonly liveBadgeAnchor: string;
-    readonly liveBadgeImage: string;
-    readonly liveBadgeList: string;
-    readonly liveBadgeListItem: string;
     readonly liveStatsDescription: string;
     readonly liveStatsHeader: string;
     readonly liveStatsKicker: string;

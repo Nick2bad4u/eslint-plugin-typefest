@@ -168,7 +168,7 @@ const futureConfig = {
 } satisfies Config["future"];
 
 /** Full Docusaurus site configuration exported to the build/runtime. */
-const config: Config = {
+const config = {
     storage: {
         type: "localStorage",
         namespace: true,
@@ -430,14 +430,6 @@ const config: Config = {
             {
                 content: "eslint-plugin-typefest",
                 property: "og:site_name",
-            },
-            {
-                content: socialCardImageUrl,
-                property: "og:image",
-            },
-            {
-                content: socialCardImageUrl,
-                name: "twitter:image",
             },
         ],
         footer: {
@@ -756,6 +748,6 @@ const config: Config = {
     title: "eslint-plugin-typefest",
     trailingSlash: false,
     url: siteOrigin,
-};
+} satisfies Config;
 
 export default config;

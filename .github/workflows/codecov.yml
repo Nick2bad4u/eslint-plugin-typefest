@@ -80,7 +80,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   slug: Nick2bad4u/eslint-plugin-typefest
                   files: test-report.junit.xml
-                  flags: unit,${{ matrix.codecov_flag }}
+                  flags: ${{ matrix.codecov_flag }}
                   name: vitest-junit-${{ matrix.codecov_flag }}
                   report_type: test_results
                   fail_ci_if_error: true
@@ -93,7 +93,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
                   slug: Nick2bad4u/eslint-plugin-typefest
                   files: ./coverage/lcov.info
-                  flags: unit,${{ matrix.codecov_flag }}
+                  flags: ${{ matrix.codecov_flag }}
                   name: vitest-unit-coverage-${{ matrix.codecov_flag }}
                   report_type: coverage
                   fail_ci_if_error: true

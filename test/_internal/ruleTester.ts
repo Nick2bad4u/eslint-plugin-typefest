@@ -46,10 +46,10 @@ type RuleTesterCaseCallback = Parameters<typeof RuleTester.it>[1];
  * Vitest `it`-style hook shape that accepts per-test options.
  *
  * @remarks
- * `@typescript-eslint/rule-tester` invokes its framework adapter as `(name,
- * callback)`. That means an outer `describe(..., {timeout})` does not reliably
- * propagate to the inner generated Vitest test cases. We therefore inject the
- * timeout at the `it(...)` boundary itself.
+ * `@typescript-eslint/rule-tester` invokes its framework adapter with two
+ * arguments: the test name and its callback. That means an outer Vitest
+ * describe timeout does not reliably propagate to the inner generated test
+ * cases. We therefore inject the timeout at the `it(...)` boundary itself.
  */
 type TimedVitestTestHook = (
     text: string,

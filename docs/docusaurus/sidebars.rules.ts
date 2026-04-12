@@ -74,7 +74,7 @@ const tsExtrasRuleItems = createRuleItemsByPrefix("prefer-ts-extras-");
 const typeFestRuleItems = createRuleItemsByPrefix("prefer-type-fest-");
 
 /** Complete sidebar structure for docs site navigation. */
-const sidebars: SidebarsConfig = {
+const sidebars = {
     rules: [
         {
             className: "sb-doc-overview",
@@ -241,6 +241,6 @@ const sidebars: SidebarsConfig = {
             ],
         },
     ],
-};
+} satisfies SidebarsConfig;
 
 export default sidebars;
