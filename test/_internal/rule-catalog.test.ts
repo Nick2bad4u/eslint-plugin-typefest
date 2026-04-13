@@ -39,7 +39,7 @@ const withMutatedCatalogEntry = (
 };
 
 describe("rule-catalog", () => {
-    it("stays synchronized with the runtime rules registry", () => {
+    it("contains every runtime rule plus reserved historical ids", () => {
         expect.hasAssertions();
 
         const catalogRuleNames = typefestRuleCatalogEntries
@@ -48,10 +48,21 @@ describe("rule-catalog", () => {
         const registryRuleNames = Object.keys(typefestRules).toSorted(
             (left, right) => left.localeCompare(right)
         );
+        const reservedHistoricalRuleNames = [
+            "prefer-ts-extras-array-find",
+            "prefer-ts-extras-array-find-last",
+            "prefer-ts-extras-array-find-last-index",
+        ];
+        const catalogOnlyRuleNames = catalogRuleNames.filter(
+            (ruleName) => !registryRuleNames.includes(ruleName)
+        );
 
-        expect(catalogRuleNames).toStrictEqual(registryRuleNames);
+        expect(catalogRuleNames).toStrictEqual(
+            expect.arrayContaining(registryRuleNames)
+        );
+        expect(catalogOnlyRuleNames).toStrictEqual(reservedHistoricalRuleNames);
         expect(typefestRuleCatalogEntries).toHaveLength(
-            registryRuleNames.length
+            registryRuleNames.length + reservedHistoricalRuleNames.length
         );
     });
 

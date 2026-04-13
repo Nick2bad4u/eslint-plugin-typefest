@@ -14,7 +14,7 @@ assignees: []
 
 ## Rule / Area
 
-<!-- Example: prefer-ts-extras-array-find, docs/docusaurus, presets, runtime API docs -->
+<!-- Example: prefer-ts-extras-array-at, docs/docusaurus, presets, runtime API docs -->
 
 ## Reproduction
 
@@ -33,7 +33,7 @@ assignees: []
 ### Command and output
 
 ```bash
-# Example: npm run test -- test/prefer-ts-extras-array-find.test.ts
+# Example: npm run test -- test/prefer-ts-extras-array-at.test.ts
 ```
 
 ## Steps to reproduce

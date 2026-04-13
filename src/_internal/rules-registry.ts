@@ -8,9 +8,6 @@ import type { UnknownArray } from "type-fest";
 
 import preferTsExtrasArrayAtRule from "../rules/prefer-ts-extras-array-at.js";
 import preferTsExtrasArrayConcatRule from "../rules/prefer-ts-extras-array-concat.js";
-import preferTsExtrasArrayFindLastIndexRule from "../rules/prefer-ts-extras-array-find-last-index.js";
-import preferTsExtrasArrayFindLastRule from "../rules/prefer-ts-extras-array-find-last.js";
-import preferTsExtrasArrayFindRule from "../rules/prefer-ts-extras-array-find.js";
 import preferTsExtrasArrayFirstRule from "../rules/prefer-ts-extras-array-first.js";
 import preferTsExtrasArrayIncludesRule from "../rules/prefer-ts-extras-array-includes.js";
 import preferTsExtrasArrayJoinRule from "../rules/prefer-ts-extras-array-join.js";
@@ -117,10 +114,6 @@ const typefestRuleRegistry: Readonly<
 > = {
     "prefer-ts-extras-array-at": preferTsExtrasArrayAtRule,
     "prefer-ts-extras-array-concat": preferTsExtrasArrayConcatRule,
-    "prefer-ts-extras-array-find": preferTsExtrasArrayFindRule,
-    "prefer-ts-extras-array-find-last": preferTsExtrasArrayFindLastRule,
-    "prefer-ts-extras-array-find-last-index":
-        preferTsExtrasArrayFindLastIndexRule,
     "prefer-ts-extras-array-first": preferTsExtrasArrayFirstRule,
     "prefer-ts-extras-array-includes": preferTsExtrasArrayIncludesRule,
     "prefer-ts-extras-array-join": preferTsExtrasArrayJoinRule,

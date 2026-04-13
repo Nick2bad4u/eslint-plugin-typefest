@@ -30,6 +30,8 @@ type TypefestRuleNamePattern = `prefer-${string}`;
 const orderedRuleNames = [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
+    // Reserved historical rule IDs kept in the catalog so removing these
+    // unusable rules does not renumber every later public rule reference.
     "prefer-ts-extras-array-find",
     "prefer-ts-extras-array-find-last",
     "prefer-ts-extras-array-find-last-index",

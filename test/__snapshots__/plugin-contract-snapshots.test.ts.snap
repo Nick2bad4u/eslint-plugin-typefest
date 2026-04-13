@@ -2,13 +2,10 @@
 
 exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
 {
-  "ruleCount": 96,
+  "ruleCount": 93,
   "ruleNames": [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
-    "prefer-ts-extras-array-find",
-    "prefer-ts-extras-array-find-last",
-    "prefer-ts-extras-array-find-last-index",
     "prefer-ts-extras-array-first",
     "prefer-ts-extras-array-includes",
     "prefer-ts-extras-array-join",
@@ -114,13 +111,10 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:all",
-    "ruleCount": 85,
+    "ruleCount": 82,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
-      "typefest/prefer-ts-extras-array-find",
-      "typefest/prefer-ts-extras-array-find-last",
-      "typefest/prefer-ts-extras-array-find-last-index",
       "typefest/prefer-ts-extras-array-first",
       "typefest/prefer-ts-extras-array-includes",
       "typefest/prefer-ts-extras-array-join",
@@ -211,13 +205,10 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:experimental",
-    "ruleCount": 96,
+    "ruleCount": 93,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
-      "typefest/prefer-ts-extras-array-find",
-      "typefest/prefer-ts-extras-array-find-last",
-      "typefest/prefer-ts-extras-array-find-last-index",
       "typefest/prefer-ts-extras-array-first",
       "typefest/prefer-ts-extras-array-includes",
       "typefest/prefer-ts-extras-array-join",
@@ -502,11 +493,10 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:strict",
-    "ruleCount": 82,
+    "ruleCount": 81,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
-      "typefest/prefer-ts-extras-array-find-last",
       "typefest/prefer-ts-extras-array-first",
       "typefest/prefer-ts-extras-array-includes",
       "typefest/prefer-ts-extras-array-join",

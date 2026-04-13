@@ -266,11 +266,7 @@ describe("typefest plugin configs", () => {
         const strictRules = getConfigRules(configs, "strict") ?? {};
         const allRules = getConfigRules(configs, "all") ?? {};
 
-        const allOnlyRules = [
-            "typefest/prefer-ts-extras-array-find",
-            "typefest/prefer-ts-extras-array-find-last-index",
-            "typefest/prefer-ts-extras-is-equal-type",
-        ];
+        const allOnlyRules = ["typefest/prefer-ts-extras-is-equal-type"];
 
         for (const ruleName of allOnlyRules) {
             expect(strictRules).not.toHaveProperty(ruleName);

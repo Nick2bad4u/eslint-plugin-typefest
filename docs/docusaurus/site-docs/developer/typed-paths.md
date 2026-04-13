@@ -33,9 +33,6 @@ All type-aware rule execution enters through explicit gates:
 
 - `src/rules/prefer-ts-extras-array-at.ts`
 - `src/rules/prefer-ts-extras-array-concat.ts`
-- `src/rules/prefer-ts-extras-array-find.ts`
-- `src/rules/prefer-ts-extras-array-find-last.ts`
-- `src/rules/prefer-ts-extras-array-find-last-index.ts`
 - `src/rules/prefer-ts-extras-array-includes.ts`
 - `src/rules/prefer-ts-extras-array-join.ts`
 - `src/rules/prefer-ts-extras-array-first.ts`

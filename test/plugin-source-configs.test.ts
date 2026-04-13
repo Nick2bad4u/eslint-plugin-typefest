@@ -75,7 +75,7 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-ts-extras-array-at"
         );
         expect(Object.keys(all.rules)).toContain(
-            "typefest/prefer-ts-extras-array-find"
+            "typefest/prefer-ts-extras-is-equal-type"
         );
         expect(Object.keys(experimental.rules)).toContain(
             "typefest/prefer-ts-extras-object-map-values"
@@ -111,7 +111,7 @@ describe("source plugin config wiring", () => {
             "typefest/prefer-type-fest-union-to-intersection"
         );
         expect(Object.keys(strict.rules)).not.toContain(
-            "typefest/prefer-ts-extras-array-find"
+            "typefest/prefer-ts-extras-is-equal-type"
         );
         expect(Object.keys(all.rules)).not.toContain(
             "typefest/prefer-ts-extras-object-map-values"
@@ -134,7 +134,7 @@ describe("source plugin config wiring", () => {
             "error"
         );
         expect(all.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-array-find",
+            "typefest/prefer-ts-extras-is-equal-type",
             "error"
         );
         expect(experimental.rules).toHaveProperty(
@@ -182,7 +182,7 @@ describe("source plugin config wiring", () => {
             "error"
         );
         expect(strict.rules).not.toHaveProperty(
-            "typefest/prefer-ts-extras-array-find"
+            "typefest/prefer-ts-extras-is-equal-type"
         );
         expect(all.rules).not.toHaveProperty(
             "typefest/prefer-ts-extras-object-map-values"

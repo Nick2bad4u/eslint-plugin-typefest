@@ -7,6 +7,7 @@ import * as path from "node:path";
 import { objectEntries } from "ts-extras";
 import { describe, expect, it } from "vitest";
 
+import { getRuleCatalogEntryForRuleName } from "../src/_internal/rule-catalog";
 import { createRuleDocsUrl } from "../src/_internal/rule-docs-url";
 import { isTypefestConfigReference } from "../src/_internal/typefest-config-references";
 import typefestPlugin from "../src/plugin";
@@ -68,21 +69,6 @@ const normalizeTypefestConfigReferences = (
 };
 
 /**
- * Build an ordered 1-based sequence of expected rule numbers.
- */
-const createExpectedRuleNumberSequence = (
-    ruleCount: number
-): readonly number[] => {
-    const sequence: number[] = [];
-
-    for (let index = 1; index <= ruleCount; index += 1) {
-        sequence.push(index);
-    }
-
-    return sequence;
-};
-
-/**
  * Convert a rule-number set into an ascending numeric list.
  */
 const getSortedRuleNumberValues = (
@@ -98,6 +84,16 @@ const getSortedRuleNumberValues = (
 
     return sortedValues;
 };
+
+/**
+ * Read canonical catalog numbers for the currently registered rules.
+ */
+const getExpectedRegisteredRuleNumbers = (
+    ruleNames: readonly string[]
+): readonly number[] =>
+    ruleNames
+        .map((ruleName) => getRuleCatalogEntryForRuleName(ruleName).ruleNumber)
+        .toSorted((left, right) => left - right);
 
 /**
  * Read and validate one rule module as an object record.
@@ -456,7 +452,9 @@ describe("rule metadata integrity", () => {
         expect(seenRuleIds.size).toBe(ruleEntries.length);
         expect(seenRuleNumbers.size).toBe(ruleEntries.length);
         expect(getSortedRuleNumberValues(seenRuleNumbers)).toStrictEqual(
-            createExpectedRuleNumberSequence(ruleEntries.length)
+            getExpectedRegisteredRuleNumbers(
+                ruleEntries.map(([ruleName]) => ruleName)
+            )
         );
     });
 });
