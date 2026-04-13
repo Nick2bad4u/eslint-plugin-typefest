@@ -209,6 +209,8 @@ export default defineConfig([
         "**/CHANGELOG.md",
         ".remarkrc.mjs",
         "test/fixtures/**",
+        "docs/docusaurus/site-contract.config.d.mts",
+        "docs/docusaurus/site-contract.config.mjs",
     ]),
     gitignore({
         name: "Global - .gitignore Rules",
@@ -618,8 +620,6 @@ export default defineConfig([
                 jsDocParsingMode: "all",
                 projectService: {
                     allowDefaultProject: [
-                        "docs/docusaurus/site-contract.config.d.mts",
-                        "docs/docusaurus/site-contract.config.mjs",
                         "docs/docusaurus/typedoc.local.config.mjs",
                         "docs/docusaurus/typedoc-plugins/*.mjs",
                         "docs/docusaurus/typedoc-plugins/*.mts",
