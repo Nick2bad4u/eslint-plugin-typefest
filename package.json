@@ -175,7 +175,7 @@
         "open:coverage": "open-cli coverage/index.html",
         "prepublishOnly": "npm run release:check",
         "release:check": "npm run release:verify",
-        "release:verify": "cross-env NODE_OPTIONS= npm run build && cross-env NODE_OPTIONS= npm run lint && cross-env NODE_OPTIONS= npm run typecheck && cross-env NODE_OPTIONS= VITEST_TYPECHECK=false npm run test && cross-env NODE_OPTIONS= npm run sync:readme-rules-table && cross-env NODE_OPTIONS= npm run sync:presets-rules-matrix && cross-env NODE_OPTIONS= npm run docs:check-links && npm run lint:package:strict",
+        "release:verify": "npm run build && npm run lint -- --debug && npm run typecheck && cross-env VITEST_TYPECHECK=false npm run test && npm run sync:readme-rules-table && npm run sync:presets-rules-matrix && npm run docs:check-links && npm run lint:package:strict",
         "remark:fix": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail --quiet --output -- \"*.{md,mdx}\" \"docs/**/*.{md,mdx}\"",
         "remark:test-config": "remark --rc-path .remarkrc.mjs --silently-ignore --ignore-path .remarkignore --frail \"README.md\"",
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
