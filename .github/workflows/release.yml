@@ -32,6 +32,11 @@ on:
                 required: false
                 default: main
                 type: string
+            skip_verify:
+                description: "Skip package verification (manual dispatch only; use with caution)"
+                required: false
+                default: false
+                type: boolean
 
 defaults:
     run:
@@ -155,7 +160,14 @@ jobs:
                     exit 1
                   fi
 
+            - name: Warn when package verification is skipped
+              if: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_verify }}
+              run: |
+                  echo "::warning::Skipping 'Verify package' because workflow_dispatch input 'skip_verify' is true."
+                  echo "::warning::Use this only when release checks were validated locally before dispatch."
+
             - name: Verify package
+              if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_verify }}
               run: npm run release:check
 
             - name: Ensure verification did not modify tracked files

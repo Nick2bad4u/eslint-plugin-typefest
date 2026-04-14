@@ -375,7 +375,7 @@
         "postcss-reporter": "^7.1.0",
         "postcss-round-subpixels": "^2.0.0",
         "postcss-scss": "^4.0.9",
-        "postcss-sort-media-queries": "^6.4.4",
+        "postcss-sort-media-queries": "^6.5.0",
         "postcss-styled-jsx": "^1.0.1",
         "postcss-styled-syntax": "^0.7.1",
         "postcss-viewport-height-correction": "^1.1.1",
