@@ -125,6 +125,55 @@ const require = createRequire(import.meta.url);
 const configDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const processEnvironment = globalThis.process.env;
 
+/**
+ * Controls eslint-plugin-file-progress behavior.
+ *
+ * @remarks
+ * The file-progress rule is great for interactive CLI runs, but it produces
+ * extremely large logs when output is redirected to a file.
+ *
+ * Supported values:
+ *
+ * - (unset) / "on": enable progress and show file names
+ * - "nofile": enable progress but hide file names
+ * - "off" / "0" / "false": disable progress
+ */
+const ESLINT_PROGRESS_MODE = (
+    processEnvironment["ESLINT_PROGRESS"] ?? "on"
+).toLowerCase();
+
+const IS_CI = (processEnvironment["CI"] ?? "").toLowerCase() === "true";
+const DISABLE_PROGRESS =
+    ESLINT_PROGRESS_MODE === "off" ||
+    ESLINT_PROGRESS_MODE === "0" ||
+    ESLINT_PROGRESS_MODE === "false";
+const HIDE_PROGRESS_FILENAMES = ESLINT_PROGRESS_MODE === "nofile";
+
+/** @type {import("eslint").Linter.Config} */
+const fileProgressOverridesConfig = {
+    name: "CLI: file progress overrides",
+    rules: {
+        // The preset already auto-hides on CI, but we also support explicit
+        // local toggles.
+        "file-progress/activate": DISABLE_PROGRESS ? 0 : 1,
+    },
+    settings: {
+        progress: {
+            detailedSuccess: false, // Show multi-line final summary (duration, file count, exit code)
+            failureMark: "✖", // Custom mark used for failure completion
+            fileNameOnNewLine: true, // Show file names on a new line for better readability
+            hide: IS_CI || DISABLE_PROGRESS, // Hide progress output (useful in CI)
+            hideDirectoryNames: false, // Show only the filename (no directory path segments)
+            hideFileName: HIDE_PROGRESS_FILENAMES, // Show generic "Linting..." instead of file names
+            hidePrefix: false, // Hide plugin prefix text before progress/summary output
+            prefixMark: "•", // Marker after plugin name prefix in progress lines
+            spinnerStyle: "dots", // Line | dots | arc | bounce | clock
+            successMark: "✔", // Custom mark used for success completion
+            successMessage: "Linting complete!", // Custom message on successful completion
+        },
+    },
+};
+
 const configuredRecheckJar = processEnvironment["RECHECK_JAR"];
 
 if (
@@ -310,6 +359,7 @@ export default defineConfig([
             "write-good-comments/write-good-comments": "off",
         },
     },
+    fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
@@ -887,7 +937,7 @@ export default defineConfig([
                 },
                 ecmaVersion: "latest",
                 jsDocParsingMode: "all",
-                project: ["./tsconfig.eslint.json"],
+                projectService: true,
                 sourceType: "module",
                 tsconfigRootDir: configDirectoryPath,
                 warnOnUnsupportedTypeScriptVersion: true,
@@ -1721,7 +1771,7 @@ export default defineConfig([
                 },
                 ecmaVersion: "latest",
                 jsDocParsingMode: "all",
-                project: "./tsconfig.eslint.json",
+                projectService: true,
                 sourceType: "module",
                 tsconfigRootDir: path.resolve(import.meta.dirname),
                 warnOnUnsupportedTypeScriptVersion: true,
