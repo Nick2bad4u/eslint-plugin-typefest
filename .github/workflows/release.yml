@@ -276,7 +276,7 @@ jobs:
 
             - name: Publish to npm
               if: steps.npm_check.outputs.already_published != 'true'
-              run: npm publish --access public --provenance
+              run: npm publish --access public --provenance --ignore-scripts
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
