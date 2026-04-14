@@ -310,7 +310,6 @@ export default defineConfig([
             "write-good-comments/write-good-comments": "off",
         },
     },
-    fileProgressOverridesConfig,
     {
         ...noBarrelFiles.flat,
         files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}"],
