@@ -336,7 +336,7 @@
         "eslint-plugin-sdl-2": "^1.0.6",
         "eslint-plugin-security": "^4.0.0",
         "eslint-plugin-sonarjs": "^4.0.2",
-        "eslint-plugin-stylelint-2": "^1.0.10",
+        "eslint-plugin-stylelint-2": "^1.0.11",
         "eslint-plugin-testing-library": "^7.16.2",
         "eslint-plugin-toml": "^1.3.1",
         "eslint-plugin-tsdoc": "^0.5.2",
