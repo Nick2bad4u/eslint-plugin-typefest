@@ -557,6 +557,7 @@ const config = defineConfig({
         "@stylistic/no-eol-whitespace": null,
         "@stylistic/no-extra-semicolons": null,
         "@stylistic/no-missing-end-of-source-newline": null,
+        "@stylistic/no-multiple-whitespaces": null,
         "@stylistic/number-leading-zero": null,
         "@stylistic/number-no-trailing-zeros": null,
         "@stylistic/property-case": null,
@@ -726,6 +727,10 @@ const config = defineConfig({
             },
         ],
         "defensive-css/no-mixed-vendor-prefixes": null,
+        "defensive-css/no-unsafe-clamp-font-size": null,
+        "defensive-css/no-unsafe-will-change": null,
+        "defensive-css/no-user-select-none": null,
+        "defensive-css/require-at-layer": null,
         "defensive-css/require-background-repeat": null,
         "defensive-css/require-custom-property-fallback": null,
         "defensive-css/require-dynamic-viewport-height": [
@@ -737,6 +742,7 @@ const config = defineConfig({
         ],
         "defensive-css/require-flex-wrap": null,
         "defensive-css/require-focus-visible": null,
+        "defensive-css/require-forced-colors-focus": null,
         "defensive-css/require-named-grid-lines": [
             true,
             {
@@ -756,7 +762,9 @@ const config = defineConfig({
         ],
         "defensive-css/require-overscroll-behavior": null,
         "defensive-css/require-prefers-reduced-motion": null,
+        "defensive-css/require-pure-selectors": null,
         "defensive-css/require-scrollbar-gutter": null,
+        "defensive-css/require-system-font-fallback": null,
         "display-notation": "short",
         "font-family-name-quotes": "always-where-recommended",
         "font-family-no-duplicate-names": true,
@@ -850,6 +858,7 @@ const config = defineConfig({
         "number-max-precision": 15,
 
         // Taken care of Prettier
+        "order/custom-properties-alphabetical-order": null,
         "order/order": null,
         "order/properties-alphabetical-order": null,
         // Plugin rules
@@ -1013,8 +1022,11 @@ const config = defineConfig({
         "prettier/prettier": true,
         "property-allowed-list": null,
         "property-disallowed-list": null,
+        "property-layout-mappings": "flow-relative",
         "property-no-deprecated": true,
         "property-no-unknown": true,
+
+        "relative-selector-nesting-notation": "explicit",
 
         "rule-empty-line-before": null,
         "rule-nesting-at-rule-required-list": null,
@@ -1214,6 +1226,7 @@ const config = defineConfig({
         "selector-max-type": null,
         "selector-max-universal": null,
         "selector-nested-pattern": null,
+        "selector-no-deprecated": true,
         "selector-no-qualifying-type": null,
         "selector-not-notation": "complex",
         "selector-pseudo-class-allowed-list": null,
