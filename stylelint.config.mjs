@@ -50,6 +50,7 @@
  */
 // eslint-disable-next-line import-x/no-named-as-default -- Rule wants packages not in dev, doesn't apply here
 import defineConfig from "stylelint-define-config";
+import docusaurusPlugin from "stylelint-plugin-docusaurus";
 
 /**
  * Complete Stylelint configuration object defining all linting rules and
