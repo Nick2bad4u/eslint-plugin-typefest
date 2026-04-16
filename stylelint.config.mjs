@@ -50,7 +50,6 @@
  */
 // eslint-disable-next-line import-x/no-named-as-default -- Rule wants packages not in dev, doesn't apply here
 import defineConfig from "stylelint-define-config";
-import docusaurusPlugin from "stylelint-plugin-docusaurus";
 
 /**
  * Complete Stylelint configuration object defining all linting rules and
@@ -121,6 +120,7 @@ const config = defineConfig({
      * - Property ordering based on logical groupings
      * - SCSS-specific enhancements
      * - Tailwind CSS compatibility
+     * - Docusaurus-specific rule pack
      *
      * @see {@link https://stylelint.io/user-guide/configure/#extends | extends Documentation}
      */
@@ -129,6 +129,7 @@ const config = defineConfig({
         "stylelint-config-recess-order",
         "stylelint-config-idiomatic-order",
         "stylelint-config-standard-scss",
+        "stylelint-plugin-docusaurus/configs/docusaurus-all",
         "stylelint-config-tailwindcss",
     ],
 

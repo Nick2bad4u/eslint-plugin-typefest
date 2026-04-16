@@ -440,16 +440,22 @@
 }
 
 .sectionSubtitle {
+    --section-subtitle-color: var(--ifm-color-emphasis-700);
+
     margin: 0.55rem 0 1rem;
-    color: var(--ifm-color-emphasis-700);
+    color: var(--section-subtitle-color);
     line-height: 1.625;
     max-inline-size: 52rem;
 }
 
 .liveStatsSection {
+    --live-stats-section-background-color: var(--ifm-background-surface-color);
+    --live-stats-section-border-color: var(--ifm-color-emphasis-300);
+    --live-stats-section-shadow: var(--ifm-global-shadow-lw);
+
     display: grid;
     padding: 1rem;
-    border: 1px solid var(--ifm-color-emphasis-300);
+    border: 1px solid var(--live-stats-section-border-color);
     border-radius: 0.95rem;
     background:
         linear-gradient(
@@ -458,8 +464,8 @@
             rgb(14 165 233 / 8%) 56%,
             transparent
         ),
-        var(--ifm-background-surface-color);
-    box-shadow: var(--ifm-global-shadow-lw);
+        var(--live-stats-section-background-color);
+    box-shadow: var(--live-stats-section-shadow);
     gap: 0.85rem;
     margin-block-end: 1.05rem;
 }
@@ -470,13 +476,15 @@
 }
 
 .liveStatsKicker {
+    --live-stats-kicker-color: var(--ifm-color-primary);
+
     display: inline-flex;
     padding: 0.2rem 0.56rem;
     border: 1px solid rgb(79 70 229 / 24%);
     border-radius: 999rem;
     margin: 0;
     background: rgb(79 70 229 / 10%);
-    color: var(--ifm-color-primary);
+    color: var(--live-stats-kicker-color);
     font-size: 0.75rem;
     font-weight: 700;
     inline-size: fit-content;
@@ -485,8 +493,10 @@
 }
 
 .liveStatsDescription {
+    --live-stats-description-color: var(--ifm-color-emphasis-700);
+
     margin: 0;
-    color: var(--ifm-color-emphasis-700);
+    color: var(--live-stats-description-color);
     font-size: 0.92rem;
 }
 
@@ -503,9 +513,14 @@
 }
 
 .card {
+    --card-background-color: var(--ifm-card-background-color);
+    --card-border-color: var(--ifm-color-emphasis-200);
+    --card-shadow: var(--ifm-global-shadow-lw);
+    --card-shadow-hover: var(--ifm-global-shadow-md);
+
     position: relative;
     padding: 1.1rem;
-    border: 1px solid var(--ifm-color-emphasis-200);
+    border: 1px solid var(--card-border-color);
     border-radius: 0.95rem;
     background:
         linear-gradient(
@@ -514,8 +529,8 @@
             rgb(14 165 233 / 6%) 48%,
             transparent
         ),
-        var(--ifm-card-background-color);
-    box-shadow: var(--ifm-global-shadow-lw);
+        var(--card-background-color);
+    box-shadow: var(--card-shadow);
     transition:
         transform 140ms ease,
         box-shadow 140ms ease,
@@ -533,7 +548,7 @@
     &:hover,
     &:focus {
         border-color: rgb(99 102 241 / 35%);
-        box-shadow: var(--ifm-global-shadow-md);
+        box-shadow: var(--card-shadow-hover);
         transform: translateY(-2px);
     }
 }
@@ -568,7 +583,9 @@
 }
 
 .cardDescription {
-    color: var(--ifm-color-emphasis-800);
+    --card-description-color: var(--ifm-color-emphasis-800);
+
+    color: var(--card-description-color);
     margin-block-end: 0.8rem;
 }
 
