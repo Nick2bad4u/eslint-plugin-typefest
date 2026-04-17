@@ -39,6 +39,8 @@ jobs:
         defaults:
             run:
                 shell: bash
+        env:
+            CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
         steps:
             - name: Harden the runner (Audit all outbound calls)
@@ -62,6 +64,13 @@ jobs:
 
             - name: Build package
               run: npm run build
+
+            - name: Upload bundle analysis to Codecov
+              if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() && env.CODECOV_TOKEN != '' }}
+              run: npx @codecov/bundle-analyzer ./dist --bundle-name=eslint-plugin-typefest --upload-token="${CODECOV_TOKEN}"
+              env:
+                  GITHUB_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+                  GITHUB_REF: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}
 
             - name: Verify README rules table sync
               run: npm run sync:readme-rules-table
