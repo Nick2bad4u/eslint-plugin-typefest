@@ -99,7 +99,7 @@
         "typedoc-plugin-remark": "^2.0.1",
         "typedoc-plugin-rename-defaults": "^0.7.3",
         "typedoc-plugin-replace-text": "^4.2.0",
-        "typescript": "^6.0.2"
+        "typescript": "^6.0.3"
     },
     "peerDependencies": {
         "react": "^19.2.4",
