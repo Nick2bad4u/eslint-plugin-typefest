@@ -15,6 +15,7 @@ import preferTsExtrasArrayLastRule from "../rules/prefer-ts-extras-array-last.js
 import preferTsExtrasAsWritableRule from "../rules/prefer-ts-extras-as-writable.js";
 import preferTsExtrasAssertDefinedRule from "../rules/prefer-ts-extras-assert-defined.js";
 import preferTsExtrasAssertErrorRule from "../rules/prefer-ts-extras-assert-error.js";
+import preferTsExtrasAssertNeverRule from "../rules/prefer-ts-extras-assert-never.js";
 import preferTsExtrasAssertPresentRule from "../rules/prefer-ts-extras-assert-present.js";
 import preferTsExtrasIsDefinedFilterRule from "../rules/prefer-ts-extras-is-defined-filter.js";
 import preferTsExtrasIsDefinedRule from "../rules/prefer-ts-extras-is-defined.js";
@@ -25,6 +26,8 @@ import preferTsExtrasIsInfiniteRule from "../rules/prefer-ts-extras-is-infinite.
 import preferTsExtrasIsIntegerRule from "../rules/prefer-ts-extras-is-integer.js";
 import preferTsExtrasIsPresentFilterRule from "../rules/prefer-ts-extras-is-present-filter.js";
 import preferTsExtrasIsPresentRule from "../rules/prefer-ts-extras-is-present.js";
+import preferTsExtrasIsPropertyDefinedRule from "../rules/prefer-ts-extras-is-property-defined.js";
+import preferTsExtrasIsPropertyPresentRule from "../rules/prefer-ts-extras-is-property-present.js";
 import preferTsExtrasIsSafeIntegerRule from "../rules/prefer-ts-extras-is-safe-integer.js";
 import preferTsExtrasKeyInRule from "../rules/prefer-ts-extras-key-in.js";
 import preferTsExtrasNotRule from "../rules/prefer-ts-extras-not.js";
@@ -38,6 +41,7 @@ import preferTsExtrasObjectValuesRule from "../rules/prefer-ts-extras-object-val
 import preferTsExtrasSafeCastToRule from "../rules/prefer-ts-extras-safe-cast-to.js";
 import preferTsExtrasSetHasRule from "../rules/prefer-ts-extras-set-has.js";
 import preferTsExtrasStringSplitRule from "../rules/prefer-ts-extras-string-split.js";
+import preferTypeFestAbsoluteRule from "../rules/prefer-type-fest-absolute.js";
 import preferTypeFestAbstractConstructorRule from "../rules/prefer-type-fest-abstract-constructor.js";
 import preferTypeFestAndAllRule from "../rules/prefer-type-fest-and-all.js";
 import preferTypeFestArrayLengthRule from "../rules/prefer-type-fest-array-length.js";
@@ -65,6 +69,7 @@ import preferTypeFestLiteralUnionRule from "../rules/prefer-type-fest-literal-un
 import preferTypeFestMergeExclusiveRule from "../rules/prefer-type-fest-merge-exclusive.js";
 import preferTypeFestMergeRule from "../rules/prefer-type-fest-merge.js";
 import preferTypeFestNonEmptyTupleRule from "../rules/prefer-type-fest-non-empty-tuple.js";
+import preferTypeFestNonNullableDeepRule from "../rules/prefer-type-fest-non-nullable-deep.js";
 import preferTypeFestOmitIndexSignatureRule from "../rules/prefer-type-fest-omit-index-signature.js";
 import preferTypeFestOptionalRule from "../rules/prefer-type-fest-optional.js";
 import preferTypeFestOrAllRule from "../rules/prefer-type-fest-or-all.js";
@@ -88,6 +93,7 @@ import preferTypeFestSimplifyRule from "../rules/prefer-type-fest-simplify.js";
 import preferTypeFestStringifiedRule from "../rules/prefer-type-fest-stringified.js";
 import preferTypeFestTaggedBrandsRule from "../rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "../rules/prefer-type-fest-tuple-of.js";
+import preferTypeFestUnionLengthRule from "../rules/prefer-type-fest-union-length.js";
 import preferTypeFestUnionMemberRule from "../rules/prefer-type-fest-union-member.js";
 import preferTypeFestUnionToIntersectionRule from "../rules/prefer-type-fest-union-to-intersection.js";
 import preferTypeFestUnionToTupleRule from "../rules/prefer-type-fest-union-to-tuple.js";
@@ -121,6 +127,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-as-writable": preferTsExtrasAsWritableRule,
     "prefer-ts-extras-assert-defined": preferTsExtrasAssertDefinedRule,
     "prefer-ts-extras-assert-error": preferTsExtrasAssertErrorRule,
+    "prefer-ts-extras-assert-never": preferTsExtrasAssertNeverRule,
     "prefer-ts-extras-assert-present": preferTsExtrasAssertPresentRule,
     "prefer-ts-extras-is-defined": preferTsExtrasIsDefinedRule,
     "prefer-ts-extras-is-defined-filter": preferTsExtrasIsDefinedFilterRule,
@@ -131,6 +138,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-is-integer": preferTsExtrasIsIntegerRule,
     "prefer-ts-extras-is-present": preferTsExtrasIsPresentRule,
     "prefer-ts-extras-is-present-filter": preferTsExtrasIsPresentFilterRule,
+    "prefer-ts-extras-is-property-defined": preferTsExtrasIsPropertyDefinedRule,
+    "prefer-ts-extras-is-property-present": preferTsExtrasIsPropertyPresentRule,
     "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
     "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
     "prefer-ts-extras-not": preferTsExtrasNotRule,
@@ -144,6 +153,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-safe-cast-to": preferTsExtrasSafeCastToRule,
     "prefer-ts-extras-set-has": preferTsExtrasSetHasRule,
     "prefer-ts-extras-string-split": preferTsExtrasStringSplitRule,
+    "prefer-type-fest-absolute": preferTypeFestAbsoluteRule,
     "prefer-type-fest-abstract-constructor":
         preferTypeFestAbstractConstructorRule,
     "prefer-type-fest-and-all": preferTypeFestAndAllRule,
@@ -173,6 +183,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-merge": preferTypeFestMergeRule,
     "prefer-type-fest-merge-exclusive": preferTypeFestMergeExclusiveRule,
     "prefer-type-fest-non-empty-tuple": preferTypeFestNonEmptyTupleRule,
+    "prefer-type-fest-non-nullable-deep": preferTypeFestNonNullableDeepRule,
     "prefer-type-fest-omit-index-signature":
         preferTypeFestOmitIndexSignatureRule,
     "prefer-type-fest-optional": preferTypeFestOptionalRule,
@@ -199,6 +210,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-stringified": preferTypeFestStringifiedRule,
     "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
     "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,
+    "prefer-type-fest-union-length": preferTypeFestUnionLengthRule,
     "prefer-type-fest-union-member": preferTypeFestUnionMemberRule,
     "prefer-type-fest-union-to-intersection":
         preferTypeFestUnionToIntersectionRule,

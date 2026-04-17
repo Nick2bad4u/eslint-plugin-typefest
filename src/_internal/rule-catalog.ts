@@ -126,6 +126,12 @@ const orderedRuleNames = [
     "prefer-type-fest-value-of",
     "prefer-type-fest-writable",
     "prefer-type-fest-writable-deep",
+    "prefer-type-fest-absolute",
+    "prefer-type-fest-non-nullable-deep",
+    "prefer-type-fest-union-length",
+    "prefer-ts-extras-assert-never",
+    "prefer-ts-extras-is-property-defined",
+    "prefer-ts-extras-is-property-present",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>
