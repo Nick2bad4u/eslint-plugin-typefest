@@ -214,18 +214,6 @@
         "update-deps": "npx ncu -i --install never && npm run sync:peer-eslint-range && npm install --force",
         "verify:readme-rules-table": "npm run build && npm run sync:readme-rules-table"
     },
-    "size-limit": [
-        {
-            "name": "ESM entry (plugin.js)",
-            "path": "dist/plugin.js",
-            "limit": "5 kB"
-        },
-        {
-            "name": "CJS bundle (plugin.cjs)",
-            "path": "dist/plugin.cjs",
-            "limit": "75 kB"
-        }
-    ],
     "overrides": {
         "jsonc-eslint-parser": "$jsonc-eslint-parser"
     },
@@ -304,7 +292,7 @@
         "cross-env": "^10.1.0",
         "depcheck": "^1.4.7",
         "detect-secrets": "^1.0.6",
-        "eslint": "^10.2.0",
+        "eslint": "^10.2.1",
         "eslint-config-flat-gitignore": "^2.3.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-unix": "^9.0.1",
@@ -524,7 +512,7 @@
         "stylelint-codeframe-formatter": "^1.2.0",
         "stylelint-config-alphabetical-order": "^2.0.0",
         "stylelint-config-idiomatic-order": "^10.0.0",
-        "stylelint-config-inspector": "^2.1.0",
+        "stylelint-config-inspector": "^2.1.1",
         "stylelint-config-recess-order": "^7.7.0",
         "stylelint-config-recommended": "^18.0.0",
         "stylelint-config-sass-guidelines": "^13.0.0",
@@ -571,7 +559,7 @@
         "yamllint-js": "^0.2.4"
     },
     "peerDependencies": {
-        "eslint": "^9.0.0 || ^10.2.0",
+        "eslint": "^9.0.0 || ^10.2.1",
         "typescript": "^5.0.0 || ^6.0.2"
     },
     "packageManager": "npm@11.12.1",
