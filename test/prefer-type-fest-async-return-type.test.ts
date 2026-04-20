@@ -306,7 +306,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                     });
 
                     const tsReferenceListener = getSelectorAwareNodeListener(
-                        listeners as Readonly<Record<string, unknown>>,
+                        listeners,
                         "TSTypeReference"
                     );
 

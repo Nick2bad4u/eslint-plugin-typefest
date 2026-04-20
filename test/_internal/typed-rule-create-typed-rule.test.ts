@@ -121,13 +121,9 @@ describe(createTypedRule, () => {
         });
 
         const ruleUnderTest = createFixOnlyRule();
-        const listeners = ruleUnderTest.create(
-            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
-        );
+        const listeners = ruleUnderTest.create(context);
 
-        listeners.Program?.(
-            context.sourceCode.ast as unknown as TSESTree.Program
-        );
+        listeners.Program?.(context.sourceCode.ast);
 
         expect(reportSpy).toHaveBeenCalledOnce();
 
@@ -155,13 +151,9 @@ describe(createTypedRule, () => {
         });
 
         const ruleUnderTest = createSuggestOnlyRule();
-        const listeners = ruleUnderTest.create(
-            context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
-        );
+        const listeners = ruleUnderTest.create(context);
 
-        listeners.Program?.(
-            context.sourceCode.ast as unknown as TSESTree.Program
-        );
+        listeners.Program?.(context.sourceCode.ast);
 
         expect(reportSpy).toHaveBeenCalledOnce();
 
@@ -227,9 +219,7 @@ describe(createTypedRule, () => {
             context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
         );
 
-        listeners.Program?.(
-            context.sourceCode.ast as unknown as TSESTree.Program
-        );
+        listeners.Program?.(context.sourceCode.ast);
 
         expect(reportSpy).toHaveBeenCalledOnce();
 
@@ -294,9 +284,7 @@ describe(createTypedRule, () => {
             context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
         );
 
-        listeners.Program?.(
-            context.sourceCode.ast as unknown as TSESTree.Program
-        );
+        listeners.Program?.(context.sourceCode.ast);
 
         expect(reportSpy).toHaveBeenCalledOnce();
         expect(originalDescriptor).toBeDefined();
@@ -354,9 +342,7 @@ describe(createTypedRule, () => {
             context as unknown as TSESLint.RuleContext<RuleMessageIds, []>
         );
 
-        listeners.Program?.(
-            context.sourceCode.ast as unknown as TSESTree.Program
-        );
+        listeners.Program?.(context.sourceCode.ast);
 
         expect(reportSpy).toHaveBeenCalledOnce();
 

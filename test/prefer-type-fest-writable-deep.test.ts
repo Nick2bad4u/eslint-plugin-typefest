@@ -216,7 +216,7 @@ const loadWritableDeepRuleMetadata =
         const moduleUnderTest =
             await import("../src/rules/prefer-type-fest-writable-deep");
 
-        return moduleUnderTest.default as WritableDeepRuleMetadataSnapshot;
+        return moduleUnderTest.default;
     };
 
 describe("prefer-type-fest-writable-deep metadata", () => {

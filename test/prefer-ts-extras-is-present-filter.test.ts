@@ -275,7 +275,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
             });
 
             const callExpressionListener = getSelectorAwareNodeListener(
-                listeners as Readonly<Record<string, unknown>>,
+                listeners,
                 "CallExpression"
             );
 
@@ -449,7 +449,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
 
                         const callExpressionListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "CallExpression"
                             );
 
@@ -587,7 +587,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
 
                         const callExpressionListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "CallExpression"
                             );
 

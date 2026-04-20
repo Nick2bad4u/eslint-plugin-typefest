@@ -37,7 +37,7 @@ function getConfig(
 ): FlatConfigLike | undefined {
     const config = configs?.[configName];
 
-    return isObject(config) ? (config as FlatConfigLike) : undefined;
+    return isObject(config) ? config : undefined;
 }
 
 /**

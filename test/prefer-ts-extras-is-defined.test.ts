@@ -509,7 +509,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
                         const binaryExpressionListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "BinaryExpression"
                             );
 

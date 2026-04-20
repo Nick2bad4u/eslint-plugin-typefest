@@ -85,28 +85,28 @@ const runTimedRuleTesterCase = ({
 };
 
 assertRuleTesterHook(afterAll, "afterAll");
-RuleTester.afterAll = afterAll as unknown as typeof RuleTester.afterAll;
+RuleTester.afterAll = afterAll;
 assertRuleTesterHook(describe, "describe");
-RuleTester.describe = describe as unknown as typeof RuleTester.describe;
+RuleTester.describe = describe;
 assertRuleTesterHook(it, "it");
-RuleTester.it = ((text, callback) => {
+RuleTester.it = (text, callback) => {
     runTimedRuleTesterCase({
         callback,
         hook: it,
         hookName: "it",
         text,
     });
-}) as typeof RuleTester.it;
+};
 const vitestItOnly: unknown = Reflect.get(it, "only");
 assertRuleTesterHook(vitestItOnly, "it.only");
-RuleTester.itOnly = ((text, callback) => {
+RuleTester.itOnly = (text, callback) => {
     runTimedRuleTesterCase({
         callback,
         hook: vitestItOnly,
         hookName: "it.only",
         text,
     });
-}) as typeof RuleTester.itOnly;
+};
 
 /** Rule module parameter type accepted by `RuleTester#run`. */
 type PluginRuleModule = Parameters<RuleTester["run"]>[1];
@@ -227,13 +227,13 @@ const patchRuleTesterRunWithGeneratedCaseNames = (
 ): RuleTester => {
     const writableTester = tester as RuleTester;
     const originalRun = writableTester.run.bind(writableTester);
-    writableTester.run = ((ruleName, ruleModule, runCases) => {
+    writableTester.run = (ruleName, ruleModule, runCases) => {
         (originalRun as (...args: UnknownArray) => void)(
             ruleName,
             ruleModule,
             withGeneratedRuleCaseNames(ruleName, runCases)
         );
-    }) as RuleTester["run"];
+    };
     return writableTester;
 };
 

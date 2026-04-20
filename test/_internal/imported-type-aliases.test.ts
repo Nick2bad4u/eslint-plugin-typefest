@@ -339,7 +339,7 @@ const isTextEdit = (value: unknown): value is TextEdit =>
     typeof value === "object" &&
     value !== null &&
     "end" in value &&
-    typeof (value as { end: unknown }).end === "number" &&
+    typeof value.end === "number" &&
     "start" in value &&
     typeof (value as { start: unknown }).start === "number" &&
     "text" in value &&

@@ -318,10 +318,7 @@ const toRuleListenerMap = (value: unknown): RuleListenerMap => {
         callExpressionListenerDirect
     )
         ? callExpressionListenerDirect
-        : getSelectorAwareNodeListener(
-              value as RuleListenerMap,
-              "CallExpression"
-          );
+        : getSelectorAwareNodeListener(value, "CallExpression");
 
     if (callExpressionListener === undefined) {
         return {};

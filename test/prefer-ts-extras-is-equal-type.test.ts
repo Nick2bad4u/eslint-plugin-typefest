@@ -411,7 +411,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
 
                         const variableDeclaratorListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "VariableDeclarator"
                             );
 

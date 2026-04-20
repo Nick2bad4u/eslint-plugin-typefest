@@ -59,7 +59,7 @@ const preferTypeFestUnionLengthRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const typeArgText = context.sourceCode.getText(
-                        arrayFirst(typeParams) as TSESTree.Node
+                        arrayFirst(typeParams)
                     );
                     const replacementText = `UnionLength<${typeArgText}>`;
 

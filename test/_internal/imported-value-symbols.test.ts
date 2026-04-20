@@ -128,7 +128,7 @@ const getNodeTextFromSyntheticNode = (node: unknown): string => {
         typeof node === "object" &&
         node !== null &&
         "_text" in node &&
-        typeof (node as { _text: unknown })._text === "string"
+        typeof node._text === "string"
     ) {
         return (node as { _text: string })._text;
     }
@@ -245,7 +245,7 @@ const isTextEdit = (value: unknown): value is TextEdit =>
     typeof value === "object" &&
     value !== null &&
     "end" in value &&
-    typeof (value as { end: unknown }).end === "number" &&
+    typeof value.end === "number" &&
     "start" in value &&
     typeof (value as { start: unknown }).start === "number" &&
     "text" in value &&

@@ -442,7 +442,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
 
                         const tsReferenceListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "TSTypeReference"
                             );
 

@@ -1364,7 +1364,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             });
 
             const logicalExpressionListener = getSelectorAwareNodeListener(
-                listeners as Readonly<Record<string, unknown>>,
+                listeners,
                 "LogicalExpression"
             );
 
@@ -1491,7 +1491,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
             });
 
             const logicalExpressionListener = getSelectorAwareNodeListener(
-                listeners as Readonly<Record<string, unknown>>,
+                listeners,
                 "LogicalExpression"
             );
 
@@ -1694,7 +1694,7 @@ describe("prefer-ts-extras-is-present internal filter guards", () => {
 
                     const logicalExpressionListener =
                         getSelectorAwareNodeListener(
-                            listeners as Readonly<Record<string, unknown>>,
+                            listeners,
                             "LogicalExpression"
                         );
 

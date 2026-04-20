@@ -529,7 +529,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                     });
 
                     const unionTypeListener = getSelectorAwareNodeListener(
-                        listeners as Readonly<Record<string, unknown>>,
+                        listeners,
                         "TSUnionType"
                     );
 

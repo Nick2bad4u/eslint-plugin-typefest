@@ -307,7 +307,7 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
                         });
 
                         const unionTypeListener = getSelectorAwareNodeListener(
-                            listeners as Readonly<Record<string, unknown>>,
+                            listeners,
                             "TSUnionType"
                         );
 

@@ -423,9 +423,8 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                                 );
                             }
 
-                            const fixedMemberExpression = (
-                                fixArguments as ArrayLastFixFactoryArguments
-                            ).memberNode;
+                            const fixedMemberExpression =
+                                fixArguments.memberNode;
                             const objectText = getSourceTextForNode({
                                 code,
                                 node: (

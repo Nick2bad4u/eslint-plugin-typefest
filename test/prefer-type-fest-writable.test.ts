@@ -174,7 +174,7 @@ const loadWritableRuleMetadata =
         const moduleUnderTest =
             await import("../src/rules/prefer-type-fest-writable");
 
-        return moduleUnderTest.default as WritableRuleMetadataSnapshot;
+        return moduleUnderTest.default;
     };
 
 type WritableMappedTypeNode = TSESTree.TSMappedType;

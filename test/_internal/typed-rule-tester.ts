@@ -14,9 +14,7 @@ import { applySharedRuleTesterRunBehavior, repoPath } from "./ruleTester";
 /**
  * Narrowed view of the shared run-behavior patcher used by typed tests.
  */
-const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior as (
-    tester: Readonly<RuleTester>
-) => RuleTester;
+const applyRuleTesterRunBehavior = applySharedRuleTesterRunBehavior;
 
 /** Absolute root directory for typed test fixtures. */
 const typedFixturesRoot = repoPath("test", "fixtures", "typed");

@@ -1,8 +1,3 @@
-interface Payload {
-    id: number;
-    label: string;
-}
-
 const string0 = "alpha";
 const string1 = "bravo";
 const string2 = "charlie";
@@ -38,12 +33,12 @@ const castNumber3 = number3 as number;
 const castNumber4 = number4 as number;
 const castNumber5 = number5 as number;
 
-const castPayload0 = payload0 as Payload;
-const castPayload1 = payload1 as Payload;
-const castPayload2 = payload2 as Payload;
-const castPayload3 = payload3 as Payload;
-const castPayload4 = payload4 as Payload;
-const castPayload5 = payload5 as Payload;
+const castPayload0 = payload0;
+const castPayload1 = payload1;
+const castPayload2 = payload2;
+const castPayload3 = payload3;
+const castPayload4 = payload4;
+const castPayload5 = payload5;
 
 const castTuple0 = [number0, string0] as readonly [number, string];
 const castTuple1 = [number1, string1] as readonly [number, string];
@@ -52,12 +47,12 @@ const castTuple3 = [number3, string3] as readonly [number, string];
 const castTuple4 = [number4, string4] as readonly [number, string];
 const castTuple5 = [number5, string5] as readonly [number, string];
 
-const castRecord0 = ({ value: string0 } as { value: string }).value;
-const castRecord1 = ({ value: string1 } as { value: string }).value;
-const castRecord2 = ({ value: string2 } as { value: string }).value;
-const castRecord3 = ({ value: string3 } as { value: string }).value;
-const castRecord4 = ({ value: string4 } as { value: string }).value;
-const castRecord5 = ({ value: string5 } as { value: string }).value;
+const castRecord0 = { value: string0 }.value;
+const castRecord1 = { value: string1 }.value;
+const castRecord2 = { value: string2 }.value;
+const castRecord3 = { value: string3 }.value;
+const castRecord4 = { value: string4 }.value;
+const castRecord5 = { value: string5 }.value;
 
 export const safeCastToStressFixture: string = [
     castString0,

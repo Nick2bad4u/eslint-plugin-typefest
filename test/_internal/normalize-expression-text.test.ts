@@ -112,7 +112,7 @@ describe(areEquivalentExpressions, () => {
             cyclicAsExpression as unknown as {
                 expression: TSESTree.Expression;
             }
-        ).expression = cyclicAsExpression as unknown as TSESTree.Expression;
+        ).expression = cyclicAsExpression;
 
         const plainIdentifier = getInitializerExpression("value");
 

@@ -48,10 +48,9 @@ const createChecker = ({
 
     return {
         getApparentType: (candidateType: Readonly<ts.Type>) =>
-            apparentTypeByType?.get(candidateType as ts.Type) ??
-            (candidateType as ts.Type),
+            apparentTypeByType?.get(candidateType) ?? candidateType,
         getBaseConstraintOfType: (candidateType: Readonly<ts.Type>) =>
-            baseConstraintByType?.get(candidateType as ts.Type),
+            baseConstraintByType?.get(candidateType),
         getTypeAtLocation: () => expressionType ?? fallbackType,
         isArrayType: (candidateType: Readonly<ts.Type>) =>
             isArrayType?.(candidateType) ?? false,

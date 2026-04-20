@@ -368,12 +368,12 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                         });
 
                         const tsOperatorListener = getSelectorAwareNodeListener(
-                            listeners as Readonly<Record<string, unknown>>,
+                            listeners,
                             "TSTypeOperator"
                         );
                         const tsReferenceListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "TSTypeReference"
                             );
 

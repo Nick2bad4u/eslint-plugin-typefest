@@ -523,7 +523,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
 
                         const callExpressionListener =
                             getSelectorAwareNodeListener(
-                                listeners as Readonly<Record<string, unknown>>,
+                                listeners,
                                 "CallExpression"
                             );
 
