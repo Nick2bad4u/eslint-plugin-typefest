@@ -746,7 +746,7 @@ const config = {
         ],
     ],
     title: "eslint-plugin-typefest",
-    trailingSlash: false,
+    trailingSlash: true,
     url: siteOrigin,
 } satisfies Config;
 
