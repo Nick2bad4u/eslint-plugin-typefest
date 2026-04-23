@@ -169,7 +169,6 @@
 .sb-doc-getting-started > .menu__link,
 .sb-cat-developer > .menu__link,
 .sb-cat-developer-ops > .menu__link,
-.sb-doc-site-contract > .menu__link,
 .sb-cat-api-overview > .menu__list-item-collapsible .menu__link,
 .sb-cat-guides > .menu__list-item-collapsible .menu__link,
 .sb-cat-presets > .menu__list-item-collapsible .menu__link,
@@ -197,8 +196,7 @@
     border-inline-start-color: var(--sb-accent-developer);
 }
 
-.sb-cat-developer-ops > .menu__link,
-.sb-doc-site-contract > .menu__link {
+.sb-cat-developer-ops > .menu__link {
     border-inline-start-color: var(--sb-accent-developer-ops);
 }
 

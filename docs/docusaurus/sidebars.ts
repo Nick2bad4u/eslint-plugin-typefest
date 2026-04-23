@@ -14,12 +14,6 @@ const sidebars = {
             type: "doc",
         },
         {
-            className: "sb-doc-site-contract",
-            id: "developer/docusaurus-site-contract",
-            label: "🧭 Docs Site Contract",
-            type: "doc",
-        },
-        {
             className: "sb-cat-developer-ops",
             id: "developer/deploy-pages-seo-and-indexnow",
             label: "🚀 Pages SEO & IndexNow",

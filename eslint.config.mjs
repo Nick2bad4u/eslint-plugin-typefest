@@ -209,8 +209,6 @@ export default defineConfig([
         "**/CHANGELOG.md",
         ".remarkrc.mjs",
         "test/fixtures/**",
-        "docs/docusaurus/site-contract.config.d.mts",
-        "docs/docusaurus/site-contract.config.mjs",
     ]),
     gitignore({
         name: "Global - .gitignore Rules",

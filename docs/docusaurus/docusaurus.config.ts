@@ -24,6 +24,13 @@ const siteUrl = `${siteOrigin}${baseUrl}`;
 /** Global site description used for SEO and social cards. */
 const siteDescription =
     "Type-safe ESLint rules for adopting type-fest and ts-extras patterns in modern TypeScript codebases.";
+/** Global blog description used for SEO and social cards. */
+const projectBlogDescription = `Updates, architecture notes, and practical guidance for ${projectName} users.`;
+/** Global project tagline used for SEO metadata. */
+const projectTagline = `Type-safe ESLint rules for adopting type-fest and ts-extras patterns in modern TypeScript codebases.`;
+/** Global project keywords used for SEO metadata. */
+const projectKeywords =
+    "eslint, eslint-plugin, type-fest, ts-extras, typescript, flat config, static analysis";
 /** Social preview image used for Open Graph and Twitter cards. */
 const socialCardImagePath = "img/logo.png";
 /** Absolute social preview image URL. */
@@ -204,7 +211,7 @@ const config = {
                 "@type": "WebSite",
                 description: siteDescription,
                 image: socialCardImageUrl,
-                name: "eslint-plugin-typefest",
+                name: projectName + " Documentation",
                 publisher: {
                     "@type": "Person",
                     name: "Nick2bad4u",
@@ -311,19 +318,17 @@ const config = {
             "classic",
             {
                 blog: {
-                    blogDescription:
-                        "Updates, architecture notes, and practical guidance for eslint-plugin-typefest users.",
+                    blogDescription: projectBlogDescription,
                     blogSidebarCount: "ALL",
                     blogSidebarTitle: "All posts",
-                    blogTitle: "eslint-plugin-typefest Blog",
+                    blogTitle: `${projectName} Blog`,
                     editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     feedOptions: {
                         type: ["rss", "atom"],
                         xslt: true,
-                        title: "eslint-plugin-typefest Blog",
+                        title: `${projectName} Blog`,
                         copyright: `© ${new Date().getFullYear()} Nick2bad4u`,
-                        description:
-                            "Updates, architecture notes, and practical guidance for eslint-plugin-typefest users.",
+                        description: projectBlogDescription,
                         language: "en",
                     },
                     onInlineAuthors: "warn",
@@ -409,8 +414,7 @@ const config = {
         ],
     ],
     projectName,
-    tagline:
-        "Type-safe ESLint rules for preferring type-fest and ts-extras patterns.",
+    tagline: projectTagline,
     themeConfig: {
         colorMode: {
             defaultMode: "dark",
@@ -419,8 +423,7 @@ const config = {
         },
         metadata: [
             {
-                content:
-                    "eslint, eslint-plugin, type-fest, ts-extras, typescript, flat config, static analysis",
+                content: projectKeywords,
                 name: "keywords",
             },
             {
@@ -428,7 +431,7 @@ const config = {
                 name: "twitter:card",
             },
             {
-                content: "eslint-plugin-typefest",
+                content: projectName,
                 property: "og:site_name",
             },
         ],
@@ -463,7 +466,7 @@ const config = {
                             label: "\ueb09 Releases",
                         },
                         {
-                            href: `https://nick2bad4u.github.io/eslint-plugin-typefest/eslint-inspector/`,
+                            href: `https://nick2bad4u.github.io/${projectName}/eslint-inspector/`,
                             label: "\ue7d2 ESLint Inspector",
                         },
                         {
@@ -484,7 +487,7 @@ const config = {
                             label: "\uea84 GitHub Repository",
                         },
                         {
-                            href: `https://nick2bad4u.github.io/eslint-plugin-typefest/stylelint-inspector/`,
+                            href: `https://nick2bad4u.github.io/${projectName}/stylelint-inspector/`,
                             label: "\ue7d2 Stylelint Inspector",
                         },
                         {
@@ -500,7 +503,7 @@ const config = {
                 },
             ],
             logo: {
-                alt: "eslint-plugin-typefest logo",
+                alt: `${projectName} logo`,
                 href: `https://github.com/${organizationName}/${projectName}`,
                 src: "img/logo.svg",
                 width: 60,
@@ -680,13 +683,13 @@ const config = {
                 },
             ],
             logo: {
-                alt: "eslint-plugin-typefest logo",
+                alt: `${projectName} logo`,
                 height: 48,
                 href: baseUrl,
                 src: "img/logo.svg",
                 width: 48,
             },
-            title: "eslint-plugin-typefest",
+            title: projectName,
         },
         prism: {
             additionalLanguages: [
@@ -745,7 +748,9 @@ const config = {
             },
         ],
     ],
-    title: "eslint-plugin-typefest",
+    title: projectName,
+    staticDirectories: ["static"],
+    titleDelimiter: "|",
     trailingSlash: true,
     url: siteOrigin,
 } satisfies Config;
