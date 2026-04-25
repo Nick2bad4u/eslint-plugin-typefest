@@ -1,10 +1,10 @@
 ---
 title: ADR 0008 - TypeDoc Generation Strategy for CI and Local Development
-description: Decision record for splitting TypeDoc generation behavior between CI-safe direct invocation and Windows-safe local invocation.
+description: Decision record for environment-aware TypeDoc invocation while keeping a single shared TypeDoc config.
 sidebar_position: 8
 ---
 
-# ADR 0008: Use environment-aware TypeDoc generation (CI direct, local wrapper)
+# ADR 0008: Use environment-aware TypeDoc invocation with a single config
 
 - Status: Accepted
 - Date: 2026-02-28
@@ -23,13 +23,13 @@ We need:
 
 ## Decision
 
-Adopt an environment-aware docs generation strategy:
+Adopt an environment-aware docs generation strategy with a single TypeDoc options file (`typedoc.config.json`):
 
 1. In CI (`CI=true` or `GITHUB_ACTIONS=true`), run TypeDoc directly via:
    - `typedoc --options typedoc.config.json`
 2. In local development, route TypeDoc through `scripts/run-typedoc-docs.mjs` to apply Windows-path-safe execution behavior.
 
-The docs workspace script `docs:api` becomes the environment-aware entrypoint. Explicit scripts remain available for deterministic runs:
+The docs workspace script `docs:api` becomes the environment-aware entrypoint. Explicit scripts remain available for deterministic runs while using the same config:
 
 - `docs:api:default` for direct TypeDoc behavior,
 - `docs:api:local` for wrapper-based local behavior.

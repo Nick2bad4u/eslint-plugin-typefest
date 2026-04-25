@@ -618,7 +618,6 @@ export default defineConfig([
                 jsDocParsingMode: "all",
                 projectService: {
                     allowDefaultProject: [
-                        "docs/docusaurus/typedoc.local.config.mjs",
                         "docs/docusaurus/typedoc-plugins/*.mjs",
                         "docs/docusaurus/typedoc-plugins/*.mts",
                     ],
