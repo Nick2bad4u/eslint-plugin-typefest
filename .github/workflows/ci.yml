@@ -67,7 +67,7 @@ jobs:
 
             - name: Upload bundle analysis to Codecov
               if: ${{ matrix.os == 'ubuntu-latest' && !cancelled() && env.CODECOV_TOKEN != '' }}
-              run: npx @codecov/bundle-analyzer ./dist --bundle-name=eslint-plugin-typefest --upload-token="${CODECOV_TOKEN}"
+              run: npx @codecov/bundle-analyzer ./dist --bundle-name=${{ github.repository }} --upload-token="${CODECOV_TOKEN}"
               env:
                   GITHUB_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
                   GITHUB_REF: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}
@@ -97,7 +97,7 @@ jobs:
               uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
               with:
                   use_oidc: true
-                  slug: Nick2bad4u/eslint-plugin-typefest
+                  slug: ${{ github.repository }}
                   files: test-report.junit.xml
                   flags: ${{ matrix.codecov_flag }}
                   name: vitest-junit-${{ matrix.codecov_flag }}
@@ -111,7 +111,7 @@ jobs:
               uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
               with:
                   use_oidc: true
-                  slug: Nick2bad4u/eslint-plugin-typefest
+                  slug: ${{ github.repository }}
                   files: ./coverage/lcov.info
                   flags: ${{ matrix.codecov_flag }}
                   name: vitest-unit-coverage-${{ matrix.codecov_flag }}

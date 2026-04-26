@@ -77,25 +77,22 @@ const overviewButtonIcon = "\udb81\udf1d";
 const comparePresetsButtonIcon = "\udb85\udc92";
 const heroKickerIcon = "\uf0ad";
 const heroKickerIcon2 = "\uf135";
-const homepageDescription =
-    "Explore eslint-plugin-typefest documentation, presets, and rule references for adopting type-fest and ts-extras patterns in modern TypeScript projects.";
-const homepageKeywords =
-    "eslint-plugin-typefest, type-fest, ts-extras, eslint rules, typescript linting, flat config";
+const packageName = "eslint-plugin-typefest";
+const homepageDescription = `Explore ${packageName} documentation, presets, and rule references for adopting type-fest and ts-extras patterns in modern TypeScript projects.`;
+const homepageKeywords = `${packageName}, type-fest, ts-extras, eslint rules, typescript linting, flat config`;
 const homepageStructuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
-    codeRepository: "https://github.com/Nick2bad4u/eslint-plugin-typefest",
+    codeRepository: `https://github.com/Nick2bad4u/${packageName}`,
     description: homepageDescription,
-    image: "https://nick2bad4u.github.io/eslint-plugin-typefest/img/logo.png",
-    license:
-        "https://github.com/Nick2bad4u/eslint-plugin-typefest/blob/main/LICENSE",
-    name: "eslint-plugin-typefest",
+    image: `https://nick2bad4u.github.io/${packageName}/img/logo.png`,
+    license: `https://github.com/Nick2bad4u/${packageName}/blob/main/LICENSE`,
+    name: packageName,
     programmingLanguage: "TypeScript",
     runtimePlatform: "Node.js",
-    url: "https://nick2bad4u.github.io/eslint-plugin-typefest/",
+    url: `https://nick2bad4u.github.io/${packageName}/`,
 } as const;
-const homepageSocialImageUrl =
-    "https://nick2bad4u.github.io/eslint-plugin-typefest/img/logo.png";
+const homepageSocialImageUrl = `https://nick2bad4u.github.io/${packageName}/img/logo.png`;
 
 /**
  * Home card icons Note: These icons are from the "Nerd Font Symbols" font,
@@ -157,7 +154,7 @@ export default function Home() {
                                 {`${heroKickerIcon} ESLint plugin for modern TypeScript teams ${heroKickerIcon2}`}
                             </p>
                             <Heading as="h1" className={styles.heroTitle}>
-                                eslint-plugin-typefest
+                                {packageName}
                             </Heading>
                             <p className={styles.heroSubtitle}>
                                 ESLint rules that recommend safer, clearer
@@ -226,7 +223,7 @@ export default function Home() {
 
                         <aside className={styles.heroPanel}>
                             <img
-                                alt="eslint-plugin-typefest logo"
+                                alt={`${packageName} logo`}
                                 className={styles.heroPanelLogo}
                                 decoding="async"
                                 height="240"

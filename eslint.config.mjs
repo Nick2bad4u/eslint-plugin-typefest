@@ -301,7 +301,7 @@ export default defineConfig([
     {
         ...docusaurus2.configs.all,
         rules: {
-            ...docusaurus2.configs.all.rules,
+            ...docusaurus2.configs.experimental.rules,
             ...docusaurus2.configs["strict-mdx-upgrade"].rules,
             ...docusaurus2.configs.content.rules,
             "docusaurus-2/local-search-will-not-work-in-dev": "off",
