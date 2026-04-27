@@ -63,6 +63,9 @@ applyTo: "**"
   - `publint`
   - `attw` / Are The Types Wrong?
   - dry-run package packing
+- When this repository is using npm trusted publishing (OIDC), the **first publish used to bootstrap trusted publishing** must run:
+  - `npm publish --access public --ignore-scripts --provenance=false`
+  - After trusted publishing is established, follow the repository's normal publish command/automation.
 
 ### Docs and generated-sync workflows
 
