@@ -337,7 +337,7 @@
         "eslint-plugin-promise": "^7.3.0",
         "eslint-plugin-redos": "^4.5.0",
         "eslint-plugin-regexp": "^3.1.0",
-        "eslint-plugin-repo": "^1.0.2",
+        "eslint-plugin-repo": "^1.0.3",
         "eslint-plugin-require-jsdoc": "^1.0.4",
         "eslint-plugin-sdl-2": "^1.1.0",
         "eslint-plugin-security": "^4.0.0",
