@@ -643,10 +643,12 @@ export default defineConfig([
             "@docusaurus/no-untranslated-text": "off",
             "@docusaurus/prefer-docusaurus-heading": "warn",
             "@docusaurus/string-literal-i18n-messages": "off",
+            "@eslint-react/dom-no-string-style-prop": "warn",
+            "@eslint-react/dom-no-unknown-property": "warn",
             // Keep only the @eslint-react rules that are not already covered by
             // the current strict-type-checked preset and still exist after the
             // plugin upgrade.
-            "@eslint-react/dom-prefer-namespace-import": "warn",
+            "@eslint-react/globals": "warn",
             "@eslint-react/immutability": "warn",
             "@eslint-react/jsx-no-leaked-dollar": "warn",
             "@eslint-react/no-duplicate-key": "warn",
@@ -655,11 +657,12 @@ export default defineConfig([
             "@eslint-react/no-implicit-ref": "warn",
             "@eslint-react/no-missing-component-display-name": "warn",
             "@eslint-react/no-missing-context-display-name": "warn",
-            "@eslint-react/prefer-namespace-import": "warn",
             "@eslint-react/refs": "warn",
-            "@eslint-react/x-component-hook-factories": "warn",
+            "@eslint-react/static-components": "warn",
+            "@eslint-react/web-api-no-leaked-fetch": "warn",
             "@eslint-react/x-error-boundaries": "warn",
             "@eslint-react/x-exhaustive-deps": "warn",
+            "@eslint-react/x-globals": "warn",
             "@eslint-react/x-immutability": "warn",
             "@eslint-react/x-no-access-state-in-setstate": "warn",
             "@eslint-react/x-no-array-index-key": "warn",
@@ -688,12 +691,9 @@ export default defineConfig([
             "@eslint-react/x-no-misused-capture-owner-stack": "warn",
             "@eslint-react/x-no-nested-component-definitions": "warn",
             "@eslint-react/x-no-nested-lazy-component-declarations": "warn",
-            "@eslint-react/x-no-redundant-should-component-update": "warn",
             "@eslint-react/x-no-set-state-in-component-did-mount": "warn",
             "@eslint-react/x-no-set-state-in-component-did-update": "warn",
             "@eslint-react/x-no-set-state-in-component-will-update": "warn",
-            "@eslint-react/x-no-unnecessary-use-callback": "warn",
-            "@eslint-react/x-no-unnecessary-use-memo": "warn",
             "@eslint-react/x-no-unnecessary-use-prefix": "warn",
             "@eslint-react/x-no-unsafe-component-will-mount": "warn",
             "@eslint-react/x-no-unsafe-component-will-receive-props": "warn",
@@ -702,15 +702,13 @@ export default defineConfig([
             "@eslint-react/x-no-unstable-default-props": "warn",
             "@eslint-react/x-no-unused-class-component-members": "warn",
             "@eslint-react/x-no-unused-props": "warn",
-            "@eslint-react/x-no-unused-state": "warn",
             "@eslint-react/x-no-use-context": "warn",
-            "@eslint-react/x-prefer-destructuring-assignment": "warn",
-            "@eslint-react/x-prefer-namespace-import": "warn",
             "@eslint-react/x-purity": "warn",
             "@eslint-react/x-refs": "warn",
             "@eslint-react/x-rules-of-hooks": "warn",
             "@eslint-react/x-set-state-in-effect": "warn",
             "@eslint-react/x-set-state-in-render": "warn",
+            "@eslint-react/x-static-components": "warn",
             "@eslint-react/x-unsupported-syntax": "warn",
             "@eslint-react/x-use-memo": "warn",
             "@eslint-react/x-use-state": "warn",
@@ -2087,7 +2085,6 @@ export default defineConfig([
             // do not publish provenance metadata consistently).
             "node-dependencies/require-provenance-deps": "off",
             "node-dependencies/valid-semver": "error",
-            // Package.json Plugin Rules (package-json/*)
             "package-json/bin-name-casing": "warn",
             "package-json/exports-subpaths-style": "warn",
             "package-json/no-empty-fields": "warn",
@@ -2153,6 +2150,74 @@ export default defineConfig([
             "package-json/require-version": "warn",
             "package-json/restrict-dependency-ranges": "warn",
             "package-json/restrict-private-properties": "warn",
+            // Package.json Plugin Rules (package-json/*)
+            "package-json/restrict-top-level-properties": [
+                "error",
+                {
+                    ban: [
+                        {
+                            message:
+                                "Configure Babel in a dedicated config file.",
+                            property: "babel",
+                        },
+                        {
+                            message:
+                                "Configure Browserslist in a dedicated config file.",
+                            property: "browserslist",
+                        },
+                        {
+                            message:
+                                "Configure commitlint in a dedicated config file.",
+                            property: "commitlint",
+                        },
+                        {
+                            message:
+                                "Configure ESLint in a dedicated config file.",
+                            property: "eslintConfig",
+                        },
+                        {
+                            message:
+                                "Configure Jest in a dedicated config file.",
+                            property: "jest",
+                        },
+                        {
+                            message:
+                                "Configure lint-staged in a dedicated config file.",
+                            property: "lint-staged",
+                        },
+                        {
+                            message:
+                                "Configure pnpm in a dedicated config file.",
+                            property: "pnpm",
+                        },
+                        {
+                            message:
+                                "Configure Prettier in a dedicated config file.",
+                            property: "prettier",
+                        },
+                        {
+                            message:
+                                "Configure release-it in a dedicated config file.",
+                            property: "release-it",
+                        },
+                        {
+                            message:
+                                "Configure Renovate in a dedicated config file.",
+                            property: "renovate",
+                        },
+                        {
+                            message:
+                                "Configure Stylelint in a dedicated config file.",
+                            property: "stylelint",
+                        },
+                        {
+                            message:
+                                "Configure TypeDoc in a dedicated config file.",
+                            property: "typedoc",
+                        },
+                    ],
+                },
+            ],
             // This repo intentionally uses stable camelCase script names.
             "package-json/scripts-name-casing": "warn",
             "package-json/sort-collections": [
