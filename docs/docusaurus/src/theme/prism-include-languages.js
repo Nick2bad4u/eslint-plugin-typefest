@@ -9,10 +9,27 @@ const JSDOC_TAG_PATTERN = /(^\s*\*?\s*)@[a-z][\w-]*/im;
 const COMMENT_TOKEN_NAMES = ["comment", "doc-comment"];
 
 /**
- * @param {import("prismjs").GrammarToken | undefined} commentToken
+ * @param {import("prismjs").GrammarValue | undefined} grammarValue
+ *
+ * @returns {grammarValue is import("prismjs").TokenObject}
+ */
+const isTokenObject = (grammarValue) => {
+    if (typeof grammarValue !== "object" || grammarValue === null) {
+        return false;
+    }
+
+    if (grammarValue instanceof RegExp || Array.isArray(grammarValue)) {
+        return false;
+    }
+
+    return "pattern" in grammarValue;
+};
+
+/**
+ * @param {import("prismjs").GrammarValue | undefined} commentToken
  */
 const addJsDocTagToken = (commentToken) => {
-    if (typeof commentToken !== "object" || commentToken === null) {
+    if (!isTokenObject(commentToken)) {
         return;
     }
 
@@ -36,9 +53,7 @@ const addJsDocTagToken = (commentToken) => {
 };
 
 /**
- * @param {import("prismjs").GrammarToken
- *     | readonly import("prismjs").GrammarToken[]
- *     | undefined} grammarToken
+ * @param {import("prismjs").GrammarValue | undefined} grammarToken
  */
 const addTagsToGrammarToken = (grammarToken) => {
     if (grammarToken === undefined) {
@@ -47,9 +62,17 @@ const addTagsToGrammarToken = (grammarToken) => {
 
     if (Array.isArray(grammarToken)) {
         for (const commentToken of grammarToken) {
+            if (commentToken instanceof RegExp) {
+                continue;
+            }
+
             addJsDocTagToken(commentToken);
         }
 
+        return;
+    }
+
+    if (grammarToken instanceof RegExp) {
         return;
     }
 
@@ -60,15 +83,27 @@ const addTagsToGrammarToken = (grammarToken) => {
  * @param {import("prismjs").Grammar} grammar
  */
 const addTagsToGrammarComments = (grammar) => {
+    /**
+     * Prism's Grammar type includes GrammarRest without an index signature. We
+     * intentionally use string token names for extension tokens.
+     *
+     * @type {Record<string, import("prismjs").GrammarValue | undefined>}
+     */
+    const grammarEntries = /** @type {Record<
+    string,
+    import("prismjs").GrammarValue | undefined
+>} */ (/** @type {unknown} */ (grammar));
+
     for (const commentTokenName of COMMENT_TOKEN_NAMES) {
         if (!(commentTokenName in grammar)) {
             continue;
         }
 
-        addTagsToGrammarToken(grammar[commentTokenName]);
+        addTagsToGrammarToken(grammarEntries[commentTokenName]);
     }
 };
 
+/** @param {typeof import("prismjs")} PrismObject */
 module.exports = function prismIncludeLanguages(PrismObject) {
     const languageNames = [
         "javascript",
