@@ -262,7 +262,7 @@
         "gitleaks-secret-scanner": "^2.1.1",
         "htmlhint": "^1.9.2",
         "jscpd": "^4.0.9",
-        "knip": "^6.10.0",
+        "knip": "^6.11.0",
         "leasot": "^14.4.0",
         "madge": "^8.0.0",
         "markdown-link-check": "^3.14.2",
