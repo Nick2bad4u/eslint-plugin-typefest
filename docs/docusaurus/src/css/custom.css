@@ -22,16 +22,14 @@
 
 /* You can override the default Infima variables here. */
 
+/* stylelint-disable font/prefer-woff2, font/no-legacy-formats -- Nerd Fonts only ship .ttf; no woff2 upstream. Convert and self-host when woff2 becomes available. */
 @font-face {
     font-family: "NerdFontSymbols Nerd Font Symbols";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src:
-        local("NerdFontSymbols Nerd Font Symbols"),
-        local("Symbols Nerd Font"),
-        url("https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@3.4.0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf")
-            format("truetype");
+    src: url("https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@3.4.0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf")
+        format("truetype");
 }
 
 @font-face {
@@ -39,11 +37,20 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src:
-        local("Symbols Nerd Font Mono"),
-        local("Symbols Nerd Font"),
-        url("https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@3.4.0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf")
-            format("truetype");
+    src: url("https://cdn.jsdelivr.net/gh/ryanoasis/nerd-fonts@3.4.0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf")
+        format("truetype");
+}
+/* stylelint-enable font/prefer-woff2, font/no-legacy-formats */
+
+.sb-nerd-font-symbols {
+    font-family:
+        "NerdFontSymbols Nerd Font Symbols", "Symbols Nerd Font", sans-serif,
+        system-ui;
+}
+
+.sb-nerd-font-symbols-mono {
+    font-family:
+        "Symbols Nerd Font Mono", "Symbols Nerd Font", monospace, system-ui;
 }
 
 :root {

@@ -12,7 +12,7 @@ const config = [
         files: ["src/**/*.{ts,tsx,mts,cts}"],
         name: "Local Typefest",
         plugins: {
-            "typefest": typefest,
+            typefest: typefest,
         },
         rules: {
             // @ts-expect-error -- plugin.mjs is typed as generic ESLint.Plugin.

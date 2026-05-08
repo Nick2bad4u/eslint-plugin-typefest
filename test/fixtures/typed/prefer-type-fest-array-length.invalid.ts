@@ -1,6 +1,10 @@
 import type { ArrayLength } from "type-fest";
 
-type EventSteps = readonly ["queued", "running", "done"];
+type EventSteps = readonly [
+    "queued",
+    "running",
+    "done",
+];
 
 type StepCount = EventSteps["length"];
 
