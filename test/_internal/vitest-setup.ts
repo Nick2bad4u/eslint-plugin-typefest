@@ -3,9 +3,17 @@
  * Vitest global setup helpers used by selector-aware unit-test doubles.
  */
 
+import fc from "fast-check";
+
+import { resolvedFastCheckRunCount } from "./fast-check";
+
 type RuleCreateFunction = (...args: readonly unknown[]) => unknown;
 
 export const __vitestSetupModuleMarker = true;
+
+fc.configureGlobal({
+    numRuns: resolvedFastCheckRunCount,
+});
 
 /** Guard unknown values into object records. */
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>

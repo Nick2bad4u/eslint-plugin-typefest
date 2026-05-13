@@ -162,12 +162,19 @@ const futureConfig = {
         : {}),
     v4: {
         [removeHeadAttrFlagKey]: true,
+        // Keep Faster opt-in only. The docs workspace already exposes
+        // `build:fast` for the experimental native/Rspack path, and making it
+        // the default causes plain CI builds to require extra platform-native
+        // bindings such as `@swc/html-linux-x64-gnu`.
+        //
+        // Without this guard, `docusaurus build` can unexpectedly fail on
+        // Linux even when `DOCUSAURUS_ENABLE_EXPERIMENTAL` is not set.
+        fasterByDefault: false,
         // NOTE: Enabling cascade layers currently breaks our production CSS output
         // (CssMinimizer parsing errors -> large chunks of CSS dropped), which
         // makes many Infima (--ifm-*) variables undefined across the site.
         // Re-enable only after verifying the build output CSS is valid.
         siteStorageNamespacing: true,
-        fasterByDefault: true,
         removeLegacyPostBuildHeadAttribute: true,
         mdx1CompatDisabledByDefault: true,
         useCssCascadeLayers: false,
