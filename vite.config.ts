@@ -267,8 +267,12 @@ const vitestConfig: ReturnType<typeof defineConfig> = defineConfig({
             enabled: shouldEnableVitestTypecheck,
             exclude: [
                 "**/.{idea,git,cache,output,temp}/**",
-                "**/dist*/**",
+                "**/.cache/**",
+                "**/.stryker-tmp/**",
+                "**/coverage/**",
+                "**/dist/**",
                 "**/html/**",
+                "**/node_modules/**",
                 ...defaultExclude,
             ],
             ignoreSourceErrors: false,
