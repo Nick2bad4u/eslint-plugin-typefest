@@ -4,6 +4,8 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
@@ -50,23 +52,23 @@ const defaultOptions = [defaultOption] as const;
 const hasAdHocBrandLiteral = (
     typeNode: Readonly<TSESTree.TypeNode>
 ): boolean => {
-    if (typeNode.type !== "TSIntersectionType") {
+    if (typeNode.type !== AST_NODE_TYPES.TSIntersectionType) {
         return false;
     }
 
     return typeNode.types.some((member) => {
-        if (member.type !== "TSTypeLiteral") {
+        if (member.type !== AST_NODE_TYPES.TSTypeLiteral) {
             return false;
         }
 
         return member.members.some((literalMember) => {
-            if (literalMember.type !== "TSPropertySignature") {
+            if (literalMember.type !== AST_NODE_TYPES.TSPropertySignature) {
                 return false;
             }
 
             const { key } = literalMember;
             return (
-                key.type === "Identifier" &&
+                key.type === AST_NODE_TYPES.Identifier &&
                 setContainsValue(BRAND_PROPERTY_NAMES, key.name)
             );
         });
@@ -86,16 +88,16 @@ const typeContainsTaggedReference = (
     typeNode: Readonly<TSESTree.TypeNode>
 ): boolean => {
     if (
-        typeNode.type === "TSTypeReference" &&
-        typeNode.typeName.type === "Identifier" &&
+        typeNode.type === AST_NODE_TYPES.TSTypeReference &&
+        typeNode.typeName.type === AST_NODE_TYPES.Identifier &&
         typeNode.typeName.name === "Tagged"
     ) {
         return true;
     }
 
     if (
-        typeNode.type === "TSIntersectionType" ||
-        typeNode.type === "TSUnionType"
+        typeNode.type === AST_NODE_TYPES.TSIntersectionType ||
+        typeNode.type === AST_NODE_TYPES.TSUnionType
     ) {
         return typeNode.types.some((member) =>
             typeContainsTaggedReference(member)
@@ -161,7 +163,7 @@ const preferTypeFestTaggedBrandsRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (node.typeName.type !== "Identifier") {
+                    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 

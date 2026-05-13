@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Shared safety checks for value-expression autofixes.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getParentNode } from "./ast-node.js";
 
@@ -13,23 +15,23 @@ export const isTransparentExpressionWrapper = (
     parent: Readonly<TSESTree.Node>,
     child: Readonly<TSESTree.Node>
 ): boolean => {
-    if (parent.type === "ChainExpression") {
+    if (parent.type === AST_NODE_TYPES.ChainExpression) {
         return parent.expression === child;
     }
 
-    if (parent.type === "TSAsExpression") {
+    if (parent.type === AST_NODE_TYPES.TSAsExpression) {
         return parent.expression === child;
     }
 
-    if (parent.type === "TSNonNullExpression") {
+    if (parent.type === AST_NODE_TYPES.TSNonNullExpression) {
         return parent.expression === child;
     }
 
-    if (parent.type === "TSSatisfiesExpression") {
+    if (parent.type === AST_NODE_TYPES.TSSatisfiesExpression) {
         return parent.expression === child;
     }
 
-    if (parent.type === "TSTypeAssertion") {
+    if (parent.type === AST_NODE_TYPES.TSTypeAssertion) {
         return parent.expression === child;
     }
 
@@ -42,8 +44,8 @@ export const isTransparentExpressionWrapper = (
 export const isOptionalChainExpression = (
     node: Readonly<TSESTree.Expression>
 ): boolean =>
-    node.type === "ChainExpression" ||
-    ((node.type === "CallExpression" || node.type === "MemberExpression") &&
+    node.type === AST_NODE_TYPES.ChainExpression ||
+    ((node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.MemberExpression) &&
         node.optional);
 
 /**
@@ -67,14 +69,14 @@ export const isDirectReturnLikeExpressionPosition = (
         }
 
         if (
-            parentNode.type === "ReturnStatement" &&
+            parentNode.type === AST_NODE_TYPES.ReturnStatement &&
             parentNode.argument === currentNode
         ) {
             return true;
         }
 
         if (
-            parentNode.type === "ArrowFunctionExpression" &&
+            parentNode.type === AST_NODE_TYPES.ArrowFunctionExpression &&
             parentNode.body === currentNode
         ) {
             return true;
@@ -114,36 +116,36 @@ export const isArrayIndexReadAutofixSafe = (
 export const isRepeatablyEvaluableExpression = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Expression => {
-    if (node.type === "PrivateIdentifier") {
+    if (node.type === AST_NODE_TYPES.PrivateIdentifier) {
         return false;
     }
 
     if (
-        node.type === "TSAsExpression" ||
-        node.type === "TSNonNullExpression" ||
-        node.type === "TSSatisfiesExpression" ||
-        node.type === "TSTypeAssertion"
+        node.type === AST_NODE_TYPES.TSAsExpression ||
+        node.type === AST_NODE_TYPES.TSNonNullExpression ||
+        node.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+        node.type === AST_NODE_TYPES.TSTypeAssertion
     ) {
         return isRepeatablyEvaluableExpression(node.expression);
     }
 
-    if (node.type === "ChainExpression") {
+    if (node.type === AST_NODE_TYPES.ChainExpression) {
         return isRepeatablyEvaluableExpression(node.expression);
     }
 
-    if (node.type === "Identifier") {
+    if (node.type === AST_NODE_TYPES.Identifier) {
         return true;
     }
 
-    if (node.type === "Literal") {
+    if (node.type === AST_NODE_TYPES.Literal) {
         return true;
     }
 
-    if (node.type === "TemplateLiteral") {
+    if (node.type === AST_NODE_TYPES.TemplateLiteral) {
         return node.expressions.length === 0;
     }
 
-    if (node.type === "ThisExpression") {
+    if (node.type === AST_NODE_TYPES.ThisExpression) {
         return true;
     }
 

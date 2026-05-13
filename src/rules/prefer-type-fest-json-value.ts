@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-json-value`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import {
@@ -25,9 +26,9 @@ import { createTypedRule } from "../_internal/typed-rule.js";
  * @returns `true` for `string` keyword and `'string'` literal key aliases.
  */
 const isStringLikeKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSStringKeyword" ||
-    (node.type === "TSLiteralType" &&
-        node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSStringKeyword ||
+    (node.type === AST_NODE_TYPES.TSLiteralType &&
+        node.literal.type === AST_NODE_TYPES.Literal &&
         node.literal.value === "string");
 
 /**
@@ -42,7 +43,7 @@ const isRecordLikeUnknownOrAny = (
     typeNode: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (
-        typeNode.typeName.type !== "Identifier" ||
+        typeNode.typeName.type !== AST_NODE_TYPES.Identifier ||
         typeNode.typeName.name !== "Record" ||
         typeNode.typeArguments?.params.length !== 2
     ) {
@@ -55,8 +56,8 @@ const isRecordLikeUnknownOrAny = (
         isDefined(keyType) &&
         isDefined(valueType) &&
         isStringLikeKeyType(keyType) &&
-        (valueType.type === "TSUnknownKeyword" ||
-            valueType.type === "TSAnyKeyword")
+        (valueType.type === AST_NODE_TYPES.TSUnknownKeyword ||
+            valueType.type === AST_NODE_TYPES.TSAnyKeyword)
     );
 };
 

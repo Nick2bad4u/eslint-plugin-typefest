@@ -65,7 +65,7 @@
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.10.1",
         "@docusaurus/tsconfig": "^3.10.1",
-        "@eslint/config-inspector": "^2.0.1",
+        "@eslint/config-inspector": "^3.0.2",
         "@mdx-js/react": "^3.1.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
@@ -77,7 +77,7 @@
         "typedoc": "^0.28.19",
         "typedoc-docusaurus-theme": "^1.4.2",
         "typedoc-plugin-coverage": "^4.0.3",
-        "typedoc-plugin-dt-links": "^2.0.53",
+        "typedoc-plugin-dt-links": "^2.0.54",
         "typedoc-plugin-external-package-links": "^0.2.0",
         "typedoc-plugin-markdown": "^4.11.0",
         "typedoc-plugin-mdn-links": "^5.1.1",

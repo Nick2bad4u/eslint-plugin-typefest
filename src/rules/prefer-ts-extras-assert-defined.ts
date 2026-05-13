@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-defined`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -44,7 +46,7 @@ const isUndefinedExpression = ({
     context: RuleContext;
     node: Readonly<TSESTree.Expression>;
 }>): boolean => {
-    if (node.type !== "Identifier" || node.name !== "undefined") {
+    if (node.type !== AST_NODE_TYPES.Identifier || node.name !== "undefined") {
         return false;
     }
 
@@ -74,7 +76,7 @@ const isCanonicalAssertDefinedThrow = (
     }
 
     return (
-        firstArgument.type === "Literal" &&
+        firstArgument.type === AST_NODE_TYPES.Literal &&
         firstArgument.value === "Expected a defined value, got `undefined`"
     );
 };
@@ -94,7 +96,7 @@ const extractDefinedGuardExpression = (
     context: RuleContext
 ): null | TSESTree.Expression => {
     if (
-        test.type !== "BinaryExpression" ||
+        test.type !== AST_NODE_TYPES.BinaryExpression ||
         (test.operator !== "==" && test.operator !== "===")
     ) {
         return null;

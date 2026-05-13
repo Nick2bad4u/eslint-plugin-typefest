@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-json-array`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -21,6 +23,15 @@ const JSON_VALUE_TYPE_NAME = "JsonValue";
 
 /** Built-in readonly generic array type name. */
 const READONLY_ARRAY_TYPE_NAME = "ReadonlyArray";
+
+const isSingleTypeNodeTuple = (
+    nodes: readonly TSESTree.TypeNode[] | undefined
+): nodes is readonly [TSESTree.TypeNode] => nodes?.length === 1;
+
+const isTypeNodePair = (
+    nodes: readonly TSESTree.TypeNode[]
+): nodes is readonly [TSESTree.TypeNode, TSESTree.TypeNode] =>
+    nodes.length === 2;
 
 /**
  * Checks whether a node references `JsonValue`.
@@ -43,7 +54,8 @@ const isJsonValueType = (node: Readonly<TSESTree.TypeNode>): boolean =>
  */
 
 const isJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSArrayType" && isJsonValueType(node.elementType);
+    node.type === AST_NODE_TYPES.TSArrayType &&
+    isJsonValueType(node.elementType);
 
 /**
  * Checks whether a node is `readonly JsonValue[]`.
@@ -57,12 +69,15 @@ const isJsonValueArrayType = (node: Readonly<TSESTree.TypeNode>): boolean =>
 const isReadonlyJsonValueArrayType = (
     node: Readonly<TSESTree.TypeNode>
 ): boolean => {
-    if (node.type !== "TSTypeOperator" || node.operator !== "readonly") {
+    if (
+        node.type !== AST_NODE_TYPES.TSTypeOperator ||
+        node.operator !== "readonly"
+    ) {
         return false;
     }
 
     const { typeAnnotation } = node;
-    if (typeAnnotation?.type !== "TSArrayType") {
+    if (typeAnnotation?.type !== AST_NODE_TYPES.TSArrayType) {
         return false;
     }
 
@@ -86,11 +101,11 @@ const isGenericJsonValueArrayType = (
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (typeArguments?.length !== 1) {
+    if (!isSingleTypeNodeTuple(typeArguments)) {
         return false;
     }
 
-    const [firstTypeArgument] = typeArguments as [TSESTree.TypeNode];
+    const [firstTypeArgument] = typeArguments;
 
     return isJsonValueType(firstTypeArgument);
 };
@@ -112,11 +127,11 @@ const isGenericReadonlyJsonValueArrayType = (
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (typeArguments?.length !== 1) {
+    if (!isSingleTypeNodeTuple(typeArguments)) {
         return false;
     }
 
-    const [firstTypeArgument] = typeArguments as [TSESTree.TypeNode];
+    const [firstTypeArgument] = typeArguments;
 
     return isJsonValueType(firstTypeArgument);
 };
@@ -134,14 +149,11 @@ const isGenericReadonlyJsonValueArrayType = (
 const hasJsonArrayUnionShape = (
     node: Readonly<TSESTree.TSUnionType>
 ): boolean => {
-    if (node.types.length !== 2) {
+    if (!isTypeNodePair(node.types)) {
         return false;
     }
 
-    const [firstType, secondType] = node.types as [
-        TSESTree.TypeNode,
-        TSESTree.TypeNode,
-    ];
+    const [firstType, secondType] = node.types;
 
     const isNativePair = (
         leftType: Readonly<TSESTree.TypeNode>,

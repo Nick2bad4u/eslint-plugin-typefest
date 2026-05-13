@@ -7,51 +7,34 @@
  * - `🛠️ [fix](lint) Prevent parser crash on empty scope`
  * - `:sparkles: [feat] Add typed rule metadata`
  *
- * Structure: `<gitmoji> [type](scope?)?[:]? <subject>`
+ * Structure: `&lt;gitmoji> [type](scope?)?[:]? &lt;subject>`
  *
  * @type {import("@commitlint/types").UserConfig}
  *
  * @typedef {import("@commitlint/types").UserConfig} CommitlintConfig
  *
+ * @typedef {Record<"header", string | null | undefined>} ParsedCommit
+ *
  * @see {@link https://commitlint.js.org/ | Commitlint Documentation}
  * @see {@link https://www.conventionalcommits.org/ | Conventional Commits Specification}
  */
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isDependencyBumpCommit(commit) {
-    return /^build\(deps.*\): bump/v.test(commit);
-}
+/** @type {(commit: string) => boolean} */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- JavaScript callback signatures are documented with JSDoc.
+const isDependencyBumpCommit = (commit) =>
+    /^build\(deps.*\): bump/v.test(commit);
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isMergeCommit(commit) {
-    return commit.includes("Merge");
-}
+/** @type {(commit: string) => boolean} */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- JavaScript callback signatures are documented with JSDoc.
+const isMergeCommit = (commit) => commit.includes("Merge");
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isReleaseCommit(commit) {
-    return commit.startsWith("chore(release)");
-}
+/** @type {(commit: string) => boolean} */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- JavaScript callback signatures are documented with JSDoc.
+const isReleaseCommit = (commit) => commit.startsWith("chore(release)");
 
-/**
- * @param {string} commit
- *
- * @returns {boolean}
- */
-function isRevertCommit(commit) {
-    return commit.includes("Revert");
-}
+/** @type {(commit: string) => boolean} */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- JavaScript callback signatures are documented with JSDoc.
+const isRevertCommit = (commit) => commit.includes("Revert");
 
 const hybridCommitTypes = [
     "build",
@@ -101,18 +84,22 @@ function isGitmojiShortcodeToken(token) {
         return false;
     }
 
-    return [...body].every((character) => {
+    for (const character of body) {
         const isLowercaseLetter = character >= "a" && character <= "z";
         const isNumber = character >= "0" && character <= "9";
 
-        return (
-            isLowercaseLetter ||
-            isNumber ||
-            character === "_" ||
-            character === "+" ||
-            character === "-"
-        );
-    });
+        if (
+            !isLowercaseLetter &&
+            !isNumber &&
+            character !== "_" &&
+            character !== "+" &&
+            character !== "-"
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -134,7 +121,7 @@ function isValidScope(scope) {
         return false;
     }
 
-    const [firstCharacter = ""] = scope;
+    const firstCharacter = scope.charAt(0);
     const isFirstCharacterValid =
         (firstCharacter >= "a" && firstCharacter <= "z") ||
         (firstCharacter >= "0" && firstCharacter <= "9");
@@ -143,17 +130,21 @@ function isValidScope(scope) {
         return false;
     }
 
-    return [...scope].every((character) => {
+    for (const character of scope) {
         const isLowercaseLetter = character >= "a" && character <= "z";
         const isNumber = character >= "0" && character <= "9";
 
-        return (
-            isLowercaseLetter ||
-            isNumber ||
-            character === "-" ||
-            character === "/"
-        );
-    });
+        if (
+            !isLowercaseLetter &&
+            !isNumber &&
+            character !== "-" &&
+            character !== "/"
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -301,10 +292,11 @@ const commitlintConfig = /** @type {CommitlintConfig} */ ({
         {
             rules: {
                 /**
-                 * @param {{ header?: string | null }} parsed
+                 * @param {ParsedCommit} parsed
                  *
                  * @returns {[boolean, string]}
                  */
+                // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- Commitlint plugin callbacks are typed through JSDoc.
                 "gitmoji-token-valid": (parsed) => {
                     const header = parsed.header?.trim() ?? "";
 

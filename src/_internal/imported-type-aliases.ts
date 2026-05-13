@@ -1,9 +1,10 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Internal shared utilities used by eslint-plugin-typefest rule modules and plugin wiring.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { keyIn } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
@@ -51,11 +52,11 @@ const hasOptionalTypeParametersProperty = (
 /**
  * Matched imported type alias that can be replaced with a canonical name.
  */
-type ImportedTypeAliasMatch = {
+interface ImportedTypeAliasMatch {
     importedName: string;
     replacementName: string;
     sourceValue: string;
-};
+}
 
 /**
  * Collects imported canonical type alias names that should be replaced by
@@ -333,7 +334,7 @@ export const createSafeTypeReferenceReplacementFix = (
     sourceModuleName: string = TYPE_FEST_MODULE_SOURCE,
     reportFixIntent: ImportFixIntent = "autofix"
 ): null | TSESLint.ReportFixFunction => {
-    if (node.typeName.type !== "Identifier") {
+    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
         return null;
     }
 
@@ -416,13 +417,13 @@ export const createSafeTypeNodeReplacementFix = (
  *   references.
  */
 const isExplicitReadonlyTypeNode = (node: Readonly<TSESTree.Node>): boolean => {
-    if (node.type === "TSTypeOperator") {
+    if (node.type === AST_NODE_TYPES.TSTypeOperator) {
         return node.operator === "readonly";
     }
 
     if (
-        node.type !== "TSTypeReference" ||
-        node.typeName.type !== "Identifier"
+        node.type !== AST_NODE_TYPES.TSTypeReference ||
+        node.typeName.type !== AST_NODE_TYPES.Identifier
     ) {
         return false;
     }

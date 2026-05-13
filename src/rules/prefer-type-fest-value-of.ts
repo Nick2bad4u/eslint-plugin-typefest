@@ -2,6 +2,8 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-value-of`.
  */
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
@@ -29,7 +31,7 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
             return {
                 TSIndexedAccessType(node) {
                     if (
-                        node.indexType.type !== "TSTypeOperator" ||
+                        node.indexType.type !== AST_NODE_TYPES.TSTypeOperator ||
                         node.indexType.operator !== "keyof"
                     ) {
                         return;

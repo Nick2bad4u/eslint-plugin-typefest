@@ -47,12 +47,12 @@ const castTuple3 = [number3, string3] as readonly [number, string];
 const castTuple4 = [number4, string4] as readonly [number, string];
 const castTuple5 = [number5, string5] as readonly [number, string];
 
-const castRecord0 = { value: string0 }.value;
-const castRecord1 = { value: string1 }.value;
-const castRecord2 = { value: string2 }.value;
-const castRecord3 = { value: string3 }.value;
-const castRecord4 = { value: string4 }.value;
-const castRecord5 = { value: string5 }.value;
+const castRecord0 = string0;
+const castRecord1 = string1;
+const castRecord2 = string2;
+const castRecord3 = string3;
+const castRecord4 = string4;
+const castRecord5 = string5;
 
 export const safeCastToStressFixture: string = [
     castString0,

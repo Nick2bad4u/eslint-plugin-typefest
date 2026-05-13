@@ -71,6 +71,8 @@ const isUnknownRecord = (value) =>
  * @param {readonly string[]} argv
  *
  * @returns {number | undefined}
+ *
+ * @throws {Error} When an explicit ESLint major argument is missing or invalid.
  */
 const parseExpectedEslintMajor = (argv) => {
     const matchingArgument = argv.find((argument) =>
@@ -86,7 +88,7 @@ const parseExpectedEslintMajor = (argv) => {
     );
 
     if (majorString.length === 0) {
-        throw new Error(
+        throw new TypeError(
             `Missing ESLint major value in argument: ${matchingArgument}`
         );
     }
@@ -94,7 +96,7 @@ const parseExpectedEslintMajor = (argv) => {
     const majorValue = Number.parseInt(majorString, 10);
 
     if (Number.isNaN(majorValue)) {
-        throw new Error(
+        throw new TypeError(
             `Invalid ESLint major value in argument: ${matchingArgument}`
         );
     }
@@ -104,6 +106,9 @@ const parseExpectedEslintMajor = (argv) => {
 
 /**
  * @param {number | undefined} expectedMajor
+ *
+ * @throws {Error} When the runtime ESLint version is missing, malformed, or
+ *   unexpected.
  */
 const assertEslintMajor = (expectedMajor) => {
     const runtimeVersion = ESLint.version;
@@ -125,7 +130,7 @@ const assertEslintMajor = (expectedMajor) => {
     const runtimeMajor = Number.parseInt(runtimeMajorText, 10);
 
     if (Number.isNaN(runtimeMajor)) {
-        throw new Error(
+        throw new TypeError(
             `Unable to parse ESLint runtime version: ${runtimeVersion}`
         );
     }
@@ -144,6 +149,8 @@ const assertEslintMajor = (expectedMajor) => {
 
 /**
  * @param {string} fixturePath
+ *
+ * @throws {Error} When the fixture file is missing.
  */
 const assertFixtureExists = (fixturePath) => {
     if (!existsSync(fixturePath)) {
@@ -157,6 +164,8 @@ const assertFixtureExists = (fixturePath) => {
  * @param {string} fixturePath
  *
  * @returns {import("eslint").Linter.Config[]}
+ *
+ * @throws {Error} When the plugin recommended config is unavailable.
  */
 const createCompatibilityConfig = (ruleId, typed, fixturePath) => {
     const recommendedConfig = plugin.configs?.["recommended"];
@@ -295,7 +304,7 @@ const runScenario = async ({
         for (const expectedOutputSnippet of expectedOutputIncludes ?? []) {
             if (!combinedOutput.includes(expectedOutputSnippet)) {
                 throw new Error(
-                    `${name}: expected fixed output to include \"${expectedOutputSnippet}\".`
+                    `${name}: expected fixed output to include "${expectedOutputSnippet}".`
                 );
             }
         }

@@ -137,6 +137,8 @@ const collectLintableFixtureFilesFromDirectory = (
             isLintableFixturePath(directoryEntryPath)
         ) {
             lintableFilePaths.push(directoryEntryPath);
+        } else {
+            // Skip non-file entries and unsupported fixture paths.
         }
     }
 

@@ -43,12 +43,12 @@ export type TypedPathTelemetrySnapshot = Readonly<{
     >;
 }>;
 
-type MutableTypedPathCounters = {
+interface MutableTypedPathCounters {
     expensiveTypeCalls: number;
     fallbackInvocations: number;
     prefilterChecks: number;
     prefilterHits: number;
-};
+}
 
 const UNKNOWN_FILE_PATH = "<unknown>" as const;
 

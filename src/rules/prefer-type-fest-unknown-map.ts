@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-unknown-map`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -38,8 +40,8 @@ const hasUnknownMapTypeArguments = (
     const [firstTypeArgument, secondTypeArgument] = typeArguments;
 
     return (
-        firstTypeArgument?.type === "TSUnknownKeyword" &&
-        secondTypeArgument?.type === "TSUnknownKeyword"
+        firstTypeArgument?.type === AST_NODE_TYPES.TSUnknownKeyword &&
+        secondTypeArgument?.type === AST_NODE_TYPES.TSUnknownKeyword
     );
 };
 

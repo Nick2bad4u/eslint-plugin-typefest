@@ -15,6 +15,7 @@ import {
     setHas,
 } from "ts-extras";
 
+// eslint-disable-next-line import-x/extensions -- Avoid importing from the ESM entrypoint to preserve CJS compatibility
 import packageJson from "../package.json" with { type: "json" };
 import {
     deriveRuleDocsMetadataByName,
@@ -25,7 +26,6 @@ import { typefestRules } from "./_internal/rules-registry.js";
 import {
     type TypefestConfigName as InternalTypefestConfigName,
     typefestConfigMetadataByName,
-    typefestConfigNames,
 } from "./_internal/typefest-config-references.js";
 
 /** ESLint severity used by generated preset rule maps. */
@@ -93,7 +93,7 @@ function getPackageVersion(pkg: unknown): string {
         return "0.0.0";
     }
 
-    const version = Reflect.get(pkg, "version");
+    const version: unknown = Reflect.get(pkg, "version");
 
     return typeof version === "string" ? version : "0.0.0";
 }
@@ -138,6 +138,7 @@ export type TypefestRuleName = keyof typeof typefestRules;
  * ESLint-compatible rule map view of the strongly typed internal rule record.
  */
 const typefestEslintRules: NonNullable<ESLint.Plugin["rules"]> &
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ESLint's public RuleDefinition type requires mutable defaultOptions, while the plugin's internal rule registry intentionally stores readonly rule metadata.
     typeof typefestRules = typefestRules as NonNullable<
     ESLint.Plugin["rules"]
 > &
@@ -183,15 +184,16 @@ const typeCheckedRuleNames = deriveTypeCheckedRuleNameSet(
 const createEmptyPresetRuleMap = (): Record<
     TypefestConfigName,
     TypefestRuleName[]
-> => {
-    const presetRuleMap = {} as Record<TypefestConfigName, TypefestRuleName[]>;
-
-    for (const configName of typefestConfigNames) {
-        presetRuleMap[configName] = [];
-    }
-
-    return presetRuleMap;
-};
+> => ({
+    all: [],
+    experimental: [],
+    minimal: [],
+    recommended: [],
+    "recommended-type-checked": [],
+    strict: [],
+    "ts-extras/type-guards": [],
+    "type-fest/types": [],
+});
 
 const dedupeRuleNames = (
     ruleNames: readonly TypefestRuleName[]
@@ -337,31 +339,36 @@ const pluginForConfigs: ESLint.Plugin = {
     rules: typefestEslintRules,
 };
 
+const createPresetConfig = (
+    configName: TypefestConfigName
+): TypefestPresetConfig => {
+    const configMetadata = typefestConfigMetadataByName[configName];
+
+    return withTypefestPlugin(
+        {
+            name: configMetadata.presetName,
+            rules: errorRulesFor(effectivePresetRuleNamesByConfig[configName]),
+        },
+        pluginForConfigs,
+        {
+            requiresTypeChecking: configMetadata.requiresTypeChecking,
+        }
+    );
+};
+
 /**
  * Flat config presets distributed by eslint-plugin-typefest.
  */
-const createTypefestConfigsDefinition = (): TypefestConfigsContract => {
-    const configs = {} as TypefestConfigsContract;
-
-    for (const configName of typefestConfigNames) {
-        const configMetadata = typefestConfigMetadataByName[configName];
-
-        configs[configName] = withTypefestPlugin(
-            {
-                name: configMetadata.presetName,
-                rules: errorRulesFor(
-                    effectivePresetRuleNamesByConfig[configName]
-                ),
-            },
-            pluginForConfigs,
-            {
-                requiresTypeChecking: configMetadata.requiresTypeChecking,
-            }
-        );
-    }
-
-    return configs;
-};
+const createTypefestConfigsDefinition = (): TypefestConfigsContract => ({
+    all: createPresetConfig("all"),
+    experimental: createPresetConfig("experimental"),
+    minimal: createPresetConfig("minimal"),
+    recommended: createPresetConfig("recommended"),
+    "recommended-type-checked": createPresetConfig("recommended-type-checked"),
+    strict: createPresetConfig("strict"),
+    "ts-extras/type-guards": createPresetConfig("ts-extras/type-guards"),
+    "type-fest/types": createPresetConfig("type-fest/types"),
+});
 
 const typefestConfigsDefinition = createTypefestConfigsDefinition();
 

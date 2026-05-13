@@ -31,6 +31,8 @@ const nvmrcFilePath = fileURLToPath(new URL("../.nvmrc", import.meta.url));
  * @param {unknown} version
  *
  * @returns {string}
+ *
+ * @throws {TypeError} When `version` is not an exact Node.js version string.
  */
 const normalizeNodeVersion = (version) => {
     if (typeof version !== "string") {
@@ -58,13 +60,10 @@ const normalizeNodeVersion = (version) => {
 const isRecord = (value) => typeof value === "object" && value !== null;
 
 /**
- * Parse command-line arguments.
+ * Validate script arguments for repository Node version file synchronization.
  *
- * Supported options:
- *
- * - `--check`: validate file existence and synchronization only
- * - `--check-current`: validate files match current runtime version exactly
- * - `--version x.y.z` or `--version=x.y.z`: explicit version override
+ * Supports check-only mode, exact current-runtime validation, and explicit
+ * `--version x.y.z` or `--version=x.y.z` overrides.
  *
  * @param {readonly string[]} argumentList
  *
@@ -73,6 +72,8 @@ const isRecord = (value) => typeof value === "object" && value !== null;
  *     checkCurrent: boolean;
  *     explicitVersion: string | null;
  * }}
+ *
+ * @throws {Error} When `--version` is provided without a following value.
  */
 const parseArguments = (argumentList) => {
     /** @type {boolean} */
@@ -204,6 +205,8 @@ const compareExactVersions = (leftVersion, rightVersion) => {
  * @param {string | null} minimumEngineVersion
  *
  * @returns {void}
+ *
+ * @throws {Error} When the preferred version is lower than the minimum engine.
  */
 const assertPreferredVersionSupported = (
     preferredVersion,

@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-arrayable`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -60,7 +62,7 @@ const getArrayableElementType = (
         return null;
     }
 
-    if (firstUnionType.type === "TSArrayType") {
+    if (firstUnionType.type === AST_NODE_TYPES.TSArrayType) {
         return areEquivalentTypeNodes(
             firstUnionType.elementType,
             secondUnionType
@@ -69,7 +71,7 @@ const getArrayableElementType = (
             : null;
     }
 
-    if (secondUnionType.type === "TSArrayType") {
+    if (secondUnionType.type === AST_NODE_TYPES.TSArrayType) {
         return areEquivalentTypeNodes(
             secondUnionType.elementType,
             firstUnionType

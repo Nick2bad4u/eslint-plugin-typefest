@@ -43,6 +43,13 @@ describe("source plugin config wiring", () => {
         const expectedQualifiedRuleIds = Object.keys(plugin.rules).map(
             (ruleName) => `typefest/${ruleName}`
         );
+        const recommendedRuleIds = Object.keys(recommended.rules);
+        const recommendedTypeCheckedRuleIds = Object.keys(
+            recommendedTypeChecked.rules
+        );
+        const strictRuleIds = Object.keys(strict.rules);
+        const allRuleIds = Object.keys(all.rules);
+        const experimentalRuleIds = Object.keys(experimental.rules);
 
         expect(getRuleEntries(minimal).length).toBeGreaterThan(0);
         expect(getRuleEntries(recommended).length).toBeGreaterThan(0);
@@ -53,134 +60,87 @@ describe("source plugin config wiring", () => {
         expect(getRuleEntries(all).length).toBeGreaterThan(0);
         expect(getRuleEntries(experimental).length).toBeGreaterThan(0);
 
-        expect(Object.keys(experimental.rules)).toStrictEqual(
+        expect(experimentalRuleIds).toStrictEqual(
             expect.arrayContaining(expectedQualifiedRuleIds)
         );
-        expect(Object.keys(recommended.rules)).toContain(
-            "typefest/prefer-type-fest-arrayable"
+        expect(recommendedRuleIds).toStrictEqual(
+            expect.arrayContaining([
+                "typefest/prefer-type-fest-arrayable",
+                "typefest/prefer-ts-extras-is-defined",
+            ])
         );
-        expect(Object.keys(recommended.rules)).toContain(
-            "typefest/prefer-ts-extras-is-defined"
-        );
-        expect(Object.keys(recommended.rules)).not.toContain(
+        expect(recommendedRuleIds).not.toContain(
             "typefest/prefer-ts-extras-set-has"
         );
-        expect(Object.keys(recommendedTypeChecked.rules)).toContain(
+        expect(recommendedTypeCheckedRuleIds).toContain(
             "typefest/prefer-ts-extras-set-has"
         );
-        expect(Object.keys(strict.rules)).toContain(
-            "typefest/prefer-ts-extras-set-has"
+        expect(strictRuleIds).toStrictEqual(
+            expect.arrayContaining([
+                "typefest/prefer-ts-extras-set-has",
+                "typefest/prefer-ts-extras-array-at",
+            ])
         );
-        expect(Object.keys(strict.rules)).toContain(
-            "typefest/prefer-ts-extras-array-at"
+        expect(allRuleIds).toContain("typefest/prefer-ts-extras-is-equal-type");
+        expect(experimentalRuleIds).toStrictEqual(
+            expect.arrayContaining([
+                "typefest/prefer-ts-extras-object-map-values",
+                "typefest/prefer-type-fest-conditional-except",
+                "typefest/prefer-type-fest-merge",
+                "typefest/prefer-type-fest-asyncify",
+                "typefest/prefer-type-fest-conditional-keys",
+                "typefest/prefer-type-fest-distributed-omit",
+                "typefest/prefer-type-fest-distributed-pick",
+                "typefest/prefer-type-fest-pick-index-signature",
+                "typefest/prefer-type-fest-set-return-type",
+                "typefest/prefer-type-fest-stringified",
+                "typefest/prefer-type-fest-union-to-intersection",
+            ])
         );
-        expect(Object.keys(all.rules)).toContain(
+        expect(strictRuleIds).not.toContain(
             "typefest/prefer-ts-extras-is-equal-type"
         );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-ts-extras-object-map-values"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-conditional-except"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-merge"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-asyncify"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-conditional-keys"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-distributed-omit"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-distributed-pick"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-pick-index-signature"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-set-return-type"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-stringified"
-        );
-        expect(Object.keys(experimental.rules)).toContain(
-            "typefest/prefer-type-fest-union-to-intersection"
-        );
-        expect(Object.keys(strict.rules)).not.toContain(
-            "typefest/prefer-ts-extras-is-equal-type"
-        );
-        expect(Object.keys(all.rules)).not.toContain(
+        expect(allRuleIds).not.toContain(
             "typefest/prefer-ts-extras-object-map-values"
         );
 
-        expect(recommended.rules).toHaveProperty(
-            "typefest/prefer-type-fest-arrayable",
-            "error"
-        );
-        expect(recommended.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-is-defined",
-            "error"
-        );
-        expect(recommendedTypeChecked.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-set-has",
-            "error"
-        );
-        expect(strict.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-array-at",
-            "error"
-        );
-        expect(all.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-is-equal-type",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-ts-extras-object-map-values",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-conditional-except",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-merge",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-asyncify",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-conditional-keys",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-distributed-omit",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-distributed-pick",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-pick-index-signature",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-set-return-type",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-stringified",
-            "error"
-        );
-        expect(experimental.rules).toHaveProperty(
-            "typefest/prefer-type-fest-union-to-intersection",
-            "error"
-        );
+        const expectedErrorRulesByConfig: Readonly<
+            Record<(typeof typefestConfigNames)[number], readonly string[]>
+        > = {
+            all: ["typefest/prefer-ts-extras-is-equal-type"],
+            experimental: [
+                "typefest/prefer-ts-extras-object-map-values",
+                "typefest/prefer-type-fest-conditional-except",
+                "typefest/prefer-type-fest-merge",
+                "typefest/prefer-type-fest-asyncify",
+                "typefest/prefer-type-fest-conditional-keys",
+                "typefest/prefer-type-fest-distributed-omit",
+                "typefest/prefer-type-fest-distributed-pick",
+                "typefest/prefer-type-fest-pick-index-signature",
+                "typefest/prefer-type-fest-set-return-type",
+                "typefest/prefer-type-fest-stringified",
+                "typefest/prefer-type-fest-union-to-intersection",
+            ],
+            minimal: [],
+            recommended: [
+                "typefest/prefer-type-fest-arrayable",
+                "typefest/prefer-ts-extras-is-defined",
+            ],
+            "recommended-type-checked": ["typefest/prefer-ts-extras-set-has"],
+            strict: ["typefest/prefer-ts-extras-array-at"],
+            "ts-extras/type-guards": [],
+            "type-fest/types": [],
+        };
+
+        for (const configName of typefestConfigNames) {
+            const ruleIds = expectedErrorRulesByConfig[configName];
+            const rulesRecord = plugin.configs[configName].rules;
+
+            for (const ruleId of ruleIds) {
+                expect(rulesRecord).toHaveProperty(ruleId, "error");
+            }
+        }
+
         expect(strict.rules).not.toHaveProperty(
             "typefest/prefer-ts-extras-is-equal-type"
         );

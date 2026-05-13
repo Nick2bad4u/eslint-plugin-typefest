@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-stringified`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -32,21 +33,22 @@ const hasStringifiedMappedTypeShape = (
         return false;
     }
 
-    if (node.key.type !== "Identifier") {
-        return false;
-    }
-
     const { constraint } = node;
 
-    if (constraint?.type !== "TSTypeOperator") {
+    if (
+        constraint.type !== AST_NODE_TYPES.TSTypeOperator ||
+        constraint.operator !== "keyof"
+    ) {
         return false;
     }
 
-    if (constraint.operator !== "keyof") {
+    const mappedTypeAnnotation = node.typeAnnotation;
+
+    if (mappedTypeAnnotation === undefined) {
         return false;
     }
 
-    return node.typeAnnotation?.type === "TSStringKeyword";
+    return mappedTypeAnnotation.type === AST_NODE_TYPES.TSStringKeyword;
 };
 
 /**

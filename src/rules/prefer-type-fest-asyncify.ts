@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-asyncify`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     getParametersFunctionArgumentFromFunctionType,
@@ -20,7 +22,7 @@ const isAsyncifyEquivalentSetReturnTypeReference = (
     setReturnTypeLocalNames: ReadonlySet<string>
 ): boolean => {
     if (
-        node.typeName.type !== "Identifier" ||
+        node.typeName.type !== AST_NODE_TYPES.Identifier ||
         !setContainsValue(setReturnTypeLocalNames, node.typeName.name)
     ) {
         return false;
@@ -84,7 +86,7 @@ const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
                     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
                     if (
-                        normalizedNode.type !== "TSTypeReference" ||
+                        normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
                         !isAsyncifyEquivalentSetReturnTypeReference(
                             normalizedNode,
                             setReturnTypeLocalNames

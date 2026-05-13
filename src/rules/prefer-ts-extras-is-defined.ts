@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-defined`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { isWithinFilterCallback } from "../_internal/filter-callback.js";
 import {
@@ -29,10 +31,10 @@ type RuleContext = Readonly<
 /**
  * Matched undefined-comparison metadata used to produce the replacement.
  */
-type UndefinedComparisonMatch = {
+interface UndefinedComparisonMatch {
     readonly comparedExpression: TSESTree.Expression;
     readonly prefersNegatedHelper: boolean;
-};
+}
 
 /**
  * Narrow an expression to an Identifier with an expected name.
@@ -41,7 +43,7 @@ const isIdentifierWithName = (
     expression: Readonly<TSESTree.Expression>,
     name: string
 ): expression is TSESTree.Identifier =>
-    expression.type === "Identifier" && expression.name === name;
+    expression.type === AST_NODE_TYPES.Identifier && expression.name === name;
 
 /**
  * Narrow an expression to a `typeof ...` unary expression.
@@ -49,7 +51,7 @@ const isIdentifierWithName = (
 const isTypeofExpression = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
-    expression.type === "UnaryExpression" && expression.operator === "typeof";
+    expression.type === AST_NODE_TYPES.UnaryExpression && expression.operator === "typeof";
 
 /**
  * Check whether an identifier expression resolves to a bound symbol in scope.
@@ -62,7 +64,7 @@ const isBoundIdentifierReference = (
     context: RuleContext,
     expression: Readonly<TSESTree.Expression>
 ): boolean => {
-    if (expression.type !== "Identifier") {
+    if (expression.type !== AST_NODE_TYPES.Identifier) {
         return true;
     }
 
@@ -92,7 +94,7 @@ const isBoundIdentifierReference = (
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined" } =>
-    expression.type === "Literal" && expression.value === "undefined";
+    expression.type === AST_NODE_TYPES.Literal && expression.value === "undefined";
 
 /**
  * Determine whether an expression references the global `undefined` binding.

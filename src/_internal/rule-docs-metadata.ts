@@ -66,7 +66,6 @@ type TypefestRuleDocsContract = Readonly<{
 const RULE_ID_PREFIX = "R" as const;
 const RULE_ID_LENGTH = 4 as const;
 const RULE_ID_DIGIT_START_INDEX = 1 as const;
-const RULE_ID_DIGIT_END_INDEX = 4 as const;
 const ASCII_ZERO_CODE_POINT = 48 as const;
 const ASCII_NINE_CODE_POINT = 57 as const;
 
@@ -78,12 +77,8 @@ const isRuleIdInCanonicalFormat = (value: string): boolean => {
         return false;
     }
 
-    for (
-        let index = RULE_ID_DIGIT_START_INDEX;
-        index < RULE_ID_DIGIT_END_INDEX;
-        index += 1
-    ) {
-        const codePoint = value.codePointAt(index);
+    for (const character of value.slice(RULE_ID_DIGIT_START_INDEX)) {
+        const codePoint = character.codePointAt(0);
 
         if (!isDefined(codePoint)) {
             return false;
@@ -105,13 +100,6 @@ const isRuleIdInCanonicalFormat = (value: string): boolean => {
  */
 const isUnknownRecord = (value: unknown): value is Readonly<UnknownRecord> =>
     typeof value === "object" && value !== null && !Array.isArray(value);
-
-/**
- * Guard dynamic rule ids to the plugin naming contract.
- */
-const isTypefestRuleNamePattern = (
-    value: string
-): value is TypefestRuleNamePattern => value.startsWith("prefer-");
 
 /**
  * Convert rule docs `typefestConfigs` into a normalized, deduped reference
@@ -283,13 +271,7 @@ export const deriveRuleDocsMetadataByName = (
     > = {};
 
     for (const [ruleName, ruleModule] of objectEntries(rules)) {
-        if (!isTypefestRuleNamePattern(ruleName)) {
-            throw new TypeError(
-                `Unexpected rule id '${ruleName}' while deriving docs metadata.`
-            );
-        }
-
-        const ruleDocs = getRuleDocsContract(ruleName, ruleModule.meta?.docs);
+        const ruleDocs = getRuleDocsContract(ruleName, ruleModule.meta.docs);
         const typefestConfigReferences = normalizeTypefestConfigReferences(
             ruleName,
             ruleDocs.typefestConfigs
@@ -326,12 +308,6 @@ export const deriveTypeCheckedRuleNameSet = (
             continue;
         }
 
-        if (!isTypefestRuleNamePattern(ruleName)) {
-            throw new TypeError(
-                `Unexpected rule id '${ruleName}' while deriving typed-rule metadata.`
-            );
-        }
-
         ruleNames.push(ruleName);
     }
 
@@ -350,12 +326,6 @@ export const deriveRulePresetMembershipByRuleName = (
     > = {};
 
     for (const [ruleName, metadata] of objectEntries(ruleDocsMetadataByName)) {
-        if (!isTypefestRuleNamePattern(ruleName)) {
-            throw new TypeError(
-                `Unexpected rule id '${ruleName}' while deriving preset membership.`
-            );
-        }
-
         membershipByRuleName[ruleName] = metadata.typefestConfigNames;
     }
 

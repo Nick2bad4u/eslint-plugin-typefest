@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-infinite`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -58,12 +60,12 @@ const extractInfinityKind = (
     }
 
     if (
-        node.type !== "MemberExpression" ||
+        node.type !== AST_NODE_TYPES.MemberExpression ||
         node.computed ||
-        node.object.type !== "Identifier" ||
+        node.object.type !== AST_NODE_TYPES.Identifier ||
         node.object.name !== "Number" ||
         !isGlobalIdentifierNamed(context, node.object, "Number") ||
-        node.property.type !== "Identifier"
+        node.property.type !== AST_NODE_TYPES.Identifier
     ) {
         return null;
     }
@@ -93,7 +95,7 @@ const extractInfinityComparison = (
     expression: Readonly<TSESTree.Expression>
 ): InfinityComparison | null => {
     if (
-        expression.type !== "BinaryExpression" ||
+        expression.type !== AST_NODE_TYPES.BinaryExpression ||
         (expression.operator !== "==" && expression.operator !== "===")
     ) {
         return null;
@@ -181,7 +183,7 @@ const preferTsExtrasIsInfiniteRule: ReturnType<typeof createTypedRule> =
                 BinaryExpression(node) {
                     const parent = node.parent;
                     if (
-                        parent?.type === "LogicalExpression" &&
+                        parent.type === AST_NODE_TYPES.LogicalExpression &&
                         extractSafeInfinityDisjunctionTarget(context, parent)
                     ) {
                         return;

@@ -1,9 +1,10 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Shared import-declaration analysis utilities for rule internals.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 /**
@@ -43,6 +44,14 @@ const sourceImportAnalysisCache = new WeakMap<
     SourceImportAnalysis
 >();
 
+const isIdentifierNode = (
+    value: unknown
+): value is Readonly<TSESTree.Identifier> =>
+    typeof value === "object" &&
+    value !== null &&
+    Reflect.get(value, "type") === AST_NODE_TYPES.Identifier &&
+    typeof Reflect.get(value, "name") === "string";
+
 /**
  * Build and cache one import-analysis snapshot for the provided SourceCode.
  */
@@ -61,7 +70,7 @@ const getSourceImportAnalysis = (
     >();
 
     for (const statement of sourceCode.ast.body) {
-        if (statement.type !== "ImportDeclaration") {
+        if (statement.type !== AST_NODE_TYPES.ImportDeclaration) {
             continue;
         }
 
@@ -72,9 +81,9 @@ const getSourceImportAnalysis = (
 
         for (const specifier of statement.specifiers) {
             if (
-                specifier.type === "ImportSpecifier" &&
-                specifier.imported.type === "Identifier" &&
-                specifier.local.type === "Identifier"
+                specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+                isIdentifierNode(specifier.imported) &&
+                isIdentifierNode(specifier.local)
             ) {
                 namedImportSpecifierBindings.push(
                     Object.freeze({
@@ -89,7 +98,7 @@ const getSourceImportAnalysis = (
             }
 
             if (
-                specifier.type === "ImportNamespaceSpecifier" &&
+                specifier.type === AST_NODE_TYPES.ImportNamespaceSpecifier &&
                 isDefined(sourceModuleName)
             ) {
                 const existingLocalNames =

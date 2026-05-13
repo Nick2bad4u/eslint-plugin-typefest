@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-present-filter`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getSingleParameterExpressionArrowFilterCallback } from "../_internal/filter-callback.js";
 import {
@@ -25,11 +27,11 @@ import {
 /**
  * Normalized metadata for one nullish inequality comparison part.
  */
-type NullishInequalityPart = {
+interface NullishInequalityPart {
     readonly expression: TSESTree.Expression;
     readonly kind: "null" | "undefined";
     readonly operator: "!=" | "!==";
-};
+}
 
 /** Concrete rule context type inferred from `createTypedRule`. */
 type RuleContext = Readonly<
@@ -151,7 +153,7 @@ const isNullishFilterGuardBody = (
             return true;
         }
 
-        return callback.returnType?.typeAnnotation.type === "TSTypePredicate";
+        return callback.returnType?.typeAnnotation.type === AST_NODE_TYPES.TSTypePredicate;
     }
 
     const andTerms = flattenLogicalTerms({
@@ -216,7 +218,7 @@ const isSafePresentFilterAutoFixableCallback = ({
         return true;
     }
 
-    if (body.type !== "LogicalExpression") {
+    if (body.type !== AST_NODE_TYPES.LogicalExpression) {
         return false;
     }
 

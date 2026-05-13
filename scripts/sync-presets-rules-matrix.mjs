@@ -1,6 +1,6 @@
 /**
- * @packageDocumentation
- * Synchronize or validate presets documentation tables from canonical rule metadata.
+ * Synchronize or validate presets documentation tables from canonical rule
+ * metadata.
  */
 // @ts-check
 
@@ -116,6 +116,9 @@ const toPluginRuleName = (configRuleKey) => {
  * @param {PresetConfigName} presetConfigName
  *
  * @returns {readonly string[]}
+ *
+ * @throws {TypeError} When the built plugin preset config is missing or
+ *   malformed.
  */
 const collectPresetRuleNames = (presetConfigName) => {
     const presetConfig = builtPlugin.configs[presetConfigName];
@@ -167,6 +170,8 @@ const getRuleFixIndicator = (ruleModule) => {
  * @param {string} ruleName
  *
  * @returns {RuleModule}
+ *
+ * @throws {TypeError} When the built plugin does not expose the requested rule.
  */
 const getRuleModuleByName = (ruleName) => {
     const candidate = builtPlugin.rules[ruleName];
@@ -182,6 +187,8 @@ const getRuleModuleByName = (ruleName) => {
  * @param {string} ruleName
  *
  * @returns {string}
+ *
+ * @throws {TypeError} When rule metadata is missing the documentation URL.
  */
 const toPresetRuleRow = (ruleName) => {
     const ruleModule = getRuleModuleByName(ruleName);
@@ -304,6 +311,8 @@ const generateExperimentalRulesSection = () => {
  * @param {readonly string[]} headingCandidates
  *
  * @returns {{ headingOffset: number; sectionEndOffset: number }}
+ *
+ * @throws {Error} When none of the candidate headings exist in the markdown.
  */
 const findSectionBoundsByHeadings = (markdown, headingCandidates) => {
     /** @type {number[]} */
@@ -390,7 +399,7 @@ const replaceMarkdownSection = ({
  */
 const normalizeMarkdownTableSpacing = (markdown) =>
     markdown
-        .replace(/\r\n/gv, "\n")
+        .replaceAll("\r\n", "\n")
         .split("\n")
         .map((line) => {
             const trimmedLine = line.trimEnd();

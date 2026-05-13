@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-unknown-record`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -25,7 +27,7 @@ const isRecordStringUnknown = (
     node: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (
-        node.typeName.type !== "Identifier" ||
+        node.typeName.type !== AST_NODE_TYPES.Identifier ||
         node.typeName.name !== "Record" ||
         node.typeArguments?.params.length !== 2
     ) {
@@ -34,8 +36,8 @@ const isRecordStringUnknown = (
 
     const [keyType, valueType] = node.typeArguments.params;
     return (
-        keyType?.type === "TSStringKeyword" &&
-        valueType?.type === "TSUnknownKeyword"
+        keyType?.type === AST_NODE_TYPES.TSStringKeyword &&
+        valueType?.type === AST_NODE_TYPES.TSUnknownKeyword
     );
 };
 

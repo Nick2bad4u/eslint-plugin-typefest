@@ -19,6 +19,7 @@ interface RuleWithMeta {
     };
 }
 
+/* eslint-disable perfectionist/sort-arrays -- This is the semantic documentation heading order enforced by the test, not an alphabetic list. */
 const canonicalHeadingOrder = [
     "Targeted pattern scope",
     "What this rule reports",
@@ -33,6 +34,7 @@ const canonicalHeadingOrder = [
     "Further reading",
     "Adoption resources",
 ] as const;
+/* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting after semantic heading order. */
 
 const requiredCoreHeadings = [
     "✅ Correct",

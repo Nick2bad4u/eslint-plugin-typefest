@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-writable`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -18,6 +20,21 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const writableAliasReplacements = {
     Mutable: "Writable",
 } as const;
+
+const isIdentifierNode = (
+    value: unknown
+): value is Readonly<TSESTree.Identifier> =>
+    typeof value === "object" &&
+    value !== null &&
+    Reflect.get(value, "type") === AST_NODE_TYPES.Identifier &&
+    typeof Reflect.get(value, "name") === "string";
+
+const isTypeOperatorNode = (
+    value: unknown
+): value is Readonly<TSESTree.TSTypeOperator> =>
+    typeof value === "object" &&
+    value !== null &&
+    Reflect.get(value, "type") === AST_NODE_TYPES.TSTypeOperator;
 
 /**
  * Detects mapped types equivalent to `Writable<T>`.
@@ -42,12 +59,14 @@ const hasWritableMappedTypeShape = (
         return false;
     }
 
-    const { constraint } = node;
-    if (constraint?.type !== "TSTypeOperator") {
+    const keyNode: unknown = Reflect.get(node, "key");
+    if (!isIdentifierNode(keyNode)) {
         return false;
     }
 
-    if (constraint.operator !== "keyof") {
+    const constraint: unknown = Reflect.get(node, "constraint");
+
+    if (!isTypeOperatorNode(constraint) || constraint.operator !== "keyof") {
         return false;
     }
 
@@ -57,7 +76,11 @@ const hasWritableMappedTypeShape = (
     }
 
     const { typeAnnotation } = node;
-    if (typeAnnotation?.type !== "TSIndexedAccessType") {
+    if (typeAnnotation === undefined) {
+        return false;
+    }
+
+    if (typeAnnotation.type !== AST_NODE_TYPES.TSIndexedAccessType) {
         return false;
     }
 
@@ -67,16 +90,13 @@ const hasWritableMappedTypeShape = (
 
     const { indexType } = typeAnnotation;
     if (
-        indexType.type !== "TSTypeReference" ||
-        indexType.typeName.type !== "Identifier"
+        indexType.type !== AST_NODE_TYPES.TSTypeReference ||
+        indexType.typeName.type !== AST_NODE_TYPES.Identifier
     ) {
         return false;
     }
 
-    return (
-        node.key.type === "Identifier" &&
-        indexType.typeName.name === node.key.name
-    );
+    return indexType.typeName.name === keyNode.name;
 };
 
 /**
@@ -114,7 +134,7 @@ const preferTypeFestWritableRule: ReturnType<typeof createTypedRule> =
                 'TSTypeReference[typeName.type="Identifier"]'(
                     node: TSESTree.TSTypeReference
                 ) {
-                    if (node.typeName.type !== "Identifier") {
+                    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 

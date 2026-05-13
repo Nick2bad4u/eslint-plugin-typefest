@@ -339,6 +339,8 @@ const invokeFixToTextEdits = (
         }
     } else if (fixes) {
         normalizedFixes.push(fixes);
+    } else {
+        // No fixes returned.
     }
 
     const textEdits: TextEdit[] = [];

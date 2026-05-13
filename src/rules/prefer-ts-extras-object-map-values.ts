@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-object-map-values`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -31,7 +33,7 @@ const getSingleExpressionArgument = (
 
     const [argument] = callExpression.arguments;
 
-    if (!argument || argument.type === "SpreadElement") {
+    if (!argument || argument.type === AST_NODE_TYPES.SpreadElement) {
         return null;
     }
 
@@ -51,22 +53,22 @@ const unwrapTransparentExpression = (
     let currentExpression = expression;
 
     while (true) {
-        if (currentExpression.type === "TSAsExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSAsExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSNonNullExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSNonNullExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSSatisfiesExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSSatisfiesExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSTypeAssertion") {
+        if (currentExpression.type === AST_NODE_TYPES.TSTypeAssertion) {
             currentExpression = currentExpression.expression;
             continue;
         }
@@ -86,7 +88,7 @@ const unwrapTransparentExpression = (
 const getReturnedExpression = (
     callback: Readonly<TSESTree.ArrowFunctionExpression>
 ): null | Readonly<TSESTree.Expression> => {
-    if (callback.body.type !== "BlockStatement") {
+    if (callback.body.type !== AST_NODE_TYPES.BlockStatement) {
         return callback.body;
     }
 
@@ -96,7 +98,7 @@ const getReturnedExpression = (
 
     const [statement] = callback.body.body;
 
-    if (statement?.type !== "ReturnStatement") {
+    if (statement?.type !== AST_NODE_TYPES.ReturnStatement) {
         return null;
     }
 
@@ -114,15 +116,15 @@ const getReturnedExpression = (
 const getKeyIdentifierFromEntriesTupleParameter = (
     parameter: Readonly<TSESTree.Parameter>
 ): null | Readonly<TSESTree.Identifier> => {
-    if (parameter.type !== "ArrayPattern" || parameter.elements.length !== 2) {
+    if (parameter.type !== AST_NODE_TYPES.ArrayPattern || parameter.elements.length !== 2) {
         return null;
     }
 
     const [firstElement, secondElement] = parameter.elements;
 
     if (
-        firstElement?.type !== "Identifier" ||
-        secondElement?.type !== "Identifier"
+        firstElement?.type !== AST_NODE_TYPES.Identifier ||
+        secondElement?.type !== AST_NODE_TYPES.Identifier
     ) {
         return null;
     }
@@ -145,7 +147,7 @@ const isKeyPreservingMappedTupleReturn = (
     const unwrappedExpression = unwrapTransparentExpression(returnedExpression);
 
     if (
-        unwrappedExpression.type !== "ArrayExpression" ||
+        unwrappedExpression.type !== AST_NODE_TYPES.ArrayExpression ||
         unwrappedExpression.elements.length !== 2
     ) {
         return false;
@@ -156,8 +158,8 @@ const isKeyPreservingMappedTupleReturn = (
     if (
         !firstElement ||
         !secondElement ||
-        firstElement.type === "SpreadElement" ||
-        secondElement.type === "SpreadElement"
+        firstElement.type === AST_NODE_TYPES.SpreadElement ||
+        secondElement.type === AST_NODE_TYPES.SpreadElement
     ) {
         return false;
     }
@@ -184,7 +186,7 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                 'CallExpression[callee.type="Identifier"]'(
                     node: Readonly<TSESTree.CallExpression>
                 ) {
-                    if (node.optional || node.callee.type !== "Identifier") {
+                    if (node.optional || node.callee.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 
@@ -206,7 +208,7 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
 
                     const mapCallExpression = getSingleExpressionArgument(node);
 
-                    if (mapCallExpression?.type !== "CallExpression") {
+                    if (mapCallExpression?.type !== AST_NODE_TYPES.CallExpression) {
                         return;
                     }
 
@@ -222,7 +224,7 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                     const mapCallback =
                         getSingleExpressionArgument(mapMemberCall);
 
-                    if (mapCallback?.type !== "ArrowFunctionExpression") {
+                    if (mapCallback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
                         return;
                     }
 
@@ -242,8 +244,8 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                     const entriesCallExpression = mapMemberCall.callee.object;
 
                     if (
-                        entriesCallExpression.type !== "CallExpression" ||
-                        entriesCallExpression.callee.type !== "Identifier" ||
+                        entriesCallExpression.type !== AST_NODE_TYPES.CallExpression ||
+                        entriesCallExpression.callee.type !== AST_NODE_TYPES.Identifier ||
                         entriesCallExpression.callee.name !==
                             objectEntriesLocalName ||
                         getSingleExpressionArgument(entriesCallExpression) ===

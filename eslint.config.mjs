@@ -1,10 +1,28 @@
-import nick2bad4u from "eslint-config-nick2bad4u";
+import nickTwoBadFourU from "eslint-config-nick2bad4u";
 
-import typefest from "./plugin.mjs";
+import plugin from "./plugin.mjs";
+
+const experimentalConfig = plugin.configs?.["experimental"];
+
+/** @type {import("eslint").Linter.RulesRecord} */
+const localExperimentalRules = {};
+
+if (
+    !Array.isArray(experimentalConfig) &&
+    experimentalConfig?.rules !== undefined
+) {
+    for (const [ruleName, ruleConfig] of Object.entries(
+        experimentalConfig.rules
+    )) {
+        if (ruleConfig !== undefined) {
+            localExperimentalRules[ruleName] = ruleConfig;
+        }
+    }
+}
 
 /** @type {import("eslint").Linter.Config[]} */
 const config = [
-    ...nick2bad4u.configs.withoutTypefest,
+    ...nickTwoBadFourU.configs.withoutTypefest,
 
     // Local Plugin Config
     // This lets us use the plugin's rules in this repository without needing to publish the plugin first.
@@ -12,11 +30,10 @@ const config = [
         files: ["src/**/*.{ts,tsx,mts,cts}"],
         name: "Local Typefest",
         plugins: {
-            typefest: typefest,
+            typefest: plugin,
         },
         rules: {
-            // @ts-expect-error -- plugin.mjs is typed as generic ESLint.Plugin.
-            ...typefest.configs.experimental.rules,
+            ...localExperimentalRules,
         },
     },
     // Add repository-specific config entries below as needed.

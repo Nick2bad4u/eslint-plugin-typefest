@@ -1,11 +1,12 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+import type { JsonObject } from "type-fest";
+
 /**
  * @packageDocumentation
  * Structural normalization and equivalence checks for expressions and type
  * nodes used by safe-fix heuristics.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-import type { JsonObject } from "type-fest";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined, objectHasOwn, objectKeys } from "ts-extras";
 
 import { setContainsValue } from "./set-membership.js";
@@ -94,22 +95,22 @@ const unwrapTransparentExpression = (
 
         visitedExpressions.add(currentExpression);
 
-        if (currentExpression.type === "TSAsExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSAsExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSNonNullExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSNonNullExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSSatisfiesExpression") {
+        if (currentExpression.type === AST_NODE_TYPES.TSSatisfiesExpression) {
             currentExpression = currentExpression.expression;
             continue;
         }
 
-        if (currentExpression.type === "TSTypeAssertion") {
+        if (currentExpression.type === AST_NODE_TYPES.TSTypeAssertion) {
             currentExpression = currentExpression.expression;
             continue;
         }

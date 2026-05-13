@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * AST parent-chain traversal helpers used by multiple rule utilities.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { keyIn } from "ts-extras";
 
 import { resolveFirstValueInLinkedStructure } from "./cycle-safe-linked-search.js";
@@ -53,7 +54,7 @@ export const getProgramNode = (
             currentNode: Readonly<TSESTree.Node>
         ): null | Readonly<TSESTree.Node> => getParentNode(currentNode) ?? null,
         resolveValue: (currentNode: Readonly<TSESTree.Node>) =>
-            currentNode.type === "Program"
+            currentNode.type === AST_NODE_TYPES.Program
                 ? {
                       found: true,
                       value: currentNode,

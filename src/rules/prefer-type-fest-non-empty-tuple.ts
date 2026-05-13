@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-non-empty-tuple`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -31,7 +33,7 @@ type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
 const getRequiredTupleElementType = (
     element: Readonly<TupleElement>
 ): null | TSESTree.TypeNode => {
-    if (element.type === "TSNamedTupleMember") {
+    if (element.type === AST_NODE_TYPES.TSNamedTupleMember) {
         if (element.optional) {
             return null;
         }
@@ -39,7 +41,7 @@ const getRequiredTupleElementType = (
         return element.elementType;
     }
 
-    if (element.type === "TSOptionalType" || element.type === "TSRestType") {
+    if (element.type === AST_NODE_TYPES.TSOptionalType || element.type === AST_NODE_TYPES.TSRestType) {
         return null;
     }
 
@@ -57,7 +59,7 @@ const getRequiredTupleElementType = (
 const unwrapRestAnnotation = (
     annotation: Readonly<RestAnnotation>
 ): null | TSESTree.TypeNode => {
-    if (annotation.type === "TSNamedTupleMember") {
+    if (annotation.type === AST_NODE_TYPES.TSNamedTupleMember) {
         return annotation.elementType;
     }
 
@@ -76,12 +78,12 @@ const unwrapRestAnnotation = (
 const getRestArrayElementType = (
     element: Readonly<TupleElement>
 ): null | TSESTree.TypeNode => {
-    if (element.type !== "TSRestType") {
+    if (element.type !== AST_NODE_TYPES.TSRestType) {
         return null;
     }
 
     const restType = unwrapRestAnnotation(element.typeAnnotation);
-    if (restType?.type !== "TSArrayType") {
+    if (restType?.type !== AST_NODE_TYPES.TSArrayType) {
         return null;
     }
 
@@ -110,7 +112,7 @@ const preferTypeFestNonEmptyTupleRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const tupleType = node.typeAnnotation;
-                    if (tupleType?.type !== "TSTupleType") {
+                    if (tupleType?.type !== AST_NODE_TYPES.TSTupleType) {
                         return;
                     }
 

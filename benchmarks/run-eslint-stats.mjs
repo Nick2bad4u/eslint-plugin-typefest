@@ -137,6 +137,8 @@ const singleRuleStringSplitBenchmarkRules = Object.freeze({
  * @param {string} label - Error label for diagnostics.
  *
  * @returns {readonly string[]} Normalized readonly string array.
+ *
+ * @throws {TypeError} When `value` is not an array of strings.
  */
 const ensureStringArray = (value, label) => {
     if (!Array.isArray(value)) {
@@ -259,6 +261,8 @@ const benchmarkScenarios = Object.freeze([
  * @param {number} fallbackValue - Value used when key is not provided.
  *
  * @returns {number} Parsed positive integer.
+ *
+ * @throws {TypeError} When the CLI value is not a non-negative integer.
  */
 const parseIntegerArgument = (key, fallbackValue) => {
     const matchingArgument = process.argv.find((argument) =>
@@ -285,6 +289,8 @@ const parseIntegerArgument = (key, fallbackValue) => {
  * @param {string} key - CLI key without the leading dashes.
  *
  * @returns {string | undefined} Parsed string when provided.
+ *
+ * @throws {TypeError} When the CLI argument is provided with an empty value.
  */
 const parseStringArgument = (key) => {
     const matchingArgument = process.argv.find((argument) =>
@@ -307,8 +313,8 @@ const parseStringArgument = (key) => {
 /**
  * Build an ESLint instance for benchmark scenarios.
  *
- * @param {{ fix: boolean; rules: BenchmarkRules }} options - ESLint benchmark
- *   options.
+ * @param {{ fix: boolean; rules: BenchmarkRules }} options - Rule set and
+ *   autofix mode used to create the benchmark ESLint instance.
  *
  * @returns {ESLint} Configured ESLint instance.
  */
@@ -355,9 +361,9 @@ const getLintPasses = (lintResult) => {
 /**
  * Normalize timing payloads to milliseconds.
  *
- * @param {unknown} timingPayload - Arbitrary timing payload.
+ * @param {unknown} timingPayload - ESLint timing payload read from stats.
  *
- * @returns {number} Timing total in milliseconds.
+ * @returns {number} Milliseconds recorded for the timing payload.
  */
 const getTimingTotalMilliseconds = (timingPayload) => {
     if (!isObjectRecord(timingPayload)) {
@@ -371,10 +377,10 @@ const getTimingTotalMilliseconds = (timingPayload) => {
 /**
  * Extract a phase timing (`parse`, `fix`) from a lint pass.
  *
- * @param {unknown} pass - ESLint pass payload.
+ * @param {unknown} pass - ESLint timing pass payload.
  * @param {"fix" | "parse"} phaseName - Pass phase field name.
  *
- * @returns {number} Phase timing in milliseconds.
+ * @returns {number} Milliseconds recorded for the requested pass phase.
  */
 const getPassPhaseTimingMilliseconds = (pass, phaseName) => {
     if (!isObjectRecord(pass)) {
@@ -420,6 +426,8 @@ const resolvePath = (filePath) =>
  * @param {string} context - Error context.
  *
  * @returns {string} String property value.
+ *
+ * @throws {TypeError} When the property is not a string.
  */
 const readRequiredString = (record, key, context) => {
     const value = record[key];
@@ -438,6 +446,8 @@ const readRequiredString = (record, key, context) => {
  * @param {string} context - Error context.
  *
  * @returns {number} Numeric property value.
+ *
+ * @throws {TypeError} When the property is not a finite number.
  */
 const readRequiredNumber = (record, key, context) => {
     const value = record[key];
@@ -466,6 +476,9 @@ const readRequiredNumber = (record, key, context) => {
  *     scenario: string;
  * }}
  *   Comparable scenario summary.
+ *
+ * @throws {TypeError} When the scenario payload does not match the report
+ *   schema.
  */
 const parseComparableScenario = (scenario, index, comparePath) => {
     const scenarioContext = `${comparePath}: scenarios[${index}]`;
@@ -511,6 +524,9 @@ const parseComparableScenario = (scenario, index, comparePath) => {
  * >>}
  *   Scenario summary map keyed by scenario name, or null when the file does not
  *   exist.
+ *
+ * @throws {SyntaxError | TypeError} When the comparison report exists but is
+ *   malformed.
  */
 const loadComparisonScenarioMap = async (comparePath) => {
     try {
@@ -591,8 +607,8 @@ const sum = (values) => {
 /**
  * Safely divide two numbers and return `undefined` when denominator is zero.
  *
- * @param {number} numerator - Numerator.
- * @param {number} denominator - Denominator.
+ * @param {number} numerator - Value to divide.
+ * @param {number} denominator - Value used as the divisor.
  *
  * @returns {number | undefined} Quotient when denominator is non-zero.
  */
@@ -600,16 +616,14 @@ const divide = (numerator, denominator) =>
     denominator === 0 ? undefined : numerator / denominator;
 
 /**
- * Sort values without mutating native prototype methods like `.sort()`.
+ * Sort numeric samples without mutating native prototype methods like
+ * `.sort()`.
  *
- * @template T
+ * @param {readonly number[]} values - Numeric samples to sort.
  *
- * @param {readonly T[]} values - Values to sort.
- * @param {(left: T, right: T) => number} compare - Comparator callback.
- *
- * @returns {T[]} New sorted array.
+ * @returns {number[]} New sorted numeric array.
  */
-const sortValues = (values, compare) => {
+const sortNumbersAscending = (values) => {
     const sortedValues = [...values];
 
     for (
@@ -627,7 +641,7 @@ const sortValues = (values, compare) => {
                     break;
                 }
 
-                if (compare(scanValue, currentValue) <= 0) {
+                if (scanValue <= currentValue) {
                     break;
                 }
 
@@ -640,6 +654,51 @@ const sortValues = (values, compare) => {
     }
 
     return sortedValues;
+};
+
+/**
+ * Sort rule timing entries by descending total milliseconds without using
+ * native prototype sorting.
+ *
+ * @param {readonly (readonly [string, number])[]} entries - Totals keyed by
+ *   rule name.
+ *
+ * @returns {readonly [string, number][]} New entries ordered by total time.
+ */
+const sortRuleTimingEntriesDescending = (entries) => {
+    /** @type {[string, number][]} */
+    const sortedEntries = entries.map(([ruleName, totalMilliseconds]) => [
+        ruleName,
+        totalMilliseconds,
+    ]);
+
+    for (
+        let currentIndex = 1;
+        currentIndex < sortedEntries.length;
+        currentIndex += 1
+    ) {
+        const currentEntry = sortedEntries[currentIndex];
+        if (currentEntry !== undefined) {
+            let scanIndex = currentIndex - 1;
+
+            while (scanIndex >= 0) {
+                const scanEntry = sortedEntries[scanIndex];
+                if (
+                    scanEntry === undefined ||
+                    scanEntry[1] >= currentEntry[1]
+                ) {
+                    break;
+                }
+
+                sortedEntries[scanIndex + 1] = scanEntry;
+                scanIndex -= 1;
+            }
+
+            sortedEntries[scanIndex + 1] = currentEntry;
+        }
+    }
+
+    return sortedEntries;
 };
 
 /**
@@ -761,7 +820,7 @@ const median = (values) => {
         return 0;
     }
 
-    const sortedValues = sortValues(values, (left, right) => left - right);
+    const sortedValues = sortNumbersAscending(values);
     const middleIndex = Math.floor(sortedValues.length / 2);
 
     if (sortedValues.length % 2 === 0) {
@@ -815,7 +874,7 @@ const aggregateTimingBreakdown = (lintResults) => {
  * Collect top rules by timing from lint results.
  *
  * @param {LintResults} lintResults - ESLint lint results.
- * @param {number} [topCount=8] - Maximum rule entries to return. Default is `8`
+ * @param {number} [topCount] - Maximum rule entries to return. Default is `8`
  *
  * @returns {RuleTiming[]} Sorted top rule timings.
  */
@@ -837,10 +896,7 @@ const collectTopRuleTimings = (lintResults, topCount = 8) => {
         }
     }
 
-    return sortValues(
-        [...ruleTotals.entries()],
-        (left, right) => right[1] - left[1]
-    )
+    return sortRuleTimingEntriesDescending([...ruleTotals.entries()])
         .slice(0, topCount)
         .map(([ruleName, totalMilliseconds]) => ({
             ruleName,

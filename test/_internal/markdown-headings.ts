@@ -33,6 +33,8 @@ export const parseMarkdownHeadingsAtLevel = (
             !trimmedStartLine.startsWith(`${headingPrefix}#`)
         ) {
             headings.push(trimmedStartLine.slice(headingPrefix.length).trim());
+        } else {
+            // Not a heading line at the target level.
         }
     }
 

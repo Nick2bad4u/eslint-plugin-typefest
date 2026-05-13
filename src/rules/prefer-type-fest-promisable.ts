@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-promisable`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst, isDefined } from "ts-extras";
 
 import {
@@ -95,7 +96,7 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (node.typeName.type !== "Identifier") {
+                    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 
@@ -170,9 +171,9 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     const { promiseInner, synchronousMember } = pair;
 
                     if (
-                        synchronousMember.type === "TSNeverKeyword" ||
-                        synchronousMember.type === "TSNullKeyword" ||
-                        synchronousMember.type === "TSUndefinedKeyword"
+                        synchronousMember.type === AST_NODE_TYPES.TSNeverKeyword ||
+                        synchronousMember.type === AST_NODE_TYPES.TSNullKeyword ||
+                        synchronousMember.type === AST_NODE_TYPES.TSUndefinedKeyword
                     ) {
                         return;
                     }

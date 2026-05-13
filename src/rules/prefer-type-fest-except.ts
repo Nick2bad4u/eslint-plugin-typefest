@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-except`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -78,7 +80,7 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    if (node.typeName.type !== "Identifier") {
+                    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 

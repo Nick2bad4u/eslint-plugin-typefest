@@ -85,9 +85,17 @@ const runTimedRuleTesterCase = ({
 };
 
 assertRuleTesterHook(afterAll, "afterAll");
-RuleTester.afterAll = afterAll;
+RuleTester.afterAll = (...arguments_: UnknownArray) => {
+    Reflect.apply(afterAll as (...args: UnknownArray) => unknown, undefined, [
+        ...arguments_,
+    ]);
+};
 assertRuleTesterHook(describe, "describe");
-RuleTester.describe = describe;
+RuleTester.describe = (...arguments_: UnknownArray) => {
+    Reflect.apply(describe as (...args: UnknownArray) => unknown, undefined, [
+        ...arguments_,
+    ]);
+};
 assertRuleTesterHook(it, "it");
 RuleTester.it = (text, callback) => {
     runTimedRuleTesterCase({

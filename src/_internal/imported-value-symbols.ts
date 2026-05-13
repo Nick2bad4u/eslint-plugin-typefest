@@ -1,10 +1,11 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Utilities for collecting and safely resolving direct named value imports.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayJoin, setHas } from "ts-extras";
 
 import {
@@ -41,6 +42,12 @@ type MemberToFunctionCallFixParams = Readonly<{
     reportFixIntent?: ImportFixIntent;
     sourceModuleName: string;
 }>;
+
+const isImportBindingDefinition = (
+    definition: Readonly<TSESLint.Scope.Definition>
+): boolean =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison -- Scope manager exposes string literal discriminator values.
+    definition.type === "ImportBinding";
 
 /**
  * Parameters for creating a safe method-call to function-call fixer.
@@ -129,7 +136,7 @@ const getImportDeclarationParent = (
 ): null | Readonly<TSESTree.ImportDeclaration> => {
     const nodeParent = node.parent;
 
-    if (nodeParent?.type !== "ImportDeclaration") {
+    if (nodeParent?.type !== AST_NODE_TYPES.ImportDeclaration) {
         return null;
     }
 
@@ -216,12 +223,12 @@ function isLocalNameBoundToExpectedImport(
     }
 
     return variable.defs.some((definition) => {
-        if (definition.type !== "ImportBinding") {
+        if (!isImportBindingDefinition(definition)) {
             return false;
         }
 
         const definitionNode = definition.node;
-        if (definitionNode.type !== "ImportSpecifier") {
+        if (definitionNode.type !== AST_NODE_TYPES.ImportSpecifier) {
             return false;
         }
 
@@ -263,12 +270,12 @@ const canUseDirectImportedNameSafely = ({
     }
 
     return variable.defs.some((definition) => {
-        if (definition.type !== "ImportBinding") {
+        if (!isImportBindingDefinition(definition)) {
             return false;
         }
 
         const definitionNode = definition.node;
-        if (definitionNode.type !== "ImportSpecifier") {
+        if (definitionNode.type !== AST_NODE_TYPES.ImportSpecifier) {
             return false;
         }
 
@@ -591,7 +598,7 @@ export const getFunctionCallArgumentText = ({
         return null;
     }
 
-    if (argumentNode.type !== "SequenceExpression") {
+    if (argumentNode.type !== AST_NODE_TYPES.SequenceExpression) {
         return argumentText;
     }
 
@@ -693,7 +700,10 @@ export const createMethodToFunctionCallFix = ({
     reportFixIntent = "autofix",
     sourceModuleName,
 }: Readonly<MethodToFunctionCallFixParams>): null | TSESLint.ReportFixFunction => {
-    if (callNode.optional || callNode.callee.type !== "MemberExpression") {
+    if (
+        callNode.optional ||
+        callNode.callee.type !== AST_NODE_TYPES.MemberExpression
+    ) {
         return null;
     }
 
@@ -701,7 +711,7 @@ export const createMethodToFunctionCallFix = ({
         return null;
     }
 
-    if (callNode.callee.object.type === "Super") {
+    if (callNode.callee.object.type === AST_NODE_TYPES.Super) {
         return null;
     }
 
@@ -773,7 +783,7 @@ export const createMemberToFunctionCallFix = ({
         return null;
     }
 
-    if (memberNode.object.type === "Super") {
+    if (memberNode.object.type === AST_NODE_TYPES.Super) {
         return null;
     }
 

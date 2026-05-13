@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-json-primitive`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -28,10 +30,10 @@ const isJsonPrimitiveKeywordNode = (
     | TSESTree.TSNullKeyword
     | TSESTree.TSNumberKeyword
     | TSESTree.TSStringKeyword =>
-    node.type === "TSBooleanKeyword" ||
-    node.type === "TSNullKeyword" ||
-    node.type === "TSNumberKeyword" ||
-    node.type === "TSStringKeyword";
+    node.type === AST_NODE_TYPES.TSBooleanKeyword ||
+    node.type === AST_NODE_TYPES.TSNullKeyword ||
+    node.type === AST_NODE_TYPES.TSNumberKeyword ||
+    node.type === AST_NODE_TYPES.TSStringKeyword;
 
 /**
  * Detects explicit JSON primitive unions that can be replaced with
@@ -60,27 +62,22 @@ const hasJsonPrimitiveUnionShape = (
             return false;
         }
 
-        if (typeNode.type === "TSBooleanKeyword") {
+        if (typeNode.type === AST_NODE_TYPES.TSBooleanKeyword) {
             hasBoolean = true;
             continue;
         }
 
-        if (typeNode.type === "TSNullKeyword") {
+        if (typeNode.type === AST_NODE_TYPES.TSNullKeyword) {
             hasNull = true;
             continue;
         }
 
-        if (typeNode.type === "TSNumberKeyword") {
+        if (typeNode.type === AST_NODE_TYPES.TSNumberKeyword) {
             hasNumber = true;
             continue;
         }
 
-        if (typeNode.type === "TSStringKeyword") {
-            hasString = true;
-            continue;
-        }
-
-        return false;
+        hasString = true;
     }
 
     return hasBoolean && hasNull && hasNumber && hasString;

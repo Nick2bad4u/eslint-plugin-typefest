@@ -1,5 +1,6 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayAt, arrayFirst } from "ts-extras";
 
 /**
@@ -19,17 +20,17 @@ const EXCLUDE_TYPE_NAME = "Exclude" as const;
 const NON_NULLABLE_TYPE_NAME = "NonNullable" as const;
 
 const isNullKeywordType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSNullKeyword";
+    node.type === AST_NODE_TYPES.TSNullKeyword;
 
 const isUndefinedKeywordType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSUndefinedKeyword";
+    node.type === AST_NODE_TYPES.TSUndefinedKeyword;
 
 const isNullishDeleteType = (node: Readonly<TSESTree.TypeNode>): boolean => {
     if (isNullKeywordType(node)) {
         return true;
     }
 
-    if (node.type !== "TSUnionType" || node.types.length !== 2) {
+    if (node.type !== AST_NODE_TYPES.TSUnionType || node.types.length !== 2) {
         return false;
     }
 
@@ -61,8 +62,8 @@ const getOptionalInnerTypeText = ({
     typeNode: Readonly<TSESTree.TypeNode>;
 }>): null | string => {
     if (
-        typeNode.type !== "TSTypeReference" ||
-        typeNode.typeName.type !== "Identifier"
+        typeNode.type !== AST_NODE_TYPES.TSTypeReference ||
+        typeNode.typeName.type !== AST_NODE_TYPES.Identifier
     ) {
         return null;
     }

@@ -1,8 +1,3 @@
-/**
- * @packageDocumentation
- * Helpers for determining whether expressions/types are array-like in typed
- * rule analysis.
- */
 import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
@@ -11,6 +6,12 @@ import {
     isTypeArrayTypeOrUnionOfArrayTypes,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
+/**
+ * @packageDocumentation
+ * Helpers for determining whether expressions/types are array-like in typed
+ * rule analysis.
+ */
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
@@ -216,14 +217,14 @@ export const isArrayLikeType = (
 const getArrayLikeExpressionPrefilterResult = (
     expression: Readonly<TSESTree.Expression>
 ): boolean | undefined => {
-    if (expression.type === "ArrayExpression") {
+    if (expression.type === AST_NODE_TYPES.ArrayExpression) {
         return true;
     }
 
     if (
-        expression.type === "TSAsExpression" ||
-        expression.type === "TSNonNullExpression" ||
-        expression.type === "TSSatisfiesExpression"
+        expression.type === AST_NODE_TYPES.TSAsExpression ||
+        expression.type === AST_NODE_TYPES.TSNonNullExpression ||
+        expression.type === AST_NODE_TYPES.TSSatisfiesExpression
     ) {
         return getArrayLikeExpressionPrefilterResult(expression.expression);
     }
@@ -307,15 +308,15 @@ export const isWriteTargetMemberExpression = (
         return false;
     }
 
-    if (parentNode.type === "AssignmentExpression") {
+    if (parentNode.type === AST_NODE_TYPES.AssignmentExpression) {
         return parentNode.left === node;
     }
 
-    if (parentNode.type === "UnaryExpression") {
+    if (parentNode.type === AST_NODE_TYPES.UnaryExpression) {
         return parentNode.operator === "delete";
     }
 
-    if (parentNode.type === "UpdateExpression") {
+    if (parentNode.type === AST_NODE_TYPES.UpdateExpression) {
         return parentNode.argument === node;
     }
 

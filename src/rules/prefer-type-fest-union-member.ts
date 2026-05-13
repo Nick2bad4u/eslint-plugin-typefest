@@ -1,5 +1,6 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst } from "ts-extras";
 
 /**
@@ -22,16 +23,16 @@ const isIdentifierTypeReferenceNamed = (
     node: Readonly<TSESTree.TypeNode>,
     name: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
+    node.type === AST_NODE_TYPES.TSTypeReference &&
+    node.typeName.type === AST_NODE_TYPES.Identifier &&
     node.typeName.name === name;
 
 const isBooleanLiteralType = (
     node: Readonly<TSESTree.TypeNode>,
     expectedValue: boolean
 ): boolean =>
-    node.type === "TSLiteralType" &&
-    node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSLiteralType &&
+    node.literal.type === AST_NODE_TYPES.Literal &&
     node.literal.value === expectedValue;
 
 const getUnionArgumentTextFromDistributiveFunctionWrapper = ({
@@ -41,18 +42,18 @@ const getUnionArgumentTextFromDistributiveFunctionWrapper = ({
     node: Readonly<TSESTree.TypeNode>;
     sourceCode: Readonly<TSESLint.SourceCode>;
 }>): null | string => {
-    if (node.type !== "TSConditionalType") {
+    if (node.type !== AST_NODE_TYPES.TSConditionalType) {
         return null;
     }
 
     if (
-        node.extendsType.type !== "TSAnyKeyword" ||
-        node.falseType.type !== "TSNeverKeyword"
+        node.extendsType.type !== AST_NODE_TYPES.TSAnyKeyword ||
+        node.falseType.type !== AST_NODE_TYPES.TSNeverKeyword
     ) {
         return null;
     }
 
-    if (node.trueType.type !== "TSFunctionType") {
+    if (node.trueType.type !== AST_NODE_TYPES.TSFunctionType) {
         return null;
     }
 
@@ -75,7 +76,7 @@ const getUnionArgumentTextFromExtractor = ({
     node: Readonly<TSESTree.TSConditionalType>;
     sourceCode: Readonly<TSESLint.SourceCode>;
 }>): null | string => {
-    if (node.falseType.type !== "TSNeverKeyword") {
+    if (node.falseType.type !== AST_NODE_TYPES.TSNeverKeyword) {
         return null;
     }
 
@@ -106,21 +107,21 @@ const getUnionArgumentTextFromExtractor = ({
         return null;
     }
 
-    if (node.extendsType.type !== "TSFunctionType") {
+    if (node.extendsType.type !== AST_NODE_TYPES.TSFunctionType) {
         return null;
     }
 
     const inferredReturnType = node.extendsType.returnType?.typeAnnotation;
 
     const inferredTypeParameterName =
-        inferredReturnType?.type === "TSInferType"
+        inferredReturnType?.type === AST_NODE_TYPES.TSInferType
             ? inferredReturnType.typeParameter.name.name
             : null;
 
     if (
         inferredTypeParameterName === null ||
-        node.trueType.type !== "TSTypeReference" ||
-        node.trueType.typeName.type !== "Identifier" ||
+        node.trueType.type !== AST_NODE_TYPES.TSTypeReference ||
+        node.trueType.typeName.type !== AST_NODE_TYPES.Identifier ||
         node.trueType.typeName.name !== inferredTypeParameterName
     ) {
         return null;
@@ -136,7 +137,7 @@ const getUnionMemberEquivalentArgumentText = ({
     node: Readonly<TSESTree.TypeNode>;
     sourceCode: Readonly<TSESLint.SourceCode>;
 }>): null | string => {
-    if (node.type !== "TSConditionalType") {
+    if (node.type !== AST_NODE_TYPES.TSConditionalType) {
         return null;
     }
 
@@ -152,7 +153,7 @@ const getUnionMemberEquivalentArgumentText = ({
     if (
         !isIdentifierTypeReferenceNamed(node.checkType, IS_NEVER_TYPE_NAME) ||
         !isBooleanLiteralType(node.extendsType, true) ||
-        node.trueType.type !== "TSNeverKeyword"
+        node.trueType.type !== AST_NODE_TYPES.TSNeverKeyword
     ) {
         return null;
     }
@@ -166,7 +167,7 @@ const getUnionMemberEquivalentArgumentText = ({
     }
 
     const guardedArgumentText = sourceCode.getText(guardedArgument);
-    if (node.falseType.type !== "TSConditionalType") {
+    if (node.falseType.type !== AST_NODE_TYPES.TSConditionalType) {
         return null;
     }
 

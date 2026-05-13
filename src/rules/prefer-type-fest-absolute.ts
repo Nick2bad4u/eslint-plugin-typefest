@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-absolute`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { setHas } from "ts-extras";
 
 import {
@@ -41,7 +42,7 @@ const preferTypeFestAbsoluteRule: ReturnType<typeof createTypedRule> =
                     node: TSESTree.TSTypeReference
                 ) {
                     if (
-                        node.typeName.type !== "Identifier" ||
+                        node.typeName.type !== AST_NODE_TYPES.Identifier ||
                         !setHas(ABSOLUTE_ALIAS_NAMES, node.typeName.name)
                     ) {
                         return;

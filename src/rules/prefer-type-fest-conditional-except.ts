@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-conditional-except`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { collectNamedImportLocalNamesFromSource } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
@@ -11,6 +13,18 @@ import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { unwrapParenthesizedTypeNode } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
+
+type ConditionalKeysReference = Readonly<TSESTree.TSTypeReference> & {
+    readonly typeName: Readonly<TSESTree.Identifier>;
+};
+
+const isConditionalKeysReference = (
+    node: Readonly<TSESTree.TypeNode>,
+    conditionalKeysLocalNames: ReadonlySet<string>
+): node is ConditionalKeysReference =>
+    node.type === AST_NODE_TYPES.TSTypeReference &&
+    node.typeName.type === AST_NODE_TYPES.Identifier &&
+    setContainsValue(conditionalKeysLocalNames, node.typeName.name);
 
 /**
  * Detect whether a type reference matches `ConditionalKeys<Base, Condition>`
@@ -26,23 +40,16 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const getConditionalKeysReference = (
     node: Readonly<TSESTree.TypeNode>,
     conditionalKeysLocalNames: ReadonlySet<string>
-): null | (TSESTree.TSTypeReference & { typeName: TSESTree.Identifier }) => {
+): ConditionalKeysReference | null => {
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     if (
-        normalizedNode.type !== "TSTypeReference" ||
-        normalizedNode.typeName.type !== "Identifier" ||
-        !setContainsValue(
-            conditionalKeysLocalNames,
-            normalizedNode.typeName.name
-        )
+        !isConditionalKeysReference(normalizedNode, conditionalKeysLocalNames)
     ) {
         return null;
     }
 
-    return normalizedNode as TSESTree.TSTypeReference & {
-        typeName: TSESTree.Identifier;
-    };
+    return normalizedNode;
 };
 
 /**
@@ -68,7 +75,7 @@ const preferTypeFestConditionalExceptRule: ReturnType<typeof createTypedRule> =
                     node: TSESTree.TSTypeReference
                 ) {
                     if (
-                        node.typeName.type !== "Identifier" ||
+                        node.typeName.type !== AST_NODE_TYPES.Identifier ||
                         !setContainsValue(exceptLocalNames, node.typeName.name)
                     ) {
                         return;

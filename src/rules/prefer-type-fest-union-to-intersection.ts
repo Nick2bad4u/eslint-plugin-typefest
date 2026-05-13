@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-union-to-intersection`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -15,8 +17,8 @@ const isDistributiveConditionalExtendsType = (
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     return (
-        normalizedNode.type === "TSAnyKeyword" ||
-        normalizedNode.type === "TSUnknownKeyword"
+        normalizedNode.type === AST_NODE_TYPES.TSAnyKeyword ||
+        normalizedNode.type === AST_NODE_TYPES.TSUnknownKeyword
     );
 };
 
@@ -30,7 +32,7 @@ const getSingleFunctionParameterType = (
     const [onlyParameter] = node.params;
 
     if (
-        onlyParameter?.type !== "Identifier" ||
+        onlyParameter?.type !== AST_NODE_TYPES.Identifier ||
         onlyParameter.typeAnnotation === undefined
     ) {
         return null;
@@ -49,15 +51,15 @@ const matchesUnionToIntersectionTrueType = (
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     if (
-        normalizedNode.type === "TSTypeReference" &&
-        normalizedNode.typeName.type === "Identifier" &&
+        normalizedNode.type === AST_NODE_TYPES.TSTypeReference &&
+        normalizedNode.typeName.type === AST_NODE_TYPES.Identifier &&
         normalizedNode.typeName.name === inferredTypeParameterName
     ) {
         return true;
     }
 
     if (
-        normalizedNode.type !== "TSIntersectionType" ||
+        normalizedNode.type !== AST_NODE_TYPES.TSIntersectionType ||
         normalizedNode.types.length !== 2
     ) {
         return false;
@@ -70,8 +72,8 @@ const matchesUnionToIntersectionTrueType = (
     }
 
     const isInferredIdentifier = (typeNode: Readonly<TSESTree.TypeNode>) =>
-        typeNode.type === "TSTypeReference" &&
-        typeNode.typeName.type === "Identifier" &&
+        typeNode.type === AST_NODE_TYPES.TSTypeReference &&
+        typeNode.typeName.type === AST_NODE_TYPES.Identifier &&
         typeNode.typeName.name === inferredTypeParameterName;
 
     return (
@@ -91,18 +93,18 @@ const matchesUnionToIntersectionTrueType = (
 const isUnionToIntersectionEquivalent = (
     node: Readonly<TSESTree.TSConditionalType>
 ): boolean => {
-    if (node.falseType.type !== "TSNeverKeyword") {
+    if (node.falseType.type !== AST_NODE_TYPES.TSNeverKeyword) {
         return false;
     }
 
     const distributedWrapper = unwrapParenthesizedTypeNode(node.checkType);
 
-    if (distributedWrapper.type !== "TSConditionalType") {
+    if (distributedWrapper.type !== AST_NODE_TYPES.TSConditionalType) {
         return false;
     }
 
     if (
-        distributedWrapper.falseType.type !== "TSNeverKeyword" ||
+        distributedWrapper.falseType.type !== AST_NODE_TYPES.TSNeverKeyword ||
         !isDistributiveConditionalExtendsType(distributedWrapper.extendsType)
     ) {
         return false;
@@ -112,7 +114,7 @@ const isUnionToIntersectionEquivalent = (
         distributedWrapper.trueType
     );
 
-    if (distributedTrueType.type !== "TSFunctionType") {
+    if (distributedTrueType.type !== AST_NODE_TYPES.TSFunctionType) {
         return false;
     }
 
@@ -131,7 +133,7 @@ const isUnionToIntersectionEquivalent = (
 
     const extractorFunctionType = unwrapParenthesizedTypeNode(node.extendsType);
 
-    if (extractorFunctionType.type !== "TSFunctionType") {
+    if (extractorFunctionType.type !== AST_NODE_TYPES.TSFunctionType) {
         return false;
     }
 
@@ -139,7 +141,7 @@ const isUnionToIntersectionEquivalent = (
         extractorFunctionType
     );
 
-    if (extractorParameterType?.type !== "TSInferType") {
+    if (extractorParameterType?.type !== AST_NODE_TYPES.TSInferType) {
         return false;
     }
 

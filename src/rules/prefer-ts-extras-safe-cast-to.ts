@@ -1,7 +1,3 @@
-/**
- * @packageDocumentation
- * ESLint rule implementation for `prefer-ts-extras-safe-cast-to`.
- */
 import type { TSESTree } from "@typescript-eslint/utils";
 
 import {
@@ -10,6 +6,11 @@ import {
     isTypeNeverType,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
+/**
+ * @packageDocumentation
+ * ESLint rule implementation for `prefer-ts-extras-safe-cast-to`.
+ */
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 import ts from "typescript";
 
@@ -41,11 +42,11 @@ import {
 const isIgnoredTypeAnnotation = (
     typeAnnotation: Readonly<TSESTree.TypeNode>
 ): boolean =>
-    typeAnnotation.type === "TSAnyKeyword" ||
-    typeAnnotation.type === "TSNeverKeyword" ||
-    typeAnnotation.type === "TSUnknownKeyword" ||
-    (typeAnnotation.type === "TSTypeReference" &&
-        typeAnnotation.typeName.type === "Identifier" &&
+    typeAnnotation.type === AST_NODE_TYPES.TSAnyKeyword ||
+    typeAnnotation.type === AST_NODE_TYPES.TSNeverKeyword ||
+    typeAnnotation.type === AST_NODE_TYPES.TSUnknownKeyword ||
+    (typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+        typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
         typeAnnotation.typeName.name === "const");
 
 const IGNORED_TARGET_TYPE_NAMES = new Set([

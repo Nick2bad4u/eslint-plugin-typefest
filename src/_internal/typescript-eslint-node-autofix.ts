@@ -1,8 +1,3 @@
-/**
- * @packageDocumentation
- * Shared type-aware guardrails for skipping risky rule reports/fixes on
- * `@typescript-eslint` AST-node expressions.
- */
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
@@ -12,6 +7,12 @@ import {
     isTypeAnyType,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
+/**
+ * @packageDocumentation
+ * Shared type-aware guardrails for skipping risky rule reports/fixes on
+ * `@typescript-eslint` AST-node expressions.
+ */
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import {
     arrayIncludes,
     isDefined,
@@ -37,6 +38,37 @@ import { recordTypedPathPrefilterEvaluation } from "./typed-path-telemetry.js";
 
 const TYPESCRIPT_ESLINT_PACKAGE_SEGMENT = "@typescript-eslint" as const;
 const TSESTREE_NAMESPACE_NAME = "TSESTree" as const;
+
+const isImportDeclarationNode = (
+    value: unknown
+): value is Readonly<TSESTree.ImportDeclaration> =>
+    typeof value === "object" &&
+    value !== null &&
+    Reflect.get(value, "type") === AST_NODE_TYPES.ImportDeclaration;
+
+const addTypeScriptEslintNamespaceImportNames = (
+    statement: Readonly<TSESTree.ImportDeclaration>,
+    namespaceNames: Set<string>
+): void => {
+    if (statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_SOURCE) {
+        return;
+    }
+
+    for (const specifier of statement.specifiers) {
+        if (specifier.type === AST_NODE_TYPES.ImportNamespaceSpecifier) {
+            namespaceNames.add(specifier.local.name);
+            continue;
+        }
+
+        if (
+            specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+            specifier.imported.type === AST_NODE_TYPES.Identifier &&
+            specifier.imported.name === TSESTREE_NAMESPACE_NAME
+        ) {
+            namespaceNames.add(specifier.local.name);
+        }
+    }
+};
 const PATH_SEPARATOR = "/" as const;
 const ASCII_DIGIT_ZERO_CODE_POINT = 48 as const;
 const ASCII_DIGIT_NINE_CODE_POINT = 57 as const;
@@ -255,7 +287,12 @@ const getTypeScriptEslintNamespaceImportNames = (
     }
 
     const namespaceNames = new Set<string>();
-    const programStatements = sourceCode.ast?.body;
+    const sourceCodeObject: object = sourceCode;
+    const ast: unknown = Reflect.get(sourceCodeObject, "ast");
+    const programStatements: unknown =
+        typeof ast === "object" && ast !== null
+            ? Reflect.get(ast, "body")
+            : undefined;
 
     if (!Array.isArray(programStatements)) {
         namespaceImportNamesBySourceCode.set(sourceCode, namespaceNames);
@@ -263,28 +300,14 @@ const getTypeScriptEslintNamespaceImportNames = (
         return namespaceNames;
     }
 
-    for (const statement of programStatements) {
-        if (
-            statement.type !== "ImportDeclaration" ||
-            statement.source.value !== TYPESCRIPT_ESLINT_UTILS_MODULE_SOURCE
-        ) {
+    const importCandidates: Readonly<UnknownArray> = programStatements;
+
+    for (const statement of importCandidates) {
+        if (!isImportDeclarationNode(statement)) {
             continue;
         }
 
-        for (const specifier of statement.specifiers) {
-            if (specifier.type === "ImportNamespaceSpecifier") {
-                namespaceNames.add(specifier.local.name);
-                continue;
-            }
-
-            if (
-                specifier.type === "ImportSpecifier" &&
-                specifier.imported.type === "Identifier" &&
-                specifier.imported.name === TSESTREE_NAMESPACE_NAME
-            ) {
-                namespaceNames.add(specifier.local.name);
-            }
-        }
+        addTypeScriptEslintNamespaceImportNames(statement, namespaceNames);
     }
 
     const readonlyNamespaceNames: ReadonlySet<string> = new Set(namespaceNames);
@@ -479,7 +502,7 @@ const createTypeScriptEslintNodeLikeExpressionByDefinitionChecker = <
             return false;
         }
 
-        if (expression.type !== "Identifier") {
+        if (expression.type !== AST_NODE_TYPES.Identifier) {
             return false;
         }
 
@@ -557,10 +580,13 @@ const createTypeScriptEslintNodeLikeExpressionByDefinitionChecker = <
                     }
 
                     if (
-                        definitionNode.type === "VariableDeclarator" &&
+                        definitionNode.type ===
+                            AST_NODE_TYPES.VariableDeclarator &&
                         definitionNode.init !== null &&
-                        definitionNode.init.type === "MemberExpression" &&
-                        definitionNode.init.object.type === "Identifier"
+                        definitionNode.init.type ===
+                            AST_NODE_TYPES.MemberExpression &&
+                        definitionNode.init.object.type ===
+                            AST_NODE_TYPES.Identifier
                     ) {
                         const { object } = definitionNode.init;
                         const objectVariable = getVariableInScopeChain(

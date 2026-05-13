@@ -6,6 +6,13 @@
 
 import { isSafeInteger } from "ts-extras";
 
+const isSameValueZero = <Value>(left: Value, right: Value): boolean =>
+    left === right ||
+    (typeof left === "number" &&
+        typeof right === "number" &&
+        Number.isNaN(left) &&
+        Number.isNaN(right));
+
 /**
  * Result shape returned by bounded-cache lookups.
  */
@@ -31,20 +38,20 @@ export const getBoundedCacheValue = <Key, Value>(
     cache: Map<Key, Value>,
     key: Key
 ): BoundedCacheLookupResult<Value> => {
-    if (!cache.has(key)) {
-        return {
-            found: false,
-        };
+    for (const [entryKey, value] of cache) {
+        if (isSameValueZero(entryKey, key)) {
+            cache.delete(key);
+            cache.set(key, value);
+
+            return {
+                found: true,
+                value,
+            };
+        }
     }
 
-    const value = cache.get(key) as Value;
-
-    cache.delete(key);
-    cache.set(key, value);
-
     return {
-        found: true,
-        value,
+        found: false,
     };
 };
 

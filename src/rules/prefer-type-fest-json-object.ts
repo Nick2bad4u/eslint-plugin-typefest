@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-json-object`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -19,6 +21,11 @@ const JSON_VALUE_TYPE_NAME = "JsonValue";
 /** Built-in object utility type used by explicit JSON object aliases. */
 const RECORD_TYPE_NAME = "Record";
 
+const isTypeNodePair = (
+    nodes: readonly TSESTree.TypeNode[] | undefined
+): nodes is readonly [TSESTree.TypeNode, TSESTree.TypeNode] =>
+    nodes?.length === 2;
+
 /**
  * Checks whether a type node represents a string index key.
  *
@@ -28,9 +35,9 @@ const RECORD_TYPE_NAME = "Record";
  */
 
 const isStringKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSStringKeyword" ||
-    (node.type === "TSLiteralType" &&
-        node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSStringKeyword ||
+    (node.type === AST_NODE_TYPES.TSLiteralType &&
+        node.literal.type === AST_NODE_TYPES.Literal &&
         node.literal.value === "string");
 
 /**
@@ -61,14 +68,11 @@ const isRecordJsonValueReference = (
     }
 
     const typeArguments = node.typeArguments?.params;
-    if (typeArguments?.length !== 2) {
+    if (!isTypeNodePair(typeArguments)) {
         return false;
     }
 
-    const [keyType, valueType] = typeArguments as [
-        TSESTree.TypeNode,
-        TSESTree.TypeNode,
-    ];
+    const [keyType, valueType] = typeArguments;
 
     return isStringKeyType(keyType) && isJsonValueType(valueType);
 };

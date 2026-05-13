@@ -48,7 +48,10 @@ export const getConstrainedTypeAtLocationWithFallback = (
 ): ts.Type | undefined => {
     const mappedTsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
     const telemetryFilePathResult = safeTypeOperation({
-        operation: () => mappedTsNode?.getSourceFile?.().fileName,
+        operation: () =>
+            isDefined(mappedTsNode)
+                ? mappedTsNode.getSourceFile().fileName
+                : undefined,
         reason: "constrained-type-telemetry-file-path-resolution-failed",
     });
     const telemetryFilePath = telemetryFilePathResult.ok
@@ -67,6 +70,7 @@ export const getConstrainedTypeAtLocationWithFallback = (
             }
 
             return getConstrainedTypeAtLocation(
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Runtime guards above verify the parser-services members required before calling the type-utils helper.
                 parserServices as Parameters<
                     typeof getConstrainedTypeAtLocation
                 >[0],

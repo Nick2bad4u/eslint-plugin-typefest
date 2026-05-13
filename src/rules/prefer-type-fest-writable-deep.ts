@@ -1,5 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-writable-deep`.
@@ -31,7 +33,7 @@ const preferTypeFestWritableDeepRule: ReturnType<typeof createTypedRule> =
                     node: TSESTree.TSTypeReference
                 ) {
                     if (
-                        node.typeName.type !== "Identifier" ||
+                        node.typeName.type !== AST_NODE_TYPES.Identifier ||
                         (node.typeName.name !== "DeepMutable" &&
                             node.typeName.name !== "MutableDeep")
                     ) {

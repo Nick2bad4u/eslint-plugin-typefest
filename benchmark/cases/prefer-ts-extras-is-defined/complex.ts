@@ -13,7 +13,7 @@ const readValue = (value = input[0]) => {
         return `${value}-ok`;
     }
 
-    if ("undefined" !== typeof value) {
+    if (typeof value !== "undefined") {
         return `${value}-ok-2`;
     }
 
@@ -21,7 +21,7 @@ const readValue = (value = input[0]) => {
         return "missing";
     }
 
-    if ("undefined" === typeof value) {
+    if (typeof value === "undefined") {
         return "missing-2";
     }
 

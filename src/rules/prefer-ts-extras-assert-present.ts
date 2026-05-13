@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-present`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -38,7 +40,7 @@ type RuleContext = Readonly<
  * @returns `true` when the expression is `null`.
  */
 const isNullExpression = (node: Readonly<TSESTree.Expression>): boolean =>
-    node.type === "Literal" && node.value === null;
+    node.type === AST_NODE_TYPES.Literal && node.value === null;
 
 /**
  * Determine whether an expression references the global `undefined` value.
@@ -55,7 +57,7 @@ const isUndefinedExpression = ({
     context: RuleContext;
     node: Readonly<TSESTree.Expression>;
 }>): boolean => {
-    if (node.type !== "Identifier" || node.name !== "undefined") {
+    if (node.type !== AST_NODE_TYPES.Identifier || node.name !== "undefined") {
         return false;
     }
 
@@ -79,7 +81,7 @@ const isCanonicalAssertPresentThrow = ({
         context,
         throwStatement,
     });
-    if (firstArgument?.type !== "TemplateLiteral") {
+    if (firstArgument?.type !== AST_NODE_TYPES.TemplateLiteral) {
         return false;
     }
 
@@ -116,7 +118,7 @@ const isCanonicalAssertPresentThrow = ({
 const extractEqNullGuardExpression = (
     test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
-    if (test.type !== "BinaryExpression" || test.operator !== "==") {
+    if (test.type !== AST_NODE_TYPES.BinaryExpression || test.operator !== "==") {
         return null;
     }
 
@@ -147,7 +149,7 @@ const extractNullishEqualityPart = (
     kind: "null" | "undefined";
 } => {
     if (
-        expression.type !== "BinaryExpression" ||
+        expression.type !== AST_NODE_TYPES.BinaryExpression ||
         (expression.operator !== "==" && expression.operator !== "===")
     ) {
         return null;
@@ -226,7 +228,7 @@ const preferTsExtrasAssertPresentRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (
-                    test.type !== "LogicalExpression" ||
+                    test.type !== AST_NODE_TYPES.LogicalExpression ||
                     test.operator !== "||"
                 ) {
                     return null;

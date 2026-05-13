@@ -1,9 +1,11 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-error`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -35,7 +37,7 @@ const isErrorInstanceofExpression = (
     context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.BinaryExpression => {
-    if (expression.type !== "BinaryExpression") {
+    if (expression.type !== AST_NODE_TYPES.BinaryExpression) {
         return false;
     }
 
@@ -43,7 +45,7 @@ const isErrorInstanceofExpression = (
         return false;
     }
 
-    if (expression.right.type !== "Identifier") {
+    if (expression.right.type !== AST_NODE_TYPES.Identifier) {
         return false;
     }
 
@@ -63,7 +65,7 @@ const extractAssertErrorTarget = (
     context: Readonly<TSESLint.RuleContext<string, Readonly<UnknownArray>>>,
     test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
-    if (test.type !== "UnaryExpression") {
+    if (test.type !== AST_NODE_TYPES.UnaryExpression) {
         return null;
     }
 
@@ -80,7 +82,7 @@ const extractAssertErrorTarget = (
     /* V8 ignore next -- ESTree allows PrivateIdentifier here, but parsed
        TS/JS `instanceof` left operands are expressions (e.g. `this.#value`),
        not bare PrivateIdentifier nodes. */
-    if (argument.left.type === "PrivateIdentifier") {
+    if (argument.left.type === AST_NODE_TYPES.PrivateIdentifier) {
         return null;
     }
 

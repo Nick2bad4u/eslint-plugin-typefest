@@ -1,10 +1,11 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Shared utilities for safely inserting import declarations in fixer output.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayAt, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
@@ -95,7 +96,7 @@ const parseModuleSpecifierFromImportDeclarationText = (
 
     if (
         parsedResult.value.ast.body.length !== 1 ||
-        firstStatement?.type !== "ImportDeclaration"
+        firstStatement?.type !== AST_NODE_TYPES.ImportDeclaration
     ) {
         return null;
     }
@@ -225,7 +226,7 @@ const getImportDeclarationModuleSpecifier = (
 const isDirectiveExpressionStatement = (
     statement: Readonly<TSESTree.ProgramStatement>
 ): statement is TSESTree.ExpressionStatement & { directive: string } =>
-    statement.type === "ExpressionStatement" &&
+    statement.type === AST_NODE_TYPES.ExpressionStatement &&
     typeof statement.directive === "string";
 
 /**
@@ -315,7 +316,7 @@ const getProgramInsertionLayout = (
             inDirectivePrologue = false;
         }
 
-        if (statement.type !== "ImportDeclaration") {
+        if (statement.type !== AST_NODE_TYPES.ImportDeclaration) {
             continue;
         }
 

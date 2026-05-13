@@ -1,5 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-less-than`.
@@ -22,8 +24,8 @@ const isLiteralBooleanType = (
     node: Readonly<TSESTree.TypeNode>,
     expectedBooleanValue: boolean
 ): boolean =>
-    node.type === "TSLiteralType" &&
-    node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSLiteralType &&
+    node.literal.type === AST_NODE_TYPES.Literal &&
     node.literal.value === expectedBooleanValue;
 
 const isFalseLiteralType = (node: Readonly<TSESTree.TypeNode>): boolean =>
@@ -81,24 +83,27 @@ const preferTypeFestLessThanRule: ReturnType<typeof createTypedRule> =
             const isGreaterThanOrEqualTypeReference = (
                 typeReference: Readonly<TSESTree.TSTypeReference>
             ): boolean => {
-                if (typeReference.typeName.type === "Identifier") {
+                if (typeReference.typeName.type === AST_NODE_TYPES.Identifier) {
                     return setContainsValue(
                         greaterThanOrEqualLocalNames,
                         typeReference.typeName.name
                     );
                 }
 
-                if (typeReference.typeName.type !== "TSQualifiedName") {
+                if (
+                    typeReference.typeName.type !==
+                    AST_NODE_TYPES.TSQualifiedName
+                ) {
                     return false;
                 }
 
                 return (
-                    typeReference.typeName.left.type === "Identifier" &&
+                    typeReference.typeName.left.type ===
+                        AST_NODE_TYPES.Identifier &&
                     setContainsValue(
                         typeFestNamespaceImportNames,
                         typeReference.typeName.left.name
                     ) &&
-                    typeReference.typeName.right.type === "Identifier" &&
                     typeReference.typeName.right.name ===
                         GREATER_THAN_OR_EQUAL_TYPE_NAME
                 );
@@ -107,7 +112,7 @@ const preferTypeFestLessThanRule: ReturnType<typeof createTypedRule> =
             const getComparatorTypeArgumentTextsFromTypeNode = (
                 typeNode: Readonly<TSESTree.TypeNode>
             ): ComparatorTypeArgumentTexts | null => {
-                if (typeNode.type !== "TSTypeReference") {
+                if (typeNode.type !== AST_NODE_TYPES.TSTypeReference) {
                     return null;
                 }
 
@@ -154,9 +159,12 @@ const preferTypeFestLessThanRule: ReturnType<typeof createTypedRule> =
                 }
 
                 if (
-                    conditionalTypeNode.extendsType.type !== "TSInferType" ||
-                    conditionalTypeNode.falseType.type !== "TSNeverKeyword" ||
-                    conditionalTypeNode.trueType.type !== "TSConditionalType"
+                    conditionalTypeNode.extendsType.type !==
+                        AST_NODE_TYPES.TSInferType ||
+                    conditionalTypeNode.falseType.type !==
+                        AST_NODE_TYPES.TSNeverKeyword ||
+                    conditionalTypeNode.trueType.type !==
+                        AST_NODE_TYPES.TSConditionalType
                 ) {
                     return null;
                 }
@@ -167,9 +175,9 @@ const preferTypeFestLessThanRule: ReturnType<typeof createTypedRule> =
 
                 if (
                     innerConditionalTypeNode.checkType.type !==
-                        "TSTypeReference" ||
+                        AST_NODE_TYPES.TSTypeReference ||
                     innerConditionalTypeNode.checkType.typeName.type !==
-                        "Identifier" ||
+                        AST_NODE_TYPES.Identifier ||
                     innerConditionalTypeNode.checkType.typeName.name !==
                         inferIdentifierName ||
                     innerConditionalTypeNode.checkType.typeArguments !==

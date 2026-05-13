@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-empty`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { createIsArrayLikeExpressionChecker } from "../_internal/array-like-expression.js";
 import {
@@ -26,7 +28,7 @@ import { createTypeScriptEslintNodeExpressionSkipChecker } from "../_internal/ty
  */
 
 const isZeroLiteral = (node: Readonly<TSESTree.Expression>): boolean =>
-    node.type === "Literal" && node.value === 0;
+    node.type === AST_NODE_TYPES.Literal && node.value === 0;
 
 /**
  * Narrows expressions to direct `.length` member access.
@@ -40,9 +42,9 @@ const isZeroLiteral = (node: Readonly<TSESTree.Expression>): boolean =>
 const isLengthMemberExpression = (
     node: Readonly<TSESTree.Expression>
 ): node is TSESTree.MemberExpression & { property: TSESTree.Identifier } =>
-    node.type === "MemberExpression" &&
+    node.type === AST_NODE_TYPES.MemberExpression &&
     !node.computed &&
-    node.property.type === "Identifier" &&
+    node.property.type === AST_NODE_TYPES.Identifier &&
     node.property.name === "length";
 
 /**

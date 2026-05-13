@@ -1,8 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Utilities for detecting nodes that live inside `.filter(...)` callbacks.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { arrayFirst } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
 import { setContainsValue } from "./set-membership.js";
@@ -16,8 +19,8 @@ const FILTER_METHOD_NAME = "filter";
 const isFunctionCallbackNode = (
     node: Readonly<TSESTree.Node>
 ): node is TSESTree.ArrowFunctionExpression | TSESTree.FunctionExpression =>
-    node.type === "ArrowFunctionExpression" ||
-    node.type === "FunctionExpression";
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionExpression;
 
 /**
  * Narrows call expressions to direct `.filter(...)` calls.
@@ -33,10 +36,10 @@ export const isFilterCallExpression = (
     optional: false;
 } =>
     !expression.optional &&
-    expression.callee.type === "MemberExpression" &&
+    expression.callee.type === AST_NODE_TYPES.MemberExpression &&
     !expression.callee.computed &&
     !expression.callee.optional &&
-    expression.callee.property.type === "Identifier" &&
+    expression.callee.property.type === AST_NODE_TYPES.Identifier &&
     expression.callee.property.name === FILTER_METHOD_NAME;
 
 /**
@@ -60,8 +63,8 @@ export const getFilterCallbackFunctionArgument = (
     const [firstArgument] = expression.arguments;
     if (
         !firstArgument ||
-        (firstArgument.type !== "ArrowFunctionExpression" &&
-            firstArgument.type !== "FunctionExpression")
+        (firstArgument.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+            firstArgument.type !== AST_NODE_TYPES.FunctionExpression)
     ) {
         return null;
     }
@@ -81,6 +84,25 @@ export type SingleParameterExpressionArrowFilterCallbackMatch = Readonly<{
     parameter: TSESTree.Identifier;
 }>;
 
+const isSingleParameterExpressionArrowFunction = (
+    callback: Readonly<TSESTree.ArrowFunctionExpression>
+): callback is TSESTree.ArrowFunctionExpression & {
+    body: TSESTree.Expression;
+    params: [TSESTree.Identifier];
+} => {
+    if (callback.params.length !== 1) {
+        return false;
+    }
+
+    if (callback.body.type === AST_NODE_TYPES.BlockStatement) {
+        return false;
+    }
+
+    const firstParameter = arrayFirst(callback.params);
+
+    return firstParameter?.type === AST_NODE_TYPES.Identifier;
+};
+
 /**
  * Extract a strict callback shape from direct `.filter(...)` calls.
  *
@@ -92,28 +114,18 @@ export const getSingleParameterExpressionArrowFilterCallback = (
     expression: Readonly<TSESTree.CallExpression>
 ): null | SingleParameterExpressionArrowFilterCallbackMatch => {
     const callback = getFilterCallbackFunctionArgument(expression);
-    if (callback?.type !== "ArrowFunctionExpression") {
+    if (callback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
         return null;
     }
 
-    if (callback.params.length !== 1) {
-        return null;
-    }
-
-    if (callback.body.type === "BlockStatement") {
+    if (!isSingleParameterExpressionArrowFunction(callback)) {
         return null;
     }
 
     const [parameter] = callback.params;
-    if (parameter?.type !== "Identifier") {
-        return null;
-    }
 
     return {
-        callback: callback as TSESTree.ArrowFunctionExpression & {
-            body: TSESTree.Expression;
-            params: [TSESTree.Identifier];
-        },
+        callback,
         parameter,
     };
 };
@@ -142,7 +154,7 @@ export const isWithinFilterCallback = (
 
         if (isFunctionCallbackNode(currentNode)) {
             const callbackParent = getParentNode(currentNode);
-            if (callbackParent?.type !== "CallExpression") {
+            if (callbackParent?.type !== AST_NODE_TYPES.CallExpression) {
                 currentNode = getParentNode(currentNode);
                 continue;
             }

@@ -5,6 +5,8 @@
 
 type RuleCreateFunction = (...args: readonly unknown[]) => unknown;
 
+export const __vitestSetupModuleMarker = true;
+
 /** Guard unknown values into object records. */
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
     typeof value === "object" && value !== null;

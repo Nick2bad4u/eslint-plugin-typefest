@@ -4,6 +4,7 @@
  */
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayIncludes, isDefined } from "ts-extras";
 
 /**
@@ -54,7 +55,7 @@ export const flattenLogicalTerms = ({
         }
 
         if (
-            currentTerm.type === "LogicalExpression" &&
+            currentTerm.type === AST_NODE_TYPES.LogicalExpression &&
             currentTerm.operator === operator
         ) {
             pendingTerms.push(currentTerm.right, currentTerm.left);
@@ -83,7 +84,7 @@ export const isExpressionPair = (
 const isNullLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: null } =>
-    expression.type === "Literal" && expression.value === null;
+    expression.type === AST_NODE_TYPES.Literal && expression.value === null;
 
 /**
  * Check whether an expression is the string literal `"undefined"`.
@@ -91,7 +92,8 @@ const isNullLiteral = (
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined" } =>
-    expression.type === "Literal" && expression.value === "undefined";
+    expression.type === AST_NODE_TYPES.Literal &&
+    expression.value === "undefined";
 
 /**
  * Check whether an expression is `typeof <identifierName>`.
@@ -100,9 +102,9 @@ const isTypeofIdentifierExpression = (
     expression: Readonly<TSESTree.Expression>,
     identifierName: string
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Identifier } =>
-    expression.type === "UnaryExpression" &&
+    expression.type === AST_NODE_TYPES.UnaryExpression &&
     expression.operator === "typeof" &&
-    expression.argument.type === "Identifier" &&
+    expression.argument.type === AST_NODE_TYPES.Identifier &&
     expression.argument.name === identifierName;
 
 /**
@@ -122,7 +124,116 @@ const isAllowedNullishComparisonOperator = (
  */
 const isExpressionNode = (
     expression: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): expression is TSESTree.Expression => expression.type !== "PrivateIdentifier";
+): expression is TSESTree.Expression =>
+    expression.type !== AST_NODE_TYPES.PrivateIdentifier;
+
+const getNullLiteralComparison = (
+    left: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
+    right: Readonly<TSESTree.Expression>,
+    operator: NullishComparisonOperator,
+    matchesComparedExpression: (
+        candidateExpression: Readonly<TSESTree.Expression>
+    ) => boolean
+): null | NullishComparison => {
+    if (
+        isNullLiteral(right) &&
+        isExpressionNode(left) &&
+        matchesComparedExpression(left)
+    ) {
+        return {
+            comparedExpression: left,
+            kind: "null",
+            operator,
+        };
+    }
+
+    if (
+        isExpressionNode(left) &&
+        isNullLiteral(left) &&
+        matchesComparedExpression(right)
+    ) {
+        return {
+            comparedExpression: right,
+            kind: "null",
+            operator,
+        };
+    }
+
+    return null;
+};
+
+const getUndefinedIdentifierComparison = (
+    left: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
+    right: Readonly<TSESTree.Expression>,
+    operator: NullishComparisonOperator,
+    matchesComparedExpression: (
+        candidateExpression: Readonly<TSESTree.Expression>
+    ) => boolean,
+    isGlobalUndefinedIdentifier: (
+        expression: Readonly<TSESTree.Expression>
+    ) => boolean
+): null | NullishComparison => {
+    if (
+        right.type === AST_NODE_TYPES.Identifier &&
+        isGlobalUndefinedIdentifier(right) &&
+        isExpressionNode(left) &&
+        matchesComparedExpression(left)
+    ) {
+        return {
+            comparedExpression: left,
+            kind: "undefined",
+            operator,
+        };
+    }
+
+    if (
+        isExpressionNode(left) &&
+        left.type === AST_NODE_TYPES.Identifier &&
+        isGlobalUndefinedIdentifier(left) &&
+        matchesComparedExpression(right)
+    ) {
+        return {
+            comparedExpression: right,
+            kind: "undefined",
+            operator,
+        };
+    }
+
+    return null;
+};
+
+const getTypeofUndefinedStringComparison = (
+    left: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>,
+    right: Readonly<TSESTree.Expression>,
+    operator: NullishComparisonOperator,
+    comparedIdentifierName: string
+): null | NullishComparison => {
+    if (
+        isExpressionNode(left) &&
+        isTypeofIdentifierExpression(left, comparedIdentifierName) &&
+        isUndefinedStringLiteral(right)
+    ) {
+        return {
+            comparedExpression: left.argument,
+            kind: "undefined",
+            operator,
+        };
+    }
+
+    if (
+        isExpressionNode(left) &&
+        isTypeofIdentifierExpression(right, comparedIdentifierName) &&
+        isUndefinedStringLiteral(left)
+    ) {
+        return {
+            comparedExpression: right.argument,
+            kind: "undefined",
+            operator,
+        };
+    }
+
+    return null;
+};
 
 /**
  * Extract a normalized nullish comparison from an expression.
@@ -142,7 +253,7 @@ export const getNullishComparison = ({
         expression: Readonly<TSESTree.Expression>
     ) => boolean;
 }>): null | NullishComparison => {
-    if (expression.type !== "BinaryExpression") {
+    if (expression.type !== AST_NODE_TYPES.BinaryExpression) {
         return null;
     }
 
@@ -161,58 +272,28 @@ export const getNullishComparison = ({
         candidateExpression: Readonly<TSESTree.Expression>
     ): boolean =>
         !isDefined(comparedIdentifierName) ||
-        (candidateExpression.type === "Identifier" &&
+        (candidateExpression.type === AST_NODE_TYPES.Identifier &&
             candidateExpression.name === comparedIdentifierName);
 
-    if (
-        isNullLiteral(expression.right) &&
-        isExpressionNode(expression.left) &&
-        matchesComparedExpression(expression.left)
-    ) {
-        return {
-            comparedExpression: expression.left,
-            kind: "null",
-            operator: expression.operator,
-        };
+    const nullLiteralComparison = getNullLiteralComparison(
+        expression.left,
+        expression.right,
+        expression.operator,
+        matchesComparedExpression
+    );
+    if (nullLiteralComparison !== null) {
+        return nullLiteralComparison;
     }
 
-    if (
-        isExpressionNode(expression.left) &&
-        isNullLiteral(expression.left) &&
-        isExpressionNode(expression.right) &&
-        matchesComparedExpression(expression.right)
-    ) {
-        return {
-            comparedExpression: expression.right,
-            kind: "null",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        expression.right.type === "Identifier" &&
-        isGlobalUndefinedIdentifier(expression.right) &&
-        isExpressionNode(expression.left) &&
-        matchesComparedExpression(expression.left)
-    ) {
-        return {
-            comparedExpression: expression.left,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        expression.left.type === "Identifier" &&
-        isGlobalUndefinedIdentifier(expression.left) &&
-        isExpressionNode(expression.right) &&
-        matchesComparedExpression(expression.right)
-    ) {
-        return {
-            comparedExpression: expression.right,
-            kind: "undefined",
-            operator: expression.operator,
-        };
+    const undefinedIdentifierComparison = getUndefinedIdentifierComparison(
+        expression.left,
+        expression.right,
+        expression.operator,
+        matchesComparedExpression,
+        isGlobalUndefinedIdentifier
+    );
+    if (undefinedIdentifierComparison !== null) {
+        return undefinedIdentifierComparison;
     }
 
     if (
@@ -222,34 +303,10 @@ export const getNullishComparison = ({
         return null;
     }
 
-    if (
-        isExpressionNode(expression.left) &&
-        isExpressionNode(expression.right) &&
-        isTypeofIdentifierExpression(expression.left, comparedIdentifierName) &&
-        isUndefinedStringLiteral(expression.right)
-    ) {
-        return {
-            comparedExpression: expression.left.argument,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    if (
-        isExpressionNode(expression.right) &&
-        isExpressionNode(expression.left) &&
-        isTypeofIdentifierExpression(
-            expression.right,
-            comparedIdentifierName
-        ) &&
-        isUndefinedStringLiteral(expression.left)
-    ) {
-        return {
-            comparedExpression: expression.right.argument,
-            kind: "undefined",
-            operator: expression.operator,
-        };
-    }
-
-    return null;
+    return getTypeofUndefinedStringComparison(
+        expression.left,
+        expression.right,
+        expression.operator,
+        comparedIdentifierName
+    );
 };

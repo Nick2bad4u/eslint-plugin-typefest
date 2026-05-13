@@ -85,10 +85,12 @@ const EXTERNAL_PROTOCOLS = [
 const LEADING_BANG = /^!/;
 
 /**
- * Truncate safely keeping last `max` codepoints
+ * Truncate safely keeping the last `max` code points.
  *
- * @param {any} str
- * @param {number} max
+ * @param {string} str - Text to truncate.
+ * @param {number} max - Maximum number of code points to keep.
+ *
+ * @returns {string} Truncated text when the input exceeds `max` code points.
  */
 function truncateEnd(str, max) {
     const chars = [...str];
@@ -224,10 +226,10 @@ const getPathCandidates = (
  * Validate a single link and push to issues if broken. Returns true if broken
  * (so caller can optionally fail-fast).
  *
- * @param {any} markdownPath
+ * @param {string} markdownPath
  * @param {string} link
- * @param {{ file: any; link: any; resolvedPath: string }[]} issues
- * @param {{ has: (arg0: string) => any; add: (arg0: string) => void }} issueSet
+ * @param {{ file: string; link: string; resolvedPath: string }[]} issues
+ * @param {Set<string>} issueSet
  * @param {{
  *     totalLinksChecked: number;
  *     emptyLinks: number;
@@ -298,10 +300,12 @@ async function validateLink(markdownPath, link, issues, issueSet, metrics) {
  * }} metrics
  */
 async function checkFile(markdownPath, issues, issueSet, metrics) {
+    const markdownPathText = String(markdownPath);
+
     if (isVerbose) {
         console.log(
             pc.cyan("Scanning: ") +
-                pc.magenta(truncateEnd(markdownPath, maxPathDisplay))
+                pc.magenta(truncateEnd(markdownPathText, maxPathDisplay))
         );
     }
 
@@ -325,7 +329,7 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
         }
         if (link) {
             const broken = await validateLink(
-                markdownPath,
+                markdownPathText,
                 link,
                 issues,
                 issueSet,
@@ -339,7 +343,7 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
 }
 
 /**
- * Split array into batches
+ * Split an array into fixed-size batches.
  *
  * @param {readonly string[]} array
  * @param {number} size
@@ -365,9 +369,7 @@ function batches(array, size) {
  * @returns {Promise<void>}
  */
 async function main() {
-    /**
-     * @type {any[]}
-     */
+    /** @type {{ file: string; link: string; resolvedPath: string }[]} */
     const issues = [];
     const issueSet = new Set();
 

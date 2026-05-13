@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-as-writable`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectNamedImportLocalNamesFromSource,
@@ -55,28 +57,33 @@ const preferTsExtrasAsWritableRule: ReturnType<typeof createTypedRule> =
             const isWritableTypeReference = (
                 typeAnnotation: Readonly<TSESTree.TypeNode>
             ): boolean => {
-                if (typeAnnotation.type !== "TSTypeReference") {
+                if (typeAnnotation.type !== AST_NODE_TYPES.TSTypeReference) {
                     return false;
                 }
 
-                if (typeAnnotation.typeName.type === "Identifier") {
+                if (
+                    typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
+                ) {
                     return setContainsValue(
                         writableLocalNames,
                         typeAnnotation.typeName.name
                     );
                 }
 
-                if (typeAnnotation.typeName.type !== "TSQualifiedName") {
+                if (
+                    typeAnnotation.typeName.type !==
+                    AST_NODE_TYPES.TSQualifiedName
+                ) {
                     return false;
                 }
 
                 return (
-                    typeAnnotation.typeName.left.type === "Identifier" &&
+                    typeAnnotation.typeName.left.type ===
+                        AST_NODE_TYPES.Identifier &&
                     setContainsValue(
                         typeFestNamespaceImportNames,
                         typeAnnotation.typeName.left.name
                     ) &&
-                    typeAnnotation.typeName.right.type === "Identifier" &&
                     typeAnnotation.typeName.right.name === WRITABLE_TYPE_NAME
                 );
             };

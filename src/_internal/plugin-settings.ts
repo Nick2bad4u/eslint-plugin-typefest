@@ -21,10 +21,10 @@ const DISABLE_IMPORT_INSERTION_FIXES_KEY = "disableImportInsertionFixes";
 /**
  * Normalized per-program settings consumed by fix-generation helpers.
  */
-type ProgramSettings = {
+interface ProgramSettings {
     disableAllAutofixes: boolean;
     disableImportInsertionFixes: boolean;
-};
+}
 
 /**
  * Cache of parsed settings keyed by the Program node for the active file.

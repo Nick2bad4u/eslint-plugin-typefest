@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-property-defined`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getSingleParameterExpressionArrowFilterCallback } from "../_internal/filter-callback.js";
 import {
@@ -44,7 +46,7 @@ const extractTypeofPropertyDefinedCheck = (
     }
 
     if (
-        typeofSide.type !== "UnaryExpression" ||
+        typeofSide.type !== AST_NODE_TYPES.UnaryExpression ||
         typeofSide.operator !== "typeof"
     ) {
         return null;
@@ -53,16 +55,16 @@ const extractTypeofPropertyDefinedCheck = (
     const { argument } = typeofSide;
 
     if (
-        argument.type !== "MemberExpression" ||
+        argument.type !== AST_NODE_TYPES.MemberExpression ||
         argument.computed ||
-        argument.object.type !== "Identifier" ||
+        argument.object.type !== AST_NODE_TYPES.Identifier ||
         argument.object.name !== paramName ||
-        argument.property.type !== "Identifier"
+        argument.property.type !== AST_NODE_TYPES.Identifier
     ) {
         return null;
     }
 
-    if (stringSide.type !== "Literal" || stringSide.value !== "undefined") {
+    if (stringSide.type !== AST_NODE_TYPES.Literal || stringSide.value !== "undefined") {
         return null;
     }
 
@@ -93,7 +95,7 @@ const extractPropertyDefinedGuardBody = (
     body: Readonly<TSESTree.Expression>,
     paramName: string
 ): null | string => {
-    if (body.type !== "BinaryExpression") {
+    if (body.type !== AST_NODE_TYPES.BinaryExpression) {
         return null;
     }
 
@@ -126,22 +128,22 @@ const extractPropertyDefinedGuardBody = (
 
     // Standard binary: `param.prop !== undefined` or `undefined !== param.prop`
     if (
-        left.type === "MemberExpression" &&
+        left.type === AST_NODE_TYPES.MemberExpression &&
         !left.computed &&
-        left.object.type === "Identifier" &&
+        left.object.type === AST_NODE_TYPES.Identifier &&
         left.object.name === paramName &&
-        left.property.type === "Identifier" &&
+        left.property.type === AST_NODE_TYPES.Identifier &&
         isGlobalUndefinedIdentifier(context, right)
     ) {
         return left.property.name;
     }
 
     if (
-        right.type === "MemberExpression" &&
+        right.type === AST_NODE_TYPES.MemberExpression &&
         !right.computed &&
-        right.object.type === "Identifier" &&
+        right.object.type === AST_NODE_TYPES.Identifier &&
         right.object.name === paramName &&
-        right.property.type === "Identifier" &&
+        right.property.type === AST_NODE_TYPES.Identifier &&
         isGlobalUndefinedIdentifier(context, left)
     ) {
         return right.property.name;

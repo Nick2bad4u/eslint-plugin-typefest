@@ -123,6 +123,8 @@ const enqueueChildNodes = ({
             }
         } else if (isObjectRecord(value)) {
             nodesToVisit.push(value);
+        } else {
+            // Primitive leaf value.
         }
     }
 };

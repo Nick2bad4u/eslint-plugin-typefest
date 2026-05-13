@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-conditional-keys`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -18,10 +20,7 @@ const hasConditionalKeysKeyRemapShape = (
 
     const normalizedOperand = unwrapParenthesizedTypeNode(node.typeAnnotation);
 
-    if (
-        normalizedOperand.type !== "TSMappedType" ||
-        normalizedOperand.key.type !== "Identifier"
-    ) {
+    if (normalizedOperand.type !== AST_NODE_TYPES.TSMappedType) {
         return false;
     }
 
@@ -29,17 +28,21 @@ const hasConditionalKeysKeyRemapShape = (
     const constraint = normalizedOperand.constraint;
 
     if (
-        constraint?.type !== "TSTypeOperator" ||
-        constraint.operator !== "keyof" ||
-        constraint.typeAnnotation === undefined
+        constraint.type !== AST_NODE_TYPES.TSTypeOperator ||
+        constraint.operator !== "keyof"
     ) {
         return false;
     }
 
-    const baseType = unwrapParenthesizedTypeNode(constraint.typeAnnotation);
+    const constraintTypeAnnotation = constraint.typeAnnotation;
+    if (constraintTypeAnnotation === undefined) {
+        return false;
+    }
+
+    const baseType = unwrapParenthesizedTypeNode(constraintTypeAnnotation);
     const keyRemapType = normalizedOperand.nameType;
 
-    if (keyRemapType?.type !== "TSConditionalType") {
+    if (keyRemapType?.type !== AST_NODE_TYPES.TSConditionalType) {
         return false;
     }
 
@@ -47,24 +50,31 @@ const hasConditionalKeysKeyRemapShape = (
         keyRemapType.checkType
     );
 
+    if (checkedValueType.type !== AST_NODE_TYPES.TSIndexedAccessType) {
+        return false;
+    }
     if (
-        checkedValueType.type !== "TSIndexedAccessType" ||
         !areEquivalentTypeNodes(
             unwrapParenthesizedTypeNode(checkedValueType.objectType),
             baseType
-        ) ||
-        checkedValueType.indexType.type !== "TSTypeReference" ||
-        checkedValueType.indexType.typeName.type !== "Identifier" ||
-        checkedValueType.indexType.typeName.name !== mappedKeyName
+        )
+    ) {
+        return false;
+    }
+    const checkedIndexType = checkedValueType.indexType;
+    if (
+        checkedIndexType.type !== AST_NODE_TYPES.TSTypeReference ||
+        checkedIndexType.typeName.type !== AST_NODE_TYPES.Identifier ||
+        checkedIndexType.typeName.name !== mappedKeyName
     ) {
         return false;
     }
 
     return (
-        keyRemapType.trueType.type === "TSTypeReference" &&
-        keyRemapType.trueType.typeName.type === "Identifier" &&
+        keyRemapType.trueType.type === AST_NODE_TYPES.TSTypeReference &&
+        keyRemapType.trueType.typeName.type === AST_NODE_TYPES.Identifier &&
         keyRemapType.trueType.typeName.name === mappedKeyName &&
-        keyRemapType.falseType.type === "TSNeverKeyword"
+        keyRemapType.falseType.type === AST_NODE_TYPES.TSNeverKeyword
     );
 };
 

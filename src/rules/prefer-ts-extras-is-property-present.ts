@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-property-present`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getSingleParameterExpressionArrowFilterCallback } from "../_internal/filter-callback.js";
 import {
@@ -32,7 +34,7 @@ const extractPropertyPresentGuardBody = (
     body: Readonly<TSESTree.Expression>,
     paramName: string
 ): null | string => {
-    if (body.type !== "BinaryExpression" || body.operator !== "!=") {
+    if (body.type !== AST_NODE_TYPES.BinaryExpression || body.operator !== "!=") {
         return null;
     }
 
@@ -40,12 +42,12 @@ const extractPropertyPresentGuardBody = (
 
     // `param.prop != null`
     if (
-        left.type === "MemberExpression" &&
+        left.type === AST_NODE_TYPES.MemberExpression &&
         !left.computed &&
-        left.object.type === "Identifier" &&
+        left.object.type === AST_NODE_TYPES.Identifier &&
         left.object.name === paramName &&
-        left.property.type === "Identifier" &&
-        right.type === "Literal" &&
+        left.property.type === AST_NODE_TYPES.Identifier &&
+        right.type === AST_NODE_TYPES.Literal &&
         right.value === null
     ) {
         return left.property.name;
@@ -53,12 +55,12 @@ const extractPropertyPresentGuardBody = (
 
     // `null != param.prop`
     if (
-        right.type === "MemberExpression" &&
+        right.type === AST_NODE_TYPES.MemberExpression &&
         !right.computed &&
-        right.object.type === "Identifier" &&
+        right.object.type === AST_NODE_TYPES.Identifier &&
         right.object.name === paramName &&
-        right.property.type === "Identifier" &&
-        left.type === "Literal" &&
+        right.property.type === AST_NODE_TYPES.Identifier &&
+        left.type === AST_NODE_TYPES.Literal &&
         left.value === null
     ) {
         return right.property.name;

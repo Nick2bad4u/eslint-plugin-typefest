@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-union-length`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst } from "ts-extras";
 
 import {
@@ -36,8 +37,8 @@ const preferTypeFestUnionLengthRule: ReturnType<typeof createTypedRule> =
 
                     // Require: objectType is TSTypeReference named "UnionToTuple"
                     if (
-                        objectType.type !== "TSTypeReference" ||
-                        objectType.typeName.type !== "Identifier" ||
+                        objectType.type !== AST_NODE_TYPES.TSTypeReference ||
+                        objectType.typeName.type !== AST_NODE_TYPES.Identifier ||
                         objectType.typeName.name !== "UnionToTuple"
                     ) {
                         return;
@@ -45,8 +46,8 @@ const preferTypeFestUnionLengthRule: ReturnType<typeof createTypedRule> =
 
                     // Require: indexType is TSLiteralType with string literal "length"
                     if (
-                        indexType.type !== "TSLiteralType" ||
-                        indexType.literal.type !== "Literal" ||
+                        indexType.type !== AST_NODE_TYPES.TSLiteralType ||
+                        indexType.literal.type !== AST_NODE_TYPES.Literal ||
                         indexType.literal.value !== "length"
                     ) {
                         return;

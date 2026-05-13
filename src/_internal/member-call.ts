@@ -2,8 +2,7 @@
  * @packageDocumentation
  * Shared call-expression helpers for matching method calls safely.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 /**
  * Strongly-typed shape for non-computed member calls with identifier receiver
  * and property (e.g. `Object.keys`).
@@ -15,7 +14,6 @@ export type IdentifierMemberCallExpression = TSESTree.CallExpression & {
         property: TSESTree.Identifier;
     };
 };
-
 /**
  * Strongly-typed shape for non-computed member calls with identifier property
  * (e.g. `value.includes`).
@@ -27,7 +25,55 @@ export type IdentifierPropertyMemberCallExpression = TSESTree.CallExpression & {
         property: TSESTree.Identifier;
     };
 };
-
+const isIdentifierMemberCallExpression = (
+    options: Readonly<{
+        memberName: string;
+        node: Readonly<TSESTree.CallExpression>;
+        objectName: string;
+    }>
+): options is Readonly<{
+    memberName: string;
+    node: IdentifierMemberCallExpression;
+    objectName: string;
+}> => {
+    const { memberName, node, objectName } = options;
+    if (node.optional) {
+        return false;
+    }
+    const { callee } = node;
+    return (
+        callee.type === AST_NODE_TYPES.MemberExpression &&
+        !callee.computed &&
+        !callee.optional &&
+        callee.object.type === AST_NODE_TYPES.Identifier &&
+        callee.object.name === objectName &&
+        callee.property.type === AST_NODE_TYPES.Identifier &&
+        callee.property.name === memberName
+    );
+};
+const isIdentifierPropertyMemberCallExpression = (
+    options: Readonly<{
+        memberName: string;
+        node: Readonly<TSESTree.CallExpression>;
+    }>
+): options is Readonly<{
+    memberName: string;
+    node: IdentifierPropertyMemberCallExpression;
+}> => {
+    const { memberName, node } = options;
+    if (node.optional) {
+        return false;
+    }
+    const { callee } = node;
+    return (
+        callee.type === AST_NODE_TYPES.MemberExpression &&
+        !callee.computed &&
+        !callee.optional &&
+        callee.object.type !== AST_NODE_TYPES.Super &&
+        callee.property.type === AST_NODE_TYPES.Identifier &&
+        callee.property.name === memberName
+    );
+};
 /**
  * Match `ObjectName.methodName(...)` style calls.
  *
@@ -36,36 +82,18 @@ export type IdentifierPropertyMemberCallExpression = TSESTree.CallExpression & {
  *
  * @returns Narrowed call expression when the shape matches; otherwise `null`.
  */
-export const getIdentifierMemberCall = ({
-    memberName,
-    node,
-    objectName,
-}: Readonly<{
-    memberName: string;
-    node: Readonly<TSESTree.CallExpression>;
-    objectName: string;
-}>): IdentifierMemberCallExpression | null => {
-    if (node.optional) {
+export const getIdentifierMemberCall = (
+    options: Readonly<{
+        memberName: string;
+        node: Readonly<TSESTree.CallExpression>;
+        objectName: string;
+    }>
+): IdentifierMemberCallExpression | null => {
+    if (!isIdentifierMemberCallExpression(options)) {
         return null;
     }
-
-    const { callee } = node;
-
-    if (
-        callee.type !== "MemberExpression" ||
-        callee.computed ||
-        callee.optional ||
-        callee.object.type !== "Identifier" ||
-        callee.object.name !== objectName ||
-        callee.property.type !== "Identifier" ||
-        callee.property.name !== memberName
-    ) {
-        return null;
-    }
-
-    return node as IdentifierMemberCallExpression;
+    return options.node;
 };
-
 /**
  * Match `<expression>.memberName(...)` style calls where the property is a
  * non-computed identifier.
@@ -74,29 +102,14 @@ export const getIdentifierMemberCall = ({
  *
  * @returns Narrowed call expression when matched; otherwise `null`.
  */
-export const getIdentifierPropertyMemberCall = ({
-    memberName,
-    node,
-}: Readonly<{
-    memberName: string;
-    node: Readonly<TSESTree.CallExpression>;
-}>): IdentifierPropertyMemberCallExpression | null => {
-    if (node.optional) {
+export const getIdentifierPropertyMemberCall = (
+    options: Readonly<{
+        memberName: string;
+        node: Readonly<TSESTree.CallExpression>;
+    }>
+): IdentifierPropertyMemberCallExpression | null => {
+    if (!isIdentifierPropertyMemberCallExpression(options)) {
         return null;
     }
-
-    const { callee } = node;
-
-    if (
-        callee.type !== "MemberExpression" ||
-        callee.computed ||
-        callee.optional ||
-        callee.object.type === "Super" ||
-        callee.property.type !== "Identifier" ||
-        callee.property.name !== memberName
-    ) {
-        return null;
-    }
-
-    return node as IdentifierPropertyMemberCallExpression;
+    return options.node;
 };

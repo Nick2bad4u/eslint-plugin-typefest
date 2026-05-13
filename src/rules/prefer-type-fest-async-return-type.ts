@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-async-return-type`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -64,7 +66,7 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const awaitedInnerType = getSingleTypeArgument(node);
-                    if (awaitedInnerType?.type !== "TSTypeReference") {
+                    if (awaitedInnerType?.type !== AST_NODE_TYPES.TSTypeReference) {
                         return;
                     }
 

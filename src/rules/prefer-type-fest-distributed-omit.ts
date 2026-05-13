@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-distributed-omit`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -18,8 +20,8 @@ const isDistributiveConditionalExtendsType = (
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     return (
-        normalizedNode.type === "TSAnyKeyword" ||
-        normalizedNode.type === "TSUnknownKeyword"
+        normalizedNode.type === AST_NODE_TYPES.TSAnyKeyword ||
+        normalizedNode.type === AST_NODE_TYPES.TSUnknownKeyword
     );
 };
 
@@ -27,7 +29,7 @@ const isDistributedOmitEquivalent = (
     node: Readonly<TSESTree.TSConditionalType>
 ): boolean => {
     if (
-        node.falseType.type !== "TSNeverKeyword" ||
+        node.falseType.type !== AST_NODE_TYPES.TSNeverKeyword ||
         !isDistributiveConditionalExtendsType(node.extendsType)
     ) {
         return false;
@@ -36,7 +38,7 @@ const isDistributedOmitEquivalent = (
     const normalizedTrueType = unwrapParenthesizedTypeNode(node.trueType);
 
     if (
-        normalizedTrueType.type !== "TSTypeReference" ||
+        normalizedTrueType.type !== AST_NODE_TYPES.TSTypeReference ||
         !isIdentifierTypeReference(normalizedTrueType, "Omit")
     ) {
         return false;

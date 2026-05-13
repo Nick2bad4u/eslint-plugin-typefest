@@ -95,9 +95,9 @@ const getPassRules = (pass) => {
 /**
  * Normalize a single rule timing object to milliseconds.
  *
- * @param {unknown} ruleTiming - Timing payload.
+ * @param {unknown} ruleTiming - ESLint stats payload for one executed rule.
  *
- * @returns {number} Rule timing in milliseconds.
+ * @returns {number} Milliseconds recorded by ESLint stats for the rule.
  */
 const getRuleTimingMilliseconds = (ruleTiming) => {
     if (!isObjectRecord(ruleTiming)) {
@@ -113,7 +113,7 @@ const getRuleTimingMilliseconds = (ruleTiming) => {
  *
  * @param {LintResults} lintResults - ESLint lint results.
  *
- * @returns Total error + warning count.
+ * @returns {number} Total error + warning count.
  */
 const countReportedProblems = (lintResults) =>
     lintResults.reduce(
@@ -127,7 +127,7 @@ const countReportedProblems = (lintResults) =>
  *
  * @param {LintResults} lintResults - ESLint lint results.
  *
- * @returns Total rule timing in milliseconds.
+ * @returns {number} Total rule timing in milliseconds.
  */
 const sumRuleTimingMilliseconds = (lintResults) => {
     let totalRuleTime = 0;
@@ -147,15 +147,24 @@ const sumRuleTimingMilliseconds = (lintResults) => {
 };
 
 /**
+ * @typedef {object} BenchmarkSignalOptions
+ *
+ * @property {number} [maximumReportedProblems] - Highest acceptable reported
+ *   problem count for the scenario.
+ * @property {number} [minimumReportedProblems] - Lowest acceptable reported
+ *   problem count for the scenario.
+ */
+
+/**
  * Guard benchmark outputs to ensure each case performs real lint work.
  *
- * @param {string} scenarioName - Human-friendly scenario label.
+ * @param {string} scenarioName - Human-friendly scenario label included in
+ *   validation failures.
  * @param {LintResults} lintResults - ESLint lint results.
- * @param {{
- *     maximumReportedProblems?: number;
- *     minimumReportedProblems?: number;
- * }} [options]
- *   - Signal options.
+ * @param {BenchmarkSignalOptions} [options] - Optional reported-problem count
+ *   thresholds for the lint signal.
+ *
+ * @throws {Error} When lint output does not contain meaningful benchmark data.
  */
 const assertMeaningfulBenchmarkSignal = (
     scenarioName,
@@ -194,7 +203,8 @@ const assertMeaningfulBenchmarkSignal = (
 /**
  * Run ESLint with a temporary benchmark-specific config.
  *
- * @param {LintScenarioOptions} options - Scenario options.
+ * @param {LintScenarioOptions} options - Inputs controlling fixture selection,
+ *   autofix mode, and active benchmark rules.
  *
  * @returns {Promise<LintResult[]>} ESLint lint results.
  */

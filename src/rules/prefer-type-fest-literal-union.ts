@@ -1,9 +1,10 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-literal-union`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst, arrayJoin, safeCastTo } from "ts-extras";
 
 import {
@@ -42,18 +43,18 @@ const isKeywordMemberForFamily = (
     family: LiteralUnionFamily
 ): boolean => {
     if (family === "bigint") {
-        return node.type === "TSBigIntKeyword";
+        return node.type === AST_NODE_TYPES.TSBigIntKeyword;
     }
 
     if (family === "boolean") {
-        return node.type === "TSBooleanKeyword";
+        return node.type === AST_NODE_TYPES.TSBooleanKeyword;
     }
 
     if (family === "number") {
-        return node.type === "TSNumberKeyword";
+        return node.type === AST_NODE_TYPES.TSNumberKeyword;
     }
 
-    return node.type === "TSStringKeyword";
+    return node.type === AST_NODE_TYPES.TSStringKeyword;
 };
 
 /**
@@ -69,7 +70,7 @@ const isLiteralMemberForFamily = (
     node: Readonly<TSESTree.TypeNode>,
     family: LiteralUnionFamily
 ): boolean => {
-    if (node.type !== "TSLiteralType" || node.literal.type !== "Literal") {
+    if (node.type !== AST_NODE_TYPES.TSLiteralType || node.literal.type !== AST_NODE_TYPES.Literal) {
         return false;
     }
 

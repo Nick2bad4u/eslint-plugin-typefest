@@ -1,9 +1,11 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Shared matchers for function-type wrappers built from `Parameters`,
  * `ReturnType`, and async return boxing helpers.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
 import {
@@ -43,7 +45,7 @@ const getSingleTypeArgument = (
 const getParameterTypeAnnotation = (
     parameter: Readonly<TSESTree.Parameter>
 ): null | Readonly<TSESTree.TypeNode> => {
-    if (parameter.type === "Identifier") {
+    if (parameter.type === AST_NODE_TYPES.Identifier) {
         return parameter.typeAnnotation === undefined
             ? null
             : unwrapParenthesizedTypeNode(
@@ -51,7 +53,7 @@ const getParameterTypeAnnotation = (
               );
     }
 
-    if (parameter.type !== "RestElement") {
+    if (parameter.type !== AST_NODE_TYPES.RestElement) {
         return null;
     }
 
@@ -77,14 +79,14 @@ export const getParametersFunctionArgumentFromFunctionType = (
 
     const [onlyParameter] = node.params;
 
-    if (onlyParameter?.type !== "RestElement") {
+    if (onlyParameter?.type !== AST_NODE_TYPES.RestElement) {
         return null;
     }
 
     const restParameterType = getParameterTypeAnnotation(onlyParameter);
 
     if (
-        restParameterType?.type !== "TSTypeReference" ||
+        restParameterType?.type !== AST_NODE_TYPES.TSTypeReference ||
         !isIdentifierTypeReference(restParameterType, "Parameters")
     ) {
         return null;
@@ -108,7 +110,7 @@ export const isReturnTypeReferenceForFunction = (
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     if (
-        normalizedNode.type !== "TSTypeReference" ||
+        normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
         !isIdentifierTypeReference(normalizedNode, "ReturnType")
     ) {
         return false;
@@ -140,7 +142,7 @@ export const isPromiseAwaitedReturnTypeReferenceForFunction = (
     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
     if (
-        normalizedNode.type !== "TSTypeReference" ||
+        normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
         !isIdentifierTypeReference(normalizedNode, "Promise")
     ) {
         return false;
@@ -149,7 +151,7 @@ export const isPromiseAwaitedReturnTypeReferenceForFunction = (
     const promisedType = getSingleTypeArgument(normalizedNode);
 
     if (
-        promisedType?.type !== "TSTypeReference" ||
+        promisedType?.type !== AST_NODE_TYPES.TSTypeReference ||
         !isIdentifierTypeReference(promisedType, "Awaited")
     ) {
         return false;

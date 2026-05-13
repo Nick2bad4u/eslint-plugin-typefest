@@ -2,6 +2,8 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-assert-never`.
  */
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
@@ -41,21 +43,22 @@ const preferTsExtrasAssertNeverRule: ReturnType<typeof createTypedRule> =
                     const [declarator] = node.declarations;
 
                     // Guard: declarator must exist and have an Identifier id
-                    if (declarator?.id.type !== "Identifier") {
+                    if (declarator?.id.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 
                     // Guard: the id must have a `never` type annotation
                     const { typeAnnotation } = declarator.id;
                     if (
-                        typeAnnotation?.typeAnnotation.type !== "TSNeverKeyword"
+                        typeAnnotation?.typeAnnotation.type !==
+                        AST_NODE_TYPES.TSNeverKeyword
                     ) {
                         return;
                     }
 
                     // Guard: there must be an initializer
                     const { init } = declarator;
-                    if (!init) {
+                    if (init === null) {
                         return;
                     }
 

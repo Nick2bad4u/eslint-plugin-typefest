@@ -1,8 +1,10 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-key-in`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedValueImportsFromSource,
@@ -28,11 +30,11 @@ const isAutofixSafeKeyExpression = (
     context: RuleContext,
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): node is TSESTree.Expression => {
-    if (node.type === "PrivateIdentifier") {
+    if (node.type === AST_NODE_TYPES.PrivateIdentifier) {
         return false;
     }
 
-    if (node.type === "Identifier") {
+    if (node.type === AST_NODE_TYPES.Identifier) {
         const scopeResolutionResult = safeTypeOperation({
             operation: () => {
                 const sourceScope = context.sourceCode.getScope(node);
@@ -49,19 +51,19 @@ const isAutofixSafeKeyExpression = (
         return scopeResolutionResult.value;
     }
 
-    if (node.type === "Literal") {
+    if (node.type === AST_NODE_TYPES.Literal) {
         return true;
     }
 
-    if (node.type === "TemplateLiteral") {
+    if (node.type === AST_NODE_TYPES.TemplateLiteral) {
         return node.expressions.length === 0;
     }
 
     if (
-        node.type === "TSAsExpression" ||
-        node.type === "TSNonNullExpression" ||
-        node.type === "TSSatisfiesExpression" ||
-        node.type === "TSTypeAssertion"
+        node.type === AST_NODE_TYPES.TSAsExpression ||
+        node.type === AST_NODE_TYPES.TSNonNullExpression ||
+        node.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+        node.type === AST_NODE_TYPES.TSTypeAssertion
     ) {
         return isAutofixSafeKeyExpression(context, node.expression);
     }

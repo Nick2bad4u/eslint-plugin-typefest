@@ -1,9 +1,11 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Shared helpers for validating canonical `throw new TypeError(...)` shapes.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { isGlobalIdentifierNamed } from "./typed-rule.js";
 
@@ -26,8 +28,8 @@ export const getSingleGlobalTypeErrorArgument = <
     throwStatement: Readonly<TSESTree.ThrowStatement>;
 }>): null | TSESTree.Expression => {
     if (
-        throwStatement.argument.type !== "NewExpression" ||
-        throwStatement.argument.callee.type !== "Identifier" ||
+        throwStatement.argument.type !== AST_NODE_TYPES.NewExpression ||
+        throwStatement.argument.callee.type !== AST_NODE_TYPES.Identifier ||
         throwStatement.argument.callee.name !== "TypeError" ||
         !isGlobalIdentifierNamed(
             context,
@@ -40,7 +42,7 @@ export const getSingleGlobalTypeErrorArgument = <
     }
 
     const [firstArgument] = throwStatement.argument.arguments;
-    if (!firstArgument || firstArgument.type === "SpreadElement") {
+    if (!firstArgument || firstArgument.type === AST_NODE_TYPES.SpreadElement) {
         return null;
     }
 

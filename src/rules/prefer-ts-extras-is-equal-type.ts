@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-equal-type`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import {
@@ -59,11 +60,11 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
             const getIsEqualTypeReference = (
                 node: Readonly<TSESTree.TypeNode>
             ): null | TSESTree.TSTypeReference => {
-                if (node.type !== "TSTypeReference") {
+                if (node.type !== AST_NODE_TYPES.TSTypeReference) {
                     return null;
                 }
 
-                if (node.typeName.type === "Identifier") {
+                if (node.typeName.type === AST_NODE_TYPES.Identifier) {
                     return setContainsValue(
                         isEqualLocalNames,
                         node.typeName.name
@@ -72,17 +73,16 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                         : null;
                 }
 
-                if (node.typeName.type !== "TSQualifiedName") {
+                if (node.typeName.type !== AST_NODE_TYPES.TSQualifiedName) {
                     return null;
                 }
 
                 if (
-                    node.typeName.left.type === "Identifier" &&
+                    node.typeName.left.type === AST_NODE_TYPES.Identifier &&
                     setContainsValue(
                         typeFestNamespaceImportNames,
                         node.typeName.left.name
                     ) &&
-                    node.typeName.right.type === "Identifier" &&
                     node.typeName.right.name === IS_EQUAL_TYPE_NAME
                 ) {
                     return node;
@@ -94,9 +94,9 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
             return {
                 VariableDeclarator(node) {
                     if (
-                        node.id.type !== "Identifier" ||
+                        node.id.type !== AST_NODE_TYPES.Identifier ||
                         !isDefined(node.id.typeAnnotation?.typeAnnotation) ||
-                        node.init?.type !== "Literal" ||
+                        node.init?.type !== AST_NODE_TYPES.Literal ||
                         typeof node.init.value !== "boolean"
                     ) {
                         return;

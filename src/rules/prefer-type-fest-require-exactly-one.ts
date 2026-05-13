@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-exactly-one`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import {
     collectDirectNamedImportsFromSource,
@@ -68,7 +70,7 @@ const preferTypeFestRequireExactlyOneRule: ReturnType<typeof createTypedRule> =
                 'TSTypeReference[typeName.type="Identifier"]'(
                     node: TSESTree.TSTypeReference
                 ) {
-                    if (node.typeName.type !== "Identifier") {
+                    if (node.typeName.type !== AST_NODE_TYPES.Identifier) {
                         return;
                     }
 

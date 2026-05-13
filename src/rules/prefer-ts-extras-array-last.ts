@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-array-last`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { safeCastTo } from "ts-extras";
 
 import {
@@ -41,7 +42,7 @@ import {
 const isLastIndexPattern = (
     node: Readonly<TSESTree.MemberExpression>
 ): boolean => {
-    if (!node.computed || node.property.type !== "BinaryExpression") {
+    if (!node.computed || node.property.type !== AST_NODE_TYPES.BinaryExpression) {
         return false;
     }
 
@@ -51,7 +52,7 @@ const isLastIndexPattern = (
         return false;
     }
 
-    if (propertyExpression.right.type !== "Literal") {
+    if (propertyExpression.right.type !== AST_NODE_TYPES.Literal) {
         return false;
     }
 
@@ -62,15 +63,15 @@ const isLastIndexPattern = (
     const objectExpression = node.object;
 
     if (
-        propertyExpression.left.type !== "MemberExpression" ||
+        propertyExpression.left.type !== AST_NODE_TYPES.MemberExpression ||
         propertyExpression.left.computed ||
-        propertyExpression.left.property.type !== "Identifier" ||
+        propertyExpression.left.property.type !== AST_NODE_TYPES.Identifier ||
         propertyExpression.left.property.name !== "length"
     ) {
         return false;
     }
 
-    if (propertyExpression.left.object.type === "Super") {
+    if (propertyExpression.left.object.type === AST_NODE_TYPES.Super) {
         return false;
     }
 

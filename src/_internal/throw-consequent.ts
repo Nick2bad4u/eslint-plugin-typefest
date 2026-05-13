@@ -1,9 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Shared helpers for extracting throw-only `if` consequents.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst } from "ts-extras";
 
 /**
@@ -17,13 +18,13 @@ import { arrayFirst } from "ts-extras";
 const getSingleThrowFromBlockConsequent = (
     node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
-    if (node.type !== "BlockStatement" || node.body.length !== 1) {
+    if (node.type !== AST_NODE_TYPES.BlockStatement || node.body.length !== 1) {
         return null;
     }
 
     const firstStatement = arrayFirst(node.body);
 
-    if (firstStatement?.type !== "ThrowStatement") {
+    if (firstStatement?.type !== AST_NODE_TYPES.ThrowStatement) {
         return null;
     }
 
@@ -40,7 +41,7 @@ const getSingleThrowFromBlockConsequent = (
 export const isThrowOnlyConsequent = (
     node: Readonly<TSESTree.Statement>
 ): boolean => {
-    if (node.type === "ThrowStatement") {
+    if (node.type === AST_NODE_TYPES.ThrowStatement) {
         return true;
     }
 
@@ -58,7 +59,7 @@ export const isThrowOnlyConsequent = (
 export const getThrowStatementFromConsequent = (
     node: Readonly<TSESTree.Statement>
 ): null | TSESTree.ThrowStatement => {
-    if (node.type === "ThrowStatement") {
+    if (node.type === AST_NODE_TYPES.ThrowStatement) {
         return node;
     }
 

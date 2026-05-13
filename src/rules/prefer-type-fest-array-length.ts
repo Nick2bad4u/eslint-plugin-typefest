@@ -1,5 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-array-length`.
@@ -20,8 +22,8 @@ import {
 const ARRAY_LENGTH_TYPE_NAME = "ArrayLength" as const;
 
 const isLengthIndexType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSLiteralType" &&
-    node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSLiteralType &&
+    node.literal.type === AST_NODE_TYPES.Literal &&
     node.literal.value === "length";
 
 /**

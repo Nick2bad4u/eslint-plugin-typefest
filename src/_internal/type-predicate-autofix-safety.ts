@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Conservative safety checks for autofixes that introduce type predicates.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getParentNode } from "./ast-node.js";
 import { isTransparentExpressionWrapper } from "./value-rewrite-autofix-safety.js";
@@ -34,7 +36,7 @@ export const isTypePredicateExpressionAutofixSafe = (
         }
 
         if (
-            parentNode.type === "UnaryExpression" &&
+            parentNode.type === AST_NODE_TYPES.UnaryExpression &&
             parentNode.operator === "!" &&
             parentNode.argument === currentNode
         ) {
@@ -42,7 +44,7 @@ export const isTypePredicateExpressionAutofixSafe = (
         }
 
         if (
-            parentNode.type === "LogicalExpression" &&
+            parentNode.type === AST_NODE_TYPES.LogicalExpression &&
             (parentNode.left === currentNode ||
                 parentNode.right === currentNode)
         ) {
@@ -50,30 +52,30 @@ export const isTypePredicateExpressionAutofixSafe = (
         }
 
         if (
-            parentNode.type === "ConditionalExpression" &&
+            parentNode.type === AST_NODE_TYPES.ConditionalExpression &&
             parentNode.test === currentNode
         ) {
             return false;
         }
 
         if (
-            (parentNode.type === "DoWhileStatement" ||
-                parentNode.type === "IfStatement" ||
-                parentNode.type === "WhileStatement") &&
+            (parentNode.type === AST_NODE_TYPES.DoWhileStatement ||
+                parentNode.type === AST_NODE_TYPES.IfStatement ||
+                parentNode.type === AST_NODE_TYPES.WhileStatement) &&
             parentNode.test === currentNode
         ) {
             return false;
         }
 
         if (
-            parentNode.type === "ForStatement" &&
+            parentNode.type === AST_NODE_TYPES.ForStatement &&
             parentNode.test === currentNode
         ) {
             return false;
         }
 
         if (
-            parentNode.type === "SwitchCase" &&
+            parentNode.type === AST_NODE_TYPES.SwitchCase &&
             parentNode.test === currentNode
         ) {
             return false;

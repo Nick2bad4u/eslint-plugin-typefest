@@ -1,8 +1,10 @@
+import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-not`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { getFilterCallbackFunctionArgument } from "../_internal/filter-callback.js";
 import {
@@ -26,7 +28,7 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const isTargetCallbackParameter = (
     argument: Readonly<TSESTree.CallExpressionArgument>,
     parameterName: string
-): boolean => argument.type === "Identifier" && argument.name === parameterName;
+): boolean => argument.type === AST_NODE_TYPES.Identifier && argument.name === parameterName;
 
 /**
  * Extracts predicate calls from callbacks that negate a predicate call applied
@@ -48,15 +50,15 @@ const getNegatedPredicateCall = (
     }
 
     const [firstParameter] = callback.params;
-    if (firstParameter?.type !== "Identifier") {
+    if (firstParameter?.type !== AST_NODE_TYPES.Identifier) {
         return null;
     }
 
     const callbackBody = callback.body;
     if (
-        callbackBody.type !== "UnaryExpression" ||
+        callbackBody.type !== AST_NODE_TYPES.UnaryExpression ||
         callbackBody.operator !== "!" ||
-        callbackBody.argument.type !== "CallExpression"
+        callbackBody.argument.type !== AST_NODE_TYPES.CallExpression
     ) {
         return null;
     }
@@ -106,7 +108,7 @@ const preferTsExtrasNotRule: ReturnType<typeof createTypedRule> =
 
                 if (
                     predicateCall.optional ||
-                    predicateCall.callee.type !== "Identifier"
+                    predicateCall.callee.type !== AST_NODE_TYPES.Identifier
                 ) {
                     return null;
                 }

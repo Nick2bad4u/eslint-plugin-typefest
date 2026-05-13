@@ -1,8 +1,17 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * Predicate helpers for narrowing `TSTypeReference` nodes by identifier name.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
+const TS_PARENTHESIZED_TYPE = "TSParenthesizedType";
+
+const isTypeNodeLike = (value: unknown): value is Readonly<TSESTree.TypeNode> =>
+    typeof value === "object" &&
+    value !== null &&
+    typeof Reflect.get(value, "type") === "string";
 
 /**
  * Checks whether a type node is an identifier-based type reference with a
@@ -18,8 +27,8 @@ export const isIdentifierTypeReference = (
     node: Readonly<TSESTree.TypeNode>,
     identifierName: string
 ): node is TSESTree.TSTypeReference & { typeName: TSESTree.Identifier } =>
-    node.type === "TSTypeReference" &&
-    node.typeName.type === "Identifier" &&
+    node.type === AST_NODE_TYPES.TSTypeReference &&
+    node.typeName.type === AST_NODE_TYPES.Identifier &&
     node.typeName.name === identifierName;
 
 /**
@@ -32,13 +41,16 @@ export const isIdentifierTypeReference = (
 export const unwrapParenthesizedTypeNode = (
     node: Readonly<TSESTree.TypeNode>
 ): Readonly<TSESTree.TypeNode> => {
-    const parenthesizedCandidate = node as unknown as {
-        type: string;
-        typeAnnotation?: Readonly<TSESTree.TypeNode>;
-    };
+    const nodeObject: object = node;
+    const nodeType: unknown = Reflect.get(nodeObject, "type");
 
-    return parenthesizedCandidate.type === "TSParenthesizedType" &&
-        parenthesizedCandidate.typeAnnotation !== undefined
-        ? unwrapParenthesizedTypeNode(parenthesizedCandidate.typeAnnotation)
+    if (nodeType !== TS_PARENTHESIZED_TYPE) {
+        return node;
+    }
+
+    const typeAnnotation: unknown = Reflect.get(nodeObject, "typeAnnotation");
+
+    return isTypeNodeLike(typeAnnotation)
+        ? unwrapParenthesizedTypeNode(typeAnnotation)
         : node;
 };

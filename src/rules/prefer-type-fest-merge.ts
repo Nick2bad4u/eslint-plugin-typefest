@@ -1,8 +1,10 @@
+import type { TSESTree } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-merge`.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 import { collectNamedImportLocalNamesFromSource } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
@@ -29,7 +31,7 @@ const isMergeIntersectionExceptReference = (
     exceptLocalNames: ReadonlySet<string>
 ): boolean => {
     if (
-        node.typeName.type !== "Identifier" ||
+        node.typeName.type !== AST_NODE_TYPES.Identifier ||
         !setContainsValue(exceptLocalNames, node.typeName.name)
     ) {
         return false;
@@ -51,7 +53,7 @@ const isMergeIntersectionExceptReference = (
         unwrapParenthesizedTypeNode(omittedKeysType);
 
     if (
-        normalizedOmittedKeysType.type !== "TSTypeOperator" ||
+        normalizedOmittedKeysType.type !== AST_NODE_TYPES.TSTypeOperator ||
         normalizedOmittedKeysType.operator !== "keyof"
     ) {
         return false;
@@ -88,7 +90,8 @@ const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
                     const intersectionNode = node.parent;
 
                     if (
-                        intersectionNode?.type !== "TSIntersectionType" ||
+                        intersectionNode.type !==
+                            AST_NODE_TYPES.TSIntersectionType ||
                         intersectionNode.types.length !== 2
                     ) {
                         return;

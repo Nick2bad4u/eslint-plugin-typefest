@@ -2,10 +2,33 @@
  * @packageDocumentation
  * Compatibility wrappers for optional TypeScript TypeChecker APIs.
  */
+import type { UnknownArray } from "type-fest";
 import type ts from "typescript";
 
 import { isTypeReferenceType } from "@typescript-eslint/type-utils";
-import { safeCastTo } from "ts-extras";
+
+type TypeCheckerMethod<Result> = (
+    this: Readonly<ts.TypeChecker>,
+    ...arguments_: Readonly<UnknownArray>
+) => Result;
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- The result type models optional TypeChecker APIs whose return types vary by method name.
+const callTypeCheckerMethod = <Result>(
+    checker: Readonly<ts.TypeChecker>,
+    methodName: string,
+    ...arguments_: Readonly<UnknownArray>
+): Result | undefined => {
+    const method: unknown = Reflect.get(checker, methodName);
+
+    if (typeof method !== "function") {
+        return undefined;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Optional checker APIs are verified as functions before invoking with the known checker receiver.
+    const typedMethod = method as TypeCheckerMethod<Result>;
+
+    return typedMethod.apply(checker, [...arguments_]);
+};
 
 /**
  * Read `checker.getApparentType` when the host TypeScript version provides it.
@@ -18,11 +41,8 @@ import { safeCastTo } from "ts-extras";
 export const getTypeCheckerApparentType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
-): ts.Type | undefined => {
-    const checkerWithApparentType = safeCastTo(checker);
-
-    return checkerWithApparentType.getApparentType?.call(checker, type);
-};
+): ts.Type | undefined =>
+    callTypeCheckerMethod<ts.Type>(checker, "getApparentType", type);
 
 /**
  * Read `checker.getBaseTypes` when the host TypeScript version provides it.
@@ -35,15 +55,12 @@ export const getTypeCheckerApparentType = (
 export const getTypeCheckerBaseTypes = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
-): readonly ts.BaseType[] | undefined => {
-    const checkerWithBaseTypes = checker as ts.TypeChecker & {
-        getBaseTypes?: (
-            type: Readonly<ts.Type>
-        ) => readonly ts.BaseType[] | undefined;
-    };
-
-    return checkerWithBaseTypes.getBaseTypes?.call(checker, type);
-};
+): readonly ts.BaseType[] | undefined =>
+    callTypeCheckerMethod<readonly ts.BaseType[]>(
+        checker,
+        "getBaseTypes",
+        type
+    );
 
 /**
  * Read `checker.getStringType` when the host TypeScript version provides it.
@@ -54,11 +71,8 @@ export const getTypeCheckerBaseTypes = (
  */
 export const getTypeCheckerStringType = (
     checker: Readonly<ts.TypeChecker>
-): ts.Type | undefined => {
-    const checkerWithStringType = safeCastTo(checker);
-
-    return checkerWithStringType.getStringType?.call(checker);
-};
+): ts.Type | undefined =>
+    callTypeCheckerMethod<ts.Type>(checker, "getStringType");
 
 /**
  * Read `checker.isTypeAssignableTo` when the host TypeScript version provides
@@ -74,15 +88,13 @@ export const getTypeCheckerIsTypeAssignableToResult = (
     checker: Readonly<ts.TypeChecker>,
     source: Readonly<ts.Type>,
     target: Readonly<ts.Type>
-): boolean | undefined => {
-    const checkerWithAssignable = safeCastTo(checker);
-
-    return checkerWithAssignable.isTypeAssignableTo?.call(
+): boolean | undefined =>
+    callTypeCheckerMethod<boolean>(
         checker,
+        "isTypeAssignableTo",
         source,
         target
     );
-};
 
 /**
  * Read `checker.getBaseConstraintOfType` when the host TypeScript version
@@ -96,14 +108,8 @@ export const getTypeCheckerIsTypeAssignableToResult = (
 export const getTypeCheckerBaseConstraintType = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
-): ts.Type | undefined => {
-    const checkerWithBaseConstraint = safeCastTo(checker);
-
-    return checkerWithBaseConstraint.getBaseConstraintOfType?.call(
-        checker,
-        type
-    );
-};
+): ts.Type | undefined =>
+    callTypeCheckerMethod<ts.Type>(checker, "getBaseConstraintOfType", type);
 
 /**
  * Read `checker.isArrayType` when the host TypeScript version provides it.
@@ -116,11 +122,8 @@ export const getTypeCheckerBaseConstraintType = (
 export const getTypeCheckerIsArrayTypeResult = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
-): boolean | undefined => {
-    const checkerWithArrayType = safeCastTo(checker);
-
-    return checkerWithArrayType.isArrayType?.call(checker, type);
-};
+): boolean | undefined =>
+    callTypeCheckerMethod<boolean>(checker, "isArrayType", type);
 
 /**
  * Read `checker.isTupleType` when the host TypeScript version provides it.
@@ -133,11 +136,8 @@ export const getTypeCheckerIsArrayTypeResult = (
 export const getTypeCheckerIsTupleTypeResult = (
     checker: Readonly<ts.TypeChecker>,
     type: Readonly<ts.Type>
-): boolean | undefined => {
-    const checkerWithTupleType = safeCastTo(checker);
-
-    return checkerWithTupleType.isTupleType?.call(checker, type);
-};
+): boolean | undefined =>
+    callTypeCheckerMethod<boolean>(checker, "isTupleType", type);
 
 /**
  * Read `checker.getTypeArguments` when the host TypeScript version provides it.
@@ -155,7 +155,9 @@ export const getTypeCheckerTypeArguments = (
         return undefined;
     }
 
-    const checkerWithTypeArguments = safeCastTo(checker);
-
-    return checkerWithTypeArguments.getTypeArguments?.call(checker, type);
+    return callTypeCheckerMethod<readonly ts.Type[]>(
+        checker,
+        "getTypeArguments",
+        type
+    );
 };

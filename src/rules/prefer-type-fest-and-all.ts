@@ -1,5 +1,7 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 
+import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-and-all`.
@@ -19,8 +21,8 @@ const ALL_EXTEND_TYPE_NAME = "AllExtend" as const;
 const AND_ALL_TYPE_NAME = "AndAll" as const;
 
 const isTrueLiteralType = (node: Readonly<TSESTree.TypeNode>): boolean =>
-    node.type === "TSLiteralType" &&
-    node.literal.type === "Literal" &&
+    node.type === AST_NODE_TYPES.TSLiteralType &&
+    node.literal.type === AST_NODE_TYPES.Literal &&
     node.literal.value === true;
 
 /**
@@ -100,7 +102,8 @@ const preferTypeFestAndAllRule: ReturnType<typeof createTypedRule> =
                     typeReference: Readonly<TSESTree.TSTypeReference>
                 ) {
                     if (
-                        typeReference.typeName.type !== "Identifier" ||
+                        typeReference.typeName.type !==
+                            AST_NODE_TYPES.Identifier ||
                         !setContainsValue(
                             allExtendLocalNames,
                             typeReference.typeName.name
@@ -114,17 +117,20 @@ const preferTypeFestAndAllRule: ReturnType<typeof createTypedRule> =
                 'TSTypeReference[typeName.type="TSQualifiedName"]'(
                     typeReference: Readonly<TSESTree.TSTypeReference>
                 ) {
-                    if (typeReference.typeName.type !== "TSQualifiedName") {
+                    if (
+                        typeReference.typeName.type !==
+                        AST_NODE_TYPES.TSQualifiedName
+                    ) {
                         return;
                     }
 
                     if (
-                        typeReference.typeName.left.type !== "Identifier" ||
+                        typeReference.typeName.left.type !==
+                            AST_NODE_TYPES.Identifier ||
                         !setContainsValue(
                             typeFestNamespaceImportNames,
                             typeReference.typeName.left.name
                         ) ||
-                        typeReference.typeName.right.type !== "Identifier" ||
                         typeReference.typeName.right.name !==
                             ALL_EXTEND_TYPE_NAME
                     ) {

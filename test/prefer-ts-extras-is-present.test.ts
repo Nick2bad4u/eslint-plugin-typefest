@@ -655,6 +655,8 @@ const traverseAstChildValue = ({
             node: value,
             parent,
         });
+    } else {
+        // Primitive leaf value.
     }
 };
 
