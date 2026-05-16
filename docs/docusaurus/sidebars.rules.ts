@@ -119,6 +119,11 @@ const sidebars = {
                     type: "doc",
                 },
                 {
+                    id: "guides/rule-coverage-gap-analysis",
+                    label: "🔎 Rule coverage gaps",
+                    type: "doc",
+                },
+                {
                     id: "guides/type-aware-linting-readiness",
                     label: "🧪 Type-aware linting readiness",
                     type: "doc",

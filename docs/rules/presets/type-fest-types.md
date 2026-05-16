@@ -39,6 +39,10 @@ export default [typefest.configs["type-fest/types"]];
 | [`prefer-type-fest-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-constructor) | 🔧 |
 | [`prefer-type-fest-except`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-except) | 🔧 |
 | [`prefer-type-fest-if`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if) | 🔧 |
+| [`prefer-type-fest-is-any`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-any) | 🔧 |
+| [`prefer-type-fest-is-never`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-never) | 🔧 |
+| [`prefer-type-fest-is-null`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-null) | 🔧 |
+| [`prefer-type-fest-is-undefined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-undefined) | 🔧 |
 | [`prefer-type-fest-iterable-element`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-iterable-element) | 🔧 |
 | [`prefer-type-fest-json-array`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-json-array) | 🔧 |
 | [`prefer-type-fest-json-object`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-json-object) | 🔧 |

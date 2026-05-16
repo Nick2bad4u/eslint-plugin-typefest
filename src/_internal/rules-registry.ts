@@ -57,6 +57,10 @@ import preferTypeFestDistributedOmitRule from "../rules/prefer-type-fest-distrib
 import preferTypeFestDistributedPickRule from "../rules/prefer-type-fest-distributed-pick.js";
 import preferTypeFestExceptRule from "../rules/prefer-type-fest-except.js";
 import preferTypeFestIfRule from "../rules/prefer-type-fest-if.js";
+import preferTypeFestIsAnyRule from "../rules/prefer-type-fest-is-any.js";
+import preferTypeFestIsNeverRule from "../rules/prefer-type-fest-is-never.js";
+import preferTypeFestIsNullRule from "../rules/prefer-type-fest-is-null.js";
+import preferTypeFestIsUndefinedRule from "../rules/prefer-type-fest-is-undefined.js";
 import preferTypeFestIterableElementRule from "../rules/prefer-type-fest-iterable-element.js";
 import preferTypeFestJsonArrayRule from "../rules/prefer-type-fest-json-array.js";
 import preferTypeFestJsonObjectRule from "../rules/prefer-type-fest-json-object.js";
@@ -171,6 +175,10 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-distributed-pick": preferTypeFestDistributedPickRule,
     "prefer-type-fest-except": preferTypeFestExceptRule,
     "prefer-type-fest-if": preferTypeFestIfRule,
+    "prefer-type-fest-is-any": preferTypeFestIsAnyRule,
+    "prefer-type-fest-is-never": preferTypeFestIsNeverRule,
+    "prefer-type-fest-is-null": preferTypeFestIsNullRule,
+    "prefer-type-fest-is-undefined": preferTypeFestIsUndefinedRule,
     "prefer-type-fest-iterable-element": preferTypeFestIterableElementRule,
     "prefer-type-fest-json-array": preferTypeFestJsonArrayRule,
     "prefer-type-fest-json-object": preferTypeFestJsonObjectRule,
