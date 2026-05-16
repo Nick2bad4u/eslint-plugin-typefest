@@ -13,7 +13,10 @@ const isLiteralTypeWithValue = (
     node.literal.type === AST_NODE_TYPES.Literal &&
     node.literal.value === value;
 
-const isBooleanLiteralType = (
+/**
+ * Determine whether a type node is the exact boolean literal type requested.
+ */
+export const isBooleanLiteralType = (
     node: Readonly<TSESTree.TypeNode>,
     value: boolean
 ): boolean => isLiteralTypeWithValue(node, value);
@@ -23,7 +26,10 @@ const isNumericLiteralType = (
     value: number
 ): boolean => isLiteralTypeWithValue(node, value);
 
-const getSingleTupleElementType = (
+/**
+ * Return the only tuple element type when the node is a single-element tuple.
+ */
+export const getSingleTupleElementType = (
     node: Readonly<TSESTree.TypeNode>
 ): TSESTree.TypeNode | undefined =>
     node.type === AST_NODE_TYPES.TSTupleType && node.elementTypes.length === 1
@@ -50,11 +56,23 @@ const isTargetKeywordType = (
     }
 };
 
-const hasTrueFalseBranches = (
+/**
+ * Determine whether a conditional type has exact `true` then `false` branches.
+ */
+export const hasTrueFalseBranches = (
     node: Readonly<TSESTree.TSConditionalType>
 ): boolean =>
     isBooleanLiteralType(node.trueType, true) &&
     isBooleanLiteralType(node.falseType, false);
+
+/**
+ * Determine whether a conditional type has exact `false` then `true` branches.
+ */
+export const hasFalseTrueBranches = (
+    node: Readonly<TSESTree.TSConditionalType>
+): boolean =>
+    isBooleanLiteralType(node.trueType, false) &&
+    isBooleanLiteralType(node.falseType, true);
 
 const getNoInferTypeArgument = (
     node: Readonly<TSESTree.TypeNode>
@@ -119,4 +137,27 @@ export const getIsAnyTypeGuardInput = (
     }
 
     return getNoInferTypeArgument(rightType) ?? rightType;
+};
+
+/**
+ * Extract `T` from `number extends T["length"] ? false : true`.
+ */
+export const getIsTupleTypeGuardInput = (
+    node: Readonly<TSESTree.TSConditionalType>
+): TSESTree.TypeNode | undefined => {
+    if (
+        !hasFalseTrueBranches(node) ||
+        node.checkType.type !== AST_NODE_TYPES.TSNumberKeyword ||
+        node.extendsType.type !== AST_NODE_TYPES.TSIndexedAccessType
+    ) {
+        return undefined;
+    }
+
+    const indexType = node.extendsType.indexType;
+
+    return indexType.type === AST_NODE_TYPES.TSLiteralType &&
+        indexType.literal.type === AST_NODE_TYPES.Literal &&
+        indexType.literal.value === "length"
+        ? node.extendsType.objectType
+        : undefined;
 };

@@ -28,6 +28,12 @@ The remaining gaps are almost entirely `type-fest` types. That is expected:
 `type-fest` exports type-level building blocks whose manual equivalents are not
 syntactically stable enough for a safe ESLint rule.
 
+The additional-rule pass is now closed for broad/default rule additions. The
+rules implemented from this report cover the high-confidence patterns with
+stable syntax and safe autofixes. Remaining candidates should stay documented as
+non-goals or future-only ideas unless real project code proves a narrow,
+low-noise rule would be correct.
+
 ## Implemented from this gap list
 
 The following high-confidence type-guard rules have been added since the first
@@ -37,6 +43,20 @@ coverage snapshot:
 - `prefer-type-fest-is-never`
 - `prefer-type-fest-is-null`
 - `prefer-type-fest-is-undefined`
+- `prefer-type-fest-is-unknown`
+- `prefer-type-fest-is-tuple`
+- `prefer-type-fest-and`
+- `prefer-type-fest-or`
+- `prefer-type-fest-extract-rest-element`
+- `prefer-type-fest-is-nullable`
+- `prefer-type-fest-has-optional-keys`
+- `prefer-type-fest-has-required-keys`
+- `prefer-type-fest-has-readonly-keys`
+- `prefer-type-fest-has-writable-keys`
+- `prefer-type-fest-optional-keys-of`
+- `prefer-type-fest-required-keys-of`
+- `prefer-type-fest-readonly-keys-of`
+- `prefer-type-fest-writable-keys-of`
 - `prefer-type-fest-entry`
 - `prefer-type-fest-entries`
 - `prefer-type-fest-array-element`
@@ -51,10 +71,9 @@ this list because existing rules already cover their migration paths.
 
 Verdict legend:
 
-- **Implement:** There is a narrow, repeatable syntax pattern that can support a
-  general-purpose rule.
 - **Consider:** There may be a useful rule, but it should be narrow,
   suggestion-only, opt-in, or based on explicitly named local helper aliases.
+  These are not approved for default autofix rules from this gap pass.
 - **Do not implement:** A general rule would be too noisy, too project-specific,
   or too likely to change semantics.
 
@@ -65,7 +84,7 @@ Verdict legend:
 - `AbstractClass` — **Consider:** Same as `Class`, but only for exact abstract
   construct signatures plus the prototype member.
 - `TypedArray` — **Do not implement:** Manual typed-array unions are rare and
-  vary by project; broad reporting would be mostly name-based.
+  vary by project; broad reporting would be name-based.
 - `ObservableLike` — **Do not implement:** Structural `subscribe` contracts vary
   too much across observable libraries.
 - `LowercaseLetter` — **Do not implement:** Manual character unions are not a
@@ -76,11 +95,13 @@ Verdict legend:
 
 ### Object and utility types
 
-- `EmptyObject` — **Implement:** Exact `Record<PropertyKey, never>` style
-  aliases are a safe target; bare `{}` must stay out of scope.
+- `EmptyObject` — **Do not implement:** TypeFest's current implementation uses
+  an internal unique-symbol brand, and its source explicitly notes that
+  `Record<string, never>`, `Record<keyof any, never>`, and related record forms
+  do not work as `EmptyObject`.
 - `NonEmptyObject` — **Do not implement:** Non-empty object intent is usually a
   semantic constraint, not a stable local type expression.
-- `ObjectMerge` — **Do not implement:** This is mostly an internal composition
+- `ObjectMerge` — **Do not implement:** This is an internal-style composition
   primitive behind `Merge`; manual equivalents are not stable.
 - `MergeDeep` — **Do not implement:** Deep recursive merge helpers are too
   varied and expensive to recognize safely.
@@ -116,23 +137,36 @@ Verdict legend:
   reportable, but only with narrow conditional/template-literal matching.
 - `Exact` — **Consider:** Suggestion-only for exact excess-property helper
   aliases; avoid autofix because semantics vary.
-- `OptionalKeysOf` — **Implement:** Canonical mapped-type optional-key extraction
-  is common and syntactically recognizable.
-- `HasOptionalKeys` — **Implement:** Report exact `OptionalKeysOf<T> extends
-  never ? false : true` style forms after or alongside `OptionalKeysOf`.
-- `RequiredKeysOf` — **Implement:** Canonical mapped-type required-key extraction
-  is recognizable.
-- `HasRequiredKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
-- `ReadonlyKeysOf` — **Implement:** Canonical readonly-key extraction can be
-  matched with exact mapped-type forms.
-- `HasReadonlyKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
-- `WritableKeysOf` — **Implement:** Canonical writable-key extraction can be
-  matched with exact mapped-type forms.
-- `HasWritableKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
+- `OptionalKeysOf` — **Implemented:** `prefer-type-fest-optional-keys-of`
+  reports the exact distributive mapped-key composition based on
+  `IsOptionalKeyOf<T, Key>`.
+- `HasOptionalKeys` — **Implemented:** `prefer-type-fest-has-optional-keys`
+  reports exact `OptionalKeysOf<T> extends never ? false : true` compositions
+  imported from `type-fest`.
+- `RequiredKeysOf` — **Implemented:** `prefer-type-fest-required-keys-of`
+  reports the exact distributive `Exclude<keyof T, OptionalKeysOf<T>>`
+  composition.
+- `HasRequiredKeys` — **Implemented:** `prefer-type-fest-has-required-keys`
+  reports exact `RequiredKeysOf<T> extends never ? false : true` compositions
+  imported from `type-fest`.
+- `ReadonlyKeysOf` — **Implemented:** `prefer-type-fest-readonly-keys-of`
+  reports the exact distributive mapped-key composition based on
+  `IsReadonlyKeyOf<T, Key>`.
+- `HasReadonlyKeys` — **Implemented:** `prefer-type-fest-has-readonly-keys`
+  reports exact `ReadonlyKeysOf<T> extends never ? false : true` compositions
+  imported from `type-fest`.
+- `WritableKeysOf` — **Implemented:** `prefer-type-fest-writable-keys-of`
+  reports the exact distributive `Exclude<keyof T, ReadonlyKeysOf<T>>`
+  composition.
+- `HasWritableKeys` — **Implemented:** `prefer-type-fest-has-writable-keys`
+  reports exact `WritableKeysOf<T> extends never ? false : true` compositions
+  imported from `type-fest`.
 - `Spread` — **Do not implement:** Spread semantics are intentionally subtle and
   not equivalent to ordinary intersections or merges.
-- `IsEqual` — **Implement:** Exact mutual-assignability boolean helpers are a
-  stable target when tuple-wrapped or function-parameter forms are canonical.
+- `IsEqual` — **Do not implement:** Exact mutual-assignability boolean helpers
+  look stable at first, but common implementations differ in distribution,
+  `any`, `never`, and function-parameter edge cases. A broad rule would be easy
+  to make noisy or subtly wrong.
 - `TaggedUnion` — **Consider:** Good suggestion-only rule for unions of object
   literals with a shared literal discriminant.
 - `IntRange` — **Do not implement:** Numeric range builders are recursive and
@@ -142,8 +176,10 @@ Verdict legend:
   but fixers can change string index keys to numeric keys.
 - `ArraySplice` — **Do not implement:** Tuple splice helpers are complex
   recursive tuple programs.
-- `ArrayTail` — **Implement:** Exact `T extends [unknown, ...infer Tail] ? Tail :
-  never` style helpers are narrow enough.
+- `ArrayTail` — **Consider:** TypeFest preserves readonly arrays, normal arrays,
+  empty tuples, leading rest elements, and `any`/`never` behavior. Simple
+  `T extends [unknown, ...infer Tail] ? Tail : never` helpers are not
+  equivalent.
 - `SetFieldType` — **Consider:** Only report exact `Omit<T, K> & Record<K, V>`
   style helper aliases when key constraints match.
 - `Paths` — **Do not implement:** Path enumeration is a deep recursive transform.
@@ -152,10 +188,15 @@ Verdict legend:
 - `SharedUnionFieldsDeep` — **Do not implement:** Deep union-field transforms are
   too complex.
 - `AllUnionFields` — **Consider:** Same risk profile as `SharedUnionFields`.
-- `And` — **Implement:** Exact boolean pair conditionals can be matched safely.
-- `Or` — **Implement:** Exact boolean pair conditionals can be matched safely.
-- `Xor` — **Implement:** Exact boolean-exclusive conditionals can be matched
-  safely, but avoid reporting object XOR helpers.
+- `And` — **Implemented:** `prefer-type-fest-and` reports
+  `AndAll<[A, B]>` and `AndAll<readonly [A, B]>` imported from `type-fest`,
+  then rewrites them to `And<A, B>`.
+- `Or` — **Implemented:** `prefer-type-fest-or` reports `OrAll<[A, B]>` and
+  `OrAll<readonly [A, B]>` imported from `type-fest`, then rewrites them to
+  `Or<A, B>`.
+- `Xor` — **Consider:** TypeFest's boolean `Xor` distributes `boolean` and
+  treats `never` as `false`. Only exact boolean-helper compositions should be
+  considered; object XOR helpers must stay out of scope.
 - `AllExtend` — **Consider:** Useful only for exact local aliases that encode the
   same tuple-wide extends semantics.
 - `SomeExtend` — **Consider:** Same constraints as `AllExtend`.
@@ -174,35 +215,42 @@ Verdict legend:
 
 - `IsLiteral` — **Consider:** Only if it composes exact string, numeric,
   boolean, and symbol literal guard shapes.
-- `IsStringLiteral` — **Implement:** Exact `T extends string ? string extends T ?
-  false : true : false` style helpers are stable.
-- `IsNumericLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
-- `IsBooleanLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
-- `IsSymbolLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
-- `IsUnknown` — **Implement:** Canonical `unknown extends T` plus `IsAny` guard
-  forms are narrow enough.
-- `IsEmptyObject` — **Implement:** Pair it with `EmptyObject` and only match
-  exact empty-object conditionals.
-- `IsTuple` — **Implement:** Canonical tuple detection based on `number extends
-  T["length"]` is recognizable.
-- `IsUnion` — **Implement:** Canonical distributive-union guard aliases are
-  recognizable if matched exactly.
-- `IsLowercase` — **Implement:** Exact `T extends Lowercase<T>` style helpers
-  are stable.
-- `IsUppercase` — **Implement:** Exact `T extends Uppercase<T>` style helpers
-  are stable.
+- `IsStringLiteral` — **Consider:** TypeFest handles `any`, `never`, tagged
+  types, and infinite string patterns, so only exact aliases that preserve those
+  fallbacks are safe.
+- `IsNumericLiteral` — **Consider:** TypeFest distributes across numeric
+  primitive literal families and handles `never`, so simple
+  `T extends number ? number extends T` aliases are not equivalent.
+- `IsBooleanLiteral` — **Consider:** Same caveat as `IsNumericLiteral`; simple
+  boolean conditionals produce different results for `never`.
+- `IsSymbolLiteral` — **Consider:** Same caveat as `IsNumericLiteral`.
+- `IsEmptyObject` — **Do not implement:** It depends on TypeFest's branded
+  `EmptyObject`; common `T extends {}` or `keyof T extends never` checks are not
+  equivalent.
+- `IsUnion` — **Consider:** TypeFest preserves `never`, exact equality, and
+  boolean fallback behavior. Simple distributive-union helpers are not
+  equivalent, so only exact aliases matching the current TypeFest algorithm
+  should be considered.
+- `IsLowercase` — **Consider:** TypeFest handles string pieces and returns
+  `boolean` for uncertain cases, so only exact aliases with equivalent fallback
+  behavior are safe.
+- `IsUppercase` — **Consider:** Same constraints as `IsLowercase`.
 - `IsOptional` — **Consider:** Only report exact `undefined extends T` style
   helpers after checking equivalence with `type-fest` semantics.
-- `IsNullable` — **Implement:** Exact null-or-undefined guard conditionals are
-  stable enough.
-- `IsOptionalKeyOf` — **Implement:** Canonical optional-key membership checks are
-  stable.
-- `IsRequiredKeyOf` — **Implement:** Canonical required-key membership checks are
-  stable.
-- `IsReadonlyKeyOf` — **Implement:** Canonical readonly-key membership checks are
-  stable.
-- `IsWritableKeyOf` — **Implement:** Canonical writable-key membership checks are
-  stable.
+- `IsNullable` — **Implemented:** `prefer-type-fest-is-nullable` reports exact
+  any-safe nullable guard conditionals that preserve TypeFest's `any` handling.
+- `IsOptionalKeyOf` — **Do not implement:** The direct guard semantics include
+  TypeFest-specific `any`, distribution, and key-modifier behavior. The safe
+  coverage line is the implemented `OptionalKeysOf` and `HasOptionalKeys` rules.
+- `IsRequiredKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
+  The implemented `RequiredKeysOf` and `HasRequiredKeys` rules cover stable
+  higher-level compositions instead.
+- `IsReadonlyKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
+  The implemented `ReadonlyKeysOf` and `HasReadonlyKeys` rules cover stable
+  higher-level compositions instead.
+- `IsWritableKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
+  The implemented `WritableKeysOf` and `HasWritableKeys` rules cover stable
+  higher-level compositions instead.
 
 ### JSON and structured clone
 
@@ -232,8 +280,9 @@ Verdict legend:
 - `Join` — **Do not implement:** Tuple/string join helpers are recursive
   template-literal parsers.
 - `ArraySlice` — **Do not implement:** Recursive tuple slicing is too complex.
-- `LastArrayElement` — **Implement:** Exact variadic tuple `infer Last` helpers
-  are narrow and common.
+- `LastArrayElement` — **Consider:** TypeFest handles arrays, empty tuples, and
+  trailing spread elements. Simple `T extends [...unknown[], infer Last]`
+  helpers should not be autofixed unless their narrower semantics are explicit.
 - `FixedLengthArray` — **Do not implement:** Recursive tuple builders are not
   stable enough.
 - `MultidimensionalArray` — **Do not implement:** This is intent-level type
@@ -249,10 +298,12 @@ Verdict legend:
   reportable, but likely low priority.
 - `SplitOnRestElement` — **Consider:** Exact variadic rest split aliases may be
   reportable without autofix.
-- `ExtractRestElement` — **Implement:** Exact `T extends [...unknown[], ...infer
-  Rest]` style helpers are narrow enough.
-- `ExcludeRestElement` — **Implement:** Exact rest-removal tuple helpers are
-  narrow enough.
+- `ExtractRestElement` — **Implemented:** `prefer-type-fest-extract-rest-element`
+  reports exact `SplitOnRestElement<T>[1][number]` usage imported from
+  `type-fest` and rewrites it to `ExtractRestElement<T>`.
+- `ExcludeRestElement` — **Consider:** TypeFest composes `SplitOnRestElement`
+  with readonly and `any`/`never` preservation. Manual tuple-spread removal
+  helpers are only safe if matched as an exact helper composition.
 - `ArrayReverse` — **Do not implement:** Recursive tuple reversal is too broad.
 
 ### Numeric types
@@ -325,10 +376,13 @@ Verdict legend:
 - `ExcludeExactly` — **Consider:** Opt-in only; replace explicitly named local
   strict helpers where exact exclusion semantics are clear.
 
-## Rule candidates worth building
+## Closed candidates and future-only ideas
 
-These are the candidates with enough syntactic signal to justify real rules
-without broad type-checker calls or high false-positive rates.
+No remaining candidate from this report should be built as a default autofix
+rule right now. The implemented rules below are the completed high-confidence
+set. The unimplemented entries in this section are retained only as future
+research notes for opt-in, suggestion-only, or explicitly named local-helper
+migrations.
 
 ### Implemented: `prefer-type-fest-array-element`
 
@@ -358,14 +412,14 @@ The implemented scope is intentionally type-aware:
 - Ignores number-indexed object maps where `ArrayValues<typeof values>` would not
   be equivalent.
 
-### `prefer-type-fest-array-indices`
+### Deferred: `prefer-type-fest-array-indices`
 
 Detect manual index unions derived from tuple keys, such as
 `Exclude<keyof typeof tuple, keyof unknown[]>`, when the operand is a constant
 tuple and prefer `ArrayIndices<typeof tuple>`.
 
-This is a lower priority than `ArrayValues`. The manual forms vary, and incorrect
-autofixes could change string index keys into numeric index keys.
+This should stay deferred. The manual forms vary, and incorrect autofixes could
+change string index keys into numeric index keys.
 
 ### Implemented: `prefer-type-fest-entry` and `prefer-type-fest-entries`
 
@@ -387,7 +441,7 @@ The implemented scope is intentionally narrow:
   single manual entry tuple does not produce duplicate `Entry` and `ValueOf`
   reports.
 
-### `prefer-type-fest-tagged-union`
+### Deferred: `prefer-type-fest-tagged-union`
 
 Detect type aliases that are explicit unions of object type literals sharing the
 same discriminant property:
@@ -401,32 +455,51 @@ type Event =
 Prefer `TaggedUnion<"type", ...>` when every union member has the same literal
 discriminant key and every discriminant value is unique.
 
-This should start without autofix. Preserving comments, property ordering, and
-multi-line formatting would make an autofix fragile.
+This should not be added from the current gap pass. If real-world usage justifies
+it later, it should start without autofix because preserving comments, property
+ordering, and multi-line formatting would make a fix fragile.
 
 ### `prefer-type-fest-type-guards`
 
-This should probably be a small family of rules rather than one large rule:
+The safe family of type-guard rules from this pass has already been added:
 
-- `prefer-type-fest-is-unknown`
-- `prefer-type-fest-is-tuple`
-- `prefer-type-fest-is-union`
-- `prefer-type-fest-is-optional-key-of`
-- `prefer-type-fest-is-required-key-of`
-- `prefer-type-fest-is-readonly-key-of`
-- `prefer-type-fest-is-writable-key-of`
+- Implemented: `prefer-type-fest-is-unknown`
+- Implemented: `prefer-type-fest-is-tuple`
+- Implemented: `prefer-type-fest-is-nullable`
 
 Only exact canonical conditional-type shapes should be reported. The initial
 implemented rules follow that line: `IsNever<T>`, `IsNull<T>`, and
 `IsUndefined<T>` match tuple-wrapped conditionals, while `IsAny<T>` matches the
-canonical `0 extends 1 & T` form. Future guard rules should keep avoiding guesses
-that every conditional returning `true` or `false` is a `type-fest` guard.
+canonical `0 extends 1 & T` form. `IsNullable<T>` now only reports the exact
+any-safe nullable helper shape; it intentionally ignores shorter
+`Extract<T, null>` checks because they do not preserve `any` behavior. Future
+guard rules should not be added without real-world examples and exact semantic
+proof that `any`, `never`, distribution, and modifier behavior are preserved.
 
-### `prefer-type-fest-empty-object`
+### Implemented: `prefer-type-fest-and` and `prefer-type-fest-or`
+
+These rules now cover the exact two-value forms of the existing all-value
+boolean helpers:
+
+```ts
+type Both<A extends boolean, B extends boolean> = AndAll<[A, B]>;
+type Either<A extends boolean, B extends boolean> = OrAll<[A, B]>;
+```
+
+The implemented scope is intentionally narrow:
+
+- Reports direct and namespace-qualified `AndAll`/`OrAll` references imported
+  from `type-fest`.
+- Only rewrites two-element tuple arguments, including `readonly [A, B]`.
+- Leaves three-or-more-element tuple checks on `AndAll`/`OrAll`.
+- Skips named, optional, and rest tuple elements because those cannot be safely
+  converted into ordinary generic arguments.
+
+### Do not implement: `prefer-type-fest-empty-object`
 
 Detect exact empty-object intent, not every `{}`.
 
-Good reportable shapes:
+Originally suggested reportable shapes:
 
 - `Record<PropertyKey, never>`
 - `Record<string | number | symbol, never>`
@@ -436,26 +509,109 @@ Bad reportable shape:
 
 - bare `{}` in arbitrary type positions
 
-Bare `{}` in TypeScript often means "any non-nullish value", so reporting it
-globally would be noisy and wrong.
+This should stay out of scope. Bare `{}` in TypeScript often means "any
+non-nullish value", and TypeFest's own docs say the `Record<..., never>` forms do
+not work as `EmptyObject`.
 
-### `prefer-type-fest-exact`
+### Implemented: `prefer-type-fest-extract-rest-element`
+
+This rule now covers the exact TypeFest helper composition:
+
+```ts
+type Rest<T extends UnknownArray> = SplitOnRestElement<T>[1][number];
+```
+
+The implemented scope is intentionally narrow:
+
+- Reports direct and namespace-qualified `SplitOnRestElement` references
+  imported from `type-fest`.
+- Only rewrites the exact `[1][number]` rest-element extraction.
+- Leaves the raw split tuple segments alone.
+
+### Implemented: `prefer-type-fest-is-nullable`
+
+This rule now covers exact nullable checks that preserve TypeFest's `any`
+behavior:
+
+```ts
+type Result<T> = IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
+type Result<T> = 0 extends 1 & T ? true : Extract<T, null> extends never ? false : true;
+```
+
+The implemented scope is intentionally narrow:
+
+- Reports direct, aliased, and namespace-qualified `IsAny` references imported
+  from `type-fest`.
+- Reports the canonical manual `0 extends 1 & T` any branch.
+- Only rewrites when the inner branch is exactly
+  `Extract<T, null> extends never ? false : true` for the same `T`.
+- Leaves the shorter `Extract<T, null>` nullable guard alone because it changes
+  behavior for `any`.
+
+### Implemented: `prefer-type-fest-has-*keys`
+
+These rules now cover exact TypeFest key-existence helper compositions:
+
+```ts
+type HasOptionals<T extends object> = OptionalKeysOf<T> extends never ? false : true;
+type HasRequired<T extends object> = RequiredKeysOf<T> extends never ? false : true;
+type HasReadonly<T extends object> = ReadonlyKeysOf<T> extends never ? false : true;
+type HasWritable<T extends object> = WritableKeysOf<T> extends never ? false : true;
+```
+
+The implemented scope is intentionally narrow:
+
+- Reports direct, aliased, and namespace-qualified `*KeysOf` references imported
+  from `type-fest`.
+- Only rewrites the exact `extends never ? false : true` shape.
+- Leaves inverted checks and custom fallback branches alone.
+- Leaves local `*KeysOf` helpers alone.
+
+### Implemented: `prefer-type-fest-*keys-of`
+
+These rules now cover exact TypeFest key-extraction helper compositions:
+
+```ts
+type Optional<Type extends object> = Type extends unknown
+    ? (keyof {[Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key]: never}) &
+          keyof Type
+    : never;
+
+type Required<Type extends object> = Type extends unknown
+    ? Exclude<keyof Type, OptionalKeysOf<Type>>
+    : never;
+```
+
+The implemented scope is intentionally narrow:
+
+- `prefer-type-fest-optional-keys-of` and
+  `prefer-type-fest-readonly-keys-of` report only the exact distributive
+  mapped-key shape based on TypeFest `IsOptionalKeyOf`/`IsReadonlyKeyOf`.
+- `prefer-type-fest-required-keys-of` and
+  `prefer-type-fest-writable-keys-of` report only the exact distributive
+  `Exclude<keyof T, *KeysOf<T>>` shape.
+- Direct, aliased, and namespace-qualified TypeFest helper imports are
+  supported.
+- Non-distributive helpers, local helper types, custom key filters, and reversed
+  exclusions are ignored.
+
+### Deferred: `prefer-type-fest-exact`
 
 Detect local generic aliases that implement exact object checking by adding
 `never` properties for excess keys.
 
-This is worth exploring, but it should be conservative and probably start as a
-suggestion-only rule. Different "exact" helper types encode assignability
-constraints that are not equivalent to `Exact`.
+This should stay deferred. Different "exact" helper types encode assignability
+constraints that are not equivalent to `Exact`; a future rule would need to be
+conservative and suggestion-only.
 
-### `prefer-type-fest-strict-builtins`
+### Deferred: `prefer-type-fest-strict-builtins`
 
 Cover `ExtendsStrict`, `ExtractStrict`, `ExcludeStrict`, and `ExcludeExactly`,
 but do not blindly replace built-in `extends`, `Extract`, or `Exclude`.
 
-These types intentionally have stricter semantics than the built-ins. A rule here
-should be opt-in, should explain the semantic change, and should avoid autofix
-unless it is replacing an explicitly named local strict helper.
+These types intentionally have stricter semantics than the built-ins. A future
+rule here would need to be opt-in, document the semantic change, and avoid
+autofix unless it is replacing an explicitly named local strict helper.
 
 ## Low-value or risky candidates
 
@@ -498,13 +654,15 @@ that a type named `Serializable`, `JsonCompatible`, or `Cloneable` is equivalent
 object type alias. A future rule could report local aliases with those exact
 names, but broad detection would be noisy.
 
-## Suggested implementation order
+## Closure policy
 
-1. Continue conservative type-guard rules for exact canonical forms:
-   `IsUnknown`, `IsTuple`, and the key-modifier guards.
-2. Add `TaggedUnion` as a suggestion-only rule.
-3. Add opt-in strict built-in rules only after documenting the semantic
-   difference in the rule documentation.
-4. Leave deep transforms, change-case, numeric, JSON, cloneability, and package
-   config types as documented non-goals unless real-world violations justify
-   narrowing the scope.
+1. Do not add more default or recommended autofix rules from this gap list
+   without real-world examples that demonstrate a repeated, low-noise pattern.
+2. Any future candidate whose semantics differ from the manual form must start
+   suggestion-only or opt-in.
+3. Autofix candidates must include direct, aliased, and namespace import tests
+   where import-aware; shadowed-name no-fix tests; false-positive valid cases;
+   fixer output assertions; and parse-safety coverage.
+4. Keep deep transforms, change-case, numeric, JSON, cloneability, package
+   config, and broad type-guard APIs as documented non-goals unless the scope can
+   be narrowed to an exact local-helper migration.

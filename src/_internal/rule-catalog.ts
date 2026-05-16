@@ -141,6 +141,20 @@ const orderedRuleNames = [
     "prefer-type-fest-entries",
     "prefer-type-fest-array-element",
     "prefer-type-fest-array-values",
+    "prefer-type-fest-is-unknown",
+    "prefer-type-fest-is-tuple",
+    "prefer-type-fest-and",
+    "prefer-type-fest-or",
+    "prefer-type-fest-extract-rest-element",
+    "prefer-type-fest-is-nullable",
+    "prefer-type-fest-has-optional-keys",
+    "prefer-type-fest-has-required-keys",
+    "prefer-type-fest-has-readonly-keys",
+    "prefer-type-fest-has-writable-keys",
+    "prefer-type-fest-optional-keys-of",
+    "prefer-type-fest-required-keys-of",
+    "prefer-type-fest-readonly-keys-of",
+    "prefer-type-fest-writable-keys-of",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 /* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting outside the stable public catalog. */
 
