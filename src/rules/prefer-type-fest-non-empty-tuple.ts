@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { ArrayElement } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -19,7 +20,7 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 type RestAnnotation = TSESTree.TSRestType["typeAnnotation"];
 
 /** Individual tuple element node variants used in readonly tuple checks. */
-type TupleElement = TSESTree.TSTupleType["elementTypes"][number];
+type TupleElement = ArrayElement<TSESTree.TSTupleType["elementTypes"]>;
 
 /**
  * Extracts the required head element type from a tuple member.
@@ -41,7 +42,10 @@ const getRequiredTupleElementType = (
         return element.elementType;
     }
 
-    if (element.type === AST_NODE_TYPES.TSOptionalType || element.type === AST_NODE_TYPES.TSRestType) {
+    if (
+        element.type === AST_NODE_TYPES.TSOptionalType ||
+        element.type === AST_NODE_TYPES.TSRestType
+    ) {
         return null;
     }
 

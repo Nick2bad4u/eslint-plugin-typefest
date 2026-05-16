@@ -2,6 +2,8 @@
  * @packageDocumentation
  * Shared typefest preset/config reference constants and type guards.
  */
+import type { ArrayValues } from "type-fest";
+
 import { objectHasOwn } from "ts-extras";
 
 /** Canonical flat-config preset keys exposed through `plugin.configs`. */
@@ -25,7 +27,7 @@ export type TypefestConfigMetadata = Readonly<{
 }>;
 
 /** Canonical flat-config preset key type exposed through `plugin.configs`. */
-export type TypefestConfigName = (typeof typefestConfigNames)[number];
+export type TypefestConfigName = ArrayValues<typeof typefestConfigNames>;
 
 /**
  * Canonical metadata for every exported `typefest` preset key.

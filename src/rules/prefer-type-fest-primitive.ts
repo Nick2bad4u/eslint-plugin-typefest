@@ -2,6 +2,8 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-primitive`.
  */
+import type { ArrayValues } from "type-fest";
+
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 import {
@@ -25,7 +27,7 @@ const primitiveKeywordTypes = [
 ] as const;
 
 /** Union of primitive keyword node type literals. */
-type PrimitiveKeywordType = (typeof primitiveKeywordTypes)[number];
+type PrimitiveKeywordType = ArrayValues<typeof primitiveKeywordTypes>;
 
 /** Lookup set used to validate primitive-keyword union members quickly. */
 const primitiveKeywordTypeSet = new Set<string>(primitiveKeywordTypes);

@@ -37,6 +37,8 @@ export default [typefest.configs["type-fest/types"]];
 | [`prefer-type-fest-conditional-pick`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick) | 🔧 |
 | [`prefer-type-fest-conditional-pick-deep`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick-deep) | 🔧 |
 | [`prefer-type-fest-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-constructor) | 🔧 |
+| [`prefer-type-fest-entries`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entries) | 🔧 |
+| [`prefer-type-fest-entry`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entry) | 🔧 |
 | [`prefer-type-fest-except`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-except) | 🔧 |
 | [`prefer-type-fest-if`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if) | 🔧 |
 | [`prefer-type-fest-is-any`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-any) | 🔧 |

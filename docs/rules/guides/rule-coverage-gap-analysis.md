@@ -37,6 +37,10 @@ coverage snapshot:
 - `prefer-type-fest-is-never`
 - `prefer-type-fest-is-null`
 - `prefer-type-fest-is-undefined`
+- `prefer-type-fest-entry`
+- `prefer-type-fest-entries`
+- `prefer-type-fest-array-element`
+- `prefer-type-fest-array-values`
 
 ## TypeFest APIs not covered by a direct rule
 
@@ -45,203 +49,314 @@ them from an equivalent local type expression. Legacy aliases such as `Opaque`,
 `UnwrapOpaque`, and deprecated `If*` utilities are intentionally omitted from
 this list because existing rules already cover their migration paths.
 
+Verdict legend:
+
+- **Implement:** There is a narrow, repeatable syntax pattern that can support a
+  general-purpose rule.
+- **Consider:** There may be a useful rule, but it should be narrow,
+  suggestion-only, opt-in, or based on explicitly named local helper aliases.
+- **Do not implement:** A general rule would be too noisy, too project-specific,
+  or too likely to change semantics.
+
 ### Basic
 
-- `Class`
-- `AbstractClass`
-- `TypedArray`
-- `ObservableLike`
-- `LowercaseLetter`
-- `UppercaseLetter`
-- `DigitCharacter`
-- `Alphanumeric`
+- `Class` — **Consider:** Only report exact structural class types that include
+  both `prototype: Pick<T, keyof T>` and a matching construct signature.
+- `AbstractClass` — **Consider:** Same as `Class`, but only for exact abstract
+  construct signatures plus the prototype member.
+- `TypedArray` — **Do not implement:** Manual typed-array unions are rare and
+  vary by project; broad reporting would be mostly name-based.
+- `ObservableLike` — **Do not implement:** Structural `subscribe` contracts vary
+  too much across observable libraries.
+- `LowercaseLetter` — **Do not implement:** Manual character unions are not a
+  stable or common enough lint target.
+- `UppercaseLetter` — **Do not implement:** Same reason as `LowercaseLetter`.
+- `DigitCharacter` — **Do not implement:** Same reason as `LowercaseLetter`.
+- `Alphanumeric` — **Do not implement:** Same reason as `LowercaseLetter`.
 
 ### Object and utility types
 
-- `EmptyObject`
-- `NonEmptyObject`
-- `ObjectMerge`
-- `MergeDeep`
-- `OverrideProperties`
-- `SingleKeyObject`
-- `PickDeep`
-- `OmitDeep`
-- `PartialOnUndefinedDeep`
-- `UndefinedOnPartialDeep`
-- `UnwrapPartial`
-- `InvariantOf`
-- `SetRequiredDeep`
-- `SetNonNullableDeep`
-- `LiteralToPrimitive`
-- `LiteralToPrimitiveDeep`
-- `Entry`
-- `Entries`
-- `SetParameterType`
-- `SimplifyDeep`
-- `Get`
-- `KeyAsString`
-- `Exact`
-- `OptionalKeysOf`
-- `HasOptionalKeys`
-- `RequiredKeysOf`
-- `HasRequiredKeys`
-- `ReadonlyKeysOf`
-- `HasReadonlyKeys`
-- `WritableKeysOf`
-- `HasWritableKeys`
-- `Spread`
-- `IsEqual`
-- `TaggedUnion`
-- `IntRange`
-- `IntClosedRange`
-- `ArrayIndices`
-- `ArrayValues`
-- `ArraySplice`
-- `ArrayTail`
-- `SetFieldType`
-- `Paths`
-- `SharedUnionFields`
-- `SharedUnionFieldsDeep`
-- `AllUnionFields`
-- `And`
-- `Or`
-- `Xor`
-- `AllExtend`
-- `SomeExtend`
-- `FindGlobalType`
-- `FindGlobalInstanceType`
-- `ConditionalSimplify`
-- `ConditionalSimplifyDeep`
-- `ExclusifyUnion`
+- `EmptyObject` — **Implement:** Exact `Record<PropertyKey, never>` style
+  aliases are a safe target; bare `{}` must stay out of scope.
+- `NonEmptyObject` — **Do not implement:** Non-empty object intent is usually a
+  semantic constraint, not a stable local type expression.
+- `ObjectMerge` — **Do not implement:** This is mostly an internal composition
+  primitive behind `Merge`; manual equivalents are not stable.
+- `MergeDeep` — **Do not implement:** Deep recursive merge helpers are too
+  varied and expensive to recognize safely.
+- `OverrideProperties` — **Consider:** Only useful for exact local helper aliases
+  that intentionally constrain overrides to existing keys.
+- `SingleKeyObject` — **Consider:** Could target exact mapped-union helpers, but
+  it is likely low frequency.
+- `PickDeep` — **Do not implement:** Deep path utilities are project-specific and
+  recursive.
+- `OmitDeep` — **Do not implement:** Same reason as `PickDeep`.
+- `PartialOnUndefinedDeep` — **Do not implement:** Deep undefined-aware
+  transforms are too semantic for a general syntax rule.
+- `UndefinedOnPartialDeep` — **Do not implement:** Same reason as
+  `PartialOnUndefinedDeep`.
+- `UnwrapPartial` — **Do not implement:** Manual versions usually appear inside
+  larger recursive helpers, not as isolated reportable aliases.
+- `InvariantOf` — **Do not implement:** Invariance helpers rely on branding
+  tricks that are too easy to get subtly wrong.
+- `SetRequiredDeep` — **Do not implement:** Deep mapped transforms are already in
+  the risky category.
+- `SetNonNullableDeep` — **Do not implement:** Same reason as `SetRequiredDeep`.
+- `LiteralToPrimitive` — **Consider:** Only report exact canonical conditional
+  aliases; do not guess from arbitrary literal-widening helpers.
+- `LiteralToPrimitiveDeep` — **Do not implement:** The deep version becomes a
+  recursive transform and is too broad.
+- `SetParameterType` — **Consider:** Could replace exact local helper aliases
+  that rebuild a function signature with new parameters.
+- `SimplifyDeep` — **Do not implement:** Adding `SimplifyDeep` is an intent and
+  display-quality choice, not an equivalent syntax rewrite.
+- `Get` — **Do not implement:** Path lookup helpers vary heavily and often carry
+  different fallback semantics.
+- `KeyAsString` — **Consider:** Exact key-to-string helper aliases may be
+  reportable, but only with narrow conditional/template-literal matching.
+- `Exact` — **Consider:** Suggestion-only for exact excess-property helper
+  aliases; avoid autofix because semantics vary.
+- `OptionalKeysOf` — **Implement:** Canonical mapped-type optional-key extraction
+  is common and syntactically recognizable.
+- `HasOptionalKeys` — **Implement:** Report exact `OptionalKeysOf<T> extends
+  never ? false : true` style forms after or alongside `OptionalKeysOf`.
+- `RequiredKeysOf` — **Implement:** Canonical mapped-type required-key extraction
+  is recognizable.
+- `HasRequiredKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
+- `ReadonlyKeysOf` — **Implement:** Canonical readonly-key extraction can be
+  matched with exact mapped-type forms.
+- `HasReadonlyKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
+- `WritableKeysOf` — **Implement:** Canonical writable-key extraction can be
+  matched with exact mapped-type forms.
+- `HasWritableKeys` — **Implement:** Same pattern as `HasOptionalKeys`.
+- `Spread` — **Do not implement:** Spread semantics are intentionally subtle and
+  not equivalent to ordinary intersections or merges.
+- `IsEqual` — **Implement:** Exact mutual-assignability boolean helpers are a
+  stable target when tuple-wrapped or function-parameter forms are canonical.
+- `TaggedUnion` — **Consider:** Good suggestion-only rule for unions of object
+  literals with a shared literal discriminant.
+- `IntRange` — **Do not implement:** Numeric range builders are recursive and
+  do not have a safe general syntax equivalent.
+- `IntClosedRange` — **Do not implement:** Same reason as `IntRange`.
+- `ArrayIndices` — **Consider:** Possible for exact tuple-key exclusion helpers,
+  but fixers can change string index keys to numeric keys.
+- `ArraySplice` — **Do not implement:** Tuple splice helpers are complex
+  recursive tuple programs.
+- `ArrayTail` — **Implement:** Exact `T extends [unknown, ...infer Tail] ? Tail :
+  never` style helpers are narrow enough.
+- `SetFieldType` — **Consider:** Only report exact `Omit<T, K> & Record<K, V>`
+  style helper aliases when key constraints match.
+- `Paths` — **Do not implement:** Path enumeration is a deep recursive transform.
+- `SharedUnionFields` — **Consider:** Potentially suggestion-only for exact local
+  helper aliases, but broad structural detection is risky.
+- `SharedUnionFieldsDeep` — **Do not implement:** Deep union-field transforms are
+  too complex.
+- `AllUnionFields` — **Consider:** Same risk profile as `SharedUnionFields`.
+- `And` — **Implement:** Exact boolean pair conditionals can be matched safely.
+- `Or` — **Implement:** Exact boolean pair conditionals can be matched safely.
+- `Xor` — **Implement:** Exact boolean-exclusive conditionals can be matched
+  safely, but avoid reporting object XOR helpers.
+- `AllExtend` — **Consider:** Useful only for exact local aliases that encode the
+  same tuple-wide extends semantics.
+- `SomeExtend` — **Consider:** Same constraints as `AllExtend`.
+- `FindGlobalType` — **Do not implement:** This is environment-introspection
+  intent, not a replaceable local type expression.
+- `FindGlobalInstanceType` — **Do not implement:** Same reason as
+  `FindGlobalType`.
+- `ConditionalSimplify` — **Do not implement:** Simplification choices are
+  display-oriented and too intent-heavy.
+- `ConditionalSimplifyDeep` — **Do not implement:** Same reason as
+  `ConditionalSimplify`, with added deep-recursion risk.
+- `ExclusifyUnion` — **Consider:** Suggestion-only for exact `never`-padding
+  union helpers; no broad autofix.
 
 ### Type guards
 
-- `IsLiteral`
-- `IsStringLiteral`
-- `IsNumericLiteral`
-- `IsBooleanLiteral`
-- `IsSymbolLiteral`
-- `IsUnknown`
-- `IsEmptyObject`
-- `IsTuple`
-- `IsUnion`
-- `IsLowercase`
-- `IsUppercase`
-- `IsOptional`
-- `IsNullable`
-- `IsOptionalKeyOf`
-- `IsRequiredKeyOf`
-- `IsReadonlyKeyOf`
-- `IsWritableKeyOf`
+- `IsLiteral` — **Consider:** Only if it composes exact string, numeric,
+  boolean, and symbol literal guard shapes.
+- `IsStringLiteral` — **Implement:** Exact `T extends string ? string extends T ?
+  false : true : false` style helpers are stable.
+- `IsNumericLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
+- `IsBooleanLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
+- `IsSymbolLiteral` — **Implement:** Same pattern as `IsStringLiteral`.
+- `IsUnknown` — **Implement:** Canonical `unknown extends T` plus `IsAny` guard
+  forms are narrow enough.
+- `IsEmptyObject` — **Implement:** Pair it with `EmptyObject` and only match
+  exact empty-object conditionals.
+- `IsTuple` — **Implement:** Canonical tuple detection based on `number extends
+  T["length"]` is recognizable.
+- `IsUnion` — **Implement:** Canonical distributive-union guard aliases are
+  recognizable if matched exactly.
+- `IsLowercase` — **Implement:** Exact `T extends Lowercase<T>` style helpers
+  are stable.
+- `IsUppercase` — **Implement:** Exact `T extends Uppercase<T>` style helpers
+  are stable.
+- `IsOptional` — **Consider:** Only report exact `undefined extends T` style
+  helpers after checking equivalence with `type-fest` semantics.
+- `IsNullable` — **Implement:** Exact null-or-undefined guard conditionals are
+  stable enough.
+- `IsOptionalKeyOf` — **Implement:** Canonical optional-key membership checks are
+  stable.
+- `IsRequiredKeyOf` — **Implement:** Canonical required-key membership checks are
+  stable.
+- `IsReadonlyKeyOf` — **Implement:** Canonical readonly-key membership checks are
+  stable.
+- `IsWritableKeyOf` — **Implement:** Canonical writable-key membership checks are
+  stable.
 
 ### JSON and structured clone
 
-- `Jsonify`
-- `Jsonifiable`
-- `StructuredCloneable`
+- `Jsonify` — **Do not implement:** Manual JSON conversion types vary by project
+  and often encode different treatment for methods, dates, maps, and undefined.
+- `Jsonifiable` — **Do not implement:** Same reason as `Jsonify`.
+- `StructuredCloneable` — **Do not implement:** Cloneability aliases are
+  semantic domain contracts, not stable syntax.
 
 ### String types
 
-- `Trim`
-- `Split`
-- `Words`
-- `Replace`
-- `StringSlice`
-- `StringRepeat`
-- `RemovePrefix`
+- `Trim` — **Do not implement:** Template-literal parser helpers vary too much.
+- `Split` — **Do not implement:** Same reason as `Trim`.
+- `Words` — **Do not implement:** Same reason as `Trim`.
+- `Replace` — **Do not implement:** Same reason as `Trim`.
+- `StringSlice` — **Do not implement:** String slicing helpers are recursive and
+  option-sensitive.
+- `StringRepeat` — **Do not implement:** Recursive string builders are not a
+  stable lint target.
+- `RemovePrefix` — **Consider:** Exact `${Prefix}${infer Rest}` aliases may be
+  reportable, but only with no custom fallback semantics.
 
 ### Array and tuple types
 
-- `Includes`
-- `Join`
-- `ArraySlice`
-- `ArrayElement`
-- `LastArrayElement`
-- `FixedLengthArray`
-- `MultidimensionalArray`
-- `MultidimensionalReadonlyArray`
-- `ReadonlyTuple`
-- `TupleToUnion`
-- `TupleToObject`
-- `SplitOnRestElement`
-- `ExtractRestElement`
-- `ExcludeRestElement`
-- `ArrayReverse`
+- `Includes` — **Consider:** Exact `Element extends Tuple[number]` helpers may be
+  reportable, but false positives are easy when distributivity matters.
+- `Join` — **Do not implement:** Tuple/string join helpers are recursive
+  template-literal parsers.
+- `ArraySlice` — **Do not implement:** Recursive tuple slicing is too complex.
+- `LastArrayElement` — **Implement:** Exact variadic tuple `infer Last` helpers
+  are narrow and common.
+- `FixedLengthArray` — **Do not implement:** Recursive tuple builders are not
+  stable enough.
+- `MultidimensionalArray` — **Do not implement:** This is intent-level type
+  modeling rather than a common manual pattern.
+- `MultidimensionalReadonlyArray` — **Do not implement:** Same reason as
+  `MultidimensionalArray`.
+- `ReadonlyTuple` — **Consider:** Only report exact mutable-tuple-to-readonly
+  helper aliases; avoid broad readonly tuple syntax.
+- `TupleToUnion` — **Do not implement:** `T[number]` is already owned by
+  `prefer-type-fest-array-element`, and adding a second rule would duplicate
+  reports.
+- `TupleToObject` — **Consider:** Exact tuple-to-object mapped aliases may be
+  reportable, but likely low priority.
+- `SplitOnRestElement` — **Consider:** Exact variadic rest split aliases may be
+  reportable without autofix.
+- `ExtractRestElement` — **Implement:** Exact `T extends [...unknown[], ...infer
+  Rest]` style helpers are narrow enough.
+- `ExcludeRestElement` — **Implement:** Exact rest-removal tuple helpers are
+  narrow enough.
+- `ArrayReverse` — **Do not implement:** Recursive tuple reversal is too broad.
 
 ### Numeric types
 
-- `PositiveInfinity`
-- `NegativeInfinity`
-- `Finite`
-- `Integer`
-- `Float`
-- `NegativeFloat`
-- `Negative`
-- `NonNegative`
-- `NegativeInteger`
-- `NonNegativeInteger`
-- `IsNegative`
-- `IsFloat`
-- `IsInteger`
-- `GreaterThan`
-- `GreaterThanOrEqual`
-- `Sum`
-- `Subtract`
+- `PositiveInfinity` — **Do not implement:** No safe normal-code equivalent.
+- `NegativeInfinity` — **Do not implement:** No safe normal-code equivalent.
+- `Finite` — **Do not implement:** Numeric branding/range aliases are semantic
+  and project-specific.
+- `Integer` — **Do not implement:** Same reason as `Finite`.
+- `Float` — **Do not implement:** Same reason as `Finite`.
+- `NegativeFloat` — **Do not implement:** Same reason as `Finite`.
+- `Negative` — **Do not implement:** Same reason as `Finite`.
+- `NonNegative` — **Do not implement:** Same reason as `Finite`.
+- `NegativeInteger` — **Do not implement:** Same reason as `Finite`.
+- `NonNegativeInteger` — **Do not implement:** Same reason as `Finite`.
+- `IsNegative` — **Do not implement:** Numeric sign checks are implemented with
+  varied string/numeric helper stacks.
+- `IsFloat` — **Do not implement:** Same reason as `IsNegative`.
+- `IsInteger` — **Do not implement:** Same reason as `IsNegative`.
+- `GreaterThan` — **Consider:** Only report aliases that reverse existing
+  `LessThan` usage; do not detect manual numeric algorithms.
+- `GreaterThanOrEqual` — **Consider:** Same rule shape as `GreaterThan`, using
+  `LessThanOrEqual`.
+- `Sum` — **Do not implement:** Type-level arithmetic helpers are recursive and
+  project-specific.
+- `Subtract` — **Do not implement:** Same reason as `Sum`.
 
 ### Change-case types
 
-- `CamelCase`
-- `CamelCasedProperties`
-- `CamelCasedPropertiesDeep`
-- `KebabCase`
-- `KebabCasedProperties`
-- `KebabCasedPropertiesDeep`
-- `PascalCase`
-- `PascalCasedProperties`
-- `PascalCasedPropertiesDeep`
-- `SnakeCase`
-- `SnakeCasedProperties`
-- `SnakeCasedPropertiesDeep`
-- `ScreamingSnakeCase`
-- `DelimiterCase`
-- `DelimiterCasedProperties`
-- `DelimiterCasedPropertiesDeep`
+- `CamelCase` — **Do not implement:** Manual case parsers are not stable syntax.
+- `CamelCasedProperties` — **Do not implement:** Property-case transforms add
+  mapped-type and option semantics.
+- `CamelCasedPropertiesDeep` — **Do not implement:** Deep property transforms are
+  too complex.
+- `KebabCase` — **Do not implement:** Same reason as `CamelCase`.
+- `KebabCasedProperties` — **Do not implement:** Same reason as
+  `CamelCasedProperties`.
+- `KebabCasedPropertiesDeep` — **Do not implement:** Same reason as
+  `CamelCasedPropertiesDeep`.
+- `PascalCase` — **Do not implement:** Same reason as `CamelCase`.
+- `PascalCasedProperties` — **Do not implement:** Same reason as
+  `CamelCasedProperties`.
+- `PascalCasedPropertiesDeep` — **Do not implement:** Same reason as
+  `CamelCasedPropertiesDeep`.
+- `SnakeCase` — **Do not implement:** Same reason as `CamelCase`.
+- `SnakeCasedProperties` — **Do not implement:** Same reason as
+  `CamelCasedProperties`.
+- `SnakeCasedPropertiesDeep` — **Do not implement:** Same reason as
+  `CamelCasedPropertiesDeep`.
+- `ScreamingSnakeCase` — **Do not implement:** Same reason as `CamelCase`.
+- `DelimiterCase` — **Do not implement:** Same reason as `CamelCase`.
+- `DelimiterCasedProperties` — **Do not implement:** Same reason as
+  `CamelCasedProperties`.
+- `DelimiterCasedPropertiesDeep` — **Do not implement:** Same reason as
+  `CamelCasedPropertiesDeep`.
 
 ### Miscellaneous and strict built-ins
 
-- `GlobalThis`
-- `PackageJson`
-- `TsConfigJson`
-- `ExtendsStrict`
-- `ExtractStrict`
-- `ExcludeStrict`
-- `ExcludeExactly`
+- `GlobalThis` — **Do not implement:** Replacing `typeof globalThis` would be an
+  opinionated style change rather than a semantic improvement.
+- `PackageJson` — **Consider:** Only report local aliases named exactly
+  `PackageJson` or equivalent project-specific migration patterns.
+- `TsConfigJson` — **Consider:** Same constraints as `PackageJson`.
+- `ExtendsStrict` — **Consider:** Opt-in only; document the stricter semantics
+  and avoid replacing ordinary conditional types.
+- `ExtractStrict` — **Consider:** Opt-in only; replace explicitly named local
+  strict helpers, not normal `Extract`.
+- `ExcludeStrict` — **Consider:** Opt-in only; replace explicitly named local
+  strict helpers, not normal `Exclude`.
+- `ExcludeExactly` — **Consider:** Opt-in only; replace explicitly named local
+  strict helpers where exact exclusion semantics are clear.
 
 ## Rule candidates worth building
 
 These are the candidates with enough syntactic signal to justify real rules
 without broad type-checker calls or high false-positive rates.
 
-### `prefer-type-fest-array-element`
+### Implemented: `prefer-type-fest-array-element`
 
-Detect `T[number]` and `Array<infer Item>` helper aliases when the base is a
-generic array or tuple type, and prefer `ArrayElement<T>`.
+This rule now detects `T[number]` when `T` resolves to an array or tuple type,
+and prefers `ArrayElement<T>`.
 
-Do not report `typeof tuple[number]` for constant tuple values. That pattern is
-better handled by an `ArrayValues` rule because it means "values of this concrete
-array", not "element type of this generic array".
+The implemented scope is intentionally type-aware:
 
-Autofix is reasonable for simple `T[number]` aliases. Conditional `infer`
-helpers should probably start as a suggestion.
+- Reports `T[number]` only when the TypeScript checker resolves `T` to an
+  array-like type.
+- Leaves `typeof tuple[number]` alone for a future `ArrayValues` rule.
+- Ignores number-indexed object maps where `ArrayElement<T>` would not be
+  equivalent.
+- Does not yet rewrite conditional `infer` helper aliases. Those should start as
+  suggestions if added later.
 
-### `prefer-type-fest-array-values`
+### Implemented: `prefer-type-fest-array-values`
 
-Detect `typeof values[number]` when `values` is a `const` array or tuple in the
-same module and prefer `ArrayValues<typeof values>`.
+This rule now detects `typeof values[number]` when `values` resolves to an array
+or tuple type, and prefers `ArrayValues<typeof values>`.
 
-This should be type-aware or conservative. Without type information, the rule can
-only safely report `typeof identifier[number]` when the identifier is initialized
-with an `as const` array literal in the same file.
+The implemented scope is intentionally type-aware:
+
+- Reports only `typeof values[number]` where the TypeScript checker resolves
+  `values` to an array-like type.
+- Leaves plain `T[number]` to `prefer-type-fest-array-element`.
+- Ignores number-indexed object maps where `ArrayValues<typeof values>` would not
+  be equivalent.
 
 ### `prefer-type-fest-array-indices`
 
@@ -252,20 +367,25 @@ tuple and prefer `ArrayIndices<typeof tuple>`.
 This is a lower priority than `ArrayValues`. The manual forms vary, and incorrect
 autofixes could change string index keys into numeric index keys.
 
-### `prefer-type-fest-entry` and `prefer-type-fest-entries`
+### Implemented: `prefer-type-fest-entry` and `prefer-type-fest-entries`
 
-Detect common entry-pair aliases:
+These rules now cover exact object-entry pair aliases:
 
 ```ts
-type Entry<T> = [keyof T, T[keyof T]];
-type Entries<T> = Array<[keyof T, T[keyof T]]>;
+type ObjectEntry<T> = [keyof T, T[keyof T]];
+type ObjectEntries<T> = Array<[keyof T, T[keyof T]]>;
 ```
 
-Prefer `Entry<T>` and `Entries<T>` from `type-fest`.
+The implemented scope is intentionally narrow:
 
-These are good candidates because the AST shapes are narrow and do not require
-deep semantic analysis. The first version should avoid tuple/object/collection
-special cases and report only the simplest indexed-access pair patterns.
+- `prefer-type-fest-entry` reports `[keyof T, T[keyof T]]`.
+- `prefer-type-fest-entries` reports `Array<[keyof T, T[keyof T]]>` and
+  `[keyof T, T[keyof T]][]`.
+- `ReadonlyArray<[keyof T, T[keyof T]]>` is left alone until readonly
+  collection semantics are modeled explicitly.
+- `prefer-type-fest-value-of` now defers inside exact entry tuple patterns so a
+  single manual entry tuple does not produce duplicate `Entry` and `ValueOf`
+  reports.
 
 ### `prefer-type-fest-tagged-union`
 
@@ -380,13 +500,11 @@ names, but broad detection would be noisy.
 
 ## Suggested implementation order
 
-1. Add array and entry extraction rules first:
-   `ArrayElement`, `ArrayValues`, `Entry`, and `Entries`.
-2. Continue conservative type-guard rules for exact canonical forms:
+1. Continue conservative type-guard rules for exact canonical forms:
    `IsUnknown`, `IsTuple`, and the key-modifier guards.
-3. Add `TaggedUnion` as a suggestion-only rule.
-4. Add opt-in strict built-in rules only after documenting the semantic
+2. Add `TaggedUnion` as a suggestion-only rule.
+3. Add opt-in strict built-in rules only after documenting the semantic
    difference in the rule documentation.
-5. Leave deep transforms, change-case, numeric, JSON, cloneability, and package
+4. Leave deep transforms, change-case, numeric, JSON, cloneability, and package
    config types as documented non-goals unless real-world violations justify
    narrowing the scope.

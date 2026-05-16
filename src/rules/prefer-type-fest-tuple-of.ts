@@ -1,4 +1,5 @@
 import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { ArrayValues } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -22,7 +23,7 @@ type PreferTypeFestTupleOfOption = Readonly<{
     enforcedAliasNames?: readonly ("ReadonlyTuple" | "Tuple")[];
 }>;
 
-type TupleOfLegacyAlias = (typeof tupleOfLegacyAliases)[number];
+type TupleOfLegacyAlias = ArrayValues<typeof tupleOfLegacyAliases>;
 
 const defaultOption = {
     enforcedAliasNames: ["ReadonlyTuple", "Tuple"],

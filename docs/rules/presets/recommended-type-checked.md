@@ -40,7 +40,9 @@ This preset is type-aware and includes
 | [`prefer-ts-extras-is-empty`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-empty) | 🔧 |
 | [`prefer-ts-extras-safe-cast-to`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-safe-cast-to) | 🔧 |
 | [`prefer-ts-extras-set-has`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-set-has) | 🔧 💡 |
+| [`prefer-type-fest-array-element`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-element) | 🔧 |
 | [`prefer-type-fest-array-length`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-length) | 🔧 |
+| [`prefer-type-fest-array-values`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-values) | 🔧 |
 
 ### Baseline rules inherited from `recommended`
 
@@ -72,6 +74,8 @@ This preset is type-aware and includes
 | [`prefer-type-fest-conditional-pick`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick) | 🔧 |
 | [`prefer-type-fest-conditional-pick-deep`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick-deep) | 🔧 |
 | [`prefer-type-fest-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-constructor) | 🔧 |
+| [`prefer-type-fest-entries`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entries) | 🔧 |
+| [`prefer-type-fest-entry`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entry) | 🔧 |
 | [`prefer-type-fest-except`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-except) | 🔧 |
 | [`prefer-type-fest-if`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if) | 🔧 |
 | [`prefer-type-fest-is-any`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-any) | 🔧 |

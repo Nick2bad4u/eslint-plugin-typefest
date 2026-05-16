@@ -3,6 +3,7 @@
  * ESLint rule implementation for `prefer-ts-extras-set-has`.
  */
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { ArrayValues } from "type-fest";
 
 import {
     containsAllTypesByName,
@@ -49,7 +50,7 @@ type SetHasCallAnalysis = Readonly<{
     matchesDefaultUnionMode: boolean;
 }>;
 
-type UnionSetMatchingMode = (typeof unionSetMatchingModeValues)[number];
+type UnionSetMatchingMode = ArrayValues<typeof unionSetMatchingModeValues>;
 
 const defaultOption = {
     unionBranchMatchingMode: DEFAULT_UNION_SET_MATCHING_MODE,

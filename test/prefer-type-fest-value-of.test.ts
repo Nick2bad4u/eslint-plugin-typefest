@@ -138,6 +138,13 @@ const inlineValidReadonlyTypeOperatorCode = [
     "};",
     "type Output = Input[readonly Input];",
 ].join("\n");
+const inlineValidEntryTupleCode = [
+    "type Input = {",
+    "    alpha: string;",
+    "    beta: number;",
+    "};",
+    "type Output = [keyof Input, Input[keyof Input]];",
+].join("\n");
 
 type ValueOfReportDescriptor = Readonly<{
     fix?: unknown;
@@ -399,6 +406,11 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: inlineValidReadonlyTypeOperatorCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores indexed access when type operator is not keyof",
+        },
+        {
+            code: inlineValidEntryTupleCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "defers exact entry tuples to prefer-type-fest-entry",
         },
     ],
 });

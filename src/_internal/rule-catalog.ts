@@ -137,6 +137,10 @@ const orderedRuleNames = [
     "prefer-type-fest-is-never",
     "prefer-type-fest-is-null",
     "prefer-type-fest-is-undefined",
+    "prefer-type-fest-entry",
+    "prefer-type-fest-entries",
+    "prefer-type-fest-array-element",
+    "prefer-type-fest-array-values",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 /* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting outside the stable public catalog. */
 

@@ -1,4 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
+import type { ArrayValues } from "type-fest";
 
 /**
  * @packageDocumentation
@@ -21,8 +22,9 @@ type PreferTypeFestRequireExactlyOneOption = Readonly<{
     enforcedAliasNames?: readonly ("OneOf" | "RequireOnlyOne")[];
 }>;
 
-type RequireExactlyOneLegacyAlias =
-    (typeof requireExactlyOneLegacyAliases)[number];
+type RequireExactlyOneLegacyAlias = ArrayValues<
+    typeof requireExactlyOneLegacyAliases
+>;
 
 const defaultOption = {
     enforcedAliasNames: [...requireExactlyOneLegacyAliases],

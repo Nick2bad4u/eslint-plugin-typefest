@@ -44,7 +44,9 @@ import preferTsExtrasStringSplitRule from "../rules/prefer-ts-extras-string-spli
 import preferTypeFestAbsoluteRule from "../rules/prefer-type-fest-absolute.js";
 import preferTypeFestAbstractConstructorRule from "../rules/prefer-type-fest-abstract-constructor.js";
 import preferTypeFestAndAllRule from "../rules/prefer-type-fest-and-all.js";
+import preferTypeFestArrayElementRule from "../rules/prefer-type-fest-array-element.js";
 import preferTypeFestArrayLengthRule from "../rules/prefer-type-fest-array-length.js";
+import preferTypeFestArrayValuesRule from "../rules/prefer-type-fest-array-values.js";
 import preferTypeFestArrayableRule from "../rules/prefer-type-fest-arrayable.js";
 import preferTypeFestAsyncReturnTypeRule from "../rules/prefer-type-fest-async-return-type.js";
 import preferTypeFestAsyncifyRule from "../rules/prefer-type-fest-asyncify.js";
@@ -55,6 +57,8 @@ import preferTypeFestConditionalPickRule from "../rules/prefer-type-fest-conditi
 import preferTypeFestConstructorRule from "../rules/prefer-type-fest-constructor.js";
 import preferTypeFestDistributedOmitRule from "../rules/prefer-type-fest-distributed-omit.js";
 import preferTypeFestDistributedPickRule from "../rules/prefer-type-fest-distributed-pick.js";
+import preferTypeFestEntriesRule from "../rules/prefer-type-fest-entries.js";
+import preferTypeFestEntryRule from "../rules/prefer-type-fest-entry.js";
 import preferTypeFestExceptRule from "../rules/prefer-type-fest-except.js";
 import preferTypeFestIfRule from "../rules/prefer-type-fest-if.js";
 import preferTypeFestIsAnyRule from "../rules/prefer-type-fest-is-any.js";
@@ -161,7 +165,9 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-abstract-constructor":
         preferTypeFestAbstractConstructorRule,
     "prefer-type-fest-and-all": preferTypeFestAndAllRule,
+    "prefer-type-fest-array-element": preferTypeFestArrayElementRule,
     "prefer-type-fest-array-length": preferTypeFestArrayLengthRule,
+    "prefer-type-fest-array-values": preferTypeFestArrayValuesRule,
     "prefer-type-fest-arrayable": preferTypeFestArrayableRule,
     "prefer-type-fest-async-return-type": preferTypeFestAsyncReturnTypeRule,
     "prefer-type-fest-asyncify": preferTypeFestAsyncifyRule,
@@ -173,6 +179,8 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-constructor": preferTypeFestConstructorRule,
     "prefer-type-fest-distributed-omit": preferTypeFestDistributedOmitRule,
     "prefer-type-fest-distributed-pick": preferTypeFestDistributedPickRule,
+    "prefer-type-fest-entries": preferTypeFestEntriesRule,
+    "prefer-type-fest-entry": preferTypeFestEntryRule,
     "prefer-type-fest-except": preferTypeFestExceptRule,
     "prefer-type-fest-if": preferTypeFestIfRule,
     "prefer-type-fest-is-any": preferTypeFestIsAnyRule,

@@ -113,12 +113,16 @@ Maintainer policy for that decision is documented in [ADR 0016: Experimental rul
 | [`prefer-type-fest-absolute`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-absolute) | 🔧 |
 | [`prefer-type-fest-abstract-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-abstract-constructor) | 🔧 |
 | [`prefer-type-fest-and-all`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-and-all) | 🔧 |
+| [`prefer-type-fest-array-element`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-element) | 🔧 |
 | [`prefer-type-fest-array-length`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-length) | 🔧 |
+| [`prefer-type-fest-array-values`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-array-values) | 🔧 |
 | [`prefer-type-fest-arrayable`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-arrayable) | 🔧 |
 | [`prefer-type-fest-async-return-type`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-async-return-type) | 🔧 |
 | [`prefer-type-fest-conditional-pick`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick) | 🔧 |
 | [`prefer-type-fest-conditional-pick-deep`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-conditional-pick-deep) | 🔧 |
 | [`prefer-type-fest-constructor`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-constructor) | 🔧 |
+| [`prefer-type-fest-entries`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entries) | 🔧 |
+| [`prefer-type-fest-entry`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-entry) | 🔧 |
 | [`prefer-type-fest-except`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-except) | 🔧 |
 | [`prefer-type-fest-if`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-if) | 🔧 |
 | [`prefer-type-fest-is-any`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-is-any) | 🔧 |

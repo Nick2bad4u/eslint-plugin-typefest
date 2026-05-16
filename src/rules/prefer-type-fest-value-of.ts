@@ -4,6 +4,8 @@
  */
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
+import { getParentNode } from "../_internal/ast-node.js";
+import { getEntryEquivalentArgumentText } from "../_internal/entry-type-patterns.js";
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,
@@ -30,6 +32,17 @@ const preferTypeFestValueOfRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSIndexedAccessType(node) {
+                    const parent = getParentNode(node);
+                    if (
+                        parent?.type === AST_NODE_TYPES.TSTupleType &&
+                        getEntryEquivalentArgumentText({
+                            node: parent,
+                            sourceCode,
+                        }) !== null
+                    ) {
+                        return;
+                    }
+
                     if (
                         node.indexType.type !== AST_NODE_TYPES.TSTypeOperator ||
                         node.indexType.operator !== "keyof"
