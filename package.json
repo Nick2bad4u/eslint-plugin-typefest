@@ -82,7 +82,7 @@
         "changelog": "git-cliff --config cliff.toml --current",
         "changelog:generate": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "changelog:preview": "git-cliff --config cliff.toml --unreleased",
-        "changelog:release-notes": "git-cliff --config cliff.toml --current --strip all",
+        "changelog:release-notes": "git-cliff --config cliff.toml --latest --strip all",
         "clean:cache": "del-cli dist coverage cache .cache .vite .turbo",
         "clean:cache:coverage": "del-cli coverage .coverage",
         "clean:cache:dist": "del-cli dist release",
