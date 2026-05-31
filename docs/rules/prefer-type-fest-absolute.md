@@ -51,12 +51,12 @@ type Other = Absolute<-100>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-absolute": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-absolute": "error",
+  },
+ },
 ];
 ```
 
@@ -72,18 +72,18 @@ Source file: [`source/absolute.d.ts`](https://github.com/sindresorhus/type-fest/
 
 ````ts
 /**
-Returns the absolute value of a given integer type.
-
-@example
-```
-import type {Absolute} from 'type-fest';
-
-type SomeValue = Absolute<-1>;
-//=> 1
-```
-
-@category Numeric
-*/
+ * Returns the absolute value of a given integer type.
+ *
+ * @category Numeric
+ *
+ * @example
+ *  ```
+ *  import type {Absolute} from 'type-fest';
+ *
+ *  type SomeValue = Absolute<-1>;
+ *  //=> 1
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R097

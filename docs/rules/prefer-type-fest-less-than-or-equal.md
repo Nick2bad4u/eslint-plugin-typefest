@@ -44,11 +44,11 @@ type IsLessOrEqual = LessThanOrEqual<1, 2>;
 import type { GreaterThan } from "type-fest";
 
 type IsLessOrEqual =
-    GreaterThan<4, 9> extends infer Result
-        ? Result extends true
-            ? false
-            : true
-        : never;
+ GreaterThan<4, 9> extends infer Result
+  ? Result extends true
+    ? false
+    : true
+  : never;
 ```
 
 ### ✅ Correct — Additional example
@@ -71,12 +71,12 @@ type IsNonPositive<N extends number> = LessThanOrEqual<N, 0>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-less-than-or-equal": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-less-than-or-equal": "error",
+  },
+ },
 ];
 ```
 

@@ -68,12 +68,12 @@ type AnyStrings = SomeExtend<[1, "x", true], string>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-or-all": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-or-all": "error",
+  },
+ },
 ];
 ```
 
@@ -89,11 +89,12 @@ Source file: [`source/or-all.d.ts`](https://github.com/sindresorhus/type-fest/bl
 
 ```ts
 /**
-Returns a boolean for whether any of the given elements is `true`.
-
-Use-cases:
-- Check if at least one condition in a list of booleans is met.
-*/
+ * Returns a boolean for whether any of the given elements is `true`.
+ *
+ * Use-cases:
+ *
+ * - Check if at least one condition in a list of booleans is met.
+ */
 export type OrAll<T extends readonly boolean[]> = SomeExtend<T, true>;
 ```
 

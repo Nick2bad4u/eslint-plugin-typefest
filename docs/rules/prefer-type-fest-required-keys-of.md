@@ -22,8 +22,8 @@ This rule reports expanded required-key extraction helpers that can be replaced 
 import type { OptionalKeysOf } from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? Exclude<keyof Type, OptionalKeysOf<Type>>
-    : never;
+ ? Exclude<keyof Type, OptionalKeysOf<Type>>
+ : never;
 ```
 
 ## ✅ Correct
@@ -49,8 +49,8 @@ type Result<Type extends object> = RequiredKeysOf<Type>;
 import type * as TypeFest from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? Exclude<keyof Type, TypeFest.OptionalKeysOf<Type>>
-    : never;
+ ? Exclude<keyof Type, TypeFest.OptionalKeysOf<Type>>
+ : never;
 ```
 
 ### ✅ Correct — Namespace import
@@ -75,12 +75,12 @@ type Result<Type extends object> = Exclude<keyof Type, OptionalKeysOf<Type>>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-required-keys-of": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-required-keys-of": "error",
+  },
+ },
 ];
 ```
 

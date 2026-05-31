@@ -70,12 +70,12 @@ const merged = arrayConcat(baseFlags, envFlags);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-concat": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-concat": "error",
+  },
+ },
 ];
 ```
 
@@ -91,37 +91,41 @@ Source file: [`source/array-concat.ts`](https://github.com/sindresorhus/ts-extra
 
 ````ts
 /**
-A strongly-typed version of `Array#concat()` that properly handles arrays of different types.
-
-TypeScript's built-in `Array#concat()` has issues with type inference when concatenating arrays of different types or empty arrays. This function provides proper type inference for heterogeneous array concatenation.
-
-Note: This function preserves array holes, matching the native `Array#concat()` behavior.
-
-@example
-```
-import {arrayConcat} from 'ts-extras';
-
-const strings = ['a', 'b'];
-const numbers = [1, 2];
-
-// TypeScript's built-in concat would error here
-const mixed = arrayConcat(strings, numbers);
-//=> ['a', 'b', 1, 2]
-//   ^? (string | number)[]
-
-// Works with tuples
-const tuple = arrayConcat(['x'] as const, [1] as const);
-//=> ['x', 1]
-//   ^? (1 | 'x')[]
-
-// Handles empty arrays correctly
-const withEmpty = arrayConcat([], ['hello']);
-//=> ['hello']
-//   ^? string[]
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `Array#concat()` that properly handles arrays of
+ * different types.
+ *
+ * TypeScript's built-in `Array#concat()` has issues with type inference when
+ * concatenating arrays of different types or empty arrays. This function
+ * provides proper type inference for heterogeneous array concatenation.
+ *
+ * Note: This function preserves array holes, matching the native
+ * `Array#concat()` behavior.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {arrayConcat} from 'ts-extras';
+ *
+ *  const strings = ['a', 'b'];
+ *  const numbers = [1, 2];
+ *
+ *  // TypeScript's built-in concat would error here
+ *  const mixed = arrayConcat(strings, numbers);
+ *  //=> ['a', 'b', 1, 2]
+ *  //   ^? (string | number)[]
+ *
+ *  // Works with tuples
+ *  const tuple = arrayConcat(['x'] as const, [1] as const);
+ *  //=> ['x', 1]
+ *  //   ^? (1 | 'x')[]
+ *
+ *  // Handles empty arrays correctly
+ *  const withEmpty = arrayConcat([], ['hello']);
+ *  //=> ['hello']
+ *  //   ^? string[]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R002

@@ -50,7 +50,7 @@ const isValid = isFinite(value);
 
 ```ts
 if (Number.isFinite(metric)) {
-    consume(metric);
+ consume(metric);
 }
 ```
 
@@ -58,7 +58,7 @@ if (Number.isFinite(metric)) {
 
 ```ts
 if (isFinite(metric)) {
-    consume(metric);
+ consume(metric);
 }
 ```
 
@@ -74,12 +74,12 @@ const valid = isFinite(durationMs);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-finite": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-finite": "error",
+  },
+ },
 ];
 ```
 
@@ -95,11 +95,11 @@ Source file: [`source/is-finite.ts`](https://github.com/sindresorhus/ts-extras/b
 
 ```ts
 /**
-A strongly-typed version of `Number.isFinite()`.
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Number.isFinite()`.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ */
 ```
 
 > **Rule catalog ID:** R018

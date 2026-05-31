@@ -24,7 +24,14 @@ This rule targets full primitive keyword unions used as standalone scalar aliase
 ## ❌ Incorrect
 
 ```ts
-type PrimitiveValue = string | number | bigint | boolean | symbol | null | undefined;
+type PrimitiveValue =
+ | string
+ | number
+ | bigint
+ | boolean
+ | symbol
+ | null
+ | undefined;
 ```
 
 ## ✅ Correct
@@ -65,12 +72,12 @@ type LeafValue = Primitive;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-primitive": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-primitive": "error",
+  },
+ },
 ];
 ```
 
@@ -86,10 +93,11 @@ Source file: [`source/primitive.d.ts`](https://github.com/sindresorhus/type-fest
 
 ```ts
 /**
-Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
-
-@category Type
-*/
+ * Matches any [primitive
+ * value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
+ *
+ * @category Type
+ */
 ```
 
 > **Rule catalog ID:** R053

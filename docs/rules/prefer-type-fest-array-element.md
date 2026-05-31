@@ -58,7 +58,7 @@ type UserItem = ArrayElement<User["items"]>;
 ```ts
 const statuses = ["queued", "running"] as const;
 
-type Status = typeof statuses[number];
+type Status = (typeof statuses)[number];
 ```
 
 ## ESLint flat config example
@@ -67,12 +67,12 @@ type Status = typeof statuses[number];
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-array-element": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-array-element": "error",
+  },
+ },
 ];
 ```
 
@@ -87,10 +87,7 @@ TypeFest package documentation:
 Source file: [`source/array-element.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/array-element.d.ts)
 
 ```ts
-export type ArrayElement<T> =
-    T extends UnknownArray
-        ? T[number]
-        : never;
+export type ArrayElement<T> = T extends UnknownArray ? T[number] : never;
 ```
 
 > **Rule catalog ID:** R109

@@ -38,32 +38,29 @@ Because this pattern appears in semantically different forms, the rule stays nar
 ## ❌ Incorrect
 
 ```ts
-import {objectEntries, objectFromEntries} from "ts-extras";
+import { objectEntries, objectFromEntries } from "ts-extras";
 
 const statusById = {
-    alpha: "up",
-    beta: "down",
+ alpha: "up",
+ beta: "down",
 } as const;
 
 const labels = objectFromEntries(
-    objectEntries(statusById).map(([key, value]) => [key, `${key}:${value}`])
+ objectEntries(statusById).map(([key, value]) => [key, `${key}:${value}`])
 );
 ```
 
 ## ✅ Correct
 
 ```ts
-import {objectMapValues} from "ts-extras";
+import { objectMapValues } from "ts-extras";
 
 const statusById = {
-    alpha: "up",
-    beta: "down",
+ alpha: "up",
+ beta: "down",
 } as const;
 
-const labels = objectMapValues(
-    statusById,
-    (value, key) => `${key}:${value}`
-);
+const labels = objectMapValues(statusById, (value, key) => `${key}:${value}`);
 ```
 
 ## Behavior and migration notes
@@ -78,26 +75,26 @@ const labels = objectMapValues(
 ### ❌ Incorrect — Additional example
 
 ```ts
-import {objectEntries, objectFromEntries} from "ts-extras";
+import { objectEntries, objectFromEntries } from "ts-extras";
 
 const statusById = {
-    alpha: "up",
-    beta: "down",
+ alpha: "up",
+ beta: "down",
 } as const;
 
 const uppercased = objectFromEntries(
-    objectEntries(statusById).map(([key, value]) => [key, value.toUpperCase()])
+ objectEntries(statusById).map(([key, value]) => [key, value.toUpperCase()])
 );
 ```
 
 ### ✅ Correct — Additional example
 
 ```ts
-import {objectMapValues} from "ts-extras";
+import { objectMapValues } from "ts-extras";
 
 const statusById = {
-    alpha: "up",
-    beta: "down",
+ alpha: "up",
+ beta: "down",
 } as const;
 
 const uppercased = objectMapValues(statusById, (value) => value.toUpperCase());
@@ -122,11 +119,11 @@ ts-extras package documentation:
 Source file: [`source/object-map-values.ts`](https://github.com/sindresorhus/ts-extras/blob/main/source/object-map-values.ts)
 
 ```ts
-import {objectMapValues} from "ts-extras";
+import { objectMapValues } from "ts-extras";
 
-const object = {a: 1, b: 2, c: 3};
+const object = { a: 1, b: 2, c: 3 };
 
-const mapped = objectMapValues(object, value => String(value));
+const mapped = objectMapValues(object, (value) => String(value));
 //=> {a?: string; b?: string; c?: string}
 ```
 

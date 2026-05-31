@@ -47,12 +47,12 @@ type ServiceCtor = Constructor<Service>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-constructor": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-constructor": "error",
+  },
+ },
 ];
 ```
 
@@ -68,10 +68,11 @@ Source file: [`source/basic.d.ts`](https://github.com/sindresorhus/type-fest/blo
 
 ```ts
 /**
-Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
-
-@category Class
-*/
+ * Matches a [`class`
+ * constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
+ *
+ * @category Class
+ */
 ```
 
 > **Rule catalog ID:** R039

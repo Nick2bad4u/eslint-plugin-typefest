@@ -30,7 +30,7 @@ This rule reports `key in object` expressions when `keyIn(key, object)` is the i
 
 ```ts
 if (key in payload) {
-    // ...
+ // ...
 }
 ```
 
@@ -38,7 +38,7 @@ if (key in payload) {
 
 ```ts
 if (keyIn(key, payload)) {
-    // ...
+ // ...
 }
 ```
 
@@ -54,7 +54,7 @@ if (keyIn(key, payload)) {
 
 ```ts
 if (candidate in record) {
-    console.log(record[candidate as keyof typeof record]);
+ console.log(record[candidate as keyof typeof record]);
 }
 ```
 
@@ -62,7 +62,7 @@ if (candidate in record) {
 
 ```ts
 if (keyIn(candidate, record)) {
-    console.log(record[candidate]);
+ console.log(record[candidate]);
 }
 ```
 
@@ -78,12 +78,12 @@ const canRead = keyIn(data, selectedKey);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-key-in": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-key-in": "error",
+  },
+ },
 ];
 ```
 
@@ -99,41 +99,45 @@ Source file: [`source/key-in.ts`](https://github.com/sindresorhus/ts-extras/blob
 
 ````ts
 /**
-Check if a key exists in an object and narrow the key type.
-
-This function performs __key narrowing__ - it narrows the key variable to only keys that actually exist in the object. Uses the `in` operator to check the entire prototype chain.
-
-When `keyIn` returns `true`, the key is narrowed to keys that exist in the object.
-When it returns `false`, the key type remains unchanged.
-
-Unlike `objectHasIn` and `objectHasOwn` (both do object narrowing), this narrows the _key_ type, making it useful for validating union types of possible keys.
-
-@example
-```
-import {keyIn} from 'ts-extras';
-
-const object = {foo: 1, bar: 2};
-const key = 'foo' as 'foo' | 'bar' | 'baz';
-
-if (keyIn(object, key)) {
-    // `key` is now: 'foo' | 'bar' (narrowed from union)
-    console.log(object[key]); // Safe access
-} else {
-    // `key` remains: 'foo' | 'bar' | 'baz' (unchanged)
-}
-
-// Works with symbols
-const symbol = Symbol.for('myKey');
-const objectWithSymbol = {[symbol]: 'value'};
-if (keyIn(objectWithSymbol, symbol)) {
-    // symbol is narrowed to existing symbol keys
-}
-```
-
-@note This uses the `in` operator and checks the prototype chain, but blocks `__proto__` and `constructor` for security.
-
-@category Type guard
-*/
+ * Check if a key exists in an object and narrow the key type.
+ *
+ * This function performs **key narrowing** - it narrows the key variable to
+ * only keys that actually exist in the object. Uses the `in` operator to check
+ * the entire prototype chain.
+ *
+ * When `keyIn` returns `true`, the key is narrowed to keys that exist in the
+ * object. When it returns `false`, the key type remains unchanged.
+ *
+ * Unlike `objectHasIn` and `objectHasOwn` (both do object narrowing), this
+ * narrows the _key_ type, making it useful for validating union types of
+ * possible keys.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {keyIn} from 'ts-extras';
+ *
+ *  const object = {foo: 1, bar: 2};
+ *  const key = 'foo' as 'foo' | 'bar' | 'baz';
+ *
+ *  if (keyIn(object, key)) {
+ *  // `key` is now: 'foo' | 'bar' (narrowed from union)
+ *  console.log(object[key]); // Safe access
+ *  } else {
+ *  // `key` remains: 'foo' | 'bar' | 'baz' (unchanged)
+ *  }
+ *
+ *  // Works with symbols
+ *  const symbol = Symbol.for('myKey');
+ *  const objectWithSymbol = {[symbol]: 'value'};
+ *  if (keyIn(objectWithSymbol, symbol)) {
+ *  // symbol is narrowed to existing symbol keys
+ *  }
+ *  ```
+ *
+ * @note This uses the `in` operator and checks the prototype chain, but blocks `__proto__` and `constructor` for security.
+ */
 ````
 
 > **Rule catalog ID:** R024

@@ -70,12 +70,12 @@ const csv = arrayJoin(columns, ",");
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-join": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-join": "error",
+  },
+ },
 ];
 ```
 
@@ -91,31 +91,34 @@ Source file: [`source/array-join.ts`](https://github.com/sindresorhus/ts-extras/
 
 ````ts
 /**
-A strongly-typed version of `Array#join()` that preserves literal string types.
-
-The built-in `Array#join()` always returns `string`, losing type information. This function returns a properly-typed template literal when given a tuple of literals.
-
-@example
-```
-import {arrayJoin} from 'ts-extras';
-
-// Literal types are preserved automatically
-const joined = arrayJoin(['foo', 'bar', 'baz'], '-');
-//=> 'foo-bar-baz'
-//   ^? 'foo-bar-baz'
-
-const dotPath = arrayJoin(['a', 'b', 'c'], '.');
-//=> 'a.b.c'
-//   ^? 'a.b.c'
-
-// Dynamic arrays return string
-const dynamic: string[] = ['a', 'b'];
-const dynamicJoined = arrayJoin(dynamic, '-');
-//=> string
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `Array#join()` that preserves literal string
+ * types.
+ *
+ * The built-in `Array#join()` always returns `string`, losing type information.
+ * This function returns a properly-typed template literal when given a tuple of
+ * literals.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {arrayJoin} from 'ts-extras';
+ *
+ *  // Literal types are preserved automatically
+ *  const joined = arrayJoin(['foo', 'bar', 'baz'], '-');
+ *  //=> 'foo-bar-baz'
+ *  //   ^? 'foo-bar-baz'
+ *
+ *  const dotPath = arrayJoin(['a', 'b', 'c'], '.');
+ *  //=> 'a.b.c'
+ *  //   ^? 'a.b.c'
+ *
+ *  // Dynamic arrays return string
+ *  const dynamic: string[] = ['a', 'b'];
+ *  const dynamicJoined = arrayJoin(dynamic, '-');
+ *  //=> string
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R008

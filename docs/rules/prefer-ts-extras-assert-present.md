@@ -39,7 +39,7 @@ nullable inputs are common.
 
 ```ts
 if (payload == null) {
-    throw new Error("Missing payload");
+ throw new Error("Missing payload");
 }
 ```
 
@@ -61,7 +61,7 @@ assertPresent(payload);
 
 ```ts
 if (input === null || input === undefined) {
-    throw new TypeError("input is required");
+ throw new TypeError("input is required");
 }
 ```
 
@@ -84,12 +84,12 @@ assertPresent(sessionId);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-assert-present": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-assert-present": "error",
+  },
+ },
 ];
 ```
 
@@ -105,24 +105,26 @@ Source file: [`source/assert-present.ts`](https://github.com/sindresorhus/ts-ext
 
 ````ts
 /**
-Assert that the given value is present (non-nullable), meaning it is neither `null` nor `undefined`.
-
-If the value is not present (`undefined` or `null`), a helpful `TypeError` will be thrown.
-
-@example
-```
-import {assertPresent} from 'ts-extras';
-
-const unicorn = 'unicorn';
-assertPresent(unicorn);
-
-const notUnicorn = null;
-assertPresent(notUnicorn);
-//=> TypeError: Expected a present value, got `null`
-```
-
-@category Type guard
-*/
+ * Assert that the given value is present (non-nullable), meaning it is neither
+ * `null` nor `undefined`.
+ *
+ * If the value is not present (`undefined` or `null`), a helpful `TypeError`
+ * will be thrown.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {assertPresent} from 'ts-extras';
+ *
+ *  const unicorn = 'unicorn';
+ *  assertPresent(unicorn);
+ *
+ *  const notUnicorn = null;
+ *  assertPresent(notUnicorn);
+ *  //=> TypeError: Expected a present value, got `null`
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R013

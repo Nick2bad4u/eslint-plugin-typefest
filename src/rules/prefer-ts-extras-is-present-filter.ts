@@ -153,7 +153,10 @@ const isNullishFilterGuardBody = (
             return true;
         }
 
-        return callback.returnType?.typeAnnotation.type === AST_NODE_TYPES.TSTypePredicate;
+        return (
+            callback.returnType?.typeAnnotation.type ===
+            AST_NODE_TYPES.TSTypePredicate
+        );
     }
 
     const andTerms = flattenLogicalTerms({

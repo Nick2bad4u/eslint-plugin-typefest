@@ -118,7 +118,10 @@ const isCanonicalAssertPresentThrow = ({
 const extractEqNullGuardExpression = (
     test: Readonly<TSESTree.Expression>
 ): null | TSESTree.Expression => {
-    if (test.type !== AST_NODE_TYPES.BinaryExpression || test.operator !== "==") {
+    if (
+        test.type !== AST_NODE_TYPES.BinaryExpression ||
+        test.operator !== "=="
+    ) {
         return null;
     }
 

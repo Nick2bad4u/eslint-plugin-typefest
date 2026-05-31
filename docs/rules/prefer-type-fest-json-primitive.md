@@ -64,12 +64,12 @@ type Cell = JsonPrimitive;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-json-primitive": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-json-primitive": "error",
+  },
+ },
 ];
 ```
 
@@ -85,10 +85,10 @@ Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fes
 
 ```ts
 /**
-Matches any valid JSON primitive value.
-
-@category JSON
-*/
+ * Matches any valid JSON primitive value.
+ *
+ * @category JSON
+ */
 ```
 
 > **Rule catalog ID:** R045

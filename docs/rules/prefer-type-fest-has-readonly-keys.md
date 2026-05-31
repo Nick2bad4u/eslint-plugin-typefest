@@ -46,7 +46,8 @@ type Result<T extends object> = HasReadonlyKeys<T>;
 ```ts
 import type * as TypeFest from "type-fest";
 
-type Result<T extends object> = TypeFest.ReadonlyKeysOf<T> extends never ? false : true;
+type Result<T extends object> =
+ TypeFest.ReadonlyKeysOf<T> extends never ? false : true;
 ```
 
 ### ✅ Correct — Namespace import
@@ -71,12 +72,12 @@ type Result<T extends object> = ReadonlyKeysOf<T> extends never ? true : false;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-has-readonly-keys": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-has-readonly-keys": "error",
+  },
+ },
 ];
 ```
 

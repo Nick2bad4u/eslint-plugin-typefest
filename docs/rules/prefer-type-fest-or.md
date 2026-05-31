@@ -70,12 +70,12 @@ type Any = OrAll<[false, boolean, true]>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-or": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-or": "error",
+  },
+ },
 ];
 ```
 
@@ -91,8 +91,8 @@ Source file: [`source/or.d.ts`](https://github.com/sindresorhus/type-fest/blob/m
 
 ```ts
 /**
-Returns a boolean for whether either of two given types is `true`.
-*/
+ * Returns a boolean for whether either of two given types is `true`.
+ */
 export type Or<A extends boolean, B extends boolean> = OrAll<[A, B]>;
 ```
 

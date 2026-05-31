@@ -171,9 +171,12 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                     const { promiseInner, synchronousMember } = pair;
 
                     if (
-                        synchronousMember.type === AST_NODE_TYPES.TSNeverKeyword ||
-                        synchronousMember.type === AST_NODE_TYPES.TSNullKeyword ||
-                        synchronousMember.type === AST_NODE_TYPES.TSUndefinedKeyword
+                        synchronousMember.type ===
+                            AST_NODE_TYPES.TSNeverKeyword ||
+                        synchronousMember.type ===
+                            AST_NODE_TYPES.TSNullKeyword ||
+                        synchronousMember.type ===
+                            AST_NODE_TYPES.TSUndefinedKeyword
                     ) {
                         return;
                     }

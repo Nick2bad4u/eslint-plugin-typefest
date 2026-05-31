@@ -51,7 +51,8 @@ const isIdentifierWithName = (
 const isTypeofExpression = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.UnaryExpression & { argument: TSESTree.Expression } =>
-    expression.type === AST_NODE_TYPES.UnaryExpression && expression.operator === "typeof";
+    expression.type === AST_NODE_TYPES.UnaryExpression &&
+    expression.operator === "typeof";
 
 /**
  * Check whether an identifier expression resolves to a bound symbol in scope.
@@ -94,7 +95,8 @@ const isBoundIdentifierReference = (
 const isUndefinedStringLiteral = (
     expression: Readonly<TSESTree.Expression>
 ): expression is TSESTree.Literal & { value: "undefined" } =>
-    expression.type === AST_NODE_TYPES.Literal && expression.value === "undefined";
+    expression.type === AST_NODE_TYPES.Literal &&
+    expression.value === "undefined";
 
 /**
  * Determine whether an expression references the global `undefined` binding.

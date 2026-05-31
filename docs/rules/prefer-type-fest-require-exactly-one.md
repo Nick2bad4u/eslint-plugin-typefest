@@ -34,8 +34,8 @@ known utility keeps intent obvious and consistent.
 import type { OneOf } from "type-aliases";
 
 type Auth = OneOf<{
-    token?: string;
-    apiKey?: string;
+ token?: string;
+ apiKey?: string;
 }>;
 ```
 
@@ -45,8 +45,8 @@ type Auth = OneOf<{
 import type { RequireExactlyOne } from "type-fest";
 
 type Auth = RequireExactlyOne<{
-    token?: string;
-    apiKey?: string;
+ token?: string;
+ apiKey?: string;
 }>;
 ```
 
@@ -62,12 +62,12 @@ This rule accepts a single options object:
 
 ```ts
 type PreferTypeFestRequireExactlyOneOptions = {
-    /**
-     * Legacy alias names that this rule will report and replace.
-     *
-     * @default ["OneOf", "RequireOnlyOne"]
-     */
-    enforcedAliasNames?: ("OneOf" | "RequireOnlyOne")[];
+ /**
+  * Legacy alias names that this rule will report and replace.
+  *
+  * @default ["OneOf", "RequireOnlyOne"]
+  */
+ enforcedAliasNames?: ("OneOf" | "RequireOnlyOne")[];
 };
 ```
 
@@ -85,15 +85,15 @@ Flat config setup (default behavior):
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-require-exactly-one": [
-                "error",
-                { enforcedAliasNames: ["OneOf", "RequireOnlyOne"] },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-require-exactly-one": [
+    "error",
+    { enforcedAliasNames: ["OneOf", "RequireOnlyOne"] },
+   ],
+  },
+ },
 ];
 ```
 
@@ -109,15 +109,15 @@ Reports only `RequireOnlyOne` and ignores `OneOf`:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-require-exactly-one": [
-                "error",
-                { enforcedAliasNames: ["RequireOnlyOne"] },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-require-exactly-one": [
+    "error",
+    { enforcedAliasNames: ["RequireOnlyOne"] },
+   ],
+  },
+ },
 ];
 ```
 
@@ -136,12 +136,12 @@ type B = RequireOnlyOne<{ a?: string; b?: number }>; // ❌ Reported
 import type { RequireOnlyOne } from "custom-type-utils";
 
 type LookupInput = RequireOnlyOne<
-    {
-        id?: string;
-        slug?: string;
-        externalRef?: string;
-    },
-    "id" | "slug" | "externalRef"
+ {
+  id?: string;
+  slug?: string;
+  externalRef?: string;
+ },
+ "id" | "slug" | "externalRef"
 >;
 ```
 
@@ -151,12 +151,12 @@ type LookupInput = RequireOnlyOne<
 import type { RequireExactlyOne } from "type-fest";
 
 type LookupInput = RequireExactlyOne<
-    {
-        id?: string;
-        slug?: string;
-        externalRef?: string;
-    },
-    "id" | "slug" | "externalRef"
+ {
+  id?: string;
+  slug?: string;
+  externalRef?: string;
+ },
+ "id" | "slug" | "externalRef"
 >;
 ```
 
@@ -164,8 +164,8 @@ type LookupInput = RequireExactlyOne<
 
 ```ts
 type AuthInput = RequireExactlyOne<
-    { token?: string; apiKey?: string; oauthCode?: string },
-    "token" | "apiKey" | "oauthCode"
+ { token?: string; apiKey?: string; oauthCode?: string },
+ "token" | "apiKey" | "oauthCode"
 >;
 ```
 
@@ -175,12 +175,12 @@ type AuthInput = RequireExactlyOne<
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-require-exactly-one": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-require-exactly-one": "error",
+  },
+ },
 ];
 ```
 
@@ -196,34 +196,41 @@ Source file: [`source/require-exactly-one.d.ts`](https://github.com/sindresorhus
 
 ````ts
 /**
-Create a type that requires exactly one of the given keys and disallows more. The remaining keys are kept as is.
-
-Use-cases:
-- Creating interfaces for components that only need one of the keys to display properly.
-- Declaring generic keys in a single place for a single use-case that gets narrowed down via `RequireExactlyOne`.
-
-The caveat with `RequireExactlyOne` is that TypeScript doesn't always know at compile time every key that will exist at runtime. Therefore `RequireExactlyOne` can't do anything to prevent extra keys it doesn't know about.
-
-@example
-```
-import type {RequireExactlyOne} from 'type-fest';
-
-type Responder = {
-    text: () => string;
-    json: () => string;
-    secure: boolean;
-};
-
-const responder: RequireExactlyOne<Responder, 'text' | 'json'> = {
-    // Adding a `text` key here would cause a compile error.
-
-    json: () => '{"message": "ok"}',
-    secure: true,
-};
-```
-
-@category Object
-*/
+ * Create a type that requires exactly one of the given keys and disallows more.
+ * The remaining keys are kept as is.
+ *
+ * Use-cases:
+ *
+ * - Creating interfaces for components that only need one of the keys to display
+ *   properly.
+ * - Declaring generic keys in a single place for a single use-case that gets
+ *   narrowed down via `RequireExactlyOne`.
+ *
+ * The caveat with `RequireExactlyOne` is that TypeScript doesn't always know at
+ * compile time every key that will exist at runtime. Therefore
+ * `RequireExactlyOne` can't do anything to prevent extra keys it doesn't know
+ * about.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {RequireExactlyOne} from 'type-fest';
+ *
+ *  type Responder = {
+ *  text: () => string;
+ *  json: () => string;
+ *  secure: boolean;
+ *  };
+ *
+ *  const responder: RequireExactlyOne<Responder, 'text' | 'json'> = {
+ *  // Adding a `text` key here would cause a compile error.
+ *
+ *  json: () => '{"message": "ok"}',
+ *  secure: true,
+ *  };
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R058

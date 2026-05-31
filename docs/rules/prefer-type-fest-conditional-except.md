@@ -34,12 +34,12 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-import type {ConditionalKeys, Except} from "type-fest";
+import type { ConditionalKeys, Except } from "type-fest";
 
 type Example = {
-    count: number;
-    enabled: boolean;
-    name: string;
+ count: number;
+ enabled: boolean;
+ name: string;
 };
 
 type NonStrings = Except<Example, ConditionalKeys<Example, string>>;
@@ -48,12 +48,12 @@ type NonStrings = Except<Example, ConditionalKeys<Example, string>>;
 ## ✅ Correct
 
 ```ts
-import type {ConditionalExcept} from "type-fest";
+import type { ConditionalExcept } from "type-fest";
 
 type Example = {
-    count: number;
-    enabled: boolean;
-    name: string;
+ count: number;
+ enabled: boolean;
+ name: string;
 };
 
 type NonStrings = ConditionalExcept<Example, string>;
@@ -70,12 +70,15 @@ type NonStrings = ConditionalExcept<Example, string>;
 ### ❌ Incorrect — Additional example
 
 ```ts
-import type {ConditionalKeys as MatchingKeys, Except as StrictExcept} from "type-fest";
+import type {
+ ConditionalKeys as MatchingKeys,
+ Except as StrictExcept,
+} from "type-fest";
 
 type Example = {
-    count: number;
-    enabled: boolean;
-    name: string;
+ count: number;
+ enabled: boolean;
+ name: string;
 };
 
 type NonStrings = StrictExcept<Example, MatchingKeys<Example, string>>;
@@ -84,12 +87,12 @@ type NonStrings = StrictExcept<Example, MatchingKeys<Example, string>>;
 ### ✅ Correct — Additional example
 
 ```ts
-import type {ConditionalExcept} from "type-fest";
+import type { ConditionalExcept } from "type-fest";
 
 type Example = {
-    count: number;
-    enabled: boolean;
-    name: string;
+ count: number;
+ enabled: boolean;
+ name: string;
 };
 
 type NonStrings = ConditionalExcept<Example, string>;
@@ -114,12 +117,12 @@ TypeFest package documentation:
 Source file: [`source/conditional-except.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/conditional-except.d.ts)
 
 ```ts
-import type {ConditionalExcept} from "type-fest";
+import type { ConditionalExcept } from "type-fest";
 
 type Example = {
-    a: string;
-    b: string | number;
-    c: () => void;
+ a: string;
+ b: string | number;
+ c: () => void;
 };
 
 type NonStringKeysOnly = ConditionalExcept<Example, string>;

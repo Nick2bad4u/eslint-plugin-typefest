@@ -62,7 +62,7 @@ const keys = objectKeys(model);
 
 ```ts
 for (const key of objectKeys(theme)) {
-    void key;
+ void key;
 }
 ```
 
@@ -72,12 +72,12 @@ for (const key of objectKeys(theme)) {
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-keys": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-keys": "error",
+  },
+ },
 ];
 ```
 
@@ -93,24 +93,26 @@ Source file: [`source/object-keys.ts`](https://github.com/sindresorhus/ts-extras
 
 ````ts
 /**
-A strongly-typed version of `Object.keys()`.
-
-This is useful since `Object.keys()` always returns an array of strings. This function returns a strongly-typed array of the keys of the given object.
-
-- [Explanation](https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript)
-- [TypeScript issues about this](https://github.com/microsoft/TypeScript/issues/45390)
-
-@example
-```
-import {objectKeys} from 'ts-extras';
-
-const stronglyTypedItems = objectKeys({a: 1, b: 2, c: 3}); // => Array<'a' | 'b' | 'c'>
-const untypedItems = Object.keys({a: 1, b: 2, c: 3}); // => Array<string>
-```
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Object.keys()`.
+ *
+ * This is useful since `Object.keys()` always returns an array of strings. This
+ * function returns a strongly-typed array of the keys of the given object.
+ *
+ * - [Explanation](https://stackoverflow.com/questions/55012174/why-doesnt-object-keys-return-a-keyof-type-in-typescript)
+ * - [TypeScript issues about
+ *   this](https://github.com/microsoft/TypeScript/issues/45390)
+ *
+ * @category Improved builtin
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {objectKeys} from 'ts-extras';
+ *
+ *  const stronglyTypedItems = objectKeys({a: 1, b: 2, c: 3}); // => Array<'a' | 'b' | 'c'>
+ *  const untypedItems = Object.keys({a: 1, b: 2, c: 3}); // => Array<string>
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R030

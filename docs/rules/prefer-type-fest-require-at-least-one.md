@@ -59,12 +59,12 @@ type Update = RequireAtLeastOne<User>;
 import type { AtLeastOne } from "custom-type-utils";
 
 type UserSearch = AtLeastOne<
-    {
-        email?: string;
-        id?: string;
-        username?: string;
-    },
-    "email" | "id" | "username"
+ {
+  email?: string;
+  id?: string;
+  username?: string;
+ },
+ "email" | "id" | "username"
 >;
 ```
 
@@ -74,12 +74,12 @@ type UserSearch = AtLeastOne<
 import type { RequireAtLeastOne } from "type-fest";
 
 type UserSearch = RequireAtLeastOne<
-    {
-        email?: string;
-        id?: string;
-        username?: string;
-    },
-    "email" | "id" | "username"
+ {
+  email?: string;
+  id?: string;
+  username?: string;
+ },
+ "email" | "id" | "username"
 >;
 ```
 
@@ -87,8 +87,8 @@ type UserSearch = RequireAtLeastOne<
 
 ```ts
 type ProfilePatch = RequireAtLeastOne<
-    { avatarUrl?: string; displayName?: string; bio?: string },
-    "avatarUrl" | "displayName" | "bio"
+ { avatarUrl?: string; displayName?: string; bio?: string },
+ "avatarUrl" | "displayName" | "bio"
 >;
 ```
 
@@ -98,12 +98,12 @@ type ProfilePatch = RequireAtLeastOne<
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-require-at-least-one": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-require-at-least-one": "error",
+  },
+ },
 ];
 ```
 
@@ -119,26 +119,27 @@ Source file: [`source/require-at-least-one.d.ts`](https://github.com/sindresorhu
 
 ````ts
 /**
-Create a type that requires at least one of the given keys. The remaining keys are kept as is.
-
-@example
-```
-import type {RequireAtLeastOne} from 'type-fest';
-
-type Responder = {
-    text?: () => string;
-    json?: () => string;
-    secure?: boolean;
-};
-
-const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
-    json: () => '{"message": "ok"}',
-    secure: true,
-};
-```
-
-@category Object
-*/
+ * Create a type that requires at least one of the given keys. The remaining
+ * keys are kept as is.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {RequireAtLeastOne} from 'type-fest';
+ *
+ *  type Responder = {
+ *      text?: () => string;
+ *      json?: () => string;
+ *      secure?: boolean;
+ *  };
+ *
+ *  const responder: RequireAtLeastOne<Responder, 'text' | 'json'> = {
+ *      json: () => '{"message": "ok"}',
+ *      secure: true,
+ *  };
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R057

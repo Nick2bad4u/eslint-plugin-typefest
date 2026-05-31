@@ -32,7 +32,7 @@ This rule reports strict empty-check comparisons that can be replaced with `isEm
 
 ```ts
 if (items.length === 0) {
-    return;
+ return;
 }
 ```
 
@@ -40,7 +40,7 @@ if (items.length === 0) {
 
 ```ts
 if (isEmpty(items)) {
-    return;
+ return;
 }
 ```
 
@@ -56,7 +56,7 @@ if (isEmpty(items)) {
 
 ```ts
 if (items.length === 0) {
-    return;
+ return;
 }
 ```
 
@@ -64,7 +64,7 @@ if (items.length === 0) {
 
 ```ts
 if (isEmpty(items)) {
-    return;
+ return;
 }
 ```
 
@@ -80,12 +80,12 @@ const hasRows = !isEmpty(rows);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-empty": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-empty": "error",
+  },
+ },
 ];
 ```
 
@@ -101,31 +101,32 @@ Source file: [`source/is-empty.ts`](https://github.com/sindresorhus/ts-extras/bl
 
 ````ts
 /**
-Check whether an array is empty.
-
-This is useful because doing `array.length === 0` on its own won't work as a type-guard.
-
-@example
-```
-import {isEmpty} from 'ts-extras';
-
-isEmpty([1, 2, 3]);
-//=> false
-
-isEmpty([]);
-//=> true
-
-// Works with tuples
-const tuple: [string, number] | [] = Math.random() > 0.5 ? ['hello', 42] : [];
-if (isEmpty(tuple)) {
-    // tuple is now typed as []
-} else {
-    // tuple is now typed as [string, number]
-}
-```
-
-@category Type guard
-*/
+ * Check whether an array is empty.
+ *
+ * This is useful because doing `array.length === 0` on its own won't work as a
+ * type-guard.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isEmpty} from 'ts-extras';
+ *
+ *  isEmpty([1, 2, 3]);
+ *  //=> false
+ *
+ *  isEmpty([]);
+ *  //=> true
+ *
+ *  // Works with tuples
+ *  const tuple: [string, number] | [] = Math.random() > 0.5 ? ['hello', 42] : [];
+ *  if (isEmpty(tuple)) {
+ *      // tuple is now typed as []
+ *  } else {
+ *      // tuple is now typed as [string, number]
+ *  }
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R016

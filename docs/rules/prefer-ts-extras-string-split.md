@@ -70,12 +70,12 @@ const pathParts = stringSplit(route, "/");
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-string-split": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-string-split": "error",
+  },
+ },
 ];
 ```
 
@@ -91,32 +91,33 @@ Source file: [`source/string-split.ts`](https://github.com/sindresorhus/ts-extra
 
 ````ts
 /**
-A strongly-typed version of `String#split()` that returns a tuple for literal strings.
-
-@example
-```
-import {stringSplit} from 'ts-extras';
-
-const parts = stringSplit('foo-bar-baz', '-');
-//=> ['foo', 'bar', 'baz']
-//   ^? ['foo', 'bar', 'baz']
-
-const [first, second] = stringSplit('top-left', '-');
-//=> first: 'top', second: 'left'
-
-const placement = 'top-start' as const;
-const side = stringSplit(placement, '-')[0];
-//=> 'top'
-//   ^? 'top'
-
-// Dynamic strings return string[]
-const dynamic: string = 'a-b-c';
-const dynamicParts = stringSplit(dynamic, '-');
-//=> string[]
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `String#split()` that returns a tuple for literal
+ * strings.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {stringSplit} from 'ts-extras';
+ *
+ *  const parts = stringSplit('foo-bar-baz', '-');
+ *  //=> ['foo', 'bar', 'baz']
+ *  //   ^? ['foo', 'bar', 'baz']
+ *
+ *  const [first, second] = stringSplit('top-left', '-');
+ *  //=> first: 'top', second: 'left'
+ *
+ *  const placement = 'top-start' as const;
+ *  const side = stringSplit(placement, '-')[0];
+ *  //=> 'top'
+ *  //   ^? 'top'
+ *
+ *  // Dynamic strings return string[]
+ *  const dynamic: string = 'a-b-c';
+ *  const dynamicParts = stringSplit(dynamic, '-');
+ *  //=> string[]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R034

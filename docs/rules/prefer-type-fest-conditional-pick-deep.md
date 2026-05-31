@@ -66,12 +66,12 @@ type DateProps = ConditionalPickDeep<User, Date>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-conditional-pick-deep": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-conditional-pick-deep": "error",
+  },
+ },
 ];
 ```
 

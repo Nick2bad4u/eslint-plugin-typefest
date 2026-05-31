@@ -34,16 +34,14 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 
 ```ts
 type KeysMatching<Base, Condition> = keyof {
-    [Key in keyof Base as Base[Key] extends Condition
-        ? Key
-        : never]: never;
+ [Key in keyof Base as Base[Key] extends Condition ? Key : never]: never;
 };
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {ConditionalKeys} from "type-fest";
+import type { ConditionalKeys } from "type-fest";
 
 type KeysMatching<Base, Condition> = ConditionalKeys<Base, Condition>;
 ```
@@ -73,7 +71,7 @@ TypeFest package documentation:
 Source file: [`source/conditional-keys.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/conditional-keys.d.ts)
 
 ```ts
-import type {ConditionalKeys} from "type-fest";
+import type { ConditionalKeys } from "type-fest";
 
 type KeysMatching<Base, Condition> = ConditionalKeys<Base, Condition>;
 ```

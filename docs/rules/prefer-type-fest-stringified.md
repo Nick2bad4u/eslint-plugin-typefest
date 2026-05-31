@@ -35,8 +35,8 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 
 ```ts
 type Car = {
-    model: string;
-    speed: number;
+ model: string;
+ speed: number;
 };
 
 type CarForm = { [Key in keyof Car]: string };
@@ -45,11 +45,11 @@ type CarForm = { [Key in keyof Car]: string };
 ## ✅ Correct
 
 ```ts
-import type {Stringified} from "type-fest";
+import type { Stringified } from "type-fest";
 
 type Car = {
-    model: string;
-    speed: number;
+ model: string;
+ speed: number;
 };
 
 type CarForm = Stringified<Car>;
@@ -67,8 +67,8 @@ type CarForm = Stringified<Car>;
 
 ```ts
 type Payload = {
-    attemptCount: number;
-    success: boolean;
+ attemptCount: number;
+ success: boolean;
 };
 
 type PayloadForm = { [Key in keyof Payload]: string };
@@ -77,11 +77,11 @@ type PayloadForm = { [Key in keyof Payload]: string };
 ### ✅ Correct — Additional example
 
 ```ts
-import type {Stringified} from "type-fest";
+import type { Stringified } from "type-fest";
 
 type Payload = {
-    attemptCount: number;
-    success: boolean;
+ attemptCount: number;
+ success: boolean;
 };
 
 type PayloadForm = Stringified<Payload>;
@@ -106,16 +106,16 @@ TypeFest package documentation:
 Source file: [`source/stringified.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/stringified.d.ts)
 
 ```ts
-import type {Stringified} from "type-fest";
+import type { Stringified } from "type-fest";
 
 type Car = {
-    model: string;
-    speed: number;
+ model: string;
+ speed: number;
 };
 
 const carForm: Stringified<Car> = {
-    model: "Foo",
-    speed: "101",
+ model: "Foo",
+ speed: "101",
 };
 ```
 

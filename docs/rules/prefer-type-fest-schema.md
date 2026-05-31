@@ -82,12 +82,12 @@ type FeatureFlags = Schema<EnvironmentConfig, boolean>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-schema": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-schema": "error",
+  },
+ },
 ];
 ```
 
@@ -103,48 +103,50 @@ Source file: [`source/schema.d.ts`](https://github.com/sindresorhus/type-fest/bl
 
 ````ts
 /**
-Create a deep version of another object type where property values are recursively replaced into a given value type.
-
-Use-cases:
-- Form validation: Define how each field should be validated.
-- Form settings: Define configuration for input fields.
-- Parsing: Define types that specify special behavior for specific fields.
-
-@example
-```
-import type {Schema} from 'type-fest';
-
-type User = {
-    id: string;
-    name: {
-        firstname: string;
-        lastname: string;
-    };
-    created: Date;
-    active: boolean;
-    passwordHash: string;
-    location: [latitude: number, longitude: number];
-};
-
-type UserMask = Schema<User, 'mask' | 'hide' | 'show'>;
-
-const userMaskSettings: UserMask = {
-    id: 'show',
-    name: {
-        firstname: 'show',
-        lastname: 'mask',
-    },
-    created: 'show',
-    active: 'show',
-    passwordHash: 'hide',
-    location: ['hide', 'hide'],
-};
-```
-
-@see {@link SchemaOptions}
-
-@category Object
-*/
+ * Create a deep version of another object type where property values are
+ * recursively replaced into a given value type.
+ *
+ * Use-cases:
+ *
+ * - Form validation: Define how each field should be validated.
+ * - Form settings: Define configuration for input fields.
+ * - Parsing: Define types that specify special behavior for specific fields.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {Schema} from 'type-fest';
+ *
+ *  type User = {
+ *      id: string;
+ *      name: {
+ *          firstname: string;
+ *          lastname: string;
+ *      };
+ *      created: Date;
+ *      active: boolean;
+ *      passwordHash: string;
+ *      location: [latitude: number, longitude: number];
+ *  };
+ *
+ *  type UserMask = Schema<User, 'mask' | 'hide' | 'show'>;
+ *
+ *  const userMaskSettings: UserMask = {
+ *      id: 'show',
+ *      name: {
+ *          firstname: 'show',
+ *          lastname: 'mask',
+ *      },
+ *      created: 'show',
+ *      active: 'show',
+ *      passwordHash: 'hide',
+ *      location: ['hide', 'hide'],
+ *  };
+ *  ```;
+ *
+ * @see {@link SchemaOptions}
+ */
 ````
 
 > **Rule catalog ID:** R061

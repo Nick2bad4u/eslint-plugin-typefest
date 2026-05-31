@@ -34,17 +34,17 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-type WithoutKeys<Union, Key extends PropertyKey> =
-    Union extends unknown ? Omit<Union, Key> : never;
+type WithoutKeys<Union, Key extends PropertyKey> = Union extends unknown
+ ? Omit<Union, Key>
+ : never;
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {DistributedOmit} from "type-fest";
+import type { DistributedOmit } from "type-fest";
 
-type WithoutKeys<Union, Key extends PropertyKey> =
-    DistributedOmit<Union, Key>;
+type WithoutKeys<Union, Key extends PropertyKey> = DistributedOmit<Union, Key>;
 ```
 
 ## Behavior and migration notes
@@ -72,7 +72,7 @@ TypeFest package documentation:
 Source file: [`source/distributed-omit.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/distributed-omit.d.ts)
 
 ```ts
-import type {DistributedOmit} from "type-fest";
+import type { DistributedOmit } from "type-fest";
 
 type Result<Union, Key extends PropertyKey> = DistributedOmit<Union, Key>;
 ```

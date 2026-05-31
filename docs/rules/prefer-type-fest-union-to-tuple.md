@@ -66,12 +66,12 @@ type AllowedTuple = UnionToTuple<AllowedValue>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-union-to-tuple": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-union-to-tuple": "error",
+  },
+ },
 ];
 ```
 

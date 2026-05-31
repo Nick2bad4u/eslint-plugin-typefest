@@ -456,9 +456,7 @@ Detect type aliases that are explicit unions of object type literals sharing the
 same discriminant property:
 
 ```ts
-type Event =
-    | {type: "start"; at: Date}
-    | {type: "stop"; reason: string};
+type Event = { type: "start"; at: Date } | { type: "stop"; reason: string };
 ```
 
 Prefer `TaggedUnion<"type", ...>` when every union member has the same literal
@@ -543,8 +541,13 @@ This rule now covers exact nullable checks that preserve TypeFest's `any`
 behavior:
 
 ```ts
-type Result<T> = IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
-type Result<T> = 0 extends 1 & T ? true : Extract<T, null> extends never ? false : true;
+type Result<T> =
+ IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
+type Result<T> = 0 extends 1 & T
+ ? true
+ : Extract<T, null> extends never
+   ? false
+   : true;
 ```
 
 The implemented scope is intentionally narrow:
@@ -562,10 +565,14 @@ The implemented scope is intentionally narrow:
 These rules now cover exact TypeFest key-existence helper compositions:
 
 ```ts
-type HasOptionals<T extends object> = OptionalKeysOf<T> extends never ? false : true;
-type HasRequired<T extends object> = RequiredKeysOf<T> extends never ? false : true;
-type HasReadonly<T extends object> = ReadonlyKeysOf<T> extends never ? false : true;
-type HasWritable<T extends object> = WritableKeysOf<T> extends never ? false : true;
+type HasOptionals<T extends object> =
+ OptionalKeysOf<T> extends never ? false : true;
+type HasRequired<T extends object> =
+ RequiredKeysOf<T> extends never ? false : true;
+type HasReadonly<T extends object> =
+ ReadonlyKeysOf<T> extends never ? false : true;
+type HasWritable<T extends object> =
+ WritableKeysOf<T> extends never ? false : true;
 ```
 
 The implemented scope is intentionally narrow:
@@ -582,13 +589,17 @@ These rules now cover exact TypeFest key-extraction helper compositions:
 
 ```ts
 type Optional<Type extends object> = Type extends unknown
-    ? (keyof {[Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key]: never}) &
-          keyof Type
-    : never;
+ ? keyof {
+    [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
+     ? never
+     : Key]: never;
+   } &
+    keyof Type
+ : never;
 
 type Required<Type extends object> = Type extends unknown
-    ? Exclude<keyof Type, OptionalKeysOf<Type>>
-    : never;
+ ? Exclude<keyof Type, OptionalKeysOf<Type>>
+ : never;
 ```
 
 The implemented scope is intentionally narrow:

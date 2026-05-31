@@ -70,12 +70,12 @@ const first = arrayAt(users, 0);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-at": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-at": "error",
+  },
+ },
 ];
 ```
 
@@ -91,31 +91,35 @@ Source file: [`source/array-at.ts`](https://github.com/sindresorhus/ts-extras/bl
 
 ````ts
 /**
-Return the item at the given index like `Array#at()`, but with stronger typing for tuples. Supports `-1` on tuples.
-
-This mirrors the runtime behavior of `Array#at()` and returns `undefined` for out-of-bounds indices. For tuples, a negative index of `-1` resolves to the tuple’s last element type. Positive literal indices for tuples resolve to the corresponding element type.
-
-@example
-```
-import {arrayAt} from 'ts-extras';
-
-const tuple = ['abc', 123, true] as const;
-const last = arrayAt(tuple, -1);
-//=> true
-//   ^? true | undefined
-
-const first = arrayAt(tuple, 0);
-//=> 'abc'
-//   ^? 'abc' | undefined
-
-const array = ['a', 'b', 'c'];
-const maybeItem = arrayAt(array, -1);
-//=> 'c'
-//   ^? string | undefined
-```
-
-@category Improved builtin
-*/
+ * Return the item at the given index like `Array#at()`, but with stronger
+ * typing for tuples. Supports `-1` on tuples.
+ *
+ * This mirrors the runtime behavior of `Array#at()` and returns `undefined` for
+ * out-of-bounds indices. For tuples, a negative index of `-1` resolves to the
+ * tuple’s last element type. Positive literal indices for tuples resolve to the
+ * corresponding element type.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {arrayAt} from 'ts-extras';
+ *
+ *  const tuple = ['abc', 123, true] as const;
+ *  const last = arrayAt(tuple, -1);
+ *  //=> true
+ *  //   ^? true | undefined
+ *
+ *  const first = arrayAt(tuple, 0);
+ *  //=> 'abc'
+ *  //   ^? 'abc' | undefined
+ *
+ *  const array = ['a', 'b', 'c'];
+ *  const maybeItem = arrayAt(array, -1);
+ *  //=> 'c'
+ *  //   ^? string | undefined
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R001

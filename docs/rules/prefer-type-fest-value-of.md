@@ -64,12 +64,12 @@ type Selected = ValueOf<User, "id" | "email">;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-value-of": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-value-of": "error",
+  },
+ },
 ];
 ```
 
@@ -85,26 +85,29 @@ Source file: [`source/value-of.d.ts`](https://github.com/sindresorhus/type-fest/
 
 ````ts
 /**
-Create a union of the given object's values, and optionally specify which keys to get the values from.
-
-Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/31438) if you want to have this type as a built-in in TypeScript.
-
-@example
-```
-import type {ValueOf} from 'type-fest';
-
-type A = ValueOf<{id: number; name: string; active: boolean}>;
-//=> string | number | boolean
-
-type B = ValueOf<{id: number; name: string; active: boolean}, 'name'>;
-//=> string
-
-type C = ValueOf<{id: number; name: string; active: boolean}, 'id' | 'name'>;
-//=> string | number
-```
-
-@category Object
-*/
+ * Create a union of the given object's values, and optionally specify which
+ * keys to get the values from.
+ *
+ * Please upvote [this
+ * issue](https://github.com/microsoft/TypeScript/issues/31438) if you want to
+ * have this type as a built-in in TypeScript.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {ValueOf} from 'type-fest';
+ *
+ *  type A = ValueOf<{id: number; name: string; active: boolean}>;
+ *  //=> string | number | boolean
+ *
+ *  type B = ValueOf<{id: number; name: string; active: boolean}, 'name'>;
+ *  //=> string
+ *
+ *  type C = ValueOf<{id: number; name: string; active: boolean}, 'id' | 'name'>;
+ *  //=> string | number
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R074

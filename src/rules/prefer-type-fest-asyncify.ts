@@ -86,7 +86,8 @@ const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
                     const normalizedNode = unwrapParenthesizedTypeNode(node);
 
                     if (
-                        normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
+                        normalizedNode.type !==
+                            AST_NODE_TYPES.TSTypeReference ||
                         !isAsyncifyEquivalentSetReturnTypeReference(
                             normalizedNode,
                             setReturnTypeLocalNames

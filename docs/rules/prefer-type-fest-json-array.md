@@ -66,12 +66,12 @@ type SerializedRows = JsonArray;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-json-array": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-json-array": "error",
+  },
+ },
 ];
 ```
 
@@ -87,10 +87,10 @@ Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fes
 
 ```ts
 /**
-Matches a JSON array.
-
-@category JSON
-*/
+ * Matches a JSON array.
+ *
+ * @category JSON
+ */
 ```
 
 > **Rule catalog ID:** R043

@@ -66,7 +66,7 @@ const bad = isInfinite(value);
 
 ```ts
 if (isInfinite(rate)) {
-    throw new Error("invalid rate");
+ throw new Error("invalid rate");
 }
 ```
 
@@ -76,12 +76,12 @@ if (isInfinite(rate)) {
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-infinite": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-infinite": "error",
+  },
+ },
 ];
 ```
 
@@ -97,27 +97,27 @@ Source file: [`source/is-infinite.ts`](https://github.com/sindresorhus/ts-extras
 
 ````ts
 /**
-Check whether a value is infinite.
-
-@example
-```
-import {isInfinite} from 'ts-extras';
-
-isInfinite(Number.POSITIVE_INFINITY);
-//=> true
-
-isInfinite(Number.NEGATIVE_INFINITY);
-//=> true
-
-isInfinite(42);
-//=> false
-
-isInfinite(Number.NaN);
-//=> false
-```
-
-@category Type guard
-*/
+ * Check whether a value is infinite.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isInfinite} from 'ts-extras';
+ *
+ *  isInfinite(Number.POSITIVE_INFINITY);
+ *  //=> true
+ *
+ *  isInfinite(Number.NEGATIVE_INFINITY);
+ *  //=> true
+ *
+ *  isInfinite(42);
+ *  //=> false
+ *
+ *  isInfinite(Number.NaN);
+ *  //=> false
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R019

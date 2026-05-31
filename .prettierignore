@@ -39,3 +39,7 @@ sonar-project.properties
 .taplo.toml
 cliff.toml
 lychee.toml
+CHANGELOG.md
+
+# snapshots
+**/__snapshots__/

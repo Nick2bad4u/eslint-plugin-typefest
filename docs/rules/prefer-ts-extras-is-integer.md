@@ -50,7 +50,7 @@ const isWhole = isInteger(value);
 
 ```ts
 if (Number.isInteger(retryCount)) {
-    useRetries(retryCount);
+ useRetries(retryCount);
 }
 ```
 
@@ -58,7 +58,7 @@ if (Number.isInteger(retryCount)) {
 
 ```ts
 if (isInteger(retryCount)) {
-    useRetries(retryCount);
+ useRetries(retryCount);
 }
 ```
 
@@ -74,12 +74,12 @@ const whole = isInteger(userInput);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-integer": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-integer": "error",
+  },
+ },
 ];
 ```
 
@@ -95,11 +95,11 @@ Source file: [`source/is-integer.ts`](https://github.com/sindresorhus/ts-extras/
 
 ```ts
 /**
-A strongly-typed version of `Number.isInteger()`.
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Number.isInteger()`.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ */
 ```
 
 > **Rule catalog ID:** R020

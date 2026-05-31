@@ -68,12 +68,12 @@ type RawOrderId = UnwrapTagged<OrderId>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-unwrap-tagged": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-unwrap-tagged": "error",
+  },
+ },
 ];
 ```
 
@@ -89,34 +89,35 @@ Source file: [`source/tagged.d.ts`](https://github.com/sindresorhus/type-fest/bl
 
 ````ts
 /**
-Revert a tagged type back to its original type by removing all tags.
-
-Why is this necessary?
-
-1. Use a `Tagged` type as object keys
-2. Prevent TS4058 error: "Return type of exported function has or is using name X from external module Y but cannot be named"
-
-@example
-```
-import type {Tagged, UnwrapTagged} from 'type-fest';
-
-type AccountType = Tagged<'SAVINGS' | 'CHECKING', 'AccountType'>;
-
-const moneyByAccountType: Record<UnwrapTagged<AccountType>, number> = {
-    SAVINGS: 99,
-    CHECKING: 0.1,
-};
-
-// Without UnwrapTagged, the following expression would throw a type error.
-const money = moneyByAccountType.SAVINGS; // TS error: Property 'SAVINGS' does not exist
-
-// Attempting to pass an non-Tagged type to UnwrapTagged will raise a type error.
-// @ts-expect-error
-type WontWork = UnwrapTagged<string>;
-```
-
-@category Type
-*/
+ * Revert a tagged type back to its original type by removing all tags.
+ *
+ * Why is this necessary?
+ *
+ * 1. Use a `Tagged` type as object keys
+ * 2. Prevent TS4058 error: "Return type of exported function has or is using name
+ *    X from external module Y but cannot be named"
+ *
+ * @category Type
+ *
+ * @example
+ *  ```
+ *  import type {Tagged, UnwrapTagged} from 'type-fest';
+ *
+ *  type AccountType = Tagged<'SAVINGS' | 'CHECKING', 'AccountType'>;
+ *
+ *  const moneyByAccountType: Record<UnwrapTagged<AccountType>, number> = {
+ *      SAVINGS: 99,
+ *      CHECKING: 0.1,
+ *  };
+ *
+ *  // Without UnwrapTagged, the following expression would throw a type error.
+ *  const money = moneyByAccountType.SAVINGS; // TS error: Property 'SAVINGS' does not exist
+ *
+ *  // Attempting to pass an non-Tagged type to UnwrapTagged will raise a type error.
+ *  // @ts-expect-error
+ *  type WontWork = UnwrapTagged<string>;
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R073

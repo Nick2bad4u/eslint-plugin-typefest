@@ -58,12 +58,12 @@ type Steps = NonEmptyTuple<{ id: string }>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-non-empty-tuple": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-non-empty-tuple": "error",
+  },
+ },
 ];
 ```
 
@@ -79,26 +79,26 @@ Source file: [`source/non-empty-tuple.d.ts`](https://github.com/sindresorhus/typ
 
 ````ts
 /**
-Matches any non-empty tuple.
-
-@example
-```
-import type {NonEmptyTuple} from 'type-fest';
-
-const sum = (...numbers: NonEmptyTuple<number>) => numbers.reduce((total, value) => total + value, 0);
-
-sum(1, 2, 3);
-// Ok
-
-// @ts-expect-error
-sum();
-// Error: Expected at least 1 arguments, but got 0.
-```
-
-@see {@link RequireAtLeastOne} for objects
-
-@category Array
-*/
+ * Matches any non-empty tuple.
+ *
+ * @category Array
+ *
+ * @example
+ *  ```
+ *  import type {NonEmptyTuple} from 'type-fest';
+ *
+ *  const sum = (...numbers: NonEmptyTuple<number>) => numbers.reduce((total, value) => total + value, 0);
+ *
+ *  sum(1, 2, 3);
+ *  // Ok
+ *
+ *  // @ts-expect-error
+ *  sum();
+ *  // Error: Expected at least 1 arguments, but got 0.
+ *  ```;
+ *
+ * @see {@link RequireAtLeastOne} for objects
+ */
 ````
 
 > **Rule catalog ID:** R050

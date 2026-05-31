@@ -28,7 +28,7 @@ This rule reports `Object.hasOwn(object, key)` calls that can be replaced with `
 
 ```ts
 if (Object.hasOwn(record, key)) {
-    console.log(record[key as keyof typeof record]);
+ console.log(record[key as keyof typeof record]);
 }
 ```
 
@@ -36,7 +36,7 @@ if (Object.hasOwn(record, key)) {
 
 ```ts
 if (objectHasOwn(record, key)) {
-    console.log(record[key]);
+ console.log(record[key]);
 }
 ```
 
@@ -52,7 +52,7 @@ if (objectHasOwn(record, key)) {
 
 ```ts
 if (Object.hasOwn(data, "id")) {
-    console.log((data as { id: unknown }).id);
+ console.log((data as { id: unknown }).id);
 }
 ```
 
@@ -60,7 +60,7 @@ if (Object.hasOwn(data, "id")) {
 
 ```ts
 if (objectHasOwn(data, "id")) {
-    console.log(data.id);
+ console.log(data.id);
 }
 ```
 
@@ -76,12 +76,12 @@ const isOwn = objectHasOwn(record, field);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-has-own": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-has-own": "error",
+  },
+ },
 ];
 ```
 
@@ -97,30 +97,33 @@ Source file: [`source/object-has-own.ts`](https://github.com/sindresorhus/ts-ext
 
 ````ts
 /**
-A strongly-typed version of `Object.hasOwn()` that narrows the object type.
-
-This function performs __object narrowing__ for own properties only - it adds the checked property to the object's type, allowing safe property access. Does not check the prototype chain.
-
-Unlike `objectHasIn` (includes inherited) and `keyIn` (key narrowing), this narrows the _object_ type to include only own properties.
-
-@example
-```
-import {objectHasOwn} from 'ts-extras';
-
-const data: unknown = {foo: 1};
-
-if (objectHasOwn(data, 'foo')) {
-    // `data` is now: unknown & {foo: unknown}
-    console.log(data.foo); // Safe access to own property
-}
-
-objectHasOwn({}, 'toString');
-//=> false (inherited property, not own)
-```
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Object.hasOwn()` that narrows the object type.
+ *
+ * This function performs **object narrowing** for own properties only - it adds
+ * the checked property to the object's type, allowing safe property access.
+ * Does not check the prototype chain.
+ *
+ * Unlike `objectHasIn` (includes inherited) and `keyIn` (key narrowing), this
+ * narrows the _object_ type to include only own properties.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {objectHasOwn} from 'ts-extras';
+ *
+ *  const data: unknown = {foo: 1};
+ *
+ *  if (objectHasOwn(data, 'foo')) {
+ *  // `data` is now: unknown & {foo: unknown}
+ *  console.log(data.foo); // Safe access to own property
+ *  }
+ *
+ *  objectHasOwn({}, 'toString');
+ *  //=> false (inherited property, not own)
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R029

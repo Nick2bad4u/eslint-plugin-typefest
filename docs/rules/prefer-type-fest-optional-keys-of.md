@@ -22,13 +22,13 @@ This rule reports expanded optional-key extraction helpers that can be replaced 
 import type { IsOptionalKeyOf } from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? (keyof {
-          [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
-              ? never
-              : Key]: never;
-      }) &
-          keyof Type
-    : never;
+ ? keyof {
+    [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
+     ? never
+     : Key]: never;
+   } &
+    keyof Type
+ : never;
 ```
 
 ## ✅ Correct
@@ -54,16 +54,13 @@ type Result<Type extends object> = OptionalKeysOf<Type>;
 import type * as TypeFest from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? (keyof {
-          [Key in keyof Type as TypeFest.IsOptionalKeyOf<
-              Type,
-              Key
-          > extends false
-              ? never
-              : Key]: never;
-      }) &
-          keyof Type
-    : never;
+ ? keyof {
+    [Key in keyof Type as TypeFest.IsOptionalKeyOf<Type, Key> extends false
+     ? never
+     : Key]: never;
+   } &
+    keyof Type
+ : never;
 ```
 
 ### ✅ Correct — Namespace import
@@ -80,9 +77,9 @@ type Result<Type extends object> = OptionalKeysOf<Type>;
 import type { IsOptionalKeyOf } from "type-fest";
 
 type Result<Type extends object> = keyof {
-    [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
-        ? never
-        : Key]: never;
+ [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
+  ? never
+  : Key]: never;
 };
 ```
 
@@ -92,12 +89,12 @@ type Result<Type extends object> = keyof {
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-optional-keys-of": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-optional-keys-of": "error",
+  },
+ },
 ];
 ```
 

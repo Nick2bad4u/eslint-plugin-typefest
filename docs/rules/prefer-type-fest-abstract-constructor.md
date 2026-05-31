@@ -24,7 +24,10 @@ When teams mix explicit constructor signatures and helper aliases, higher-order 
 ## ❌ Incorrect
 
 ```ts
-type ExplicitAbstractCtor = abstract new (host: string, port: number) => Service;
+type ExplicitAbstractCtor = abstract new (
+ host: string,
+ port: number
+) => Service;
 ```
 
 ## ✅ Correct
@@ -47,12 +50,12 @@ type ServiceAbstractCtor = AbstractConstructor<Service>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-abstract-constructor": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-abstract-constructor": "error",
+  },
+ },
 ];
 ```
 
@@ -68,10 +71,12 @@ Source file: [`source/basic.d.ts`](https://github.com/sindresorhus/type-fest/blo
 
 ```ts
 /**
-Matches an [`abstract class`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-2.html#abstract-construct-signatures) constructor.
-
-@category Class
-*/
+ * Matches an [`abstract
+ * class`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-2.html#abstract-construct-signatures)
+ * constructor.
+ *
+ * @category Class
+ */
 ```
 
 > **Rule catalog ID:** R035

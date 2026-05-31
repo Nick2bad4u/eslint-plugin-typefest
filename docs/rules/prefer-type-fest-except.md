@@ -48,12 +48,12 @@ This rule accepts a single options object:
 
 ```ts
 type PreferTypeFestExceptOptions = {
-    /**
-     * Whether to report built-in Omit<T, K> usages.
-     *
-     * @default true
-     */
-    enforceBuiltinOmit?: boolean;
+ /**
+  * Whether to report built-in Omit<T, K> usages.
+  *
+  * @default true
+  */
+ enforceBuiltinOmit?: boolean;
 };
 ```
 
@@ -71,15 +71,12 @@ Flat config setup (default behavior):
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-except": [
-                "error",
-                { enforceBuiltinOmit: true },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-except": ["error", { enforceBuiltinOmit: true }],
+  },
+ },
 ];
 ```
 
@@ -95,15 +92,12 @@ Reports imported aliases, but ignores built-in `Omit<T, K>`:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-except": [
-                "error",
-                { enforceBuiltinOmit: false },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-except": ["error", { enforceBuiltinOmit: false }],
+  },
+ },
 ];
 ```
 
@@ -140,12 +134,12 @@ type Internalless = Except<ApiResponse, "internal">;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-except": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-except": "error",
+  },
+ },
 ];
 ```
 
@@ -161,60 +155,67 @@ Source file: [`source/except.d.ts`](https://github.com/sindresorhus/type-fest/bl
 
 ````ts
 /**
-Create a type from an object type without certain keys.
-
-We recommend setting the `requireExactProps` option to `true`.
-
-This type is a stricter version of [`Omit`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-5.html#the-omit-helper-type). The `Omit` type does not restrict the omitted keys to be keys present on the given type, while `Except` does. The benefits of a stricter type are avoiding typos and allowing the compiler to pick up on rename refactors automatically.
-
-This type was proposed to the TypeScript team, which declined it, saying they prefer that libraries implement stricter versions of the built-in types ([microsoft/TypeScript#30825](https://github.com/microsoft/TypeScript/issues/30825#issuecomment-523668235)).
-
-@example
-```
-import type {Except} from 'type-fest';
-
-type Foo = {
-    a: number;
-    b: string;
-};
-
-type FooWithoutA = Except<Foo, 'a'>;
-//=> {b: string}
-
-// @ts-expect-error
-const fooWithoutA: FooWithoutA = {a: 1, b: '2'};
-// errors: 'a' does not exist in type '{ b: string; }'
-
-type FooWithoutB = Except<Foo, 'b', {requireExactProps: true}>;
-//=> {a: number} & Partial<Record<'b', never>>
-
-// @ts-expect-error
-const fooWithoutB: FooWithoutB = {a: 1, b: '2'};
-// errors at 'b': Type 'string' is not assignable to type 'undefined'.
-
-// The `Omit` utility type doesn't work when omitting specific keys from objects containing index signatures.
-
-// Consider the following example:
-
-type UserData = {
-    [metadata: string]: string;
-    email: string;
-    name: string;
-    role: 'admin' | 'user';
-};
-
-// `Omit` clearly doesn't behave as expected in this case:
-type PostPayload = Omit<UserData, 'email'>;
-//=> {[x: string]: string; [x: number]: string}
-
-// In situations like this, `Except` works better.
-// It simply removes the `email` key while preserving all the other keys.
-type PostPayloadFixed = Except<UserData, 'email'>;
-//=> {[x: string]: string; name: string; role: 'admin' | 'user'}
-```
-
-@category Object
-*/
+ * Create a type from an object type without certain keys.
+ *
+ * We recommend setting the `requireExactProps` option to `true`.
+ *
+ * This type is a stricter version of
+ * [`Omit`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-5.html#the-omit-helper-type).
+ * The `Omit` type does not restrict the omitted keys to be keys present on the
+ * given type, while `Except` does. The benefits of a stricter type are avoiding
+ * typos and allowing the compiler to pick up on rename refactors
+ * automatically.
+ *
+ * This type was proposed to the TypeScript team, which declined it, saying they
+ * prefer that libraries implement stricter versions of the built-in types
+ * ([microsoft/TypeScript#30825](https://github.com/microsoft/TypeScript/issues/30825#issuecomment-523668235)).
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {Except} from 'type-fest';
+ *
+ *  type Foo = {
+ *  a: number;
+ *  b: string;
+ *  };
+ *
+ *  type FooWithoutA = Except<Foo, 'a'>;
+ *  //=> {b: string}
+ *
+ *  // @ts-expect-error
+ *  const fooWithoutA: FooWithoutA = {a: 1, b: '2'};
+ *  // errors: 'a' does not exist in type '{ b: string; }'
+ *
+ *  type FooWithoutB = Except<Foo, 'b', {requireExactProps: true}>;
+ *  //=> {a: number} & Partial<Record<'b', never>>
+ *
+ *  // @ts-expect-error
+ *  const fooWithoutB: FooWithoutB = {a: 1, b: '2'};
+ *  // errors at 'b': Type 'string' is not assignable to type 'undefined'.
+ *
+ *  // The `Omit` utility type doesn't work when omitting specific keys from objects containing index signatures.
+ *
+ *  // Consider the following example:
+ *
+ *  type UserData = {
+ *  [metadata: string]: string;
+ *  email: string;
+ *  name: string;
+ *  role: 'admin' | 'user';
+ *  };
+ *
+ *  // `Omit` clearly doesn't behave as expected in this case:
+ *  type PostPayload = Omit<UserData, 'email'>;
+ *  //=> {[x: string]: string; [x: number]: string}
+ *
+ *  // In situations like this, `Except` works better.
+ *  // It simply removes the `email` key while preserving all the other keys.
+ *  type PostPayloadFixed = Except<UserData, 'email'>;
+ *  //=> {[x: string]: string; name: string; role: 'admin' | 'user'}
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R040

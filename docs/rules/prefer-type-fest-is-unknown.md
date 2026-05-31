@@ -19,7 +19,11 @@ This rule reports manual `unknown` detection helpers that can be replaced by `Is
 ## ❌ Incorrect
 
 ```ts
-type Result<T> = unknown extends T ? [T] extends [null] ? false : true : false;
+type Result<T> = unknown extends T
+ ? [T] extends [null]
+   ? false
+   : true
+ : false;
 ```
 
 ## ✅ Correct
@@ -54,12 +58,12 @@ type Result<T> = unknown extends T ? true : false;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-unknown": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-unknown": "error",
+  },
+ },
 ];
 ```
 

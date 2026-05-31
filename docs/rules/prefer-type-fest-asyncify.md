@@ -33,18 +33,18 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =
-    (...arguments_: Parameters<Function_>) =>
-        Promise<Awaited<ReturnType<Function_>>>;
+type AsyncVersion<Function_ extends (...arguments_: any[]) => any> = (
+ ...arguments_: Parameters<Function_>
+) => Promise<Awaited<ReturnType<Function_>>>;
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {Asyncify} from "type-fest";
+import type { Asyncify } from "type-fest";
 
 type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =
-    Asyncify<Function_>;
+ Asyncify<Function_>;
 ```
 
 ## Behavior and migration notes
@@ -72,10 +72,10 @@ TypeFest package documentation:
 Source file: [`source/asyncify.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/asyncify.d.ts)
 
 ```ts
-import type {Asyncify} from "type-fest";
+import type { Asyncify } from "type-fest";
 
 type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =
-    Asyncify<Function_>;
+ Asyncify<Function_>;
 ```
 
 > **Rule catalog ID:** R093

@@ -35,17 +35,17 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-type MergeUnion<Union> =
-    (Union extends unknown ? (value: Union) => void : never) extends
-        (value: infer Intersection) => void
-        ? Intersection
-        : never;
+type MergeUnion<Union> = (
+ Union extends unknown ? (value: Union) => void : never
+) extends (value: infer Intersection) => void
+ ? Intersection
+ : never;
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {UnionToIntersection} from "type-fest";
+import type { UnionToIntersection } from "type-fest";
 
 type MergeUnion<Union> = UnionToIntersection<Union>;
 ```
@@ -61,17 +61,17 @@ type MergeUnion<Union> = UnionToIntersection<Union>;
 ### ❌ Incorrect — Additional example
 
 ```ts
-type MergeUnion<Union> =
-    (Union extends any ? (value: Union) => void : never) extends
-        (value: infer Intersection) => void
-        ? Intersection & Union
-        : never;
+type MergeUnion<Union> = (
+ Union extends any ? (value: Union) => void : never
+) extends (value: infer Intersection) => void
+ ? Intersection & Union
+ : never;
 ```
 
 ### ✅ Correct — Additional example
 
 ```ts
-import type {UnionToIntersection} from "type-fest";
+import type { UnionToIntersection } from "type-fest";
 
 type MergeUnion<Union> = UnionToIntersection<Union>;
 ```
@@ -95,9 +95,9 @@ TypeFest package documentation:
 Source file: [`source/union-to-intersection.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/union-to-intersection.d.ts)
 
 ```ts
-import type {UnionToIntersection} from "type-fest";
+import type { UnionToIntersection } from "type-fest";
 
-type Union = {a: string} | {b: number};
+type Union = { a: string } | { b: number };
 
 type Combined = UnionToIntersection<Union>;
 //=> {a: string} & {b: number}

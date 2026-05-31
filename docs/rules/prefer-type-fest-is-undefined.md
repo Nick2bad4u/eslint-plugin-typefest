@@ -62,12 +62,12 @@ type Missing<T> = T extends undefined ? true : false;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-undefined": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-undefined": "error",
+  },
+ },
 ];
 ```
 

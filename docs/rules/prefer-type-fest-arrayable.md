@@ -66,12 +66,12 @@ type QueryParam = Arrayable<string>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-arrayable": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-arrayable": "error",
+  },
+ },
 ];
 ```
 
@@ -87,30 +87,30 @@ Source file: [`source/arrayable.d.ts`](https://github.com/sindresorhus/type-fest
 
 ````ts
 /**
-Create a type that represents either the value or an array of the value.
-
-@see {@link Promisable}
-
-@example
-```
-import type {Arrayable} from 'type-fest';
-
-function bundle(input: string, output: Arrayable<string>) {
-    const outputList = Array.isArray(output) ? output : [output];
-
-    // …
-
-    for (const output of outputList) {
-        console.log(`write ${input} to: ${output}`);
-    }
-}
-
-bundle('src/index.js', 'dist/index.js');
-bundle('src/index.js', ['dist/index.cjs', 'dist/index.mjs']);
-```
-
-@category Array
-*/
+ * Create a type that represents either the value or an array of the value.
+ *
+ * @category Array
+ *
+ * @example
+ *  ```
+ *  import type {Arrayable} from 'type-fest';
+ *
+ *  function bundle(input: string, output: Arrayable<string>) {
+ *  const outputList = Array.isArray(output) ? output : [output];
+ *
+ *  // …
+ *
+ *  for (const output of outputList) {
+ *  console.log(`write ${input} to: ${output}`);
+ *  }
+ *  }
+ *
+ *  bundle('src/index.js', 'dist/index.js');
+ *  bundle('src/index.js', ['dist/index.cjs', 'dist/index.mjs']);
+ *  ```
+ *
+ * @see {@link Promisable}
+ */
 ````
 
 > **Rule catalog ID:** R036

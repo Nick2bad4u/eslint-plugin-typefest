@@ -34,17 +34,17 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-type OnlyKeys<Union, Key extends PropertyKey> =
-    Union extends unknown ? Pick<Union, Key> : never;
+type OnlyKeys<Union, Key extends PropertyKey> = Union extends unknown
+ ? Pick<Union, Key>
+ : never;
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {DistributedPick} from "type-fest";
+import type { DistributedPick } from "type-fest";
 
-type OnlyKeys<Union, Key extends PropertyKey> =
-    DistributedPick<Union, Key>;
+type OnlyKeys<Union, Key extends PropertyKey> = DistributedPick<Union, Key>;
 ```
 
 ## Behavior and migration notes
@@ -72,7 +72,7 @@ TypeFest package documentation:
 Source file: [`source/distributed-pick.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/distributed-pick.d.ts)
 
 ```ts
-import type {DistributedPick} from "type-fest";
+import type { DistributedPick } from "type-fest";
 
 type Result<Union, Key extends PropertyKey> = DistributedPick<Union, Key>;
 ```

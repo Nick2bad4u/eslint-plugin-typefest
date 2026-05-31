@@ -75,12 +75,12 @@ type Persisted = SetRequired<Order, "id" | "status">;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-set-required": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-set-required": "error",
+  },
+ },
 ];
 ```
 
@@ -96,34 +96,36 @@ Source file: [`source/set-required.d.ts`](https://github.com/sindresorhus/type-f
 
 ````ts
 /**
-Create a type that makes the given keys required. The remaining keys are kept as is. The sister of the `SetOptional` type.
-
-Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are required.
-
-@example
-```
-import type {SetRequired} from 'type-fest';
-
-type Foo = {
-    a?: number;
-    b: string;
-    c?: boolean;
-};
-
-type SomeRequired = SetRequired<Foo, 'b' | 'c'>;
-// type SomeRequired = {
-//     a?: number;
-//     b: string; // Was already required and still is.
-//     c: boolean; // Is now required.
-// }
-
-// Set specific indices in an array to be required.
-type ArrayExample = SetRequired<[number?, number?, number?], 0 | 1>;
-//=> [number, number, number?]
-```
-
-@category Object
-*/
+ * Create a type that makes the given keys required. The remaining keys are kept
+ * as is. The sister of the `SetOptional` type.
+ *
+ * Use-case: You want to define a single model where the only thing that changes
+ * is whether or not some of the keys are required.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {SetRequired} from 'type-fest';
+ *
+ *  type Foo = {
+ *      a?: number;
+ *      b: string;
+ *      c?: boolean;
+ *  };
+ *
+ *  type SomeRequired = SetRequired<Foo, 'b' | 'c'>;
+ *  // type SomeRequired = {
+ *  //     a?: number;
+ *  //     b: string; // Was already required and still is.
+ *  //     c: boolean; // Is now required.
+ *  // }
+ *
+ *  // Set specific indices in an array to be required.
+ *  type ArrayExample = SetRequired<[number?, number?, number?], 0 | 1>;
+ *  //=> [number, number, number?]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R065

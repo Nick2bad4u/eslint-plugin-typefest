@@ -68,12 +68,12 @@ type AllNumbers = AllExtend<[1, 2, 3], number>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-and-all": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-and-all": "error",
+  },
+ },
 ];
 ```
 
@@ -89,11 +89,12 @@ Source file: [`source/and-all.d.ts`](https://github.com/sindresorhus/type-fest/b
 
 ```ts
 /**
-Returns a boolean for whether all of the given elements are `true`.
-
-Use-cases:
-- Check if all conditions in a list of booleans are met.
-*/
+ * Returns a boolean for whether all of the given elements are `true`.
+ *
+ * Use-cases:
+ *
+ * - Check if all conditions in a list of booleans are met.
+ */
 export type AndAll<T extends readonly boolean[]> = AllExtend<T, true>;
 ```
 

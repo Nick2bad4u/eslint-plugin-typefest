@@ -74,12 +74,12 @@ const values = list.filter(isPresent);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-present-filter": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-present-filter": "error",
+  },
+ },
 ];
 ```
 
@@ -95,20 +95,22 @@ Source file: [`source/is-present.ts`](https://github.com/sindresorhus/ts-extras/
 
 ````ts
 /**
-Check whether a value is present (non-nullable), meaning it is neither `null` nor `undefined`.
-
-This can be useful as a type guard, as for example, `[1, null].filter(Boolean)` does not always type-guard correctly.
-
-@example
-```
-import {isPresent} from 'ts-extras';
-
-[1, null, 2, undefined].filter(isPresent);
-//=> [1, 2]
-```
-
-@category Type guard
-*/
+ * Check whether a value is present (non-nullable), meaning it is neither `null`
+ * nor `undefined`.
+ *
+ * This can be useful as a type guard, as for example, `[1,
+ * null].filter(Boolean)` does not always type-guard correctly.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isPresent} from 'ts-extras';
+ *
+ *  [1, null, 2, undefined].filter(isPresent);
+ *  //=> [1, 2]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R022

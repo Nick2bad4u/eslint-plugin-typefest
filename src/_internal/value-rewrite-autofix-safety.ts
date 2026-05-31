@@ -45,7 +45,8 @@ export const isOptionalChainExpression = (
     node: Readonly<TSESTree.Expression>
 ): boolean =>
     node.type === AST_NODE_TYPES.ChainExpression ||
-    ((node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.MemberExpression) &&
+    ((node.type === AST_NODE_TYPES.CallExpression ||
+        node.type === AST_NODE_TYPES.MemberExpression) &&
         node.optional);
 
 /**

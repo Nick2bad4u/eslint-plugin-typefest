@@ -62,12 +62,12 @@ type Missing<T> = T extends never ? true : false;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-never": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-never": "error",
+  },
+ },
 ];
 ```
 

@@ -38,7 +38,8 @@ const preferTypeFestUnionLengthRule: ReturnType<typeof createTypedRule> =
                     // Require: objectType is TSTypeReference named "UnionToTuple"
                     if (
                         objectType.type !== AST_NODE_TYPES.TSTypeReference ||
-                        objectType.typeName.type !== AST_NODE_TYPES.Identifier ||
+                        objectType.typeName.type !==
+                            AST_NODE_TYPES.Identifier ||
                         objectType.typeName.name !== "UnionToTuple"
                     ) {
                         return;

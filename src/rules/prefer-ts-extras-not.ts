@@ -28,7 +28,9 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const isTargetCallbackParameter = (
     argument: Readonly<TSESTree.CallExpressionArgument>,
     parameterName: string
-): boolean => argument.type === AST_NODE_TYPES.Identifier && argument.name === parameterName;
+): boolean =>
+    argument.type === AST_NODE_TYPES.Identifier &&
+    argument.name === parameterName;
 
 /**
  * Extracts predicate calls from callbacks that negate a predicate call applied

@@ -70,12 +70,12 @@ type All = AndAll<[true, boolean, false]>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-and": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-and": "error",
+  },
+ },
 ];
 ```
 
@@ -91,8 +91,8 @@ Source file: [`source/and.d.ts`](https://github.com/sindresorhus/type-fest/blob/
 
 ```ts
 /**
-Returns a boolean for whether two given types are both `true`.
-*/
+ * Returns a boolean for whether two given types are both `true`.
+ */
 export type And<A extends boolean, B extends boolean> = AndAll<[A, B]>;
 ```
 

@@ -19,8 +19,9 @@ This rule reports manual tuple detection helpers that can be replaced by `IsTupl
 ## ❌ Incorrect
 
 ```ts
-type Result<T extends readonly unknown[]> =
-    number extends T["length"] ? false : true;
+type Result<T extends readonly unknown[]> = number extends T["length"]
+ ? false
+ : true;
 ```
 
 ## ✅ Correct
@@ -46,8 +47,9 @@ type Result<T extends readonly unknown[]> = IsTuple<T>;
 ### ✅ Correct — Array guard
 
 ```ts
-type Result<T extends readonly unknown[]> =
-    number extends T["length"] ? true : false;
+type Result<T extends readonly unknown[]> = number extends T["length"]
+ ? true
+ : false;
 ```
 
 ## ESLint flat config example
@@ -56,12 +58,12 @@ type Result<T extends readonly unknown[]> =
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-tuple": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-tuple": "error",
+  },
+ },
 ];
 ```
 

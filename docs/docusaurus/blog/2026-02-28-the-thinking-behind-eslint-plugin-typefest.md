@@ -2,13 +2,13 @@
 slug: thinking-behind-eslint-plugin-typefest
 title: The Thinking Behind eslint-plugin-typefest
 authors:
-  - nick
+ - nick
 tags:
-  - eslint
-  - typescript
-  - type-fest
-  - ts-extras
-  - architecture
+ - eslint
+ - typescript
+ - type-fest
+ - ts-extras
+ - architecture
 description: Why this plugin exists, what constraints shaped it, and how we balance strictness with developer experience.
 ---
 

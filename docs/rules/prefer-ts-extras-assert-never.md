@@ -52,12 +52,12 @@ assertNever(fruit);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-assert-never": "warn",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-assert-never": "warn",
+  },
+ },
 ];
 ```
 
@@ -73,34 +73,36 @@ Source file: [`source/assert-never.ts`](https://github.com/sindresorhus/ts-extra
 
 ````ts
 /**
-Assert that the given value is `never`.
-
-This is useful to ensure that a `switch` statement or `if`-`else` chain is exhaustive — meaning that all possible cases are handled.
-
-An `assertNever` call is a compile-time type-check and will throw at runtime if the given value is not `never`.
-
-@example
-```
-import {assertNever} from 'ts-extras';
-
-type Fruit = 'apple' | 'banana' | 'cherry';
-
-function isYellow(fruit: Fruit): boolean {
-    switch (fruit) {
-        case 'apple':
-            return false;
-        case 'banana':
-            return true;
-        case 'cherry':
-            return false;
-        default:
-            assertNever(fruit);
-    }
-}
-```
-
-@category Type guard
-*/
+ * Assert that the given value is `never`.
+ *
+ * This is useful to ensure that a `switch` statement or `if`-`else` chain is
+ * exhaustive — meaning that all possible cases are handled.
+ *
+ * An `assertNever` call is a compile-time type-check and will throw at runtime
+ * if the given value is not `never`.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {assertNever} from 'ts-extras';
+ *
+ *  type Fruit = 'apple' | 'banana' | 'cherry';
+ *
+ *  function isYellow(fruit: Fruit): boolean {
+ *      switch (fruit) {
+ *          case 'apple':
+ *              return false;
+ *          case 'banana':
+ *              return true;
+ *          case 'cherry':
+ *              return false;
+ *          default:
+ *              assertNever(fruit);
+ *      }
+ *  }
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R100

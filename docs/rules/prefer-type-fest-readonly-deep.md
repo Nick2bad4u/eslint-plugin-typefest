@@ -47,12 +47,12 @@ type Config = ReadonlyDeep<AppConfig>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-readonly-deep": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-readonly-deep": "error",
+  },
+ },
 ];
 ```
 
@@ -68,74 +68,79 @@ Source file: [`source/readonly-deep.d.ts`](https://github.com/sindresorhus/type-
 
 ````ts
 /**
-Convert `object`s, `Map`s, `Set`s, and `Array`s and all of their keys/elements into immutable structures recursively.
-
-This is useful when a deeply nested structure needs to be exposed as completely immutable, for example, an imported JSON module or when receiving an API response that is passed around.
-
-Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/13923) if you want to have this type as a built-in in TypeScript.
-
-@example
-```
-import type {ReadonlyDeep} from 'type-fest';
-
-declare const foo: {
-    a: string;
-    b: {c: number};
-    d: Array<{e: number}>;
-};
-
-foo.a = 'bar'; // Allowed
-
-foo.b = {c: 3}; // Allowed
-
-foo.b.c = 4; // Allowed
-
-foo.d = [{e: 5}]; // Allowed
-
-foo.d.push({e: 6}); // Allowed
-
-const last = foo.d.at(-1);
-if (last) {
-    last.e = 7; // Allowed
-}
-
-declare const readonlyFoo: ReadonlyDeep<typeof foo>;
-
-// @ts-expect-error
-readonlyFoo.a = 'bar';
-// Error: Cannot assign to 'a' because it is a read-only property.
-
-// @ts-expect-error
-readonlyFoo.b = {c: 3};
-// Error: Cannot assign to 'b' because it is a read-only property.
-
-// @ts-expect-error
-readonlyFoo.b.c = 4;
-// Error: Cannot assign to 'c' because it is a read-only property.
-
-// @ts-expect-error
-readonlyFoo.d = [{e: 5}];
-// Error: Cannot assign to 'd' because it is a read-only property.
-
-// @ts-expect-error
-readonlyFoo.d.push({e: 6});
-// Error: Property 'push' does not exist on type 'ReadonlyArray<{readonly e: number}>'.
-
-const readonlyLast = readonlyFoo.d.at(-1);
-if (readonlyLast) {
-    // @ts-expect-error
-    readonlyLast.e = 8;
-    // Error: Cannot assign to 'e' because it is a read-only property.
-}
-```
-
-Note that types containing overloaded functions are not made deeply readonly due to a [TypeScript limitation](https://github.com/microsoft/TypeScript/issues/29732).
-
-@category Object
-@category Array
-@category Set
-@category Map
-*/
+ * Convert `object`s, `Map`s, `Set`s, and `Array`s and all of their
+ * keys/elements into immutable structures recursively.
+ *
+ * This is useful when a deeply nested structure needs to be exposed as
+ * completely immutable, for example, an imported JSON module or when receiving
+ * an API response that is passed around.
+ *
+ * Please upvote [this
+ * issue](https://github.com/microsoft/TypeScript/issues/13923) if you want to
+ * have this type as a built-in in TypeScript.
+ *
+ * @category Object
+ * @category Array
+ * @category Set
+ * @category Map
+ *
+ * @example
+ *  ```
+ *  import type {ReadonlyDeep} from 'type-fest';
+ *
+ *  declare const foo: {
+ *  a: string;
+ *  b: {c: number};
+ *  d: Array<{e: number}>;
+ *  };
+ *
+ *  foo.a = 'bar'; // Allowed
+ *
+ *  foo.b = {c: 3}; // Allowed
+ *
+ *  foo.b.c = 4; // Allowed
+ *
+ *  foo.d = [{e: 5}]; // Allowed
+ *
+ *  foo.d.push({e: 6}); // Allowed
+ *
+ *  const last = foo.d.at(-1);
+ *  if (last) {
+ *  last.e = 7; // Allowed
+ *  }
+ *
+ *  declare const readonlyFoo: ReadonlyDeep<typeof foo>;
+ *
+ *  // @ts-expect-error
+ *  readonlyFoo.a = 'bar';
+ *  // Error: Cannot assign to 'a' because it is a read-only property.
+ *
+ *  // @ts-expect-error
+ *  readonlyFoo.b = {c: 3};
+ *  // Error: Cannot assign to 'b' because it is a read-only property.
+ *
+ *  // @ts-expect-error
+ *  readonlyFoo.b.c = 4;
+ *  // Error: Cannot assign to 'c' because it is a read-only property.
+ *
+ *  // @ts-expect-error
+ *  readonlyFoo.d = [{e: 5}];
+ *  // Error: Cannot assign to 'd' because it is a read-only property.
+ *
+ *  // @ts-expect-error
+ *  readonlyFoo.d.push({e: 6});
+ *  // Error: Property 'push' does not exist on type 'ReadonlyArray<{readonly e: number}>'.
+ *
+ *  const readonlyLast = readonlyFoo.d.at(-1);
+ *  if (readonlyLast) {
+ *  // @ts-expect-error
+ *  readonlyLast.e = 8;
+ *  // Error: Cannot assign to 'e' because it is a read-only property.
+ *  }
+ *  ```
+ *
+ *  Note that types containing overloaded functions are not made deeply readonly due to a [TypeScript limitation](https://github.com/microsoft/TypeScript/issues/29732).
+ */
 ````
 
 > **Rule catalog ID:** R055

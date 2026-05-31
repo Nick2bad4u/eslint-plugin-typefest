@@ -64,12 +64,12 @@ type CacheEntry = JsonObject;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-json-value": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-json-value": "error",
+  },
+ },
 ];
 ```
 
@@ -85,12 +85,12 @@ Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fes
 
 ```ts
 /**
-Matches any valid JSON value.
-
-@see `Jsonify` if you need to transform a type to one that is assignable to `JsonValue`.
-
-@category JSON
-*/
+ * Matches any valid JSON value.
+ *
+ * @category JSON
+ *
+ * @see `Jsonify` if you need to transform a type to one that is assignable to `JsonValue`.
+ */
 ```
 
 > **Rule catalog ID:** R046

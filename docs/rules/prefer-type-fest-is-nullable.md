@@ -24,7 +24,8 @@ This rule reports manual `null`-membership checks that can be replaced by `IsNul
 ```ts
 import type { IsAny } from "type-fest";
 
-type Result<T> = IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
+type Result<T> =
+ IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
 ```
 
 ## ✅ Correct
@@ -47,7 +48,11 @@ type Result<T> = IsNullable<T>;
 ### ❌ Incorrect — Manual any guard
 
 ```ts
-type Result<T> = 0 extends 1 & T ? true : Extract<T, null> extends never ? false : true;
+type Result<T> = 0 extends 1 & T
+ ? true
+ : Extract<T, null> extends never
+   ? false
+   : true;
 ```
 
 ### ✅ Correct — Manual any guard
@@ -68,12 +73,12 @@ type Result<T> = Extract<T, null> extends never ? false : true;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-nullable": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-nullable": "error",
+  },
+ },
 ];
 ```
 

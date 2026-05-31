@@ -32,8 +32,8 @@ multiple selectors conflict.
 import type { AtMostOne } from "type-aliases";
 
 type OptionalAuth = AtMostOne<{
-    token?: string;
-    apiKey?: string;
+ token?: string;
+ apiKey?: string;
 }>;
 ```
 
@@ -43,8 +43,8 @@ type OptionalAuth = AtMostOne<{
 import type { RequireOneOrNone } from "type-fest";
 
 type OptionalAuth = RequireOneOrNone<{
-    token?: string;
-    apiKey?: string;
+ token?: string;
+ apiKey?: string;
 }>;
 ```
 
@@ -62,11 +62,11 @@ type OptionalAuth = RequireOneOrNone<{
 import type { AtMostOne } from "custom-type-utils";
 
 type MonitorLookup = AtMostOne<
-    {
-        monitorId?: string;
-        slug?: string;
-    },
-    "monitorId" | "slug"
+ {
+  monitorId?: string;
+  slug?: string;
+ },
+ "monitorId" | "slug"
 >;
 ```
 
@@ -76,11 +76,11 @@ type MonitorLookup = AtMostOne<
 import type { RequireOneOrNone } from "type-fest";
 
 type MonitorLookup = RequireOneOrNone<
-    {
-        monitorId?: string;
-        slug?: string;
-    },
-    "monitorId" | "slug"
+ {
+  monitorId?: string;
+  slug?: string;
+ },
+ "monitorId" | "slug"
 >;
 ```
 
@@ -88,8 +88,8 @@ type MonitorLookup = RequireOneOrNone<
 
 ```ts
 type SessionIdentity = RequireOneOrNone<
-    { userId?: string; guestId?: string },
-    "userId" | "guestId"
+ { userId?: string; guestId?: string },
+ "userId" | "guestId"
 >;
 ```
 
@@ -99,12 +99,12 @@ type SessionIdentity = RequireOneOrNone<
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-require-one-or-none": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-require-one-or-none": "error",
+  },
+ },
 ];
 ```
 
@@ -120,35 +120,36 @@ Source file: [`source/require-one-or-none.d.ts`](https://github.com/sindresorhus
 
 ````ts
 /**
-Create a type that requires exactly one of the given keys and disallows more, or none of the given keys. The remaining keys are kept as is.
-
-@example
-```
-import type {RequireOneOrNone} from 'type-fest';
-
-type Responder = RequireOneOrNone<{
-    text: () => string;
-    json: () => string;
-    secure: boolean;
-}, 'text' | 'json'>;
-
-const responder1: Responder = {
-    secure: true,
-};
-
-const responder2: Responder = {
-    text: () => '{"message": "hi"}',
-    secure: true,
-};
-
-const responder3: Responder = {
-    json: () => '{"message": "ok"}',
-    secure: true,
-};
-```
-
-@category Object
-*/
+ * Create a type that requires exactly one of the given keys and disallows more,
+ * or none of the given keys. The remaining keys are kept as is.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {RequireOneOrNone} from 'type-fest';
+ *
+ *  type Responder = RequireOneOrNone<{
+ *      text: () => string;
+ *      json: () => string;
+ *      secure: boolean;
+ *  }, 'text' | 'json'>;
+ *
+ *  const responder1: Responder = {
+ *      secure: true,
+ *  };
+ *
+ *  const responder2: Responder = {
+ *      text: () => '{"message": "hi"}',
+ *      secure: true,
+ *  };
+ *
+ *  const responder3: Responder = {
+ *      json: () => '{"message": "ok"}',
+ *      secure: true,
+ *  };
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R059

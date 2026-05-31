@@ -64,7 +64,10 @@ const extractTypeofPropertyDefinedCheck = (
         return null;
     }
 
-    if (stringSide.type !== AST_NODE_TYPES.Literal || stringSide.value !== "undefined") {
+    if (
+        stringSide.type !== AST_NODE_TYPES.Literal ||
+        stringSide.value !== "undefined"
+    ) {
         return null;
     }
 

@@ -42,7 +42,10 @@ import {
 const isLastIndexPattern = (
     node: Readonly<TSESTree.MemberExpression>
 ): boolean => {
-    if (!node.computed || node.property.type !== AST_NODE_TYPES.BinaryExpression) {
+    if (
+        !node.computed ||
+        node.property.type !== AST_NODE_TYPES.BinaryExpression
+    ) {
         return false;
     }
 

@@ -22,8 +22,8 @@ This rule reports expanded writable-key extraction helpers that can be replaced 
 import type { ReadonlyKeysOf } from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? Exclude<keyof Type, ReadonlyKeysOf<Type>>
-    : never;
+ ? Exclude<keyof Type, ReadonlyKeysOf<Type>>
+ : never;
 ```
 
 ## ✅ Correct
@@ -49,8 +49,8 @@ type Result<Type extends object> = WritableKeysOf<Type>;
 import type * as TypeFest from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
-    ? Exclude<keyof Type, TypeFest.ReadonlyKeysOf<Type>>
-    : never;
+ ? Exclude<keyof Type, TypeFest.ReadonlyKeysOf<Type>>
+ : never;
 ```
 
 ### ✅ Correct — Namespace import
@@ -75,12 +75,12 @@ type Result<Type extends object> = Exclude<keyof Type, ReadonlyKeysOf<Type>>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-writable-keys-of": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-writable-keys-of": "error",
+  },
+ },
 ];
 ```
 

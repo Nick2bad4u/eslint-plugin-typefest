@@ -27,7 +27,7 @@ The pattern `UnionToTuple<T>['length']` is functionally equivalent but requires 
 ## ❌ Incorrect
 
 ```ts
-type ColorCount = UnionToTuple<Colors>['length'];
+type ColorCount = UnionToTuple<Colors>["length"];
 ```
 
 ## ✅ Correct
@@ -50,12 +50,12 @@ type ColorCount = UnionLength<Colors>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-union-length": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-union-length": "error",
+  },
+ },
 ];
 ```
 
@@ -71,20 +71,20 @@ Source file: [`source/union-length.d.ts`](https://github.com/sindresorhus/type-f
 
 ````ts
 /**
-Get the number of elements in a union type.
-
-@example
-```
-import type {UnionLength} from 'type-fest';
-
-type Colors = 'red' | 'green' | 'blue';
-type Count = UnionLength<Colors>;
-//=> 3
-```
-
-@category Union
-@category Numeric
-*/
+ * Get the number of elements in a union type.
+ *
+ * @category Union
+ * @category Numeric
+ *
+ * @example
+ *  ```
+ *  import type {UnionLength} from 'type-fest';
+ *
+ *  type Colors = 'red' | 'green' | 'blue';
+ *  type Count = UnionLength<Colors>;
+ *  //=> 3
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R099

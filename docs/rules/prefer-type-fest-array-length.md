@@ -54,8 +54,8 @@ type TupleLength = ArrayLength<readonly [1, 2, 3]>;
 
 ```ts
 interface User {
-    readonly length: number;
-    readonly name: string;
+ readonly length: number;
+ readonly name: string;
 }
 
 type UserLength = User["length"];
@@ -67,12 +67,12 @@ type UserLength = User["length"];
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-array-length": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-array-length": "error",
+  },
+ },
 ];
 ```
 
@@ -88,11 +88,13 @@ Source file: [`source/array-length.d.ts`](https://github.com/sindresorhus/type-f
 
 ```ts
 /**
-Return the length of an array. Equivalent to `T['length']` where `T` extends any array.
-
-Tuples resolve to numeric literals, while non-tuples resolve to the `number` type.
-*/
-export type ArrayLength<T extends readonly unknown[]> = T['length'];
+ * Return the length of an array. Equivalent to `T['length']` where `T` extends
+ * any array.
+ *
+ * Tuples resolve to numeric literals, while non-tuples resolve to the `number`
+ * type.
+ */
+export type ArrayLength<T extends readonly unknown[]> = T["length"];
 ```
 
 > **Rule catalog ID:** R078

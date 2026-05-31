@@ -64,12 +64,12 @@ type EventAttributes = JsonObject;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-json-object": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-json-object": "error",
+  },
+ },
 ];
 ```
 
@@ -85,12 +85,17 @@ Source file: [`source/json-value.d.ts`](https://github.com/sindresorhus/type-fes
 
 ```ts
 /**
-Matches a JSON object.
-
-This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. Don't use this as a direct return type as the user would have to double-cast it: `jsonObject as unknown as CustomResponse`. Instead, you could extend your CustomResponse type from it to ensure your type only uses JSON-compatible types: `interface CustomResponse extends JsonObject { … }`.
-
-@category JSON
-*/
+ * Matches a JSON object.
+ *
+ * This type can be useful to enforce some input to be JSON-compatible or as a
+ * super-type to be extended from. Don't use this as a direct return type as the
+ * user would have to double-cast it: `jsonObject as unknown as CustomResponse`.
+ * Instead, you could extend your CustomResponse type from it to ensure your
+ * type only uses JSON-compatible types: `interface CustomResponse extends
+ * JsonObject { … }`.
+ *
+ * @category JSON
+ */
 ```
 
 > **Rule catalog ID:** R044

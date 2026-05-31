@@ -62,12 +62,12 @@ type Nullable<T> = T extends null ? true : false;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-null": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-null": "error",
+  },
+ },
 ];
 ```
 

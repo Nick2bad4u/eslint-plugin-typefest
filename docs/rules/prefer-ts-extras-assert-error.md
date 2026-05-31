@@ -36,7 +36,7 @@ That reduces repetitive custom guard code in `catch` pipelines.
 
 ```ts
 if (!(error instanceof Error)) {
-    throw new TypeError("Expected Error");
+ throw new TypeError("Expected Error");
 }
 ```
 
@@ -58,7 +58,7 @@ assertError(error);
 
 ```ts
 if (!(reason instanceof Error)) {
-    throw new TypeError("Expected Error instance");
+ throw new TypeError("Expected Error instance");
 }
 ```
 
@@ -81,12 +81,12 @@ assertError(lastFailureReason);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-assert-error": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-assert-error": "error",
+  },
+ },
 ];
 ```
 
@@ -103,34 +103,37 @@ Source file: [`source/assert-error.ts`](https://github.com/sindresorhus/ts-extra
 
 ````ts
 /**
-Assert that the given value is an `Error`.
-
-If the value is not an `Error`, a helpful `TypeError` will be thrown.
-
-This can be useful as any value could potentially be thrown, but in practice, it's always an `Error`. However, because of this, TypeScript makes the caught error in a try/catch statement `unknown`, which is inconvenient to deal with.
-
-@example
-```
-import {assertError} from 'ts-extras';
-
-try {
-    fetchUnicorns();
-} catch (error: unknown) {
-    assertError(error);
-
-    // `error` is now of type `Error`
-
-    if (error.message === 'Failed to fetch') {
-        retry();
-        return;
-    }
-
-    throw error;
-}
-```
-
-@category Type guard
-*/
+ * Assert that the given value is an `Error`.
+ *
+ * If the value is not an `Error`, a helpful `TypeError` will be thrown.
+ *
+ * This can be useful as any value could potentially be thrown, but in practice,
+ * it's always an `Error`. However, because of this, TypeScript makes the caught
+ * error in a try/catch statement `unknown`, which is inconvenient to deal
+ * with.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {assertError} from 'ts-extras';
+ *
+ *  try {
+ *  fetchUnicorns();
+ *  } catch (error: unknown) {
+ *  assertError(error);
+ *
+ *  // `error` is now of type `Error`
+ *
+ *  if (error.message === 'Failed to fetch') {
+ *  retry();
+ *  return;
+ *  }
+ *
+ *  throw error;
+ *  }
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R012

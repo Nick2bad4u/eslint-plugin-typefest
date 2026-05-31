@@ -116,7 +116,10 @@ const getReturnedExpression = (
 const getKeyIdentifierFromEntriesTupleParameter = (
     parameter: Readonly<TSESTree.Parameter>
 ): null | Readonly<TSESTree.Identifier> => {
-    if (parameter.type !== AST_NODE_TYPES.ArrayPattern || parameter.elements.length !== 2) {
+    if (
+        parameter.type !== AST_NODE_TYPES.ArrayPattern ||
+        parameter.elements.length !== 2
+    ) {
         return null;
     }
 
@@ -186,7 +189,10 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                 'CallExpression[callee.type="Identifier"]'(
                     node: Readonly<TSESTree.CallExpression>
                 ) {
-                    if (node.optional || node.callee.type !== AST_NODE_TYPES.Identifier) {
+                    if (
+                        node.optional ||
+                        node.callee.type !== AST_NODE_TYPES.Identifier
+                    ) {
                         return;
                     }
 
@@ -208,7 +214,10 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
 
                     const mapCallExpression = getSingleExpressionArgument(node);
 
-                    if (mapCallExpression?.type !== AST_NODE_TYPES.CallExpression) {
+                    if (
+                        mapCallExpression?.type !==
+                        AST_NODE_TYPES.CallExpression
+                    ) {
                         return;
                     }
 
@@ -224,7 +233,10 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                     const mapCallback =
                         getSingleExpressionArgument(mapMemberCall);
 
-                    if (mapCallback?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
+                    if (
+                        mapCallback?.type !==
+                        AST_NODE_TYPES.ArrowFunctionExpression
+                    ) {
                         return;
                     }
 
@@ -244,8 +256,10 @@ const preferTsExtrasObjectMapValuesRule: ReturnType<typeof createTypedRule> =
                     const entriesCallExpression = mapMemberCall.callee.object;
 
                     if (
-                        entriesCallExpression.type !== AST_NODE_TYPES.CallExpression ||
-                        entriesCallExpression.callee.type !== AST_NODE_TYPES.Identifier ||
+                        entriesCallExpression.type !==
+                            AST_NODE_TYPES.CallExpression ||
+                        entriesCallExpression.callee.type !==
+                            AST_NODE_TYPES.Identifier ||
                         entriesCallExpression.callee.name !==
                             objectEntriesLocalName ||
                         getSingleExpressionArgument(entriesCallExpression) ===

@@ -64,12 +64,12 @@ type MaybeRegion = string | undefined;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-optional": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-optional": "error",
+  },
+ },
 ];
 ```
 
@@ -85,8 +85,9 @@ Source file: [`source/optional.d.ts`](https://github.com/sindresorhus/type-fest/
 
 ```ts
 /**
-Create a type that represents either the value or `undefined`, while stripping `null` from the type.
-*/
+ * Create a type that represents either the value or `undefined`, while
+ * stripping `null` from the type.
+ */
 export type Optional<Value> = Exclude<Value, null> | undefined;
 ```
 

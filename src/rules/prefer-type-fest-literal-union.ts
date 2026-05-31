@@ -70,7 +70,10 @@ const isLiteralMemberForFamily = (
     node: Readonly<TSESTree.TypeNode>,
     family: LiteralUnionFamily
 ): boolean => {
-    if (node.type !== AST_NODE_TYPES.TSLiteralType || node.literal.type !== AST_NODE_TYPES.Literal) {
+    if (
+        node.type !== AST_NODE_TYPES.TSLiteralType ||
+        node.literal.type !== AST_NODE_TYPES.Literal
+    ) {
         return false;
     }
 

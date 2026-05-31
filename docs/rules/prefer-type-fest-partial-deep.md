@@ -47,12 +47,12 @@ type Patch = PartialDeep<AppConfig>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-partial-deep": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-partial-deep": "error",
+  },
+ },
 ];
 ```
 
@@ -68,56 +68,60 @@ Source file: [`source/partial-deep.d.ts`](https://github.com/sindresorhus/type-f
 
 ````ts
 /**
-Create a type from another type with all keys and nested keys set to optional.
-
-Use-cases:
-- Merging a default settings/config object with another object, the second object would be a deep partial of the default object.
-- Mocking and testing complex entities, where populating an entire object with its keys would be redundant in terms of the mock or test.
-
-@example
-```
-import type {PartialDeep} from 'type-fest';
-
-let settings = {
-    textEditor: {
-        fontSize: 14,
-        fontColor: '#000000',
-        fontWeight: 400,
-    },
-    autocomplete: false,
-    autosave: true,
-};
-
-const applySavedSettings = (savedSettings: PartialDeep<typeof settings>) => (
-    {...settings, ...savedSettings, textEditor: {...settings.textEditor, ...savedSettings.textEditor}}
-);
-
-settings = applySavedSettings({textEditor: {fontWeight: 500}});
-```
-
-By default, this does not affect elements in array and tuple types. You can change this by passing `{recurseIntoArrays: true}` as the second type argument:
-
-```
-import type {PartialDeep} from 'type-fest';
-
-type Shape = {
-    dimensions: [number, number];
-};
-
-const partialShape: PartialDeep<Shape, {recurseIntoArrays: true}> = {
-    dimensions: [], // OK
-};
-
-partialShape.dimensions = [15]; // OK
-```
-
-@see {@link PartialDeepOptions}
-
-@category Object
-@category Array
-@category Set
-@category Map
-*/
+ * Create a type from another type with all keys and nested keys set to
+ * optional.
+ *
+ * Use-cases:
+ *
+ * - Merging a default settings/config object with another object, the second
+ *   object would be a deep partial of the default object.
+ * - Mocking and testing complex entities, where populating an entire object with
+ *   its keys would be redundant in terms of the mock or test.
+ *
+ * @category Object
+ * @category Array
+ * @category Set
+ * @category Map
+ *
+ * @example
+ *  ```
+ *  import type {PartialDeep} from 'type-fest';
+ *
+ *  let settings = {
+ *  textEditor: {
+ *  fontSize: 14,
+ *  fontColor: '#000000',
+ *  fontWeight: 400,
+ *  },
+ *  autocomplete: false,
+ *  autosave: true,
+ *  };
+ *
+ *  const applySavedSettings = (savedSettings: PartialDeep<typeof settings>) => (
+ *  {...settings, ...savedSettings, textEditor: {...settings.textEditor, ...savedSettings.textEditor}}
+ *  );
+ *
+ *  settings = applySavedSettings({textEditor: {fontWeight: 500}});
+ *  ```
+ *
+ *  By default, this does not affect elements in array and tuple types. You can change this by passing `{recurseIntoArrays: true}` as the second type argument:
+ *
+ *  ```
+ *  import type {PartialDeep} from 'type-fest';
+ *
+ *  type Shape = {
+ *  dimensions: [number, number];
+ *  };
+ *
+ *  const partialShape: PartialDeep<Shape, {recurseIntoArrays: true}> = {
+ *  dimensions: [], // OK
+ *  };
+ *
+ *  partialShape.dimensions = [15]; // OK
+ *  ```
+ *
+ * @see {@link PartialDeepOptions}
+ */
 ````
 
 > **Rule catalog ID:** R052

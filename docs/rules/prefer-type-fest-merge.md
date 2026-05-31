@@ -34,16 +34,16 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-import type {Except} from "type-fest";
+import type { Except } from "type-fest";
 
 type Base = {
-    id: string;
-    name: string;
+ id: string;
+ name: string;
 };
 
 type Overrides = {
-    name: number;
-    readonly ok: true;
+ name: number;
+ readonly ok: true;
 };
 
 type Combined = Except<Base, keyof Overrides> & Overrides;
@@ -52,16 +52,16 @@ type Combined = Except<Base, keyof Overrides> & Overrides;
 ## ✅ Correct
 
 ```ts
-import type {Merge} from "type-fest";
+import type { Merge } from "type-fest";
 
 type Base = {
-    id: string;
-    name: string;
+ id: string;
+ name: string;
 };
 
 type Overrides = {
-    name: number;
-    readonly ok: true;
+ name: number;
+ readonly ok: true;
 };
 
 type Combined = Merge<Base, Overrides>;
@@ -78,16 +78,16 @@ type Combined = Merge<Base, Overrides>;
 ### ❌ Incorrect — Additional example
 
 ```ts
-import type {Except as StrictExcept} from "type-fest";
+import type { Except as StrictExcept } from "type-fest";
 
 type Base = {
-    id: string;
-    name: string;
+ id: string;
+ name: string;
 };
 
 type Overrides = {
-    name: number;
-    readonly ok: true;
+ name: number;
+ readonly ok: true;
 };
 
 type Combined = Overrides & StrictExcept<Base, keyof Overrides>;
@@ -96,16 +96,16 @@ type Combined = Overrides & StrictExcept<Base, keyof Overrides>;
 ### ✅ Correct — Additional example
 
 ```ts
-import type {Merge} from "type-fest";
+import type { Merge } from "type-fest";
 
 type Base = {
-    id: string;
-    name: string;
+ id: string;
+ name: string;
 };
 
 type Overrides = {
-    name: number;
-    readonly ok: true;
+ name: number;
+ readonly ok: true;
 };
 
 type Combined = Merge<Base, Overrides>;
@@ -130,16 +130,16 @@ TypeFest package documentation:
 Source file: [`source/merge.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/merge.d.ts)
 
 ```ts
-import type {Merge} from "type-fest";
+import type { Merge } from "type-fest";
 
 type Foo = {
-    a: string;
-    b: number;
+ a: string;
+ b: number;
 };
 
 type Bar = {
-    a: number;
-    c: boolean;
+ a: number;
+ c: boolean;
 };
 
 type FooBar = Merge<Foo, Bar>;

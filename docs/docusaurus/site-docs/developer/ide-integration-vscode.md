@@ -27,15 +27,15 @@ Recommended checks:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-  {
-    files: ["**/*.{ts,tsx}"],
-    plugins: {
-      typefest,
-    },
-    rules: {
-      ...typefest.configs.recommended.rules,
-    },
+ {
+  files: ["**/*.{ts,tsx}"],
+  plugins: {
+   typefest,
   },
+  rules: {
+   ...typefest.configs.recommended.rules,
+  },
+ },
 ];
 ```
 

@@ -15,22 +15,22 @@ import { ESLint } from "eslint";
 import typefest from "eslint-plugin-typefest";
 
 const eslint = new ESLint({
-  overrideConfig: {
-    files: ["**/*.ts"],
-    plugins: {
-      typefest,
-    },
-    rules: {
-      "typefest/prefer-type-fest-primitive": "error",
-    },
+ overrideConfig: {
+  files: ["**/*.ts"],
+  plugins: {
+   typefest,
   },
+  rules: {
+   "typefest/prefer-type-fest-primitive": "error",
+  },
+ },
 });
 
 const fileResults = await eslint.lintFiles(["src/**/*.ts"]);
 
 const textResults = await eslint.lintText(
-  "type PrimitiveAlias = string | number | bigint | boolean | symbol | null | undefined;",
-  { filePath: "virtual.ts" }
+ "type PrimitiveAlias = string | number | bigint | boolean | symbol | null | undefined;",
+ { filePath: "virtual.ts" }
 );
 
 const allResults = [...fileResults, ...textResults];

@@ -34,7 +34,10 @@ const extractPropertyPresentGuardBody = (
     body: Readonly<TSESTree.Expression>,
     paramName: string
 ): null | string => {
-    if (body.type !== AST_NODE_TYPES.BinaryExpression || body.operator !== "!=") {
+    if (
+        body.type !== AST_NODE_TYPES.BinaryExpression ||
+        body.operator !== "!="
+    ) {
         return null;
     }
 

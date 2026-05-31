@@ -21,7 +21,7 @@ The rule intentionally leaves non-`typeof` `T[number]` patterns to `prefer-type-
 ```ts
 const statuses = ["queued", "running"] as const;
 
-type Status = typeof statuses[number];
+type Status = (typeof statuses)[number];
 ```
 
 ## ✅ Correct
@@ -48,7 +48,7 @@ type Status = ArrayValues<typeof statuses>;
 ```ts
 declare const weekdays: readonly string[];
 
-type WeekdayName = typeof weekdays[number];
+type WeekdayName = (typeof weekdays)[number];
 ```
 
 ### ✅ Correct — Additional example
@@ -75,12 +75,12 @@ type Status = Statuses[number];
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-array-values": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-array-values": "error",
+  },
+ },
 ];
 ```
 

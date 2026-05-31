@@ -19,7 +19,7 @@ This rule targets manual readonly-removal mapped types and legacy mutability ali
 
 ```ts
 type Mutable<T> = {
-    -readonly [K in keyof T]: T[K];
+ -readonly [K in keyof T]: T[K];
 };
 ```
 
@@ -61,12 +61,12 @@ type EditableOrder = Writable<ReadonlyOrder>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-writable": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-writable": "error",
+  },
+ },
 ];
 ```
 
@@ -82,47 +82,57 @@ Source file: [`source/writable.d.ts`](https://github.com/sindresorhus/type-fest/
 
 ````ts
 /**
-Create a type that strips `readonly` from the given type. Inverse of `Readonly<T>`.
-
-The 2nd argument will be ignored if the input type is not an object.
-
-Note: This type can make readonly `Set` and `Map` writable. This behavior is different from `Readonly<T>` (as of TypeScript 5.2.2). See: https://github.com/microsoft/TypeScript/issues/29655
-
-This can be used to [store and mutate options within a class](https://github.com/sindresorhus/pageres/blob/4a5d05fca19a5fbd2f53842cbf3eb7b1b63bddd2/source/index.ts#L72), [edit `readonly` objects within tests](https://stackoverflow.com/questions/50703834), [construct a `readonly` object within a function](https://github.com/Microsoft/TypeScript/issues/24509), or to define a single model where the only thing that changes is whether or not some of the keys are writable.
-
-@example
-```
-import type {Writable} from 'type-fest';
-
-type Foo = {
-    readonly a: number;
-    readonly b: readonly string[]; // To show that only the mutability status of the properties, not their values, are affected.
-    readonly c: boolean;
-};
-
-const writableFoo: Writable<Foo> = {a: 1, b: ['2'], c: true};
-writableFoo.a = 3;
-// @ts-expect-error
-writableFoo.b[0] = 'new value'; // Will still fail as the value of property "b" is still a readonly type.
-writableFoo.b = ['something']; // Will work as the "b" property itself is no longer readonly.
-
-type SomeWritable = Writable<Foo, 'b' | 'c'>;
-// type SomeWritable = {
-//     readonly a: number;
-//     b: readonly string[]; // It's now writable. The type of the property remains unaffected.
-//     c: boolean; // It's now writable.
-// }
-
-// Also supports array
-const readonlyArray: readonly number[] = [1, 2, 3];
-// @ts-expect-error
-readonlyArray.push(4); // Will fail as the array itself is readonly.
-const writableArray: Writable<typeof readonlyArray> = readonlyArray as Writable<typeof readonlyArray>;
-writableArray.push(4); // Will work as the array itself is now writable.
-```
-
-@category Object
-*/
+ * Create a type that strips `readonly` from the given type. Inverse of
+ * `Readonly<T>`.
+ *
+ * The 2nd argument will be ignored if the input type is not an object.
+ *
+ * Note: This type can make readonly `Set` and `Map` writable. This behavior is
+ * different from `Readonly<T>` (as of TypeScript 5.2.2). See:
+ * https://github.com/microsoft/TypeScript/issues/29655
+ *
+ * This can be used to [store and mutate options within a
+ * class](https://github.com/sindresorhus/pageres/blob/4a5d05fca19a5fbd2f53842cbf3eb7b1b63bddd2/source/index.ts#L72),
+ * [edit `readonly` objects within
+ * tests](https://stackoverflow.com/questions/50703834), [construct a `readonly`
+ * object within a
+ * function](https://github.com/Microsoft/TypeScript/issues/24509), or to define
+ * a single model where the only thing that changes is whether or not some of
+ * the keys are writable.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {Writable} from 'type-fest';
+ *
+ *  type Foo = {
+ *      readonly a: number;
+ *      readonly b: readonly string[]; // To show that only the mutability status of the properties, not their values, are affected.
+ *      readonly c: boolean;
+ *  };
+ *
+ *  const writableFoo: Writable<Foo> = {a: 1, b: ['2'], c: true};
+ *  writableFoo.a = 3;
+ *  // @ts-expect-error
+ *  writableFoo.b[0] = 'new value'; // Will still fail as the value of property "b" is still a readonly type.
+ *  writableFoo.b = ['something']; // Will work as the "b" property itself is no longer readonly.
+ *
+ *  type SomeWritable = Writable<Foo, 'b' | 'c'>;
+ *  // type SomeWritable = {
+ *  //     readonly a: number;
+ *  //     b: readonly string[]; // It's now writable. The type of the property remains unaffected.
+ *  //     c: boolean; // It's now writable.
+ *  // }
+ *
+ *  // Also supports array
+ *  const readonlyArray: readonly number[] = [1, 2, 3];
+ *  // @ts-expect-error
+ *  readonlyArray.push(4); // Will fail as the array itself is readonly.
+ *  const writableArray: Writable<typeof readonlyArray> = readonlyArray as Writable<typeof readonlyArray>;
+ *  writableArray.push(4); // Will work as the array itself is now writable.
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R075

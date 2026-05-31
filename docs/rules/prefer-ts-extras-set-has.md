@@ -51,7 +51,7 @@ const hasMonitor = setHas(monitorIds, candidateId);
 
 ```ts
 if (allowed.has(input)) {
-    use(input);
+ use(input);
 }
 ```
 
@@ -59,7 +59,7 @@ if (allowed.has(input)) {
 
 ```ts
 if (setHas(allowed, input)) {
-    use(input);
+ use(input);
 }
 ```
 
@@ -75,12 +75,12 @@ const known = setHas(codes, candidate);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-set-has": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-set-has": "error",
+  },
+ },
 ];
 ```
 
@@ -90,15 +90,15 @@ This rule accepts a single options object:
 
 ```ts
 type PreferTsExtrasSetHasOptions = {
-    /**
-     * Controls how union receivers are matched.
-     *
-     * - "allBranches": report only when every union branch is Set-like.
-     * - "anyBranch": report when at least one union branch is Set-like.
-     *
-     * @default "allBranches"
-     */
-    unionBranchMatchingMode?: "allBranches" | "anyBranch";
+ /**
+  * Controls how union receivers are matched.
+  *
+  * - "allBranches": report only when every union branch is Set-like.
+  * - "anyBranch": report when at least one union branch is Set-like.
+  *
+  * @default "allBranches"
+  */
+ unionBranchMatchingMode?: "allBranches" | "anyBranch";
 };
 ```
 
@@ -136,15 +136,15 @@ Flat config example:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-set-has": [
-                "error",
-                { unionBranchMatchingMode: "anyBranch" },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-set-has": [
+    "error",
+    { unionBranchMatchingMode: "anyBranch" },
+   ],
+  },
+ },
 ];
 ```
 
@@ -162,31 +162,34 @@ Source file: [`source/set-has.ts`](https://github.com/sindresorhus/ts-extras/blo
 
 ````ts
 /**
-A strongly-typed version of `Set#has()` that properly acts as a type guard.
-
-When `setHas` returns `true`, the type is narrowed to the set's element type.
-When it returns `false`, the type remains unchanged (i.e., `unknown` stays `unknown`).
-
-It was [rejected](https://github.com/microsoft/TypeScript/issues/42641#issuecomment-774168319) from being done in TypeScript itself.
-
-@example
-```
-import {setHas} from 'ts-extras';
-
-const values = ['a', 'b', 'c'] as const;
-const valueSet = new Set(values);
-const valueToCheck: unknown = 'a';
-
-if (setHas(valueSet, valueToCheck)) {
-    // We now know that the value is of type `typeof values[number]`.
-} else {
-    // The value remains `unknown`.
-}
-```
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Set#has()` that properly acts as a type guard.
+ *
+ * When `setHas` returns `true`, the type is narrowed to the set's element type.
+ * When it returns `false`, the type remains unchanged (i.e., `unknown` stays
+ * `unknown`).
+ *
+ * It was
+ * [rejected](https://github.com/microsoft/TypeScript/issues/42641#issuecomment-774168319)
+ * from being done in TypeScript itself.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {setHas} from 'ts-extras';
+ *
+ *  const values = ['a', 'b', 'c'] as const;
+ *  const valueSet = new Set(values);
+ *  const valueToCheck: unknown = 'a';
+ *
+ *  if (setHas(valueSet, valueToCheck)) {
+ *  // We now know that the value is of type `typeof values[number]`.
+ *  } else {
+ *  // The value remains `unknown`.
+ *  }
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R033

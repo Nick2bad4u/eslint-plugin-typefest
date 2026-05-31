@@ -65,12 +65,12 @@ type Pair<T, U> = [keyof T, U[keyof T]];
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-entry": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-entry": "error",
+  },
+ },
 ];
 ```
 
@@ -88,11 +88,15 @@ Source file: [`source/entry.d.ts`](https://github.com/sindresorhus/type-fest/blo
 export type _ObjectEntry<BaseType> = [keyof BaseType, BaseType[keyof BaseType]];
 
 export type Entry<BaseType> =
-    BaseType extends Map<unknown, unknown> ? _MapEntry<BaseType>
-        : BaseType extends Set<unknown> ? _SetEntry<BaseType>
-            : BaseType extends readonly unknown[] ? _ArrayEntry<BaseType>
-                : BaseType extends object ? _ObjectEntry<BaseType>
-                    : never;
+ BaseType extends Map<unknown, unknown>
+  ? _MapEntry<BaseType>
+  : BaseType extends Set<unknown>
+    ? _SetEntry<BaseType>
+    : BaseType extends readonly unknown[]
+      ? _ArrayEntry<BaseType>
+      : BaseType extends object
+        ? _ObjectEntry<BaseType>
+        : never;
 ```
 
 > **Rule catalog ID:** R107
@@ -107,4 +111,3 @@ export type Entry<BaseType> =
 
 - [Rule adoption checklist](./guides/adoption-checklist.md)
 - [Rollout and fix safety](./guides/rollout-and-fix-safety.md)
-

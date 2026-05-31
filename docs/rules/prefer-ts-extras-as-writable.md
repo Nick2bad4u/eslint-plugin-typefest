@@ -74,12 +74,12 @@ const draft = asWritable(readonlyDraft);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-as-writable": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-as-writable": "error",
+  },
+ },
 ];
 ```
 
@@ -95,19 +95,21 @@ Source file: [`source/as-writable.ts`](https://github.com/sindresorhus/ts-extras
 
 ````ts
 /**
-Cast the given value to be [`Writable`](https://github.com/sindresorhus/type-fest/blob/main/source/writable.d.ts).
-
-This is useful because of a [TypeScript limitation](https://github.com/microsoft/TypeScript/issues/45618#issuecomment-908072756).
-
-@example
-```
-import {asWritable} from 'ts-extras';
-
-const writableContext = asWritable((await import('x')).context);
-```
-
-@category General
-*/
+ * Cast the given value to be
+ * [`Writable`](https://github.com/sindresorhus/type-fest/blob/main/source/writable.d.ts).
+ *
+ * This is useful because of a [TypeScript
+ * limitation](https://github.com/microsoft/TypeScript/issues/45618#issuecomment-908072756).
+ *
+ * @category General
+ *
+ * @example
+ *  ```
+ *  import {asWritable} from 'ts-extras';
+ *
+ *  const writableContext = asWritable((await import('x')).context);
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R010

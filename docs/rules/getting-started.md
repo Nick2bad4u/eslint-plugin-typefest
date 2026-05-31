@@ -16,9 +16,7 @@ Enable one preset in your Flat Config:
 ```ts
 import typefest from "eslint-plugin-typefest";
 
-export default [
-    typefest.configs.recommended,
-];
+export default [typefest.configs.recommended];
 ```
 
 `recommended` does not require type information.
@@ -35,24 +33,24 @@ import tsParser from "@typescript-eslint/parser";
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        files: ["**/*.{ts,tsx,mts,cts}"],
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-                ecmaVersion: "latest",
-                // Enable only when using a type-aware preset.
-                // projectService: true,
-                sourceType: "module",
-            },
-        },
-        plugins: {
-            typefest,
-        },
-        rules: {
-            ...typefest.configs.recommended.rules,
-        },
-    },
+ {
+  files: ["**/*.{ts,tsx,mts,cts}"],
+  languageOptions: {
+   parser: tsParser,
+   parserOptions: {
+    ecmaVersion: "latest",
+    // Enable only when using a type-aware preset.
+    // projectService: true,
+    sourceType: "module",
+   },
+  },
+  plugins: {
+   typefest,
+  },
+  rules: {
+   ...typefest.configs.recommended.rules,
+  },
+ },
 ];
 ```
 

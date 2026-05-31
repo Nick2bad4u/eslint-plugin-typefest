@@ -69,12 +69,12 @@ type Prefix = SplitOnRestElement<Tuple>[0];
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-extract-rest-element": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-extract-rest-element": "error",
+  },
+ },
 ];
 ```
 
@@ -90,10 +90,10 @@ Source file: [`source/extract-rest-element.d.ts`](https://github.com/sindresorhu
 
 ```ts
 /**
-Extract the rest element type from an array.
-*/
+ * Extract the rest element type from an array.
+ */
 export type ExtractRestElement<T extends UnknownArray> =
-    SplitOnRestElement<T>[1][number];
+ SplitOnRestElement<T>[1][number];
 ```
 
 > **Rule catalog ID:** R115

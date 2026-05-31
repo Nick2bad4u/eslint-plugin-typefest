@@ -68,12 +68,12 @@ const named = users.filter(isPropertyDefined("name"));
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-property-defined": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-property-defined": "error",
+  },
+ },
 ];
 ```
 
@@ -89,25 +89,27 @@ Source file: [`source/is-property-defined.ts`](https://github.com/sindresorhus/t
 
 ````ts
 /**
-Returns a filter predicate that tests whether a given property key is defined (not `undefined`) on an object.
-
-This is useful as a type guard in `Array.prototype.filter` to narrow the resulting array type.
-
-@example
-```
-import {isPropertyDefined} from 'ts-extras';
-
-interface User {
-    name: string | undefined;
-}
-
-const users: User[] = [{ name: 'Alice' }, { name: undefined }];
-const namedUsers = users.filter(isPropertyDefined('name'));
-//=> [{ name: 'Alice' }]
-```
-
-@category Type guard
-*/
+ * Returns a filter predicate that tests whether a given property key is defined
+ * (not `undefined`) on an object.
+ *
+ * This is useful as a type guard in `Array.prototype.filter` to narrow the
+ * resulting array type.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isPropertyDefined} from 'ts-extras';
+ *
+ *  interface User {
+ *      name: string | undefined;
+ *  }
+ *
+ *  const users: User[] = [{ name: 'Alice' }, { name: undefined }];
+ *  const namedUsers = users.filter(isPropertyDefined('name'));
+ *  //=> [{ name: 'Alice' }]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R101

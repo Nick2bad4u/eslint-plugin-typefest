@@ -34,17 +34,20 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 ## ❌ Incorrect
 
 ```ts
-type WithResult<Function_ extends (...arguments_: any[]) => any, Result> =
-    (...arguments_: Parameters<Function_>) => Result;
+type WithResult<Function_ extends (...arguments_: any[]) => any, Result> = (
+ ...arguments_: Parameters<Function_>
+) => Result;
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {SetReturnType} from "type-fest";
+import type { SetReturnType } from "type-fest";
 
-type WithResult<Function_ extends (...arguments_: any[]) => any, Result> =
-    SetReturnType<Function_, Result>;
+type WithResult<
+ Function_ extends (...arguments_: any[]) => any,
+ Result,
+> = SetReturnType<Function_, Result>;
 ```
 
 ## Behavior and migration notes
@@ -72,10 +75,12 @@ TypeFest package documentation:
 Source file: [`source/set-return-type.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/set-return-type.d.ts)
 
 ```ts
-import type {SetReturnType} from "type-fest";
+import type { SetReturnType } from "type-fest";
 
-type Wrapped<Function_ extends (...arguments_: any[]) => any> =
-    SetReturnType<Function_, string>;
+type Wrapped<Function_ extends (...arguments_: any[]) => any> = SetReturnType<
+ Function_,
+ string
+>;
 ```
 
 > **Rule catalog ID:** R092

@@ -54,19 +54,19 @@ This rule accepts a single options object:
 
 ```ts
 type PreferTypeFestPromisableOptions = {
-    /**
-     * Whether to report imported legacy aliases such as MaybePromise.
-     *
-     * @default true
-     */
-    enforceLegacyAliases?: boolean;
+ /**
+  * Whether to report imported legacy aliases such as MaybePromise.
+  *
+  * @default true
+  */
+ enforceLegacyAliases?: boolean;
 
-    /**
-     * Whether to report Promise<T> | T sync-or-async unions.
-     *
-     * @default true
-     */
-    enforcePromiseUnions?: boolean;
+ /**
+  * Whether to report Promise<T> | T sync-or-async unions.
+  *
+  * @default true
+  */
+ enforcePromiseUnions?: boolean;
 };
 ```
 
@@ -85,18 +85,18 @@ Flat config setup (default behavior):
 import typefest from "eslint-plugin-typefest";
 
 export default [
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-promisable": [
+    "error",
     {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-promisable": [
-                "error",
-                {
-                    enforceLegacyAliases: true,
-                    enforcePromiseUnions: true,
-                },
-            ],
-        },
+     enforceLegacyAliases: true,
+     enforcePromiseUnions: true,
     },
+   ],
+  },
+ },
 ];
 ```
 
@@ -108,18 +108,18 @@ Ignores union-shaped contracts while still enforcing legacy aliases:
 import typefest from "eslint-plugin-typefest";
 
 export default [
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-promisable": [
+    "error",
     {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-promisable": [
-                "error",
-                {
-                    enforceLegacyAliases: true,
-                    enforcePromiseUnions: false,
-                },
-            ],
-        },
+     enforceLegacyAliases: true,
+     enforcePromiseUnions: false,
     },
+   ],
+  },
+ },
 ];
 ```
 
@@ -138,18 +138,18 @@ Ignores legacy aliases while still enforcing union-shaped contracts:
 import typefest from "eslint-plugin-typefest";
 
 export default [
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-promisable": [
+    "error",
     {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-promisable": [
-                "error",
-                {
-                    enforceLegacyAliases: false,
-                    enforcePromiseUnions: true,
-                },
-            ],
-        },
+     enforceLegacyAliases: false,
+     enforcePromiseUnions: true,
     },
+   ],
+  },
+ },
 ];
 ```
 
@@ -186,12 +186,12 @@ type HookOutput = Promisable<void>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-promisable": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-promisable": "error",
+  },
+ },
 ];
 ```
 
@@ -207,29 +207,35 @@ Source file: [`source/promisable.d.ts`](https://github.com/sindresorhus/type-fes
 
 ````ts
 /**
-Create a type that represents either the value or the value wrapped in `PromiseLike`.
-
-Use-cases:
-- A function accepts a callback that may either return a value synchronously or may return a promised value.
-- This type could be the return type of `Promise#then()`, `Promise#catch()`, and `Promise#finally()` callbacks.
-
-Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/31394) if you want to have this type as a built-in in TypeScript.
-
-@example
-```
-import type {Promisable} from 'type-fest';
-
-async function logger(getLogEntry: () => Promisable<string>): Promise<void> {
-    const entry = await getLogEntry();
-    console.log(entry);
-}
-
-await logger(() => 'foo');
-await logger(() => Promise.resolve('bar'));
-```
-
-@category Async
-*/
+ * Create a type that represents either the value or the value wrapped in
+ * `PromiseLike`.
+ *
+ * Use-cases:
+ *
+ * - A function accepts a callback that may either return a value synchronously or
+ *   may return a promised value.
+ * - This type could be the return type of `Promise#then()`, `Promise#catch()`,
+ *   and `Promise#finally()` callbacks.
+ *
+ * Please upvote [this
+ * issue](https://github.com/microsoft/TypeScript/issues/31394) if you want to
+ * have this type as a built-in in TypeScript.
+ *
+ * @category Async
+ *
+ * @example
+ *  ```
+ *  import type {Promisable} from 'type-fest';
+ *
+ *  async function logger(getLogEntry: () => Promisable<string>): Promise<void> {
+ *      const entry = await getLogEntry();
+ *      console.log(entry);
+ *  }
+ *
+ *  await logger(() => 'foo');
+ *  await logger(() => Promise.resolve('bar'));
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R054

@@ -38,7 +38,8 @@ import { isArrayIndexReadAutofixSafe } from "../_internal/value-rewrite-autofix-
 const isZeroProperty = (
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
 ): boolean =>
-    node.type === AST_NODE_TYPES.Literal && (node.value === 0 || node.value === "0");
+    node.type === AST_NODE_TYPES.Literal &&
+    (node.value === 0 || node.value === "0");
 
 /**
  * ESLint rule definition for `prefer-ts-extras-array-first`.

@@ -66,7 +66,10 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const awaitedInnerType = getSingleTypeArgument(node);
-                    if (awaitedInnerType?.type !== AST_NODE_TYPES.TSTypeReference) {
+                    if (
+                        awaitedInnerType?.type !==
+                        AST_NODE_TYPES.TSTypeReference
+                    ) {
                         return;
                     }
 

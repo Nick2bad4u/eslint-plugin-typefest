@@ -71,12 +71,12 @@ const grouped = objectFromEntries(pairs);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-from-entries": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-from-entries": "error",
+  },
+ },
 ];
 ```
 
@@ -92,29 +92,32 @@ Source file: [`source/object-from-entries.ts`](https://github.com/sindresorhus/t
 
 ````ts
 /**
-A strongly-typed version of `Object.fromEntries()`.
-
-This is useful since `Object.fromEntries()` always returns `{[key: string]: T}`. This function returns a strongly-typed object from the given array of entries.
-
-- [TypeScript issues about this](https://github.com/microsoft/TypeScript/issues/35745)
-
-@example
-```
-import {objectFromEntries} from 'ts-extras';
-
-const stronglyTypedObjectFromEntries = objectFromEntries([
-    ['a', 123],
-    ['b', 'someString'],
-    ['c', true],
-]);
-//=> {a: number; b: string; c: boolean}
-
-const untypedEntries = Object.fromEntries([['a', 123], ['b', 'someString'], ['c', true]]);
-//=> {[key: string]: unknown}
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `Object.fromEntries()`.
+ *
+ * This is useful since `Object.fromEntries()` always returns `{[key: string]:
+ * T}`. This function returns a strongly-typed object from the given array of
+ * entries.
+ *
+ * - [TypeScript issues about
+ *   this](https://github.com/microsoft/TypeScript/issues/35745)
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {objectFromEntries} from 'ts-extras';
+ *
+ *  const stronglyTypedObjectFromEntries = objectFromEntries([
+ *      ['a', 123],
+ *      ['b', 'someString'],
+ *      ['c', true],
+ *  ]);
+ *  //=> {a: number; b: string; c: boolean}
+ *
+ *  const untypedEntries = Object.fromEntries([['a', 123], ['b', 'someString'], ['c', true]]);
+ *  //=> {[key: string]: unknown}
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R027

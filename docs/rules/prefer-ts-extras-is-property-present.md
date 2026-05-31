@@ -67,12 +67,12 @@ const titled = posts.filter(isPropertyPresent("title"));
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-property-present": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-property-present": "error",
+  },
+ },
 ];
 ```
 
@@ -88,25 +88,27 @@ Source file: [`source/is-property-present.ts`](https://github.com/sindresorhus/t
 
 ````ts
 /**
-Returns a filter predicate that tests whether a given property key is present (non-nullable) on an object.
-
-This is useful as a type guard in `Array.prototype.filter` to narrow the resulting array type by removing `null` and `undefined` property values.
-
-@example
-```
-import {isPropertyPresent} from 'ts-extras';
-
-interface Post {
-    title: string | null | undefined;
-}
-
-const posts: Post[] = [{ title: 'Hello' }, { title: null }];
-const titledPosts = posts.filter(isPropertyPresent('title'));
-//=> [{ title: 'Hello' }]
-```
-
-@category Type guard
-*/
+ * Returns a filter predicate that tests whether a given property key is present
+ * (non-nullable) on an object.
+ *
+ * This is useful as a type guard in `Array.prototype.filter` to narrow the
+ * resulting array type by removing `null` and `undefined` property values.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isPropertyPresent} from 'ts-extras';
+ *
+ *  interface Post {
+ *      title: string | null | undefined;
+ *  }
+ *
+ *  const posts: Post[] = [{ title: 'Hello' }, { title: null }];
+ *  const titledPosts = posts.filter(isPropertyPresent('title'));
+ *  //=> [{ title: 'Hello' }]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R102

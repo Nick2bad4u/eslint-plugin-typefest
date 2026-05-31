@@ -66,12 +66,12 @@ type EventKeys = KeysOfUnion<CreateEvent | DeleteEvent>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-keys-of-union": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-keys-of-union": "error",
+  },
+ },
 ];
 ```
 
@@ -87,42 +87,44 @@ Source file: [`source/keys-of-union.d.ts`](https://github.com/sindresorhus/type-
 
 ````ts
 /**
-Create a union of all keys from a given type, even those exclusive to specific union members.
-
-Unlike the native `keyof` keyword, which returns keys present in **all** union members, this type returns keys from **any** member.
-
-@link https://stackoverflow.com/a/49402091
-
-@example
-```
-import type {KeysOfUnion} from 'type-fest';
-
-type A = {
-    common: string;
-    a: number;
-};
-
-type B = {
-    common: string;
-    b: string;
-};
-
-type C = {
-    common: string;
-    c: boolean;
-};
-
-type Union = A | B | C;
-
-type CommonKeys = keyof Union;
-//=> 'common'
-
-type AllKeys = KeysOfUnion<Union>;
-//=> 'common' | 'a' | 'b' | 'c'
-```
-
-@category Object
-*/
+ * Create a union of all keys from a given type, even those exclusive to
+ * specific union members.
+ *
+ * Unlike the native `keyof` keyword, which returns keys present in **all**
+ * union members, this type returns keys from **any** member.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {KeysOfUnion} from 'type-fest';
+ *
+ *  type A = {
+ *      common: string;
+ *      a: number;
+ *  };
+ *
+ *  type B = {
+ *      common: string;
+ *      b: string;
+ *  };
+ *
+ *  type C = {
+ *      common: string;
+ *      c: boolean;
+ *  };
+ *
+ *  type Union = A | B | C;
+ *
+ *  type CommonKeys = keyof Union;
+ *  //=> 'common'
+ *
+ *  type AllKeys = KeysOfUnion<Union>;
+ *  //=> 'common' | 'a' | 'b' | 'c'
+ *  ```;
+ *
+ * @link https://stackoverflow.com/a/49402091
+ */
 ````
 
 > **Rule catalog ID:** R047

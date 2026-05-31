@@ -75,12 +75,12 @@ type ImmutableAudit = SetReadonly<AuditEntry, "timestamp" | "actor">;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-set-readonly": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-set-readonly": "error",
+  },
+ },
 ];
 ```
 
@@ -96,30 +96,32 @@ Source file: [`source/set-readonly.d.ts`](https://github.com/sindresorhus/type-f
 
 ````ts
 /**
-Create a type that makes the given keys readonly. The remaining keys are kept as is.
-
-Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are readonly.
-
-@example
-```
-import type {SetReadonly} from 'type-fest';
-
-type Foo = {
-    a: number;
-    readonly b: string;
-    c: boolean;
-};
-
-type SomeReadonly = SetReadonly<Foo, 'b' | 'c'>;
-// type SomeReadonly = {
-//     a: number;
-//     readonly b: string; // Was already readonly and still is.
-//     readonly c: boolean; // Is now readonly.
-// }
-```
-
-@category Object
-*/
+ * Create a type that makes the given keys readonly. The remaining keys are kept
+ * as is.
+ *
+ * Use-case: You want to define a single model where the only thing that changes
+ * is whether or not some of the keys are readonly.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {SetReadonly} from 'type-fest';
+ *
+ *  type Foo = {
+ *      a: number;
+ *      readonly b: string;
+ *      c: boolean;
+ *  };
+ *
+ *  type SomeReadonly = SetReadonly<Foo, 'b' | 'c'>;
+ *  // type SomeReadonly = {
+ *  //     a: number;
+ *  //     readonly b: string; // Was already readonly and still is.
+ *  //     readonly c: boolean; // Is now readonly.
+ *  // }
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R064

@@ -63,8 +63,8 @@ const entries = objectEntries(settings);
 
 ```ts
 for (const [key, value] of objectEntries(env)) {
-    void key;
-    void value;
+ void key;
+ void value;
 }
 ```
 
@@ -74,12 +74,12 @@ for (const [key, value] of objectEntries(env)) {
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-entries": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-entries": "error",
+  },
+ },
 ];
 ```
 
@@ -95,25 +95,28 @@ Source file: [`source/object-entries.ts`](https://github.com/sindresorhus/ts-ext
 
 ````ts
 /**
-A strongly-typed version of `Object.entries()`.
-
-This is useful since `Object.entries()` always returns an array of `Array<[string, T]>`. This function returns a strongly-typed array of the entries of the given object.
-
-- [TypeScript issues about this](https://github.com/microsoft/TypeScript/pull/12253)
-
-@example
-```
-import {objectEntries} from 'ts-extras';
-
-const stronglyTypedEntries = objectEntries({a: 1, b: 2, c: 3});
-//=> Array<['a' | 'b' | 'c', number]>
-
-const untypedEntries = Object.entries({a: 1, b: 2, c: 3});
-//=> Array<[string, number]>
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `Object.entries()`.
+ *
+ * This is useful since `Object.entries()` always returns an array of
+ * `Array<[string, T]>`. This function returns a strongly-typed array of the
+ * entries of the given object.
+ *
+ * - [TypeScript issues about
+ *   this](https://github.com/microsoft/TypeScript/pull/12253)
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {objectEntries} from 'ts-extras';
+ *
+ *  const stronglyTypedEntries = objectEntries({a: 1, b: 2, c: 3});
+ *  //=> Array<['a' | 'b' | 'c', number]>
+ *
+ *  const untypedEntries = Object.entries({a: 1, b: 2, c: 3});
+ *  //=> Array<[string, number]>
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R026

@@ -40,7 +40,7 @@ In large services, inline guards often diverge in error types/messages. Using
 
 ```ts
 if (token === undefined) {
-    throw new Error("Token is required");
+ throw new Error("Token is required");
 }
 ```
 
@@ -62,7 +62,7 @@ assertDefined(token);
 
 ```ts
 if (undefined == monitorId) {
-    throw new TypeError("monitorId is required");
+ throw new TypeError("monitorId is required");
 }
 ```
 
@@ -85,12 +85,12 @@ assertDefined(config.baseUrl);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-assert-defined": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-assert-defined": "error",
+  },
+ },
 ];
 ```
 
@@ -106,24 +106,24 @@ Source file: [`source/assert-defined.ts`](https://github.com/sindresorhus/ts-ext
 
 ````ts
 /**
-Assert that the given value is defined, meaning it is not `undefined`.
-
-If the value is `undefined`, a helpful `TypeError` will be thrown.
-
-@example
-```
-import {assertDefined} from 'ts-extras';
-
-const unicorn = 'unicorn';
-assertDefined(unicorn);
-
-const notUnicorn = undefined;
-assertDefined(notUnicorn);
-//=> TypeError: Expected a defined value, got `undefined`
-```
-
-@category Type guard
-*/
+ * Assert that the given value is defined, meaning it is not `undefined`.
+ *
+ * If the value is `undefined`, a helpful `TypeError` will be thrown.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {assertDefined} from 'ts-extras';
+ *
+ *  const unicorn = 'unicorn';
+ *  assertDefined(unicorn);
+ *
+ *  const notUnicorn = undefined;
+ *  assertDefined(notUnicorn);
+ *  //=> TypeError: Expected a defined value, got `undefined`
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R011

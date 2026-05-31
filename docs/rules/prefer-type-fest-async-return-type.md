@@ -58,12 +58,12 @@ type MutationResult = AsyncReturnType<typeof saveSettings>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-async-return-type": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-async-return-type": "error",
+  },
+ },
 ];
 ```
 
@@ -79,28 +79,30 @@ Source file: [`source/async-return-type.d.ts`](https://github.com/sindresorhus/t
 
 ````ts
 /**
-Unwrap the return type of a function that returns a `Promise`.
-
-There has been [discussion](https://github.com/microsoft/TypeScript/pull/35998) about implementing this type in TypeScript.
-
-@example
-```ts
-import type {AsyncReturnType} from 'type-fest';
-
-declare function asyncFunction(): Promise<{foo: string}>;
-
-// This type resolves to the unwrapped return type of `asyncFunction`.
-type Value = AsyncReturnType<typeof asyncFunction>;
-//=> {foo: string}
-
-declare function doSomething(value: Value): void;
-
-const value = await asyncFunction();
-doSomething(value);
-```
-
-@category Async
-*/
+ * Unwrap the return type of a function that returns a `Promise`.
+ *
+ * There has been
+ * [discussion](https://github.com/microsoft/TypeScript/pull/35998) about
+ * implementing this type in TypeScript.
+ *
+ * @category Async
+ *
+ * @example
+ *  ```ts
+ *  import type {AsyncReturnType} from 'type-fest';
+ *
+ *  declare function asyncFunction(): Promise<{foo: string}>;
+ *
+ *  // This type resolves to the unwrapped return type of `asyncFunction`.
+ *  type Value = AsyncReturnType<typeof asyncFunction>;
+ *  //=> {foo: string}
+ *
+ *  declare function doSomething(value: Value): void;
+ *
+ *  const value = await asyncFunction();
+ *  doSomething(value);
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R037

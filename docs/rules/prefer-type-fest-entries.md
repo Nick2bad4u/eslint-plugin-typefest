@@ -66,12 +66,12 @@ type ReadonlyObjectEntries<T> = ReadonlyArray<[keyof T, T[keyof T]]>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-entries": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-entries": "error",
+  },
+ },
 ];
 ```
 
@@ -89,11 +89,15 @@ Source file: [`source/entries.d.ts`](https://github.com/sindresorhus/type-fest/b
 type ObjectEntries<BaseType> = Array<_ObjectEntry<BaseType>>;
 
 export type Entries<BaseType> =
-    BaseType extends Map<unknown, unknown> ? MapEntries<BaseType>
-        : BaseType extends Set<unknown> ? SetEntries<BaseType>
-            : BaseType extends readonly unknown[] ? ArrayEntries<BaseType>
-                : BaseType extends object ? ObjectEntries<BaseType>
-                    : never;
+ BaseType extends Map<unknown, unknown>
+  ? MapEntries<BaseType>
+  : BaseType extends Set<unknown>
+    ? SetEntries<BaseType>
+    : BaseType extends readonly unknown[]
+      ? ArrayEntries<BaseType>
+      : BaseType extends object
+        ? ObjectEntries<BaseType>
+        : never;
 ```
 
 > **Rule catalog ID:** R108
@@ -108,4 +112,3 @@ export type Entries<BaseType> =
 
 - [Rule adoption checklist](./guides/adoption-checklist.md)
 - [Rollout and fix safety](./guides/rollout-and-fix-safety.md)
-

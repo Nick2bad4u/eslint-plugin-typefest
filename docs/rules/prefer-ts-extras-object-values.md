@@ -70,12 +70,12 @@ const labels = objectValues(enumLikeObject);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-values": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-values": "error",
+  },
+ },
 ];
 ```
 
@@ -91,27 +91,29 @@ Source file: [`source/object-values.ts`](https://github.com/sindresorhus/ts-extr
 
 ````ts
 /**
-A strongly-typed version of `Object.values()`.
-
-This is useful since `Object.values()` always returns `T[]`. This function returns a strongly-typed array of the values of the given object.
-
-- [TypeScript issues about this](https://github.com/microsoft/TypeScript/pull/12253)
-
-@example
-```
-import {objectValues} from 'ts-extras';
-
-const object: {a: number; b?: string} = {a: 1, b: 'hello'};
-
-const stronglyTypedValues = objectValues(object);
-//=> Array<number | string>
-
-const untypedValues = Object.values(object);
-//=> Array<string | number | undefined>
-```
-
-@category Improved builtin
-*/
+ * A strongly-typed version of `Object.values()`.
+ *
+ * This is useful since `Object.values()` always returns `T[]`. This function
+ * returns a strongly-typed array of the values of the given object.
+ *
+ * - [TypeScript issues about
+ *   this](https://github.com/microsoft/TypeScript/pull/12253)
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {objectValues} from 'ts-extras';
+ *
+ *  const object: {a: number; b?: string} = {a: 1, b: 'hello'};
+ *
+ *  const stronglyTypedValues = objectValues(object);
+ *  //=> Array<number | string>
+ *
+ *  const untypedValues = Object.values(object);
+ *  //=> Array<string | number | undefined>
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R031

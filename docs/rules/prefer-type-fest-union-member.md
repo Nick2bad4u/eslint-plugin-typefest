@@ -18,11 +18,14 @@ This rule targets exact custom helper definitions that reproduce TypeFest `Union
 ## ❌ Incorrect
 
 ```ts
-type LastOfUnion<Union> = IsNever<Union> extends true
-    ? never
-    : UnionToIntersection<Union extends any ? () => Union : never> extends () => infer Last
-      ? Last
-      : never;
+type LastOfUnion<Union> =
+ IsNever<Union> extends true
+  ? never
+  : UnionToIntersection<
+       Union extends any ? () => Union : never
+      > extends () => infer Last
+    ? Last
+    : never;
 ```
 
 ## ✅ Correct
@@ -44,9 +47,12 @@ type LastOfUnion<Union> = UnionMember<Union>;
 ### ❌ Incorrect — Additional example
 
 ```ts
-type MemberOfUnion<Union> = UnionToIntersection<Union extends any ? () => Union : never> extends () => infer Member
-    ? Member
-    : never;
+type MemberOfUnion<Union> =
+ UnionToIntersection<
+  Union extends any ? () => Union : never
+ > extends () => infer Member
+  ? Member
+  : never;
 ```
 
 ### ✅ Correct — Additional example
@@ -60,9 +66,12 @@ type MemberOfUnion<Union> = UnionMember<Union>;
 ### ✅ Correct — Non-targeted usage
 
 ```ts
-type LastOfUnion<Union> = UnionToIntersection<Union extends unknown ? () => Union : never> extends () => infer Last
-    ? Last
-    : never;
+type LastOfUnion<Union> =
+ UnionToIntersection<
+  Union extends unknown ? () => Union : never
+ > extends () => infer Last
+  ? Last
+  : never;
 ```
 
 ## ESLint flat config example
@@ -71,12 +80,12 @@ type LastOfUnion<Union> = UnionToIntersection<Union extends unknown ? () => Unio
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-union-member": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-union-member": "error",
+  },
+ },
 ];
 ```
 
@@ -92,17 +101,18 @@ Source file: [`source/union-member.d.ts`](https://github.com/sindresorhus/type-f
 
 ```ts
 /**
-Returns an arbitrary member of a union type.
-
-Use-cases:
-- Implementing recursive type functions that accept a union type.
-*/
+ * Returns an arbitrary member of a union type.
+ *
+ * Use-cases:
+ *
+ * - Implementing recursive type functions that accept a union type.
+ */
 export type UnionMember<T> =
-    IsNever<T> extends true
-        ? never
-        : UnionToIntersection<T extends any ? () => T : never> extends () => (infer R)
-            ? R
-            : never;
+ IsNever<T> extends true
+  ? never
+  : UnionToIntersection<T extends any ? () => T : never> extends () => infer R
+    ? R
+    : never;
 ```
 
 > **Rule catalog ID:** R081

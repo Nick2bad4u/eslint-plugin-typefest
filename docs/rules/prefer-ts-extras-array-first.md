@@ -68,12 +68,12 @@ const header = arrayFirst(headers);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-first": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-first": "error",
+  },
+ },
 ];
 ```
 
@@ -89,33 +89,34 @@ Source file: [`source/array-first.ts`](https://github.com/sindresorhus/ts-extras
 
 ````ts
 /**
-Return the first item of an array with stronger typing for tuples.
-
-This mirrors getting `array[0]` but with better type safety and handling for empty arrays.
-
-@example
-```
-import {arrayFirst} from 'ts-extras';
-
-const tuple = ['abc', 123, true] as const;
-const first = arrayFirst(tuple);
-//=> 'abc'
-//   ^? 'abc'
-
-const array = ['a', 'b', 'c'];
-const maybeFirst = arrayFirst(array);
-//=> 'a'
-//   ^? string | undefined
-
-// Empty arrays
-const empty: string[] = [];
-const noFirst = arrayFirst(empty);
-//=> undefined
-//   ^? string | undefined
-```
-
-@category Improved builtin
-*/
+ * Return the first item of an array with stronger typing for tuples.
+ *
+ * This mirrors getting `array[0]` but with better type safety and handling for
+ * empty arrays.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {arrayFirst} from 'ts-extras';
+ *
+ *  const tuple = ['abc', 123, true] as const;
+ *  const first = arrayFirst(tuple);
+ *  //=> 'abc'
+ *  //   ^? 'abc'
+ *
+ *  const array = ['a', 'b', 'c'];
+ *  const maybeFirst = arrayFirst(array);
+ *  //=> 'a'
+ *  //   ^? string | undefined
+ *
+ *  // Empty arrays
+ *  const empty: string[] = [];
+ *  const noFirst = arrayFirst(empty);
+ *  //=> undefined
+ *  //   ^? string | undefined
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R006

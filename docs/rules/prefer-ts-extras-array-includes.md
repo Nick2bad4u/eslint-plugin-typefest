@@ -50,7 +50,7 @@ const hasStatus = arrayIncludes(statuses, inputStatus);
 
 ```ts
 if (roles.includes(candidate)) {
-    grantAccess(candidate);
+ grantAccess(candidate);
 }
 ```
 
@@ -58,7 +58,7 @@ if (roles.includes(candidate)) {
 
 ```ts
 if (arrayIncludes(roles, candidate)) {
-    grantAccess(candidate);
+ grantAccess(candidate);
 }
 ```
 
@@ -74,12 +74,12 @@ const isKnownStatus = arrayIncludes(statuses, value);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-includes": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-includes": "error",
+  },
+ },
 ];
 ```
 
@@ -95,30 +95,34 @@ Source file: [`source/array-includes.ts`](https://github.com/sindresorhus/ts-ext
 
 ````ts
 /**
-A strongly-typed version of `Array#includes()` that properly acts as a type guard.
-
-When `arrayIncludes` returns `true`, the type is narrowed to the array's element type.
-When it returns `false`, the type remains unchanged (i.e., `unknown` stays `unknown`).
-
-It was [rejected](https://github.com/microsoft/TypeScript/issues/26255#issuecomment-748211891) from being done in TypeScript itself.
-
-@example
-```
-import {arrayIncludes} from 'ts-extras';
-
-const values = ['a', 'b', 'c'] as const;
-const valueToCheck: unknown = 'a';
-
-if (arrayIncludes(values, valueToCheck)) {
-    // We now know that the value is of type `typeof values[number]`.
-} else {
-    // The value remains `unknown`.
-}
-```
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Array#includes()` that properly acts as a type
+ * guard.
+ *
+ * When `arrayIncludes` returns `true`, the type is narrowed to the array's
+ * element type. When it returns `false`, the type remains unchanged (i.e.,
+ * `unknown` stays `unknown`).
+ *
+ * It was
+ * [rejected](https://github.com/microsoft/TypeScript/issues/26255#issuecomment-748211891)
+ * from being done in TypeScript itself.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {arrayIncludes} from 'ts-extras';
+ *
+ *  const values = ['a', 'b', 'c'] as const;
+ *  const valueToCheck: unknown = 'a';
+ *
+ *  if (arrayIncludes(values, valueToCheck)) {
+ *  // We now know that the value is of type `typeof values[number]`.
+ *  } else {
+ *  // The value remains `unknown`.
+ *  }
+ *  ```
+ */
 ````
 
 > **Rule catalog ID:** R007

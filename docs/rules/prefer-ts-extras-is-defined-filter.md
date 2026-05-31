@@ -74,12 +74,12 @@ const values = readings.filter(isDefined);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-defined-filter": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-defined-filter": "error",
+  },
+ },
 ];
 ```
 
@@ -95,20 +95,21 @@ Source file: [`source/is-defined.ts`](https://github.com/sindresorhus/ts-extras/
 
 ````ts
 /**
-Check whether a value is defined, meaning it is not `undefined`.
-
-This can be useful as a type guard, as for example, `[1, undefined].filter(Boolean)` does not always type-guard correctly.
-
-@example
-```
-import {isDefined} from 'ts-extras';
-
-[1, undefined, 2].filter(isDefined);
-//=> [1, 2]
-```
-
-@category Type guard
-*/
+ * Check whether a value is defined, meaning it is not `undefined`.
+ *
+ * This can be useful as a type guard, as for example, `[1,
+ * undefined].filter(Boolean)` does not always type-guard correctly.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isDefined} from 'ts-extras';
+ *
+ *  [1, undefined, 2].filter(isDefined);
+ *  //=> [1, 2]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R015

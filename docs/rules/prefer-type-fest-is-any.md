@@ -63,12 +63,12 @@ type Result<T> = IsAny<T>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-is-any": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-is-any": "error",
+  },
+ },
 ];
 ```
 

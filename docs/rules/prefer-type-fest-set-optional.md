@@ -72,12 +72,12 @@ type PartialAddress = SetOptional<Address, "line2">;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-set-optional": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-set-optional": "error",
+  },
+ },
 ];
 ```
 
@@ -93,30 +93,32 @@ Source file: [`source/set-optional.d.ts`](https://github.com/sindresorhus/type-f
 
 ````ts
 /**
-Create a type that makes the given keys optional. The remaining keys are kept as is. The sister of the `SetRequired` type.
-
-Use-case: You want to define a single model where the only thing that changes is whether or not some of the keys are optional.
-
-@example
-```
-import type {SetOptional} from 'type-fest';
-
-type Foo = {
-    a: number;
-    b?: string;
-    c: boolean;
-};
-
-type SomeOptional = SetOptional<Foo, 'b' | 'c'>;
-// type SomeOptional = {
-//     a: number;
-//     b?: string; // Was already optional and still is.
-//     c?: boolean; // Is now optional.
-// }
-```
-
-@category Object
-*/
+ * Create a type that makes the given keys optional. The remaining keys are kept
+ * as is. The sister of the `SetRequired` type.
+ *
+ * Use-case: You want to define a single model where the only thing that changes
+ * is whether or not some of the keys are optional.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {SetOptional} from 'type-fest';
+ *
+ *  type Foo = {
+ *      a: number;
+ *      b?: string;
+ *      c: boolean;
+ *  };
+ *
+ *  type SomeOptional = SetOptional<Foo, 'b' | 'c'>;
+ *  // type SomeOptional = {
+ *  //     a: number;
+ *  //     b?: string; // Was already optional and still is.
+ *  //     c?: boolean; // Is now optional.
+ *  // }
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R063

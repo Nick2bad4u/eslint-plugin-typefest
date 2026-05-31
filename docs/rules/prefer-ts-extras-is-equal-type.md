@@ -82,12 +82,12 @@ const payloadsAreEqual = isEqualType<ApiPayload, InternalPayload>();
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-equal-type": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-equal-type": "error",
+  },
+ },
 ];
 ```
 
@@ -103,31 +103,32 @@ Source file: [`source/is-equal-type.ts`](https://github.com/sindresorhus/ts-extr
 
 ````ts
 /**
-Check if two types are equal at compile time.
-
-Returns a boolean type (`true` or `false`) at compile time based on whether the types are equal.
-At runtime, this returns nothing (`void`) since it's purely a compile-time utility.
-
-@example
-```
-import {isEqualType} from 'ts-extras';
-
-// Type-level comparison
-const result1 = isEqualType<string, string>(); // Type: true
-const result2 = isEqualType<string, number>(); // Type: false
-
-// Value-level comparison
-const string1 = 'hello';
-const string2 = 'world';
-const number = 42;
-const result3 = isEqualType(string1, string2); // Type: true (both strings)
-const result4 = isEqualType(string1, number);  // Type: false (different types)
-```
-
-@note The runtime value is `void`. This function is designed for compile-time type checking only, not runtime behavior.
-
-@category Type guard
-*/
+ * Check if two types are equal at compile time.
+ *
+ * Returns a boolean type (`true` or `false`) at compile time based on whether
+ * the types are equal. At runtime, this returns nothing (`void`) since it's
+ * purely a compile-time utility.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isEqualType} from 'ts-extras';
+ *
+ *  // Type-level comparison
+ *  const result1 = isEqualType<string, string>(); // Type: true
+ *  const result2 = isEqualType<string, number>(); // Type: false
+ *
+ *  // Value-level comparison
+ *  const string1 = 'hello';
+ *  const string2 = 'world';
+ *  const number = 42;
+ *  const result3 = isEqualType(string1, string2); // Type: true (both strings)
+ *  const result4 = isEqualType(string1, number);  // Type: false (different types)
+ *  ```;
+ *
+ * @note The runtime value is `void`. This function is designed for compile-time type checking only, not runtime behavior.
+ */
 ````
 
 > **Rule catalog ID:** R017

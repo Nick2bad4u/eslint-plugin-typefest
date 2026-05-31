@@ -34,16 +34,16 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 
 ```ts
 type IndexOnly<ObjectType> = {
-    [Key in keyof ObjectType as {} extends Record<Key, unknown>
-        ? Key
-        : never]: ObjectType[Key];
+ [Key in keyof ObjectType as {} extends Record<Key, unknown>
+  ? Key
+  : never]: ObjectType[Key];
 };
 ```
 
 ## ✅ Correct
 
 ```ts
-import type {PickIndexSignature} from "type-fest";
+import type { PickIndexSignature } from "type-fest";
 
 type IndexOnly<ObjectType> = PickIndexSignature<ObjectType>;
 ```
@@ -73,7 +73,7 @@ TypeFest package documentation:
 Source file: [`source/pick-index-signature.d.ts`](https://github.com/sindresorhus/type-fest/blob/main/source/pick-index-signature.d.ts)
 
 ```ts
-import type {PickIndexSignature} from "type-fest";
+import type { PickIndexSignature } from "type-fest";
 
 type IndexOnly<ObjectType> = PickIndexSignature<ObjectType>;
 ```

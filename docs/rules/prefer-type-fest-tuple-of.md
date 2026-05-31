@@ -54,12 +54,12 @@ This rule accepts a single options object:
 
 ```ts
 type PreferTypeFestTupleOfOptions = {
-    /**
-     * Legacy alias names that this rule will report and replace.
-     *
-     * @default ["ReadonlyTuple", "Tuple"]
-     */
-    enforcedAliasNames?: ("ReadonlyTuple" | "Tuple")[];
+ /**
+  * Legacy alias names that this rule will report and replace.
+  *
+  * @default ["ReadonlyTuple", "Tuple"]
+  */
+ enforcedAliasNames?: ("ReadonlyTuple" | "Tuple")[];
 };
 ```
 
@@ -77,15 +77,15 @@ Flat config setup (default behavior):
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-tuple-of": [
-                "error",
-                { enforcedAliasNames: ["ReadonlyTuple", "Tuple"] },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-tuple-of": [
+    "error",
+    { enforcedAliasNames: ["ReadonlyTuple", "Tuple"] },
+   ],
+  },
+ },
 ];
 ```
 
@@ -101,15 +101,15 @@ Reports only `Tuple` and ignores `ReadonlyTuple`:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-tuple-of": [
-                "error",
-                { enforcedAliasNames: ["Tuple"] },
-            ],
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-tuple-of": [
+    "error",
+    { enforcedAliasNames: ["Tuple"] },
+   ],
+  },
+ },
 ];
 ```
 
@@ -150,12 +150,12 @@ type RGB = TupleOf<3, number>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-tuple-of": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-tuple-of": "error",
+  },
+ },
 ];
 ```
 
@@ -171,69 +171,70 @@ Source file: [`source/tuple-of.d.ts`](https://github.com/sindresorhus/type-fest/
 
 ````ts
 /**
-Create a tuple type of the specified length with elements of the specified type.
-
-@example
-```
-import type {TupleOf} from 'type-fest';
-
-type RGB = TupleOf<3, number>;
-//=> [number, number, number]
-
-type Line = TupleOf<2, {x: number; y: number}>;
-//=> [{x: number; y: number}, {x: number; y: number}]
-
-type TicTacToeBoard = TupleOf<3, TupleOf<3, 'X' | 'O' | null>>;
-//=> [['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null], ['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null], ['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null]]
-```
-
-@example
-```
-import type {TupleOf} from 'type-fest';
-
-type Range<Start extends number, End extends number> = Exclude<keyof TupleOf<End>, keyof TupleOf<Start>>;
-
-type ZeroToFour = Range<0, 5>;
-//=> '0' | '1' | '2' | '3' | '4'
-
-type ThreeToEight = Range<3, 9>;
-//=> '5' | '3' | '4' | '6' | '7' | '8'
-```
-
-Note: If the specified length is the non-literal `number` type, the result will not be a tuple but a regular array.
-
-@example
-```
-import type {TupleOf} from 'type-fest';
-
-type StringArray = TupleOf<number, string>;
-//=> string[]
-```
-
-Note: If the type for elements is not specified, it will default to `unknown`.
-
-@example
-```
-import type {TupleOf} from 'type-fest';
-
-type UnknownTriplet = TupleOf<3>;
-//=> [unknown, unknown, unknown]
-```
-
-Note: If the specified length is negative, the result will be an empty tuple.
-
-@example
-```
-import type {TupleOf} from 'type-fest';
-
-type EmptyTuple = TupleOf<-3, string>;
-//=> []
-```
-
-Note: If you need a readonly tuple, simply wrap this type with `Readonly`, for example, to create `readonly [number, number, number]` use `Readonly<TupleOf<3, number>>`.
-
-@category Array
-*/
+ * Create a tuple type of the specified length with elements of the specified
+ * type.
+ *
+ * @category Array
+ *
+ * @example
+ *  ```
+ *  import type {TupleOf} from 'type-fest';
+ *
+ *  type RGB = TupleOf<3, number>;
+ *  //=> [number, number, number]
+ *
+ *  type Line = TupleOf<2, {x: number; y: number}>;
+ *  //=> [{x: number; y: number}, {x: number; y: number}]
+ *
+ *  type TicTacToeBoard = TupleOf<3, TupleOf<3, 'X' | 'O' | null>>;
+ *  //=> [['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null], ['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null], ['X' | 'O' | null, 'X' | 'O' | null, 'X' | 'O' | null]]
+ *  ```;
+ *
+ * @example
+ *  ```
+ *  import type {TupleOf} from 'type-fest';
+ *
+ *  type Range<Start extends number, End extends number> = Exclude<keyof TupleOf<End>, keyof TupleOf<Start>>;
+ *
+ *  type ZeroToFour = Range<0, 5>;
+ *  //=> '0' | '1' | '2' | '3' | '4'
+ *
+ *  type ThreeToEight = Range<3, 9>;
+ *  //=> '5' | '3' | '4' | '6' | '7' | '8'
+ *  ```
+ *
+ *  Note: If the specified length is the non-literal `number` type, the result will not be a tuple but a regular array.
+ *
+ * @example
+ *  ```
+ *  import type {TupleOf} from 'type-fest';
+ *
+ *  type StringArray = TupleOf<number, string>;
+ *  //=> string[]
+ *  ```
+ *
+ *  Note: If the type for elements is not specified, it will default to `unknown`.
+ *
+ * @example
+ *  ```
+ *  import type {TupleOf} from 'type-fest';
+ *
+ *  type UnknownTriplet = TupleOf<3>;
+ *  //=> [unknown, unknown, unknown]
+ *  ```
+ *
+ *  Note: If the specified length is negative, the result will be an empty tuple.
+ *
+ * @example
+ *  ```
+ *  import type {TupleOf} from 'type-fest';
+ *
+ *  type EmptyTuple = TupleOf<-3, string>;
+ *  //=> []
+ *  ```
+ *
+ *  Note: If you need a readonly tuple, simply wrap this type with `Readonly`, for example, to create `readonly [number, number, number]` use `Readonly<TupleOf<3, number>>`.
+ */
 ````
 
 > **Rule catalog ID:** R068

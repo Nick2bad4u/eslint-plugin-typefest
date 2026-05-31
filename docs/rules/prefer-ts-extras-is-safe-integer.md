@@ -50,7 +50,7 @@ const isSafe = isSafeInteger(value);
 
 ```ts
 if (Number.isSafeInteger(quantity)) {
-    persist(quantity);
+ persist(quantity);
 }
 ```
 
@@ -58,7 +58,7 @@ if (Number.isSafeInteger(quantity)) {
 
 ```ts
 if (isSafeInteger(quantity)) {
-    persist(quantity);
+ persist(quantity);
 }
 ```
 
@@ -74,12 +74,12 @@ const supported = isSafeInteger(index);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-safe-integer": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-safe-integer": "error",
+  },
+ },
 ];
 ```
 
@@ -95,11 +95,11 @@ Source file: [`source/is-safe-integer.ts`](https://github.com/sindresorhus/ts-ex
 
 ```ts
 /**
-A strongly-typed version of `Number.isSafeInteger()`.
-
-@category Improved builtin
-@category Type guard
-*/
+ * A strongly-typed version of `Number.isSafeInteger()`.
+ *
+ * @category Improved builtin
+ * @category Type guard
+ */
 ```
 
 > **Rule catalog ID:** R023

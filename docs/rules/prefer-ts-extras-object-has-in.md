@@ -28,7 +28,7 @@ This rule reports `Reflect.has(object, key)` calls that can be replaced with `ob
 
 ```ts
 if (Reflect.has(record, key)) {
-    console.log(record[key as keyof typeof record]);
+ console.log(record[key as keyof typeof record]);
 }
 ```
 
@@ -36,7 +36,7 @@ if (Reflect.has(record, key)) {
 
 ```ts
 if (objectHasIn(record, key)) {
-    console.log(record[key]);
+ console.log(record[key]);
 }
 ```
 
@@ -52,7 +52,7 @@ if (objectHasIn(record, key)) {
 
 ```ts
 if (Reflect.has(input, "name")) {
-    console.log((input as { name: unknown }).name);
+ console.log((input as { name: unknown }).name);
 }
 ```
 
@@ -60,7 +60,7 @@ if (Reflect.has(input, "name")) {
 
 ```ts
 if (objectHasIn(input, "name")) {
-    console.log(input.name);
+ console.log(input.name);
 }
 ```
 
@@ -76,12 +76,12 @@ const canAccess = objectHasIn(candidate, key);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-object-has-in": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-object-has-in": "error",
+  },
+ },
 ];
 ```
 
@@ -97,34 +97,38 @@ Source file: [`source/object-has-in.ts`](https://github.com/sindresorhus/ts-extr
 
 ````ts
 /**
-Check if an object has a property (including inherited) and narrow the object type.
-
-This function performs __object narrowing__ - it adds the checked property to the object's type, allowing safe property access. Uses the `in` operator to check the entire prototype chain.
-
-Unlike `objectHasOwn` (own properties only) and `keyIn` (key narrowing), this narrows the _object_ type to include inherited properties.
-
-@example
-```
-import {objectHasIn} from 'ts-extras';
-
-const data: unknown = {foo: 1};
-
-if (objectHasIn(data, 'foo')) {
-    // `data` is now: unknown & {foo: unknown}
-    console.log(data.foo); // Safe access
-}
-
-// Also checks prototype chain
-if (objectHasIn(data, 'toString')) {
-    // `data` is now: unknown & {toString: unknown}
-    console.log(data.toString); // Safe access to inherited method
-}
-```
-
-@note This uses the `in` operator and checks the entire prototype chain, but blocks `__proto__` and `constructor` for security.
-
-@category Type guard
-*/
+ * Check if an object has a property (including inherited) and narrow the object
+ * type.
+ *
+ * This function performs **object narrowing** - it adds the checked property to
+ * the object's type, allowing safe property access. Uses the `in` operator to
+ * check the entire prototype chain.
+ *
+ * Unlike `objectHasOwn` (own properties only) and `keyIn` (key narrowing), this
+ * narrows the _object_ type to include inherited properties.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {objectHasIn} from 'ts-extras';
+ *
+ *  const data: unknown = {foo: 1};
+ *
+ *  if (objectHasIn(data, 'foo')) {
+ *  // `data` is now: unknown & {foo: unknown}
+ *  console.log(data.foo); // Safe access
+ *  }
+ *
+ *  // Also checks prototype chain
+ *  if (objectHasIn(data, 'toString')) {
+ *  // `data` is now: unknown & {toString: unknown}
+ *  console.log(data.toString); // Safe access to inherited method
+ *  }
+ *  ```
+ *
+ * @note This uses the `in` operator and checks the entire prototype chain, but blocks `__proto__` and `constructor` for security.
+ */
 ````
 
 > **Rule catalog ID:** R028

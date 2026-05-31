@@ -16,14 +16,14 @@ Then enable it in your Flat Config:
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: {
-            typefest,
-        },
-        rules: {
-            "typefest/prefer-ts-extras-is-defined": "error",
-        },
-    },
+ {
+  plugins: {
+   typefest,
+  },
+  rules: {
+   "typefest/prefer-ts-extras-is-defined": "error",
+  },
+ },
 ];
 ```
 

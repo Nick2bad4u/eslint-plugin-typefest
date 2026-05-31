@@ -68,12 +68,12 @@ const lastStep = arrayLast(steps);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-array-last": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-array-last": "error",
+  },
+ },
 ];
 ```
 
@@ -89,33 +89,34 @@ Source file: [`source/array-last.ts`](https://github.com/sindresorhus/ts-extras/
 
 ````ts
 /**
-Return the last item of an array with stronger typing for tuples.
-
-This provides better type safety than `array[array.length - 1]` or `array.at(-1)`.
-
-@example
-```
-import {arrayLast} from 'ts-extras';
-
-const tuple = ['abc', 123, true] as const;
-const last = arrayLast(tuple);
-//=> true
-//   ^? true
-
-const array = ['a', 'b', 'c'];
-const maybeLast = arrayLast(array);
-//=> 'c'
-//   ^? string | undefined
-
-// Empty arrays
-const empty: string[] = [];
-const noLast = arrayLast(empty);
-//=> undefined
-//   ^? string | undefined
-```
-
-@category Improved builtin
-*/
+ * Return the last item of an array with stronger typing for tuples.
+ *
+ * This provides better type safety than `array[array.length - 1]` or
+ * `array.at(-1)`.
+ *
+ * @category Improved builtin
+ *
+ * @example
+ *  ```
+ *  import {arrayLast} from 'ts-extras';
+ *
+ *  const tuple = ['abc', 123, true] as const;
+ *  const last = arrayLast(tuple);
+ *  //=> true
+ *  //   ^? true
+ *
+ *  const array = ['a', 'b', 'c'];
+ *  const maybeLast = arrayLast(array);
+ *  //=> 'c'
+ *  //   ^? string | undefined
+ *
+ *  // Empty arrays
+ *  const empty: string[] = [];
+ *  const noLast = arrayLast(empty);
+ *  //=> undefined
+ *  //   ^? string | undefined
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R009

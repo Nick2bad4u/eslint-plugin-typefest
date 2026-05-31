@@ -48,12 +48,12 @@ type StrictConfig = NonNullableDeep<Config>;
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-type-fest-non-nullable-deep": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-type-fest-non-nullable-deep": "error",
+  },
+ },
 ];
 ```
 
@@ -69,27 +69,28 @@ Source file: [`source/non-nullable-deep.d.ts`](https://github.com/sindresorhus/t
 
 ````ts
 /**
-Deeply remove `null` and `undefined` from all properties of `T`.
-
-Use-cases:
-- Removing optional and nullable markers after a data-hydration step.
-- Ensuring a configuration object has all required values present.
-
-@example
-```
-import type {NonNullableDeep} from 'type-fest';
-
-interface Config {
-    host: string | null;
-    port: number | undefined;
-}
-
-type StrictConfig = NonNullableDeep<Config>;
-// => { host: string; port: number }
-```
-
-@category Object
-*/
+ * Deeply remove `null` and `undefined` from all properties of `T`.
+ *
+ * Use-cases:
+ *
+ * - Removing optional and nullable markers after a data-hydration step.
+ * - Ensuring a configuration object has all required values present.
+ *
+ * @category Object
+ *
+ * @example
+ *  ```
+ *  import type {NonNullableDeep} from 'type-fest';
+ *
+ *  interface Config {
+ *      host: string | null;
+ *      port: number | undefined;
+ *  }
+ *
+ *  type StrictConfig = NonNullableDeep<Config>;
+ *  // => { host: string; port: number }
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R098

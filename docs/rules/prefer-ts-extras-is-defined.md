@@ -38,11 +38,11 @@ This rule reports direct undefined comparisons that should use `isDefined(...)` 
 
 ```ts
 if (value !== undefined) {
-    consume(value);
+ consume(value);
 }
 
 if (value === undefined) {
-    return;
+ return;
 }
 ```
 
@@ -50,11 +50,11 @@ if (value === undefined) {
 
 ```ts
 if (isDefined(value)) {
-    consume(value);
+ consume(value);
 }
 
 if (!isDefined(value)) {
-    return;
+ return;
 }
 ```
 
@@ -72,7 +72,7 @@ if (!isDefined(value)) {
 
 ```ts
 if (sessionId !== undefined) {
-    connect(sessionId);
+ connect(sessionId);
 }
 ```
 
@@ -80,7 +80,7 @@ if (sessionId !== undefined) {
 
 ```ts
 if (isDefined(sessionId)) {
-    connect(sessionId);
+ connect(sessionId);
 }
 ```
 
@@ -96,12 +96,12 @@ const hasValue = isDefined(input);
 import typefest from "eslint-plugin-typefest";
 
 export default [
-    {
-        plugins: { typefest },
-        rules: {
-            "typefest/prefer-ts-extras-is-defined": "error",
-        },
-    },
+ {
+  plugins: { typefest },
+  rules: {
+   "typefest/prefer-ts-extras-is-defined": "error",
+  },
+ },
 ];
 ```
 
@@ -117,20 +117,21 @@ Source file: [`source/is-defined.ts`](https://github.com/sindresorhus/ts-extras/
 
 ````ts
 /**
-Check whether a value is defined, meaning it is not `undefined`.
-
-This can be useful as a type guard, as for example, `[1, undefined].filter(Boolean)` does not always type-guard correctly.
-
-@example
-```
-import {isDefined} from 'ts-extras';
-
-[1, undefined, 2].filter(isDefined);
-//=> [1, 2]
-```
-
-@category Type guard
-*/
+ * Check whether a value is defined, meaning it is not `undefined`.
+ *
+ * This can be useful as a type guard, as for example, `[1,
+ * undefined].filter(Boolean)` does not always type-guard correctly.
+ *
+ * @category Type guard
+ *
+ * @example
+ *  ```
+ *  import {isDefined} from 'ts-extras';
+ *
+ *  [1, undefined, 2].filter(isDefined);
+ *  //=> [1, 2]
+ *  ```;
+ */
 ````
 
 > **Rule catalog ID:** R014
