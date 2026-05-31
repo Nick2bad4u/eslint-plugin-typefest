@@ -118,6 +118,10 @@ Verdict legend:
   `PartialOnUndefinedDeep`.
 - `UnwrapPartial` — **Do not implement:** Manual versions usually appear inside
   larger recursive helpers, not as isolated reportable aliases.
+- `UnwrapRequired` — **Do not implement:** Like `UnwrapPartial`, this is usually
+  embedded in larger object-transform helpers. TypeFest also explicitly leaves
+  primitives, maps, sets, and arrays unchanged, so a simple
+  `T extends Required<infer U> ? U : T` rewrite would not be equivalent.
 - `InvariantOf` — **Do not implement:** Invariance helpers rely on branding
   tricks that are too easy to get subtly wrong.
 - `SetRequiredDeep` — **Do not implement:** Deep mapped transforms are already in
@@ -271,7 +275,11 @@ Verdict legend:
 - `StringRepeat` — **Do not implement:** Recursive string builders are not a
   stable lint target.
 - `RemovePrefix` — **Consider:** Exact `${Prefix}${infer Rest}` aliases may be
-  reportable, but only with no custom fallback semantics.
+  reportable, but only with no custom fallback semantics. TypeFest's strict
+  non-literal-prefix fallback makes broad autofix unsafe.
+- `RemoveSuffix` — **Consider:** Same scope as `RemovePrefix`; exact
+  `${infer Rest}${Suffix}` aliases may be reportable, but only when custom
+  fallback behavior and non-literal suffix handling are not present.
 
 ### Array and tuple types
 
@@ -368,7 +376,8 @@ Verdict legend:
   `PackageJson` or equivalent project-specific migration patterns.
 - `TsConfigJson` — **Consider:** Same constraints as `PackageJson`.
 - `ExtendsStrict` — **Consider:** Opt-in only; document the stricter semantics
-  and avoid replacing ordinary conditional types.
+  and its options for union distribution, `never`, and `any`. Avoid replacing
+  ordinary conditional types.
 - `ExtractStrict` — **Consider:** Opt-in only; replace explicitly named local
   strict helpers, not normal `Extract`.
 - `ExcludeStrict` — **Consider:** Opt-in only; replace explicitly named local

@@ -58,17 +58,17 @@
         "@docusaurus/preset-classic": "^3.10.1",
         "@docusaurus/theme-mermaid": "^3.10.1",
         "@docusaurus/types": "^3.10.1",
-        "@easyops-cn/docusaurus-search-local": "^0.55.1",
-        "@rspack/binding-linux-x64-gnu": "^2.0.3",
+        "@easyops-cn/docusaurus-search-local": "^0.55.2",
+        "@rspack/binding-linux-x64-gnu": "^2.0.5",
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1"
     },
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.10.1",
         "@docusaurus/tsconfig": "^3.10.1",
-        "@eslint/config-inspector": "^3.0.2",
+        "@eslint/config-inspector": "^3.0.4",
         "@mdx-js/react": "^3.1.1",
-        "@types/react": "^19.2.14",
+        "@types/react": "^19.2.15",
         "@types/react-dom": "^19.2.3",
         "docusaurus-plugin-image-zoom": "^3.0.1",
         "react": "^19.2.6",
@@ -78,7 +78,7 @@
         "typedoc": "^0.28.19",
         "typedoc-docusaurus-theme": "^1.4.2",
         "typedoc-plugin-coverage": "^4.0.3",
-        "typedoc-plugin-dt-links": "^2.0.55",
+        "typedoc-plugin-dt-links": "^2.0.57",
         "typedoc-plugin-external-package-links": "^0.2.0",
         "typedoc-plugin-markdown": "^4.11.0",
         "typedoc-plugin-mdn-links": "^5.1.1",
@@ -92,7 +92,7 @@
         "react": "^19.2.4",
         "react-dom": "^19.2.4"
     },
-    "packageManager": "npm@11.14.1",
+    "packageManager": "npm@11.16.0",
     "engines": {
         "node": ">=22.0.0"
     },
