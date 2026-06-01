@@ -544,7 +544,7 @@ describe("prefer-ts-extras-is-defined-filter internal listener guards", () => {
                                 ? fixFactoryCallCount === 1
                                 : reportFix === undefined ||
                                       typeof reportFix === "function"
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         const fixedCode = `${code.slice(
                             0,

@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-safe-cast-to.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import ts from "typescript";
 import { describe, expect, it, vi } from "vitest";
@@ -810,7 +808,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                             !fixArguments ||
                                 createSafeValueNodeTextReplacementFixMock.mock
                                     .calls.length === 1
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         if (fixArguments) {
                             replacementText =

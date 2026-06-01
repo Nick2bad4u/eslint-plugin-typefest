@@ -140,6 +140,47 @@ const normalizeTypefestConfigReferences = (
 };
 
 /**
+ * Validate dynamic `meta.docs.typefestConfigs` values.
+ */
+const getRuleDocsTypefestConfigs = (
+    ruleName: string,
+    typefestConfigs: unknown
+): TypefestRuleDocsContract["typefestConfigs"] => {
+    if (typeof typefestConfigs === "string") {
+        if (!isTypefestConfigReference(typefestConfigs)) {
+            throw new TypeError(
+                `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${typefestConfigs}'.`
+            );
+        }
+
+        return typefestConfigs;
+    }
+
+    if (!Array.isArray(typefestConfigs)) {
+        throw new TypeError(
+            `Rule '${ruleName}' must declare docs.typefestConfigs as a preset reference or array.`
+        );
+    }
+
+    const normalizedTypefestConfigs: TypefestConfigReference[] = [];
+
+    for (const candidate of typefestConfigs) {
+        if (
+            typeof candidate !== "string" ||
+            !isTypefestConfigReference(candidate)
+        ) {
+            throw new TypeError(
+                `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${String(candidate)}'.`
+            );
+        }
+
+        normalizedTypefestConfigs.push(candidate);
+    }
+
+    return normalizedTypefestConfigs;
+};
+
+/**
  * Validate and narrow dynamic `meta.docs` values to the plugin docs contract.
  */
 const getRuleDocsContract = (
@@ -209,52 +250,13 @@ const getRuleDocsContract = (
         );
     }
 
-    if (typeof typefestConfigs === "string") {
-        if (!isTypefestConfigReference(typefestConfigs)) {
-            throw new TypeError(
-                `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${typefestConfigs}'.`
-            );
-        }
-
-        return {
-            description,
-            recommended,
-            requiresTypeChecking,
-            ruleId,
-            ruleNumber,
-            typefestConfigs,
-            url,
-        };
-    }
-
-    if (!Array.isArray(typefestConfigs)) {
-        throw new TypeError(
-            `Rule '${ruleName}' must declare docs.typefestConfigs as a preset reference or array.`
-        );
-    }
-
-    const normalizedTypefestConfigs: TypefestConfigReference[] = [];
-
-    for (const candidate of typefestConfigs) {
-        if (
-            typeof candidate !== "string" ||
-            !isTypefestConfigReference(candidate)
-        ) {
-            throw new TypeError(
-                `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${String(candidate)}'.`
-            );
-        }
-
-        normalizedTypefestConfigs.push(candidate);
-    }
-
     return {
         description,
         recommended,
         requiresTypeChecking,
         ruleId,
         ruleNumber,
-        typefestConfigs: normalizedTypefestConfigs,
+        typefestConfigs: getRuleDocsTypefestConfigs(ruleName, typefestConfigs),
         url,
     };
 };

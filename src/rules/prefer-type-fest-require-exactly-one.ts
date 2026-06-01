@@ -1,12 +1,11 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type { ArrayValues } from "type-fest";
+
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-require-exactly-one`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,

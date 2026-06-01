@@ -2,9 +2,7 @@
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
-import type { ParserOptions } from "@typescript-eslint/parser";
-
-import tsParser from "@typescript-eslint/parser";
+import tsParser, { type ParserOptions } from "@typescript-eslint/parser";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";

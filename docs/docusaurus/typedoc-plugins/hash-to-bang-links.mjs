@@ -21,7 +21,7 @@
 
 import { Converter } from "typedoc";
 
-import { convertHashLinksToBangLinksInComment } from "./hashToBangLinksCore.mjs";
+import { convertHashLinksToBangLinksInComment } from "./hash-to-bang-links-core.mjs";
 
 // TypeDoc's built-in LinkResolverPlugin runs at priority -300. This plugin must
 // run before it, so our priority must be > -300.
@@ -31,6 +31,8 @@ const RUN_BEFORE_LINK_RESOLVER_PRIORITY = 50;
  * TypeDoc plugin entrypoint.
  *
  * @param {import("typedoc").Application} app
+ *
+ * @returns {void}
  */
 export function load(app) {
     // Run before TypeDoc's built-in LinkResolverPlugin (priority -300).

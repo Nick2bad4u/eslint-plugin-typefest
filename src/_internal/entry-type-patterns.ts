@@ -1,10 +1,12 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Shared AST matchers for object entry-pair type aliases.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayAt, arrayFirst } from "ts-extras";
 
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";

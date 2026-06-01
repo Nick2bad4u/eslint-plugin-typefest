@@ -3,10 +3,12 @@
  * AST and fixer harness helpers for `prefer-ts-extras-is-defined` tests.
  */
 
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import fc from "fast-check";
 
 import { isSafeGeneratedIdentifier } from "./fast-check";

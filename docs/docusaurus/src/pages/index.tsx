@@ -1,29 +1,31 @@
+import type { JSX } from "react";
+
 import Head from "@docusaurus/Head";
 import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
-import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
-import GitHubStats from "../components/GitHubStats";
+import Layout from "@theme/Layout";
 
+import GitHubStats from "../components/GitHubStats";
 import styles from "./index.module.css";
 
-type HeroBadge = {
+interface HeroBadge {
     readonly description: string;
     readonly icon: string;
     readonly label: string;
-};
+}
 
-type HeroStat = {
+interface HeroStat {
     readonly description: string;
     readonly headline: string;
-};
+}
 
-type HomeCard = {
+interface HomeCard {
     readonly description: string;
     readonly icon: string;
     readonly title: string;
     readonly to: string;
-};
+}
 
 /**
  * Hero badges Note: These icons are from the "Nerd Font Symbols" font.
@@ -33,17 +35,17 @@ type HomeCard = {
 const heroBadges = [
     {
         description: "Drop-in config for ESLint v9+ and modern repos.",
-        icon: "\uf013",
+        icon: "\uF013",
         label: "Flat Config native",
     },
     {
         description: "Type-aware guidance without sacrificing readability.",
-        icon: "\ue628",
+        icon: "\uE628",
         label: "TypeScript-first",
     },
     {
         description: "Clear diagnostics with safe autofixes and suggestions.",
-        icon: "\uf0ad",
+        icon: "\uF0AD",
         label: "Actionable rule docs",
     },
 ] as const satisfies readonly HeroBadge[];
@@ -56,15 +58,15 @@ const heroBadges = [
 const heroStats = [
     {
         description: "Type-safe patterns from type-fest and ts-extras.",
-        headline: "\uf0ca 70+ Rules",
+        headline: "\uF0CA 70+ Rules",
     },
     {
         description: "Start small, then scale to stricter coverage.",
-        headline: "\ue690 6 Presets",
+        headline: "\uE690 6 Presets",
     },
     {
         description: "Safe rewrites where semantics are preserved.",
-        headline: "\udb80\udc68 DX-first Autofix & Suggestions",
+        headline: "\uDB80\uDC68 DX-first Autofix & Suggestions",
     },
 ] as const satisfies readonly HeroStat[];
 
@@ -73,10 +75,10 @@ const heroStats = [
  *
  * @see https://www.nerdfonts.com/cheat-sheet for available icons in the "Nerd Font Symbols" font
  */
-const overviewButtonIcon = "\udb81\udf1d";
-const comparePresetsButtonIcon = "\udb85\udc92";
-const heroKickerIcon = "\uf0ad";
-const heroKickerIcon2 = "\uf135";
+const overviewButtonIcon = "\uDB81\uDF1D";
+const comparePresetsButtonIcon = "\uDB85\uDC92";
+const heroKickerIcon = "\uF0AD";
+const heroKickerIcon2 = "\uF135";
 const packageName = "eslint-plugin-typefest";
 const homepageDescription = `Explore ${packageName} documentation, presets, and rule references for adopting type-fest and ts-extras patterns in modern TypeScript projects.`;
 const homepageKeywords = `${packageName}, type-fest, ts-extras, eslint rules, typescript linting, flat config`;
@@ -104,24 +106,24 @@ const homepageSocialImageUrl = `https://nick2bad4u.github.io/${packageName}/img/
  */
 const homeCards = [
     {
-        icon: "\uf135",
-        title: "Get Started",
         description:
             "Install the plugin, enable a preset, and start enforcing type-safe ts-extras and type-fest patterns.",
+        icon: "\uF135",
+        title: "Get Started",
         to: "/docs/rules/getting-started",
     },
     {
-        icon: "\ue690",
-        title: "Presets",
         description:
             "Choose the right preset for your team, from minimal baseline to full strict coverage.",
+        icon: "\uE690",
+        title: "Presets",
         to: "/docs/rules/presets",
     },
     {
-        icon: "\uf02d",
-        title: "Rule Reference",
         description:
             "Browse every rule with concrete incorrect/correct examples and migration guidance.",
+        icon: "\uF02D",
+        title: "Rule Reference",
         to: "/docs/rules",
     },
 ] as const satisfies readonly HomeCard[];
@@ -129,13 +131,13 @@ const homeCards = [
 /**
  * Render the Docusaurus landing page for the documentation site.
  */
-export default function Home() {
+export default function Home(): JSX.Element {
     const logoSrc = useBaseUrl("/img/logo.svg");
 
     return (
         <Layout
-            title="Type-safe ESLint rules for type-fest and ts-extras"
             description={homepageDescription}
+            title="Type-safe ESLint rules for type-fest and ts-extras"
         >
             <Head>
                 <meta content={homepageKeywords} name="keywords" />
@@ -163,8 +165,8 @@ export default function Home() {
                                 <Link
                                     className={`${styles.heroInlineLink} ${styles.heroInlineLinkTypeFest}`}
                                     href="https://github.com/sindresorhus/type-fest"
-                                    target="_blank"
                                     rel="noopener noreferrer"
+                                    target="_blank"
                                 >
                                     type-fest
                                 </Link>{" "}
@@ -172,8 +174,8 @@ export default function Home() {
                                 <Link
                                     className={`${styles.heroInlineLink} ${styles.heroInlineLinkTsExtras}`}
                                     href="https://github.com/sindresorhus/ts-extras"
-                                    target="_blank"
                                     rel="noopener noreferrer"
+                                    target="_blank"
                                 >
                                     ts-extras
                                 </Link>
@@ -182,8 +184,8 @@ export default function Home() {
                             <div className={styles.heroBadgeRow}>
                                 {heroBadges.map((badge) => (
                                     <article
-                                        key={badge.label}
                                         className={styles.heroBadge}
+                                        key={badge.label}
                                     >
                                         <p className={styles.heroBadgeLabel}>
                                             <span
@@ -239,8 +241,8 @@ export default function Home() {
                     <div className={styles.heroStats}>
                         {heroStats.map((stat) => (
                             <article
-                                key={stat.headline}
                                 className={styles.heroStatCard}
+                                key={stat.headline}
                             >
                                 <p className={styles.heroStatHeading}>
                                     {stat.headline}
@@ -258,7 +260,7 @@ export default function Home() {
                 <section className="container">
                     <div className={styles.cardGrid}>
                         {homeCards.map((card) => (
-                            <article key={card.title} className={styles.card}>
+                            <article className={styles.card} key={card.title}>
                                 <div className={styles.cardHeader}>
                                     <p className={styles.cardIcon}>
                                         {card.icon}

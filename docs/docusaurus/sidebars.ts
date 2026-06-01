@@ -72,9 +72,11 @@ const sidebars = {
         {
             className: "sb-cat-developer-adr",
             collapsed: true,
+            collapsible: true,
             customProps: {
                 badge: "adr",
             },
+            description: `Architectural decisions and design rationale for ${packageName}.`,
             items: [
                 {
                     id: "developer/adr/index",
@@ -158,8 +160,6 @@ const sidebars = {
                 },
             ],
             label: "🧭 Architecture Decisions",
-            collapsible: true,
-            description: `Architectural decisions and design rationale for ${packageName}.`,
             link: {
                 id: "developer/adr/index",
                 type: "doc",
@@ -169,9 +169,12 @@ const sidebars = {
         {
             className: "sb-cat-dev-charts",
             collapsed: true,
+            collapsible: true,
             customProps: {
                 badge: "charts",
             },
+            description:
+                "Visual aids for understanding plugin architecture, processes, and policies.",
             items: [
                 {
                     id: "developer/charts/index",
@@ -255,9 +258,6 @@ const sidebars = {
                 },
             ],
             label: "Charts",
-            collapsible: true,
-            description:
-                "Visual aids for understanding plugin architecture, processes, and policies.",
             link: {
                 id: "developer/charts/index",
                 type: "doc",
@@ -268,11 +268,11 @@ const sidebars = {
             className: "sb-cat-api-types",
             collapsed: true,
             collapsible: true,
-            description:
-                "Type-level contracts and shared type aliases exposed by the plugin.",
             customProps: {
                 badge: "types",
             },
+            description:
+                "Type-level contracts and shared type aliases exposed by the plugin.",
             items: [
                 {
                     dirName: "developer/api/plugin/type-aliases",
@@ -292,11 +292,11 @@ const sidebars = {
             className: "sb-cat-api-runtime",
             collapsed: true,
             collapsible: true,
-            description:
-                "Runtime API references for rule authoring and plugin extension.",
             customProps: {
                 badge: "runtime",
             },
+            description:
+                "Runtime API references for rule authoring and plugin extension.",
             items: [
                 {
                     collapsed: true,
@@ -343,22 +343,22 @@ const sidebars = {
             items: [
                 {
                     href: "https://github.com/sindresorhus/ts-extras",
-                    label: "💠 \ue709 ts-extras",
+                    label: "💠 \uE709 ts-extras",
                     type: "link",
                 },
                 {
                     href: "https://www.npmjs.com/package/ts-extras",
-                    label: "💠 \ue616 ts-extras",
+                    label: "💠 \uE616 ts-extras",
                     type: "link",
                 },
                 {
                     href: "https://github.com/sindresorhus/type-fest",
-                    label: "✴️ \ue709 type-fest",
+                    label: "✴️ \uE709 type-fest",
                     type: "link",
                 },
                 {
                     href: "https://www.npmjs.com/package/type-fest",
-                    label: "✴️ \ue616 type-fest",
+                    label: "✴️ \uE616 type-fest",
                     type: "link",
                 },
                 {

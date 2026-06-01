@@ -1,12 +1,15 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { ArrayValues } from "type-fest";
+
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-tuple-of`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,

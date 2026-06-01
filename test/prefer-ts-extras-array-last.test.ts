@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-array-last.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -474,7 +472,7 @@ describe("prefer-ts-extras-array-last fast-check fix safety", () => {
                         expect(reportCalls[0]?.suggest?.[0]?.fix).toBe("FIX");
                         expect(
                             createMemberToFunctionCallFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
                     }
                 ),
                 fastCheckRunConfig.default

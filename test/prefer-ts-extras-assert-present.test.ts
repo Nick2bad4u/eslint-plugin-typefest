@@ -7,11 +7,6 @@ import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
-import type {
-    ReplaceTextOnlyFixer,
-    ReportDescriptor,
-} from "./_internal/prefer-ts-extras-assert-present-runtime-harness";
-
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import { createAssertPresentRuleTesterCases } from "./_internal/prefer-ts-extras-assert-present-rule-cases";
 import {
@@ -24,6 +19,8 @@ import {
     nonCanonicalThrowTemplateIdArbitrary,
     parseEnsureValueIfStatementFromCode,
     parserOptions,
+    type ReplaceTextOnlyFixer,
+    type ReportDescriptor,
     variableNameArbitrary,
 } from "./_internal/prefer-ts-extras-assert-present-runtime-harness";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
@@ -223,10 +220,10 @@ describe("prefer-ts-extras-assert-present runtime safety assertions", () => {
             expect(report).toHaveBeenCalledTimes(2);
             expect(
                 (report.mock.calls[0]?.[0] as { suggest?: unknown }).suggest
-            ).toBeDefined();
+            ).toHaveLength(1);
             expect(
                 (report.mock.calls[1]?.[0] as { suggest?: unknown }).suggest
-            ).toBeDefined();
+            ).toHaveLength(1);
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/normalize-expression-text.js");
@@ -348,7 +345,7 @@ describe("prefer-ts-extras-assert-present fast-check fix safety", () => {
                             directFix !== undefined ||
                                 reportCalls[0]?.suggest?.[0]?.messageId ===
                                     "suggestTsExtrasAssertPresent"
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         assertIsFixFunction(fixFunction);
 

@@ -93,6 +93,7 @@
         "traceResolution": false,
         "tsBuildInfoFile": "./.cache/tsbuildinfo/tsconfig.app.tsbuildinfo",
         "types": [
+            "node",
             "vite/client",
             "vitest/globals"
         ],
@@ -113,8 +114,11 @@
     "include": [
         "src/**/*.d.ts",
         "src/**/*.ts",
+        "docs/docusaurus/sidebars.rules.ts",
         "test/**/*.d.ts",
         "test/**/*.ts",
+        "knip.config.ts",
+        "vitest.stryker.config.ts",
         "vite.config.ts"
     ],
     "typeAcquisition": {

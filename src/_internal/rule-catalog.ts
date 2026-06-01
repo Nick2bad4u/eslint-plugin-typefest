@@ -27,7 +27,7 @@ type TypefestRuleNamePattern = `prefer-${string}`;
  * @remarks
  * Append new rules to preserve existing IDs.
  */
-/* eslint-disable perfectionist/sort-arrays -- Stable public catalog IDs depend on append-only ordering. */
+
 const orderedRuleNames = [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -156,7 +156,6 @@ const orderedRuleNames = [
     "prefer-type-fest-readonly-keys-of",
     "prefer-type-fest-writable-keys-of",
 ] as const satisfies readonly TypefestRuleNamePattern[];
-/* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting outside the stable public catalog. */
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>
     `R${String(ruleNumber).padStart(3, "0")}`;

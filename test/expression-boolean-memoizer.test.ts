@@ -26,9 +26,11 @@ describe(memoizeExpressionBooleanPredicate, () => {
         const memoizedPredicate = memoizeExpressionBooleanPredicate(evaluate);
         const expressionNode = createIdentifierExpression("value");
 
-        expect(memoizedPredicate(expressionNode)).toBeTruthy();
-        expect(memoizedPredicate(expressionNode)).toBeTruthy();
-        expect(evaluate).toHaveBeenCalledOnce();
+        expect([
+            memoizedPredicate(expressionNode),
+            memoizedPredicate(expressionNode),
+        ]).toStrictEqual([true, true]);
+        expect(evaluate).toHaveBeenCalledTimes(1);
     });
 
     it("caches false results and returns them without recomputation", () => {
@@ -39,9 +41,11 @@ describe(memoizeExpressionBooleanPredicate, () => {
         const memoizedPredicate = memoizeExpressionBooleanPredicate(evaluate);
         const expressionNode = createIdentifierExpression("other");
 
-        expect(memoizedPredicate(expressionNode)).toBeFalsy();
-        expect(memoizedPredicate(expressionNode)).toBeFalsy();
-        expect(evaluate).toHaveBeenCalledOnce();
+        expect([
+            memoizedPredicate(expressionNode),
+            memoizedPredicate(expressionNode),
+        ]).toStrictEqual([false, false]);
+        expect(evaluate).toHaveBeenCalledTimes(1);
     });
 
     it("keeps separate cache entries for different expression nodes", () => {
@@ -60,8 +64,8 @@ describe(memoizeExpressionBooleanPredicate, () => {
         const firstExpression = createIdentifierExpression("longName");
         const secondExpression = createIdentifierExpression("id");
 
-        expect(memoizedPredicate(firstExpression)).toBeTruthy();
-        expect(memoizedPredicate(secondExpression)).toBeFalsy();
+        expect(memoizedPredicate(firstExpression)).toBe(true);
+        expect(memoizedPredicate(secondExpression)).toBe(false);
         expect(evaluate).toHaveBeenCalledTimes(2);
     });
 });

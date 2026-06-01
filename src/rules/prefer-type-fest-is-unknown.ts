@@ -1,11 +1,13 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-is-unknown`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeTextReplacementFix,

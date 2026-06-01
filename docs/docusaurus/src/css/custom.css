@@ -172,21 +172,11 @@
     background-color: rgb(129 140 248 / 20%);
 }
 
-.sb-doc-overview > .menu__link,
-.sb-doc-getting-started > .menu__link,
-.sb-cat-developer > .menu__link,
-.sb-cat-developer-ops > .menu__link,
-.sb-cat-api-overview > .menu__list-item-collapsible .menu__link,
-.sb-cat-guides > .menu__list-item-collapsible .menu__link,
-.sb-cat-presets > .menu__list-item-collapsible .menu__link,
-.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
-.sb-cat-api-types > .menu__list-item-collapsible .menu__link,
-.sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
-.sb-cat-dev-charts > .menu__list-item-collapsible .menu__link,
-.sb-cat-dev-links > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules-type-fest > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules > .menu__list-item-collapsible .menu__link {
+.theme-doc-sidebar-menu li[class*="sb-"] > .menu__link,
+.theme-doc-sidebar-menu
+    li[class*="sb-"]
+    > .menu__list-item-collapsible
+    .menu__link {
     border-inline-start: 4px solid transparent;
     padding-inline-start: calc(var(--ifm-menu-link-padding-horizontal) - 4px);
 }
@@ -238,33 +228,20 @@
 }
 
 .sb-cat-developer > .menu__link,
-.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link,
-.sb-cat-presets > .menu__list-item-collapsible .menu__link,
-.sb-cat-guides > .menu__list-item-collapsible .menu__link,
-.sb-cat-api-types > .menu__list-item-collapsible .menu__link,
-.sb-cat-api-runtime > .menu__list-item-collapsible .menu__link,
-.sb-cat-dev-charts > .menu__list-item-collapsible .menu__link,
-.sb-cat-api-overview > .menu__list-item-collapsible .menu__link,
-.sb-cat-dev-links > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules-type-fest > .menu__list-item-collapsible .menu__link,
-.sb-cat-rules > .menu__list-item-collapsible .menu__link {
+.theme-doc-sidebar-menu
+    li[class*="sb-cat-"]
+    > .menu__list-item-collapsible
+    .menu__link {
     display: flex;
     align-items: center;
     gap: 0.4rem;
 }
 
 .sb-cat-developer > .menu__link::before,
-.sb-cat-developer-adr > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-presets > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-api-types > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-api-runtime > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-dev-charts > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-api-overview > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-dev-links > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-rules-ts-extras > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-rules-type-fest > .menu__list-item-collapsible .menu__link::before,
-.sb-cat-rules > .menu__list-item-collapsible .menu__link::before {
+.theme-doc-sidebar-menu
+    li[class*="sb-cat-"]
+    > .menu__list-item-collapsible
+    .menu__link::before {
     margin-inline-start: auto;
     padding: 0.07rem 0.45rem;
     border-radius: 999px;
@@ -556,24 +533,14 @@
     border-inline-start-color: #c026d3;
 }
 
-.sb-cat-api-overview .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-api-overview .menu__list .menu__link,
-.sb-cat-developer-adr .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-developer-adr .theme-doc-sidebar-item-link-level-3 > .menu__link,
-.sb-cat-presets .theme-doc-sidebar-item-link-level-2 > .menu__link,
+.theme-doc-sidebar-menu [class*="sb-cat-api-"] .menu__list .menu__link,
+.theme-doc-sidebar-menu [class*="sb-cat-dev-"] .menu__list .menu__link,
 .sb-cat-presets .menu__list .menu__link,
-.sb-cat-api-types .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-api-types .theme-doc-sidebar-item-link-level-3 > .menu__link,
-.sb-cat-api-types .theme-doc-sidebar-item-link-level-4 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-3 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-4 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-5 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-6 > .menu__link,
-.sb-cat-dev-charts .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-dev-links .menu__list .menu__link,
-.sb-cat-dev-links .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-dev-charts .theme-doc-sidebar-item-link-level-3 > .menu__link {
+.sb-cat-api-runtime [class*="theme-doc-sidebar-item-link-level-"] > .menu__link,
+.sb-cat-api-types [class*="theme-doc-sidebar-item-link-level-"] > .menu__link,
+.sb-cat-developer-adr
+    [class*="theme-doc-sidebar-item-link-level-"]
+    > .menu__link {
     border-inline-start: 3px solid transparent;
     border-radius: 0.42rem;
     line-height: 1.375;
@@ -624,29 +591,9 @@
 }
 
 /* Runtime API labels are often long; optimize readability over truncation. */
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-2 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-3 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-4 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-5 > .menu__link,
-.sb-cat-api-runtime .theme-doc-sidebar-item-link-level-6 > .menu__link,
+.sb-cat-api-runtime [class*="theme-doc-sidebar-item-link-level-"] > .menu__link,
 .sb-cat-api-runtime
-    .theme-doc-sidebar-item-category-level-2
-    > .menu__list-item-collapsible
-    > .menu__link,
-.sb-cat-api-runtime
-    .theme-doc-sidebar-item-category-level-3
-    > .menu__list-item-collapsible
-    > .menu__link,
-.sb-cat-api-runtime
-    .theme-doc-sidebar-item-category-level-4
-    > .menu__list-item-collapsible
-    > .menu__link,
-.sb-cat-api-runtime
-    .theme-doc-sidebar-item-category-level-5
-    > .menu__list-item-collapsible
-    > .menu__link,
-.sb-cat-api-runtime
-    .theme-doc-sidebar-item-category-level-6
+    [class*="theme-doc-sidebar-item-category-level-"]
     > .menu__list-item-collapsible
     > .menu__link {
     line-height: 1.375;

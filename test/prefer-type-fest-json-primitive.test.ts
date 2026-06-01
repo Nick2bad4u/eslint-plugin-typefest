@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-json-primitive.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -323,9 +321,9 @@ describe("prefer-type-fest-json-primitive internal listener guards", () => {
                                 .length;
                         const usesInlineFix = fixFactoryCallCount === 0;
 
-                        expect(
-                            usesInlineFix || fixFactoryCallCount === 1
-                        ).toBeTruthy();
+                        expect(usesInlineFix || fixFactoryCallCount === 1).toBe(
+                            true
+                        );
                         expect(
                             usesInlineFix
                                 ? typeof reports[0]?.fix

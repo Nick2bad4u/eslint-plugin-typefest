@@ -1,10 +1,8 @@
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-pick-index-signature`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
@@ -23,6 +21,64 @@ const hasDefaultMappedTypeModifiers = (
 ): boolean =>
     (node.readonly === false || !isDefined(node.readonly)) &&
     (node.optional === false || !isDefined(node.optional));
+
+const isMappedKeyReference = (
+    node: Readonly<TSESTree.TypeNode>,
+    keyName: string
+): boolean =>
+    node.type === AST_NODE_TYPES.TSTypeReference &&
+    node.typeName.type === AST_NODE_TYPES.Identifier &&
+    node.typeName.name === keyName;
+
+const isIndexedAccessOfMappedKey = (
+    node: Readonly<TSESTree.TypeNode>,
+    baseType: Readonly<TSESTree.TypeNode>,
+    keyName: string
+): boolean =>
+    node.type === AST_NODE_TYPES.TSIndexedAccessType &&
+    areEquivalentTypeNodes(
+        unwrapParenthesizedTypeNode(node.objectType),
+        baseType
+    ) &&
+    isMappedKeyReference(node.indexType, keyName);
+
+const isRecordUnknownReference = (
+    node: Readonly<TSESTree.TypeNode>,
+    keyName: string
+): boolean => {
+    const normalizedNode = unwrapParenthesizedTypeNode(node);
+
+    if (
+        normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
+        !isIdentifierTypeReference(normalizedNode, "Record")
+    ) {
+        return false;
+    }
+
+    const recordTypeArguments = normalizedNode.typeArguments?.params;
+
+    if (recordTypeArguments?.length !== 2) {
+        return false;
+    }
+
+    const [recordKeyType, recordValueType] = recordTypeArguments;
+
+    return (
+        recordKeyType !== undefined &&
+        recordValueType?.type === AST_NODE_TYPES.TSUnknownKeyword &&
+        isMappedKeyReference(recordKeyType, keyName)
+    );
+};
+
+const isPickIndexSignatureKeyRemap = (
+    node: null | Readonly<TSESTree.TypeNode> | undefined,
+    keyName: string
+): boolean =>
+    node?.type === AST_NODE_TYPES.TSConditionalType &&
+    isEmptyObjectTypeLiteral(unwrapParenthesizedTypeNode(node.checkType)) &&
+    node.falseType.type === AST_NODE_TYPES.TSNeverKeyword &&
+    isMappedKeyReference(node.trueType, keyName) &&
+    isRecordUnknownReference(node.extendsType, keyName);
 
 const hasPickIndexSignatureMappedTypeShape = (
     node: Readonly<TSESTree.TSMappedType>
@@ -48,68 +104,14 @@ const hasPickIndexSignatureMappedTypeShape = (
     const baseType = unwrapParenthesizedTypeNode(constraintTypeAnnotation);
     const indexedValueType = node.typeAnnotation;
 
-    if (indexedValueType === undefined) {
-        return false;
-    }
-
     if (
-        indexedValueType.type !== AST_NODE_TYPES.TSIndexedAccessType ||
-        !areEquivalentTypeNodes(
-            unwrapParenthesizedTypeNode(indexedValueType.objectType),
-            baseType
-        ) ||
-        indexedValueType.indexType.type !== AST_NODE_TYPES.TSTypeReference ||
-        indexedValueType.indexType.typeName.type !==
-            AST_NODE_TYPES.Identifier ||
-        indexedValueType.indexType.typeName.name !== node.key.name
+        indexedValueType === undefined ||
+        !isIndexedAccessOfMappedKey(indexedValueType, baseType, node.key.name)
     ) {
         return false;
     }
 
-    const keyRemapType = node.nameType;
-
-    if (keyRemapType?.type !== AST_NODE_TYPES.TSConditionalType) {
-        return false;
-    }
-
-    if (
-        !isEmptyObjectTypeLiteral(
-            unwrapParenthesizedTypeNode(keyRemapType.checkType)
-        ) ||
-        keyRemapType.falseType.type !== AST_NODE_TYPES.TSNeverKeyword ||
-        keyRemapType.trueType.type !== AST_NODE_TYPES.TSTypeReference ||
-        keyRemapType.trueType.typeName.type !== AST_NODE_TYPES.Identifier ||
-        keyRemapType.trueType.typeName.name !== node.key.name
-    ) {
-        return false;
-    }
-
-    const normalizedExtendsType = unwrapParenthesizedTypeNode(
-        keyRemapType.extendsType
-    );
-
-    if (
-        normalizedExtendsType.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedExtendsType, "Record")
-    ) {
-        return false;
-    }
-
-    const recordTypeArguments = normalizedExtendsType.typeArguments?.params;
-
-    if (recordTypeArguments?.length !== 2) {
-        return false;
-    }
-
-    const [recordKeyType, recordValueType] = recordTypeArguments;
-
-    return (
-        recordKeyType !== undefined &&
-        recordValueType?.type === AST_NODE_TYPES.TSUnknownKeyword &&
-        recordKeyType.type === AST_NODE_TYPES.TSTypeReference &&
-        recordKeyType.typeName.type === AST_NODE_TYPES.Identifier &&
-        recordKeyType.typeName.name === node.key.name
-    );
+    return isPickIndexSignatureKeyRemap(node.nameType, node.key.name);
 };
 
 /**

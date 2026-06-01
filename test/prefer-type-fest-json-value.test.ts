@@ -1,7 +1,5 @@
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -176,7 +174,7 @@ describe("prefer-type-fest-json-value metadata", () => {
                 };
             };
 
-        expect(authoredRuleModule.default.meta?.hasSuggestions).toBeTruthy();
+        expect(authoredRuleModule.default.meta?.hasSuggestions).toBe(true);
     });
 });
 

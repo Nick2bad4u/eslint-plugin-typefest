@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-type-fest-simplify.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -304,7 +302,7 @@ describe("prefer-type-fest-simplify source assertions", () => {
 
                         expect(
                             createSafeTypeReferenceReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const calledReplacementName =
                             createSafeTypeReferenceReplacementFixMock.mock

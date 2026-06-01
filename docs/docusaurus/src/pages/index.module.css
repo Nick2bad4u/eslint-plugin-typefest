@@ -600,15 +600,15 @@
 
     .heroGrid {
         gap: 1rem;
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .heroBadgeRow {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .heroStats {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .heroPanel {
@@ -654,7 +654,7 @@
 
 @media (width <= 1024px) {
     .heroGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .heroPanel {

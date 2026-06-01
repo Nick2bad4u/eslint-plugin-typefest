@@ -1,11 +1,9 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-is-defined`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import { isWithinFilterCallback } from "../_internal/filter-callback.js";
 import {
     collectDirectNamedValueImportsFromSource,

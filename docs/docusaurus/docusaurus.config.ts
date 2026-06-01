@@ -1,17 +1,17 @@
-import { themes as prismThemes } from "prism-react-renderer";
-
-import type { Config, PluginModule } from "@docusaurus/types";
 import type { Options as DocsPluginOptions } from "@docusaurus/plugin-content-docs";
 import type * as Preset from "@docusaurus/preset-classic";
+import type { Config, PluginModule } from "@docusaurus/types";
+
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { themes as prismThemes } from "prism-react-renderer";
 
 /** Route base path where docs site is deployed (GitHub Pages project path). */
 const baseUrl =
-    process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
+    globalThis.process.env["DOCUSAURUS_BASE_URL"] ?? "/eslint-plugin-typefest/";
 /** Opt-in flag for experimental Docusaurus performance features. */
 const enableExperimentalFaster =
-    process.env["DOCUSAURUS_ENABLE_EXPERIMENTAL"] === "true";
+    globalThis.process.env["DOCUSAURUS_ENABLE_EXPERIMENTAL"] === "true";
 
 /** GitHub organization used for edit links and project metadata. */
 const organizationName = "Nick2bad4u";
@@ -37,7 +37,7 @@ const socialCardImagePath = "img/logo.png";
 const socialCardImageUrl = new URL(socialCardImagePath, siteUrl).toString();
 /** Client module path for runtime DOM enhancement bootstrap script. */
 const modernEnhancementsClientModule = fileURLToPath(
-    new URL("src/js/modernEnhancements.ts", import.meta.url)
+    new URL("src/js/modern-enhancements.ts", import.meta.url)
 );
 
 /** PWA theme-color meta value for Chromium-based browsers. */
@@ -71,6 +71,12 @@ const resolveOptionalModule = (moduleSpecifier: string): string | undefined => {
     }
 };
 
+/** Check whether a dynamic value can be read as an object record. */
+const isRecordLike = (
+    candidate: unknown
+): candidate is Readonly<Record<string, unknown>> =>
+    typeof candidate === "object" && candidate !== null;
+
 /**
  * Optional ESM entry used to avoid webpack warnings from VS Code CSS language
  * service packages.
@@ -96,57 +102,56 @@ const vscodeLanguageServerTypesEsmEntry = resolveOptionalModule(
  * warnings inside Docusaurus. This plugin only activates when those optional
  * packages are actually installed in the current workspace.
  */
-const suppressKnownWebpackWarningsPlugin: PluginModule = () => {
-    return {
-        configureWebpack() {
-            return {
-                ignoreWarnings: [
-                    /**
-                     * Suppress the known webpack critical-dependency warning
-                     * emitted by the UMD build of vscode-languageserver-types.
-                     *
-                     * We already alias to the ESM entry when available, but
-                     * some transitive resolution paths still surface the UMD
-                     * warning during docs builds. This is third-party noise,
-                     * not a site-level problem.
-                     */
-                    (warning: unknown) => {
-                        const warningRecord = warning as
-                            | Readonly<Record<string, unknown>>
-                            | undefined;
-                        const warningMessage = warningRecord?.["message"];
+const suppressKnownWebpackWarningsPlugin: PluginModule = () => ({
+    configureWebpack() {
+        return {
+            ignoreWarnings: [
+                /**
+                 * Suppress the known webpack critical-dependency warning
+                 * emitted by the UMD build of vscode-languageserver-types.
+                 *
+                 * We already alias to the ESM entry when available, but some
+                 * transitive resolution paths still surface the UMD warning
+                 * during docs builds. This is third-party noise, not a
+                 * site-level problem.
+                 */
+                (warning: unknown) => {
+                    const warningMessage =
+                        isRecordLike(warning) &&
+                        typeof warning["message"] === "string"
+                            ? warning["message"]
+                            : undefined;
 
-                        return (
-                            typeof warningMessage === "string" &&
-                            warningMessage.includes(
-                                "Critical dependency: require function is used in a way in which dependencies cannot be statically extracted"
-                            )
-                        );
-                    },
-                ],
-                resolve: {
-                    alias: {
-                        ...(vscodeCssLanguageServiceEsmEntry === undefined
-                            ? {}
-                            : {
-                                  "vscode-css-languageservice$":
-                                      vscodeCssLanguageServiceEsmEntry,
-                              }),
-                        ...(vscodeLanguageServerTypesEsmEntry === undefined
-                            ? {}
-                            : {
-                                  "vscode-languageserver-types$":
-                                      vscodeLanguageServerTypesEsmEntry,
-                                  "vscode-languageserver-types/lib/umd/main.js$":
-                                      vscodeLanguageServerTypesEsmEntry,
-                              }),
-                    },
+                    return (
+                        typeof warningMessage === "string" &&
+                        warningMessage.includes(
+                            "Critical dependency: require function is used in a way in which dependencies cannot be statically extracted"
+                        )
+                    );
                 },
-            };
-        },
-        name: "suppress-known-webpack-warnings",
-    };
-};
+            ],
+            resolve: {
+                alias: {
+                    ...(vscodeCssLanguageServiceEsmEntry === undefined
+                        ? {}
+                        : {
+                              "vscode-css-languageservice$":
+                                  vscodeCssLanguageServiceEsmEntry,
+                          }),
+                    ...(vscodeLanguageServerTypesEsmEntry === undefined
+                        ? {}
+                        : {
+                              "vscode-languageserver-types$":
+                                  vscodeLanguageServerTypesEsmEntry,
+                              "vscode-languageserver-types/lib/umd/main.js$":
+                                  vscodeLanguageServerTypesEsmEntry,
+                          }),
+                },
+            },
+        };
+    },
+    name: "suppress-known-webpack-warnings",
+});
 
 /** Docusaurus future flags, including optional experimental fast path. */
 const futureConfig = {
@@ -161,7 +166,6 @@ const futureConfig = {
           }
         : {}),
     v4: {
-        [removeHeadAttrFlagKey]: true,
         // Keep Faster opt-in only. The docs workspace already exposes
         // `build:fast` for the experimental native/Rspack path, and making it
         // the default causes plain CI builds to require extra platform-native
@@ -170,30 +174,27 @@ const futureConfig = {
         // Without this guard, `docusaurus build` can unexpectedly fail on
         // Linux even when `DOCUSAURUS_ENABLE_EXPERIMENTAL` is not set.
         fasterByDefault: false,
+        mdx1CompatDisabledByDefault: true,
+        [removeHeadAttrFlagKey]: true,
+        removeLegacyPostBuildHeadAttribute: true,
         // NOTE: Enabling cascade layers currently breaks our production CSS output
         // (CssMinimizer parsing errors -> large chunks of CSS dropped), which
         // makes many Infima (--ifm-*) variables undefined across the site.
         // Re-enable only after verifying the build output CSS is valid.
         siteStorageNamespacing: true,
-        removeLegacyPostBuildHeadAttribute: true,
-        mdx1CompatDisabledByDefault: true,
         useCssCascadeLayers: false,
     },
 } satisfies Config["future"];
 
 /** Full Docusaurus site configuration exported to the build/runtime. */
 const config = {
-    storage: {
-        type: "localStorage",
-        namespace: true,
-    },
     baseUrl,
     baseUrlIssueBanner: true,
+    clientModules: [modernEnhancementsClientModule],
     deploymentBranch: "gh-pages",
     favicon: "img/favicon.ico",
     // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
     future: futureConfig,
-    clientModules: [modernEnhancementsClientModule],
     headTags: [
         {
             attributes: {
@@ -218,7 +219,7 @@ const config = {
                 "@type": "WebSite",
                 description: siteDescription,
                 image: socialCardImageUrl,
-                name: projectName + " Documentation",
+                name: `${projectName} Documentation`,
                 publisher: {
                     "@type": "Person",
                     name: "Nick2bad4u",
@@ -331,12 +332,12 @@ const config = {
                     blogTitle: `${projectName} Blog`,
                     editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
                     feedOptions: {
-                        type: ["rss", "atom"],
-                        xslt: true,
-                        title: `${projectName} Blog`,
                         copyright: `© ${new Date().getFullYear()} Nick2bad4u`,
                         description: projectBlogDescription,
                         language: "en",
+                        title: `${projectName} Blog`,
+                        type: ["rss", "atom"],
+                        xslt: true,
                     },
                     onInlineAuthors: "warn",
                     onInlineTags: "warn",
@@ -346,12 +347,16 @@ const config = {
                     routeBasePath: "blog",
                     showReadingTime: true,
                 },
+                debug:
+                    globalThis.process.env[
+                        "DOCUSAURUS_PRESET_CLASSIC_DEBUG"
+                    ] === "true",
                 docs: {
                     breadcrumbs: true,
                     editUrl: `https://github.com/${organizationName}/${projectName}/blob/main/docs/docusaurus/`,
-                    path: "site-docs",
                     includeCurrentVersion: true,
                     onInlineTags: "ignore",
+                    path: "site-docs",
                     routeBasePath: "docs",
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
@@ -383,8 +388,6 @@ const config = {
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
                 },
-                debug:
-                    process.env["DOCUSAURUS_PRESET_CLASSIC_DEBUG"] === "true",
                 sitemap: {
                     filename: "sitemap.xml",
                     ignorePatterns: ["/tests/**"],
@@ -421,6 +424,11 @@ const config = {
         ],
     ],
     projectName,
+    staticDirectories: ["static"],
+    storage: {
+        namespace: true,
+        type: "localStorage",
+    },
     tagline: projectTagline,
     themeConfig: {
         colorMode: {
@@ -428,20 +436,6 @@ const config = {
             disableSwitch: false,
             respectPrefersColorScheme: true,
         },
-        metadata: [
-            {
-                content: projectKeywords,
-                name: "keywords",
-            },
-            {
-                content: "summary_large_image",
-                name: "twitter:card",
-            },
-            {
-                content: projectName,
-                property: "og:site_name",
-            },
-        ],
         footer: {
             copyright: footerCopyright,
             links: [
@@ -470,19 +464,19 @@ const config = {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}/releases`,
-                            label: "\ueb09 Releases",
+                            label: "\uEB09 Releases",
                         },
                         {
                             href: `https://nick2bad4u.github.io/${projectName}/eslint-inspector/`,
-                            label: "\ue7d2 ESLint Inspector",
+                            label: "\uE7D2 ESLint Inspector",
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "\uf113 ts-extras",
+                            label: "\uF113 ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "\ue65b type-fest",
+                            label: "\uE65B type-fest",
                         },
                     ],
                     title: "📁 Project",
@@ -491,19 +485,19 @@ const config = {
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "\uea84 GitHub Repository",
+                            label: "\uEA84 GitHub Repository",
                         },
                         {
                             href: `https://nick2bad4u.github.io/${projectName}/stylelint-inspector/`,
-                            label: "\ue7d2 Stylelint Inspector",
+                            label: "\uE7D2 Stylelint Inspector",
                         },
                         {
                             href: `https://github.com/${organizationName}/${projectName}/issues`,
-                            label: "\uf188 Report Issues",
+                            label: "\uF188 Report Issues",
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "\ue616 NPM",
+                            label: "\uE616 NPM",
                         },
                     ],
                     title: "⚙️ Support",
@@ -511,24 +505,33 @@ const config = {
             ],
             logo: {
                 alt: `${projectName} logo`,
+                height: 60,
                 href: `https://github.com/${organizationName}/${projectName}`,
                 src: "img/logo.svg",
                 width: 60,
-                height: 60,
             },
             style: "dark",
         },
         image: socialCardImagePath,
+        metadata: [
+            {
+                content: projectKeywords,
+                name: "keywords",
+            },
+            {
+                content: "summary_large_image",
+                name: "twitter:card",
+            },
+            {
+                content: projectName,
+                property: "og:site_name",
+            },
+        ],
         navbar: {
-            style: "dark",
             hideOnScroll: true,
             items: [
                 {
                     activeBaseRegex: "^/docs/rules/overview/?$",
-                    label: "📚 Docs",
-                    position: "left",
-                    to: "/docs/rules/overview",
-                    type: "dropdown",
                     items: [
                         {
                             label: "• Overview",
@@ -543,13 +546,13 @@ const config = {
                             to: "/docs/rules/category/-adoption--rollout",
                         },
                     ],
+                    label: "📚 Docs",
+                    position: "left",
+                    to: "/docs/rules/overview",
+                    type: "dropdown",
                 },
                 {
                     activeBaseRegex: "^/docs/rules(?:/(?!presets(?:/|$)).*)?$",
-                    label: "📜 Rules",
-                    position: "left",
-                    to: "/docs/rules",
-                    type: "dropdown",
                     items: [
                         {
                             label: "• Rule Reference",
@@ -564,13 +567,13 @@ const config = {
                             to: "/docs/rules/category/type-fest",
                         },
                     ],
+                    label: "📜 Rules",
+                    position: "left",
+                    to: "/docs/rules",
+                    type: "dropdown",
                 },
                 {
                     activeBaseRegex: "^/docs/rules/presets(?:/.*)?$",
-                    label: "🛠️ Presets",
-                    position: "left",
-                    to: "/docs/rules/presets",
-                    type: "dropdown",
                     items: [
                         {
                             label: "• Preset Reference",
@@ -605,46 +608,46 @@ const config = {
                             to: "/docs/rules/presets/ts-extras-type-guards",
                         },
                     ],
+                    label: "🛠️ Presets",
+                    position: "left",
+                    to: "/docs/rules/presets",
+                    type: "dropdown",
                 },
                 {
                     href: `https://github.com/${organizationName}/${projectName}`,
-                    label: "\ue65b GitHub",
-                    position: "right",
-                    type: "dropdown",
                     items: [
                         {
                             href: `https://github.com/${organizationName}/${projectName}`,
-                            label: "• \ue709 GitHub",
+                            label: "• \uE709 GitHub",
                         },
                         {
                             href: `https://www.npmjs.com/package/${projectName}`,
-                            label: "• \ue616 NPM",
+                            label: "• \uE616 NPM",
                         },
                         {
-                            href: `https://github.com/sindresorhus/type-fest`,
                             className: "navbar-dropdown-divider-before",
-                            label: "💠 \ue709 type-fest",
+                            href: `https://github.com/sindresorhus/type-fest`,
+                            label: "💠 \uE709 type-fest",
                         },
                         {
                             href: `https://www.npmjs.com/package/type-fest`,
-                            label: "💠 \ue616 type-fest",
+                            label: "💠 \uE616 type-fest",
                         },
                         {
-                            href: `https://github.com/sindresorhus/ts-extras`,
                             className: "navbar-dropdown-divider-before",
-                            label: "✴️ \ue709 ts-extras",
+                            href: `https://github.com/sindresorhus/ts-extras`,
+                            label: "✴️ \uE709 ts-extras",
                         },
                         {
                             href: `https://www.npmjs.com/package/ts-extras`,
-                            label: "✴️ \ue616 ts-extras",
+                            label: "✴️ \uE616 ts-extras",
                         },
                     ],
+                    label: "\uE65B GitHub",
+                    position: "right",
+                    type: "dropdown",
                 },
                 {
-                    label: "\udb80\ude19 Dev",
-                    position: "right",
-                    to: "/docs/developer",
-                    type: "dropdown",
                     items: [
                         {
                             label: "• Development Guide",
@@ -671,12 +674,12 @@ const config = {
                             to: "/docs/category/runtime",
                         },
                     ],
+                    label: "\uDB80\uDE19 Dev",
+                    position: "right",
+                    to: "/docs/developer",
+                    type: "dropdown",
                 },
                 {
-                    label: "\ueaa4 Blog",
-                    position: "right",
-                    to: "/blog",
-                    type: "dropdown",
                     items: [
                         {
                             label: "• Latest Posts",
@@ -687,6 +690,10 @@ const config = {
                             to: "/blog/archive",
                         },
                     ],
+                    label: "\uEAA4 Blog",
+                    position: "right",
+                    to: "/blog",
+                    type: "dropdown",
                 },
             ],
             logo: {
@@ -696,15 +703,11 @@ const config = {
                 src: "img/logo.svg",
                 width: 48,
             },
+            style: "dark",
             title: projectName,
         },
         prism: {
-            additionalLanguages: [
-                "bash",
-                "json",
-                "yaml",
-                "typescript",
-            ],
+            additionalLanguages: ["bash", "json", "yaml", "typescript"],
             darkTheme: prismThemes.dracula,
             defaultLanguage: "typescript",
             theme: prismThemes.github,
@@ -756,7 +759,6 @@ const config = {
         ],
     ],
     title: projectName,
-    staticDirectories: ["static"],
     titleDelimiter: "|",
     trailingSlash: true,
     url: siteOrigin,

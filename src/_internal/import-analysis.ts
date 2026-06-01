@@ -1,10 +1,12 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Shared import-declaration analysis utilities for rule internals.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 /**

@@ -1,11 +1,13 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-is-present.test` behavior.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -1242,7 +1244,7 @@ const assertTextEditsDoNotOverlap = (
                     firstEdit.end <= secondEdit.start ||
                     secondEdit.end <= firstEdit.start;
 
-                expect(doNotOverlap).toBeTruthy();
+                expect(doNotOverlap).toBe(true);
             }
         }
     }

@@ -1,4 +1,3 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray, UnknownRecord } from "type-fest";
 import type ts from "typescript";
 
@@ -7,12 +6,16 @@ import {
     isTypeAnyType,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Shared type-aware guardrails for skipping risky rule reports/fixes on
  * `@typescript-eslint` AST-node expressions.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import {
     arrayIncludes,
     isDefined,

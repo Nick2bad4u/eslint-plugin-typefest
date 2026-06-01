@@ -16,7 +16,7 @@ const originalMutationObserver = globalTestEnvironment.MutationObserver;
 const originalWindow = globalTestEnvironment.window;
 const modernEnhancementsPath = path.join(
     process.cwd(),
-    "docs/docusaurus/src/js/modernEnhancements.ts"
+    "docs/docusaurus/src/js/modern-enhancements.ts"
 );
 
 const restoreGlobalTestEnvironment = (): void => {
@@ -39,8 +39,9 @@ describe("docusaurus client regressions", () => {
                 );
 
                 expect(sourceText).toContain(
-                    'window.addEventListener("load", handleWindowLoad, { once: true });'
+                    'window.addEventListener("load", handleWindowLoad, {'
                 );
+                expect(sourceText).toContain("once: true");
                 expect(sourceText).not.toContain(
                     'document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);'
                 );

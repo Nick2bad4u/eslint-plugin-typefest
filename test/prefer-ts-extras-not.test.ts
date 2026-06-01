@@ -349,8 +349,6 @@ describe("prefer-ts-extras-not internal listener guards", () => {
 
             const [firstReport] = reportCalls;
 
-            expect(firstReport).toBeDefined();
-
             if (!firstReport) {
                 throw new TypeError(
                     "Expected first prefer-ts-extras-not report"
@@ -360,7 +358,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
             expect(firstReport).toMatchObject({
                 messageId: "preferTsExtrasNot",
             });
-            expect("fix" in firstReport).toBeFalsy();
+            expect("fix" in firstReport).toBe(false);
         } finally {
             vi.resetModules();
         }
@@ -481,7 +479,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         });
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const [callbackStart, callbackEnd] = callbackRange;
                         const replacedCode = `${generatedCode.slice(
@@ -614,7 +612,7 @@ describe("prefer-ts-extras-not internal listener guards", () => {
                         expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasNot",
                         });
-                        expect("fix" in firstReport).toBeFalsy();
+                        expect("fix" in firstReport).toBe(false);
                         expect(
                             createSafeValueNodeTextReplacementFixMock
                         ).not.toHaveBeenCalled();

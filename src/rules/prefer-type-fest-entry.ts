@@ -2,9 +2,11 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-entry`.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 import { getParentNode } from "../_internal/ast-node.js";
 import {

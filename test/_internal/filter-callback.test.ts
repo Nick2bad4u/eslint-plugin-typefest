@@ -55,7 +55,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeTruthy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(true);
     });
 
     it("returns false for nodes outside .filter callback", () => {
@@ -93,7 +93,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(false);
     });
 
     it("returns false for function passed as second .filter argument", () => {
@@ -139,7 +139,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(false);
     });
 
     it("returns false for computed member access filter calls", () => {
@@ -177,7 +177,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(false);
     });
 
     it("returns false for non-member filter calls", () => {
@@ -208,7 +208,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(false);
     });
 
     it("returns false for cyclic parent chains", () => {
@@ -224,7 +224,7 @@ describe(isWithinFilterCallback, () => {
 
         (cycleA as unknown as { parent?: TSESTree.Node }).parent = cycleB;
 
-        expect(isWithinFilterCallback(cycleA)).toBeFalsy();
+        expect(isWithinFilterCallback(cycleA)).toBe(false);
     });
 
     it("returns false when callback-like node is not parented by a call expression", () => {
@@ -242,7 +242,7 @@ describe(isWithinFilterCallback, () => {
             type: "Identifier",
         } as unknown as TSESTree.Node;
 
-        expect(isWithinFilterCallback(nestedNode)).toBeFalsy();
+        expect(isWithinFilterCallback(nestedNode)).toBe(false);
     });
 
     it("returns false for optional-chain filter calls", () => {
@@ -267,7 +267,7 @@ describe(isWithinFilterCallback, () => {
             type: "CallExpression",
         } as unknown as TSESTree.CallExpression;
 
-        expect(isFilterCallExpression(optionalFilterCallNode)).toBeFalsy();
+        expect(isFilterCallExpression(optionalFilterCallNode)).toBe(false);
     });
 
     it("returns false for optional member invocation filter calls", () => {
@@ -292,9 +292,9 @@ describe(isWithinFilterCallback, () => {
             type: "CallExpression",
         } as unknown as TSESTree.CallExpression;
 
-        expect(
-            isFilterCallExpression(optionalMemberFilterCallNode)
-        ).toBeFalsy();
+        expect(isFilterCallExpression(optionalMemberFilterCallNode)).toBe(
+            false
+        );
     });
 
     it("extracts single-parameter expression arrow callbacks", () => {

@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Vitest coverage for `prefer-ts-extras-object-has-own.test` behavior.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -305,7 +303,7 @@ describe("prefer-ts-extras-object-has-own runtime safety assertions", () => {
 
                         expect(
                             createSafeValueReferenceReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const fixDescriptor =
                             createSafeValueReferenceReplacementFixMock.mock

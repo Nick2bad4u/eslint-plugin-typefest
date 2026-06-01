@@ -14,12 +14,12 @@ const knipConfig: KnipConfig = {
     entry: [],
     ignore: [
         "docs/docusaurus/src/css/custom.css.d.ts",
-        "docs/docusaurus/typedoc-plugins/hashToBangLinks.mjs",
-        "docs/docusaurus/typedoc-plugins/hashToBangLinksCore.d.mts",
-        "docs/docusaurus/typedoc-plugins/hashToBangLinksCore.mjs",
-        "docs/docusaurus/typedoc-plugins/prefixDocLinks.mjs",
-        "docs/docusaurus/typedoc-plugins/prefixDocLinksCore.d.mts",
-        "docs/docusaurus/typedoc-plugins/prefixDocLinksCore.mjs",
+        "docs/docusaurus/typedoc-plugins/hash-to-bang-links.mjs",
+        "docs/docusaurus/typedoc-plugins/hash-to-bang-links-core.d.mts",
+        "docs/docusaurus/typedoc-plugins/hash-to-bang-links-core.mjs",
+        "docs/docusaurus/typedoc-plugins/prefix-doc-links.mjs",
+        "docs/docusaurus/typedoc-plugins/prefix-doc-links-core.d.mts",
+        "docs/docusaurus/typedoc-plugins/prefix-doc-links-core.mjs",
     ],
     ignoreBinaries: [
         "git-cz",

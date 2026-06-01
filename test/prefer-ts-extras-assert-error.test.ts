@@ -353,7 +353,7 @@ describe("prefer-ts-extras-assert-error metadata literals", () => {
     it("declares authored docs URL and hasSuggestions literals", () => {
         expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
-        expect(rule.meta.hasSuggestions).toBeTruthy();
+        expect(rule.meta.hasSuggestions).toBe(true);
     });
 });
 

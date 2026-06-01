@@ -7,11 +7,6 @@ import { AST_NODE_TYPES, type TSESLint } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
-import type {
-    IsDefinedRuleReportDescriptor,
-    TextEdit,
-} from "./_internal/prefer-ts-extras-is-defined-rule-harness";
-
 import { fastCheckRunConfig } from "./_internal/fast-check";
 import {
     filterArrowCallbackValidCode,
@@ -44,9 +39,11 @@ import {
     createRuleContextForSource,
     identifierNameArbitrary,
     invokeReportFixToTextEdits,
+    type IsDefinedRuleReportDescriptor,
     parserOptions,
     parseUndefinedComparisonFromCode,
     parseVariableInitializerExpressionByName,
+    type TextEdit,
     undefinedComparisonOperatorArbitrary,
     undefinedComparisonPatternArbitrary,
 } from "./_internal/prefer-ts-extras-is-defined-rule-harness";
@@ -228,7 +225,7 @@ const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
                     firstEdit.range[1] <= secondEdit.range[0] ||
                     secondEdit.range[1] <= firstEdit.range[0];
 
-                expect(doNotOverlap).toBeTruthy();
+                expect(doNotOverlap).toBe(true);
             }
         }
     }

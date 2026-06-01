@@ -22,7 +22,7 @@ describe("bounded cache helpers", () => {
             found: true,
             value: null,
         });
-        expect(cache.has("entry")).toBeTruthy();
+        expect(cache.has("entry")).toBe(true);
     });
 
     it("treats cached undefined as a cache hit", () => {
@@ -74,9 +74,9 @@ describe("bounded cache helpers", () => {
             value: 3,
         });
 
-        expect(cache.has("first")).toBeTruthy();
-        expect(cache.has("second")).toBeFalsy();
-        expect(cache.has("third")).toBeTruthy();
+        expect(cache.has("first")).toBe(true);
+        expect(cache.has("second")).toBe(false);
+        expect(cache.has("third")).toBe(true);
     });
 
     it("does nothing when maxEntries is invalid", () => {

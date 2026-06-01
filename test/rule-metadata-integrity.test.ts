@@ -105,7 +105,7 @@ const getRuleRecord = (
     expect(
         isRecord(ruleModule),
         `Rule '${ruleName}' must export an object`
-    ).toBeTruthy();
+    ).toBe(true);
 
     return isRecord(ruleModule) ? ruleModule : {};
 };
@@ -119,7 +119,7 @@ const getRuleMetaRecord = (
 ): Readonly<Record<string, unknown>> => {
     const meta = ruleRecord["meta"];
 
-    expect(isRecord(meta), `Rule '${ruleName}' must define meta`).toBeTruthy();
+    expect(isRecord(meta), `Rule '${ruleName}' must define meta`).toBe(true);
 
     return isRecord(meta) ? meta : {};
 };
@@ -133,10 +133,9 @@ const getRuleDocsRecord = (
 ): Readonly<Record<string, unknown>> => {
     const docs = metaRecord["docs"];
 
-    expect(
-        isRecord(docs),
-        `Rule '${ruleName}' must define meta.docs`
-    ).toBeTruthy();
+    expect(isRecord(docs), `Rule '${ruleName}' must define meta.docs`).toBe(
+        true
+    );
 
     return isRecord(docs) ? docs : {};
 };
@@ -160,11 +159,11 @@ const assertDefaultOptionsContract = ({
         expect(
             Array.isArray(defaultOptions),
             `Rule '${ruleName}' defaultOptions must be an array when present`
-        ).toBeTruthy();
+        ).toBe(true);
     }
 
     if (metaDefaultOptions !== undefined) {
-        expect(Array.isArray(metaDefaultOptions)).toBeTruthy();
+        expect(Array.isArray(metaDefaultOptions)).toBe(true);
 
         if (defaultOptions !== undefined) {
             expect(metaDefaultOptions).toStrictEqual(defaultOptions);
@@ -220,29 +219,29 @@ const assertDocsContract = ({
     expect(
         isNonEmptyString(description),
         `Rule '${ruleName}' must provide a non-empty docs.description`
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
-        typeof recommended === "boolean",
+        recommended,
         `Rule '${ruleName}' must provide boolean docs.recommended`
-    ).toBeTruthy();
+    ).toBeTypeOf("boolean");
     expect(
-        typeof requiresTypeChecking === "boolean",
+        requiresTypeChecking,
         `Rule '${ruleName}' must provide boolean docs.requiresTypeChecking`
-    ).toBeTruthy();
+    ).toBeTypeOf("boolean");
     expect(
         typeof ruleId === "string" && ruleCatalogIdPattern.test(ruleId),
         `Rule '${ruleName}' must provide docs.ruleId in 'R###' format`
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
         Number.isInteger(ruleNumber) &&
             typeof ruleNumber === "number" &&
             ruleNumber > 0,
         `Rule '${ruleName}' must provide positive integer docs.ruleNumber`
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
         isNonEmptyString(url),
         `Rule '${ruleName}' must provide a non-empty docs.url`
-    ).toBeTruthy();
+    ).toBe(true);
 
     if (
         !isNonEmptyString(url) ||
@@ -266,15 +265,15 @@ const assertDocsContract = ({
         `${ruleName}.md`
     );
 
-    expect(fs.existsSync(docsPath)).toBeTruthy();
+    expect(fs.existsSync(docsPath)).toBe(true);
 
     const typefestConfigReferences =
         normalizeTypefestConfigReferences(typefestConfigs);
 
     expect(
-        typefestConfigReferences.length > 0,
+        typefestConfigReferences.length,
         `Rule '${ruleName}' must declare at least one docs.typefestConfigs entry`
-    ).toBeTruthy();
+    ).toBeGreaterThan(0);
     expect(typefestConfigReferences).toHaveLength(
         new Set(typefestConfigReferences).size
     );
@@ -283,7 +282,7 @@ const assertDocsContract = ({
         expect(
             isTypefestConfigReference(reference),
             `Rule '${ruleName}' has invalid docs.typefestConfigs reference '${reference}'`
-        ).toBeTruthy();
+        ).toBe(true);
     }
 
     const includesRecommendedReference = typefestConfigReferences.includes(
@@ -303,9 +302,9 @@ const assertDocsContract = ({
         includesRecommendedTypeCheckedReference &&
         typeof requiresTypeChecking === "boolean"
     ) {
-        expect(requiresTypeChecking).toBeTruthy();
-        expect(includesRecommendedReference).toBeFalsy();
-        expect(recommended).toBeFalsy();
+        expect(requiresTypeChecking).toBe(true);
+        expect(includesRecommendedReference).toBe(false);
+        expect(recommended).toBe(false);
     }
 };
 
@@ -329,11 +328,11 @@ const assertBaseRuleMetadataContract = ({
     expect(
         isNonEmptyString(type) && expectedRuleTypes.has(type),
         `Rule '${ruleName}' has unsupported meta.type '${String(type)}'`
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
         Array.isArray(schema),
         `Rule '${ruleName}' must declare a schema array`
-    ).toBeTruthy();
+    ).toBe(true);
 };
 
 /**
@@ -351,7 +350,7 @@ const assertMessageAndFixContract = ({
     expect(
         isRecord(messages),
         `Rule '${ruleName}' must define a messages record`
-    ).toBeTruthy();
+    ).toBe(true);
 
     if (!isRecord(messages)) {
         return;
@@ -368,7 +367,7 @@ const assertMessageAndFixContract = ({
         expect(
             isNonEmptyString(messageTemplate),
             `Rule '${ruleName}' message '${messageId}' must be a non-empty string`
-        ).toBeTruthy();
+        ).toBe(true);
     }
 
     const fixable = metaRecord["fixable"];
@@ -383,7 +382,7 @@ const assertMessageAndFixContract = ({
                 messageId.toLowerCase().includes("suggest")
             ),
             `Rule '${ruleName}' enables suggestions but does not define a suggestion message id`
-        ).toBeTruthy();
+        ).toBe(true);
     }
 };
 

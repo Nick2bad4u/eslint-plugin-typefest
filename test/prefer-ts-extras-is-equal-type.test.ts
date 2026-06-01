@@ -1,4 +1,3 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
@@ -6,7 +5,7 @@ import type { UnknownArray } from "type-fest";
  * Vitest coverage for `prefer-ts-extras-is-equal-type.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -216,7 +215,7 @@ describe("prefer-ts-extras-is-equal-type metadata", () => {
         expect(metadataRule.meta?.docs?.url).toBe(
             "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-equal-type"
         );
-        expect(metadataRule.meta?.hasSuggestions).toBeTruthy();
+        expect(metadataRule.meta?.hasSuggestions).toBe(true);
         expect(metadataRule.meta?.messages?.["preferTsExtrasIsEqualType"]).toBe(
             "Prefer `isEqualType<T, U>()` from `ts-extras` over `IsEqual<T, U>` boolean assertion variables."
         );
@@ -431,7 +430,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                             createSafeFixInvocationCount !== 0 ||
                                 firstSuggestion === undefined ||
                                 typeof firstSuggestion.fix === "function"
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         if (createSafeFixInvocationCount === 0) {
                             return;
@@ -442,7 +441,7 @@ describe("prefer-ts-extras-is-equal-type fast-check fix safety", () => {
                         expect(firstSuggestion?.fix).toBe("FIX");
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const annotationNode =
                             variableDeclarator.id.typeAnnotation;

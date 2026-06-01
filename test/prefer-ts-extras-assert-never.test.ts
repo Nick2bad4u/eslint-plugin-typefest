@@ -99,7 +99,7 @@ describe("prefer-ts-extras-assert-never metadata literals", () => {
     it("declares the authored docs URL and hasSuggestions literals", () => {
         expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
-        expect(rule.meta.hasSuggestions).toBeTruthy();
+        expect(rule.meta.hasSuggestions).toBe(true);
     });
 });
 
@@ -135,7 +135,11 @@ describe("prefer-ts-extras-assert-never parse-safety guards", () => {
 
                     expect(replacement).toContain("assertNever(");
                     expect(replacement).toContain(variableName);
-                    expect(variantName).toBeTruthy();
+                    expect([
+                        "FruitKind",
+                        "Color",
+                        "Mode",
+                    ]).toContain(variantName);
 
                     const codeToCheck = `${replacement};`;
 

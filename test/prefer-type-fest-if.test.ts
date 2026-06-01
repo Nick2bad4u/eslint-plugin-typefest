@@ -1,4 +1,3 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 /**
@@ -6,7 +5,7 @@ import type { UnknownArray } from "type-fest";
  * Vitest coverage for `prefer-type-fest-if.test` behavior.
  */
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -345,7 +344,7 @@ describe("prefer-type-fest-if source assertions", () => {
                         });
                         expect(
                             createSafeTypeReferenceReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const calledReplacementName =
                             createSafeTypeReferenceReplacementFixMock.mock

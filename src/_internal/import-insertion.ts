@@ -1,11 +1,13 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Shared utilities for safely inserting import declarations in fixer output.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayAt, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";

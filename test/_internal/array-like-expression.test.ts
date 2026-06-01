@@ -68,7 +68,7 @@ describe(isArrayLikeType, () => {
             isArrayType: (candidateType) => candidateType === arrayType,
         });
 
-        expect(isArrayLikeType(checker, arrayType)).toBeTruthy();
+        expect(isArrayLikeType(checker, arrayType)).toBe(true);
     });
 
     it("supports union match modes for mixed unions", () => {
@@ -85,8 +85,8 @@ describe(isArrayLikeType, () => {
             isArrayType: (candidateType) => candidateType === arrayType,
         });
 
-        expect(isArrayLikeType(checker, mixedUnion, "some")).toBeTruthy();
-        expect(isArrayLikeType(checker, mixedUnion, "every")).toBeFalsy();
+        expect(isArrayLikeType(checker, mixedUnion, "some")).toBe(true);
+        expect(isArrayLikeType(checker, mixedUnion, "every")).toBe(false);
     });
 
     it("returns true when an intersection contains at least one array-like type", () => {
@@ -103,7 +103,7 @@ describe(isArrayLikeType, () => {
             isArrayType: (candidateType) => candidateType === arrayType,
         });
 
-        expect(isArrayLikeType(checker, intersectionType)).toBeTruthy();
+        expect(isArrayLikeType(checker, intersectionType)).toBe(true);
     });
 
     it("follows base constraints when available", () => {
@@ -117,7 +117,7 @@ describe(isArrayLikeType, () => {
             isArrayType: (candidateType) => candidateType === arrayConstraint,
         });
 
-        expect(isArrayLikeType(checker, constrainedType)).toBeTruthy();
+        expect(isArrayLikeType(checker, constrainedType)).toBe(true);
     });
 
     it("falls back to apparent type resolution", () => {
@@ -131,7 +131,7 @@ describe(isArrayLikeType, () => {
             isArrayType: (candidateType) => candidateType === apparentArrayType,
         });
 
-        expect(isArrayLikeType(checker, sourceType)).toBeTruthy();
+        expect(isArrayLikeType(checker, sourceType)).toBe(true);
     });
 
     it("stops recursion when revisiting the same type", () => {
@@ -147,7 +147,7 @@ describe(isArrayLikeType, () => {
 
         const checker = createChecker();
 
-        expect(isArrayLikeType(checker, recursiveUnionType)).toBeFalsy();
+        expect(isArrayLikeType(checker, recursiveUnionType)).toBe(false);
     });
 });
 
@@ -169,7 +169,7 @@ describe(createIsArrayLikeExpressionChecker, () => {
             },
         });
 
-        expect(isArrayLikeExpression(expression)).toBeFalsy();
+        expect(isArrayLikeExpression(expression)).toBe(false);
     });
 
     it("returns false when checker.getTypeAtLocation throws", () => {
@@ -196,7 +196,7 @@ describe(createIsArrayLikeExpressionChecker, () => {
             },
         });
 
-        expect(isArrayLikeExpression(expression)).toBeFalsy();
+        expect(isArrayLikeExpression(expression)).toBe(false);
     });
 
     it("returns true for mapped array-like expression types", () => {
@@ -219,7 +219,7 @@ describe(createIsArrayLikeExpressionChecker, () => {
             },
         });
 
-        expect(isArrayLikeExpression(expression)).toBeTruthy();
+        expect(isArrayLikeExpression(expression)).toBe(true);
     });
 
     it("memoizes array-like type resolution across repeated expression checks", () => {
@@ -245,9 +245,9 @@ describe(createIsArrayLikeExpressionChecker, () => {
             },
         });
 
-        expect(isArrayLikeExpression(expression)).toBeTruthy();
-        expect(isArrayLikeExpression(expression)).toBeTruthy();
-        expect(isArrayType).toHaveBeenCalledOnce();
+        expect(isArrayLikeExpression(expression)).toBe(true);
+        expect(isArrayLikeExpression(expression)).toBe(true);
+        expect(isArrayType).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -271,7 +271,7 @@ describe(isWriteTargetMemberExpression, () => {
         expect.hasAssertions();
         expect(
             isWriteTargetMemberExpression(createMemberExpressionNode())
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("returns true only for assignment left-hand targets", () => {
@@ -291,7 +291,7 @@ describe(isWriteTargetMemberExpression, () => {
         (memberNode as unknown as { parent?: TSESTree.Node }).parent =
             assignmentParent;
 
-        expect(isWriteTargetMemberExpression(memberNode)).toBeTruthy();
+        expect(isWriteTargetMemberExpression(memberNode)).toBe(true);
 
         const nonTargetMemberNode = createMemberExpressionNode();
         const nonTargetAssignmentParent = {
@@ -310,7 +310,7 @@ describe(isWriteTargetMemberExpression, () => {
             }
         ).parent = nonTargetAssignmentParent;
 
-        expect(isWriteTargetMemberExpression(nonTargetMemberNode)).toBeFalsy();
+        expect(isWriteTargetMemberExpression(nonTargetMemberNode)).toBe(false);
     });
 
     it("returns true for delete targets and false for other unary operators", () => {
@@ -327,7 +327,7 @@ describe(isWriteTargetMemberExpression, () => {
         (deleteTargetNode as unknown as { parent?: TSESTree.Node }).parent =
             deleteParent;
 
-        expect(isWriteTargetMemberExpression(deleteTargetNode)).toBeTruthy();
+        expect(isWriteTargetMemberExpression(deleteTargetNode)).toBe(true);
 
         const plusUnaryNode = createMemberExpressionNode();
         const plusUnaryParent = {
@@ -340,7 +340,7 @@ describe(isWriteTargetMemberExpression, () => {
         (plusUnaryNode as unknown as { parent?: TSESTree.Node }).parent =
             plusUnaryParent;
 
-        expect(isWriteTargetMemberExpression(plusUnaryNode)).toBeFalsy();
+        expect(isWriteTargetMemberExpression(plusUnaryNode)).toBe(false);
     });
 
     it("returns true only when used as the update expression argument", () => {
@@ -357,7 +357,7 @@ describe(isWriteTargetMemberExpression, () => {
         (updateTargetNode as unknown as { parent?: TSESTree.Node }).parent =
             updateParent;
 
-        expect(isWriteTargetMemberExpression(updateTargetNode)).toBeTruthy();
+        expect(isWriteTargetMemberExpression(updateTargetNode)).toBe(true);
 
         const nonTargetUpdateNode = createMemberExpressionNode();
         const nonTargetUpdateParent = {
@@ -376,6 +376,6 @@ describe(isWriteTargetMemberExpression, () => {
             }
         ).parent = nonTargetUpdateParent;
 
-        expect(isWriteTargetMemberExpression(nonTargetUpdateNode)).toBeFalsy();
+        expect(isWriteTargetMemberExpression(nonTargetUpdateNode)).toBe(false);
     });
 });

@@ -68,9 +68,9 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeTruthy();
-        expect(Object.isFrozen(parsedSettings)).toBeTruthy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(true);
+        expect(Object.isFrozen(parsedSettings)).toBe(true);
     });
 
     it("reads disableAllAutofixes from settings", () => {
@@ -88,8 +88,8 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeTruthy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeTruthy();
+        expect(parsedSettings.disableAllAutofixes).toBe(true);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(true);
     });
 
     it("reuses cached settings for the same program", () => {
@@ -119,7 +119,7 @@ describe(registerProgramSettingsForContext, () => {
         const secondSettings = registerProgramSettingsForContext(secondContext);
 
         expect(secondSettings).toBe(firstSettings);
-        expect(secondSettings.disableImportInsertionFixes).toBeTruthy();
+        expect(secondSettings.disableImportInsertionFixes).toBe(true);
     });
 
     it("does not share cached settings across different programs", () => {
@@ -150,8 +150,8 @@ describe(registerProgramSettingsForContext, () => {
         const secondSettings = registerProgramSettingsForContext(secondContext);
 
         expect(secondSettings).not.toBe(firstSettings);
-        expect(firstSettings.disableImportInsertionFixes).toBeTruthy();
-        expect(secondSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(firstSettings.disableImportInsertionFixes).toBe(true);
+        expect(secondSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("treats non-object settings as disabled", () => {
@@ -165,8 +165,8 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("treats non-object typefest settings as disabled", () => {
@@ -182,8 +182,8 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("treats non-boolean settings values as disabled", () => {
@@ -202,8 +202,8 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("treats inherited non-boolean settings values as disabled", () => {
@@ -225,8 +225,8 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
+        expect(parsedSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("ignores inherited disableImportInsertionFixes property", () => {
@@ -246,7 +246,7 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableImportInsertionFixes).toBeFalsy();
+        expect(parsedSettings.disableImportInsertionFixes).toBe(false);
     });
 
     it("ignores inherited disableAllAutofixes property", () => {
@@ -266,7 +266,7 @@ describe(registerProgramSettingsForContext, () => {
 
         const parsedSettings = registerProgramSettingsForContext(context);
 
-        expect(parsedSettings.disableAllAutofixes).toBeFalsy();
+        expect(parsedSettings.disableAllAutofixes).toBe(false);
     });
 });
 
@@ -288,7 +288,7 @@ describe(isImportInsertionFixesDisabledForNode, () => {
 
         expect(
             isImportInsertionFixesDisabledForNode(createNodeInProgram(program))
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns true when only disableAllAutofixes is enabled", () => {
@@ -308,6 +308,6 @@ describe(isImportInsertionFixesDisabledForNode, () => {
 
         expect(
             isImportInsertionFixesDisabledForNode(createNodeInProgram(program))
-        ).toBeTruthy();
+        ).toBe(true);
     });
 });

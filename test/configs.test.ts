@@ -4,6 +4,7 @@
  */
 import type { UnknownRecord } from "type-fest";
 
+import { assertDefined } from "ts-extras";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -136,13 +137,13 @@ describe("typefest plugin configs", () => {
         const strictConfig = getConfig(configs, "strict");
         const allConfig = getConfig(configs, "all");
 
-        expect(recommendedConfig).toBeDefined();
-        expect(strictConfig).toBeDefined();
-        expect(allConfig).toBeDefined();
+        assertDefined(recommendedConfig);
+        assertDefined(strictConfig);
+        assertDefined(allConfig);
 
-        const recommendedPresetConfig = recommendedConfig!;
-        const strictPresetConfig = strictConfig!;
-        const allPresetConfig = allConfig!;
+        const recommendedPresetConfig = recommendedConfig;
+        const strictPresetConfig = strictConfig;
+        const allPresetConfig = allConfig;
 
         expect(recommendedPresetConfig.languageOptions).not.toBe(
             strictPresetConfig.languageOptions
@@ -189,7 +190,9 @@ describe("typefest plugin configs", () => {
 
         const experimentalRules = getConfigRules(configs, "experimental");
 
-        expect(experimentalRules).toBeDefined();
+        expect(Object.keys(experimentalRules ?? {})).toHaveLength(
+            Object.keys(rules ?? {}).length
+        );
 
         for (const ruleId of Object.keys(rules ?? {})) {
             expect(experimentalRules).toHaveProperty(
@@ -241,9 +244,9 @@ describe("typefest plugin configs", () => {
             getConfigRules(configs, "type-fest/types") ?? {};
 
         for (const ruleName of Object.keys(festTypeRulesPreset)) {
-            expect(
-                ruleName.startsWith("typefest/prefer-type-fest-")
-            ).toBeTruthy();
+            expect(ruleName.startsWith("typefest/prefer-type-fest-")).toBe(
+                true
+            );
         }
     });
 
@@ -254,9 +257,9 @@ describe("typefest plugin configs", () => {
             getConfigRules(configs, "ts-extras/type-guards") ?? {};
 
         for (const ruleName of Object.keys(tsExtrasRules)) {
-            expect(
-                ruleName.startsWith("typefest/prefer-ts-extras-")
-            ).toBeTruthy();
+            expect(ruleName.startsWith("typefest/prefer-ts-extras-")).toBe(
+                true
+            );
         }
     });
 
@@ -299,9 +302,10 @@ describe("typefest plugin configs", () => {
         for (const configName of typefestConfigNames) {
             const config = getConfig(configs, configName);
 
-            expect(config).toBeDefined();
+            assertDefined(config);
 
-            const parserOptions = config?.languageOptions?.parserOptions;
+            const parserOptions = config.languageOptions?.parserOptions;
+
             const hasProjectServiceEnabled =
                 isObject(parserOptions) &&
                 parserOptions["projectService"] === true;

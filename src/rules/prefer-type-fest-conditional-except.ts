@@ -1,11 +1,9 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-conditional-except`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import { collectNamedImportLocalNamesFromSource } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";

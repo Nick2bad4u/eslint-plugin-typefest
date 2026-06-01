@@ -137,6 +137,15 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
 
                 const seenTypes = new Set<ts.Type>();
 
+                const cacheSetTypeResult = (
+                    candidateType: Readonly<ts.Type>,
+                    result: boolean
+                ): boolean => {
+                    setTypeResolutionCache.set(candidateType, result);
+
+                    return result;
+                };
+
                 const isSetTypeInternal = (
                     candidateType: Readonly<ts.Type>
                 ): boolean => {
@@ -164,27 +173,22 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                                       isSetTypeInternal(partType)
                                   );
 
-                        setTypeResolutionCache.set(candidateType, isSetLike);
-
-                        return isSetLike;
+                        return cacheSetTypeResult(candidateType, isSetLike);
                     }
 
                     if (candidateType.isIntersection()) {
                         const isSetLike = candidateType.types.some((partType) =>
                             isSetTypeInternal(partType)
                         );
-                        setTypeResolutionCache.set(candidateType, isSetLike);
 
-                        return isSetLike;
+                        return cacheSetTypeResult(candidateType, isSetLike);
                     }
 
                     if (
                         isTypeAnyType(candidateType) ||
                         isTypeUnknownType(candidateType)
                     ) {
-                        setTypeResolutionCache.set(candidateType, false);
-
-                        return false;
+                        return cacheSetTypeResult(candidateType, false);
                     }
 
                     const builtinSetLikeResult = safeTypeOperation({
@@ -203,14 +207,10 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     });
 
                     if (builtinSetLikeResult.ok && builtinSetLikeResult.value) {
-                        setTypeResolutionCache.set(candidateType, true);
-
-                        return true;
+                        return cacheSetTypeResult(candidateType, true);
                     }
 
-                    const shouldUseNameBasedFallback = !isPresent(program);
-
-                    if (shouldUseNameBasedFallback) {
+                    if (!isPresent(program)) {
                         const candidateTypeNameResult = safeTypeOperation({
                             operation: () =>
                                 getTypeName(checker, candidateType),
@@ -230,9 +230,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                             candidateSymbolName === "ReadonlySet" ||
                             candidateSymbolName === "Set"
                         ) {
-                            setTypeResolutionCache.set(candidateType, true);
-
-                            return true;
+                            return cacheSetTypeResult(candidateType, true);
                         }
                     }
 
@@ -253,9 +251,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         containsSetLikeResult.ok &&
                         containsSetLikeResult.value
                     ) {
-                        setTypeResolutionCache.set(candidateType, true);
-
-                        return true;
+                        return cacheSetTypeResult(candidateType, true);
                     }
 
                     const apparentType = getTypeCheckerApparentType(
@@ -267,15 +263,11 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         apparentType !== candidateType &&
                         isSetTypeInternal(apparentType)
                     ) {
-                        setTypeResolutionCache.set(candidateType, true);
-
-                        return true;
+                        return cacheSetTypeResult(candidateType, true);
                     }
 
                     if (!hasClassOrInterfaceLikeDeclaration(candidateType)) {
-                        setTypeResolutionCache.set(candidateType, false);
-
-                        return false;
+                        return cacheSetTypeResult(candidateType, false);
                     }
 
                     const baseTypesResult = safeTypeOperation({
@@ -285,9 +277,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                     });
 
                     if (!baseTypesResult.ok) {
-                        setTypeResolutionCache.set(candidateType, false);
-
-                        return false;
+                        return cacheSetTypeResult(candidateType, false);
                     }
 
                     const baseTypes = baseTypesResult.value;
@@ -297,9 +287,7 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                             isSetTypeInternal(baseType)
                         ) ?? false;
 
-                    setTypeResolutionCache.set(candidateType, isSetLike);
-
-                    return isSetLike;
+                    return cacheSetTypeResult(candidateType, isSetLike);
                 };
 
                 return isSetTypeInternal(type);

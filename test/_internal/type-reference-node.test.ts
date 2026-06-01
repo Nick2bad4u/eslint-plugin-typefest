@@ -17,7 +17,7 @@ describe(isIdentifierTypeReference, () => {
             },
         } as unknown as TSESTree.TypeNode;
 
-        expect(isIdentifierTypeReference(node, "Arrayable")).toBeTruthy();
+        expect(isIdentifierTypeReference(node, "Arrayable")).toBe(true);
     });
 
     it("returns false for non-matching identifier names", () => {
@@ -31,7 +31,7 @@ describe(isIdentifierTypeReference, () => {
             },
         } as unknown as TSESTree.TypeNode;
 
-        expect(isIdentifierTypeReference(node, "Arrayable")).toBeFalsy();
+        expect(isIdentifierTypeReference(node, "Arrayable")).toBe(false);
     });
 
     it("returns false for non-type-reference nodes", () => {
@@ -41,6 +41,6 @@ describe(isIdentifierTypeReference, () => {
             type: "TSStringKeyword",
         } as unknown as TSESTree.TypeNode;
 
-        expect(isIdentifierTypeReference(node, "Arrayable")).toBeFalsy();
+        expect(isIdentifierTypeReference(node, "Arrayable")).toBe(false);
     });
 });

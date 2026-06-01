@@ -90,7 +90,7 @@ addTypeFestRuleMetadataSmokeTests("prefer-ts-extras-assert-defined", {
 describe("prefer-ts-extras-assert-defined metadata assertions", () => {
     it("retains hasSuggestions metadata for assert-defined", () => {
         expect.hasAssertions();
-        expect(rule.meta?.hasSuggestions).toBeTruthy();
+        expect(rule.meta?.hasSuggestions).toBe(true);
     });
 });
 
@@ -202,10 +202,10 @@ describe("prefer-ts-extras-assert-defined runtime safety assertions", () => {
 
             listenerMap.IfStatement?.(ifStatementNode);
 
-            expect(report).toHaveBeenCalledOnce();
+            expect(report).toHaveBeenCalledTimes(1);
             expect(
                 (report.mock.calls[0]?.[0] as { suggest?: unknown }).suggest
-            ).toBeDefined();
+            ).toHaveLength(1);
         } finally {
             vi.doUnmock("../src/_internal/imported-value-symbols.js");
             vi.doUnmock("../src/_internal/typed-rule.js");
@@ -366,7 +366,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                             !fixArguments ||
                                 createSafeValueNodeTextReplacementFixMock.mock
                                     .calls.length === 1
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         if (fixArguments) {
                             replacementText =
@@ -563,8 +563,8 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
 
                         expect(
                             createSafeValueNodeTextReplacementFixMock.mock.calls
-                                .length <= 1
-                        ).toBeTruthy();
+                                .length
+                        ).toBeLessThanOrEqual(1);
 
                         const fixArguments:
                             | AssertDefinedFixFactoryArgs

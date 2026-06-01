@@ -35,5 +35,5 @@ const countMissingValues = () => {
 };
 
 const sumDefined = values
-    .map((value) => (value !== undefined ? value : 0))
+    .map((value) => value ?? 0)
     .reduce((sum, value) => sum + value, 0);

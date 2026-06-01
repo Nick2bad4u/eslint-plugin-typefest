@@ -32,7 +32,7 @@ const allValues = input
     .map((value) => readValue(value))
     .filter((value) => value !== undefined)
     .filter((value) => value === undefined || value.length > 0)
-    .map((value) => `${value}!`);
+    .map((value) => `${String(value)}!`);
 
 const definedValues = input.filter((value) => value !== undefined);
 

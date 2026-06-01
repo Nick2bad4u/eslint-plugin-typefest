@@ -1,11 +1,9 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-json-object`.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import {
     collectDirectNamedImportsFromSource,
     createSafeTypeNodeReplacementFix,

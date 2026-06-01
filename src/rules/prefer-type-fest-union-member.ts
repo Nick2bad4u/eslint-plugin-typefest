@@ -1,6 +1,8 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import { arrayFirst } from "ts-extras";
 
 /**

@@ -150,12 +150,12 @@ const assertEditAfterImportStart = ({
 }>): void => {
     const lastImportDeclaration = getLastImportDeclaration(program);
 
-    expect(lastImportDeclaration).toBeTruthy();
+    expect(lastImportDeclaration?.type).toBe(AST_NODE_TYPES.ImportDeclaration);
 
     if (lastImportDeclaration !== null) {
         const lastImportRange = getNodeRange(lastImportDeclaration);
 
-        expect(lastImportRange).toBeTruthy();
+        expect(lastImportRange).toHaveLength(2);
 
         if (lastImportRange !== null) {
             expect(edit.start).toBe(lastImportRange[1]);
@@ -172,12 +172,14 @@ const assertEditAfterDirectiveStart = ({
 }>): void => {
     const lastDirectiveStatement = getLastDirectiveStatement(program);
 
-    expect(lastDirectiveStatement).toBeTruthy();
+    expect(lastDirectiveStatement?.type).toBe(
+        AST_NODE_TYPES.ExpressionStatement
+    );
 
     if (lastDirectiveStatement !== null) {
         const lastDirectiveRange = getNodeRange(lastDirectiveStatement);
 
-        expect(lastDirectiveRange).toBeTruthy();
+        expect(lastDirectiveRange).toHaveLength(2);
 
         if (lastDirectiveRange !== null) {
             expect(edit.start).toBe(lastDirectiveRange[1]);
@@ -194,12 +196,12 @@ const assertEditBeforeFirstStatementStart = ({
 }>): void => {
     const firstStatement = program.body[0];
 
-    expect(firstStatement).toBeTruthy();
+    expect(firstStatement?.type).toBe(AST_NODE_TYPES.VariableDeclaration);
 
     if (firstStatement !== undefined) {
         const firstStatementRange = getNodeRange(firstStatement);
 
-        expect(firstStatementRange).toBeTruthy();
+        expect(firstStatementRange).toHaveLength(2);
 
         if (firstStatementRange !== null) {
             expect(edit.start).toBe(firstStatementRange[0]);
@@ -216,7 +218,7 @@ const assertEditAtProgramEndStart = ({
 }>): void => {
     const programRange = getNodeRange(program);
 
-    expect(programRange).toBeTruthy();
+    expect(programRange).toHaveLength(2);
 
     if (programRange !== null) {
         expect(edit.start).toBe(programRange[1]);

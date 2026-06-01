@@ -1,10 +1,8 @@
-import type { TSESTree } from "@typescript-eslint/utils";
-
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Utilities for detecting nodes that live inside `.filter(...)` callbacks.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayFirst } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";

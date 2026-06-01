@@ -61,7 +61,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledOnce();
+        expect(report).toHaveBeenCalledTimes(1);
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             messageId: "preferTsExtrasAssertDefined",
             node,
@@ -82,7 +82,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledOnce();
+        expect(report).toHaveBeenCalledTimes(1);
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             fix,
             messageId: "preferTsExtrasAssertDefined",
@@ -106,7 +106,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledOnce();
+        expect(report).toHaveBeenCalledTimes(1);
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             data: {
                 alias: "OldAlias",
@@ -136,7 +136,7 @@ describe("rule-reporting helpers", () => {
             node,
         });
 
-        expect(report).toHaveBeenCalledOnce();
+        expect(report).toHaveBeenCalledTimes(1);
         expect(report.mock.calls[0]?.[0]).toMatchObject({
             messageId: "preferTsExtrasAssertDefined",
             node,

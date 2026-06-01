@@ -4,6 +4,7 @@
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { assertDefined } from "ts-extras";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { createRuleDocsUrl } from "../src/_internal/rule-docs-url";
@@ -125,7 +126,7 @@ function assertOptionalDetailHeadingPlacement(markdown: string): void {
             (packageHeadingOffset === -1 ||
                 matchedPatternsOffset < packageHeadingOffset);
 
-        expect(inTargetedScope || inWhatThisRuleReports).toBeTruthy();
+        expect(inTargetedScope || inWhatThisRuleReports).toBe(true);
     }
 
     if (detectionBoundariesOffset !== -1) {
@@ -139,7 +140,7 @@ function assertOptionalDetailHeadingPlacement(markdown: string): void {
             (packageHeadingOffset === -1 ||
                 detectionBoundariesOffset < packageHeadingOffset);
 
-        expect(inTargetedScope || inWhatThisRuleReports).toBeTruthy();
+        expect(inTargetedScope || inWhatThisRuleReports).toBe(true);
     }
 
     if (matchedPatternsOffset !== -1 && detectionBoundariesOffset !== -1) {
@@ -226,11 +227,13 @@ describe("typefest rule docs", () => {
 
         const { rules } = typefestPlugin;
 
-        expect(rules).toBeDefined();
+        assertDefined(rules);
+
+        expect(Object.keys(rules)).toContain("prefer-type-fest-json-value");
 
         const docsDir = path.join(process.cwd(), "docs", "rules");
 
-        for (const [ruleId, rule] of Object.entries(rules ?? {})) {
+        for (const [ruleId, rule] of Object.entries(rules)) {
             const docs = isRuleWithMeta(rule)
                 ? (rule.meta?.docs ?? null)
                 : null;
@@ -239,10 +242,8 @@ describe("typefest rule docs", () => {
 
             expect(
                 typeof url !== "string" || url === createRuleDocsUrl(ruleId)
-            ).toBeTruthy();
-            expect(
-                typeof url !== "string" || !url.includes(".md")
-            ).toBeTruthy();
+            ).toBe(true);
+            expect(typeof url !== "string" || !url.includes(".md")).toBe(true);
 
             const description = docs?.description;
 
@@ -250,7 +251,7 @@ describe("typefest rule docs", () => {
 
             const expectedPath = path.join(docsDir, `${ruleId}.md`);
 
-            expect(fs.existsSync(expectedPath)).toBeTruthy();
+            expect(fs.existsSync(expectedPath)).toBe(true);
         }
     });
 

@@ -1,11 +1,14 @@
+import type { UnknownArray } from "type-fest";
+
 /**
  * @packageDocumentation
  * Focused tests for createTypedRule autofix-gating behavior.
  */
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-import type { UnknownArray } from "type-fest";
-
-import { ESLintUtils } from "@typescript-eslint/utils";
+import {
+    ESLintUtils,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import { assertDefined } from "ts-extras";
 import { describe, expect, it, vi } from "vitest";
 
@@ -125,7 +128,7 @@ describe(createTypedRule, () => {
 
         listeners.Program?.(context.sourceCode.ast);
 
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -155,7 +158,7 @@ describe(createTypedRule, () => {
 
         listeners.Program?.(context.sourceCode.ast);
 
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -221,7 +224,7 @@ describe(createTypedRule, () => {
 
         listeners.Program?.(context.sourceCode.ast);
 
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -286,13 +289,13 @@ describe(createTypedRule, () => {
 
         listeners.Program?.(context.sourceCode.ast);
 
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
         expect(originalDescriptor).toBeDefined();
 
         const ensuredDescriptor =
             originalDescriptor as unknown as TSESLint.ReportDescriptor<RuleMessageIds>;
 
-        expect(Object.hasOwn(ensuredDescriptor, "fix")).toBeTruthy();
+        expect(Object.hasOwn(ensuredDescriptor, "fix")).toBe(true);
     });
 
     it("does not strip non-function fix values", () => {
@@ -344,7 +347,7 @@ describe(createTypedRule, () => {
 
         listeners.Program?.(context.sourceCode.ast);
 
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
 
         const [descriptor] = reportSpy.mock.calls[0] as [
             TSESLint.ReportDescriptor<RuleMessageIds>,
@@ -435,7 +438,7 @@ describe(createTypedRule, () => {
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
         ).not.toThrow();
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 
     it("does not crash when fix getter throws", () => {
@@ -501,7 +504,7 @@ describe(createTypedRule, () => {
                 context.sourceCode.ast as unknown as TSESTree.Program
             )
         ).not.toThrow();
-        expect(reportSpy).toHaveBeenCalledOnce();
+        expect(reportSpy).toHaveBeenCalledTimes(1);
     });
 
     it("injects canonical docs metadata for cataloged prefer-* rules", () => {

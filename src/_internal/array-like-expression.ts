@@ -1,4 +1,3 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type ts from "typescript";
 
 import {
@@ -6,12 +5,12 @@ import {
     isTypeArrayTypeOrUnionOfArrayTypes,
     isTypeUnknownType,
 } from "@typescript-eslint/type-utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Helpers for determining whether expressions/types are array-like in typed
  * rule analysis.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";

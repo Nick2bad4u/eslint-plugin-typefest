@@ -331,7 +331,7 @@ describe("prefer-ts-extras-is-infinite internal listener guards", () => {
                                 ? fixFactoryCallCount === 1
                                 : reportFix === undefined ||
                                       typeof reportFix === "function"
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         const replacementText = `isInfinite(${comparedExpressionText})`;
                         const fixedCode =

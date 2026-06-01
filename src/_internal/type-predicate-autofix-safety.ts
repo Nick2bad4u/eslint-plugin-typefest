@@ -1,11 +1,9 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Conservative safety checks for autofixes that introduce type predicates.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import { getParentNode } from "./ast-node.js";
 import { isTransparentExpressionWrapper } from "./value-rewrite-autofix-safety.js";
 

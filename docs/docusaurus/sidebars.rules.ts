@@ -1,24 +1,24 @@
+import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
+
 /**
  * @packageDocumentation
  * Dynamic sidebar generation for plugin rule documentation sections.
  */
 import { readdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
-
 /** Minimal document item shape used by generated rule categories. */
-type SidebarDocItem = {
-    readonly label: string;
+interface SidebarDocItem {
     readonly id: string;
+    readonly label: string;
     readonly type: "doc";
-};
+}
 
 /** Directory containing this sidebar module. */
-const sidebarDirectoryPath = dirname(fileURLToPath(import.meta.url));
+const sidebarDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 /** Directory containing generated rule docs consumed by the sidebar. */
-const rulesDirectoryPath = join(sidebarDirectoryPath, "..", "rules");
+const rulesDirectoryPath = path.join(sidebarDirectoryPath, "..", "rules");
 
 /** Check whether a directory entry name is a markdown file. */
 const isMarkdownFile = (fileName: string): boolean => fileName.endsWith(".md");
@@ -27,15 +27,15 @@ const isMarkdownFile = (fileName: string): boolean => fileName.endsWith(".md");
 const toRuleDocId = (fileName: string): string => fileName.slice(0, -3);
 
 /** Sorted rule-doc ids discovered from `docs/rules/*.md`. */
-const allRuleDocIds = readdirSync(rulesDirectoryPath, {
+const allRuleDocIds: string[] = readdirSync(rulesDirectoryPath, {
     withFileTypes: true,
 })
     .filter((entry) => entry.isFile() && isMarkdownFile(entry.name))
     .map((entry) => toRuleDocId(entry.name))
-    .sort((left, right) => left.localeCompare(right));
+    .sort((left: string, right: string) => left.localeCompare(right));
 
 /** Rule docs eligible for numbered display in the Rules sidebar section. */
-const allNumberedRuleDocIds = allRuleDocIds.filter((ruleDocId) =>
+const allNumberedRuleDocIds: string[] = allRuleDocIds.filter((ruleDocId) =>
     ruleDocId.startsWith("prefer-")
 );
 
@@ -74,7 +74,7 @@ const tsExtrasRuleItems = createRuleItemsByPrefix("prefer-ts-extras-");
 const typeFestRuleItems = createRuleItemsByPrefix("prefer-type-fest-");
 
 /** Complete sidebar structure for docs site navigation. */
-const sidebars = {
+const sidebars: SidebarsConfig = {
     rules: [
         {
             className: "sb-doc-overview",
@@ -93,14 +93,6 @@ const sidebars = {
             collapsed: true,
             customProps: {
                 badge: "guides",
-            },
-            type: "category",
-            label: "🧭 Adoption & Rollout",
-            link: {
-                type: "generated-index",
-                title: "Adoption & Rollout",
-                description:
-                    "Shared migration, rollout, and fix-safety guidance for rule adoption.",
             },
             items: [
                 {
@@ -129,18 +121,20 @@ const sidebars = {
                     type: "doc",
                 },
             ],
+            label: "🧭 Adoption & Rollout",
+            link: {
+                description:
+                    "Shared migration, rollout, and fix-safety guidance for rule adoption.",
+                title: "Adoption & Rollout",
+                type: "generated-index",
+            },
+            type: "category",
         },
         {
             className: "sb-cat-presets",
             collapsed: true,
             customProps: {
                 badge: "presets",
-            },
-            type: "category",
-            label: "Presets",
-            link: {
-                type: "doc",
-                id: "presets/index",
             },
             items: [
                 {
@@ -192,21 +186,18 @@ const sidebars = {
                     type: "doc",
                 },
             ],
+            label: "Presets",
+            link: {
+                id: "presets/index",
+                type: "doc",
+            },
+            type: "category",
         },
         {
             className: "sb-cat-rules",
             collapsed: true,
             customProps: {
                 badge: "rules",
-            },
-            type: "category",
-            label: "Rules",
-            link: {
-                type: "generated-index",
-                title: "Rule Reference",
-                slug: "/",
-                description:
-                    "Rule documentation for every eslint-plugin-typefest rule.",
             },
             items: [
                 {
@@ -216,15 +207,15 @@ const sidebars = {
                     customProps: {
                         badge: "ts-extras",
                     },
-                    type: "category",
+                    items: tsExtrasRuleItems,
                     label: "ts-extras",
                     link: {
-                        type: "generated-index",
-                        title: "ts-extras Rules",
                         description:
                             "Rules that prefer ts-extras runtime helpers and utility functions.",
+                        title: "ts-extras Rules",
+                        type: "generated-index",
                     },
-                    items: tsExtrasRuleItems,
+                    type: "category",
                 },
                 {
                     className: "sb-cat-rules-type-fest",
@@ -233,17 +224,26 @@ const sidebars = {
                     customProps: {
                         badge: "type-fest",
                     },
-                    type: "category",
+                    items: typeFestRuleItems,
                     label: "type-fest",
                     link: {
-                        type: "generated-index",
-                        title: "type-fest Rules",
                         description:
                             "Rules that prefer expressive type-fest utility types for clearer type-level code.",
+                        title: "type-fest Rules",
+                        type: "generated-index",
                     },
-                    items: typeFestRuleItems,
+                    type: "category",
                 },
             ],
+            label: "Rules",
+            link: {
+                description:
+                    "Rule documentation for every eslint-plugin-typefest rule.",
+                slug: "/",
+                title: "Rule Reference",
+                type: "generated-index",
+            },
+            type: "category",
         },
     ],
 } satisfies SidebarsConfig;

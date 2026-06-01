@@ -159,7 +159,7 @@ describe("type-checker-compat", () => {
                 sourceType,
                 targetType
             )
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("delegates string type lookup with checker-bound this", () => {
@@ -232,12 +232,10 @@ describe("type-checker-compat", () => {
                 }),
         } as unknown as ts.TypeChecker;
 
-        expect(
-            getTypeCheckerIsArrayTypeResult(checker, sourceType)
-        ).toBeTruthy();
-        expect(
-            getTypeCheckerIsTupleTypeResult(checker, sourceType)
-        ).toBeFalsy();
+        expect(getTypeCheckerIsArrayTypeResult(checker, sourceType)).toBe(true);
+        expect(getTypeCheckerIsTupleTypeResult(checker, sourceType)).toBe(
+            false
+        );
     });
 
     it("delegates type-argument lookup with checker-bound this", () => {

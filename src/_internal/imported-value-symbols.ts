@@ -1,11 +1,14 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Utilities for collecting and safely resolving direct named value imports.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { arrayJoin, setHas } from "ts-extras";
 
 import {

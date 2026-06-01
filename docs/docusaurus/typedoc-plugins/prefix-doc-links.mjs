@@ -16,12 +16,30 @@
 
 import { PageEvent } from "typedoc";
 
-import { prefixBareMarkdownFileLinksInMarkdown } from "./prefixDocLinksCore.mjs";
+import { prefixBareMarkdownFileLinksInMarkdown } from "./prefix-doc-links-core.mjs";
 
 /**
  * Renderer hook: runs after a page has been rendered.
  *
  * @param {import("typedoc").PageEvent} page
+ */
+/**
+ * TypeDoc plugin entrypoint.
+ *
+ * @param {import("typedoc").Application} app
+ *
+ * @returns {void}
+ */
+export function load(app) {
+    app.renderer.on(PageEvent.END, onPageEnd);
+}
+
+/**
+ * Renderer hook: runs after a page has been rendered.
+ *
+ * @param {import("typedoc").PageEvent} page
+ *
+ * @returns {void}
  */
 function onPageEnd(page) {
     if (typeof page.contents !== "string") {
@@ -34,13 +52,4 @@ function onPageEnd(page) {
     }
 
     page.contents = prefixBareMarkdownFileLinksInMarkdown(page.contents);
-}
-
-/**
- * TypeDoc plugin entrypoint.
- *
- * @param {import("typedoc").Application} app
- */
-export function load(app) {
-    app.renderer.on(PageEvent.END, onPageEnd);
 }

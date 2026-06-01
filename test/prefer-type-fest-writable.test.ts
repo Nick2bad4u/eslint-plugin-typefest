@@ -1,8 +1,7 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
 
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -439,7 +438,7 @@ describe(ruleName, () => {
         mappedTypeListener(mappedTypeNode);
 
         expect(getText).not.toHaveBeenCalled();
-        expect(report).toHaveBeenCalledOnce();
+        expect(report).toHaveBeenCalledTimes(1);
     });
 });
 

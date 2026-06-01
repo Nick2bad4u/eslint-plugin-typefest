@@ -3,10 +3,8 @@
  * Runtime fast-check harness helpers for `prefer-ts-extras-set-has` tests.
  */
 
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 
 import { getSourceTextForNode as getSourceTextForRangeNode } from "./source-text-for-node";

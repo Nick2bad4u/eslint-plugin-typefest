@@ -1,10 +1,9 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Predicate helpers for narrowing `TSTypeReference` nodes by identifier name.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 
 const TS_PARENTHESIZED_TYPE = "TSParenthesizedType";
 

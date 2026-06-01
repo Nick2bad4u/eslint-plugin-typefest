@@ -118,7 +118,7 @@ describe(isGlobalUndefinedIdentifier, () => {
 
         expect(
             isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns false when undefined is shadowed with local definitions", () => {
@@ -132,7 +132,7 @@ describe(isGlobalUndefinedIdentifier, () => {
 
         expect(
             isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("walks parent scopes when current scope does not define undefined", () => {
@@ -148,7 +148,7 @@ describe(isGlobalUndefinedIdentifier, () => {
 
         expect(
             isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns false when sourceCode.getScope throws", () => {
@@ -164,7 +164,7 @@ describe(isGlobalUndefinedIdentifier, () => {
 
         expect(
             isGlobalUndefinedIdentifier(context, undefinedIdentifierExpression)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("returns false for non-identifier expressions", () => {
@@ -174,7 +174,7 @@ describe(isGlobalUndefinedIdentifier, () => {
 
         expect(
             isGlobalUndefinedIdentifier(context, undefinedLiteralExpression)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 });
 
@@ -229,7 +229,7 @@ describe(isGlobalIdentifierNamed, () => {
                 } as unknown as TSESTree.Expression,
                 "Infinity"
             )
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns false for shadowed identifier references", () => {
@@ -251,7 +251,7 @@ describe(isGlobalIdentifierNamed, () => {
                 } as unknown as TSESTree.Expression,
                 "Infinity"
             )
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("returns false for non-identifier expressions", () => {
@@ -273,7 +273,7 @@ describe(isGlobalIdentifierNamed, () => {
                 } as unknown as TSESTree.Expression,
                 "Infinity"
             )
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("returns false when scope resolution throws", () => {
@@ -296,7 +296,7 @@ describe(isGlobalIdentifierNamed, () => {
                 } as unknown as TSESTree.Expression,
                 "Infinity"
             )
-        ).toBeFalsy();
+        ).toBe(false);
     });
 });
 
@@ -320,9 +320,7 @@ describe(isTypeAssignableTo, () => {
             isTypeAssignableTo: isTypeAssignableToMock,
         } as unknown as ts.TypeChecker;
 
-        expect(
-            isTypeAssignableTo(checker, sourceType, targetType)
-        ).toBeTruthy();
+        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(true);
         expect(isTypeAssignableToMock).toHaveBeenCalledWith(
             sourceType,
             targetType
@@ -336,9 +334,7 @@ describe(isTypeAssignableTo, () => {
             typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
 
-        expect(
-            isTypeAssignableTo(checker, sourceType, sourceType)
-        ).toBeTruthy();
+        expect(isTypeAssignableTo(checker, sourceType, sourceType)).toBe(true);
     });
 
     it("fails gracefully and falls back to identity when native assignability API throws", () => {
@@ -358,10 +354,8 @@ describe(isTypeAssignableTo, () => {
             typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
 
-        expect(
-            isTypeAssignableTo(checker, sourceType, sourceType)
-        ).toBeTruthy();
-        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBeFalsy();
+        expect(isTypeAssignableTo(checker, sourceType, sourceType)).toBe(true);
+        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(false);
     });
 
     it("returns false for non-identical types when assignability API is unavailable", () => {
@@ -371,7 +365,7 @@ describe(isTypeAssignableTo, () => {
             typeToString: vi.fn<(type: Readonly<ts.Type>) => string>(),
         } as unknown as ts.TypeChecker;
 
-        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBeFalsy();
+        expect(isTypeAssignableTo(checker, sourceType, targetType)).toBe(false);
     });
 });
 
@@ -415,7 +409,7 @@ describe(hasTypeServices, () => {
 
         const context = createTypedRuleContext(parserServices);
 
-        expect(hasTypeServices(context as never)).toBeTruthy();
+        expect(hasTypeServices(context as never)).toBe(true);
     });
 
     it("returns false when parser services do not expose a program", () => {
@@ -425,7 +419,7 @@ describe(hasTypeServices, () => {
 
         const context = createTypedRuleContext(parserServices);
 
-        expect(hasTypeServices(context as never)).toBeFalsy();
+        expect(hasTypeServices(context as never)).toBe(false);
     });
 
     it("returns false when parser-services lookup throws", () => {
@@ -435,7 +429,7 @@ describe(hasTypeServices, () => {
             sourceCode: {},
         } as unknown;
 
-        expect(hasTypeServices(context as never)).toBeFalsy();
+        expect(hasTypeServices(context as never)).toBe(false);
     });
 });
 

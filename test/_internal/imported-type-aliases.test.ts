@@ -951,7 +951,7 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
             "type-aliases"
         );
 
-        expect(namedImports.has("Simplify")).toBeTruthy();
+        expect(namedImports.has("Simplify")).toBe(true);
         expect(namedImports.size).toBe(1);
     });
 
@@ -970,7 +970,7 @@ describe(collectDirectNamedImportsFromSourceGroup, () => {
             "type-aliases"
         );
 
-        expect(namedImports.has("Tagged")).toBeTruthy();
+        expect(namedImports.has("Tagged")).toBe(true);
         expect(namedImports.size).toBe(1);
     });
 });

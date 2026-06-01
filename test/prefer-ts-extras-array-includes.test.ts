@@ -1,11 +1,9 @@
+import parser from "@typescript-eslint/parser";
 /**
  * @packageDocumentation
  * Shared testing utilities for eslint-plugin-typefest RuleTester and Vitest suites.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -348,7 +346,7 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
                         });
                         expect(
                             createMethodToFunctionCallFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const fixArguments =
                             createMethodToFunctionCallFixMock.mock
@@ -375,7 +373,9 @@ describe("prefer-ts-extras-array-includes fast-check fix safety", () => {
                         });
                         const replacementText = `arrayIncludes(${objectText}, ${argumentText})`;
 
-                        expect(replacementText).toBeTruthy();
+                        expect(replacementText).toBe(
+                            `arrayIncludes(${objectText}, ${argumentText})`
+                        );
 
                         const callRange = callExpression.range;
 

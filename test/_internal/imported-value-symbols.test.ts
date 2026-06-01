@@ -915,12 +915,12 @@ describe(collectDirectNamedValueImportsFromSource, () => {
         );
 
         expect(collected.size).toBe(1);
-        expect(collected.has("arrayAt")).toBeFalsy();
+        expect(collected.has("arrayAt")).toBe(false);
 
         const includesAliases = collected.get("arrayIncludes");
 
         expect(includesAliases).toBeDefined();
-        expect(includesAliases?.has("arrayIncludes")).toBeTruthy();
+        expect(includesAliases?.has("arrayIncludes")).toBe(true);
     });
 
     it("ignores imports from different source modules", () => {
@@ -956,8 +956,8 @@ describe(collectDirectNamedValueImportsFromSource, () => {
         const aliases = collected.get("arrayAt");
 
         expect(aliases?.size).toBe(2);
-        expect(aliases?.has("arrayAt")).toBeTruthy();
-        expect(aliases?.has("arrayAtAlias")).toBeTruthy();
+        expect(aliases?.has("arrayAt")).toBe(true);
+        expect(aliases?.has("arrayAtAlias")).toBe(true);
     });
 
     it("ignores specifiers whose imported or local nodes are not identifiers", () => {
@@ -1558,7 +1558,7 @@ describe(createMethodToFunctionCallFix, () => {
 
                     const replacementText = replacementTexts[0];
 
-                    expect(replacementText).toBeTruthy();
+                    expect(replacementText).toMatch(/^arrayIncludes\(.+\)$/v);
 
                     const callRange = callExpression.range;
                     const fixedCode = `${code.slice(0, callRange[0])}${replacementText}${code.slice(callRange[1])}`;
@@ -1568,7 +1568,9 @@ describe(createMethodToFunctionCallFix, () => {
                         parserOptions
                     );
 
-                    expect(fixedParseResult).toBeTruthy();
+                    expect(fixedParseResult.ast.type).toBe(
+                        AST_NODE_TYPES.Program
+                    );
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -2183,9 +2185,9 @@ describe(createMemberToFunctionCallFix, () => {
                         );
                     }
 
-                    expect(
-                        replacementText.startsWith("arrayFirst(")
-                    ).toBeTruthy();
+                    expect(replacementText.startsWith("arrayFirst(")).toBe(
+                        true
+                    );
 
                     const memberRange = memberExpression.range;
                     const fixedCode = `${code.slice(0, memberRange[0])}${replacementText}${code.slice(memberRange[1])}`;
@@ -2195,7 +2197,9 @@ describe(createMemberToFunctionCallFix, () => {
                         parserOptions
                     );
 
-                    expect(fixedParseResult).toBeTruthy();
+                    expect(fixedParseResult.ast.type).toBe(
+                        AST_NODE_TYPES.Program
+                    );
 
                     const { callExpression: fixedCallExpression } =
                         parseSingleCallExpressionFromCode(fixedCode);
@@ -3034,9 +3038,9 @@ describe(createSafeValueArgumentFunctionCallFix, () => {
                         ? "!isPresent("
                         : "isPresent(";
 
-                    expect(
-                        replacementText.startsWith(expectedPrefix)
-                    ).toBeTruthy();
+                    expect(replacementText.startsWith(expectedPrefix)).toBe(
+                        true
+                    );
 
                     const binaryRange = binaryExpression.range;
                     const fixedCode = `${code.slice(0, binaryRange[0])}${replacementText}${code.slice(binaryRange[1])}`;

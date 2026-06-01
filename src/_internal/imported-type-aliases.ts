@@ -1,10 +1,12 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
-
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Internal shared utilities used by eslint-plugin-typefest rule modules and plugin wiring.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { keyIn } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";

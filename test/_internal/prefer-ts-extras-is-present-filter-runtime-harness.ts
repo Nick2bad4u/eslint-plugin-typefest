@@ -3,10 +3,8 @@
  * Runtime/property-test helpers for `prefer-ts-extras-is-present-filter` tests.
  */
 
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 
 import { isSafeGeneratedIdentifier } from "./fast-check";

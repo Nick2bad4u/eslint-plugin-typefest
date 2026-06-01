@@ -7,12 +7,11 @@ import type { UnknownArray } from "type-fest";
 
 import { describe, expect, it } from "vitest";
 
-import type {
-    ImportInsertionDecision,
-    ImportInsertionDecisionOptions,
+import {
+    type ImportInsertionDecision,
+    type ImportInsertionDecisionOptions,
+    resolveImportInsertionDecisionForReportFix,
 } from "../../src/_internal/import-fix-coordinator";
-
-import { resolveImportInsertionDecisionForReportFix } from "../../src/_internal/import-fix-coordinator";
 import { registerProgramSettingsForContext } from "../../src/_internal/plugin-settings";
 
 const resolveDecision: (

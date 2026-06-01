@@ -46,9 +46,9 @@ const ruleIdentifierPattern = /^R\d{3}$/v;
 
 /** Validate an `R###` identifier and return a normalized string value. */
 const getValidatedRuleIdentifier = (value: unknown): string => {
-    expect(
-        typeof value === "string" && ruleIdentifierPattern.test(value)
-    ).toBeTruthy();
+    expect(typeof value === "string" && ruleIdentifierPattern.test(value)).toBe(
+        true
+    );
 
     return typeof value === "string" ? value : "";
 };
@@ -61,7 +61,7 @@ const getValidatedRuleId = (value: unknown): string =>
 const getValidatedRuleNumber = (value: unknown): number => {
     expect(
         typeof value === "number" && Number.isInteger(value) && value > 0
-    ).toBeTruthy();
+    ).toBe(true);
 
     return typeof value === "number" ? value : Number.NaN;
 };
@@ -211,7 +211,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
             expect(
                 shouldAllowOmittedDefaultOptions ||
                     Array.isArray(metadataDefaultOptions)
-            ).toBeTruthy();
+            ).toBe(true);
 
             expect(metadataRule.meta?.docs?.url).toBe(expectedDocsUrl);
 
@@ -219,9 +219,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
                 expectedDocsDescription
             );
 
-            expect(
-                isBoolean(metadataRule.meta?.docs?.recommended)
-            ).toBeTruthy();
+            expect(isBoolean(metadataRule.meta?.docs?.recommended)).toBe(true);
 
             const presetReferences = getTypefestConfigReferenceCandidates(
                 metadataRule.meta?.docs?.typefestConfigs
@@ -230,7 +228,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
             expect(presetReferences.length).toBeGreaterThan(0);
 
             for (const presetReference of presetReferences) {
-                expect(isTypefestConfigReference(presetReference)).toBeTruthy();
+                expect(isTypefestConfigReference(presetReference)).toBe(true);
             }
 
             expect(metadataRule.meta?.docs?.recommended).toBe(
@@ -246,7 +244,7 @@ export const addTypeFestRuleMetadataSmokeTests = (
             const docsRuleId = metadataRule.meta?.docs?.ruleId;
             const docsRuleNumber = metadataRule.meta?.docs?.ruleNumber;
 
-            expect(isBoolean(requiresTypeChecking)).toBeTruthy();
+            expect(isBoolean(requiresTypeChecking)).toBe(true);
 
             const normalizedRuleId = getValidatedRuleId(docsRuleId);
             const normalizedRuleNumber = getValidatedRuleNumber(docsRuleNumber);
@@ -257,15 +255,15 @@ export const addTypeFestRuleMetadataSmokeTests = (
 
             expect(
                 !isRecommendedTypeCheckedRule || requiresTypeChecking === true
-            ).toBeTruthy();
+            ).toBe(true);
             expect(
                 !isRecommendedTypeCheckedRule ||
                     !presetReferences.includes("typefest.configs.recommended")
-            ).toBeTruthy();
+            ).toBe(true);
             expect(
                 !isRecommendedTypeCheckedRule ||
                     metadataRule.meta?.docs?.recommended === false
-            ).toBeTruthy();
+            ).toBe(true);
 
             for (const [messageId, expectedMessage] of Object.entries(
                 expectations.messages ?? {}

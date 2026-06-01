@@ -1,12 +1,10 @@
-import type { TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Shared matchers for function-type wrappers built from `Parameters`,
  * `ReturnType`, and async return boxing helpers.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
 import {
     isIdentifierTypeReference,

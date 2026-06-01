@@ -480,7 +480,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                                 ? fixFactoryCallCount === 1
                                 : firstReport.fix === undefined ||
                                       typeof firstReport.fix === "function"
-                        ).toBeTruthy();
+                        ).toBe(true);
 
                         const [callbackStart, callbackEnd] = callbackRange;
                         const fixedCode = `${code.slice(
@@ -608,7 +608,7 @@ describe("prefer-ts-extras-is-present-filter internal listener guards", () => {
                         expect(firstReport).toMatchObject({
                             messageId: "preferTsExtrasIsPresentFilter",
                         });
-                        expect("fix" in firstReport).toBeFalsy();
+                        expect("fix" in firstReport).toBe(false);
                         expect(
                             createSafeValueReferenceReplacementFixMock
                         ).not.toHaveBeenCalled();

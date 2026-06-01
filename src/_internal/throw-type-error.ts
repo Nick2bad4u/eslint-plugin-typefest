@@ -1,12 +1,15 @@
-import type { TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { UnknownArray } from "type-fest";
+
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
  * Shared helpers for validating canonical `throw new TypeError(...)` shapes.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
-
 import { isGlobalIdentifierNamed } from "./typed-rule.js";
 
 /**

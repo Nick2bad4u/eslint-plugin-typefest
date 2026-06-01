@@ -1,7 +1,5 @@
-import type { TSESTree } from "@typescript-eslint/utils";
-
 import parser from "@typescript-eslint/parser";
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import fc from "fast-check";
 import { describe, expect, it, vi } from "vitest";
 
@@ -514,7 +512,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                         expect(reportCalls[0]?.fix).toBe("FIX");
                         expect(
                             createSafeValueNodeTextReplacementFixMock
-                        ).toHaveBeenCalledOnce();
+                        ).toHaveBeenCalledTimes(1);
 
                         const fixArguments =
                             createSafeValueNodeTextReplacementFixMock.mock

@@ -830,7 +830,7 @@ docs/typedoc.json
 **/docs/docusaurus/docs/src
 **/docs/docusaurus/docusaurus.config.ts
 **/docs/docusaurus/sidebars.ts
-**/docs/docusaurus/src/js/modernEnhancements.ts
+**/docs/docusaurus/src/js/modern-enhancements.ts
 **/docs/docusaurus/src/pages/index.tsx
 **/docs/docusaurus/static/eslint-inspector
 **/docs/docusaurus/static/storybook/**

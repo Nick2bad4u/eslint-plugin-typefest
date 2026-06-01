@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { SafeTypeOperationFailureObserver } from "../../src/_internal/safe-type-operation";
-
 import {
     registerSafeTypeOperationFailureObserver,
     registerSafeTypeOperationObserverFailureObserver,
     safeTypeOperation,
+    type SafeTypeOperationFailureObserver,
     withSafeTypeOperationFailureObserver,
 } from "../../src/_internal/safe-type-operation";
 
@@ -23,7 +22,7 @@ describe(safeTypeOperation, () => {
             reason: "noop",
         });
 
-        expect(result.ok).toBeTruthy();
+        expect(result.ok).toBe(true);
         expect(result).toStrictEqual({
             ok: true,
             value: 42,
@@ -46,7 +45,7 @@ describe(safeTypeOperation, () => {
             reason: "local-failure",
         });
 
-        expect(result.ok).toBeFalsy();
+        expect(result.ok).toBe(false);
         expect(result).toHaveProperty("failure.error", operationError);
         expect(result).toHaveProperty("failure.reason", "local-failure");
         expect(observedFailures).toHaveLength(1);
@@ -65,7 +64,7 @@ describe(safeTypeOperation, () => {
             reason: "observer-throws",
         });
 
-        expect(result.ok).toBeFalsy();
+        expect(result.ok).toBe(false);
     });
 
     it("reports local observer failures to observer-failure observers", () => {
@@ -90,7 +89,7 @@ describe(safeTypeOperation, () => {
                 reason: "local-observer-throws",
             });
 
-            expect(result.ok).toBeFalsy();
+            expect(result.ok).toBe(false);
             expect(observerFailures).toStrictEqual(["local"]);
         } finally {
             unsubscribe();
@@ -160,7 +159,7 @@ describe(safeTypeOperation, () => {
                 reason: "global-observer-throws",
             });
 
-            expect(result.ok).toBeFalsy();
+            expect(result.ok).toBe(false);
             expect(observerFailures).toStrictEqual(["global"]);
         } finally {
             unsubscribe();

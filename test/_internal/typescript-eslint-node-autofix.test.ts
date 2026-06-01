@@ -182,7 +182,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns false when no @typescript-eslint namespace import exists even if text contains TSESTree.", () => {
@@ -207,7 +207,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("skips scope traversal entirely when no namespace imports are present", () => {
@@ -233,7 +233,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("returns true for imported aliases referenced in definition text fallback", () => {
@@ -262,7 +262,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("returns true for namespace imports referenced in definition text fallback", () => {
@@ -291,7 +291,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeTruthy();
+        ).toBe(true);
     });
 
     it("uses namespace-boundary matching for text fallback", () => {
@@ -320,7 +320,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("does not match namespace text appearing only inside string literals in parser-backed fallback", () => {
@@ -349,7 +349,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("gracefully handles SourceCode objects without ast/body", () => {
@@ -375,7 +375,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 
     it("memoizes fallback skip-check decisions per expression node", () => {
@@ -410,9 +410,9 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
         const shouldSkipExpression =
             createTypeScriptEslintNodeExpressionSkipChecker(context);
 
-        expect(shouldSkipExpression(expressionNode)).toBeTruthy();
-        expect(shouldSkipExpression(expressionNode)).toBeTruthy();
-        expect(getScope).toHaveBeenCalledOnce();
+        expect(shouldSkipExpression(expressionNode)).toBe(true);
+        expect(shouldSkipExpression(expressionNode)).toBe(true);
+        expect(getScope).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -425,7 +425,7 @@ describe(isTypeScriptEslintAstType, () => {
             String.raw`C:\repo\node_modules\@typescript-eslint\utils\dist\index.d.ts`
         );
 
-        expect(isTypeScriptEslintAstType(utils, type)).toBeTruthy();
+        expect(isTypeScriptEslintAstType(utils, type)).toBe(true);
     });
 
     it("does not match package-like names when @typescript-eslint is not a full path segment", () => {
@@ -436,7 +436,7 @@ describe(isTypeScriptEslintAstType, () => {
             String.raw`C:\repo\node_modules\@typescript-eslint-tools\utils\dist\index.d.ts`
         );
 
-        expect(isTypeScriptEslintAstType(utils, type)).toBeFalsy();
+        expect(isTypeScriptEslintAstType(utils, type)).toBe(false);
     });
 
     it("ignores lexical typeToString text when declaration metadata is absent", () => {
@@ -454,6 +454,6 @@ describe(isTypeScriptEslintAstType, () => {
 
         expect(
             isTypeScriptEslintAstType(utils, astTypeWithoutDeclarations)
-        ).toBeFalsy();
+        ).toBe(false);
     });
 });

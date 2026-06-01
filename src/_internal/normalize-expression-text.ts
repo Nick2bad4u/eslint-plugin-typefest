@@ -1,12 +1,11 @@
-import type { TSESTree } from "@typescript-eslint/utils";
 import type { JsonObject } from "type-fest";
 
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * Structural normalization and equivalence checks for expressions and type
  * nodes used by safe-fix heuristics.
  */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
 import { isDefined, objectHasOwn, objectKeys } from "ts-extras";
 
 import { setContainsValue } from "./set-membership.js";

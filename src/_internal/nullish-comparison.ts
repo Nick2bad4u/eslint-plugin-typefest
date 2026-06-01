@@ -2,9 +2,7 @@
  * @packageDocumentation
  * Shared helpers for parsing and flattening nullish comparison expressions.
  */
-import type { TSESTree } from "@typescript-eslint/utils";
-
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { arrayIncludes, isDefined } from "ts-extras";
 
 /**
