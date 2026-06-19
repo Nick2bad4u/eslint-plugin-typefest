@@ -12,7 +12,7 @@ This rule targets imported alias names that represent union-to-tuple conversion 
 
 ## Why this rule exists
 
-`UnionToTuple` is TypeFest’s canonical helper for converting unions to tuple forms. Using one canonical helper improves readability and migration consistency.
+`UnionToTuple` is TypeFest's canonical helper for converting unions to tuple forms. Using one canonical helper improves readability and migration consistency.
 
 ## ❌ Incorrect
 

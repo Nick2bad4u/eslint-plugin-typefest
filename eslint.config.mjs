@@ -52,9 +52,31 @@ const config = [
             // Guard-heavy AST traversal and DOM enhancement loops are clearer
             // with early `continue` branches than with deep nesting.
             "no-continue": "off",
+            // The shared Unicorn defaults are tuned for app code. This
+            // plugin is dominated by AST traversal, RuleTester fixture strings,
+            // TypeFest utility names, and generated docs config where these
+            // rules create churn without improving the rule contracts.
+            "unicorn/consistent-boolean-name": "off",
+            "unicorn/no-break-in-nested-loop": "off",
+            "unicorn/no-computed-property-existence-check": "off",
+            "unicorn/no-declarations-before-early-exit": "off",
             // This repository necessarily uses identifiers such as typeName,
             // typeNode, and typefest* throughout TypeScript AST/type utilities.
             "unicorn/no-keyword-prefix": "off",
+            "unicorn/no-non-function-verb-prefix": "off",
+            "unicorn/no-redundant-comparison": "off",
+            "unicorn/no-unnecessary-global-this": "off",
+            "unicorn/no-unreadable-for-of-expression": "off",
+            "unicorn/no-unsafe-string-replacement": "off",
+            "unicorn/no-useless-fallback-in-spread": "off",
+            "unicorn/prefer-direct-iteration": "off",
+            "unicorn/prefer-else-if": "off",
+            "unicorn/prefer-includes-over-repeated-comparisons": "off",
+            "unicorn/prefer-iterator-to-array": "off",
+            "unicorn/prefer-number-coercion": "off",
+            "unicorn/prefer-short-arrow-method": "off",
+            "unicorn/prefer-unicode-code-point-escapes": "off",
+            "unicorn/try-complexity": "off",
         },
     },
 
@@ -97,6 +119,8 @@ const config = [
             "security/detect-non-literal-fs-filename": "off",
             "unicorn/no-array-sort": "off",
             "unicorn/prefer-import-meta-properties": "off",
+            // Sidebar labels intentionally preserve human-facing glyphs.
+            "unicorn/prefer-unicode-code-point-escapes": "off",
         },
     },
 
@@ -134,6 +158,23 @@ const config = [
         rules: {
             // RuleTester valid/invalid suites, type assertion files, fixtures,
             // and benchmark modules intentionally use top-level data/setup.
+            "unicorn/max-nested-calls": "off",
+            "unicorn/no-invalid-argument-count": "off",
+            "unicorn/no-this-outside-of-class": "off",
+            "unicorn/no-top-level-assignment-in-function": "off",
+            "unicorn/no-top-level-side-effects": "off",
+            "unicorn/no-unreadable-new-expression": "off",
+            "unicorn/no-unsafe-string-replacement": "off",
+            "unicorn/prefer-direct-iteration": "off",
+            "unicorn/prefer-early-return": "off",
+            "unicorn/prefer-global-number-constants": "off",
+            "unicorn/prefer-iterator-concat": "off",
+            "unicorn/prefer-iterator-to-array": "off",
+            "unicorn/prefer-number-coercion": "off",
+            "unicorn/prefer-number-is-safe-integer": "off",
+            "unicorn/prefer-string-repeat": "off",
+            "unicorn/prefer-temporal": "off",
+            "unicorn/prefer-unicode-code-point-escapes": "off",
             "vitest/require-hook": "off",
         },
     },
@@ -150,6 +191,7 @@ const config = [
             "@typescript-eslint/restrict-template-expressions": "off",
             "import-x/unambiguous": "off",
             "math/prefer-math-sum-precise": "off",
+            "unicorn/no-useless-coercion": "off",
             "unicorn/prefer-math-sum-precise": "off",
         },
     },
@@ -173,6 +215,13 @@ const config = [
             // environment flags. Some Docusaurus plugin rules also require the
             // direct `process.env[...] === "true"` shape.
             "n/no-process-env": "off",
+            // The docs config intentionally formats dates, URLs, and labels in
+            // the shapes Docusaurus consumes.
+            "unicorn/no-unnecessary-global-this": "off",
+            "unicorn/no-unreadable-new-expression": "off",
+            "unicorn/prefer-temporal": "off",
+            "unicorn/prefer-unicode-code-point-escapes": "off",
+            "unicorn/prefer-url-href": "off",
         },
     },
 
@@ -186,6 +235,10 @@ const config = [
             // The docs workspace type-checks this script below ES2024, so the
             // `v` RegExp flag is not portable there.
             "regexp/require-unicode-sets-regexp": "off",
+            // Browser globals are accessed defensively in this enhancement
+            // script to support Docusaurus hydration boundaries.
+            "unicorn/no-unnecessary-global-this": "off",
+            "unicorn/prefer-unicode-code-point-escapes": "off",
         },
     },
 

@@ -34,7 +34,7 @@ Adopt a strict type-aware rule contract:
 ## Consequences
 
 - Lint configuration must provide the parser-service context expected by typed rules.
-- Typed rule tests and fixtures remain part of the plugin’s core quality model.
+- Typed rule tests and fixtures remain part of the plugin's core quality model.
 - Contributors should not bypass typed-rule helpers for one-off implementations.
 
 ## Revisit Triggers

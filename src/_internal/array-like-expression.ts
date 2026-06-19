@@ -52,7 +52,7 @@ interface ArrayLikeExpressionCheckerOptions {
     /**
      * How union members should be matched.
      *
-     * @default "some"
+     * Default: `"some"`.
      */
     readonly unionMatchMode?: UnionArrayLikeMatchMode;
 }

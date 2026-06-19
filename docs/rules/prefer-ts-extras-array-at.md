@@ -96,7 +96,7 @@ Source file: [`source/array-at.ts`](https://github.com/sindresorhus/ts-extras/bl
  *
  * This mirrors the runtime behavior of `Array#at()` and returns `undefined` for
  * out-of-bounds indices. For tuples, a negative index of `-1` resolves to the
- * tuple’s last element type. Positive literal indices for tuples resolve to the
+ * tuple's last element type. Positive literal indices for tuples resolve to the
  * corresponding element type.
  *
  * @category Improved builtin

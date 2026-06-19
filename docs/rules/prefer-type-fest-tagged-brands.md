@@ -227,12 +227,12 @@ Source file: [`source/tagged.d.ts`](https://github.com/sindresorhus/type-fest/bl
  *   - And the metadata type for each of `A`'s tags is assignable to the metadata
  *       type of `B`'s corresponding tag.
  *
- * There have been several discussions about adding similar features to
+ * ## There have been several discussions about adding similar features to
  * TypeScript. Unfortunately, nothing has (yet) moved forward: -
  * [Microsoft/TypeScript#202](https://github.com/microsoft/TypeScript/issues/202)
- * -
- * [Microsoft/TypeScript#4895](https://github.com/microsoft/TypeScript/issues/4895)
- * -
+ *
+ * ## [Microsoft/TypeScript#4895](https://github.com/microsoft/TypeScript/issues/4895)
+ *
  * [Microsoft/TypeScript#33290](https://github.com/microsoft/TypeScript/pull/33290)
  *
  * @category Type

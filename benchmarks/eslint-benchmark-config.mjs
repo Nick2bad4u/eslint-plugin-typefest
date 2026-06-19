@@ -189,7 +189,6 @@ export const typefestRuleSets = Object.freeze({
  * @returns {import("eslint").Linter.Config[]} Flat config array for ESLint Node
  *   API / CLI usage.
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types -- This .mjs module relies on JSDoc contracts instead of TS syntax.
 export function createTypefestFlatConfig(options) {
     const { rules } = options;
 

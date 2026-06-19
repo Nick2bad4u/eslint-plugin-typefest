@@ -1,5 +1,5 @@
 // eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair -- project-wide disable pattern for build configs
-/* eslint-disable n/no-process-env, comment-length/limit-single-line-comments   -- Disable specific rules for build configs */
+/* eslint-disable comment-length/limit-single-line-comments   -- Disable specific rules for build configs */
 
 import pc from "picocolors";
 import {
