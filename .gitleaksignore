@@ -24,3 +24,9 @@
 6e6e7f009807ad5af960210e54390b48e058e34e:.secretlintrc.json\:stripe-access-token:135
 
 57eeedac7971be3d6e2378358fd418f94135f278:docs/Packages/Chart.js/getting-started/usage.md\:jwt:152
+
+# Historical local skill examples reference token environment-variable names only.
+8ff3c963267e6b307a28ffa52434d6bdee7ef135:.github/skills/github-manage-security-alerts/scripts/github_security_api.py:nick2bad4u-sensitive-env-vars:16
+8ff3c963267e6b307a28ffa52434d6bdee7ef135:.github/skills/github-manage-security-alerts/scripts/github_security_api.py:nick2bad4u-sensitive-env-vars:158
+8ff3c963267e6b307a28ffa52434d6bdee7ef135:.github/skills/github-manage-security-alerts/SKILL.md:nick2bad4u-sensitive-env-vars:43
+52c67720cd7197a0b7d862815f071915ebf89ab6:.github/skills/sonar-manage-findings/SKILL.md:nick2bad4u-sensitive-env-vars:49
