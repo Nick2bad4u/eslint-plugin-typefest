@@ -2,7 +2,7 @@
 
 exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
 {
-  "ruleCount": 121,
+  "ruleCount": 122,
   "ruleNames": [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -29,6 +29,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-ts-extras-is-safe-integer",
     "prefer-ts-extras-key-in",
     "prefer-ts-extras-not",
+    "prefer-ts-extras-object-assign",
     "prefer-ts-extras-object-entries",
     "prefer-ts-extras-object-from-entries",
     "prefer-ts-extras-object-has-in",
@@ -139,7 +140,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:all",
-    "ruleCount": 110,
+    "ruleCount": 111,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -166,6 +167,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-is-safe-integer",
       "typefest/prefer-ts-extras-key-in",
       "typefest/prefer-ts-extras-not",
+      "typefest/prefer-ts-extras-object-assign",
       "typefest/prefer-ts-extras-object-entries",
       "typefest/prefer-ts-extras-object-from-entries",
       "typefest/prefer-ts-extras-object-has-in",
@@ -261,7 +263,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:experimental",
-    "ruleCount": 121,
+    "ruleCount": 122,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -288,6 +290,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-is-safe-integer",
       "typefest/prefer-ts-extras-key-in",
       "typefest/prefer-ts-extras-not",
+      "typefest/prefer-ts-extras-object-assign",
       "typefest/prefer-ts-extras-object-entries",
       "typefest/prefer-ts-extras-object-from-entries",
       "typefest/prefer-ts-extras-object-has-in",
@@ -633,7 +636,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:strict",
-    "ruleCount": 109,
+    "ruleCount": 110,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -659,6 +662,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-is-safe-integer",
       "typefest/prefer-ts-extras-key-in",
       "typefest/prefer-ts-extras-not",
+      "typefest/prefer-ts-extras-object-assign",
       "typefest/prefer-ts-extras-object-entries",
       "typefest/prefer-ts-extras-object-from-entries",
       "typefest/prefer-ts-extras-object-has-in",

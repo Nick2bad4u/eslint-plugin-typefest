@@ -31,6 +31,7 @@ import preferTsExtrasIsPropertyPresentRule from "../rules/prefer-ts-extras-is-pr
 import preferTsExtrasIsSafeIntegerRule from "../rules/prefer-ts-extras-is-safe-integer.js";
 import preferTsExtrasKeyInRule from "../rules/prefer-ts-extras-key-in.js";
 import preferTsExtrasNotRule from "../rules/prefer-ts-extras-not.js";
+import preferTsExtrasObjectAssignRule from "../rules/prefer-ts-extras-object-assign.js";
 import preferTsExtrasObjectEntriesRule from "../rules/prefer-ts-extras-object-entries.js";
 import preferTsExtrasObjectFromEntriesRule from "../rules/prefer-ts-extras-object-from-entries.js";
 import preferTsExtrasObjectHasInRule from "../rules/prefer-ts-extras-object-has-in.js";
@@ -165,6 +166,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-is-safe-integer": preferTsExtrasIsSafeIntegerRule,
     "prefer-ts-extras-key-in": preferTsExtrasKeyInRule,
     "prefer-ts-extras-not": preferTsExtrasNotRule,
+    "prefer-ts-extras-object-assign": preferTsExtrasObjectAssignRule,
     "prefer-ts-extras-object-entries": preferTsExtrasObjectEntriesRule,
     "prefer-ts-extras-object-from-entries": preferTsExtrasObjectFromEntriesRule,
     "prefer-ts-extras-object-has-in": preferTsExtrasObjectHasInRule,

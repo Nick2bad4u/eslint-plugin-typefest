@@ -155,6 +155,7 @@ const orderedRuleNames = [
     "prefer-type-fest-required-keys-of",
     "prefer-type-fest-readonly-keys-of",
     "prefer-type-fest-writable-keys-of",
+    "prefer-ts-extras-object-assign",
 ] as const satisfies readonly TypefestRuleNamePattern[];
 
 const toRuleCatalogId = (ruleNumber: number): TypefestRuleCatalogId =>
