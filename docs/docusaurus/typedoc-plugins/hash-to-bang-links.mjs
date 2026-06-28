@@ -45,16 +45,15 @@ export function load(app) {
             const reflectionMap = reflections;
             // Avoid Object.values allocation on large projects.
             for (const reflectionId in reflectionMap) {
-                if (Object.hasOwn(reflectionMap, reflectionId)) {
-                    const reflection =
-                        /** @type {import("typedoc").Reflection} */ (
-                            reflectionMap[reflectionId]
-                        );
-                    if (reflection.comment) {
-                        convertHashLinksToBangLinksInComment(
-                            reflection.comment
-                        );
-                    }
+                if (!Object.hasOwn(reflectionMap, reflectionId)) {
+                    continue;
+                }
+
+                const reflection = /** @type {import("typedoc").Reflection} */ (
+                    reflectionMap[reflectionId]
+                );
+                if (reflection.comment) {
+                    convertHashLinksToBangLinksInComment(reflection.comment);
                 }
             }
         },

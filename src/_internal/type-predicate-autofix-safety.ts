@@ -72,14 +72,10 @@ export const isTypePredicateExpressionAutofixSafe = (
             return false;
         }
 
-        if (
-            parentNode.type === AST_NODE_TYPES.SwitchCase &&
-            parentNode.test === currentNode
-        ) {
-            return false;
-        }
-
-        return true;
+        return (
+            parentNode.type !== AST_NODE_TYPES.SwitchCase ||
+            parentNode.test !== currentNode
+        );
     }
 };
 

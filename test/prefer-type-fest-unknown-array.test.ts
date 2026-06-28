@@ -159,24 +159,22 @@ const parseUnknownArrayCandidateFromCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            if (
-                statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator
-            ) {
-                return {
-                    ast: parsed.ast,
-                    candidateNode: statement.typeAnnotation,
-                };
-            }
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
 
-            if (
-                statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference
-            ) {
-                return {
-                    ast: parsed.ast,
-                    candidateNode: statement.typeAnnotation,
-                };
-            }
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeOperator) {
+            return {
+                ast: parsed.ast,
+                candidateNode: statement.typeAnnotation,
+            };
+        }
+
+        if (statement.typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return {
+                ast: parsed.ast,
+                candidateNode: statement.typeAnnotation,
+            };
         }
     }
 
@@ -300,8 +298,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
 
             const createSafeTypeNodeReplacementFixPreservingReadonlyMock =
                 vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">(
-                    (...args: readonly unknown[]) =>
-                        args.length >= 0 ? "FIX" : "UNREACHABLE"
+                    () => "FIX"
                 );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({

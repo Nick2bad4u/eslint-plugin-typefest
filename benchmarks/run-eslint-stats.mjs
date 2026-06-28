@@ -337,6 +337,15 @@ const createBenchmarkEslint = ({ fix, rules }) =>
 const isObjectRecord = (value) => typeof value === "object" && value !== null;
 
 /**
+ * Guard unknown values to error-like objects with an optional code field.
+ *
+ * @param {unknown} value - Value to inspect.
+ *
+ * @returns {value is {readonly code?: unknown}} Whether value exposes a code.
+ */
+const isErrorWithCode = (value) => isObjectRecord(value) && "code" in value;
+
+/**
  * Extract lint passes from ESLint result stats.
  *
  * @param {LintResult} lintResult - ESLint lint result.
@@ -550,11 +559,7 @@ const loadComparisonScenarioMap = async (comparePath) => {
             comparableScenarios.map((scenario) => [scenario.scenario, scenario])
         );
     } catch (error) {
-        if (
-            error instanceof Error &&
-            "code" in error &&
-            error.code === "ENOENT"
-        ) {
+        if (isErrorWithCode(error) && error.code === "ENOENT") {
             return null;
         }
 

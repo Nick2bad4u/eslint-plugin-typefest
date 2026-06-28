@@ -132,20 +132,16 @@ const suppressKnownWebpackWarningsPlugin: PluginModule = () => ({
             ],
             resolve: {
                 alias: {
-                    ...(vscodeCssLanguageServiceEsmEntry === undefined
-                        ? {}
-                        : {
-                              "vscode-css-languageservice$":
-                                  vscodeCssLanguageServiceEsmEntry,
-                          }),
-                    ...(vscodeLanguageServerTypesEsmEntry === undefined
-                        ? {}
-                        : {
-                              "vscode-languageserver-types$":
-                                  vscodeLanguageServerTypesEsmEntry,
-                              "vscode-languageserver-types/lib/umd/main.js$":
-                                  vscodeLanguageServerTypesEsmEntry,
-                          }),
+                    ...(vscodeCssLanguageServiceEsmEntry !== undefined && {
+                        "vscode-css-languageservice$":
+                            vscodeCssLanguageServiceEsmEntry,
+                    }),
+                    ...(vscodeLanguageServerTypesEsmEntry !== undefined && {
+                        "vscode-languageserver-types$":
+                            vscodeLanguageServerTypesEsmEntry,
+                        "vscode-languageserver-types/lib/umd/main.js$":
+                            vscodeLanguageServerTypesEsmEntry,
+                    }),
                 },
             },
         };
@@ -155,16 +151,14 @@ const suppressKnownWebpackWarningsPlugin: PluginModule = () => ({
 
 /** Docusaurus future flags, including optional experimental fast path. */
 const futureConfig = {
-    ...(enableExperimentalFaster
-        ? {
-              faster: {
-                  mdxCrossCompilerCache: true,
-                  rspackBundler: true,
-                  rspackPersistentCache: true,
-                  ssgWorkerThreads: true,
-              },
-          }
-        : {}),
+    ...(enableExperimentalFaster && {
+        faster: {
+            mdxCrossCompilerCache: true,
+            rspackBundler: true,
+            rspackPersistentCache: true,
+            ssgWorkerThreads: true,
+        },
+    }),
     v4: {
         // Keep Faster opt-in only. The docs workspace already exposes
         // `build:fast` for the experimental native/Rspack path, and making it

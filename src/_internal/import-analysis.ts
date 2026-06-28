@@ -227,7 +227,7 @@ export const collectNamedImportLocalNamesByImportedNameFromSource = ({
         allowTypeImportDeclaration,
         allowTypeImportSpecifier,
         sourceCode,
-        ...(isDefined(sourceModuleName) ? { sourceModuleName } : {}),
+        ...(isDefined(sourceModuleName) && { sourceModuleName }),
     };
 
     for (const binding of collectNamedImportSpecifierBindingsFromSource(

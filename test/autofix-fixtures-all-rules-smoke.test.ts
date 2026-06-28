@@ -49,6 +49,13 @@ const isObjectRecord = (
 ): value is Readonly<Record<string, unknown>> =>
     typeof value === "object" && value !== null;
 
+const isErrorWithMessage = (
+    value: unknown
+): value is Readonly<{ message: string }> =>
+    isObjectRecord(value) &&
+    "message" in value &&
+    typeof value["message"] === "string";
+
 /** Resolve fixture directory from environment override or default location. */
 const getFixtureDirectoryPath = (): string => {
     const configuredDirectory =
@@ -208,16 +215,17 @@ const collectFatalDiagnostics = (
 
     for (const lintResult of lintResults) {
         for (const message of lintResult.messages) {
-            if (message.fatal === true) {
-                const line =
-                    typeof message.line === "number" ? message.line : 0;
-                const column =
-                    typeof message.column === "number" ? message.column : 0;
-
-                diagnostics.push(
-                    `${toRelativePath(lintResult.filePath)}:${line}:${column} ${message.message}`
-                );
+            if (message.fatal !== true) {
+                continue;
             }
+
+            const line = typeof message.line === "number" ? message.line : 0;
+            const column =
+                typeof message.column === "number" ? message.column : 0;
+
+            diagnostics.push(
+                `${toRelativePath(lintResult.filePath)}:${line}:${column} ${message.message}`
+            );
         }
     }
 
@@ -240,8 +248,9 @@ const collectAutofixOutputParseErrors = (
                     sourceType: "module",
                 });
             } catch (error: unknown) {
-                const parseErrorMessage =
-                    error instanceof Error ? error.message : String(error);
+                const parseErrorMessage = isErrorWithMessage(error)
+                    ? error.message
+                    : String(error);
 
                 parseErrors.push(
                     `${toRelativePath(lintResult.filePath)} ${parseErrorMessage}`

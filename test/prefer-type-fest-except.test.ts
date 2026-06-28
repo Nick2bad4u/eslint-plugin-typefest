@@ -139,15 +139,17 @@ const parseExceptTypeReferenceFromCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            const tsAnnotation = statement.typeAnnotation;
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
 
-            if (tsAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
-                return {
-                    ast: parsed.ast,
-                    tsReference: tsAnnotation,
-                };
-            }
+        const tsAnnotation = statement.typeAnnotation;
+
+        if (tsAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return {
+                ast: parsed.ast,
+                tsReference: tsAnnotation,
+            };
         }
     }
 

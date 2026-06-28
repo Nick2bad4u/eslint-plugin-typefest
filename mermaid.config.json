@@ -1,10 +1,17 @@
 {
     "altFontFamily": "CodeNewRoman Nerd Font Mono, MesloLGS Nerd Font, SauceCodePro NFM, ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
     "architecture": {
+        "edgeElasticity": 0.45,
         "fontSize": 16,
         "iconSize": 80,
+        "idealEdgeLengthMultiplier": 1.5,
+        "nodeSeparation": 75,
+        "numIter": 2500,
         "padding": 40,
-        "useMaxWidth": true
+        "randomize": false,
+        "seed": 1,
+        "useMaxWidth": true,
+        "useWidth": 0
     },
     "arrowMarkerAbsolute": false,
     "block": {
@@ -141,9 +148,13 @@
         "titleTopMargin": 25,
         "useMaxWidth": true
     },
+    "cynefin": {
+        "boundaryAmplitude": 8
+    },
     "darkMode": true,
     "deterministicIDSeed": "mermaid-0.0.3",
     "deterministicIds": true,
+    "dompurifyConfig": {},
     "elk": {
         "mergeEdges": false,
         "nodePlacementStrategy": "SIMPLE"
@@ -159,6 +170,12 @@
         "stroke": "gray",
         "titleTopMargin": 25,
         "useMaxWidth": true
+    },
+    "eventmodeling": {
+        "padding": 30,
+        "rowHeight": 32,
+        "useMaxWidth": true,
+        "useWidth": 0
     },
     "flowchart": {
         "curve": "basis",
@@ -313,6 +330,9 @@
         "marginTop": 50,
         "width": 600
     },
+    "railroad": {
+        "verticalSeparation": 8
+    },
     "requirement": {
         "fontSize": 14,
         "line_height": 20,
@@ -397,6 +417,14 @@
         "useMaxWidth": true
     },
     "suppressErrorRendering": false,
+    "swimlane": {
+        "automaticLaneOrdering": false,
+        "ignoreCrossLaneEdges": true,
+        "lineHops": "arc",
+        "optimizeRanksByCrossings": true,
+        "useMaxWidth": true,
+        "useWidth": 0
+    },
     "theme": "dark",
     "themeCSS": ".node rect { stroke-width: 2px; stroke-dasharray: none; } .edgeLabel { background-color: var(--mermaid-edge-label-background); border-radius: 3px; padding: 2px 4px; } .cluster rect { stroke-width: 1.5px; stroke-dasharray: 3,3; opacity: 0.8; } .flowchart-link { stroke-width: 2px; } .section { stroke-width: 1px; stroke-dasharray: 2,2; opacity: 0.9; }",
     "themeVariables": {
@@ -458,6 +486,9 @@
         "useMaxWidth": true,
         "width": 150
     },
+    "treeView": {
+        "lineThickness": 1
+    },
     "venn": {
         "height": 450,
         "padding": 8,
@@ -465,6 +496,18 @@
         "useMaxWidth": true,
         "useWidth": 0,
         "width": 800
+    },
+    "wardley-beta": {
+        "axisFontSize": 12,
+        "height": 600,
+        "labelFontSize": 10,
+        "nodeLabelOffset": 8,
+        "nodeRadius": 6,
+        "padding": 48,
+        "showGrid": false,
+        "useMaxWidth": true,
+        "useWidth": 0,
+        "width": 900
     },
     "wrap": true,
     "xyChart": {

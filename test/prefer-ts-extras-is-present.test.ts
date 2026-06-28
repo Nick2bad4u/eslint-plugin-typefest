@@ -1239,13 +1239,15 @@ const assertTextEditsDoNotOverlap = (
 ): void => {
     for (const [firstIndex, firstEdit] of textEdits.entries()) {
         for (const [secondIndex, secondEdit] of textEdits.entries()) {
-            if (firstIndex < secondIndex) {
-                const doNotOverlap =
-                    firstEdit.end <= secondEdit.start ||
-                    secondEdit.end <= firstEdit.start;
-
-                expect(doNotOverlap).toBe(true);
+            if (firstIndex >= secondIndex) {
+                continue;
             }
+
+            const doNotOverlap =
+                firstEdit.end <= secondEdit.start ||
+                secondEdit.end <= firstEdit.start;
+
+            expect(doNotOverlap).toBe(true);
         }
     }
 };

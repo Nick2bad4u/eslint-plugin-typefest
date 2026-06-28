@@ -109,7 +109,7 @@ const createTypeReferenceNode = (
             name: referenceName,
             type: "Identifier",
         },
-        ...(parent === undefined ? {} : { parent }),
+        ...(parent !== undefined && { parent }),
     }) as unknown as Parameters<
         typeof createSafeTypeReferenceReplacementFix
     >[0];
@@ -226,7 +226,7 @@ const createTypeNode = (
 ): Parameters<typeof createSafeTypeNodeTextReplacementFix>[0] =>
     ({
         type: "TSStringKeyword",
-        ...(parent === undefined ? {} : { parent }),
+        ...(parent !== undefined && { parent }),
     }) as unknown as Parameters<typeof createSafeTypeNodeTextReplacementFix>[0];
 
 const createReadonlyContainerTypeReferenceNode = (
@@ -502,15 +502,17 @@ const parseSingleTypeReferenceFromTypeAliasCode = (
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
     for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            const annotation = statement.typeAnnotation;
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
 
-            if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
-                return {
-                    ast: parsed.ast,
-                    referenceNode: annotation,
-                };
-            }
+        const annotation = statement.typeAnnotation;
+
+        if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
+            return {
+                ast: parsed.ast,
+                referenceNode: annotation,
+            };
         }
     }
 
@@ -529,11 +531,13 @@ const parseTypeReferencesFromTypeAliasCode = (
     const referenceNodes: TSESTree.TSTypeReference[] = [];
 
     for (const statement of parsed.ast.body) {
-        if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-            const annotation = statement.typeAnnotation;
-            if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
-                referenceNodes.push(annotation);
-            }
+        if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+            continue;
+        }
+
+        const annotation = statement.typeAnnotation;
+        if (annotation.type === AST_NODE_TYPES.TSTypeReference) {
+            referenceNodes.push(annotation);
         }
     }
 

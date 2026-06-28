@@ -4,7 +4,7 @@
  * parser/type-analysis caches.
  */
 
-import { isSafeInteger } from "ts-extras";
+import { isDefined, isSafeInteger } from "ts-extras";
 
 const isSameValueZero = <Value>(left: Value, right: Value): boolean =>
     left === right ||
@@ -38,20 +38,30 @@ export const getBoundedCacheValue = <Key, Value>(
     cache: Map<Key, Value>,
     key: Key
 ): BoundedCacheLookupResult<Value> => {
+    let matchingEntry: Readonly<{ key: Key; value: Value }> | undefined;
+
     for (const [entryKey, value] of cache) {
         if (isSameValueZero(entryKey, key)) {
-            cache.delete(key);
-            cache.set(key, value);
-
-            return {
-                found: true,
+            matchingEntry = {
+                key: entryKey,
                 value,
             };
+            break;
         }
     }
 
+    if (!isDefined(matchingEntry)) {
+        return {
+            found: false,
+        };
+    }
+
+    cache.delete(matchingEntry.key);
+    cache.set(matchingEntry.key, matchingEntry.value);
+
     return {
-        found: false,
+        found: true,
+        value: matchingEntry.value,
     };
 };
 

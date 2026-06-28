@@ -289,6 +289,7 @@ function createScrollIndicator(): CleanupFunction {
     };
 
     const scrollAbortController = new AbortController();
+    // eslint-disable-next-line unicorn/prefer-observer-apis -- A continuous scroll-progress width needs exact document scroll position, not visibility thresholds.
     window.addEventListener("scroll", update, {
         passive: true,
         signal: scrollAbortController.signal,

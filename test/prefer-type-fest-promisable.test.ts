@@ -122,12 +122,14 @@ describe("prefer-type-fest-promisable source assertions", () => {
             const unionTypeNodes: unknown[] = [];
 
             for (const statement of parsedResult.ast.body) {
-                if (statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
-                    const aliasAnnotation = statement.typeAnnotation;
+                if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+                    continue;
+                }
 
-                    if (aliasAnnotation.type === AST_NODE_TYPES.TSUnionType) {
-                        unionTypeNodes.push(aliasAnnotation);
-                    }
+                const aliasAnnotation = statement.typeAnnotation;
+
+                if (aliasAnnotation.type === AST_NODE_TYPES.TSUnionType) {
+                    unionTypeNodes.push(aliasAnnotation);
                 }
             }
 
@@ -311,20 +313,22 @@ const parsePromisableTypeReferenceFromCode = (
 
     for (const statement of parsedResult.ast.body) {
         if (
-            statement.type === AST_NODE_TYPES.TSTypeAliasDeclaration &&
-            statement.id.name === "JobResult"
+            statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+            statement.id.name !== "JobResult"
         ) {
-            const aliasAnnotation = statement.typeAnnotation;
+            continue;
+        }
 
-            if (
-                aliasAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
-                aliasAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
-                aliasAnnotation.typeName.name === "MaybePromise"
-            ) {
-                targetAliasNode = statement;
-                targetTypeReferenceNode = aliasAnnotation;
-                break;
-            }
+        const aliasAnnotation = statement.typeAnnotation;
+
+        if (
+            aliasAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+            aliasAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
+            aliasAnnotation.typeName.name === "MaybePromise"
+        ) {
+            targetAliasNode = statement;
+            targetTypeReferenceNode = aliasAnnotation;
+            break;
         }
     }
 

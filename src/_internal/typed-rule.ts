@@ -122,9 +122,9 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         },
         meta: {
             ...createdRule.meta,
-            ...(isDefined(metaDefaultOptions)
-                ? { defaultOptions: metaDefaultOptions }
-                : {}),
+            ...(isDefined(metaDefaultOptions) && {
+                defaultOptions: metaDefaultOptions,
+            }),
             docs: docsWithCatalog,
         },
         name: ruleDefinition.name,

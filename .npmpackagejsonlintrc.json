@@ -2,6 +2,22 @@
     "$schema": "https://www.schemastore.org/npmpackagejsonlintrc.json",
     "extends": "npm-package-json-lint-config-nick2bad4u",
     "rules": {
+        "no-absolute-version-devDependencies": [
+            "error",
+            {
+                "exceptions": ["prettier"]
+            }
+        ],
+        "prefer-caret-version-devDependencies": [
+            "error",
+            {
+                "exceptions": [
+                    "prettier",
+                    "prettier-plugin-multiline-arrays",
+                    "vitest-environment-browser"
+                ]
+            }
+        ],
         "require-type": "off",
         "require-types": "off"
     }

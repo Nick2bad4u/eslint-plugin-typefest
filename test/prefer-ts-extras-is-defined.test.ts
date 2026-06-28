@@ -220,13 +220,15 @@ const assertStrictUndefinedComparisonFixBehavior = ({
 const assertTextEditsDoNotOverlap = (textEdits: readonly TextEdit[]): void => {
     for (const [firstIndex, firstEdit] of textEdits.entries()) {
         for (const [secondIndex, secondEdit] of textEdits.entries()) {
-            if (firstIndex < secondIndex) {
-                const doNotOverlap =
-                    firstEdit.range[1] <= secondEdit.range[0] ||
-                    secondEdit.range[1] <= firstEdit.range[0];
-
-                expect(doNotOverlap).toBe(true);
+            if (firstIndex >= secondIndex) {
+                continue;
             }
+
+            const doNotOverlap =
+                firstEdit.range[1] <= secondEdit.range[0] ||
+                secondEdit.range[1] <= firstEdit.range[0];
+
+            expect(doNotOverlap).toBe(true);
         }
     }
 };
@@ -420,9 +422,7 @@ describe("prefer-ts-extras-is-defined internal create guards", () => {
 
             const createSafeValueArgumentFunctionCallFixMock = vi.fn<
                 (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
-            >((...args: readonly unknown[]) =>
-                args.length >= 0 ? "FIX" : "UNREACHABLE"
-            );
+            >(() => "FIX");
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({
                 createTypedRule: createTypedRuleSelectorAwarePassThrough,

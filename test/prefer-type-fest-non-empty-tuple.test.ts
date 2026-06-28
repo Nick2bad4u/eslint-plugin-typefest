@@ -327,8 +327,7 @@ describe("prefer-type-fest-non-empty-tuple runtime safety assertions", () => {
 
             const createSafeTypeNodeTextReplacementFixPreservingReadonlyMock =
                 vi.fn<(...args: readonly unknown[]) => "FIX" | "UNREACHABLE">(
-                    (...args: readonly unknown[]) =>
-                        args.length >= 0 ? "FIX" : "UNREACHABLE"
+                    () => "FIX"
                 );
 
             vi.doMock(import("../src/_internal/typed-rule.js"), () => ({

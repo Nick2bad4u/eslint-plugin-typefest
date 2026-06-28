@@ -139,20 +139,22 @@ const parseIsIntegerCallFromCode = (
 
     for (const statement of parsed.ast.body) {
         if (
-            statement.type === AST_NODE_TYPES.VariableDeclaration &&
-            statement.declarations.length === 1
+            statement.type !== AST_NODE_TYPES.VariableDeclaration ||
+            statement.declarations.length !== 1
         ) {
-            const declaration = statement.declarations[0];
-            if (
-                declaration?.type === AST_NODE_TYPES.VariableDeclarator &&
-                declaration.init !== null &&
-                declaration.init.type === AST_NODE_TYPES.CallExpression
-            ) {
-                return {
-                    ast: parsed.ast,
-                    callExpression: declaration.init,
-                };
-            }
+            continue;
+        }
+
+        const declaration = statement.declarations[0];
+        if (
+            declaration?.type === AST_NODE_TYPES.VariableDeclarator &&
+            declaration.init !== null &&
+            declaration.init.type === AST_NODE_TYPES.CallExpression
+        ) {
+            return {
+                ast: parsed.ast,
+                callExpression: declaration.init,
+            };
         }
     }
 

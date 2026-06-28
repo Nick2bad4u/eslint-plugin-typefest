@@ -91,6 +91,30 @@ const config = [
     },
 
     {
+        files: ["package.json"],
+        name: "Temporary Prettier formatter pin",
+        rules: {
+            // Prettier 3.9 currently regresses multiline array plugin output.
+            // Keep the normal range policy for every other dependency while
+            // this formatter stack is intentionally pinned.
+            "node-dependencies/absolute-version": [
+                "error",
+                {
+                    dependencies: "never",
+                    devDependencies: "never",
+                    optionalDependencies: "never",
+                    overridePackages: {
+                        prettier: {
+                            devDependencies: "always",
+                        },
+                    },
+                    peerDependencies: "never",
+                },
+            ],
+        },
+    },
+
+    {
         files: ["benchmarks/**/*.mjs"],
         name: "Node ESM benchmark imports",
         rules: {

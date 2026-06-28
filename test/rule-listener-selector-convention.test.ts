@@ -26,6 +26,13 @@ const isObjectRecord = (
 ): value is Readonly<Record<string, unknown>> =>
     typeof value === "object" && value !== null;
 
+const isErrorWithMessage = (
+    value: unknown
+): value is Readonly<{ message: string }> =>
+    isObjectRecord(value) &&
+    "message" in value &&
+    typeof value["message"] === "string";
+
 const getPropertyKeyName = (key: unknown): null | string => {
     if (!isObjectRecord(key)) {
         return null;
@@ -138,8 +145,9 @@ const collectBroadListenerMatchesFromSourceText = (
             parseErrorMessage: null,
         };
     } catch (error_) {
-        const parseErrorMessage =
-            error_ instanceof Error ? error_.message : String(error_);
+        const parseErrorMessage = isErrorWithMessage(error_)
+            ? error_.message
+            : String(error_);
 
         return {
             matches: [],

@@ -253,9 +253,7 @@ describe("prefer-type-fest-if source assertions", () => {
 
             const createSafeTypeReferenceReplacementFixMock = vi.fn<
                 (...args: readonly unknown[]) => "FIX" | "UNREACHABLE"
-            >((...args: readonly unknown[]) =>
-                args.length >= 0 ? "FIX" : "UNREACHABLE"
-            );
+            >(() => "FIX");
 
             vi.doMock(
                 import("../src/_internal/imported-type-aliases.js"),

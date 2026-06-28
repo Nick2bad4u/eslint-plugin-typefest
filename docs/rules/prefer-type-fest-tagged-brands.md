@@ -228,6 +228,7 @@ Source file: [`source/tagged.d.ts`](https://github.com/sindresorhus/type-fest/bl
  *       type of `B`'s corresponding tag.
  *
  * ## There have been several discussions about adding similar features to
+ *
  * TypeScript. Unfortunately, nothing has (yet) moved forward: -
  * [Microsoft/TypeScript#202](https://github.com/microsoft/TypeScript/issues/202)
  *
