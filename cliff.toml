@@ -84,18 +84,9 @@ This project license is here: [Project License](https://github.com/{{ remote.git
         { pattern = '\[dependency\]', replace = "test" },
         { pattern = "merge branch", replace = "[chore] Merge Branch" },                                                                                                                                                                                                                                                                                                                                  # replace merge branch commit messages
         # Clean up Dependabot messages - remove verbose table content
-        {
-            pattern = 'Bump the.*?group with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*',
-            replace = "[dependency] Update dependency group"
-        },
-        {
-            pattern = 'Bumps the npm-all group.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*',
-            replace = "[dependency] Update npm dependencies"
-        },
-        {
-            pattern = '\[dependency\] \[chore\] Bump the.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*',
-            replace = "[dependency] Update dependencies"
-        },
+        { pattern = 'Bump the.*?group with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependency group" },
+        { pattern = 'Bumps the npm-all group.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update npm dependencies" },
+        { pattern = '\[dependency\] \[chore\] Bump the.*?with \d+ updates.*?(\n\n|\|.*?\|.*?\n)*', replace = "[dependency] Update dependencies" },
 
         # Clean up individual package bump messages
         { pattern = 'Bump ([a-zA-Z0-9@\-\/]+) from.*?to.*?(\n\n.*?)*', replace = "[dependency] Update $1" },
@@ -152,18 +143,12 @@ This project license is here: [Project License](https://github.com/{{ remote.git
         { message = "^chore\\(release\\): prepare for", skip = true },
 
         # Security-related (keep separate from general dependencies)
-        {
-            message = "^(🔒️|🔒|🔐|🛂|:lock:|:closed_lock_with_key:|:passport_control:)",
-            group   = "<!-- 12 -->🛡️ Security"
-        },
+        { message = "^(🔒️|🔒|🔐|🛂|:lock:|:closed_lock_with_key:|:passport_control:)", group = "<!-- 12 -->🛡️ Security" },
         { body = ".*security.*", group = "<!-- 12 -->🛡️ Security" },
         { message = ".*security.*", group = "<!-- 12 -->🛡️ Security" },
 
         # Dependency-related commits (emoji and bot/fallback patterns)
-        {
-            message = "^(⬆️|⬆|⬇️|⬇|📌|➕|➖|:arrow_up:|:arrow_down:|:pushpin:|:heavy_plus_sign:|:heavy_minus_sign:)",
-            group   = "<!-- 11 -->📦 Dependencies"
-        },
+        { message = "^(⬆️|⬆|⬇️|⬇|📌|➕|➖|:arrow_up:|:arrow_down:|:pushpin:|:heavy_plus_sign:|:heavy_minus_sign:)", group = "<!-- 11 -->📦 Dependencies" },
         { message = "^chore\\(deps.*\\)", group = "<!-- 11 -->📦 Dependencies" },
         { message = ".*dependabot.*", group = "<!-- 11 -->📦 Dependencies" },
         { message = ".*npm-all.*", group = "<!-- 11 -->📦 Dependencies" },
@@ -191,46 +176,19 @@ This project license is here: [Project License](https://github.com/{{ remote.git
         { message = "^.*\\[revert\\]", group = "<!-- 10 -->⏪ Reverts" },
 
         # Full Gitmoji mapping fallbacks (for commits without explicit [type])
-        {
-            message = "^(✨|🎉|🌱|🥚|🚩|👔|💥|:sparkles:|:tada:|:seedling:|:egg:|:triangular_flag_on_post:|:necktie:|:boom:)",
-            group   = "<!-- 0 -->✨ Features"
-        },
-        {
-            message = "^(🐛|🚑️|🚑|🥅|🩹|:bug:|:ambulance:|:goal_net:|:adhesive_bandage:)",
-            group   = "<!-- 1 -->🛠️ Bug Fixes"
-        },
-        {
-            message = "^(🚜|♻️|♻|🚚|🏗️|🏗|🧱|:tractor:|:recycle:|:truck:|:building_construction:|:bricks:)",
-            group   = "<!-- 2 -->🚜 Refactor"
-        },
-        {
-            message = "^(📝|✏️|✏|💡|💬|📄|:memo:|:pencil2:|:bulb:|:speech_balloon:|:page_facing_up:)",
-            group   = "<!-- 3 -->📝 Documentation"
-        },
+        { message = "^(✨|🎉|🌱|🥚|🚩|👔|💥|:sparkles:|:tada:|:seedling:|:egg:|:triangular_flag_on_post:|:necktie:|:boom:)", group = "<!-- 0 -->✨ Features" },
+        { message = "^(🐛|🚑️|🚑|🥅|🩹|:bug:|:ambulance:|:goal_net:|:adhesive_bandage:)", group = "<!-- 1 -->🛠️ Bug Fixes" },
+        { message = "^(🚜|♻️|♻|🚚|🏗️|🏗|🧱|:tractor:|:recycle:|:truck:|:building_construction:|:bricks:)", group = "<!-- 2 -->🚜 Refactor" },
+        { message = "^(📝|✏️|✏|💡|💬|📄|:memo:|:pencil2:|:bulb:|:speech_balloon:|:page_facing_up:)", group = "<!-- 3 -->📝 Documentation" },
         { message = "^(⚡️|⚡|🧵|:zap:|:thread:)", group = "<!-- 4 -->⚡ Performance" },
-        {
-            message = "^(🎨|💄|💫|📱|♿️|♿|:art:|:artist_palette:|:lipstick:|:dizzy:|:iphone:|:wheelchair:)",
-            group   = "<!-- 5 -->🎨 Styling"
-        },
-        {
-            message = "^(🧪|✅|🤡|📸|🦺|:test_tube:|:white_check_mark:|:clown_face:|:camera_flash:|:safety_vest:)",
-            group   = "<!-- 6 -->🧪 Testing"
-        },
-        {
-            message = "^(🧹|🔥|🚨|🙈|🗑️|🗑|⚰️|🔊|🔇|🍱|🍻|👽️|👽|🔀|💩|:broom:|:fire:|:rotating_light:|:see_no_evil:|:wastebasket:|:coffin:|:loud_sound:|:mute:|:bento:|:beers:|:alien:|:twisted_rightwards_arrows:|:poop:)",
-            group   = "<!-- 7 -->🧹 Chores"
-        },
-        {
-            message = "^(👷|💚|🚧|🚀|🩺|:construction_worker:|:green_heart:|:construction:|:rocket:|:stethoscope:)",
-            group   = "<!-- 8 -->👷 CI/CD"
-        },
+        { message = "^(🎨|💄|💫|📱|♿️|♿|:art:|:artist_palette:|:lipstick:|:dizzy:|:iphone:|:wheelchair:)", group = "<!-- 5 -->🎨 Styling" },
+        { message = "^(🧪|✅|🤡|📸|🦺|:test_tube:|:white_check_mark:|:clown_face:|:camera_flash:|:safety_vest:)", group = "<!-- 6 -->🧪 Testing" },
+        { message = "^(🧹|🔥|🚨|🙈|🗑️|🗑|⚰️|🔊|🔇|🍱|🍻|👽️|👽|🔀|💩|:broom:|:fire:|:rotating_light:|:see_no_evil:|:wastebasket:|:coffin:|:loud_sound:|:mute:|:bento:|:beers:|:alien:|:twisted_rightwards_arrows:|:poop:)", group = "<!-- 7 -->🧹 Chores" },
+        { message = "^(👷|💚|🚧|🚀|🩺|:construction_worker:|:green_heart:|:construction:|:rocket:|:stethoscope:)", group = "<!-- 8 -->👷 CI/CD" },
         { message = "^(🔧|🔨|📦️|📦|:wrench:|:hammer:|:package:)", group = "<!-- 9 -->🔧 Build System" },
 
         # Remaining supported Gitmojis that are best treated as miscellaneous
-        {
-            message = "^(🔖|🌐|📈|🗃️|🗃|👥|🚸|⚗️|⚗|🔍️|🔍|🏷️|🏷|🧐|🧑‍💻|💸|✈️|✈|🦖|:bookmark:|:globe_with_meridians:|:chart_with_upwards_trend:|:card_file_box:|:busts_in_silhouette:|:children_crossing:|:alembic:|:mag:|:label:|:monocle_face:|:technologist:|:money_with_wings:|:airplane:|:t-rex:)",
-            group   = "<!-- 13 -->🛠️ Other Changes"
-        },
+        { message = "^(🔖|🌐|📈|🗃️|🗃|👥|🚸|⚗️|⚗|🔍️|🔍|🏷️|🏷|🧐|🧑‍💻|💸|✈️|✈|🦖|:bookmark:|:globe_with_meridians:|:chart_with_upwards_trend:|:card_file_box:|:busts_in_silhouette:|:children_crossing:|:alembic:|:mag:|:label:|:monocle_face:|:technologist:|:money_with_wings:|:airplane:|:t-rex:)", group = "<!-- 13 -->🛠️ Other Changes" },
 
         # Fallback patterns for conventional commits without emojis
         { message = "^build", group = "<!-- 9 -->🔧 Build System" },

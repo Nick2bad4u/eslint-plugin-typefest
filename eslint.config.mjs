@@ -109,6 +109,15 @@ const config = [
     },
 
     {
+        files: ["cliff.toml"],
+        name: "git-cliff inline table compatibility",
+        rules: {
+            // Git-cliff currently requires inline tables to stay on one line.
+            "tombi/tombi": "off",
+        },
+    },
+
+    {
         files: ["benchmarks/**/*.mjs"],
         name: "Node ESM benchmark imports",
         rules: {
