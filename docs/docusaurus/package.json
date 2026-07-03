@@ -89,7 +89,7 @@
         "typedoc-docusaurus-theme": "^1.4.2",
         "typescript": "^6.0.3"
     },
-    "packageManager": "npm@11.17.0",
+    "packageManager": "npm@11.18.0",
     "engines": {
         "node": ">=22.0.0"
     },

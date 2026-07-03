@@ -81,17 +81,7 @@ const config = [
     },
 
     {
-        files: [".ncurc.json"],
-        name: "Renovate-compatible npm-check-updates schema metadata",
-        rules: {
-            // npm-check-updates accepts `$schema`, but the published schema
-            // metadata consumed by json-schema-validator-2 rejects it.
-            "json-schema-validator-2/no-invalid": "off",
-        },
-    },
-
-    {
-        files: ["package.json"],
+        files: ["package.json", "docs/docusaurus/package.json"],
         name: "Temporary Prettier formatter pin",
         rules: {
             // Prettier 3.9 currently regresses multiline array plugin output.
@@ -111,6 +101,10 @@ const config = [
                     peerDependencies: "never",
                 },
             ],
+            // This rule performs npm registry lookups during lint. Keep no-cache
+            // verification deterministic; dependency freshness is handled by the
+            // explicit update flow.
+            "node-dependencies/no-deprecated": "off",
         },
     },
 
@@ -145,6 +139,18 @@ const config = [
             "unicorn/prefer-import-meta-properties": "off",
             // Sidebar labels intentionally preserve human-facing glyphs.
             "unicorn/prefer-unicode-code-point-escapes": "off",
+        },
+    },
+
+    {
+        files: [
+            "docs/docusaurus/blog/**/*.md",
+            "docs/docusaurus/site-docs/**/*.md",
+            "docs/rules/**/*.md",
+        ],
+        name: "Docusaurus Markdown frontmatter titles",
+        rules: {
+            "markdown/no-multiple-h1": "off",
         },
     },
 
@@ -361,6 +367,15 @@ const config = [
         },
         rules: {
             ...localExperimentalRules,
+        },
+    },
+    {
+        files: ["docs/docusaurus/typedoc.config.json"],
+        name: "TypeDoc config schema availability",
+        rules: {
+            // Json-schema-validator-2 fetches the remote TypeDoc schema during
+            // lint. TypeDoc validates this config during docs verification.
+            "json-schema-validator-2/no-invalid": "off",
         },
     },
     {

@@ -150,7 +150,7 @@
         "lint:knip:unused:exports": "npm run knip -- --dependencies --exports",
         "lint:leaves": "npm run madge:leaves",
         "lint:metrics": "npm run sloc",
-        "lint:nocache": "npx cross-env NODE_OPTIONS=--max_old_space_size=16384 npx eslint .",
+        "lint:nocache": "npx cross-env ESLINT_PROGRESS=off NODE_OPTIONS=--max_old_space_size=16384 npx eslint .",
         "lint:node-version-files": "node scripts/sync-node-version-files.mjs --check",
         "lint:orphans": "npm run madge:orphans",
         "lint:package": "npm run lint:node-version-files && npm run lint:package-sort && npm run lint:packagelintrc && echo \"Package.json lint done!\"",
@@ -310,7 +310,7 @@
         "eslint": "^9.0.0 || ^10.6.0",
         "typescript": "^5.0.0 || ^6.0.2"
     },
-    "packageManager": "npm@11.17.0",
+    "packageManager": "npm@11.18.0",
     "engines": {
         "node": ">=22.0.0"
     },

@@ -773,11 +773,12 @@ describe("prefer-ts-extras-string-split runtime safety assertions", () => {
                         return [];
                     }
 
-                    return statement.declarations.flatMap((declaration) =>
-                        declaration.init?.type === AST_NODE_TYPES.CallExpression
-                            ? [declaration.init]
-                            : []
-                    );
+                    return statement.declarations
+                        .map((declaration) => declaration.init)
+                        .filter(
+                            (init): init is TSESTree.CallExpression =>
+                                init?.type === AST_NODE_TYPES.CallExpression
+                        );
                 }
             );
 
