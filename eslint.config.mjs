@@ -109,10 +109,10 @@ const config = [
     },
 
     {
-        files: ["cliff.toml"],
-        name: "git-cliff inline table compatibility",
+        files: ["cliff.toml", ".gitleaks.toml", "lychee.toml"],
+        name: "tool-specific TOML config compatibility",
         rules: {
-            // Git-cliff currently requires inline tables to stay on one line.
+            // Keep these files in the syntax their owning tools accept.
             "tombi/tombi": "off",
         },
     },
