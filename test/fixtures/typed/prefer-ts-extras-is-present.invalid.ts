@@ -1,6 +1,7 @@
-const maybeValue: | null
-| string
-| undefined = Math.random() > 0.5 ? "ready" : null;
+declare const maybeValue:
+    | null
+    | string
+    | undefined;
 
 if (maybeValue != null) {
     maybeValue.toUpperCase();
