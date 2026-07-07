@@ -108,7 +108,9 @@ const docsBaseUrl =
  * assertion.
  */
 const getTypefestConfigReferenceCandidates = (
-    typefestConfigs: readonly string[] | string | undefined
+    typefestConfigs: | readonly string[]
+    | string
+    | undefined
 ): readonly string[] => {
     if (typeof typefestConfigs === "string") {
         return [typefestConfigs];

@@ -99,11 +99,15 @@ const parserOptions = {
 
 const includeUnicodeBannerArbitrary = fc.boolean();
 const schemaValueTypeArbitrary = fc.constantFrom<
-    "number" | "readonlyStringArray" | "unionLiteral"
+    | "number"
+    | "readonlyStringArray"
+    | "unionLiteral"
 >("number", "readonlyStringArray", "unionLiteral");
 
 const buildSchemaValueType = (
-    valueTypeKind: "number" | "readonlyStringArray" | "unionLiteral"
+    valueTypeKind: | "number"
+    | "readonlyStringArray"
+    | "unionLiteral"
 ): string => {
     if (valueTypeKind === "number") {
         return "number";

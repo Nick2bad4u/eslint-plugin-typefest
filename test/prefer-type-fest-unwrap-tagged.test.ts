@@ -89,11 +89,15 @@ const parserOptions = {
 
 const includeUnicodeBannerArbitrary = fc.boolean();
 const unwrapOpaqueSourceArbitrary = fc.constantFrom<
-    "intersection" | "stringLiteral" | "templateLiteral"
+    | "intersection"
+    | "stringLiteral"
+    | "templateLiteral"
 >("intersection", "stringLiteral", "templateLiteral");
 
 const buildUnwrapOpaqueSource = (
-    sourceKind: "intersection" | "stringLiteral" | "templateLiteral"
+    sourceKind: | "intersection"
+    | "stringLiteral"
+    | "templateLiteral"
 ): string => {
     if (sourceKind === "intersection") {
         return 'UnwrapOpaque<{ readonly __brand: "UserId" } & string>';

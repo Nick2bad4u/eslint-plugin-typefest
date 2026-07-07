@@ -58,8 +58,7 @@ type TypefestRuleDocsContract = Readonly<{
     ruleId: string;
     ruleNumber: number;
     typefestConfigs:
-        | readonly TypefestConfigReference[]
-        | TypefestConfigReference;
+        readonly TypefestConfigReference[] | TypefestConfigReference;
     url: string;
 }>;
 

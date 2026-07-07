@@ -1,6 +1,11 @@
 import type { RequireExactlyOne } from "type-fest";
 
-type AuthPayload = Record<"apiKey" | "oauthToken" | "sessionToken", string>;
+type AuthPayload = Record<
+    | "apiKey"
+    | "oauthToken"
+    | "sessionToken",
+    string
+>;
 type AuthWithSingleToken = RequireExactlyOne<AuthPayload>;
 
 declare const authWithSingleToken: AuthWithSingleToken;

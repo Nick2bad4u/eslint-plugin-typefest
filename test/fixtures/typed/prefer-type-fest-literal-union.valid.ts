@@ -3,7 +3,10 @@ import type { LiteralUnion } from "type-fest";
 type EnvironmentName = LiteralUnion<"dev" | "prod", string>;
 type HttpStatusCode = LiteralUnion<200 | 404, number>;
 type AccessMode = "read" | "write";
-type OptionalEnvironment = "dev" | string | undefined;
+type OptionalEnvironment =
+    | "dev"
+    | string
+    | undefined;
 
 const environment: EnvironmentName = "dev";
 const statusCode: HttpStatusCode = 200;

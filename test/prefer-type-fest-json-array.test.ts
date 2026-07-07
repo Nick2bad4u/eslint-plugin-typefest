@@ -64,7 +64,7 @@ const fixtureFixableOutputCode = replaceOrThrow({
 const fixtureFixableSecondPassOutputCode = replaceOrThrow({
     replacement: "    JsonArray",
     sourceText: fixtureFixableOutputCode,
-    target: "    | Array<JsonValue>\r\n    | ReadonlyArray<JsonValue>",
+    target: "    Array<JsonValue> | ReadonlyArray<JsonValue>",
 });
 const inlineInvalidReversedNativeUnionCode = [
     'import type { JsonValue } from "type-fest";',

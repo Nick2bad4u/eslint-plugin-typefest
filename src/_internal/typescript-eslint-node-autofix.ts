@@ -532,7 +532,9 @@ const createTypeScriptEslintNodeLikeExpressionByDefinitionChecker = <
                 const pendingDefinitionNodes: TSESTree.Node[] = [];
 
                 const enqueueDefinitionNode = (
-                    node: null | Readonly<TSESTree.Node> | undefined
+                    node: | null
+                    | Readonly<TSESTree.Node>
+                    | undefined
                 ): void => {
                     if (node === null || !isDefined(node)) {
                         return;

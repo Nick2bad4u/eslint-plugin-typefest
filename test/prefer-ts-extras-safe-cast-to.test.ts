@@ -799,8 +799,7 @@ describe("prefer-ts-extras-safe-cast-to fast-check fix safety", () => {
                         let replacementText = "";
 
                         const fixArguments:
-                            | SafeCastFixFactoryArguments
-                            | undefined =
+                            SafeCastFixFactoryArguments | undefined =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 

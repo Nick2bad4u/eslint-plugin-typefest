@@ -87,7 +87,10 @@ const inlineNoFixShadowedReplacementInvalidCode = [
     "type Wrapper<IterableElement> = SetElement<Set<string>>;",
 ].join("\n");
 
-type IterableElementAlias = "SetElement" | "SetEntry" | "SetValues";
+type IterableElementAlias =
+    | "SetElement"
+    | "SetEntry"
+    | "SetValues";
 
 type IterableElementReportDescriptor = Readonly<{
     data?: {

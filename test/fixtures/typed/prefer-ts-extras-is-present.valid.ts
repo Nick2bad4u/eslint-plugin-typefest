@@ -1,7 +1,8 @@
 import { isPresent } from "ts-extras";
 
-const maybeValue: null | string | undefined =
-    Math.random() > 0.5 ? "ready" : null;
+const maybeValue: | null
+| string
+| undefined = Math.random() > 0.5 ? "ready" : null;
 
 if (isPresent(maybeValue)) {
     maybeValue.toUpperCase();

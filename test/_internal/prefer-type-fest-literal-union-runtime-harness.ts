@@ -17,7 +17,11 @@ export type GeneratedLiteralUnionCase = Readonly<{
     literalMembers: readonly string[];
 }>;
 
-export type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
+export type LiteralUnionFamily =
+    | "bigint"
+    | "boolean"
+    | "number"
+    | "string";
 
 const familyKeywordByFamily: Readonly<Record<LiteralUnionFamily, string>> = {
     bigint: "bigint",
@@ -32,12 +36,10 @@ const generatedStringFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase
             maxLength: 3,
             minLength: 1,
         })
-        .map(
-            (members): GeneratedLiteralUnionCase => ({
-                family: "string",
-                literalMembers: members.map((member) => JSON.stringify(member)),
-            })
-        );
+        .map((members): GeneratedLiteralUnionCase => ({
+            family: "string",
+            literalMembers: members.map((member) => JSON.stringify(member)),
+        }));
 
 const generatedNumberFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase> =
     fc
@@ -45,12 +47,10 @@ const generatedNumberFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase
             maxLength: 3,
             minLength: 1,
         })
-        .map(
-            (members): GeneratedLiteralUnionCase => ({
-                family: "number",
-                literalMembers: members.map(String),
-            })
-        );
+        .map((members): GeneratedLiteralUnionCase => ({
+            family: "number",
+            literalMembers: members.map(String),
+        }));
 
 const generatedBooleanFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase> =
     fc
@@ -58,14 +58,12 @@ const generatedBooleanFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCas
             maxLength: 2,
             minLength: 1,
         })
-        .map(
-            (members): GeneratedLiteralUnionCase => ({
-                family: "boolean",
-                literalMembers: members.map((member) =>
-                    member ? "true" : "false"
-                ),
-            })
-        );
+        .map((members): GeneratedLiteralUnionCase => ({
+            family: "boolean",
+            literalMembers: members.map((member) =>
+                member ? "true" : "false"
+            ),
+        }));
 
 const generatedBigIntFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase> =
     fc
@@ -73,12 +71,10 @@ const generatedBigIntFamilyCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase
             maxLength: 3,
             minLength: 1,
         })
-        .map(
-            (members): GeneratedLiteralUnionCase => ({
-                family: "bigint",
-                literalMembers: members.map((member) => `${String(member)}n`),
-            })
-        );
+        .map((members): GeneratedLiteralUnionCase => ({
+            family: "bigint",
+            literalMembers: members.map((member) => `${String(member)}n`),
+        }));
 
 export const generatedLiteralUnionCaseArbitrary: fc.Arbitrary<GeneratedLiteralUnionCase> =
     fc.oneof(

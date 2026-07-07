@@ -8,7 +8,12 @@ interface SiteEventPayloadMap {
     readonly down: { readonly status: "down" };
     readonly up: { readonly status: "up" };
 }
-type TemplateVariableMap = Record<string, number | string | undefined>;
+type TemplateVariableMap = Record<
+    string,
+    | number
+    | string
+    | undefined
+>;
 
 type TemplateVariableValue = ValueOf<TemplateVariableMap>;
 

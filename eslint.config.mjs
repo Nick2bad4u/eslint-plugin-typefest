@@ -82,25 +82,8 @@ const config = [
 
     {
         files: ["package.json", "docs/docusaurus/package.json"],
-        name: "Temporary Prettier formatter pin",
+        name: "Package metadata registry lint",
         rules: {
-            // Prettier 3.9 currently regresses multiline array plugin output.
-            // Keep the normal range policy for every other dependency while
-            // this formatter stack is intentionally pinned.
-            "node-dependencies/absolute-version": [
-                "error",
-                {
-                    dependencies: "never",
-                    devDependencies: "never",
-                    optionalDependencies: "never",
-                    overridePackages: {
-                        prettier: {
-                            devDependencies: "always",
-                        },
-                    },
-                    peerDependencies: "never",
-                },
-            ],
             // This rule performs npm registry lookups during lint. Keep no-cache
             // verification deterministic; dependency freshness is handled by the
             // explicit update flow.
@@ -109,7 +92,11 @@ const config = [
     },
 
     {
-        files: ["cliff.toml", ".gitleaks.toml", "lychee.toml"],
+        files: [
+            "cliff.toml",
+            ".gitleaks.toml",
+            "lychee.toml",
+        ],
         name: "tool-specific TOML config compatibility",
         rules: {
             // Keep these files in the syntax their owning tools accept.

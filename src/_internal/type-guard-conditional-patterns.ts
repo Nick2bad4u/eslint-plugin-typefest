@@ -1,7 +1,10 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { arrayFirst, assertNever } from "ts-extras";
 
-type TupleWrappedGuardTarget = "never" | "null" | "undefined";
+type TupleWrappedGuardTarget =
+    | "never"
+    | "null"
+    | "undefined";
 
 const isLiteralTypeWithValue = (
     node: Readonly<TSESTree.TypeNode>,

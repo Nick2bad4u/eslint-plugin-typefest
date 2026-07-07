@@ -34,9 +34,9 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 
 ```ts
 type IndexOnly<ObjectType> = {
- [Key in keyof ObjectType as {} extends Record<Key, unknown>
-  ? Key
-  : never]: ObjectType[Key];
+ [
+  Key in keyof ObjectType as {} extends Record<Key, unknown> ? Key : never
+ ]: ObjectType[Key];
 };
 ```
 

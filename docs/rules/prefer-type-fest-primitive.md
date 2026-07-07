@@ -25,13 +25,7 @@ This rule targets full primitive keyword unions used as standalone scalar aliase
 
 ```ts
 type PrimitiveValue =
- | string
- | number
- | bigint
- | boolean
- | symbol
- | null
- | undefined;
+ string | number | bigint | boolean | symbol | null | undefined;
 ```
 
 ## ✅ Correct

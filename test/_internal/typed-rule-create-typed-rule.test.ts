@@ -251,8 +251,7 @@ describe(createTypedRule, () => {
         });
 
         let originalDescriptor:
-            | TSESLint.ReportDescriptor<RuleMessageIds>
-            | undefined = undefined;
+            TSESLint.ReportDescriptor<RuleMessageIds> | undefined = undefined;
 
         const ruleUnderTest = createTypedRule({
             create(ruleContext) {

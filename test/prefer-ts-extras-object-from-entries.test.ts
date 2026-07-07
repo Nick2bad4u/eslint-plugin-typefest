@@ -97,11 +97,17 @@ const parserOptions = {
 
 const includeUnicodeBannerArbitrary = fc.boolean();
 const fromEntriesArgumentKindArbitrary = fc.constantFrom<
-    "arrayLiteral" | "callExpression" | "identifier" | "memberExpression"
+    | "arrayLiteral"
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
 >("callExpression", "identifier", "memberExpression", "arrayLiteral");
 
 const buildFromEntriesArgumentTemplate = (
-    kind: "arrayLiteral" | "callExpression" | "identifier" | "memberExpression"
+    kind: | "arrayLiteral"
+    | "callExpression"
+    | "identifier"
+    | "memberExpression"
 ): Readonly<{
     argumentExpression: string;
     declarations: readonly string[];

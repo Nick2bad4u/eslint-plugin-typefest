@@ -1,4 +1,8 @@
-type SkippedJsonPrimitive = boolean | null | number | string;
+type SkippedJsonPrimitive =
+    | boolean
+    | null
+    | number
+    | string;
 
 declare const skippedJsonPrimitive: SkippedJsonPrimitive;
 

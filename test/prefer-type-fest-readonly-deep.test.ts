@@ -84,11 +84,15 @@ const parserOptions = {
 
 const includeUnicodeBannerArbitrary = fc.boolean();
 const readonlyDeepSubjectArbitrary = fc.constantFrom<
-    "nestedObject" | "readonlyArray" | "singleProperty"
+    | "nestedObject"
+    | "readonlyArray"
+    | "singleProperty"
 >("singleProperty", "nestedObject", "readonlyArray");
 
 const buildReadonlyDeepSubjectType = (
-    subjectKind: "nestedObject" | "readonlyArray" | "singleProperty"
+    subjectKind: | "nestedObject"
+    | "readonlyArray"
+    | "singleProperty"
 ): string => {
     if (subjectKind === "singleProperty") {
         return "{ id: string }";

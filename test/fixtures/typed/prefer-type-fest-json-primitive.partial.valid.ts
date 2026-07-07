@@ -1,4 +1,7 @@
-type PartialJsonPrimitive = boolean | number | string;
+type PartialJsonPrimitive =
+    | boolean
+    | number
+    | string;
 
 declare const partialJsonPrimitive: PartialJsonPrimitive;
 

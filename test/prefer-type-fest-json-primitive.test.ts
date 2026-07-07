@@ -47,15 +47,15 @@ const replaceOrThrow = ({
 
 const fixtureFixableOutputCode = `import type { JsonPrimitive } from "type-fest";\n${replaceOrThrow(
     {
-        replacement: "JsonPrimitive",
+        replacement: "    JsonPrimitive",
         sourceText: invalidFixtureCode,
-        target: "boolean | null | number | string",
+        target: "    | boolean\r\n    | null\r\n    | number\r\n    | string",
     }
 )}`;
 const fixtureFixableSecondPassOutputCode = replaceOrThrow({
-    replacement: "JsonPrimitive",
+    replacement: "    JsonPrimitive",
     sourceText: fixtureFixableOutputCode,
-    target: "boolean | null | number | string",
+    target: "    | boolean\r\n    | null\r\n    | number\r\n    | string",
 });
 const nonKeywordUnionValidCode =
     "type Payload = string | number | boolean | bigint;";

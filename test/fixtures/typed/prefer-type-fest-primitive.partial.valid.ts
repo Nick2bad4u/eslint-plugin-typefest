@@ -1,4 +1,10 @@
-type PartialPrimitive = bigint | boolean | null | number | string | undefined;
+type PartialPrimitive =
+    | bigint
+    | boolean
+    | null
+    | number
+    | string
+    | undefined;
 
 declare const partialPrimitive: PartialPrimitive;
 

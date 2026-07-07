@@ -71,7 +71,9 @@ const isRecordUnknownReference = (
 };
 
 const isPickIndexSignatureKeyRemap = (
-    node: null | Readonly<TSESTree.TypeNode> | undefined,
+    node: | null
+    | Readonly<TSESTree.TypeNode>
+    | undefined,
     keyName: string
 ): boolean =>
     node?.type === AST_NODE_TYPES.TSConditionalType &&

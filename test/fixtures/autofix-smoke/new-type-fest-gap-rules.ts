@@ -72,9 +72,11 @@ type ManualHasWritableKeys<Value extends object> =
     WritableKeysOf<Value> extends never ? false : true;
 type ManualOptionalKeysOf<Value extends object> = Value extends unknown
     ? keyof {
-          [Key in keyof Value as IsOptionalKeyOf<Value, Key> extends false
-              ? never
-              : Key]: never;
+          [
+              Key in keyof Value as IsOptionalKeyOf<Value, Key> extends false
+                  ? never
+                  : Key
+          ]: never;
       } &
           keyof Value
     : never;
@@ -83,9 +85,11 @@ type ManualRequiredKeysOf<Value extends object> = Value extends unknown
     : never;
 type ManualReadonlyKeysOf<Value extends object> = Value extends unknown
     ? keyof {
-          [Key in keyof Value as IsReadonlyKeyOf<Value, Key> extends false
-              ? never
-              : Key]: never;
+          [
+              Key in keyof Value as IsReadonlyKeyOf<Value, Key> extends false
+                  ? never
+                  : Key
+          ]: never;
       } &
           keyof Value
     : never;

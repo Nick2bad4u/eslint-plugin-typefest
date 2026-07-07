@@ -15,7 +15,11 @@ type LastOfUnion<Union> =
           ? Last
           : never;
 
-type LastEventName = LastOfUnion<"open" | "close" | "reset">;
+type LastEventName = LastOfUnion<
+    | "open"
+    | "close"
+    | "reset"
+>;
 
 declare const lastEventName: LastEventName;
 

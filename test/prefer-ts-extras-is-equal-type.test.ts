@@ -66,7 +66,10 @@ type IsEqualPair = Readonly<{
     rightTypeText: string;
 }>;
 
-type IsEqualPairId = "booleans" | "numbers" | "stringLiterals";
+type IsEqualPairId =
+    | "booleans"
+    | "numbers"
+    | "stringLiterals";
 
 type IsEqualReportDescriptor = Readonly<{
     messageId?: string;

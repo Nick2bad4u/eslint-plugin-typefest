@@ -1,4 +1,7 @@
-type MaybeText = null | string | undefined;
+type MaybeText =
+    | null
+    | string
+    | undefined;
 
 let consumedUpperCaseLength = 0;
 

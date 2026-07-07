@@ -23,11 +23,10 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 const isJsonPrimitiveKeywordNode = (
     node: Readonly<TSESTree.TypeNode>
-): node is
-    | TSESTree.TSBooleanKeyword
-    | TSESTree.TSNullKeyword
-    | TSESTree.TSNumberKeyword
-    | TSESTree.TSStringKeyword =>
+): node is | TSESTree.TSBooleanKeyword
+| TSESTree.TSNullKeyword
+| TSESTree.TSNumberKeyword
+| TSESTree.TSStringKeyword =>
     node.type === AST_NODE_TYPES.TSBooleanKeyword ||
     node.type === AST_NODE_TYPES.TSNullKeyword ||
     node.type === AST_NODE_TYPES.TSNumberKeyword ||

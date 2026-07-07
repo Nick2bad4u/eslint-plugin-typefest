@@ -2,7 +2,9 @@ import type { NonNullableDeep } from "type-fest";
 
 interface Config {
     host: string | null;
-    port: number | null | undefined;
+    port: | number
+    | null
+    | undefined;
     options: {
         retry: boolean | null;
     } | null;

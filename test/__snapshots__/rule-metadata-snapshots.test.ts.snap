@@ -2519,6 +2519,30 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
   {
     "defaultOptionsLength": 0,
     "docs": {
+      "recommended": true,
+      "requiresTypeChecking": false,
+      "ruleId": "R126",
+      "ruleNumber": 126,
+      "typefestConfigs": [
+        "typefest.configs.all",
+        "typefest.configs.recommended",
+        "typefest.configs.strict",
+        "typefest.configs.type-fest/types",
+      ],
+      "url": "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-string-length",
+    },
+    "fixable": "code",
+    "hasSuggestions": false,
+    "messageIds": [
+      "preferStringLength",
+    ],
+    "ruleId": "prefer-type-fest-string-length",
+    "schemaLength": 0,
+    "type": "suggestion",
+  },
+  {
+    "defaultOptionsLength": 0,
+    "docs": {
       "recommended": false,
       "requiresTypeChecking": false,
       "ruleId": "R088",

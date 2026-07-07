@@ -1,6 +1,11 @@
 import type { OneOf } from "type-aliases";
 
-type AuthPayload = Record<"apiKey" | "oauthToken" | "sessionToken", string>;
+type AuthPayload = Record<
+    | "apiKey"
+    | "oauthToken"
+    | "sessionToken",
+    string
+>;
 type ShouldBeSkippedInTestFile = OneOf<AuthPayload>;
 
 declare const shouldBeSkippedInTestFile: ShouldBeSkippedInTestFile;

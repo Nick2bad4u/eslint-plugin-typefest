@@ -25,11 +25,15 @@ export type RuntimeLooseNullCase = Readonly<{
     toggleValue: boolean;
 }>;
 
-export type RuntimeScalar = boolean | null | number | string | undefined;
+export type RuntimeScalar =
+    | boolean
+    | null
+    | number
+    | string
+    | undefined;
 
 type RuntimeComparisonOrientation =
-    | "comparedExpressionOnLeft"
-    | "comparedExpressionOnRight";
+    "comparedExpressionOnLeft" | "comparedExpressionOnRight";
 
 type RuntimeExecutionSnapshot = Readonly<{
     counter: number;

@@ -357,8 +357,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         let replacementText = "";
 
                         const fixArguments:
-                            | AssertDefinedFixFactoryArgs
-                            | undefined =
+                            AssertDefinedFixFactoryArgs | undefined =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 
@@ -567,8 +566,7 @@ describe("prefer-ts-extras-assert-defined fast-check fix safety", () => {
                         ).toBeLessThanOrEqual(1);
 
                         const fixArguments:
-                            | AssertDefinedFixFactoryArgs
-                            | undefined =
+                            AssertDefinedFixFactoryArgs | undefined =
                             createSafeValueNodeTextReplacementFixMock.mock
                                 .calls[0]?.[0];
 

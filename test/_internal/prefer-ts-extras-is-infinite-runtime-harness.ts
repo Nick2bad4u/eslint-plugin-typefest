@@ -35,8 +35,7 @@ export interface GeneratedMismatchedDisjunctionCase {
 }
 
 export type PositiveInfinityReferenceKind =
-    | "globalInfinity"
-    | "numberPositiveInfinity";
+    "globalInfinity" | "numberPositiveInfinity";
 
 export const parserOptions = {
     ecmaVersion: "latest",

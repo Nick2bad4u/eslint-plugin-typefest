@@ -24,7 +24,9 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 const ENTRY_TYPE_NAME = "Entry" as const;
 
 const isEntriesEquivalentAncestor = (
-    node: null | Readonly<TSESTree.Node> | undefined,
+    node: | null
+    | Readonly<TSESTree.Node>
+    | undefined,
     sourceCode: Readonly<TSESLint.SourceCode>
 ): boolean =>
     Boolean(

@@ -282,8 +282,7 @@ async function validateLink(markdownPath, link, issues, issueSet, metrics) {
 }
 
 /**
- * @param {import("node:fs").PathLike
- *     | import("node:fs/promises").FileHandle} markdownPath
+ * @param {import("node:fs").PathLike | import("node:fs/promises").FileHandle} markdownPath
  * @param {{ file: string; link: string; resolvedPath: string }[]} issues
  * @param {Set<string>} issueSet
  * @param {{

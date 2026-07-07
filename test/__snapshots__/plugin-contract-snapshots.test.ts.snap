@@ -2,7 +2,7 @@
 
 exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
 {
-  "ruleCount": 122,
+  "ruleCount": 123,
   "ruleNames": [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -110,6 +110,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-type-fest-set-required",
     "prefer-type-fest-set-return-type",
     "prefer-type-fest-simplify",
+    "prefer-type-fest-string-length",
     "prefer-type-fest-stringified",
     "prefer-type-fest-tagged-brands",
     "prefer-type-fest-tuple-of",
@@ -140,7 +141,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:all",
-    "ruleCount": 111,
+    "ruleCount": 112,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -239,6 +240,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-length",
@@ -263,7 +265,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:experimental",
-    "ruleCount": 122,
+    "ruleCount": 123,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -371,6 +373,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-set-return-type",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-stringified",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
@@ -422,7 +425,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:recommended",
-    "ruleCount": 91,
+    "ruleCount": 92,
     "ruleIds": [
       "typefest/prefer-ts-extras-assert-defined",
       "typefest/prefer-ts-extras-assert-error",
@@ -501,6 +504,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-length",
@@ -525,7 +529,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:recommended-type-checked",
-    "ruleCount": 99,
+    "ruleCount": 100,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-includes",
       "typefest/prefer-ts-extras-array-last",
@@ -612,6 +616,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-length",
@@ -636,7 +641,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:strict",
-    "ruleCount": 110,
+    "ruleCount": 111,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -734,6 +739,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-length",
@@ -792,7 +798,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:type-fest/types",
-    "ruleCount": 73,
+    "ruleCount": 74,
     "ruleIds": [
       "typefest/prefer-type-fest-absolute",
       "typefest/prefer-type-fest-abstract-constructor",
@@ -853,6 +859,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-type-fest-set-readonly",
       "typefest/prefer-type-fest-set-required",
       "typefest/prefer-type-fest-simplify",
+      "typefest/prefer-type-fest-string-length",
       "typefest/prefer-type-fest-tagged-brands",
       "typefest/prefer-type-fest-tuple-of",
       "typefest/prefer-type-fest-union-length",

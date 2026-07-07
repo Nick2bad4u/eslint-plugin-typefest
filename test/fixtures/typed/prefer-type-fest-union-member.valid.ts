@@ -1,6 +1,10 @@
 import type { UnionMember } from "type-fest";
 
-type LastEventName = UnionMember<"open" | "close" | "reset">;
+type LastEventName = UnionMember<
+    | "open"
+    | "close"
+    | "reset"
+>;
 
 declare const lastEventName: LastEventName;
 

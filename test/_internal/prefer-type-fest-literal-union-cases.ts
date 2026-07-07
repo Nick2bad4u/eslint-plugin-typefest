@@ -58,17 +58,17 @@ const replaceOrThrow = ({
 
 const buildFixtureFixableOutputCode = (): string =>
     `import type { LiteralUnion } from "type-fest";\n${replaceOrThrow({
-        replacement: 'LiteralUnion<"dev" | "prod", string>',
+        replacement: '    LiteralUnion<"dev" | "prod", string>',
         sourceText: invalidFixtureCode,
-        target: '"dev" | "prod" | string',
+        target: '    | "dev"\r\n    | "prod"\r\n    | string',
     })}`;
 
 export const fixtureFixableOutputCode: string = buildFixtureFixableOutputCode();
 
 export const fixtureFixableSecondPassOutputCode: string = replaceOrThrow({
-    replacement: "LiteralUnion<200 | 404, number>",
+    replacement: "    LiteralUnion<200 | 404, number>",
     sourceText: fixtureFixableOutputCode,
-    target: "200 | 404 | number",
+    target: "    | 200\r\n    | 404\r\n    | number",
 });
 
 export const inlineFixableCode: string = [

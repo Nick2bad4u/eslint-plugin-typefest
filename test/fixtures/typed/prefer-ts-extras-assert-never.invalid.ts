@@ -1,4 +1,7 @@
-type Fruit = "apple" | "banana" | "cherry";
+type Fruit =
+    | "apple"
+    | "banana"
+    | "cherry";
 
 function describe(fruit: Fruit): string {
     switch (fruit) {

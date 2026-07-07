@@ -23,7 +23,11 @@ export type TextEdit = Readonly<{
     text: string;
 }>;
 
-export type UndefinedComparisonOperator = "!=" | "!==" | "==" | "===";
+export type UndefinedComparisonOperator =
+    | "!="
+    | "!=="
+    | "=="
+    | "===";
 
 export type UndefinedComparisonPattern =
     | "directUndefinedLeft"
@@ -361,10 +365,9 @@ export const createRuleContextForSource = ({
 };
 
 const normalizeFixResultToArray = (
-    fixResult:
-        | Iterable<Readonly<TSESLint.RuleFix>>
-        | null
-        | Readonly<TSESLint.RuleFix>
+    fixResult: | Iterable<Readonly<TSESLint.RuleFix>>
+    | null
+    | Readonly<TSESLint.RuleFix>
 ): readonly Readonly<TSESLint.RuleFix>[] => {
     if (fixResult === null) {
         return [];
@@ -422,12 +425,10 @@ export const invokeReportFixToTextEdits = (
 
     const fixResult = reportFix(fixer);
 
-    return normalizeFixResultToArray(fixResult).map(
-        (fix): TextEdit => ({
-            range: fix.range,
-            text: fix.text,
-        })
-    );
+    return normalizeFixResultToArray(fixResult).map((fix): TextEdit => ({
+        range: fix.range,
+        text: fix.text,
+    }));
 };
 
 export const applyTextEdits = ({

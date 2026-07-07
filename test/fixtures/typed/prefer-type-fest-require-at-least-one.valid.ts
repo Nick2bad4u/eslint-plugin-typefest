@@ -1,7 +1,12 @@
 import type { RequireAtLeastOne } from "type-fest";
 
 type AlertDestination = RequireAtLeastOne<AlertDestinationPayload>;
-type AlertDestinationPayload = Record<"email" | "pager" | "slack", string>;
+type AlertDestinationPayload = Record<
+    | "email"
+    | "pager"
+    | "slack",
+    string
+>;
 
 declare const alertDestination: AlertDestination;
 

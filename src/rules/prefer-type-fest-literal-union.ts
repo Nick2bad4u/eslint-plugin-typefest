@@ -20,7 +20,11 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 /**
  * Primitive families supported by TypeFest `LiteralUnion`.
  */
-type LiteralUnionFamily = "bigint" | "boolean" | "number" | "string";
+type LiteralUnionFamily =
+    | "bigint"
+    | "boolean"
+    | "number"
+    | "string";
 
 /**
  * Ordered family candidates evaluated when scanning union members.

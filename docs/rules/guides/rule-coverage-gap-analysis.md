@@ -270,6 +270,17 @@ Verdict legend:
 - `Split` — **Do not implement:** Same reason as `Trim`.
 - `Words` — **Do not implement:** Same reason as `Trim`.
 - `Replace` — **Do not implement:** Same reason as `Trim`.
+- `StringLength` — **Implemented:** `prefer-type-fest-string-length` reports
+  the exact one-argument `StringToArray<T>['length']` composition imported from
+  `type-fest` and rewrites it to `StringLength<T>`. It intentionally ignores
+  option-bearing `StringToArray<T, Options>['length']` forms.
+- `StringToArray` — **Do not implement:** Manual equivalents are recursive
+  template-literal parsers with subtle `any`, `never`, literal, and non-literal
+  rest-element behavior. Broad replacement would be noisy and unsafe.
+- `StringToNumber` — **Do not implement:** The obvious infer-number
+  conditional helper is not equivalent to TypeFest's handling of `string`,
+  `any`, infinities, and numeric strings without valid numeric literal
+  counterparts.
 - `StringSlice` — **Do not implement:** String slicing helpers are recursive and
   option-sensitive.
 - `StringRepeat` — **Do not implement:** Recursive string builders are not a
@@ -384,6 +395,9 @@ Verdict legend:
   strict helpers, not normal `Exclude`.
 - `ExcludeExactly` — **Consider:** Opt-in only; replace explicitly named local
   strict helpers where exact exclusion semantics are clear.
+- `ExtractExactly` — **Consider:** Same strict-builtins policy as
+  `ExcludeExactly`. Never replace ordinary `Extract<T, U>`; only an opt-in rule
+  for explicitly named local exact-extraction helpers would be defensible.
 
 ## Closed candidates and future-only ideas
 
@@ -590,9 +604,9 @@ These rules now cover exact TypeFest key-extraction helper compositions:
 ```ts
 type Optional<Type extends object> = Type extends unknown
  ? keyof {
-    [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
-     ? never
-     : Key]: never;
+    [
+     Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key
+    ]: never;
    } &
     keyof Type
  : never;
@@ -626,8 +640,9 @@ conservative and suggestion-only.
 
 ### Deferred: `prefer-type-fest-strict-builtins`
 
-Cover `ExtendsStrict`, `ExtractStrict`, `ExcludeStrict`, and `ExcludeExactly`,
-but do not blindly replace built-in `extends`, `Extract`, or `Exclude`.
+Cover `ExtendsStrict`, `ExtractStrict`, `ExcludeStrict`, `ExcludeExactly`, and
+`ExtractExactly`, but do not blindly replace built-in `extends`, `Extract`, or
+`Exclude`.
 
 These types intentionally have stricter semantics than the built-ins. A future
 rule here would need to be opt-in, document the semantic change, and avoid

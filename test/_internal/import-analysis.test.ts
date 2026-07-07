@@ -144,8 +144,7 @@ describe(collectNamedImportLocalNamesByImportedNameFromSource, () => {
             });
 
         const mutableFirstAliases = firstResult.get("arrayFirst") as
-            | Set<string>
-            | undefined;
+            Set<string> | undefined;
 
         mutableFirstAliases?.add("tamperedAlias");
 

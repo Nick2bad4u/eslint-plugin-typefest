@@ -88,6 +88,7 @@ export default [typefest.configs["type-fest/types"]];
 | [`prefer-type-fest-set-readonly`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-set-readonly)                   | 🔧  |
 | [`prefer-type-fest-set-required`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-set-required)                   | 🔧  |
 | [`prefer-type-fest-simplify`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-simplify)                           | 🔧  |
+| [`prefer-type-fest-string-length`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-string-length)                 | 🔧  |
 | [`prefer-type-fest-tagged-brands`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-tagged-brands)                 | 🔧  |
 | [`prefer-type-fest-tuple-of`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-tuple-of)                           | 🔧  |
 | [`prefer-type-fest-union-length`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-union-length)                   | 🔧  |

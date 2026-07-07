@@ -2,9 +2,7 @@ declare function isPresent<TValue>(value: TValue): value is NonNullable<TValue>;
 
 declare const nullableEntries: readonly (null | string)[];
 declare const nullableMonitors: readonly (
-    | null
-    | undefined
-    | { readonly id: string }
+    null | undefined | { readonly id: string }
 )[];
 declare const maybeNumbers: readonly (null | number | undefined)[];
 

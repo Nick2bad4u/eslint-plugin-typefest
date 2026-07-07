@@ -112,6 +112,7 @@ import preferTypeFestSetReadonlyRule from "../rules/prefer-type-fest-set-readonl
 import preferTypeFestSetRequiredRule from "../rules/prefer-type-fest-set-required.js";
 import preferTypeFestSetReturnTypeRule from "../rules/prefer-type-fest-set-return-type.js";
 import preferTypeFestSimplifyRule from "../rules/prefer-type-fest-simplify.js";
+import preferTypeFestStringLengthRule from "../rules/prefer-type-fest-string-length.js";
 import preferTypeFestStringifiedRule from "../rules/prefer-type-fest-stringified.js";
 import preferTypeFestTaggedBrandsRule from "../rules/prefer-type-fest-tagged-brands.js";
 import preferTypeFestTupleOfRule from "../rules/prefer-type-fest-tuple-of.js";
@@ -253,6 +254,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-type-fest-set-required": preferTypeFestSetRequiredRule,
     "prefer-type-fest-set-return-type": preferTypeFestSetReturnTypeRule,
     "prefer-type-fest-simplify": preferTypeFestSimplifyRule,
+    "prefer-type-fest-string-length": preferTypeFestStringLengthRule,
     "prefer-type-fest-stringified": preferTypeFestStringifiedRule,
     "prefer-type-fest-tagged-brands": preferTypeFestTaggedBrandsRule,
     "prefer-type-fest-tuple-of": preferTypeFestTupleOfRule,

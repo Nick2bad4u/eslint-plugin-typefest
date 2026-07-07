@@ -39,7 +39,11 @@ type RuleContext = Parameters<
     typeof createMethodToFunctionCallFix
 >[0]["context"];
 
-type TargetIdentifierName = "candidate" | "needle" | "result" | "候補値";
+type TargetIdentifierName =
+    | "candidate"
+    | "needle"
+    | "result"
+    | "候補値";
 
 type TextEdit = Readonly<{
     end: number;

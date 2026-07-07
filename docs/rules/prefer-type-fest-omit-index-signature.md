@@ -155,9 +155,11 @@ Source file: [`source/omit-index-signature.d.ts`](https://github.com/sindresorhu
  *
  * ```
  * type OmitIndexSignature<ObjectType> = {
- *  [KeyType in keyof ObjectType as {} extends Record<KeyType, unknown> // Is `{}` assignable to `Record<KeyType, unknown>`?
- *   ? never // ✅ `{}` is assignable to `Record<KeyType, unknown>`
- *   : KeyType]: ObjectType[KeyType]; // ❌ `{}` is NOT assignable to `Record<KeyType, unknown>`
+ *  [
+ *   KeyType in keyof ObjectType as {} extends Record<KeyType, unknown> // Is `{}` assignable to `Record<KeyType, unknown>`?
+ *    ? never // ✅ `{}` is assignable to `Record<KeyType, unknown>`
+ *    : KeyType
+ *  ]: ObjectType[KeyType]; // ❌ `{}` is NOT assignable to `Record<KeyType, unknown>`
  * };
  * ```
  *

@@ -1,4 +1,7 @@
-type EnvironmentName = "dev" | "prod" | string;
+type EnvironmentName =
+    | "dev"
+    | "prod"
+    | string;
 
 const environment: EnvironmentName = "dev";
 

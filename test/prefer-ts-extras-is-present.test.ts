@@ -352,8 +352,7 @@ type ComparedExpressionTemplateId =
     | "typeAssertion";
 
 type ComparisonOrientation =
-    | "comparedExpressionOnLeft"
-    | "comparedExpressionOnRight";
+    "comparedExpressionOnLeft" | "comparedExpressionOnRight";
 
 type NullishKind = "null" | "undefined";
 

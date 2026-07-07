@@ -1,7 +1,12 @@
 import type { AtLeastOne } from "type-aliases";
 
 type AlertDestination = AtLeastOne<AlertDestinationPayload>;
-type AlertDestinationPayload = Record<"email" | "pager" | "slack", string>;
+type AlertDestinationPayload = Record<
+    | "email"
+    | "pager"
+    | "slack",
+    string
+>;
 
 declare const alertDestination: AlertDestination;
 

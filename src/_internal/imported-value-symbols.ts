@@ -551,8 +551,7 @@ const createReportFixFromValueReplacementPlan =
         valueReplacementPlan,
     }: Readonly<{
         autofixImportInsertionStrategy?:
-            | AutofixImportInsertionStrategy
-            | undefined;
+            AutofixImportInsertionStrategy | undefined;
         createReplacementFix: (
             fixer: Readonly<TSESLint.RuleFixer>,
             replacementName: string

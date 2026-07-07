@@ -27,7 +27,11 @@ import {
 import { fastCheckRunConfig } from "./fast-check";
 
 /** Imported names covered by alias replacement tests. */
-type ImportedName = "Branded" | "Expand" | "HomomorphicOmit" | "Opaque";
+type ImportedName =
+    | "Branded"
+    | "Expand"
+    | "HomomorphicOmit"
+    | "Opaque";
 
 /** Canonical replacement names expected for deprecated imported aliases. */
 const replacementsByImportedName: Readonly<Record<ImportedName, string>> = {

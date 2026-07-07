@@ -59,8 +59,7 @@ interface TypefestRuleDocs {
     ruleId?: string;
     ruleNumber?: number;
     typefestConfigs?:
-        | readonly TypefestConfigReference[]
-        | TypefestConfigReference;
+        readonly TypefestConfigReference[] | TypefestConfigReference;
 }
 
 /**
@@ -242,7 +241,9 @@ export const getSignatureParameterTypeAt = (
         checker: ts.TypeChecker;
         index: number;
         location: ts.Node;
-        signature: null | ts.Signature | undefined;
+        signature: | null
+        | ts.Signature
+        | undefined;
     }>
 ): ts.Type | undefined => {
     const { checker, index, location, signature } = options;

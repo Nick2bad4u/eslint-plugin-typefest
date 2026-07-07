@@ -23,9 +23,9 @@ import type { IsOptionalKeyOf } from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
  ? keyof {
-    [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
-     ? never
-     : Key]: never;
+    [
+     Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key
+    ]: never;
    } &
     keyof Type
  : never;
@@ -55,9 +55,11 @@ import type * as TypeFest from "type-fest";
 
 type Result<Type extends object> = Type extends unknown
  ? keyof {
-    [Key in keyof Type as TypeFest.IsOptionalKeyOf<Type, Key> extends false
-     ? never
-     : Key]: never;
+    [
+     Key in keyof Type as TypeFest.IsOptionalKeyOf<Type, Key> extends false
+      ? never
+      : Key
+    ]: never;
    } &
     keyof Type
  : never;
@@ -77,9 +79,9 @@ type Result<Type extends object> = OptionalKeysOf<Type>;
 import type { IsOptionalKeyOf } from "type-fest";
 
 type Result<Type extends object> = keyof {
- [Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false
-  ? never
-  : Key]: never;
+ [
+  Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key
+ ]: never;
 };
 ```
 

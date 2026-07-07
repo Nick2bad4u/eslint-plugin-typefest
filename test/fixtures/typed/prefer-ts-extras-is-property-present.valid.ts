@@ -2,8 +2,12 @@ import { isPropertyPresent } from "ts-extras";
 
 interface Post {
     readonly id: number;
-    readonly title: string | null | undefined;
-    readonly body: string | null | undefined;
+    readonly title: | string
+    | null
+    | undefined;
+    readonly body: | string
+    | null
+    | undefined;
 }
 
 declare const posts: readonly Post[];

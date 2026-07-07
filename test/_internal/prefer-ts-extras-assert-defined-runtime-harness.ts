@@ -10,8 +10,7 @@ import fc from "fast-check";
 import { getSourceTextForNode as getSourceTextForRangeNode } from "./source-text-for-node";
 
 type GuardComparisonOrientation =
-    | "guardExpressionOnLeft"
-    | "guardExpressionOnRight";
+    "guardExpressionOnLeft" | "guardExpressionOnRight";
 
 type GuardExpressionTemplateId =
     | "callExpression"

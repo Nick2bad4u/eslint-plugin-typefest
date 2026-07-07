@@ -1,6 +1,11 @@
 import type { AllOrNone } from "type-aliases";
 
-type AuthPairPayload = Record<"password" | "token" | "username", string>;
+type AuthPairPayload = Record<
+    | "password"
+    | "token"
+    | "username",
+    string
+>;
 type ShouldBeSkippedInTestFile = AllOrNone<AuthPairPayload>;
 
 declare const shouldBeSkippedInTestFile: ShouldBeSkippedInTestFile;

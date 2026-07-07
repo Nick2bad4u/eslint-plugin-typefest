@@ -13,7 +13,12 @@ export type RuntimeIsDefinedCase = Readonly<{
     toggleValue: boolean;
 }>;
 
-export type RuntimeScalar = boolean | null | number | string | undefined;
+export type RuntimeScalar =
+    | boolean
+    | null
+    | number
+    | string
+    | undefined;
 
 type RuntimeComparedExpressionTemplateId =
     | "functionCallExpression"
@@ -22,15 +27,18 @@ type RuntimeComparedExpressionTemplateId =
     | "optionalChainingExpression";
 
 type RuntimeComparisonOrientation =
-    | "comparedExpressionOnLeft"
-    | "comparedExpressionOnRight";
+    "comparedExpressionOnLeft" | "comparedExpressionOnRight";
 
 type RuntimeExecutionSnapshot = Readonly<{
     counter: number;
     evaluation: boolean;
 }>;
 
-type RuntimeUndefinedComparisonOperator = "!=" | "!==" | "==" | "===";
+type RuntimeUndefinedComparisonOperator =
+    | "!="
+    | "!=="
+    | "=="
+    | "===";
 
 const runtimeIsDefinedImportStatement =
     'import { isDefined } from "ts-extras";';
