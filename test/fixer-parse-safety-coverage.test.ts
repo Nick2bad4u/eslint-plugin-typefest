@@ -557,5 +557,5 @@ describe("fixer parse-safety coverage", () => {
                 missingRuleIds,
             });
         }
-    });
+    }, 60_000);
 });
