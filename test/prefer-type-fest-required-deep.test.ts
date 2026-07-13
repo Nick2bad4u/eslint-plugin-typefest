@@ -94,9 +94,10 @@ const requiredDeepSubjectArbitrary = fc.constantFrom<
 >("singleProperty", "nestedObject", "readonlyArray");
 
 const buildRequiredDeepSubjectType = (
-    subjectKind: | "nestedObject"
-    | "readonlyArray"
-    | "singleProperty"
+    subjectKind:
+        | "nestedObject"
+        | "readonlyArray"
+        | "singleProperty"
 ): string => {
     if (subjectKind === "singleProperty") {
         return "{ id?: string }";

@@ -105,9 +105,10 @@ const schemaValueTypeArbitrary = fc.constantFrom<
 >("number", "readonlyStringArray", "unionLiteral");
 
 const buildSchemaValueType = (
-    valueTypeKind: | "number"
-    | "readonlyStringArray"
-    | "unionLiteral"
+    valueTypeKind:
+        | "number"
+        | "readonlyStringArray"
+        | "unionLiteral"
 ): string => {
     if (valueTypeKind === "number") {
         return "number";

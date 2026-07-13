@@ -96,10 +96,11 @@ const numberExpressionKindArbitrary = fc.constantFrom<
 >("callExpression", "identifier", "memberExpression", "numericLiteral");
 
 const buildNumberExpressionTemplate = (
-    kind: | "callExpression"
-    | "identifier"
-    | "memberExpression"
-    | "numericLiteral"
+    kind:
+        | "callExpression"
+        | "identifier"
+        | "memberExpression"
+        | "numericLiteral"
 ): Readonly<{
     declarations: readonly string[];
     expressionText: string;

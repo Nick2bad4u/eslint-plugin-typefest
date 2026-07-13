@@ -34,10 +34,11 @@ const parserOptions = {
 } as const;
 
 type InsertionScenario = Readonly<{
-    expectedMode: | "after-directive"
-    | "after-import"
-    | "at-program-end"
-    | "before-first-statement";
+    expectedMode:
+        | "after-directive"
+        | "after-import"
+        | "at-program-end"
+        | "before-first-statement";
     sourceText: string;
 }>;
 

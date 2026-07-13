@@ -143,10 +143,11 @@ const comparisonOperatorFormArbitrary = fc.constantFrom<
 >("leftLoose", "leftStrict", "rightLoose", "rightStrict");
 
 const buildArrayExpressionTemplate = (
-    kind: | "arrayLiteral"
-    | "callExpression"
-    | "identifier"
-    | "memberExpression"
+    kind:
+        | "arrayLiteral"
+        | "callExpression"
+        | "identifier"
+        | "memberExpression"
 ): Readonly<{
     declarations: readonly string[];
     expressionText: string;
@@ -187,10 +188,11 @@ const buildLengthComparisonExpression = ({
     comparisonOperatorForm,
 }: Readonly<{
     arrayExpressionText: string;
-    comparisonOperatorForm: | "leftLoose"
-    | "leftStrict"
-    | "rightLoose"
-    | "rightStrict";
+    comparisonOperatorForm:
+        | "leftLoose"
+        | "leftStrict"
+        | "rightLoose"
+        | "rightStrict";
 }>): string => {
     if (comparisonOperatorForm === "leftStrict") {
         return `0 === ${arrayExpressionText}.length`;

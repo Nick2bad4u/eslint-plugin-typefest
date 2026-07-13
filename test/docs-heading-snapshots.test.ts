@@ -9,9 +9,10 @@ import { describe, expect, it } from "vitest";
 import { parseMarkdownHeadingsAtLevel } from "./_internal/markdown-headings";
 
 interface RuleDocsHeadingSnapshot {
-    packageLabel: | "none"
-    | "ts-extras"
-    | "type-fest";
+    packageLabel:
+        | "none"
+        | "ts-extras"
+        | "type-fest";
     ruleId: string;
     sectionHeadings: readonly string[];
 }

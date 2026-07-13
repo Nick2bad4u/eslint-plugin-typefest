@@ -95,9 +95,10 @@ const unwrapOpaqueSourceArbitrary = fc.constantFrom<
 >("intersection", "stringLiteral", "templateLiteral");
 
 const buildUnwrapOpaqueSource = (
-    sourceKind: | "intersection"
-    | "stringLiteral"
-    | "templateLiteral"
+    sourceKind:
+        | "intersection"
+        | "stringLiteral"
+        | "templateLiteral"
 ): string => {
     if (sourceKind === "intersection") {
         return 'UnwrapOpaque<{ readonly __brand: "UserId" } & string>';

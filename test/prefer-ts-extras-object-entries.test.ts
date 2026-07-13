@@ -102,10 +102,11 @@ const objectEntriesArgumentKindArbitrary = fc.constantFrom<
 >("callExpression", "identifier", "memberExpression", "objectLiteral");
 
 const buildObjectEntriesArgumentTemplate = (
-    kind: | "callExpression"
-    | "identifier"
-    | "memberExpression"
-    | "objectLiteral"
+    kind:
+        | "callExpression"
+        | "identifier"
+        | "memberExpression"
+        | "objectLiteral"
 ): Readonly<{
     argumentExpression: string;
     declarations: readonly string[];

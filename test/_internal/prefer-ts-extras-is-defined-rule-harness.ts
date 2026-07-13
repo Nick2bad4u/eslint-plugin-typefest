@@ -365,9 +365,10 @@ export const createRuleContextForSource = ({
 };
 
 const normalizeFixResultToArray = (
-    fixResult: | Iterable<Readonly<TSESLint.RuleFix>>
-    | null
-    | Readonly<TSESLint.RuleFix>
+    fixResult:
+        | Iterable<Readonly<TSESLint.RuleFix>>
+        | null
+        | Readonly<TSESLint.RuleFix>
 ): readonly Readonly<TSESLint.RuleFix>[] => {
     if (fixResult === null) {
         return [];

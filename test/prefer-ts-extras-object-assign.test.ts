@@ -105,10 +105,11 @@ const objectAssignSourceKindArbitrary = fc.constantFrom<
 >("callExpression", "identifier", "memberExpression", "objectLiteral");
 
 const buildObjectAssignSourceTemplate = (
-    kind: | "callExpression"
-    | "identifier"
-    | "memberExpression"
-    | "objectLiteral"
+    kind:
+        | "callExpression"
+        | "identifier"
+        | "memberExpression"
+        | "objectLiteral"
 ): Readonly<{
     declarations: readonly string[];
     sourceExpression: string;

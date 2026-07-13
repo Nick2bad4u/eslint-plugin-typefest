@@ -85,9 +85,10 @@ const partialDeepSubjectArbitrary = fc.constantFrom<
 >("singleProperty", "nestedObject", "readonlyArray");
 
 const buildPartialDeepSubjectType = (
-    subjectKind: | "nestedObject"
-    | "readonlyArray"
-    | "singleProperty"
+    subjectKind:
+        | "nestedObject"
+        | "readonlyArray"
+        | "singleProperty"
 ): string => {
     if (subjectKind === "singleProperty") {
         return "{ id: string }";

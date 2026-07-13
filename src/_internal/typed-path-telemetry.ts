@@ -62,9 +62,10 @@ const createEmptyCounters = (): MutableTypedPathCounters => ({
 });
 
 const normalizeTelemetryFilePath = (
-    filePath: | null
-    | string
-    | undefined
+    filePath:
+        | null
+        | string
+        | undefined
 ): string => {
     if (typeof filePath !== "string") {
         return UNKNOWN_FILE_PATH;
@@ -76,9 +77,10 @@ const normalizeTelemetryFilePath = (
 };
 
 const getCountersForFilePath = (
-    filePath: | null
-    | string
-    | undefined
+    filePath:
+        | null
+        | string
+        | undefined
 ): MutableTypedPathCounters => {
     const normalizedFilePath = normalizeTelemetryFilePath(filePath);
     const existingCounters =
@@ -104,9 +106,10 @@ export const recordTypedPathPrefilterEvaluation = ({
     filePath,
     prefilterHit,
 }: Readonly<{
-    filePath: | null
-    | string
-    | undefined;
+    filePath:
+        | null
+        | string
+        | undefined;
     prefilterHit: boolean;
 }>): void => {
     const counters = getCountersForFilePath(filePath);
@@ -122,9 +125,10 @@ export const recordTypedPathPrefilterEvaluation = ({
  * Record one expensive type-resolution invocation.
  */
 export const recordTypedPathExpensiveTypeCall = (
-    filePath: | null
-    | string
-    | undefined
+    filePath:
+        | null
+        | string
+        | undefined
 ): void => {
     const counters = getCountersForFilePath(filePath);
 
@@ -136,9 +140,10 @@ export const recordTypedPathExpensiveTypeCall = (
  * or failed.
  */
 export const recordTypedPathFallbackInvocation = (
-    filePath: | null
-    | string
-    | undefined
+    filePath:
+        | null
+        | string
+        | undefined
 ): void => {
     const counters = getCountersForFilePath(filePath);
 

@@ -90,9 +90,10 @@ const readonlyDeepSubjectArbitrary = fc.constantFrom<
 >("singleProperty", "nestedObject", "readonlyArray");
 
 const buildReadonlyDeepSubjectType = (
-    subjectKind: | "nestedObject"
-    | "readonlyArray"
-    | "singleProperty"
+    subjectKind:
+        | "nestedObject"
+        | "readonlyArray"
+        | "singleProperty"
 ): string => {
     if (subjectKind === "singleProperty") {
         return "{ id: string }";

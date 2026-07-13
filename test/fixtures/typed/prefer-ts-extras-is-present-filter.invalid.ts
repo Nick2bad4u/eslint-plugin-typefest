@@ -3,8 +3,16 @@ interface MonitorRecord {
 }
 
 declare const nullableEntries: readonly (MonitorRecord | null)[];
-declare const nullableMonitors: readonly (MonitorRecord | null | undefined)[];
-declare const maybeNumbers: readonly (null | number | undefined)[];
+declare const nullableMonitors: readonly (
+    | MonitorRecord
+    | null
+    | undefined
+)[];
+declare const maybeNumbers: readonly (
+    | null
+    | number
+    | undefined
+)[];
 
 const entries = nullableEntries.filter(
     (entry): entry is MonitorRecord => entry !== null

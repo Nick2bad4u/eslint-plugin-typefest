@@ -830,3 +830,4 @@ docs/Guides/TODO.md
 **/site-docs/developer/api/
 **/AGENTS.md
 AGENTS.md
+test/__snapshots__/readme-rules-section.generated.md
