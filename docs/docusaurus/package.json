@@ -40,7 +40,7 @@
         "build:local": "npm run docs:api && npm --prefix ../.. run build:eslint-inspector:local && npm --prefix ../.. run build:stylelint-inspector:local && npx cross-env NODE_OPTIONS=--no-deprecation npx docusaurus build",
         "clear": "npx docusaurus clear",
         "deploy": "npx docusaurus deploy",
-        "docs:api": "typedoc --options typedoc.config.json",
+        "docs:api": "npx typedoc --options typedoc.config.json",
         "docusaurus": "npx docusaurus",
         "serve": "npx docusaurus serve",
         "start": "npx docusaurus start --host localhost",
