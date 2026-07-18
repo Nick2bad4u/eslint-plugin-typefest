@@ -53,11 +53,21 @@ jobs:
               uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
 
             - name: "Setup Node.js"
+              env:
+                  npm_config_force: "true"
               uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7.0.0
               with:
                   node-version-file: ".node-version"
                   cache: "npm"
                   cache-dependency-path: "package-lock.json"
+
+            - name: "Install declared npm version"
+              env:
+                  npm_config_force: "true"
+              run: |
+                  package_manager="$(node -p "require('./package.json').packageManager")"
+                  npm install --global "${package_manager}"
+                  npm --version
 
             - name: "Install dependencies"
               run: "npm ci --force"
@@ -154,11 +164,21 @@ jobs:
               uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
 
             - name: "Setup Node.js"
+              env:
+                  npm_config_force: "true"
               uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7.0.0
               with:
                   cache: "npm"
                   cache-dependency-path: "package-lock.json"
                   node-version-file: ".node-version"
+
+            - name: "Install declared npm version"
+              env:
+                  npm_config_force: "true"
+              run: |
+                  package_manager="$(node -p "require('./package.json').packageManager")"
+                  npm install --global "${package_manager}"
+                  npm --version
 
             - name: "Install dependencies"
               run: "npm ci --force"
