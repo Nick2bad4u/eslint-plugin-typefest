@@ -190,11 +190,12 @@
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
         "sync:peer-eslint-range": "node scripts/sync-peer-eslint-range.mjs",
         "sync:presets-rules-matrix": "node scripts/sync-presets-rules-matrix.mjs",
+        "sync:presets-rules-matrix:write": "node scripts/sync-presets-rules-matrix.mjs --write",
         "sync:readme-rules-table": "node scripts/sync-readme-rules-table.mjs",
         "sync:readme-rules-table:update": "npm run build && npx cross-env TYPEFEST_UPDATE_GENERATED_DOCS=1 npx vitest run test/readme-rules-table-sync.test.ts -u",
         "sync:readme-rules-table:write": "node scripts/sync-readme-rules-table.mjs --write",
         "sync:rules:check": "npm run sync:readme-rules-table && npm run sync:presets-rules-matrix",
-        "sync:rules:write": "npm run sync:readme-rules-table:write && npm run sync:presets-rules-matrix",
+        "sync:rules:write": "npm run sync:readme-rules-table:write && npm run sync:presets-rules-matrix:write",
         "pretest": "npm run build",
         "test": "npx vitest run",
         "test:autofix:fixtures": "npx cross-env TYPEFEST_AUTOFIX_SMOKE=1 npx vitest run test/autofix-fixtures-all-rules-smoke.test.ts",
@@ -222,24 +223,33 @@
         "types:update": "npx typesync",
         "update-actions": "npx actions-up --yes --style sha",
         "update-all": "npm run update-deps && npm run update-actions",
-        "update-deps": "npx ncu --configFileName .ncurc.workspaces.json --configFilePath node_modules/ncu-config-nick2bad4u && npm update --workspaces --force && npm install --force && npm run sync:peer-eslint-range && npm run sync:node-version-files && npm run sync:rules:write",
+        "update-deps": "npx ncu --configFileName .ncurc.workspaces.json --configFilePath node_modules/ncu-config-nick2bad4u && npx cross-env npm_config_allow_scripts= npm_config_allow_remote=all npm update --workspaces --force && npx cross-env npm_config_allow_scripts= npm install --force && npm run sync:peer-eslint-range && npm run sync:node-version-files && npm run sync:rules:write",
         "verify:readme-rules-table": "npm run build && npm run sync:rules:write"
     },
     "overrides": {
-        "jsonc-eslint-parser": "$jsonc-eslint-parser"
+        "adm-zip": "0.6.0",
+        "esbuild": "$esbuild",
+        "jsonc-eslint-parser": "$jsonc-eslint-parser",
+        "qs": "6.15.3",
+        "serialize-javascript": "7.0.7",
+        "sockjs": {
+            "uuid": "11.1.1"
+        },
+        "tar": "7.5.20",
+        "tmp": "0.2.7"
     },
     "dependencies": {
-        "@typescript-eslint/parser": "^8.63.0",
-        "@typescript-eslint/type-utils": "^8.63.0",
-        "@typescript-eslint/utils": "^8.63.0",
-        "ts-extras": "^1.2.0",
+        "@typescript-eslint/parser": "^8.64.0",
+        "@typescript-eslint/type-utils": "^8.64.0",
+        "@typescript-eslint/utils": "^8.64.0",
+        "ts-extras": "^1.3.0",
         "type-fest": "^5.8.0"
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.5",
         "@csstools/stylelint-formatter-github": "^2.0.0",
         "@double-great/remark-lint-alt-text": "^1.1.1",
-        "@eslint/config-inspector": "^3.0.4",
+        "@eslint/config-inspector": "^3.1.0",
         "@microsoft/tsdoc-config": "^0.18.1",
         "@size-limit/file": "^12.1.0",
         "@stryker-ignorer/console-all": "^0.3.2",
@@ -250,7 +260,7 @@
         "@types/madge": "^5.0.3",
         "@types/node": "^26.1.1",
         "@types/sloc": "^0.2.3",
-        "@typescript-eslint/rule-tester": "^8.63.0",
+        "@typescript-eslint/rule-tester": "^8.64.0",
         "@vitest/coverage-v8": "^4.1.10",
         "@vitest/ui": "^4.1.10",
         "actionlint": "^2.0.6",
@@ -263,23 +273,23 @@
         "detect-secrets": "^1.0.6",
         "esbuild": "^0.28.1",
         "eslint": "^10.7.0",
-        "eslint-config-nick2bad4u": "^5.0.0",
+        "eslint-config-nick2bad4u": "^7.0.0",
         "eslint-formatter-unix": "^9.0.1",
         "eslint-rule-benchmark": "^0.8.0",
         "fast-check": "^4.9.0",
         "git-cliff": "^2.13.1",
-        "gitcliff-config-nick2bad4u": "^1.3.0",
+        "gitcliff-config-nick2bad4u": "^1.4.0",
         "gitleaks-config-nick2bad4u": "^1.0.4",
         "gitleaks-secret-scanner": "^2.1.1",
         "htmlhint": "^1.9.2",
         "jscpd": "^5.0.12",
         "jscpd-config-nick2bad4u": "^1.1.0",
-        "knip": "^6.26.0",
+        "knip": "^6.27.0",
         "leasot": "^14.4.0",
         "lychee-config-nick2bad4u": "^2.0.0",
         "markdown-link-check": "^3.14.2",
         "ncu-config-nick2bad4u": "^0.2.0",
-        "npm": "^11.18.0",
+        "npm": "^12.0.1",
         "npm-check-updates": "^22.2.9",
         "npm-package-json-lint": "^10.4.1",
         "npm-package-json-lint-config-nick2bad4u": "^1.0.4",
@@ -304,17 +314,17 @@
         "typedoc": "^0.28.20",
         "typedoc-config-nick2bad4u": "^2.0.3",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.63.0",
+        "typescript-eslint": "^8.64.0",
         "typesync": "^0.14.3",
         "vfile": "^6.0.3",
-        "vite": "^8.1.4",
+        "vite": "^8.1.5",
         "vite-tsconfig-paths": "^6.1.1",
         "vitest": "^4.1.10",
         "yamllint-config-nick2bad4u": "^1.1.1",
         "yamllint-js": "^0.2.4"
     },
     "peerDependencies": {
-        "eslint": "^9.0.0 || ^10.6.0",
+        "eslint": "^9.0.0 || ^10.7.0",
         "typescript": "^5.0.0 || ^6.0.2"
     },
     "packageManager": "npm@12.0.1",
@@ -324,18 +334,26 @@
     "devEngines": {
         "runtime": {
             "name": "node",
-            "version": ">=22.0.0",
+            "version": "^22.22.2 || ^24.15.0 || >=26.0.0",
             "onFail": "error"
         },
         "packageManager": {
             "name": "npm",
-            "version": ">=11.0.0",
+            "version": ">=12.0.0",
             "onFail": "error"
         }
     },
     "publishConfig": {
         "provenance": true,
         "registry": "https://registry.npmjs.org/"
+    },
+    "allowScripts": {
+        "@swc/core@1.15.43": true,
+        "core-js@3.49.0": false,
+        "esbuild@0.28.1": true,
+        "fsevents@2.3.3": true,
+        "gitleaks-secret-scanner@2.1.1": true,
+        "unrs-resolver@1.12.2": true
     },
     "readme": "README.md"
 }

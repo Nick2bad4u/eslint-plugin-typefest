@@ -272,7 +272,7 @@ const parseIntegerArgument = (key, fallbackValue) => {
         return fallbackValue;
     }
 
-    const [, rawValue = ""] = matchingArgument.split("=");
+    const [, rawValue = ""] = matchingArgument.split("=", 2);
     const parsedValue = Number.parseInt(rawValue, 10);
     if (!Number.isInteger(parsedValue) || parsedValue < 0) {
         throw new TypeError(
@@ -300,7 +300,7 @@ const parseStringArgument = (key) => {
         return undefined;
     }
 
-    const [, rawValue = ""] = matchingArgument.split("=");
+    const [, rawValue = ""] = matchingArgument.split("=", 2);
     if (rawValue.length === 0) {
         throw new TypeError(
             `Expected --${key}=<value>; received an empty value.`

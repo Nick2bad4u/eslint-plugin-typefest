@@ -204,8 +204,8 @@ const preferTsExtrasStringSplitRule: ReturnType<typeof createTypedRule> =
                     );
 
                     const isStringLike =
-                        !isDefined(apparentType) ||
-                        apparentType === candidateType
+                        apparentType === candidateType ||
+                        !isDefined(apparentType)
                             ? false
                             : isStringLikeTypeInternal(apparentType);
 

@@ -189,10 +189,10 @@ const assertDefaultOptionsContract = ({
     const schema = metaRecord["schema"];
 
     if (
-        Array.isArray(schema) &&
-        schema.length > 0 &&
         metaDefaultOptions !== undefined &&
-        defaultOptions !== undefined
+        defaultOptions !== undefined &&
+        Array.isArray(schema) &&
+        schema.length > 0
     ) {
         expect(metaDefaultOptions).toStrictEqual(defaultOptions);
     }
@@ -244,10 +244,10 @@ const assertDocsContract = ({
     ).toBe(true);
 
     if (
-        !isNonEmptyString(url) ||
         typeof recommended !== "boolean" ||
         typeof ruleId !== "string" ||
-        typeof ruleNumber !== "number"
+        typeof ruleNumber !== "number" ||
+        !isNonEmptyString(url)
     ) {
         return;
     }

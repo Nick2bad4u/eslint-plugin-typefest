@@ -8,6 +8,10 @@ title = "eslint-plugin-typefest secret detection"
     paths       = [ '''^docs/typedoc\.json$''' ]
 
 [[allowlists]]
+    description = "Ignore generated local tooling output"
+    paths       = [ '''^(?:\.stryker-tmp|docs/docusaurus/\.docusaurus|temp)/''' ]
+
+[[allowlists]]
     description = "Ignore historical local skill token placeholder examples"
     paths       = [
         '''^\.github/skills/github-manage-security-alerts/''',
