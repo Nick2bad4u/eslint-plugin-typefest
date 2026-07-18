@@ -17,6 +17,7 @@ import preferTsExtrasAssertDefinedRule from "../rules/prefer-ts-extras-assert-de
 import preferTsExtrasAssertErrorRule from "../rules/prefer-ts-extras-assert-error.js";
 import preferTsExtrasAssertNeverRule from "../rules/prefer-ts-extras-assert-never.js";
 import preferTsExtrasAssertPresentRule from "../rules/prefer-ts-extras-assert-present.js";
+import preferTsExtrasAssertRule from "../rules/prefer-ts-extras-assert.js";
 import preferTsExtrasIsDefinedFilterRule from "../rules/prefer-ts-extras-is-defined-filter.js";
 import preferTsExtrasIsDefinedRule from "../rules/prefer-ts-extras-is-defined.js";
 import preferTsExtrasIsEmptyRule from "../rules/prefer-ts-extras-is-empty.js";
@@ -149,6 +150,7 @@ const typefestRuleRegistry: Readonly<
     "prefer-ts-extras-array-join": preferTsExtrasArrayJoinRule,
     "prefer-ts-extras-array-last": preferTsExtrasArrayLastRule,
     "prefer-ts-extras-as-writable": preferTsExtrasAsWritableRule,
+    "prefer-ts-extras-assert": preferTsExtrasAssertRule,
     "prefer-ts-extras-assert-defined": preferTsExtrasAssertDefinedRule,
     "prefer-ts-extras-assert-error": preferTsExtrasAssertErrorRule,
     "prefer-ts-extras-assert-never": preferTsExtrasAssertNeverRule,
