@@ -91,7 +91,7 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         );
     }
 
-    if (ruleDefinition.name.startsWith("prefer-") && catalogEntry === null) {
+    if (catalogEntry === null && ruleDefinition.name.startsWith("prefer-")) {
         throw new TypeError(
             `Rule '${ruleDefinition.name}' is missing from the stable rule catalog.`
         );

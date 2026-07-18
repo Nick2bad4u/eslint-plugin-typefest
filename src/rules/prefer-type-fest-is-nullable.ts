@@ -114,8 +114,8 @@ const getExtractNullCheckInput = (
     const [inputType, extractedType] = typeArguments ?? [];
 
     if (
-        typeArguments?.length !== 2 ||
         !inputType ||
+        typeArguments?.length !== 2 ||
         extractedType?.type !== AST_NODE_TYPES.TSNullKeyword
     ) {
         return undefined;

@@ -2,7 +2,7 @@
 
 exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
 {
-  "ruleCount": 123,
+  "ruleCount": 124,
   "ruleNames": [
     "prefer-ts-extras-array-at",
     "prefer-ts-extras-array-concat",
@@ -11,6 +11,7 @@ exports[`plugin contract snapshots > keeps stable exported rule names 1`] = `
     "prefer-ts-extras-array-join",
     "prefer-ts-extras-array-last",
     "prefer-ts-extras-as-writable",
+    "prefer-ts-extras-assert",
     "prefer-ts-extras-assert-defined",
     "prefer-ts-extras-assert-error",
     "prefer-ts-extras-assert-never",
@@ -141,7 +142,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:all",
-    "ruleCount": 112,
+    "ruleCount": 113,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -150,6 +151,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-array-join",
       "typefest/prefer-ts-extras-array-last",
       "typefest/prefer-ts-extras-as-writable",
+      "typefest/prefer-ts-extras-assert",
       "typefest/prefer-ts-extras-assert-defined",
       "typefest/prefer-ts-extras-assert-error",
       "typefest/prefer-ts-extras-assert-never",
@@ -265,7 +267,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:experimental",
-    "ruleCount": 123,
+    "ruleCount": 124,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -274,6 +276,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-array-join",
       "typefest/prefer-ts-extras-array-last",
       "typefest/prefer-ts-extras-as-writable",
+      "typefest/prefer-ts-extras-assert",
       "typefest/prefer-ts-extras-assert-defined",
       "typefest/prefer-ts-extras-assert-error",
       "typefest/prefer-ts-extras-assert-never",
@@ -641,7 +644,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:strict",
-    "ruleCount": 111,
+    "ruleCount": 112,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-at",
       "typefest/prefer-ts-extras-array-concat",
@@ -650,6 +653,7 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "typefest/prefer-ts-extras-array-join",
       "typefest/prefer-ts-extras-array-last",
       "typefest/prefer-ts-extras-as-writable",
+      "typefest/prefer-ts-extras-assert",
       "typefest/prefer-ts-extras-assert-defined",
       "typefest/prefer-ts-extras-assert-error",
       "typefest/prefer-ts-extras-assert-never",
@@ -764,9 +768,10 @@ exports[`plugin contract snapshots > keeps stable preset contract matrix 1`] = `
       "sourceType": "module",
     },
     "presetName": "typefest:ts-extras/type-guards",
-    "ruleCount": 22,
+    "ruleCount": 23,
     "ruleIds": [
       "typefest/prefer-ts-extras-array-includes",
+      "typefest/prefer-ts-extras-assert",
       "typefest/prefer-ts-extras-assert-defined",
       "typefest/prefer-ts-extras-assert-error",
       "typefest/prefer-ts-extras-assert-never",

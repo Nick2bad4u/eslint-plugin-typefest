@@ -253,7 +253,7 @@ describe(areEquivalentTypeNodes, () => {
                 getOwnPropertyDescriptor(target, property): PropertyDescriptor {
                     descriptorReadCount += 1;
 
-                    if (descriptorReadCount >= 2 && property === "alpha") {
+                    if (property === "alpha" && descriptorReadCount >= 2) {
                         delete right.alpha;
                     }
 

@@ -30,6 +30,7 @@ export default [typefest.configs["ts-extras/type-guards"]];
 | Rule                                                                                                                                          |  Fix  |
 | --------------------------------------------------------------------------------------------------------------------------------------------- | :---: |
 | [`prefer-ts-extras-array-includes`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-array-includes)           | 🔧 💡 |
+| [`prefer-ts-extras-assert`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert)                           |  💡   |
 | [`prefer-ts-extras-assert-defined`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-defined)           | 🔧 💡 |
 | [`prefer-ts-extras-assert-error`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-error)               |  💡   |
 | [`prefer-ts-extras-assert-never`](https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-assert-never)               |  💡   |

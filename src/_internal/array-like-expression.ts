@@ -156,8 +156,8 @@ const evaluateIsArrayLikeType = ({
         candidateType
     );
     if (
-        isDefined(baseConstraint) &&
         baseConstraint !== candidateType &&
+        isDefined(baseConstraint) &&
         evaluateIsArrayLikeType({
             candidateType: baseConstraint,
             checker,
@@ -172,7 +172,7 @@ const evaluateIsArrayLikeType = ({
     }
 
     const apparentType = getTypeCheckerApparentType(checker, candidateType);
-    if (isDefined(apparentType) && apparentType !== candidateType) {
+    if (apparentType !== candidateType && isDefined(apparentType)) {
         const isArrayLike = evaluateIsArrayLikeType({
             candidateType: apparentType,
             checker,

@@ -775,6 +775,7 @@ dist-*/
 node_modules/
 coverage/
 .cache/
+.stryker-tmp/
 
 # Binary and media files
 *.png

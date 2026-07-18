@@ -87,7 +87,7 @@ export const reportTsExtrasArrayMethodCall = <MessageId extends string>({
         fix,
     });
 
-    if (outcome.kind === "suggestion" && reportSuggestion !== undefined) {
+    if (reportSuggestion !== undefined && outcome.kind === "suggestion") {
         reportSuggestion({
             fix: outcome.fix,
             messageId,

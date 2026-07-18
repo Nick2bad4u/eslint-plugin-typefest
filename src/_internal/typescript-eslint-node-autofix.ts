@@ -734,7 +734,7 @@ export const isTypeScriptEslintAstType = (
         }
 
         const apparentType = getTypeCheckerApparentType(checker, currentType);
-        if (isDefined(apparentType) && apparentType !== currentType) {
+        if (apparentType !== currentType && isDefined(apparentType)) {
             pendingTypes.push(apparentType);
         }
 
@@ -743,8 +743,8 @@ export const isTypeScriptEslintAstType = (
             currentType
         );
         if (
-            isDefined(baseConstraintType) &&
-            baseConstraintType !== currentType
+            baseConstraintType !== currentType &&
+            isDefined(baseConstraintType)
         ) {
             pendingTypes.push(baseConstraintType);
         }

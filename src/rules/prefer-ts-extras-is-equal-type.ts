@@ -147,8 +147,8 @@ const preferTsExtrasIsEqualTypeRule: ReturnType<typeof createTypedRule> =
                         });
 
                     if (
-                        typeArguments.length !== 2 ||
-                        isEqualTypeSuggestionFix === null
+                        isEqualTypeSuggestionFix === null ||
+                        typeArguments.length !== 2
                     ) {
                         reportWithOptionalFix({
                             context,

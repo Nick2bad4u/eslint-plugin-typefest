@@ -299,8 +299,8 @@ export const getNullishComparison = ({
     }
 
     if (
-        !isDefined(comparedIdentifierName) ||
-        !allowTypeofComparedIdentifierForUndefined
+        !allowTypeofComparedIdentifierForUndefined ||
+        !isDefined(comparedIdentifierName)
     ) {
         return null;
     }

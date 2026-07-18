@@ -259,8 +259,8 @@ const preferTsExtrasSetHasRule: ReturnType<typeof createTypedRule> =
                         candidateType
                     );
                     if (
-                        isDefined(apparentType) &&
                         apparentType !== candidateType &&
+                        isDefined(apparentType) &&
                         isSetTypeInternal(apparentType)
                     ) {
                         return cacheSetTypeResult(candidateType, true);
