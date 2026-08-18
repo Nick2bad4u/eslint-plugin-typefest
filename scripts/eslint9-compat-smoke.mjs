@@ -38,8 +38,27 @@ const arrayableFixturePath = path.resolve(
 
 const expectedEslintMajorArgumentPrefix = "--expect-eslint-major=";
 const eslintModuleName = process.env["TYPEFEST_ESLINT_MODULE"] ?? "eslint";
+let eslintModuleLoader;
+
+switch (eslintModuleName) {
+    case "eslint": {
+        eslintModuleLoader = () => import("eslint");
+        break;
+    }
+    case "eslint9": {
+        // @ts-expect-error -- The ESLint 9 alias exists only in compatibility jobs.
+        eslintModuleLoader = () => import("eslint9");
+        break;
+    }
+    default: {
+        throw new Error(
+            `Unsupported ESLint module ${JSON.stringify(eslintModuleName)}. Expected "eslint" or "eslint9".`
+        );
+    }
+}
+
 const eslintModule = /** @type {typeof import("eslint")} */ (
-    await import(eslintModuleName)
+    await eslintModuleLoader()
 );
 const { ESLint } = eslintModule;
 
