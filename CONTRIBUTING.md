@@ -8,7 +8,7 @@ This repository contains an ESLint plugin focused on `type-fest` and
 ## Prerequisites
 
 - Node.js `>=22.0.0` (see `package.json#engines`)
-- npm `>=11`
+- npm `>=12`
 - Git
 
 ## Local setup
@@ -18,7 +18,7 @@ This repository contains an ESLint plugin focused on `type-fest` and
 2. Install dependencies from the repository root:
 
    ```bash
-   npm ci --force
+   npm ci
    ```
 
 3. Run the main quality gate:

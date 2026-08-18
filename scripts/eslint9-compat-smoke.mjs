@@ -4,7 +4,6 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import tsParser from "@typescript-eslint/parser";
-import { ESLint } from "eslint";
 import pc from "picocolors";
 
 import plugin from "../plugin.mjs";
@@ -38,6 +37,30 @@ const arrayableFixturePath = path.resolve(
 );
 
 const expectedEslintMajorArgumentPrefix = "--expect-eslint-major=";
+const eslintModuleName = process.env["TYPEFEST_ESLINT_MODULE"] ?? "eslint";
+let eslintModuleLoader;
+
+switch (eslintModuleName) {
+    case "eslint": {
+        eslintModuleLoader = () => import("eslint");
+        break;
+    }
+    case "eslint9": {
+        // @ts-expect-error -- The ESLint 9 alias exists only in compatibility jobs.
+        eslintModuleLoader = () => import("eslint9");
+        break;
+    }
+    default: {
+        throw new Error(
+            `Unsupported ESLint module ${JSON.stringify(eslintModuleName)}. Expected "eslint" or "eslint9".`
+        );
+    }
+}
+
+const eslintModule = /** @type {typeof import("eslint")} */ (
+    await eslintModuleLoader()
+);
+const { ESLint } = eslintModule;
 
 /**
  * @param {string} filePath
@@ -353,7 +376,19 @@ for (const scenario of scenarios) {
 
 console.log(pc.bold(pc.cyan("Running ESLint 9 compatibility smoke checks...")));
 
-const expectedEslintMajor = parseExpectedEslintMajor(process.argv.slice(2));
+const expectedEslintMajorEnvironment =
+    process.env["TYPEFEST_EXPECT_ESLINT_MAJOR"];
+const expectedEslintMajorArguments = [
+    ...process.argv.slice(2),
+    ...(expectedEslintMajorEnvironment === undefined
+        ? []
+        : [
+              `${expectedEslintMajorArgumentPrefix}${expectedEslintMajorEnvironment}`,
+          ]),
+];
+const expectedEslintMajor = parseExpectedEslintMajor(
+    expectedEslintMajorArguments
+);
 assertEslintMajor(expectedEslintMajor);
 
 for (const scenario of scenarios) {

@@ -53,8 +53,6 @@ jobs:
               uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
 
             - name: "Setup Node.js"
-              env:
-                  npm_config_force: "true"
               uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7.0.0
               with:
                   node-version-file: ".node-version"
@@ -62,15 +60,13 @@ jobs:
                   cache-dependency-path: "package-lock.json"
 
             - name: "Install declared npm version"
-              env:
-                  npm_config_force: "true"
               run: |
                   package_manager="$(node -p "require('./package.json').packageManager")"
                   npm install --global "${package_manager}"
                   npm --version
 
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Build package"
               run: "npm run build"
@@ -79,7 +75,7 @@ jobs:
               if: "${{ matrix.os == 'ubuntu-latest' && !cancelled() && env.CODECOV_TOKEN != '' }}"
               continue-on-error: true
               run: >-
-                  npx @codecov/bundle-analyzer ./dist --bundle-name=${{ github.repository }} --upload-token="${CODECOV_TOKEN}"
+                  npx --yes --ignore-scripts @codecov/bundle-analyzer@2.0.1 ./dist --bundle-name=${{ github.repository }} --upload-token="${CODECOV_TOKEN}"
               env:
                   GITHUB_SHA: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
                   GITHUB_REF: "${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref) || github.ref }}"
@@ -91,7 +87,7 @@ jobs:
               run: "npm run typecheck"
 
             - name: "Run tests with coverage and JUnit report"
-              run: "npx vitest run --coverage --reporter=github-actions --reporter=dot --reporter=junit --outputFile=test-report.junit.xml --silent"
+              run: "npm run test:coverage:ci"
               env:
                   CI: "true"
                   MAX_THREADS: "1"
@@ -144,11 +140,9 @@ jobs:
             fail-fast: true
             matrix:
                 include:
-                    - eslint-js-version: "9.0.0"
-                      eslint-version: "9.0.0"
+                    - eslint-version: "9.0.0"
                       label: "9.0.0"
-                    - eslint-js-version: "^9.39.1"
-                      eslint-version: "^9.39.1"
+                    - eslint-version: "^9.39.1"
                       label: "9.latest"
         defaults:
             run:
@@ -164,8 +158,6 @@ jobs:
               uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
 
             - name: "Setup Node.js"
-              env:
-                  npm_config_force: "true"
               uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7.0.0
               with:
                   cache: "npm"
@@ -173,21 +165,22 @@ jobs:
                   node-version-file: ".node-version"
 
             - name: "Install declared npm version"
-              env:
-                  npm_config_force: "true"
               run: |
                   package_manager="$(node -p "require('./package.json').packageManager")"
                   npm install --global "${package_manager}"
                   npm --version
 
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: "npm ci"
 
             - name: "Build package"
               run: "npm run build"
 
             - name: "Install ESLint 9 runtime for compatibility smoke checks"
-              run: "npm install --no-save --force eslint@${{ matrix.eslint-version }} @eslint/js@${{ matrix.eslint-js-version }}"
+              run: "npm install --no-save --package-lock=false --ignore-scripts 'eslint9@npm:eslint@${{ matrix.eslint-version }}'"
 
             - name: "Run ESLint 9 compatibility smoke checks"
-              run: "npm run lint:compat:eslint9 -- --expect-eslint-major=9"
+              run: "npm run lint:compat:eslint9"
+              env:
+                  TYPEFEST_EXPECT_ESLINT_MAJOR: "9"
+                  TYPEFEST_ESLINT_MODULE: "eslint9"
