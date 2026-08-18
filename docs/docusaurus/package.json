@@ -59,18 +59,18 @@
         "@docusaurus/theme-mermaid": "^3.10.2",
         "@docusaurus/tsconfig": "^3.10.2",
         "@docusaurus/types": "^3.10.2",
-        "@easyops-cn/docusaurus-search-local": "^0.55.2",
+        "@easyops-cn/docusaurus-search-local": "^0.55.3",
         "@mdx-js/react": "^3.1.1",
         "clsx": "^2.1.1",
         "prism-react-renderer": "^2.4.1",
-        "react": "^19.2.7",
-        "react-dom": "^19.2.7"
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8"
     },
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.10.2",
-        "@eslint/config-inspector": "^3.1.0",
-        "@types/react": "^19.2.17",
-        "@types/react-dom": "^19.2.3",
+        "@eslint/config-inspector": "^3.2.0",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.4",
         "docusaurus-plugin-image-zoom": "^3.0.1",
         "react-github-btn": "^1.4.0",
         "typed-css-modules": "^0.9.1",
@@ -78,7 +78,7 @@
         "typedoc-config-nick2bad4u": "^2.0.3",
         "typescript": "^6.0.3"
     },
-    "packageManager": "npm@12.0.1",
+    "packageManager": "npm@12.0.2",
     "engines": {
         "node": ">=22.0.0"
     },
