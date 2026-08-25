@@ -10,6 +10,8 @@ ESLint plugin for teams that want consistent TypeScript-first conventions based 
 The plugin ships focused rule sets for modern flat config usage, with parser setup
 included in each preset config.
 
+> **Oxlint:** Not compatible as a complete plugin (verified with Oxlint 1.80.0). Parser-agnostic rules can work, but 13 of the 124 rules require TypeScript parser services and fail under the JS-plugin bridge; [Oxlint does not support type-aware JavaScript plugin rules](https://oxc.rs/docs/guide/usage/linter/type-aware.html#type-aware-linting-with-javascript-plugins). Use ESLint for the complete rule and preset surface.
+
 ## Table of contents
 
 1. [Installation](#installation)
