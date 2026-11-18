@@ -9,6 +9,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { isMergeStyleIntersectionMember } from "../_internal/merge-style-intersection.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
@@ -59,7 +60,10 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     );
 
                     if (isBuiltinOmitReference) {
-                        if (!enforceBuiltinOmit) {
+                        if (
+                            !enforceBuiltinOmit ||
+                            isMergeStyleIntersectionMember(node)
+                        ) {
                             return;
                         }
 

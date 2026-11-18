@@ -110,6 +110,25 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
     "type UserWithoutId = Omit<User>;",
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
+const mergeStyleOmitBaseCode = [
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "type UserOverrides = {",
+    "    name: number;",
+    "    readonly ok: true;",
+    "};",
+    "",
+];
+const inlineValidMergeStyleOmitCode = [
+    ...mergeStyleOmitBaseCode,
+    "type MergedUser = Omit<User, keyof UserOverrides> & UserOverrides;",
+].join("\n");
+const inlineInvalidNonMergeIntersectionOmitCode = [
+    ...mergeStyleOmitBaseCode,
+    "type MergedUser = Omit<User, keyof UserOverrides> & Readonly<UserOverrides>;",
+].join("\n");
 const builtinOmitIgnoredByOptionsValidCode = [
     "type User = {",
     "    id: string;",
@@ -358,6 +377,12 @@ ruleTester.run("prefer-type-fest-except", rule, {
             options: aliasOnlyOptions,
             output: inlineFixableOutputCode,
         },
+        {
+            code: inlineInvalidNonMergeIntersectionOmitCode,
+            errors: [{ messageId: "preferExcept" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports builtin Omit in intersections that do not encode Merge",
+        },
     ],
     valid: [
         {
@@ -386,6 +411,11 @@ ruleTester.run("prefer-type-fest-except", rule, {
             filename: typedFixturePath(invalidFixtureName),
             name: "accepts fixture Omit usage when enforceBuiltinOmit is disabled",
             options: aliasOnlyOptions,
+        },
+        {
+            code: inlineValidMergeStyleOmitCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores builtin Omit that encodes Merge (left to prefer-type-fest-merge)",
         },
     ],
 });

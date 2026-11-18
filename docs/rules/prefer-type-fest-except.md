@@ -16,6 +16,7 @@ This rule targets `Omit<T, K>` object-shaping references and imported aliases su
 - ✅ Reports built-in `Omit<T, K>` by default.
 - ✅ Reports imported aliases with direct named imports.
 - ❌ Does not report namespace-qualified aliases.
+- ❌ Does not report built-in `Omit<Destination, keyof Source>` when the same intersection also contains `Source`; that merge-style pattern is covered by [`prefer-type-fest-merge`](./prefer-type-fest-merge.md).
 - ✅ Auto-fixes imported alias references to `Except` when replacement is syntactically safe.
 - ❌ Does not auto-fix built-in `Omit<T, K>` references.
 - ✅ Built-in `Omit<T, K>` coverage is configurable with `enforceBuiltinOmit`.

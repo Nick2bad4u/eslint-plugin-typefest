@@ -10,11 +10,11 @@ import { createTypedRuleTester } from "./_internal/typed-rule-tester";
  */
 const ruleId = "prefer-type-fest-merge";
 const docsDescription =
-    "require TypeFest Merge over Except<Destination, keyof Source> & Source intersections.";
+    "require TypeFest Merge over Omit/Except<Destination, keyof Source> & Source intersections.";
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-merge";
 const preferMergeMessage =
-    "Prefer `Merge<Destination, Source>` from type-fest over `Except<Destination, keyof Source> & Source` when the second object cleanly overrides the first.";
+    "Prefer `Merge<Destination, Source>` from type-fest over `{{omitTypeName}}<Destination, keyof Source> & Source` when the second object cleanly overrides the first.";
 
 const ruleTester = createTypedRuleTester();
 const rule = getPluginRule(ruleId);
@@ -75,6 +75,67 @@ ruleTester.run(ruleId, rule, {
             errors: [{ messageId: "preferMerge" }],
             name: "reports reverse-order intersections that still encode merge semantics",
         },
+        {
+            code: [
+                "type Base = {",
+                "    id: string;",
+                "    name: string;",
+                "};",
+                "type Overrides = {",
+                "    name: number;",
+                "    readonly ok: true;",
+                "};",
+                "",
+                "type Combined = Omit<Base, keyof Overrides> & Overrides;",
+            ].join("\n"),
+            errors: [
+                { data: { omitTypeName: "Omit" }, messageId: "preferMerge" },
+            ],
+            name: "reports builtin Omit merge-style intersections",
+        },
+        {
+            code: [
+                "type Base = {",
+                "    id: string;",
+                "    name: string;",
+                "};",
+                "type Overrides = {",
+                "    name: number;",
+                "    readonly ok: true;",
+                "};",
+                "type Extra = {",
+                "    extra: boolean;",
+                "};",
+                "",
+                "type Combined = Omit<Base, keyof Overrides> & Overrides & Extra;",
+            ].join("\n"),
+            errors: [
+                { data: { omitTypeName: "Omit" }, messageId: "preferMerge" },
+            ],
+            name: "reports merge-style pairs inside larger intersections",
+        },
+        {
+            code: [
+                'import type { Except } from "type-fest";',
+                "",
+                "type Base = {",
+                "    id: string;",
+                "    name: string;",
+                "};",
+                "type Overrides = {",
+                "    name: number;",
+                "};",
+                "type Extra = {",
+                "    extra: boolean;",
+                "};",
+                "",
+                "type Combined = Except<Base, keyof Overrides> & Extra & Overrides;",
+            ].join("\n"),
+            errors: [
+                { data: { omitTypeName: "Except" }, messageId: "preferMerge" },
+            ],
+            name: "reports merge-style pairs that are not adjacent",
+        },
     ],
     valid: [
         {
@@ -127,6 +188,25 @@ ruleTester.run(ruleId, rule, {
                 "type Combined = Except<Base, keyof Overrides> & Readonly<Overrides>;",
             ].join("\n"),
             name: "ignores intersections whose sibling does not match the keyof operand exactly",
+        },
+        {
+            code: [
+                "type Base = {",
+                "    id: string;",
+                "    name: string;",
+                "};",
+                "type Overrides = {",
+                "    name: number;",
+                "    readonly ok: true;",
+                "};",
+                "type Extra = {",
+                "    extra: boolean;",
+                "};",
+                "",
+                "type Combined = Omit<Base, keyof Overrides> & Extra;",
+                'type WithoutId = Omit<Base, "id"> & Overrides;',
+            ].join("\n"),
+            name: "ignores Omit intersections without the keyof operand as a member",
         },
     ],
 });

@@ -1,25 +1,24 @@
 # prefer-type-fest-merge
 
-Prefer [`Merge`](https://github.com/sindresorhus/type-fest/blob/main/source/merge.d.ts) from `type-fest` over `Except<Destination, keyof Source> & Source` intersections.
+Prefer [`Merge`](https://github.com/sindresorhus/type-fest/blob/main/source/merge.d.ts) from `type-fest` over `Omit<Destination, keyof Source> & Source` and `Except<Destination, keyof Source> & Source` intersections.
 
 This rule lives only in the experimental preset and reports without autofixing.
 
 ## Targeted pattern scope
 
-This rule focuses on direct merge-style intersections that already use `Except` from `type-fest` to remove overridden keys before intersecting with the overriding source type.
+This rule focuses on merge-style intersections that remove the overridden keys with builtin `Omit` or with `Except` from `type-fest` before intersecting with the overriding source type.
 
+- `Omit<Destination, keyof Source> & Source`
 - `Except<Destination, keyof Source> & Source`
-- `Source & Except<Destination, keyof Source>`
-
-It intentionally skips builtin `Omit` forms and broader intersections to avoid overlapping with stable rules and to keep the report signal narrow.
+- Either member order, including pairs inside larger intersections such as `Omit<Destination, keyof Source> & Source & Extra`
 
 ## What this rule reports
 
 This rule reports intersections when all of the following are true:
 
-- one intersection member resolves to `Except`
-- the second type argument to `Except` is exactly `keyof Source`
-- the sibling intersection member is exactly `Source`
+- one intersection member resolves to builtin `Omit` or to `Except` from `type-fest`
+- its second type argument is exactly `keyof Source`
+- another member of the same intersection is exactly `Source`
 
 The rule is currently **report-only**. It does not autofix or suggest a replacement yet.
 
@@ -27,15 +26,13 @@ The rule is currently **report-only**. It does not autofix or suggest a replacem
 
 `Merge<Destination, Source>` states the override relationship directly.
 
-- Readers do not need to unpack an `Except`-plus-intersection recipe.
+- Readers do not need to unpack an `Omit`- or `Except`-plus-intersection recipe.
 - The canonical helper signals that the second type wins on overlapping keys.
 - The upstream utility also simplifies the resulting object type for tooling display.
 
 ## ❌ Incorrect
 
 ```ts
-import type { Except } from "type-fest";
-
 type Base = {
  id: string;
  name: string;
@@ -46,7 +43,7 @@ type Overrides = {
  readonly ok: true;
 };
 
-type Combined = Except<Base, keyof Overrides> & Overrides;
+type Combined = Omit<Base, keyof Overrides> & Overrides;
 ```
 
 ## ✅ Correct
@@ -69,8 +66,8 @@ type Combined = Merge<Base, Overrides>;
 
 ## Behavior and migration notes
 
-- This rule only reports the exact `Except<Destination, keyof Source> & Source` pattern.
-- It ignores `Omit<Destination, keyof Source> & Source` so it does not double-report with `prefer-type-fest-except`.
+- [`prefer-type-fest-except`](./prefer-type-fest-except.md) does not report a builtin `Omit` that matches this pattern, so the two rules do not double-report it.
+- `Except<Destination, keyof Source>` only compiles when every key of `Source` also exists on `Destination`. `Merge<Destination, Source>` has no such constraint, so it also covers sources that add new keys.
 - It ignores intersections whose sibling type does not match the `keyof` operand exactly.
 
 ## Additional examples
@@ -87,7 +84,6 @@ type Base = {
 
 type Overrides = {
  name: number;
- readonly ok: true;
 };
 
 type Combined = Overrides & StrictExcept<Base, keyof Overrides>;
@@ -105,7 +101,6 @@ type Base = {
 
 type Overrides = {
  name: number;
- readonly ok: true;
 };
 
 type Combined = Merge<Base, Overrides>;
@@ -121,7 +116,7 @@ export default [typefest.configs.experimental];
 
 ## When not to use it
 
-Disable this rule if your team prefers the explicit `Except<..., keyof ...> & ...` construction, or if you want to keep the override mechanism visible in source types.
+Disable this rule if your team prefers the explicit `Omit<..., keyof ...> & ...` or `Except<..., keyof ...> & ...` construction, or if you want to keep the override mechanism visible in source types.
 
 ## Package documentation
 
