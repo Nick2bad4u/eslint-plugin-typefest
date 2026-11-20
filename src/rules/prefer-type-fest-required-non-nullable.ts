@@ -74,31 +74,34 @@ const preferTypeFestRequiredNonNullableRule: ReturnType<
                 ) {
                     return;
                 }
-                const [input] = parameters.params;
                 const value = mapped.typeAnnotation;
                 if (
-                    !input ||
-                    !isTypeParameterReference(
-                        sourceCode,
-                        input,
-                        mapped.constraint.typeAnnotation
-                    ) ||
-                    !hasMappedPropertyArgument(
-                        sourceCode,
-                        input,
-                        mapped,
-                        value
-                    ) ||
                     !isGlobalTypeReferenceNamed(context, value, "NonNullable")
                 ) {
                     return;
                 }
-                reportWithOptionalFix({
-                    context,
-                    fix: null,
-                    messageId: "preferRequiredNonNullable",
-                    node: mapped,
-                });
+                const matchesInput = parameters.params.some(
+                    (input) =>
+                        isTypeParameterReference(
+                            sourceCode,
+                            input,
+                            mapped.constraint.typeAnnotation
+                        ) &&
+                        hasMappedPropertyArgument(
+                            sourceCode,
+                            input,
+                            mapped,
+                            value
+                        )
+                );
+                if (matchesInput) {
+                    reportWithOptionalFix({
+                        context,
+                        fix: null,
+                        messageId: "preferRequiredNonNullable",
+                        node: mapped,
+                    });
+                }
             },
         };
     },

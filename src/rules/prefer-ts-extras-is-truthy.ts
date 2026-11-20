@@ -37,13 +37,7 @@ const isFalsyLiteral = (type: ts.Type, checker: ts.TypeChecker): boolean => {
  * Broad primitive types remain untouched, but unknown can exclude nullish
  * values.
  */
-const hasFalsyMember = (
-    element: ts.Type | undefined,
-    checker: ts.TypeChecker
-): boolean => {
-    if (!isDefined(element)) {
-        return false;
-    }
+const hasFalsyMember = (element: ts.Type, checker: ts.TypeChecker): boolean => {
     if (element === checker.getUnknownType()) {
         return true;
     }
@@ -88,7 +82,7 @@ const canNarrowFilterResult = (
         checker.getTypeAtLocation(tsCall),
         ts.IndexKind.Number
     );
-    return hasFalsyMember(element, checker);
+    return isDefined(element) && hasFalsyMember(element, checker);
 };
 
 /** Recommend positive truthiness guards in builtin array filters. */
