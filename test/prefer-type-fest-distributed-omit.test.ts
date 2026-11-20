@@ -80,5 +80,14 @@ ruleTester.run(ruleId, rule, {
             ].join("\n"),
             name: "ignores conditional helpers that are not simple distributive wrappers",
         },
+        {
+            code: [
+                "type Omit<ObjectType, Key extends PropertyKey> = ObjectType & Record<Key, never>;",
+                "",
+                "type WithoutKeys<Union, Key extends PropertyKey> =",
+                "    Union extends unknown ? Omit<Union, Key> : never;",
+            ].join("\n"),
+            name: "ignores locally declared Omit that shadows the builtin",
+        },
     ],
 });

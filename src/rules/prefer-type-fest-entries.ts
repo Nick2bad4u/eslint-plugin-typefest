@@ -32,8 +32,8 @@ const preferTypeFestEntriesRule: ReturnType<typeof createTypedRule> =
                 node: Readonly<TSESTree.TSArrayType | TSESTree.TSTypeReference>
             ): void => {
                 const entriesArgumentText = getEntriesEquivalentArgumentText({
+                    context,
                     node,
-                    sourceCode: context.sourceCode,
                 });
 
                 if (

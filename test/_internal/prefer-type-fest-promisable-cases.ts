@@ -121,6 +121,14 @@ export const customWrapperValidCode: string = [
     "type Result = MaybePromise<string> | string;",
 ].join("\n");
 
+export const shadowedPromiseValidCode: string = [
+    "interface Promise<T> {",
+    "    readonly value: T;",
+    "}",
+    "",
+    "export type Result = Promise<string> | string;",
+].join("\n");
+
 export type PromisableValidRuleTesterCase = Readonly<{
     code: string;
     name: string;
@@ -139,6 +147,10 @@ export const additionalValidRuleTesterCases: readonly PromisableValidRuleTesterC
         {
             code: customWrapperValidCode,
             name: "ignores custom Promise wrapper alias",
+        },
+        {
+            code: shadowedPromiseValidCode,
+            name: "ignores locally declared Promise that shadows the builtin",
         },
         {
             code: promiseLikeValidCode,

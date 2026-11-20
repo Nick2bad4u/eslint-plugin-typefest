@@ -68,5 +68,17 @@ ruleTester.run(ruleId, rule, {
             ].join("\n"),
             name: "ignores the opposite OmitIndexSignature-style mapping",
         },
+        {
+            code: [
+                "type Record<K extends PropertyKey, V> = { [P in K]?: V };",
+                "",
+                "export type IndexOnly<ObjectType> = {",
+                "    [Key in keyof ObjectType as {} extends Record<Key, unknown>",
+                "        ? Key",
+                "        : never]: ObjectType[Key];",
+                "};",
+            ].join("\n"),
+            name: "ignores locally declared Record that shadows the builtin",
+        },
     ],
 });

@@ -78,6 +78,13 @@ const inlineFixableOutput = [
 ].join("\n");
 const inlineNoFixShadowedReplacementCode =
     "type Wrapper<UnknownSet> = ReadonlySet<unknown>;";
+const inlineValidShadowedReadonlySetCode = [
+    "class ReadonlySet<T> {",
+    "    public constructor(public readonly values: readonly T[]) {}",
+    "}",
+    "",
+    "export type Input = ReadonlySet<unknown>;",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -321,6 +328,11 @@ ruleTester.run("prefer-type-fest-unknown-set", rule, {
             code: inlineValidGlobalReadonlySetCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.ReadonlySet reference",
+        },
+        {
+            code: inlineValidShadowedReadonlySetCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReadonlySet that shadows the builtin",
         },
     ],
 });

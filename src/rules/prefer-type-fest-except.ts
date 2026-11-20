@@ -11,7 +11,7 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 type PreferTypeFestExceptOption = Readonly<{
@@ -53,7 +53,8 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                 'TSTypeReference[typeName.type="Identifier"]'(
                     node: TSESTree.TSTypeReference
                 ) {
-                    const isBuiltinOmitReference = isIdentifierTypeReference(
+                    const isBuiltinOmitReference = isGlobalTypeReferenceNamed(
+                        context,
                         node,
                         OMIT_TYPE_NAME
                     );

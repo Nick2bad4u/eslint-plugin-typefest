@@ -13,8 +13,14 @@ import {
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    isGlobalTypeReferenceNamed,
+    isIdentifierTypeReference,
+} from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 type PreferTypeFestPromisableOption = Readonly<{
     enforceLegacyAliases?: boolean;
@@ -42,14 +48,16 @@ const defaultOptions = [defaultOption] as const;
 /**
  * Extracts the type argument from `Promise<T>` references.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Type node to inspect.
  *
  * @returns The inner `T` node from `Promise<T>`; otherwise `null`.
  */
 const getPromiseInnerType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {
-    if (!isIdentifierTypeReference(node, PROMISE_TYPE_NAME)) {
+    if (!isGlobalTypeReferenceNamed(context, node, PROMISE_TYPE_NAME)) {
         return null;
     }
 
@@ -145,9 +153,14 @@ const preferTypeFestPromisableRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const firstPromiseInner = getPromiseInnerType(firstMember);
-                    const secondPromiseInner =
-                        getPromiseInnerType(secondMember);
+                    const firstPromiseInner = getPromiseInnerType(
+                        context,
+                        firstMember
+                    );
+                    const secondPromiseInner = getPromiseInnerType(
+                        context,
+                        secondMember
+                    );
 
                     const pair =
                         firstPromiseInner && !secondPromiseInner

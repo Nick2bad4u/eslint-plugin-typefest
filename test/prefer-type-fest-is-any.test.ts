@@ -34,6 +34,15 @@ const noInferInvalidOutput = [
 ].join("\n");
 const shadowedInvalidCode =
     "type Result<IsAny, T> = 0 extends 1 & T ? true : false;";
+const shadowedNoInferInvalidCode = [
+    "type NoInfer<T> = [T][T extends any ? 0 : never];",
+    "export type Result<T> = 0 extends 1 & NoInfer<T> ? true : false;",
+].join("\n");
+const shadowedNoInferInvalidOutput = [
+    'import type { IsAny } from "type-fest";',
+    "type NoInfer<T> = [T][T extends any ? 0 : never];",
+    "export type Result<T> = IsAny<NoInfer<T>>;",
+].join("\n");
 const parserOptions = {
     ecmaVersion: "latest",
     loc: true,
@@ -118,6 +127,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(`${ruleId}.invalid.ts`),
             name: "reports manual any guards wrapped in NoInfer",
             output: noInferInvalidOutput,
+        },
+        {
+            code: shadowedNoInferInvalidCode,
+            errors: [{ messageId: "preferIsAny" }],
+            filename: typedFixturePath(`${ruleId}.invalid.ts`),
+            name: "keeps a locally declared NoInfer that shadows the builtin",
+            output: shadowedNoInferInvalidOutput,
         },
         {
             code: shadowedInvalidCode,

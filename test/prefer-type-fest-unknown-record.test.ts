@@ -83,6 +83,14 @@ const inlineFixableOutput = [
 ].join("\n");
 const inlineNoFixShadowedReplacementCode =
     "type Wrapper<UnknownRecord> = Record<string, unknown>;";
+const inlineValidShadowedRecordCode = [
+    "interface Record<K extends PropertyKey, V> {",
+    "    readonly key: K;",
+    "    readonly value: V;",
+    "}",
+    "",
+    "export type SharedContext = Record<string, unknown>;",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -232,6 +240,11 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: inlineValidNonRecordIdentifierCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Record generic with string unknown type arguments",
+        },
+        {
+            code: inlineValidShadowedRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Record that shadows the builtin",
         },
     ],
 });

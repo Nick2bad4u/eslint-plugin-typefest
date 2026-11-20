@@ -184,5 +184,21 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: "type MaybeName = Exclude<string | null, undefined> | undefined;",
             name: "ignores Exclude patterns that do not remove null",
         },
+        {
+            code: [
+                "type Exclude<T, U> = T | U;",
+                "",
+                "export type MaybeName = Exclude<string | null, null> | undefined;",
+            ].join("\n"),
+            name: "ignores locally declared Exclude that shadows the builtin",
+        },
+        {
+            code: [
+                "type NonNullable<T> = T | null;",
+                "",
+                "export type MaybeRegion = NonNullable<string | null> | undefined;",
+            ].join("\n"),
+            name: "ignores locally declared NonNullable that shadows the builtin",
+        },
     ],
 });

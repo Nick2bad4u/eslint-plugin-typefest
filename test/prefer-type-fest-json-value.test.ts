@@ -101,6 +101,11 @@ const inlineValidLiteralNonStringKeyCode =
 const inlineValidNonUnknownValueCode =
     "type IpcPayload = Record<string, string>;";
 const inlineValidMapCode = "type IpcPayload = Map<string, unknown>;";
+const inlineValidShadowedRecordCode = [
+    "type Record<K extends PropertyKey, V> = Map<K, V>;",
+    "",
+    "export type IpcPayload = Record<string, unknown>;",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -416,6 +421,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidMapCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Record map type alias",
+        },
+        {
+            code: inlineValidShadowedRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Record that shadows the builtin",
         },
     ],
 });

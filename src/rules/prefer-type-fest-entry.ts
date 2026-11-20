@@ -2,11 +2,7 @@
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-entry`.
  */
-import {
-    AST_NODE_TYPES,
-    type TSESLint,
-    type TSESTree,
-} from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 
 import { getParentNode } from "../_internal/ast-node.js";
 import {
@@ -19,7 +15,10 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const ENTRY_TYPE_NAME = "Entry" as const;
 
@@ -28,15 +27,15 @@ const isEntriesEquivalentAncestor = (
         | null
         | Readonly<TSESTree.Node>
         | undefined,
-    sourceCode: Readonly<TSESLint.SourceCode>
+    context: TypedRuleContext
 ): boolean =>
     Boolean(
         node &&
         (node.type === AST_NODE_TYPES.TSArrayType ||
             node.type === AST_NODE_TYPES.TSTypeReference) &&
         getEntriesEquivalentArgumentText({
+            context,
             node,
-            sourceCode,
         }) !== null
     );
 
@@ -60,14 +59,8 @@ const preferTypeFestEntryRule: ReturnType<typeof createTypedRule> =
                     const grandparent = parent ? getParentNode(parent) : null;
 
                     if (
-                        isEntriesEquivalentAncestor(
-                            parent,
-                            context.sourceCode
-                        ) ||
-                        isEntriesEquivalentAncestor(
-                            grandparent,
-                            context.sourceCode
-                        )
+                        isEntriesEquivalentAncestor(parent, context) ||
+                        isEntriesEquivalentAncestor(grandparent, context)
                     ) {
                         return;
                     }

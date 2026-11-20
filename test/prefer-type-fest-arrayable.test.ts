@@ -40,6 +40,7 @@ import {
     nonMatchingUnionValidCode,
     qualifiedGenericArrayValidCode,
     reversedGenericArrayMismatchedElementValidCode,
+    shadowedGenericArrayValidCode,
     singleTypeValidCode,
     threeMemberUnionValidCode,
     validFixtureName,
@@ -746,6 +747,11 @@ ruleTester.run(ruleId, rule, {
             code: qualifiedGenericArrayValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Array qualified generic unions",
+        },
+        {
+            code: shadowedGenericArrayValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Array that shadows the builtin",
         },
         {
             code: inlineInvalidReadonlyArrayCode,

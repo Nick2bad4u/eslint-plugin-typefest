@@ -144,6 +144,20 @@ const inlineValidQualifiedArrayTypeCode = [
     "",
     "type NotJsonArray = globalThis.Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
+const inlineValidShadowedArrayCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Array<T> = { readonly items: T };",
+    "type NotJsonArray = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
+const inlineValidShadowedReadonlyArrayCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "interface ReadonlyArray<T> {",
+    "    readonly items: T;",
+    "}",
+    "type NotJsonArray = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
 const inlineValidReadonlyOperatorNonArrayTypeCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -696,6 +710,16 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidQualifiedArrayTypeCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Array qualified union",
+        },
+        {
+            code: inlineValidShadowedArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Array that shadows the builtin",
+        },
+        {
+            code: inlineValidShadowedReadonlyArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReadonlyArray that shadows the builtin",
         },
         {
             code: inlineValidQualifiedJsonValueTypeReferenceCode,

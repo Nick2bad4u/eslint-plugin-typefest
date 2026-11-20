@@ -130,6 +130,13 @@ const inlineFixableOutput = [
 const inlineNoFixShadowedReplacementCode = [
     "type Wrapper<UnknownArray> = readonly unknown[];",
 ].join("\n");
+const inlineValidShadowedReadonlyArrayCode = [
+    "interface ReadonlyArray<T> {",
+    "    readonly first: T;",
+    "}",
+    "",
+    "export type Input = ReadonlyArray<unknown>;",
+].join("\n");
 
 type UnknownArrayReportDescriptor = Readonly<{
     fix?: unknown;
@@ -548,6 +555,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidCustomGenericUnknownCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-ReadonlyArray generic with unknown type argument",
+        },
+        {
+            code: inlineValidShadowedReadonlyArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReadonlyArray that shadows the builtin",
         },
     ],
 });

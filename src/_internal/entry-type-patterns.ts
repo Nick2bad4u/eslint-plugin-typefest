@@ -9,7 +9,10 @@ import {
  */
 import { arrayAt, arrayFirst } from "ts-extras";
 
+import type { TypedRuleContext } from "./typed-rule.js";
+
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
+import { isGlobalTypeReferenceNamed } from "./type-reference-node.js";
 
 const ARRAY_TYPE_NAME = "Array";
 
@@ -75,24 +78,20 @@ export const getEntryEquivalentArgumentText = ({
  * Extract `T` from `Array<[keyof T, T[keyof T]]>` or `[keyof T, T[keyof T]][]`.
  */
 export const getEntriesEquivalentArgumentText = ({
+    context,
     node,
-    sourceCode,
 }: Readonly<{
+    context: TypedRuleContext;
     node: Readonly<TSESTree.TypeNode>;
-    sourceCode: Readonly<TSESLint.SourceCode>;
 }>): null | string => {
     if (node.type === AST_NODE_TYPES.TSArrayType) {
         return getEntryEquivalentArgumentText({
             node: node.elementType,
-            sourceCode,
+            sourceCode: context.sourceCode,
         });
     }
 
-    if (
-        node.type !== AST_NODE_TYPES.TSTypeReference ||
-        node.typeName.type !== AST_NODE_TYPES.Identifier ||
-        node.typeName.name !== ARRAY_TYPE_NAME
-    ) {
+    if (!isGlobalTypeReferenceNamed(context, node, ARRAY_TYPE_NAME)) {
         return null;
     }
 
@@ -101,7 +100,7 @@ export const getEntriesEquivalentArgumentText = ({
     return arrayElementType
         ? getEntryEquivalentArgumentText({
               node: arrayElementType,
-              sourceCode,
+              sourceCode: context.sourceCode,
           })
         : null;
 };

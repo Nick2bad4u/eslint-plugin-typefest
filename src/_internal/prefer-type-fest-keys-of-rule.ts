@@ -94,11 +94,11 @@ export const createPreferTypeFestKeysOfRule = ({
                                   context.sourceCode
                               )
                             : getExcludeKeyExtractionInputType(
+                                  context,
                                   node,
                                   sourceTypeLocalNames,
                                   typeFestNamespaceImportNames,
-                                  sourcePattern.keysOfTypeName,
-                                  context.sourceCode
+                                  sourcePattern.keysOfTypeName
                               );
 
                     if (!inputType) {

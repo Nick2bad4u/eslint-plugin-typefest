@@ -13,9 +13,13 @@ import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
 import { unwrapParenthesizedTypeNode } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const isAsyncifyEquivalentSetReturnTypeReference = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSTypeReference>,
     setReturnTypeLocalNames: ReadonlySet<string>
 ): boolean => {
@@ -37,7 +41,11 @@ const isAsyncifyEquivalentSetReturnTypeReference = (
     return (
         functionType !== undefined &&
         returnType !== undefined &&
-        isPromiseAwaitedReturnTypeReferenceForFunction(returnType, functionType)
+        isPromiseAwaitedReturnTypeReferenceForFunction(
+            context,
+            returnType,
+            functionType
+        )
     );
 };
 
@@ -57,13 +65,17 @@ const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
             return {
                 TSFunctionType(node) {
                     const functionType =
-                        getParametersFunctionArgumentFromFunctionType(node);
+                        getParametersFunctionArgumentFromFunctionType(
+                            context,
+                            node
+                        );
                     const returnType = node.returnType?.typeAnnotation;
 
                     if (
                         functionType === null ||
                         returnType === undefined ||
                         !isPromiseAwaitedReturnTypeReferenceForFunction(
+                            context,
                             returnType,
                             functionType
                         )
@@ -87,6 +99,7 @@ const preferTypeFestAsyncifyRule: ReturnType<typeof createTypedRule> =
                         normalizedNode.type !==
                             AST_NODE_TYPES.TSTypeReference ||
                         !isAsyncifyEquivalentSetReturnTypeReference(
+                            context,
                             normalizedNode,
                             setReturnTypeLocalNames
                         )

@@ -1,6 +1,10 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { arrayFirst, assertNever } from "ts-extras";
 
+import type { TypedRuleContext } from "./typed-rule.js";
+
+import { isGlobalTypeReferenceNamed } from "./type-reference-node.js";
+
 type TupleWrappedGuardTarget =
     | "never"
     | "null"
@@ -76,13 +80,10 @@ export const hasFalseTrueBranches = (
     isBooleanLiteralType(node.falseType, true);
 
 const getNoInferTypeArgument = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>
 ): TSESTree.TypeNode | undefined => {
-    if (
-        node.type !== AST_NODE_TYPES.TSTypeReference ||
-        node.typeName.type !== AST_NODE_TYPES.Identifier ||
-        node.typeName.name !== "NoInfer"
-    ) {
+    if (!isGlobalTypeReferenceNamed(context, node, "NoInfer")) {
         return undefined;
     }
 
@@ -120,6 +121,7 @@ export const getTupleWrappedTypeGuardInput = (
  * Extract `T` from `0 extends 1 & T ? true : false`.
  */
 export const getIsAnyTypeGuardInput = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>
 ): TSESTree.TypeNode | undefined => {
     if (
@@ -137,7 +139,7 @@ export const getIsAnyTypeGuardInput = (
         return undefined;
     }
 
-    return getNoInferTypeArgument(rightType) ?? rightType;
+    return getNoInferTypeArgument(context, rightType) ?? rightType;
 };
 
 /**

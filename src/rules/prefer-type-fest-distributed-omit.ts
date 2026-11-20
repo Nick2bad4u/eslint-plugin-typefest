@@ -7,10 +7,13 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
-    isIdentifierTypeReference,
+    isGlobalTypeReferenceNamed,
     unwrapParenthesizedTypeNode,
 } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const isDistributiveConditionalExtendsType = (
     node: Readonly<TSESTree.TypeNode>
@@ -24,6 +27,7 @@ const isDistributiveConditionalExtendsType = (
 };
 
 const isDistributedOmitEquivalent = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>
 ): boolean => {
     if (
@@ -37,7 +41,7 @@ const isDistributedOmitEquivalent = (
 
     if (
         normalizedTrueType.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedTrueType, "Omit")
+        !isGlobalTypeReferenceNamed(context, normalizedTrueType, "Omit")
     ) {
         return false;
     }
@@ -67,7 +71,7 @@ const preferTypeFestDistributedOmitRule: ReturnType<typeof createTypedRule> =
         create(context) {
             return {
                 TSConditionalType(node) {
-                    if (!isDistributedOmitEquivalent(node)) {
+                    if (!isDistributedOmitEquivalent(context, node)) {
                         return;
                     }
 
