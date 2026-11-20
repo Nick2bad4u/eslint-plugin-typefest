@@ -1,0 +1,46 @@
+{
+    "name": "@eslint-plugin-typefest/upstream-fixture",
+    "version": "0.0.0",
+    "private": true,
+    "description": "TypeScript fixtures for ESLint rules targeting current type-fest and ts-extras releases.",
+    "keywords": [
+        "eslint",
+        "test",
+        "type-fest",
+        "typescript"
+    ],
+    "homepage": "https://nick2bad4u.github.io/eslint-plugin-typefest/",
+    "bugs": {
+        "url": "https://github.com/Nick2bad4u/eslint-plugin-typefest/issues",
+        "email": "20943337+Nick2bad4u@users.noreply.github.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Nick2bad4u/eslint-plugin-typefest.git",
+        "directory": "test/fixtures/typed/upstream-latest"
+    },
+    "license": "MIT",
+    "author": "Nick2bad4u <20943337+Nick2bad4u@users.noreply.github.com> (https://github.com/Nick2bad4u)",
+    "contributors": [
+        {
+            "name": "Nick2bad4u",
+            "email": "20943337+Nick2bad4u@users.noreply.github.com",
+            "url": "https://github.com/Nick2bad4u"
+        }
+    ],
+    "type": "module",
+    "files": [
+        "*.ts",
+        "tsconfig.json"
+    ],
+    "scripts": {
+        "test": "tsc --project tsconfig.json --noEmit"
+    },
+    "devDependencies": {
+        "ts-extras": "^3.0.0",
+        "type-fest": "^6.0.3"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    }
+}

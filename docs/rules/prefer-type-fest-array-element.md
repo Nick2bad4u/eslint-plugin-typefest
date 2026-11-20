@@ -36,6 +36,7 @@ type Step = ArrayElement<EventSteps>;
 - It only reports `T[number]` when `T` resolves to an array-like type.
 - It does not report number-indexed object maps like `Record<number, string>[number]`.
 - It leaves `typeof values[number]` alone for `ArrayValues<typeof values>` coverage.
+- When an enabled overload rule reports the complete expression, that rule handles the nested `Overloads<F>[number]` access. With only this rule enabled, the access still reports.
 
 ## Additional examples
 

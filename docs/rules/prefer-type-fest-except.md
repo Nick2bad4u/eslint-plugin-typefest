@@ -15,6 +15,7 @@ This rule targets `Omit<T, K>` object-shaping references and imported aliases su
 
 - ✅ Reports built-in `Omit<T, K>` by default.
 - ✅ Reports imported aliases with direct named imports.
+- Skips a built-in `Omit` that removes every set-prefixed property from the global `Date`. The open-ended key pattern exceeds `keyof Date`, which `Except` requires. The readonly version of this projection is covered by [`prefer-type-fest-readonly-date`](./prefer-type-fest-readonly-date.md).
 - ❌ Does not report namespace-qualified aliases.
 - ❌ Does not report built-in `Omit<Destination, keyof Source>` when the same intersection also contains `Source`; that merge-style pattern is covered by [`prefer-type-fest-merge`](./prefer-type-fest-merge.md).
 - ✅ Auto-fixes imported alias references to `Except` when replacement is syntactically safe.

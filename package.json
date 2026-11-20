@@ -54,7 +54,8 @@
         "CHANGELOG.md"
     ],
     "workspaces": [
-        "docs/docusaurus"
+        "docs/docusaurus",
+        "test/fixtures/typed/upstream-latest"
     ],
     "scripts": {
         "prebench": "npm run build",

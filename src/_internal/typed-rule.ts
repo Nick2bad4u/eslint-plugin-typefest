@@ -23,6 +23,10 @@ import { safeTypeOperation } from "./safe-type-operation.js";
 import { getScopeFromContextSourceCode } from "./scope-resolution.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
 import { getTypeCheckerIsTypeAssignableToResult } from "./type-checker-compat.js";
+import {
+    hasRequiredUpstream,
+    type UpstreamRequirement,
+} from "./upstream-availability.js";
 
 /**
  * Parser services and type checker bundle used by typed rules.
@@ -56,6 +60,7 @@ type TypefestRuleCreator = ReturnType<
 interface TypefestRuleDocs {
     recommended?: boolean;
     requiresTypeChecking?: boolean;
+    requiresUpstream?: UpstreamRequirement;
     ruleId?: string;
     ruleNumber?: number;
     typefestConfigs?:
@@ -81,6 +86,7 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
         ruleDefinition.name
     );
     const createdRule = ESLintUtils.RuleCreator.withoutDocs(ruleDefinition);
+    const { requiresUpstream } = ruleDefinition.meta.docs;
     const ruleDocs = createdRule.meta.docs;
     assertDefined(ruleDocs);
     const canonicalDocsUrl = createRuleDocsUrl(ruleDefinition.name);
@@ -115,6 +121,13 @@ export const createTypedRule: TypefestRuleCreator = (ruleDefinition) => {
     return {
         ...createdRule,
         create(context) {
+            if (
+                isDefined(requiresUpstream) &&
+                !hasRequiredUpstream(context, requiresUpstream)
+            ) {
+                return {};
+            }
+
             registerProgramSettingsForContext(context);
 
             return createdRule.create(context);

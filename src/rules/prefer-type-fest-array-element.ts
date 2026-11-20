@@ -11,6 +11,7 @@ import {
     createSafeTypeNodeTextReplacementFix,
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
+import { isReportedOverloadIndex } from "../_internal/prefer-type-fest-overload-rule.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
@@ -41,7 +42,8 @@ const preferTypeFestArrayElementRule: ReturnType<typeof createTypedRule> =
                 TSIndexedAccessType(node) {
                     if (
                         !isNumberIndexType(node.indexType) ||
-                        node.objectType.type === AST_NODE_TYPES.TSTypeQuery
+                        node.objectType.type === AST_NODE_TYPES.TSTypeQuery ||
+                        isReportedOverloadIndex(context.sourceCode.ast, node)
                     ) {
                         return;
                     }

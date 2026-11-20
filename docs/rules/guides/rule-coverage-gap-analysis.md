@@ -1,703 +1,484 @@
 ---
 title: Rule coverage gap analysis
-description: Current type-fest and ts-extras API coverage, missing type guards, and candidate rules.
+description: Coverage and exclusion decisions for every named public export of type-fest and ts-extras.
 ---
 
 # Rule coverage gap analysis
 
-This page tracks the remaining public `type-fest` and `ts-extras` APIs that are not
-directly covered by `eslint-plugin-typefest` rules.
-
-Source snapshot:
-
-- [`type-fest` `main` API index](https://github.com/sindresorhus/type-fest/blob/main/index.d.ts)
-- [`type-fest` README API catalog](https://github.com/sindresorhus/type-fest#api)
-- [`ts-extras` `main` API index](https://github.com/sindresorhus/ts-extras/blob/main/source/index.ts)
-- [`ts-extras` README API catalog](https://github.com/sindresorhus/ts-extras#api)
-
-## Current verdict
-
-`ts-extras` does not have an uncovered public export right now. The current
-upstream `source/index.ts` exports 33 runtime helpers, and this plugin has a
-matching `prefer-ts-extras-*` rule for each helper. The plugin also has two
-extra filter-context rules for `isDefined` and `isPresent`, so the `ts-extras`
-surface is actually covered more deeply than a one-rule-per-export audit would
-require.
-
-The remaining gaps are almost entirely `type-fest` types. That is expected:
-`type-fest` exports type-level building blocks whose manual equivalents are not
-syntactically stable enough for a safe ESLint rule.
-
-The additional-rule pass is now closed for broad/default rule additions. The
-rules implemented from this report cover the high-confidence patterns with
-stable syntax and safe autofixes. Remaining candidates should stay documented as
-non-goals or future-only ideas unless real project code proves a narrow,
-low-noise rule would be correct.
-
-## Implemented from this gap list
-
-The following high-confidence type-guard rules have been added since the first
-coverage snapshot:
-
-- `prefer-type-fest-is-any`
-- `prefer-type-fest-is-never`
-- `prefer-type-fest-is-null`
-- `prefer-type-fest-is-undefined`
-- `prefer-type-fest-is-unknown`
-- `prefer-type-fest-is-tuple`
-- `prefer-type-fest-and`
-- `prefer-type-fest-or`
-- `prefer-type-fest-extract-rest-element`
-- `prefer-type-fest-is-nullable`
-- `prefer-type-fest-has-optional-keys`
-- `prefer-type-fest-has-required-keys`
-- `prefer-type-fest-has-readonly-keys`
-- `prefer-type-fest-has-writable-keys`
-- `prefer-type-fest-optional-keys-of`
-- `prefer-type-fest-required-keys-of`
-- `prefer-type-fest-readonly-keys-of`
-- `prefer-type-fest-writable-keys-of`
-- `prefer-type-fest-entry`
-- `prefer-type-fest-entries`
-- `prefer-type-fest-array-element`
-- `prefer-type-fest-array-values`
-
-## TypeFest APIs not covered by a direct rule
-
-The following `type-fest` exports currently have no direct rule that prefers
-them from an equivalent local type expression. Legacy aliases such as `Opaque`,
-`UnwrapOpaque`, and deprecated `If*` utilities are intentionally omitted from
-this list because existing rules already cover their migration paths.
-
-Verdict legend:
-
-- **Consider:** There may be a useful rule, but it should be narrow,
-  suggestion-only, opt-in, or based on explicitly named local helper aliases.
-  These are not approved for default autofix rules from this gap pass.
-- **Do not implement:** A general rule would be too noisy, too project-specific,
-  or too likely to change semantics.
-
-### Basic
-
-- `Class` — **Consider:** Only report exact structural class types that include
-  both `prototype: Pick<T, keyof T>` and a matching construct signature.
-- `AbstractClass` — **Consider:** Same as `Class`, but only for exact abstract
-  construct signatures plus the prototype member.
-- `TypedArray` — **Do not implement:** Manual typed-array unions are rare and
-  vary by project; broad reporting would be name-based.
-- `ObservableLike` — **Do not implement:** Structural `subscribe` contracts vary
-  too much across observable libraries.
-- `LowercaseLetter` — **Do not implement:** Manual character unions are not a
-  stable or common enough lint target.
-- `UppercaseLetter` — **Do not implement:** Same reason as `LowercaseLetter`.
-- `DigitCharacter` — **Do not implement:** Same reason as `LowercaseLetter`.
-- `Alphanumeric` — **Do not implement:** Same reason as `LowercaseLetter`.
-
-### Object and utility types
-
-- `EmptyObject` — **Do not implement:** TypeFest's current implementation uses
-  an internal unique-symbol brand, and its source explicitly notes that
-  `Record<string, never>`, `Record<keyof any, never>`, and related record forms
-  do not work as `EmptyObject`.
-- `NonEmptyObject` — **Do not implement:** Non-empty object intent is usually a
-  semantic constraint, not a stable local type expression.
-- `ObjectMerge` — **Do not implement:** This is an internal-style composition
-  primitive behind `Merge`; manual equivalents are not stable.
-- `MergeDeep` — **Do not implement:** Deep recursive merge helpers are too
-  varied and expensive to recognize safely.
-- `OverrideProperties` — **Consider:** Only useful for exact local helper aliases
-  that intentionally constrain overrides to existing keys.
-- `SingleKeyObject` — **Consider:** Could target exact mapped-union helpers, but
-  it is likely low frequency.
-- `PickDeep` — **Do not implement:** Deep path utilities are project-specific and
-  recursive.
-- `OmitDeep` — **Do not implement:** Same reason as `PickDeep`.
-- `PartialOnUndefinedDeep` — **Do not implement:** Deep undefined-aware
-  transforms are too semantic for a general syntax rule.
-- `UndefinedOnPartialDeep` — **Do not implement:** Same reason as
-  `PartialOnUndefinedDeep`.
-- `UnwrapPartial` — **Do not implement:** Manual versions usually appear inside
-  larger recursive helpers, not as isolated reportable aliases.
-- `UnwrapRequired` — **Do not implement:** Like `UnwrapPartial`, this is usually
-  embedded in larger object-transform helpers. TypeFest also explicitly leaves
-  primitives, maps, sets, and arrays unchanged, so a simple
-  `T extends Required<infer U> ? U : T` rewrite would not be equivalent.
-- `InvariantOf` — **Do not implement:** Invariance helpers rely on branding
-  tricks that are too easy to get subtly wrong.
-- `SetRequiredDeep` — **Do not implement:** Deep mapped transforms are already in
-  the risky category.
-- `SetNonNullableDeep` — **Do not implement:** Same reason as `SetRequiredDeep`.
-- `LiteralToPrimitive` — **Consider:** Only report exact canonical conditional
-  aliases; do not guess from arbitrary literal-widening helpers.
-- `LiteralToPrimitiveDeep` — **Do not implement:** The deep version becomes a
-  recursive transform and is too broad.
-- `SetParameterType` — **Consider:** Could replace exact local helper aliases
-  that rebuild a function signature with new parameters.
-- `SimplifyDeep` — **Do not implement:** Adding `SimplifyDeep` is an intent and
-  display-quality choice, not an equivalent syntax rewrite.
-- `Get` — **Do not implement:** Path lookup helpers vary heavily and often carry
-  different fallback semantics.
-- `KeyAsString` — **Consider:** Exact key-to-string helper aliases may be
-  reportable, but only with narrow conditional/template-literal matching.
-- `Exact` — **Consider:** Suggestion-only for exact excess-property helper
-  aliases; avoid autofix because semantics vary.
-- `OptionalKeysOf` — **Implemented:** `prefer-type-fest-optional-keys-of`
-  reports the exact distributive mapped-key composition based on
-  `IsOptionalKeyOf<T, Key>`.
-- `HasOptionalKeys` — **Implemented:** `prefer-type-fest-has-optional-keys`
-  reports exact `OptionalKeysOf<T> extends never ? false : true` compositions
-  imported from `type-fest`.
-- `RequiredKeysOf` — **Implemented:** `prefer-type-fest-required-keys-of`
-  reports the exact distributive `Exclude<keyof T, OptionalKeysOf<T>>`
-  composition.
-- `HasRequiredKeys` — **Implemented:** `prefer-type-fest-has-required-keys`
-  reports exact `RequiredKeysOf<T> extends never ? false : true` compositions
-  imported from `type-fest`.
-- `ReadonlyKeysOf` — **Implemented:** `prefer-type-fest-readonly-keys-of`
-  reports the exact distributive mapped-key composition based on
-  `IsReadonlyKeyOf<T, Key>`.
-- `HasReadonlyKeys` — **Implemented:** `prefer-type-fest-has-readonly-keys`
-  reports exact `ReadonlyKeysOf<T> extends never ? false : true` compositions
-  imported from `type-fest`.
-- `WritableKeysOf` — **Implemented:** `prefer-type-fest-writable-keys-of`
-  reports the exact distributive `Exclude<keyof T, ReadonlyKeysOf<T>>`
-  composition.
-- `HasWritableKeys` — **Implemented:** `prefer-type-fest-has-writable-keys`
-  reports exact `WritableKeysOf<T> extends never ? false : true` compositions
-  imported from `type-fest`.
-- `Spread` — **Do not implement:** Spread semantics are intentionally subtle and
-  not equivalent to ordinary intersections or merges.
-- `IsEqual` — **Do not implement:** Exact mutual-assignability boolean helpers
-  look stable at first, but common implementations differ in distribution,
-  `any`, `never`, and function-parameter edge cases. A broad rule would be easy
-  to make noisy or subtly wrong.
-- `TaggedUnion` — **Consider:** Good suggestion-only rule for unions of object
-  literals with a shared literal discriminant.
-- `IntRange` — **Do not implement:** Numeric range builders are recursive and
-  do not have a safe general syntax equivalent.
-- `IntClosedRange` — **Do not implement:** Same reason as `IntRange`.
-- `ArrayIndices` — **Consider:** Possible for exact tuple-key exclusion helpers,
-  but fixers can change string index keys to numeric keys.
-- `ArraySplice` — **Do not implement:** Tuple splice helpers are complex
-  recursive tuple programs.
-- `ArrayTail` — **Consider:** TypeFest preserves readonly arrays, normal arrays,
-  empty tuples, leading rest elements, and `any`/`never` behavior. Simple
-  `T extends [unknown, ...infer Tail] ? Tail : never` helpers are not
-  equivalent.
-- `SetFieldType` — **Consider:** Only report exact `Omit<T, K> & Record<K, V>`
-  style helper aliases when key constraints match.
-- `Paths` — **Do not implement:** Path enumeration is a deep recursive transform.
-- `SharedUnionFields` — **Consider:** Potentially suggestion-only for exact local
-  helper aliases, but broad structural detection is risky.
-- `SharedUnionFieldsDeep` — **Do not implement:** Deep union-field transforms are
-  too complex.
-- `AllUnionFields` — **Consider:** Same risk profile as `SharedUnionFields`.
-- `And` — **Implemented:** `prefer-type-fest-and` reports
-  `AndAll<[A, B]>` and `AndAll<readonly [A, B]>` imported from `type-fest`,
-  then rewrites them to `And<A, B>`.
-- `Or` — **Implemented:** `prefer-type-fest-or` reports `OrAll<[A, B]>` and
-  `OrAll<readonly [A, B]>` imported from `type-fest`, then rewrites them to
-  `Or<A, B>`.
-- `Xor` — **Consider:** TypeFest's boolean `Xor` distributes `boolean` and
-  treats `never` as `false`. Only exact boolean-helper compositions should be
-  considered; object XOR helpers must stay out of scope.
-- `AllExtend` — **Consider:** Useful only for exact local aliases that encode the
-  same tuple-wide extends semantics.
-- `SomeExtend` — **Consider:** Same constraints as `AllExtend`.
-- `FindGlobalType` — **Do not implement:** This is environment-introspection
-  intent, not a replaceable local type expression.
-- `FindGlobalInstanceType` — **Do not implement:** Same reason as
-  `FindGlobalType`.
-- `ConditionalSimplify` — **Do not implement:** Simplification choices are
-  display-oriented and too intent-heavy.
-- `ConditionalSimplifyDeep` — **Do not implement:** Same reason as
-  `ConditionalSimplify`, with added deep-recursion risk.
-- `ExclusifyUnion` — **Consider:** Suggestion-only for exact `never`-padding
-  union helpers; no broad autofix.
-
-### Type guards
-
-- `IsLiteral` — **Consider:** Only if it composes exact string, numeric,
-  boolean, and symbol literal guard shapes.
-- `IsStringLiteral` — **Consider:** TypeFest handles `any`, `never`, tagged
-  types, and infinite string patterns, so only exact aliases that preserve those
-  fallbacks are safe.
-- `IsNumericLiteral` — **Consider:** TypeFest distributes across numeric
-  primitive literal families and handles `never`, so simple
-  `T extends number ? number extends T` aliases are not equivalent.
-- `IsBooleanLiteral` — **Consider:** Same caveat as `IsNumericLiteral`; simple
-  boolean conditionals produce different results for `never`.
-- `IsSymbolLiteral` — **Consider:** Same caveat as `IsNumericLiteral`.
-- `IsEmptyObject` — **Do not implement:** It depends on TypeFest's branded
-  `EmptyObject`; common `T extends {}` or `keyof T extends never` checks are not
-  equivalent.
-- `IsUnion` — **Consider:** TypeFest preserves `never`, exact equality, and
-  boolean fallback behavior. Simple distributive-union helpers are not
-  equivalent, so only exact aliases matching the current TypeFest algorithm
-  should be considered.
-- `IsLowercase` — **Consider:** TypeFest handles string pieces and returns
-  `boolean` for uncertain cases, so only exact aliases with equivalent fallback
-  behavior are safe.
-- `IsUppercase` — **Consider:** Same constraints as `IsLowercase`.
-- `IsOptional` — **Consider:** Only report exact `undefined extends T` style
-  helpers after checking equivalence with `type-fest` semantics.
-- `IsNullable` — **Implemented:** `prefer-type-fest-is-nullable` reports exact
-  any-safe nullable guard conditionals that preserve TypeFest's `any` handling.
-- `IsOptionalKeyOf` — **Do not implement:** The direct guard semantics include
-  TypeFest-specific `any`, distribution, and key-modifier behavior. The safe
-  coverage line is the implemented `OptionalKeysOf` and `HasOptionalKeys` rules.
-- `IsRequiredKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
-  The implemented `RequiredKeysOf` and `HasRequiredKeys` rules cover stable
-  higher-level compositions instead.
-- `IsReadonlyKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
-  The implemented `ReadonlyKeysOf` and `HasReadonlyKeys` rules cover stable
-  higher-level compositions instead.
-- `IsWritableKeyOf` — **Do not implement:** Same reason as `IsOptionalKeyOf`.
-  The implemented `WritableKeysOf` and `HasWritableKeys` rules cover stable
-  higher-level compositions instead.
-
-### JSON and structured clone
-
-- `Jsonify` — **Do not implement:** Manual JSON conversion types vary by project
-  and often encode different treatment for methods, dates, maps, and undefined.
-- `Jsonifiable` — **Do not implement:** Same reason as `Jsonify`.
-- `StructuredCloneable` — **Do not implement:** Cloneability aliases are
-  semantic domain contracts, not stable syntax.
-
-### String types
-
-- `Trim` — **Do not implement:** Template-literal parser helpers vary too much.
-- `Split` — **Do not implement:** Same reason as `Trim`.
-- `Words` — **Do not implement:** Same reason as `Trim`.
-- `Replace` — **Do not implement:** Same reason as `Trim`.
-- `StringLength` — **Implemented:** `prefer-type-fest-string-length` reports
-  the exact one-argument `StringToArray<T>['length']` composition imported from
-  `type-fest` and rewrites it to `StringLength<T>`. It intentionally ignores
-  option-bearing `StringToArray<T, Options>['length']` forms.
-- `StringToArray` — **Do not implement:** Manual equivalents are recursive
-  template-literal parsers with subtle `any`, `never`, literal, and non-literal
-  rest-element behavior. Broad replacement would be noisy and unsafe.
-- `StringToNumber` — **Do not implement:** The obvious infer-number
-  conditional helper is not equivalent to TypeFest's handling of `string`,
-  `any`, infinities, and numeric strings without valid numeric literal
-  counterparts.
-- `StringSlice` — **Do not implement:** String slicing helpers are recursive and
-  option-sensitive.
-- `StringRepeat` — **Do not implement:** Recursive string builders are not a
-  stable lint target.
-- `RemovePrefix` — **Consider:** Exact `${Prefix}${infer Rest}` aliases may be
-  reportable, but only with no custom fallback semantics. TypeFest's strict
-  non-literal-prefix fallback makes broad autofix unsafe.
-- `RemoveSuffix` — **Consider:** Same scope as `RemovePrefix`; exact
-  `${infer Rest}${Suffix}` aliases may be reportable, but only when custom
-  fallback behavior and non-literal suffix handling are not present.
-
-### Array and tuple types
-
-- `Includes` — **Consider:** Exact `Element extends Tuple[number]` helpers may be
-  reportable, but false positives are easy when distributivity matters.
-- `Join` — **Do not implement:** Tuple/string join helpers are recursive
-  template-literal parsers.
-- `ArraySlice` — **Do not implement:** Recursive tuple slicing is too complex.
-- `LastArrayElement` — **Consider:** TypeFest handles arrays, empty tuples, and
-  trailing spread elements. Simple `T extends [...unknown[], infer Last]`
-  helpers should not be autofixed unless their narrower semantics are explicit.
-- `FixedLengthArray` — **Do not implement:** Recursive tuple builders are not
-  stable enough.
-- `MultidimensionalArray` — **Do not implement:** This is intent-level type
-  modeling rather than a common manual pattern.
-- `MultidimensionalReadonlyArray` — **Do not implement:** Same reason as
-  `MultidimensionalArray`.
-- `ReadonlyTuple` — **Consider:** Only report exact mutable-tuple-to-readonly
-  helper aliases; avoid broad readonly tuple syntax.
-- `TupleToUnion` — **Do not implement:** `T[number]` is already owned by
-  `prefer-type-fest-array-element`, and adding a second rule would duplicate
-  reports.
-- `TupleToObject` — **Consider:** Exact tuple-to-object mapped aliases may be
-  reportable, but likely low priority.
-- `SplitOnRestElement` — **Consider:** Exact variadic rest split aliases may be
-  reportable without autofix.
-- `ExtractRestElement` — **Implemented:** `prefer-type-fest-extract-rest-element`
-  reports exact `SplitOnRestElement<T>[1][number]` usage imported from
-  `type-fest` and rewrites it to `ExtractRestElement<T>`.
-- `ExcludeRestElement` — **Consider:** TypeFest composes `SplitOnRestElement`
-  with readonly and `any`/`never` preservation. Manual tuple-spread removal
-  helpers are only safe if matched as an exact helper composition.
-- `ArrayReverse` — **Do not implement:** Recursive tuple reversal is too broad.
-
-### Numeric types
-
-- `PositiveInfinity` — **Do not implement:** No safe normal-code equivalent.
-- `NegativeInfinity` — **Do not implement:** No safe normal-code equivalent.
-- `Finite` — **Do not implement:** Numeric branding/range aliases are semantic
-  and project-specific.
-- `Integer` — **Do not implement:** Same reason as `Finite`.
-- `Float` — **Do not implement:** Same reason as `Finite`.
-- `NegativeFloat` — **Do not implement:** Same reason as `Finite`.
-- `Negative` — **Do not implement:** Same reason as `Finite`.
-- `NonNegative` — **Do not implement:** Same reason as `Finite`.
-- `NegativeInteger` — **Do not implement:** Same reason as `Finite`.
-- `NonNegativeInteger` — **Do not implement:** Same reason as `Finite`.
-- `IsNegative` — **Do not implement:** Numeric sign checks are implemented with
-  varied string/numeric helper stacks.
-- `IsFloat` — **Do not implement:** Same reason as `IsNegative`.
-- `IsInteger` — **Do not implement:** Same reason as `IsNegative`.
-- `GreaterThan` — **Consider:** Only report aliases that reverse existing
-  `LessThan` usage; do not detect manual numeric algorithms.
-- `GreaterThanOrEqual` — **Consider:** Same rule shape as `GreaterThan`, using
-  `LessThanOrEqual`.
-- `Sum` — **Do not implement:** Type-level arithmetic helpers are recursive and
-  project-specific.
-- `Subtract` — **Do not implement:** Same reason as `Sum`.
-
-### Change-case types
-
-- `CamelCase` — **Do not implement:** Manual case parsers are not stable syntax.
-- `CamelCasedProperties` — **Do not implement:** Property-case transforms add
-  mapped-type and option semantics.
-- `CamelCasedPropertiesDeep` — **Do not implement:** Deep property transforms are
-  too complex.
-- `KebabCase` — **Do not implement:** Same reason as `CamelCase`.
-- `KebabCasedProperties` — **Do not implement:** Same reason as
-  `CamelCasedProperties`.
-- `KebabCasedPropertiesDeep` — **Do not implement:** Same reason as
-  `CamelCasedPropertiesDeep`.
-- `PascalCase` — **Do not implement:** Same reason as `CamelCase`.
-- `PascalCasedProperties` — **Do not implement:** Same reason as
-  `CamelCasedProperties`.
-- `PascalCasedPropertiesDeep` — **Do not implement:** Same reason as
-  `CamelCasedPropertiesDeep`.
-- `SnakeCase` — **Do not implement:** Same reason as `CamelCase`.
-- `SnakeCasedProperties` — **Do not implement:** Same reason as
-  `CamelCasedProperties`.
-- `SnakeCasedPropertiesDeep` — **Do not implement:** Same reason as
-  `CamelCasedPropertiesDeep`.
-- `ScreamingSnakeCase` — **Do not implement:** Same reason as `CamelCase`.
-- `DelimiterCase` — **Do not implement:** Same reason as `CamelCase`.
-- `DelimiterCasedProperties` — **Do not implement:** Same reason as
-  `CamelCasedProperties`.
-- `DelimiterCasedPropertiesDeep` — **Do not implement:** Same reason as
-  `CamelCasedPropertiesDeep`.
-
-### Miscellaneous and strict built-ins
-
-- `GlobalThis` — **Do not implement:** Replacing `typeof globalThis` would be an
-  opinionated style change rather than a semantic improvement.
-- `PackageJson` — **Consider:** Only report local aliases named exactly
-  `PackageJson` or equivalent project-specific migration patterns.
-- `TsConfigJson` — **Consider:** Same constraints as `PackageJson`.
-- `ExtendsStrict` — **Consider:** Opt-in only; document the stricter semantics
-  and its options for union distribution, `never`, and `any`. Avoid replacing
-  ordinary conditional types.
-- `ExtractStrict` — **Consider:** Opt-in only; replace explicitly named local
-  strict helpers, not normal `Extract`.
-- `ExcludeStrict` — **Consider:** Opt-in only; replace explicitly named local
-  strict helpers, not normal `Exclude`.
-- `ExcludeExactly` — **Consider:** Opt-in only; replace explicitly named local
-  strict helpers where exact exclusion semantics are clear.
-- `ExtractExactly` — **Consider:** Same strict-builtins policy as
-  `ExcludeExactly`. Never replace ordinary `Extract<T, U>`; only an opt-in rule
-  for explicitly named local exact-extraction helpers would be defensible.
-
-## Closed candidates and future-only ideas
-
-No remaining candidate from this report should be built as a default autofix
-rule right now. The implemented rules below are the completed high-confidence
-set. The unimplemented entries in this section are retained only as future
-research notes for opt-in, suggestion-only, or explicitly named local-helper
-migrations.
-
-### Implemented: `prefer-type-fest-array-element`
-
-This rule now detects `T[number]` when `T` resolves to an array or tuple type,
-and prefers `ArrayElement<T>`.
-
-The implemented scope is intentionally type-aware:
-
-- Reports `T[number]` only when the TypeScript checker resolves `T` to an
-  array-like type.
-- Leaves `typeof tuple[number]` alone for a future `ArrayValues` rule.
-- Ignores number-indexed object maps where `ArrayElement<T>` would not be
-  equivalent.
-- Does not yet rewrite conditional `infer` helper aliases. Those should start as
-  suggestions if added later.
-
-### Implemented: `prefer-type-fest-array-values`
-
-This rule now detects `typeof values[number]` when `values` resolves to an array
-or tuple type, and prefers `ArrayValues<typeof values>`.
-
-The implemented scope is intentionally type-aware:
-
-- Reports only `typeof values[number]` where the TypeScript checker resolves
-  `values` to an array-like type.
-- Leaves plain `T[number]` to `prefer-type-fest-array-element`.
-- Ignores number-indexed object maps where `ArrayValues<typeof values>` would not
-  be equivalent.
-
-### Deferred: `prefer-type-fest-array-indices`
-
-Detect manual index unions derived from tuple keys, such as
-`Exclude<keyof typeof tuple, keyof unknown[]>`, when the operand is a constant
-tuple and prefer `ArrayIndices<typeof tuple>`.
-
-This should stay deferred. The manual forms vary, and incorrect autofixes could
-change string index keys into numeric index keys.
-
-### Implemented: `prefer-type-fest-entry` and `prefer-type-fest-entries`
-
-These rules now cover exact object-entry pair aliases:
-
-```ts
-type ObjectEntry<T> = [keyof T, T[keyof T]];
-type ObjectEntries<T> = Array<[keyof T, T[keyof T]]>;
-```
-
-The implemented scope is intentionally narrow:
-
-- `prefer-type-fest-entry` reports `[keyof T, T[keyof T]]`.
-- `prefer-type-fest-entries` reports `Array<[keyof T, T[keyof T]]>` and
-  `[keyof T, T[keyof T]][]`.
-- `ReadonlyArray<[keyof T, T[keyof T]]>` is left alone until readonly
-  collection semantics are modeled explicitly.
-- `prefer-type-fest-value-of` now defers inside exact entry tuple patterns so a
-  single manual entry tuple does not produce duplicate `Entry` and `ValueOf`
-  reports.
-
-### Deferred: `prefer-type-fest-tagged-union`
-
-Detect type aliases that are explicit unions of object type literals sharing the
-same discriminant property:
-
-```ts
-type Event = { type: "start"; at: Date } | { type: "stop"; reason: string };
-```
-
-Prefer `TaggedUnion<"type", ...>` when every union member has the same literal
-discriminant key and every discriminant value is unique.
-
-This should not be added from the current gap pass. If real-world usage justifies
-it later, it should start without autofix because preserving comments, property
-ordering, and multi-line formatting would make a fix fragile.
-
-### `prefer-type-fest-type-guards`
-
-The safe family of type-guard rules from this pass has already been added:
-
-- Implemented: `prefer-type-fest-is-unknown`
-- Implemented: `prefer-type-fest-is-tuple`
-- Implemented: `prefer-type-fest-is-nullable`
-
-Only exact canonical conditional-type shapes should be reported. The initial
-implemented rules follow that line: `IsNever<T>`, `IsNull<T>`, and
-`IsUndefined<T>` match tuple-wrapped conditionals, while `IsAny<T>` matches the
-canonical `0 extends 1 & T` form. `IsNullable<T>` now only reports the exact
-any-safe nullable helper shape; it intentionally ignores shorter
-`Extract<T, null>` checks because they do not preserve `any` behavior. Future
-guard rules should not be added without real-world examples and exact semantic
-proof that `any`, `never`, distribution, and modifier behavior are preserved.
-
-### Implemented: `prefer-type-fest-and` and `prefer-type-fest-or`
-
-These rules now cover the exact two-value forms of the existing all-value
-boolean helpers:
-
-```ts
-type Both<A extends boolean, B extends boolean> = AndAll<[A, B]>;
-type Either<A extends boolean, B extends boolean> = OrAll<[A, B]>;
-```
-
-The implemented scope is intentionally narrow:
-
-- Reports direct and namespace-qualified `AndAll`/`OrAll` references imported
-  from `type-fest`.
-- Only rewrites two-element tuple arguments, including `readonly [A, B]`.
-- Leaves three-or-more-element tuple checks on `AndAll`/`OrAll`.
-- Skips named, optional, and rest tuple elements because those cannot be safely
-  converted into ordinary generic arguments.
-
-### Do not implement: `prefer-type-fest-empty-object`
-
-Detect exact empty-object intent, not every `{}`.
-
-Originally suggested reportable shapes:
-
-- `Record<PropertyKey, never>`
-- `Record<string | number | symbol, never>`
-- local aliases named `EmptyObject` that expand to the same structure
-
-Bad reportable shape:
-
-- bare `{}` in arbitrary type positions
-
-This should stay out of scope. Bare `{}` in TypeScript often means "any
-non-nullish value", and TypeFest's own docs say the `Record<..., never>` forms do
-not work as `EmptyObject`.
-
-### Implemented: `prefer-type-fest-extract-rest-element`
-
-This rule now covers the exact TypeFest helper composition:
-
-```ts
-type Rest<T extends UnknownArray> = SplitOnRestElement<T>[1][number];
-```
-
-The implemented scope is intentionally narrow:
-
-- Reports direct and namespace-qualified `SplitOnRestElement` references
-  imported from `type-fest`.
-- Only rewrites the exact `[1][number]` rest-element extraction.
-- Leaves the raw split tuple segments alone.
-
-### Implemented: `prefer-type-fest-is-nullable`
-
-This rule now covers exact nullable checks that preserve TypeFest's `any`
-behavior:
-
-```ts
-type Result<T> =
- IsAny<T> extends true ? true : Extract<T, null> extends never ? false : true;
-type Result<T> = 0 extends 1 & T
- ? true
- : Extract<T, null> extends never
-   ? false
-   : true;
-```
-
-The implemented scope is intentionally narrow:
-
-- Reports direct, aliased, and namespace-qualified `IsAny` references imported
-  from `type-fest`.
-- Reports the canonical manual `0 extends 1 & T` any branch.
-- Only rewrites when the inner branch is exactly
-  `Extract<T, null> extends never ? false : true` for the same `T`.
-- Leaves the shorter `Extract<T, null>` nullable guard alone because it changes
-  behavior for `any`.
-
-### Implemented: `prefer-type-fest-has-*keys`
-
-These rules now cover exact TypeFest key-existence helper compositions:
-
-```ts
-type HasOptionals<T extends object> =
- OptionalKeysOf<T> extends never ? false : true;
-type HasRequired<T extends object> =
- RequiredKeysOf<T> extends never ? false : true;
-type HasReadonly<T extends object> =
- ReadonlyKeysOf<T> extends never ? false : true;
-type HasWritable<T extends object> =
- WritableKeysOf<T> extends never ? false : true;
-```
-
-The implemented scope is intentionally narrow:
-
-- Reports direct, aliased, and namespace-qualified `*KeysOf` references imported
-  from `type-fest`.
-- Only rewrites the exact `extends never ? false : true` shape.
-- Leaves inverted checks and custom fallback branches alone.
-- Leaves local `*KeysOf` helpers alone.
-
-### Implemented: `prefer-type-fest-*keys-of`
-
-These rules now cover exact TypeFest key-extraction helper compositions:
-
-```ts
-type Optional<Type extends object> = Type extends unknown
- ? keyof {
-    [
-     Key in keyof Type as IsOptionalKeyOf<Type, Key> extends false ? never : Key
-    ]: never;
-   } &
-    keyof Type
- : never;
-
-type Required<Type extends object> = Type extends unknown
- ? Exclude<keyof Type, OptionalKeysOf<Type>>
- : never;
-```
-
-The implemented scope is intentionally narrow:
-
-- `prefer-type-fest-optional-keys-of` and
-  `prefer-type-fest-readonly-keys-of` report only the exact distributive
-  mapped-key shape based on TypeFest `IsOptionalKeyOf`/`IsReadonlyKeyOf`.
-- `prefer-type-fest-required-keys-of` and
-  `prefer-type-fest-writable-keys-of` report only the exact distributive
-  `Exclude<keyof T, *KeysOf<T>>` shape.
-- Direct, aliased, and namespace-qualified TypeFest helper imports are
-  supported.
-- Non-distributive helpers, local helper types, custom key filters, and reversed
-  exclusions are ignored.
-
-### Deferred: `prefer-type-fest-exact`
-
-Detect local generic aliases that implement exact object checking by adding
-`never` properties for excess keys.
-
-This should stay deferred. Different "exact" helper types encode assignability
-constraints that are not equivalent to `Exact`; a future rule would need to be
-conservative and suggestion-only.
-
-### Deferred: `prefer-type-fest-strict-builtins`
-
-Cover `ExtendsStrict`, `ExtractStrict`, `ExcludeStrict`, `ExcludeExactly`, and
-`ExtractExactly`, but do not blindly replace built-in `extends`, `Extract`, or
-`Exclude`.
-
-These types intentionally have stricter semantics than the built-ins. A future
-rule here would need to be opt-in, document the semantic change, and avoid
-autofix unless it is replacing an explicitly named local strict helper.
-
-## Low-value or risky candidates
-
-These APIs should stay out of the plugin unless there is a specific repeated
-pattern in real projects.
-
-### Deep object transforms
-
-`MergeDeep`, `PickDeep`, `OmitDeep`, `SetRequiredDeep`,
-`SetNonNullableDeep`, `Paths`, `Get`, `SharedUnionFieldsDeep`, and similar deep
-helpers are hard to detect safely. Manual versions are usually recursive type
-programs with valid forms across codebases. A rule would either miss real code or
-become an expensive broad traversal over conditional, mapped, and indexed-access
-types.
-
-### Change-case utilities
-
-`CamelCase`, `SnakeCase`, `KebabCase`, `PascalCase`, delimiter-case variants, and
-property-case variants should not be enforced from syntax unless the project has
-a project-specific local helper name to migrate. Their manual implementations are
-type-level parsers, not stable AST patterns.
-
-### Numeric computation and branded numeric types
-
-`Finite`, `Integer`, `NonNegative`, `IntRange`, `Sum`, `Subtract`,
-`GreaterThan`, and similar numeric utilities do not have a reliable syntactic
-equivalent in normal user code. Rules here would often become name-based
-migrations from local aliases, which is too project-specific for a general
-plugin rule.
-
-### JSON and cloneability types
-
-`Jsonify`, `Jsonifiable`, and `StructuredCloneable` are useful types, but manual
-serializability aliases vary heavily by project. A general rule should not guess
-that a type named `Serializable`, `JsonCompatible`, or `Cloneable` is equivalent.
-
-### Package config types
-
-`PackageJson` and `TsConfigJson` are useful, but intent is hard to infer from an
-object type alias. A future rule could report local aliases with those exact
-names, but broad detection would be noisy.
-
-## Closure policy
-
-1. Do not add more default or recommended autofix rules from this gap list
-   without real-world examples that demonstrate a repeated, low-noise pattern.
-2. Any future candidate whose semantics differ from the manual form must start
-   suggestion-only or opt-in.
-3. Autofix candidates must include direct, aliased, and namespace import tests
-   where import-aware; shadowed-name no-fix tests; false-positive valid cases;
-   fixer output assertions; and parse-safety coverage.
-4. Keep deep transforms, change-case, numeric, JSON, cloneability, package
-   config, and broad type-guard APIs as documented non-goals unless the scope can
-   be narrowed to an exact local-helper migration.
+Which upstream exports have a lint rule, and when is a migration unsafe? The tables below account for all **427 public names** across the pinned packages and entry points. Each covered row links to the rule's supported patterns. **Migration** identifies a deprecated source name that a rule replaces. **Excluded** gives the reason a direct preference rule would be unsound or add little value.
+
+The inventory uses the published declarations, including star re-exports. It counts a name separately in each public module and distinguishes the `objectKeys` function from the `ObjectKeys` type. Internal upstream helpers and ambient declarations do not add root exports. [type-fest 6.0.3](https://github.com/sindresorhus/type-fest/tree/v6.0.3) · [ts-extras 3.0.0](https://github.com/sindresorhus/ts-extras/tree/v3.0.0)
+
+A covered export guarantees only the matcher described on its rule page. For example, the merge rule recognizes a particular intersection, while the tuple and key rules check specific operands and modifiers. Imported helpers in the wrong scope and structurally similar types with different fallback behavior require separate treatment. Rules introduced for the newer APIs check the package version resolved from the consumer file. They support `type-fest` 6 and `ts-extras` 2 or 3.
+
+## Runtime exports from ts-extras
+
+The 45 runtime helpers include 33 present in v1.0. Later v1 releases added `objectAssign`, `objectUpdate`, and `assert`. Version 2 added nine more helpers, and version 3 retains all 45. The two filter-specific rules are listed with the same helpers they refine. Historical catalog slots for `arrayFind`, `arrayFindLast`, and `arrayFindLastIndex` are reserved IDs. No corresponding functions exist in this release.
+
+| Export              | Decision | Rule or reason                                                                                                                                                                                                    |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `arrayAt`           | Covered  | [prefer-ts-extras-array-at](../prefer-ts-extras-array-at.md)                                                                                                                                                      |
+| `arrayConcat`       | Covered  | [prefer-ts-extras-array-concat](../prefer-ts-extras-array-concat.md)                                                                                                                                              |
+| `arrayFirst`        | Covered  | [prefer-ts-extras-array-first](../prefer-ts-extras-array-first.md)                                                                                                                                                |
+| `arrayIncludes`     | Covered  | [prefer-ts-extras-array-includes](../prefer-ts-extras-array-includes.md)                                                                                                                                          |
+| `arrayIndexOf`      | Covered  | [prefer-ts-extras-array-index-of](../prefer-ts-extras-array-index-of.md)                                                                                                                                          |
+| `arrayIsArray`      | Covered  | [prefer-ts-extras-array-is-array](../prefer-ts-extras-array-is-array.md)                                                                                                                                          |
+| `arrayJoin`         | Covered  | [prefer-ts-extras-array-join](../prefer-ts-extras-array-join.md)                                                                                                                                                  |
+| `arrayLast`         | Covered  | [prefer-ts-extras-array-last](../prefer-ts-extras-array-last.md)                                                                                                                                                  |
+| `arrayLastIndexOf`  | Covered  | [prefer-ts-extras-array-last-index-of](../prefer-ts-extras-array-last-index-of.md)                                                                                                                                |
+| `assert`            | Covered  | [prefer-ts-extras-assert](../prefer-ts-extras-assert.md)                                                                                                                                                          |
+| `assertDefined`     | Covered  | [prefer-ts-extras-assert-defined](../prefer-ts-extras-assert-defined.md)                                                                                                                                          |
+| `assertError`       | Covered  | [prefer-ts-extras-assert-error](../prefer-ts-extras-assert-error.md)                                                                                                                                              |
+| `assertNever`       | Covered  | [prefer-ts-extras-assert-never](../prefer-ts-extras-assert-never.md)                                                                                                                                              |
+| `assertPresent`     | Covered  | [prefer-ts-extras-assert-present](../prefer-ts-extras-assert-present.md)                                                                                                                                          |
+| `asWritable`        | Covered  | [prefer-ts-extras-as-writable](../prefer-ts-extras-as-writable.md)                                                                                                                                                |
+| `hasAtLeast`        | Covered  | [prefer-ts-extras-has-at-least](../prefer-ts-extras-has-at-least.md)                                                                                                                                              |
+| `isDefined`         | Covered  | [prefer-ts-extras-is-defined](../prefer-ts-extras-is-defined.md) and [prefer-ts-extras-is-defined-filter](../prefer-ts-extras-is-defined-filter.md)                                                               |
+| `isEmpty`           | Covered  | [prefer-ts-extras-is-empty](../prefer-ts-extras-is-empty.md)                                                                                                                                                      |
+| `isEqualType`       | Covered  | [prefer-ts-extras-is-equal-type](../prefer-ts-extras-is-equal-type.md)                                                                                                                                            |
+| `isFinite`          | Covered  | [prefer-ts-extras-is-finite](../prefer-ts-extras-is-finite.md)                                                                                                                                                    |
+| `isInfinite`        | Covered  | [prefer-ts-extras-is-infinite](../prefer-ts-extras-is-infinite.md)                                                                                                                                                |
+| `isInteger`         | Covered  | [prefer-ts-extras-is-integer](../prefer-ts-extras-is-integer.md)                                                                                                                                                  |
+| `isNonEmpty`        | Covered  | [prefer-ts-extras-is-non-empty](../prefer-ts-extras-is-non-empty.md)                                                                                                                                              |
+| `isPresent`         | Covered  | [prefer-ts-extras-is-present](../prefer-ts-extras-is-present.md) and [prefer-ts-extras-is-present-filter](../prefer-ts-extras-is-present-filter.md)                                                               |
+| `isPropertyDefined` | Covered  | [prefer-ts-extras-is-property-defined](../prefer-ts-extras-is-property-defined.md)                                                                                                                                |
+| `isPropertyPresent` | Covered  | [prefer-ts-extras-is-property-present](../prefer-ts-extras-is-property-present.md)                                                                                                                                |
+| `isSafeInteger`     | Covered  | [prefer-ts-extras-is-safe-integer](../prefer-ts-extras-is-safe-integer.md)                                                                                                                                        |
+| `isTruthy`          | Covered  | [prefer-ts-extras-is-truthy](../prefer-ts-extras-is-truthy.md)                                                                                                                                                    |
+| `keyIn`             | Covered  | [prefer-ts-extras-key-in](../prefer-ts-extras-key-in.md)                                                                                                                                                          |
+| `mapHas`            | Covered  | [prefer-ts-extras-map-has](../prefer-ts-extras-map-has.md)                                                                                                                                                        |
+| `not`               | Covered  | [prefer-ts-extras-not](../prefer-ts-extras-not.md)                                                                                                                                                                |
+| `objectAssign`      | Covered  | [prefer-ts-extras-object-assign](../prefer-ts-extras-object-assign.md)                                                                                                                                            |
+| `objectEntries`     | Covered  | [prefer-ts-extras-object-entries](../prefer-ts-extras-object-entries.md)                                                                                                                                          |
+| `objectFromEntries` | Covered  | [prefer-ts-extras-object-from-entries](../prefer-ts-extras-object-from-entries.md)                                                                                                                                |
+| `objectHasIn`       | Covered  | [prefer-ts-extras-object-has-in](../prefer-ts-extras-object-has-in.md)                                                                                                                                            |
+| `objectHasOwn`      | Covered  | [prefer-ts-extras-object-has-own](../prefer-ts-extras-object-has-own.md)                                                                                                                                          |
+| `objectKeys`        | Covered  | [prefer-ts-extras-object-keys](../prefer-ts-extras-object-keys.md)                                                                                                                                                |
+| `objectMapValues`   | Covered  | [prefer-ts-extras-object-map-values](../prefer-ts-extras-object-map-values.md)                                                                                                                                    |
+| `objectUpdate`      | Excluded | Accepts type-checked partial updates to writable keys, copies enumerable own source properties and skips an own `__proto__`. Native assignment allows other keys and can invoke the inherited `__proto__` setter. |
+| `objectValues`      | Covered  | [prefer-ts-extras-object-values](../prefer-ts-extras-object-values.md)                                                                                                                                            |
+| `safeCastTo`        | Covered  | [prefer-ts-extras-safe-cast-to](../prefer-ts-extras-safe-cast-to.md)                                                                                                                                              |
+| `setHas`            | Covered  | [prefer-ts-extras-set-has](../prefer-ts-extras-set-has.md)                                                                                                                                                        |
+| `stringEndsWith`    | Covered  | [prefer-ts-extras-string-ends-with](../prefer-ts-extras-string-ends-with.md)                                                                                                                                      |
+| `stringSplit`       | Covered  | [prefer-ts-extras-string-split](../prefer-ts-extras-string-split.md)                                                                                                                                              |
+| `stringStartsWith`  | Covered  | [prefer-ts-extras-string-starts-with](../prefer-ts-extras-string-starts-with.md)                                                                                                                                  |
+
+## Type exports from ts-extras
+
+| Export       | Decision | Rule or reason                                                                                                                                                             |
+| ------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ObjectKeys` | Excluded | Distributes over object unions, stringifies numeric keys, and selects element keys for arrays, tuples, typed arrays, and buffers. A plain `keyof` includes different keys. |
+
+## Root type exports from type-fest
+
+The root entry point exports 378 types. Options interfaces have property names that also occur on unrelated objects, so the presence of those properties cannot identify the helper being configured.
+
+| Export                              | Decision  | Rule or reason                                                                                                                                                                       |
+| ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Absolute`                          | Covered   | [prefer-type-fest-absolute](../prefer-type-fest-absolute.md)                                                                                                                         |
+| `AbstractClass`                     | Excluded  | A construct signature alone omits the required prototype relationship. Adding that requirement would reject constructors accepted by the original type.                              |
+| `AbstractConstructor`               | Covered   | [prefer-type-fest-abstract-constructor](../prefer-type-fest-abstract-constructor.md)                                                                                                 |
+| `AllExtend`                         | Excluded  | Checking a union of tuple members is different from checking every element or any element, particularly for empty tuples and never.                                                  |
+| `AllExtendOptions`                  | Excluded  | This is the options contract for an upstream operation. A local object with `strictNever` can configure unrelated code.                                                              |
+| `AllUnionFields`                    | Excluded  | Mapping over a union changes how common, optional, and member-specific properties are collected. Keys alone do not identify the intended value types.                                |
+| `Alphanumeric`                      | Excluded  | A hand-written alphabet can intentionally select a subset of ASCII. Matching an alias name cannot establish the exact character set.                                                 |
+| `And`                               | Covered   | [prefer-type-fest-and](../prefer-type-fest-and.md)                                                                                                                                   |
+| `AndAll`                            | Covered   | [prefer-type-fest-and-all](../prefer-type-fest-and-all.md)                                                                                                                           |
+| `AnyAsyncFunction`                  | Covered   | [prefer-type-fest-function](../prefer-type-fest-function.md)                                                                                                                         |
+| `AnyFunction`                       | Covered   | [prefer-type-fest-function](../prefer-type-fest-function.md)                                                                                                                         |
+| `ApplyDefaultOptions`               | Excluded  | A plain intersection of defaults and overrides loses the distinction between optional keys, explicit undefined values, and required options.                                         |
+| `Arrayable`                         | Covered   | [prefer-type-fest-arrayable](../prefer-type-fest-arrayable.md)                                                                                                                       |
+| `ArrayAt`                           | Excluded  | Indexed access does not model out-of-range indices, negative offsets, and possibly empty arrays in the same way.                                                                     |
+| `ArrayChunk`                        | Excluded  | Recursive tuple algorithms differ in whether open arrays, optional elements, unequal lengths, and readonly inputs widen the result.                                                  |
+| `ArrayElement`                      | Covered   | [prefer-type-fest-array-element](../prefer-type-fest-array-element.md)                                                                                                               |
+| `ArrayFlat`                         | Excluded  | A tuple spread alone does not encode the requested flattening depth or the behavior of open arrays.                                                                                  |
+| `ArrayGroupBy`                      | Excluded  | Mapping an array element union by a property does not guarantee the same key aliases, duplicate-key behavior, or tuple information.                                                  |
+| `ArrayIndices`                      | Excluded  | Tuple string keys, numeric indices, and open array index domains differ. A plain Exclude over keyof a tuple can produce string keys.                                                 |
+| `ArrayLength`                       | Covered   | [prefer-type-fest-array-length](../prefer-type-fest-array-length.md)                                                                                                                 |
+| `ArrayReverse`                      | Excluded  | Tuple recursion has distinct results for optional items, readonly inputs, open arrays, and variadic tails.                                                                           |
+| `ArraySlice`                        | Excluded  | Tuple recursion has distinct results for optional items, readonly inputs, open arrays, and variadic tails.                                                                           |
+| `ArraySplice`                       | Excluded  | Tuple recursion has distinct results for optional items, readonly inputs, open arrays, and variadic tails.                                                                           |
+| `ArrayTail`                         | Excluded  | A tuple-rest conditional must agree on empty tuples, optional tails, readonly results, and open arrays.                                                                              |
+| `ArrayToRecord`                     | Excluded  | Mapping an array element union by a property does not guarantee the same key aliases, duplicate-key behavior, or tuple information.                                                  |
+| `ArrayTrim`                         | Excluded  | Tuple trimming needs an explicit match policy and separate rules for optional elements, rest elements, and open arrays.                                                              |
+| `ArrayTrimEnd`                      | Excluded  | Tuple trimming needs an explicit match policy and separate rules for optional elements, rest elements, and open arrays.                                                              |
+| `ArrayTrimOptions`                  | Excluded  | This is the options contract for an upstream operation. A local object with `condition` can configure unrelated code.                                                                |
+| `ArrayTrimStart`                    | Excluded  | Tuple trimming needs an explicit match policy and separate rules for optional elements, rest elements, and open arrays.                                                              |
+| `ArrayUnique`                       | Excluded  | Recursive tuple algorithms differ in whether open arrays, optional elements, unequal lengths, and readonly inputs widen the result.                                                  |
+| `ArrayValues`                       | Covered   | [prefer-type-fest-array-values](../prefer-type-fest-array-values.md)                                                                                                                 |
+| `ArrayZip`                          | Excluded  | Recursive tuple algorithms differ in whether open arrays, optional elements, unequal lengths, and readonly inputs widen the result.                                                  |
+| `AsciiPunctuationCharacter`         | Excluded  | Character tables encode the chosen alphabet. A project's punctuation or whitespace set can intentionally differ.                                                                     |
+| `AsExtendable`                      | Excluded  | This identity helper makes a structural type usable in a heritage clause. An arbitrary identity alias carries no such intent.                                                        |
+| `AsyncFunction`                     | Covered   | [prefer-type-fest-function](../prefer-type-fest-function.md)                                                                                                                         |
+| `Asyncify`                          | Covered   | [prefer-type-fest-asyncify](../prefer-type-fest-asyncify.md)                                                                                                                         |
+| `AsyncReturnType`                   | Covered   | [prefer-type-fest-async-return-type](../prefer-type-fest-async-return-type.md)                                                                                                       |
+| `CamelCase`                         | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `CamelCasedProperties`              | Excluded  | Remapping property names also needs a policy for word boundaries and non-string keys.                                                                                                |
+| `CamelCasedPropertiesDeep`          | Excluded  | Deep key renaming must define where to stop recursion, how arrays are treated, and which property names change.                                                                      |
+| `CamelCaseOptions`                  | Excluded  | This is the options contract for an upstream operation. A local object with `splitOnNumbers`, `splitOnPunctuation`, `preserveConsecutiveUppercase` can configure unrelated code.     |
+| `CamelCaseString`                   | Excluded  | Recognizing an already-cased string and converting a string to that case have different contracts. A local template literal does not identify which operation is intended.           |
+| `Class`                             | Excluded  | A construct signature alone omits the required prototype relationship. Adding that requirement would reject constructors accepted by the original type.                              |
+| `CollapseLiterals`                  | Excluded  | Literal collapsing and extraction depend on distribution over the union and on how a widened primitive absorbs its literals.                                                         |
+| `ConditionalExcept`                 | Covered   | [prefer-type-fest-conditional-except](../prefer-type-fest-conditional-except.md)                                                                                                     |
+| `ConditionalKeys`                   | Covered   | [prefer-type-fest-conditional-keys](../prefer-type-fest-conditional-keys.md)                                                                                                         |
+| `ConditionalKeysOptions`            | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `ConditionalPick`                   | Covered   | [prefer-type-fest-conditional-pick](../prefer-type-fest-conditional-pick.md)                                                                                                         |
+| `ConditionalPickDeep`               | Covered   | [prefer-type-fest-conditional-pick-deep](../prefer-type-fest-conditional-pick-deep.md)                                                                                               |
+| `ConditionalPickDeepOptions`        | Excluded  | This is the options contract for an upstream operation. A local object with `condition` can configure unrelated code.                                                                |
+| `ConditionalSimplify`               | Excluded  | Expansion for editor display can affect assignability and inference. An anonymous mapped type does not specify which types should be preserved.                                      |
+| `ConditionalSimplifyDeep`           | Excluded  | Expansion for editor display can affect assignability and inference. An anonymous mapped type does not specify which types should be preserved.                                      |
+| `ConsistsOnlyOf`                    | Excluded  | Template-literal recursions differ on empty strings, widened strings, and mixtures of literal and nonliteral characters.                                                             |
+| `Constructor`                       | Covered   | [prefer-type-fest-constructor](../prefer-type-fest-constructor.md)                                                                                                                   |
+| `Curry`                             | Excluded  | Local function transformations choose their own handling of optional arguments, rest parameters, overloads, and inference.                                                           |
+| `DefaultsFor`                       | Excluded  | A plain intersection of defaults and overrides loses the distinction between optional keys, explicit undefined values, and required options.                                         |
+| `DelimiterCase`                     | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `DelimiterCasedProperties`          | Excluded  | Remapping property names also needs a policy for word boundaries and non-string keys.                                                                                                |
+| `DelimiterCasedPropertiesDeep`      | Excluded  | Deep key renaming must define where to stop recursion, how arrays are treated, and which property names change.                                                                      |
+| `DigitCharacter`                    | Excluded  | A hand-written alphabet can intentionally select a subset of ASCII. Matching an alias name cannot establish the exact character set.                                                 |
+| `DistributedOmit`                   | Covered   | [prefer-type-fest-distributed-omit](../prefer-type-fest-distributed-omit.md)                                                                                                         |
+| `DistributedPick`                   | Covered   | [prefer-type-fest-distributed-pick](../prefer-type-fest-distributed-pick.md)                                                                                                         |
+| `EmptyArray`                        | Covered   | [prefer-type-fest-empty-array](../prefer-type-fest-empty-array.md). Matches the dedicated local alias for a readonly empty tuple.                                                    |
+| `EmptyObject`                       | Excluded  | The upstream unique-symbol brand has different assignability from `Record<string, never>`, an index signature, or the native empty object type.                                      |
+| `Entries`                           | Covered   | [prefer-type-fest-entries](../prefer-type-fest-entries.md)                                                                                                                           |
+| `Entry`                             | Covered   | [prefer-type-fest-entry](../prefer-type-fest-entry.md)                                                                                                                               |
+| `Exact`                             | Excluded  | Excess property checking at an assignment is contextual. A local completeness check can admit objects that the upstream constraint rejects.                                          |
+| `Except`                            | Covered   | [prefer-type-fest-except](../prefer-type-fest-except.md)                                                                                                                             |
+| `ExceptOptions`                     | Excluded  | This is the options contract for an upstream operation. A local object with `requireExactProps` can configure unrelated code.                                                        |
+| `ExcludeExactly`                    | Excluded  | A built-in Extract or Exclude can accept values the strict or exact variant rejects. Selecting that stronger contract requires caller intent.                                        |
+| `ExcludeRestElement`                | Excluded  | A variadic tuple can have fixed elements on both sides of its rest. A simple infer Rest does not describe which components to keep.                                                  |
+| `ExcludeStrict`                     | Excluded  | A built-in Extract or Exclude can accept values the strict or exact variant rejects. Selecting that stronger contract requires caller intent.                                        |
+| `ExcludeValues`                     | Excluded  | Filtering value unions and removing keys of type never are distinct decisions. A conditional over an indexed access can distribute differently.                                      |
+| `ExclusifyUnion`                    | Excluded  | Adding optional never properties is a deliberate restriction on assignments between union members. An ordinary union expresses no such restriction.                                  |
+| `ExtendsStrict`                     | Excluded  | Distribution over a union and the treatment of any and never depend on options. An ordinary extends conditional carries no such policy.                                              |
+| `ExtendsStrictOptions`              | Excluded  | This is the options contract for an upstream operation. A local object with `distributiveUnions`, `strictNever`, `strictAny` can configure unrelated code.                           |
+| `ExtractExactly`                    | Excluded  | A built-in Extract or Exclude can accept values the strict or exact variant rejects. Selecting that stronger contract requires caller intent.                                        |
+| `ExtractLiterals`                   | Excluded  | Literal collapsing and extraction depend on distribution over the union and on how a widened primitive absorbs its literals.                                                         |
+| `ExtractRestElement`                | Covered   | [prefer-type-fest-extract-rest-element](../prefer-type-fest-extract-rest-element.md)                                                                                                 |
+| `ExtractStrict`                     | Excluded  | A built-in Extract or Exclude can accept values the strict or exact variant rejects. Selecting that stronger contract requires caller intent.                                        |
+| `ExtractValues`                     | Excluded  | Filtering value unions and removing keys of type never are distinct decisions. A conditional over an indexed access can distribute differently.                                      |
+| `Falsy`                             | Covered   | [prefer-type-fest-falsy](../prefer-type-fest-falsy.md)                                                                                                                               |
+| `FindGlobalInstanceType`            | Excluded  | Which globals exist depends on the selected DOM, Node, or other ambient libraries. A similarly named local declaration cannot establish that binding.                                |
+| `FindGlobalType`                    | Excluded  | Which globals exist depends on the selected DOM, Node, or other ambient libraries. A similarly named local declaration cannot establish that binding.                                |
+| `Finite`                            | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `FirstArrayElement`                 | Excluded  | For an array with no guaranteed first element the helper includes `undefined`. Indexed access at zero alone does not encode that possibility.                                        |
+| `FixedLengthArray`                  | Excluded  | Removing array methods that change length and preserving indexed members expresses a stronger contract than annotating length alone.                                                 |
+| `Flavor`                            | Excluded  | Tag names, metadata, and brand visibility depend on the originating brand. A structural field or plain intersection cannot establish that contract.                                  |
+| `Float`                             | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `FromEntries`                       | Excluded  | A mapped key–value union does not by itself model entry order, duplicate keys, or the fallback for arrays of unknown entries.                                                        |
+| `FunctionParameters`                | Excluded  | Inference from an overloaded or generic signature can select its last overload. A local Parameters or ReturnType wrapper does not establish equivalent overload handling.            |
+| `Get`                               | Excluded  | Property paths differ in bracket notation, index signatures, recursion depth, optional properties, and missing-key fallbacks.                                                        |
+| `GetOptions`                        | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `GetTagMetadata`                    | Excluded  | Reading a property does not prove that it is metadata for the specific upstream tag and its unique-symbol brand.                                                                     |
+| `GlobalThis`                        | Excluded  | The native typeof globalThis is explicit. Replacing it solely for its spelling adds an import to a standard platform type.                                                           |
+| `GreaterThan`                       | Excluded  | Tuple arithmetic over positive integer literals does not cover negative numbers, infinities, or generic widened inputs.                                                              |
+| `GreaterThanOrEqual`                | Excluded  | Tuple arithmetic over positive integer literals does not cover negative numbers, infinities, or generic widened inputs.                                                              |
+| `GuardedType`                       | Covered   | [prefer-type-fest-guarded-type](../prefer-type-fest-guarded-type.md). Matches the exact conditional that infers the guarded type of a predicate.                                     |
+| `HasMultipleCallSignatures`         | Excluded  | Inference from an overloaded or generic signature can select its last overload. A local Parameters or ReturnType wrapper does not establish equivalent overload handling.            |
+| `HasOptionalKeys`                   | Covered   | [prefer-type-fest-has-optional-keys](../prefer-type-fest-has-optional-keys.md)                                                                                                       |
+| `HasReadonlyKeys`                   | Covered   | [prefer-type-fest-has-readonly-keys](../prefer-type-fest-has-readonly-keys.md)                                                                                                       |
+| `HasRequiredKeys`                   | Covered   | [prefer-type-fest-has-required-keys](../prefer-type-fest-has-required-keys.md)                                                                                                       |
+| `HasWritableKeys`                   | Covered   | [prefer-type-fest-has-writable-keys](../prefer-type-fest-has-writable-keys.md)                                                                                                       |
+| `If`                                | Covered   | [prefer-type-fest-if](../prefer-type-fest-if.md)                                                                                                                                     |
+| `Includes`                          | Excluded  | `Element extends Tuple[number]` tests assignability to a union. Tuple membership can depend on the comparison and distribution settings.                                             |
+| `IncludesOptions`                   | Excluded  | This is the options contract for an upstream operation. A local object with `distributeItem` can configure unrelated code.                                                           |
+| `IncompatibleKeys`                  | Excluded  | Numeric and string key aliases, index signatures, and union members affect key matching. A plain keyof intersection misses these cases.                                              |
+| `IndexOf`                           | Excluded  | Searching an uncertain array or matching a widened member has different outcomes from an exact finite tuple search.                                                                  |
+| `IndexOfOptions`                    | Excluded  | This is the options contract for an upstream operation. A local object with `distributeItem` can configure unrelated code.                                                           |
+| `IndexTuple`                        | Excluded  | Mapping keyof a tuple also sees stringified indices and array members. It does not alone describe the intended numeric index tuple.                                                  |
+| `IntClosedRange`                    | Excluded  | Range boundaries, step size, and handling invalid numeric arguments affect the resulting union.                                                                                      |
+| `Integer`                           | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `IntRange`                          | Excluded  | Range boundaries, step size, and handling invalid numeric arguments affect the resulting union.                                                                                      |
+| `InvariantOf`                       | Excluded  | A private brand and the variance of its type parameter determine assignability. Different brands are deliberately incompatible.                                                      |
+| `InvertRecord`                      | Excluded  | A reversed mapped type needs a policy for repeated values, key aliases, and values that cannot be property keys.                                                                     |
+| `IsAny`                             | Covered   | [prefer-type-fest-is-any](../prefer-type-fest-is-any.md)                                                                                                                             |
+| `IsBooleanLiteral`                  | Excluded  | Distributive conditionals over a literal union can disagree for widened primitives, any, never, and branded values.                                                                  |
+| `IsEmptyObject`                     | Excluded  | It depends on TypeFest's branded `EmptyObject`. common `T extends {}` or `keyof T extends never` checks are not equivalent.                                                          |
+| `IsEqual`                           | Excluded  | Mutual assignability alone fails to distinguish some readonly and overlapping types, while ad hoc equality predicates differ on any, never, intersections and overloads.             |
+| `IsFloat`                           | Excluded  | A string-pattern test for numeric sign or decimal syntax must also agree for infinities, widened numbers, and generic arguments.                                                     |
+| `IsInteger`                         | Excluded  | A string-pattern test for numeric sign or decimal syntax must also agree for infinities, widened numbers, and generic arguments.                                                     |
+| `IsLiteral`                         | Excluded  | Distributive conditionals over a literal union can disagree for widened primitives, any, never, and branded values.                                                                  |
+| `IsLowercase`                       | Excluded  | Partially known template literals require an uncertain boolean result. A direct comparison with a case-converted string can give a definite result.                                  |
+| `IsMutuallyAssignable`              | Covered   | [prefer-type-fest-is-mutually-assignable](../prefer-type-fest-is-mutually-assignable.md)                                                                                             |
+| `IsNegative`                        | Excluded  | A string-pattern test for numeric sign or decimal syntax must also agree for infinities, widened numbers, and generic arguments.                                                     |
+| `IsNever`                           | Covered   | [prefer-type-fest-is-never](../prefer-type-fest-is-never.md)                                                                                                                         |
+| `IsNull`                            | Covered   | [prefer-type-fest-is-null](../prefer-type-fest-is-null.md)                                                                                                                           |
+| `IsNullable`                        | Covered   | [prefer-type-fest-is-nullable](../prefer-type-fest-is-nullable.md)                                                                                                                   |
+| `IsNumberLike`                      | Excluded  | Numeric-string predicates differ about whitespace, signs, formats, branded strings, and the fallback for widened input.                                                              |
+| `IsNumericLiteral`                  | Excluded  | A test that works for ordinary literals can differ for never, any, branded types, and partially known template literals.                                                             |
+| `IsNumericString`                   | Excluded  | Numeric-string predicates differ about whitespace, signs, formats, branded strings, and the fallback for widened input.                                                              |
+| `IsOptional`                        | Excluded  | Plain undefined-in-type tests differ for any, never, and unions. checking whether an object property may be omitted is a separate operation.                                         |
+| `IsOptionalKeyOf`                   | Excluded  | Key modifiers and their distribution over unions need explicit handling for any and missing keys. The higher-level key collection rules cover their own narrower compositions.       |
+| `IsPrimitive`                       | Excluded  | A naked extends check distributes across unions and has special behavior for any and never. Those choices determine this predicate's result.                                         |
+| `IsReadonlyArray`                   | Excluded  | A readonly array constraint also accepts mutable arrays. The upstream predicate distinguishes mutable arrays and returns `false` for `never`.                                        |
+| `IsReadonlyKeyOf`                   | Excluded  | Key modifiers and their distribution over unions need explicit handling for any and missing keys. The higher-level key collection rules cover their own narrower compositions.       |
+| `IsRecordLike`                      | Excluded  | An object constraint alone includes functions and arrays. The most useful match depends on the precise upstream record predicate.                                                    |
+| `IsRequiredKeyOf`                   | Excluded  | Key modifiers and their distribution over unions need explicit handling for any and missing keys. The higher-level key collection rules cover their own narrower compositions.       |
+| `IsStringLiteral`                   | Excluded  | A test that works for ordinary literals can differ for never, any, branded types, and partially known template literals.                                                             |
+| `IsSymbolLiteral`                   | Excluded  | Distributive conditionals over a literal union can disagree for widened primitives, any, never, and branded values.                                                                  |
+| `IsTemplateLiteral`                 | Excluded  | A template literal with a widened placeholder has different semantics from a finite string literal union or an unconstrained string.                                                 |
+| `IsTuple`                           | Covered   | [prefer-type-fest-is-tuple](../prefer-type-fest-is-tuple.md)                                                                                                                         |
+| `IsTupleOptions`                    | Excluded  | This is the options contract for an upstream operation. A local object with `fixedLengthOnly` can configure unrelated code.                                                          |
+| `IsUndefined`                       | Covered   | [prefer-type-fest-is-undefined](../prefer-type-fest-is-undefined.md)                                                                                                                 |
+| `IsUnion`                           | Excluded  | A test that works for ordinary literals can differ for never, any, branded types, and partially known template literals.                                                             |
+| `IsUnionMember`                     | Excluded  | The contract tests whether the input is a whole union member. Assignability can accept a narrower type than any member.                                                              |
+| `IsUnknown`                         | Covered   | [prefer-type-fest-is-unknown](../prefer-type-fest-is-unknown.md)                                                                                                                     |
+| `IsUppercase`                       | Excluded  | Partially known template literals require an uncertain boolean result. A direct comparison with a case-converted string can give a definite result.                                  |
+| `IsWhitespace`                      | Excluded  | Template-literal recursions differ on empty strings, widened strings, and mixtures of literal and nonliteral characters.                                                             |
+| `IsWritableKeyOf`                   | Excluded  | Key modifiers and their distribution over unions need explicit handling for any and missing keys. The higher-level key collection rules cover their own narrower compositions.       |
+| `IterableElement`                   | Covered   | [prefer-type-fest-iterable-element](../prefer-type-fest-iterable-element.md)                                                                                                         |
+| `Join`                              | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `JoinUnion`                         | Excluded  | Union member order is a compiler detail. A local helper can require different ordering or preserve different literal information.                                                    |
+| `JsonArray`                         | Covered   | [prefer-type-fest-json-array](../prefer-type-fest-json-array.md)                                                                                                                     |
+| `Jsonifiable`                       | Excluded  | Projects vary in how a JSON boundary treats undefined, toJSON methods, dates, arrays, and non-serializable fields.                                                                   |
+| `JsonifiableArray`                  | Excluded  | A local serialization schema may allow different toJSON methods, undefined values, or array members. Structural resemblance does not identify its wire contract.                     |
+| `JsonifiableObject`                 | Excluded  | A local serialization schema may allow different toJSON methods, undefined values, or array members. Structural resemblance does not identify its wire contract.                     |
+| `JsonifiableValue`                  | Excluded  | A local serialization schema may allow different toJSON methods, undefined values, or array members. Structural resemblance does not identify its wire contract.                     |
+| `Jsonify`                           | Excluded  | Projects vary in how a JSON boundary treats undefined, toJSON methods, dates, arrays, and non-serializable fields.                                                                   |
+| `JsonObject`                        | Covered   | [prefer-type-fest-json-object](../prefer-type-fest-json-object.md)                                                                                                                   |
+| `JsonPointer`                       | Excluded  | Path grammars differ in escaping, separators, accepted indices, and fallback behavior. Similar string patterns do not establish the same grammar.                                    |
+| `JsonPointerOptions`                | Excluded  | This is the options contract for an upstream operation. A local object with `maxRecursionDepth` can configure unrelated code.                                                        |
+| `JsonPrimitive`                     | Covered   | [prefer-type-fest-json-primitive](../prefer-type-fest-json-primitive.md)                                                                                                             |
+| `JsonValue`                         | Covered   | [prefer-type-fest-json-value](../prefer-type-fest-json-value.md)                                                                                                                     |
+| `KebabCase`                         | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `KebabCasedProperties`              | Excluded  | Remapping property names also needs a policy for word boundaries and non-string keys.                                                                                                |
+| `KebabCasedPropertiesDeep`          | Excluded  | Deep key renaming must define where to stop recursion, how arrays are treated, and which property names change.                                                                      |
+| `KebabCaseString`                   | Excluded  | Recognizing an already-cased string and converting a string to that case have different contracts. A local template literal does not identify which operation is intended.           |
+| `KeyAsString`                       | Excluded  | Numeric keys, symbols, and template-literal index signatures have different string conversions. Extracting only string keys loses numeric keys.                                      |
+| `KeysOfUnion`                       | Covered   | [prefer-type-fest-keys-of-union](../prefer-type-fest-keys-of-union.md)                                                                                                               |
+| `LastArrayElement`                  | Excluded  | A last-element tuple inference needs explicit behavior for empty, optional, readonly, and open rest tails.                                                                           |
+| `LessThan`                          | Covered   | [prefer-type-fest-less-than](../prefer-type-fest-less-than.md)                                                                                                                       |
+| `LessThanOrEqual`                   | Covered   | [prefer-type-fest-less-than-or-equal](../prefer-type-fest-less-than-or-equal.md)                                                                                                     |
+| `LiteralList`                       | Excluded  | Validating that a tuple contains every literal in a union exactly once also requires checking duplicates, missing and extra members. A literal tuple alone guarantees none of these. |
+| `LiteralToPrimitive`                | Excluded  | A widening conditional can intentionally preserve branded primitives, handle symbols differently, or keep literal members of a union.                                                |
+| `LiteralToPrimitiveDeep`            | Excluded  | A recursive mapped type needs explicit stopping conditions for arrays, tuples, built-ins, and readonly properties to preserve the transformation.                                    |
+| `LiteralUnion`                      | Covered   | [prefer-type-fest-literal-union](../prefer-type-fest-literal-union.md)                                                                                                               |
+| `LowercaseLetter`                   | Excluded  | A hand-written alphabet can intentionally select a subset of ASCII. Matching an alias name cannot establish the exact character set.                                                 |
+| `MapKey`                            | Excluded  | Upstream handles readonly maps, weak maps, and any explicitly. An infer from mutable Map alone misses these cases.                                                                   |
+| `MapValue`                          | Excluded  | Upstream handles readonly maps, weak maps, and any explicitly. An infer from mutable Map alone misses these cases.                                                                   |
+| `MatchingKey`                       | Excluded  | Numeric and string key aliases, index signatures, and union members affect key matching. A plain keyof intersection misses these cases.                                              |
+| `Merge`                             | Covered   | [prefer-type-fest-merge](../prefer-type-fest-merge.md)                                                                                                                               |
+| `MergeAll`                          | Excluded  | An intersection of a tuple's elements loses precedence when later members replace earlier keys.                                                                                      |
+| `MergeDeep`                         | Excluded  | Deep merges choose precedence and distinct policies for tuple elements, open arrays, and nested object keys.                                                                         |
+| `MergeDeepOptions`                  | Excluded  | This is the options contract for an upstream operation. A local object with `arrayMergeMode`, `recurseIntoArrays` can configure unrelated code.                                      |
+| `MergeExclusive`                    | Covered   | [prefer-type-fest-merge-exclusive](../prefer-type-fest-merge-exclusive.md)                                                                                                           |
+| `MinimumLengthArray`                | Covered   | [prefer-type-fest-minimum-length-array](../prefer-type-fest-minimum-length-array.md)                                                                                                 |
+| `Modify`                            | Excluded  | Replacing a property is distinct from intersecting its old and new types. Recursion through indexed objects and arrays introduces additional policy choices.                         |
+| `ModifyDeep`                        | Excluded  | Replacing a property is distinct from intersecting its old and new types. Recursion through indexed objects and arrays introduces additional policy choices.                         |
+| `MultidimensionalArray`             | Excluded  | Recursive array types choose the allowed leaf type, dimensions, and mutability. Nested array syntax permits several such interpretations.                                            |
+| `MultidimensionalReadonlyArray`     | Excluded  | Recursive array types choose the allowed leaf type, dimensions, and mutability. Nested array syntax permits several such interpretations.                                            |
+| `Negate`                            | Excluded  | Numeric calculations must handle widened numbers, unions, infinities, and branded inputs. Recursion over a finite literal tuple covers only part of that domain.                     |
+| `Negative`                          | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `NegativeFloat`                     | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `NegativeInfinity`                  | Excluded  | Using an extreme numeric literal in a public type can carry domain-specific range intent. A runtime Infinity value does not give a distinct literal type.                            |
+| `NegativeInteger`                   | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `NonEmptyObject`                    | Excluded  | Having known keys in a type does not guarantee that any optional key must be present on a particular value.                                                                          |
+| `NonEmptyString`                    | Excluded  | Upstream rejects any type that can include the empty string, including widened string. Excluding the empty literal from string still yields string.                                  |
+| `NonEmptyTuple`                     | Covered   | [prefer-type-fest-non-empty-tuple](../prefer-type-fest-non-empty-tuple.md)                                                                                                           |
+| `NonNegative`                       | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `NonNegativeInteger`                | Excluded  | Numeric filters differ for widened numbers, numeric enums, branded values, and literal unions. A generic numeric alias cannot establish those policies.                              |
+| `NonNegativeIntegerString`          | Excluded  | Numeric-string predicates differ about whitespace, signs, formats, branded strings, and the fallback for widened input.                                                              |
+| `NonNullableDeep`                   | Covered   | [prefer-type-fest-non-nullable-deep](../prefer-type-fest-non-nullable-deep.md)                                                                                                       |
+| `NonNullableDeepOptions`            | Excluded  | This is the options contract for an upstream operation. A local object with `keep` can configure unrelated code.                                                                     |
+| `Not`                               | Covered   | [prefer-type-fest-not](../prefer-type-fest-not.md)                                                                                                                                   |
+| `ObjectEntries`                     | Excluded  | A union of keyof/value tuples can lose key–value correlation, member-specific keys, or the distinction between optional values and absent properties.                                |
+| `ObjectEntry`                       | Excluded  | A union of keyof/value tuples can lose key–value correlation, member-specific keys, or the distinction between optional values and absent properties.                                |
+| `ObjectMerge`                       | Excluded  | Handling index signatures separately from explicit keys makes the upstream object merge differ from an intersection.                                                                 |
+| `ObjectToTuple`                     | Excluded  | Union member order is a compiler detail. A local helper can require different ordering or preserve different literal information.                                                    |
+| `ObjectToUnion`                     | Excluded  | A plain union of one-property Pick types handles arrays, index signatures, and unions differently from the upstream object-only transformation.                                      |
+| `OmitDeep`                          | Excluded  | Property paths differ in bracket notation, index signatures, recursion depth, optional properties, and missing-key fallbacks.                                                        |
+| `OmitIndexSignature`                | Covered   | [prefer-type-fest-omit-index-signature](../prefer-type-fest-omit-index-signature.md)                                                                                                 |
+| `Opaque`                            | Migration | [prefer-type-fest-tagged-brands](../prefer-type-fest-tagged-brands.md) recognizes this deprecated source spelling.                                                                   |
+| `Optional`                          | Covered   | [prefer-type-fest-optional](../prefer-type-fest-optional.md)                                                                                                                         |
+| `OptionalKeysOf`                    | Covered   | [prefer-type-fest-optional-keys-of](../prefer-type-fest-optional-keys-of.md)                                                                                                         |
+| `OptionalPaths`                     | Excluded  | Path grammars differ in escaping, separators, accepted indices, and fallback behavior. Similar string patterns do not establish the same grammar.                                    |
+| `OptionalPathsOptions`              | Excluded  | This is the options contract for an upstream operation. A local object with `maxRecursionDepth` can configure unrelated code.                                                        |
+| `Or`                                | Covered   | [prefer-type-fest-or](../prefer-type-fest-or.md)                                                                                                                                     |
+| `OrAll`                             | Covered   | [prefer-type-fest-or-all](../prefer-type-fest-or-all.md)                                                                                                                             |
+| `OverloadParameters`                | Covered   | [prefer-type-fest-overload-parameters](../prefer-type-fest-overload-parameters.md). Matches the supported local declaration that uses the imported `Overloads` helper.               |
+| `OverloadReturnType`                | Covered   | [prefer-type-fest-overload-return-type](../prefer-type-fest-overload-return-type.md). Matches the supported local declaration that uses the imported `Overloads` helper.             |
+| `Overloads`                         | Excluded  | Inference from an overloaded or generic signature can select its last overload. A local Parameters or ReturnType wrapper does not establish equivalent overload handling.            |
+| `OverrideProperties`                | Excluded  | A constrained override restricts the allowed keys of the source. A Merge-shaped intersection alone does not prove that the caller wanted this extra restriction.                     |
+| `OverridePropertiesDeep`            | Excluded  | Replacing a property is distinct from intersecting its old and new types. Recursion through indexed objects and arrays introduces additional policy choices.                         |
+| `PackageJson`                       | Excluded  | A project file schema may intentionally accept private extensions or reject upstream fields. Its name cannot establish schema compatibility.                                         |
+| `ParsePath`                         | Excluded  | Path grammars differ in escaping, separators, accepted indices, and fallback behavior. Similar string patterns do not establish the same grammar.                                    |
+| `PartialApply`                      | Excluded  | A partial application or function pipeline carries argument positions, inference, and return-type flow. A list of function types alone does not specify those relationships.         |
+| `PartialDeep`                       | Covered   | [prefer-type-fest-partial-deep](../prefer-type-fest-partial-deep.md)                                                                                                                 |
+| `PartialDeepOptions`                | Excluded  | This is the options contract for an upstream operation. A local object with `recurseIntoArrays`, `allowUndefinedInNonTupleArrays`, `keep` can configure unrelated code.              |
+| `PartialOnUndefined`                | Excluded  | The optional modifier and an explicit undefined union carry different information under exactOptionalPropertyTypes. A shallow Partial or Required cannot recover that distinction.   |
+| `PartialOnUndefinedDeep`            | Excluded  | A recursive mapped type needs explicit stopping conditions for arrays, tuples, built-ins, and readonly properties to preserve the transformation.                                    |
+| `PartialOnUndefinedDeepOptions`     | Excluded  | This is the options contract for an upstream operation. A local object with `recurseIntoArrays` can configure unrelated code.                                                        |
+| `PascalCase`                        | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `PascalCasedProperties`             | Excluded  | Remapping property names also needs a policy for word boundaries and non-string keys.                                                                                                |
+| `PascalCasedPropertiesDeep`         | Excluded  | Deep key renaming must define where to stop recursion, how arrays are treated, and which property names change.                                                                      |
+| `PascalCaseString`                  | Excluded  | Recognizing an already-cased string and converting a string to that case have different contracts. A local template literal does not identify which operation is intended.           |
+| `Paths`                             | Excluded  | Property paths differ in bracket notation, index signatures, recursion depth, optional properties, and missing-key fallbacks.                                                        |
+| `PathsOptions`                      | Excluded  | This is the options contract for an upstream operation. A local object with `maxRecursionDepth`, `maxCircularDepth`, `bracketNotation` can configure unrelated code.                 |
+| `PickDeep`                          | Excluded  | Property paths differ in bracket notation, index signatures, recursion depth, optional properties, and missing-key fallbacks.                                                        |
+| `PickIndexSignature`                | Covered   | [prefer-type-fest-pick-index-signature](../prefer-type-fest-pick-index-signature.md)                                                                                                 |
+| `PickNonNever`                      | Excluded  | Filtering value unions and removing keys of type never are distinct decisions. A conditional over an indexed access can distribute differently.                                      |
+| `PickReadonly`                      | Excluded  | Readonly is a property modifier. Simple Pick by value type cannot detect it, and a non-distributive key calculation loses union members.                                             |
+| `PickWritable`                      | Excluded  | Readonly is a property modifier. Simple Pick by value type cannot detect it, and a non-distributive key calculation loses union members.                                             |
+| `Pipe`                              | Excluded  | A partial application or function pipeline carries argument positions, inference, and return-type flow. A list of function types alone does not specify those relationships.         |
+| `PositiveInfinity`                  | Excluded  | Using an extreme numeric literal in a public type can carry domain-specific range intent. A runtime Infinity value does not give a distinct literal type.                            |
+| `Primitive`                         | Covered   | [prefer-type-fest-primitive](../prefer-type-fest-primitive.md)                                                                                                                       |
+| `Promisable`                        | Covered   | [prefer-type-fest-promisable](../prefer-type-fest-promisable.md)                                                                                                                     |
+| `PropertyValue`                     | Excluded  | Indexed access can reject a legitimate numeric key alias or drop a union member lacking the key. The intended fallback must be known.                                                |
+| `ReadonlyDate`                      | Covered   | [prefer-type-fest-readonly-date](../prefer-type-fest-readonly-date.md). Matches the readonly view that omits the native date setters.                                                |
+| `ReadonlyDeep`                      | Covered   | [prefer-type-fest-readonly-deep](../prefer-type-fest-readonly-deep.md)                                                                                                               |
+| `ReadonlyDeepOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `keep` can configure unrelated code.                                                                     |
+| `ReadonlyKeysOf`                    | Covered   | [prefer-type-fest-readonly-keys-of](../prefer-type-fest-readonly-keys-of.md)                                                                                                         |
+| `RemovePrefix`                      | Excluded  | A literal match has an obvious remainder, but widened prefixes and suffixes need an explicit fallback. Project helpers can preserve, widen, or reject the input.                     |
+| `RemovePrefixOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `RemoveSuffix`                      | Excluded  | A literal match has an obvious remainder, but widened prefixes and suffixes need an explicit fallback. Project helpers can preserve, widen, or reject the input.                     |
+| `RemoveSuffixOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `RenameKeys`                        | Excluded  | A remapping policy must define collision handling, numeric key aliases, and the resulting optional and readonly modifiers.                                                           |
+| `Replace`                           | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `ReplaceOptions`                    | Excluded  | This is the options contract for an upstream operation. A local object with `all` can configure unrelated code.                                                                      |
+| `RequireAllOrNone`                  | Covered   | [prefer-type-fest-require-all-or-none](../prefer-type-fest-require-all-or-none.md)                                                                                                   |
+| `RequireArity`                      | Excluded  | Counting all function parameters also counts optional ones. Rest parameters and overloads complicate the minimum required arity.                                                     |
+| `RequireAtLeastOne`                 | Covered   | [prefer-type-fest-require-at-least-one](../prefer-type-fest-require-at-least-one.md)                                                                                                 |
+| `RequiredDeep`                      | Covered   | [prefer-type-fest-required-deep](../prefer-type-fest-required-deep.md)                                                                                                               |
+| `RequiredDeepOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `keep` can configure unrelated code.                                                                     |
+| `RequiredKeepUndefined`             | Excluded  | The optional modifier and an explicit undefined union carry different information under exactOptionalPropertyTypes. A shallow Partial or Required cannot recover that distinction.   |
+| `RequiredKeysOf`                    | Covered   | [prefer-type-fest-required-keys-of](../prefer-type-fest-required-keys-of.md)                                                                                                         |
+| `RequiredNonNullable`               | Covered   | [prefer-type-fest-required-non-nullable](../prefer-type-fest-required-non-nullable.md)                                                                                               |
+| `RequireExactlyOne`                 | Covered   | [prefer-type-fest-require-exactly-one](../prefer-type-fest-require-exactly-one.md)                                                                                                   |
+| `RequireNone`                       | Covered   | [prefer-type-fest-require-none](../prefer-type-fest-require-none.md)                                                                                                                 |
+| `RequireOneOrNone`                  | Covered   | [prefer-type-fest-require-one-or-none](../prefer-type-fest-require-one-or-none.md)                                                                                                   |
+| `RouteParameters`                   | Excluded  | Path grammars differ in escaping, separators, accepted indices, and fallback behavior. Similar string patterns do not establish the same grammar.                                    |
+| `Schema`                            | Covered   | [prefer-type-fest-schema](../prefer-type-fest-schema.md)                                                                                                                             |
+| `SchemaOptions`                     | Excluded  | This is the options contract for an upstream operation. A local object with `recurseIntoArrays` can configure unrelated code.                                                        |
+| `ScreamingSnakeCase`                | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `ScreamingSnakeCasedProperties`     | Excluded  | Property-name transforms need explicit word-boundary and recursion policies. A mapped type calling Uppercase alone changes different keys.                                           |
+| `ScreamingSnakeCasedPropertiesDeep` | Excluded  | Property-name transforms need explicit word-boundary and recursion policies. A mapped type calling Uppercase alone changes different keys.                                           |
+| `ScreamingSnakeCaseString`          | Excluded  | Recognizing an already-cased string and converting a string to that case have different contracts. A local template literal does not identify which operation is intended.           |
+| `SetFieldType`                      | Excluded  | Rewriting a key must preserve its optional and readonly modifiers according to an explicit option. A simple mapped replacement lacks that policy.                                    |
+| `SetFieldTypeOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `preservePropertyModifiers` can configure unrelated code.                                                |
+| `SetNonNullable`                    | Covered   | [prefer-type-fest-set-non-nullable](../prefer-type-fest-set-non-nullable.md)                                                                                                         |
+| `SetNonNullableDeep`                | Excluded  | A recursive mapped type needs explicit stopping conditions for arrays, tuples, built-ins, and readonly properties to preserve the transformation.                                    |
+| `SetNullable`                       | Excluded  | These utilities preserve modifiers on unselected keys. Union distribution, tuple positions, and the selected key set make a generic Partial, Required, or intersection insufficient. |
+| `SetOptional`                       | Covered   | [prefer-type-fest-set-optional](../prefer-type-fest-set-optional.md)                                                                                                                 |
+| `SetOptionalDeep`                   | Excluded  | These utilities preserve modifiers on unselected keys. Union distribution, tuple positions, and the selected key set make a generic Partial, Required, or intersection insufficient. |
+| `SetOptionalExcept`                 | Excluded  | These utilities preserve modifiers on unselected keys. Union distribution, tuple positions, and the selected key set make a generic Partial, Required, or intersection insufficient. |
+| `SetParameterType`                  | Excluded  | Rebuilding a function with different parameters can drop its receiver, optional/rest parameter behavior, generic relationships, or overloads.                                        |
+| `SetProperty`                       | Excluded  | A shallow indexed assignment does not encode the upstream path grammar, numeric key aliases, or nested array updates.                                                                |
+| `SetReadonly`                       | Covered   | [prefer-type-fest-set-readonly](../prefer-type-fest-set-readonly.md)                                                                                                                 |
+| `SetRequired`                       | Covered   | [prefer-type-fest-set-required](../prefer-type-fest-set-required.md)                                                                                                                 |
+| `SetRequiredDeep`                   | Excluded  | A recursive mapped type needs explicit stopping conditions for arrays, tuples, built-ins, and readonly properties to preserve the transformation.                                    |
+| `SetRequiredExcept`                 | Excluded  | These utilities preserve modifiers on unselected keys. Union distribution, tuple positions, and the selected key set make a generic Partial, Required, or intersection insufficient. |
+| `SetRequiredNonNullable`            | Excluded  | These utilities preserve modifiers on unselected keys. Union distribution, tuple positions, and the selected key set make a generic Partial, Required, or intersection insufficient. |
+| `SetReturnType`                     | Covered   | [prefer-type-fest-set-return-type](../prefer-type-fest-set-return-type.md)                                                                                                           |
+| `SharedUnionFields`                 | Excluded  | Mapping over a union changes how common, optional, and member-specific properties are collected. Keys alone do not identify the intended value types.                                |
+| `SharedUnionFieldsDeep`             | Excluded  | Nested unions can retain or omit different keys. Array recursion is an explicit policy choice.                                                                                       |
+| `SharedUnionFieldsDeepOptions`      | Excluded  | This is the options contract for an upstream operation. A local object with `recurseIntoArrays` can configure unrelated code.                                                        |
+| `Simplify`                          | Covered   | [prefer-type-fest-simplify](../prefer-type-fest-simplify.md)                                                                                                                         |
+| `SimplifyDeep`                      | Excluded  | Expansion for editor display can affect assignability and inference. An anonymous mapped type does not specify which types should be preserved.                                      |
+| `SimplifyUnion`                     | Excluded  | This mapped-and-indexed identity changes display and deferral for unresolved generic unions. A general union gives no reason to introduce the helper.                                |
+| `SingleKeyObject`                   | Excluded  | A one-property literal does not guarantee that a generic input has precisely one key, especially for unions and index signatures.                                                    |
+| `SnakeCase`                         | Excluded  | Word boundaries involving digits, punctuation, and consecutive capitals affect the output. A string case conversion can intentionally use a different tokenizer.                     |
+| `SnakeCasedProperties`              | Excluded  | Remapping property names also needs a policy for word boundaries and non-string keys.                                                                                                |
+| `SnakeCasedPropertiesDeep`          | Excluded  | Deep key renaming must define where to stop recursion, how arrays are treated, and which property names change.                                                                      |
+| `SnakeCaseString`                   | Excluded  | Recognizing an already-cased string and converting a string to that case have different contracts. A local template literal does not identify which operation is intended.           |
+| `SomeExtend`                        | Excluded  | Checking a union of tuple members is different from checking every element or any element, particularly for empty tuples and never.                                                  |
+| `SomeExtendOptions`                 | Excluded  | This is the options contract for an upstream operation. A local object with `strictNever` can configure unrelated code.                                                              |
+| `Split`                             | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `SplitOnRestElement`                | Excluded  | A variadic tuple can have fixed elements on both sides of its rest. A simple infer Rest does not describe which components to keep.                                                  |
+| `SplitOnRestElementOptions`         | Excluded  | This is the options contract for an upstream operation. A local object with `preserveOptionalModifier` can configure unrelated code.                                                 |
+| `SplitOptions`                      | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `Spread`                            | Excluded  | Object and array spread handle overwrite order and optional properties differently from an intersection.                                                                             |
+| `StartsWith`                        | Excluded  | The upstream predicate returns `boolean` for a broad `string` input. A conditional that checks just one template literal instead returns `false`.                                    |
+| `StrictEventTarget`                 | Excluded  | Typed event targets choose their own event map and listener overloads. A standard EventTarget use does not identify that contract.                                                   |
+| `Stringified`                       | Covered   | [prefer-type-fest-stringified](../prefer-type-fest-stringified.md)                                                                                                                   |
+| `StringLength`                      | Covered   | [prefer-type-fest-string-length](../prefer-type-fest-string-length.md)                                                                                                               |
+| `StringRepeat`                      | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `StringReverse`                     | Excluded  | Template-literal operations have different fallbacks for branded, widened, empty, and union strings. Matching the literal happy path is insufficient.                                |
+| `StringSlice`                       | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `StringToArray`                     | Excluded  | Manual equivalents are recursive template-literal parsers with subtle `any`, `never`, literal, and non-literal rest-element behavior. Broad replacement would be noisy and unsafe.   |
+| `StringToArrayOptions`              | Excluded  | This is the options contract for an upstream operation. A local object with `strict` can configure unrelated code.                                                                   |
+| `StringToBoolean`                   | Excluded  | The helper returns `boolean` for a broad `string`. Testing the two boolean literal strings alone misses that fallback.                                                               |
+| `StringToNumber`                    | Excluded  | The obvious infer-number conditional helper is not equivalent to TypeFest's handling of `string`, `any`, infinities, and numeric strings without valid numeric literal counterparts. |
+| `StructuredCloneable`               | Excluded  | Structured cloning supports a specific set of platform objects and containers. A local serialization model may deliberately accept different values.                                 |
+| `SubsetOf`                          | Covered   | [prefer-type-fest-subset-of](../prefer-type-fest-subset-of.md)                                                                                                                       |
+| `SubstituteDeep`                    | Excluded  | Recursive transformations need explicit boundaries for containers, functions, object leaves, and cycles. A shallow indexed or mapped type cannot specify them.                       |
+| `Subtract`                          | Excluded  | Tuple-length arithmetic over small positive literals does not cover negative numbers, widened arguments, or the upstream numeric limits.                                             |
+| `Sum`                               | Excluded  | Tuple-length arithmetic over small positive literals does not cover negative numbers, widened arguments, or the upstream numeric limits.                                             |
+| `Tag`                               | Excluded  | Tag names, metadata, and brand visibility depend on the originating brand. A structural field or plain intersection cannot establish that contract.                                  |
+| `Tagged`                            | Covered   | [prefer-type-fest-tagged-brands](../prefer-type-fest-tagged-brands.md)                                                                                                               |
+| `TaggedUnion`                       | Excluded  | A shared literal discriminant alone cannot encode the intended payload mapping, optional fields, or whether additional properties are allowed.                                       |
+| `Thunkable`                         | Covered   | [prefer-type-fest-thunkable](../prefer-type-fest-thunkable.md)                                                                                                                       |
+| `ToString`                          | Excluded  | A template with an interpolated value can be a formatting policy for a restricted input set. Its syntax alone does not establish the upstream input domain.                          |
+| `Trim`                              | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `Truthy`                            | Covered   | [prefer-type-fest-truthy](../prefer-type-fest-truthy.md)                                                                                                                             |
+| `TsConfigJson`                      | Excluded  | A project file schema may intentionally accept private extensions or reject upstream fields. Its name cannot establish schema compatibility.                                         |
+| `TupleLength`                       | Excluded  | TupleLength rejects open arrays, whereas indexing length returns number. The existing ArrayLength rule targets a different contract.                                                 |
+| `TupleMax`                          | Excluded  | Numeric calculations must handle widened numbers, unions, infinities, and branded inputs. Recursion over a finite literal tuple covers only part of that domain.                     |
+| `TupleMin`                          | Excluded  | Numeric calculations must handle widened numbers, unions, infinities, and branded inputs. Recursion over a finite literal tuple covers only part of that domain.                     |
+| `TupleOf`                           | Covered   | [prefer-type-fest-tuple-of](../prefer-type-fest-tuple-of.md)                                                                                                                         |
+| `TupleToEnum`                       | Excluded  | An enum-like record needs explicit readonly and literal-key policies. Assigning numeric values additionally depends on a stable tuple order.                                         |
+| `TupleToEnumOptions`                | Excluded  | This is the options contract for an upstream operation. A local object with `numeric`, `startIndex` can configure unrelated code.                                                    |
+| `TupleToObject`                     | Excluded  | An index-mapped tuple and an object with numeric or string keys can differ in preserved modifiers and generated array members.                                                       |
+| `TupleToUnion`                      | Excluded  | `T[number]` is already owned by `prefer-type-fest-array-element`, and adding a second rule would duplicate reports.                                                                  |
+| `TypedArray`                        | Excluded  | Projects can deliberately omit BigInt or other typed-array families from an otherwise similar union.                                                                                 |
+| `Uncurry`                           | Excluded  | Local function transformations choose their own handling of optional arguments, rest parameters, overloads, and inference.                                                           |
+| `UndefinableDeep`                   | Excluded  | Recursive transformations need explicit boundaries for containers, functions, object leaves, and cycles. A shallow indexed or mapped type cannot specify them.                       |
+| `UndefinableDeepOptions`            | Excluded  | This is the options contract for an upstream operation. A local object with `keep` can configure unrelated code.                                                                     |
+| `UndefinedOnPartial`                | Excluded  | The optional modifier and an explicit undefined union carry different information under exactOptionalPropertyTypes. A shallow Partial or Required cannot recover that distinction.   |
+| `UndefinedOnPartialDeep`            | Excluded  | A recursive mapped type needs explicit stopping conditions for arrays, tuples, built-ins, and readonly properties to preserve the transformation.                                    |
+| `UndefinedToOptional`               | Excluded  | The optional modifier and an explicit undefined union carry different information under exactOptionalPropertyTypes. A shallow Partial or Required cannot recover that distinction.   |
+| `UnionLength`                       | Covered   | [prefer-type-fest-union-length](../prefer-type-fest-union-length.md)                                                                                                                 |
+| `UnionMax`                          | Excluded  | Numeric calculations must handle widened numbers, unions, infinities, and branded inputs. Recursion over a finite literal tuple covers only part of that domain.                     |
+| `UnionMember`                       | Covered   | [prefer-type-fest-union-member](../prefer-type-fest-union-member.md)                                                                                                                 |
+| `UnionMin`                          | Excluded  | Numeric calculations must handle widened numbers, unions, infinities, and branded inputs. Recursion over a finite literal tuple covers only part of that domain.                     |
+| `UnionToEnum`                       | Excluded  | An enum-like record needs explicit readonly and literal-key policies. Assigning numeric values additionally depends on a stable tuple order.                                         |
+| `UnionToIntersection`               | Covered   | [prefer-type-fest-union-to-intersection](../prefer-type-fest-union-to-intersection.md)                                                                                               |
+| `UnionToTuple`                      | Covered   | [prefer-type-fest-union-to-tuple](../prefer-type-fest-union-to-tuple.md)                                                                                                             |
+| `UnknownArray`                      | Covered   | [prefer-type-fest-unknown-array](../prefer-type-fest-unknown-array.md)                                                                                                               |
+| `UnknownCollection`                 | Excluded  | This utility includes arrays, maps, sets, and readonly and weak variants. Narrower project-specific collection unions are common.                                                    |
+| `UnknownMap`                        | Covered   | [prefer-type-fest-unknown-map](../prefer-type-fest-unknown-map.md)                                                                                                                   |
+| `UnknownRecord`                     | Covered   | [prefer-type-fest-unknown-record](../prefer-type-fest-unknown-record.md)                                                                                                             |
+| `UnknownSet`                        | Covered   | [prefer-type-fest-unknown-set](../prefer-type-fest-unknown-set.md)                                                                                                                   |
+| `UnwrapBrandedPrimitive`            | Excluded  | Tag names, metadata, and brand visibility depend on the originating brand. A structural field or plain intersection cannot establish that contract.                                  |
+| `UnwrapOpaque`                      | Migration | [prefer-type-fest-unwrap-tagged](../prefer-type-fest-unwrap-tagged.md) recognizes this deprecated source spelling.                                                                   |
+| `UnwrapPartial`                     | Excluded  | Removing a mapped wrapper without preserving primitives, arrays, maps, and sets changes how those inputs behave.                                                                     |
+| `UnwrapRequired`                    | Excluded  | Removing a mapped wrapper without preserving primitives, arrays, maps, and sets changes how those inputs behave.                                                                     |
+| `UnwrapTagged`                      | Covered   | [prefer-type-fest-unwrap-tagged](../prefer-type-fest-unwrap-tagged.md)                                                                                                               |
+| `UppercaseLetter`                   | Excluded  | A hand-written alphabet can intentionally select a subset of ASCII. Matching an alias name cannot establish the exact character set.                                                 |
+| `ValueOf`                           | Covered   | [prefer-type-fest-value-of](../prefer-type-fest-value-of.md)                                                                                                                         |
+| `ValueOfDeep`                       | Excluded  | Recursive transformations need explicit boundaries for containers, functions, object leaves, and cycles. A shallow indexed or mapped type cannot specify them.                       |
+| `WhitespaceCharacter`               | Excluded  | Character tables encode the chosen alphabet. A project's punctuation or whitespace set can intentionally differ.                                                                     |
+| `Words`                             | Excluded  | Literal string parsers differ in their handling of wide strings, empty matches, and repeated or missing separators.                                                                  |
+| `WordsOptions`                      | Excluded  | This is the options contract for an upstream operation. A local object with `splitOnNumbers`, `splitOnPunctuation` can configure unrelated code.                                     |
+| `Writable`                          | Covered   | [prefer-type-fest-writable](../prefer-type-fest-writable.md)                                                                                                                         |
+| `WritableDeep`                      | Covered   | [prefer-type-fest-writable-deep](../prefer-type-fest-writable-deep.md)                                                                                                               |
+| `WritableDeepOptions`               | Excluded  | This is the options contract for an upstream operation. A local object with `keep` can configure unrelated code.                                                                     |
+| `WritableKeysOf`                    | Covered   | [prefer-type-fest-writable-keys-of](../prefer-type-fest-writable-keys-of.md)                                                                                                         |
+| `Xor`                               | Excluded  | Boolean XOR has a policy for boolean unions and never. Object-exclusive unions express an unrelated operation.                                                                       |
+
+## Type exports from type-fest/globals
+
+Importing this subpath also augments `SymbolConstructor.observable`. That ambient member has no independent exported name. The following three types belong specifically to `type-fest/globals`.
+
+| Export           | Decision | Rule or reason                                                                                                                                            |
+| ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ObservableLike` | Excluded | An object with a subscribe method alone does not establish the required observer protocol and subscription contract.                                      |
+| `Observer`       | Excluded | Callback interfaces choose different combinations of next, error, and complete handlers. Their names alone do not establish callback and error semantics. |
+| `Unsubscribable` | Excluded | An unsubscribe method is common to unrelated resource APIs. Its spelling does not establish an observable subscription.                                   |
+
+## Former type-fest exports
+
+These six root exports from the v5.8.0 baseline were removed in v6. They are listed separately so their migration rules remain discoverable without inflating the current export count.
+
+| Export          | Decision  | Rule or reason                                                                                                              |
+| --------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `IfAny`         | Migration | [prefer-type-fest-if](../prefer-type-fest-if.md) recognizes this v5 conditional alias.                                      |
+| `IfEmptyObject` | Migration | [prefer-type-fest-if](../prefer-type-fest-if.md) recognizes this v5 conditional alias.                                      |
+| `IfNever`       | Migration | [prefer-type-fest-if](../prefer-type-fest-if.md) recognizes this v5 conditional alias.                                      |
+| `IfNull`        | Migration | [prefer-type-fest-if](../prefer-type-fest-if.md) recognizes this v5 conditional alias.                                      |
+| `IfUnknown`     | Migration | [prefer-type-fest-if](../prefer-type-fest-if.md) recognizes this v5 conditional alias.                                      |
+| `ReadonlyTuple` | Migration | [prefer-type-fest-tuple-of](../prefer-type-fest-tuple-of.md) recognizes the removed alias and preserves tuple readonlyness. |
+
+## Maintaining the inventory
+
+Use `npx vitest run test/upstream-export-coverage.test.ts` to compare these rows with TypeScript's resolved public symbols in the pinned fixture and the registered rules. Run `npm run build` and `npm run sync:rules:check` for the separate README and preset checks. An upstream version change calls for inspecting new and removed symbols as well as behavior changes in exports whose names survive.
+
+Before adding a rule for an excluded export, identify a real, repeated pattern and establish its behavior on the supported inputs. Preserve union distribution, optional and readonly modifiers, alias bindings, and runtime side effects where applicable. For autofixes, test the rewritten result and include counterexamples where a change would alter behavior.

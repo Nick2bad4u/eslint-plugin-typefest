@@ -4,6 +4,7 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-except`.
  */
+import { getDateWithoutSetters } from "../_internal/date-setter-omit.js";
 import {
     collectDirectNamedImportsFromSource,
     collectImportedTypeAliasMatches,
@@ -63,6 +64,9 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     if (isBuiltinOmitReference) {
                         if (
                             !enforceBuiltinOmit ||
+                            // The open-ended setter pattern is not a key of the standard Date.
+                            getDateWithoutSetters(context, node) !==
+                                undefined ||
                             getMergeStyleIntersectionOperands(node) !==
                                 undefined
                         ) {
