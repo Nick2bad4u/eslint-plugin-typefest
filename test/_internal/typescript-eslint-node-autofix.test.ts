@@ -236,7 +236,23 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
         ).toBe(false);
     });
 
-    it("returns true for imported aliases referenced in definition text fallback", () => {
+    it.each([
+        {
+            definitionText: "const nodeLike: EST.Node = value;",
+            expected: true,
+            name: "returns true for imported aliases referenced in definition text fallback",
+        },
+        {
+            definitionText: "const nodeLike: BEST.Node = value;",
+            expected: false,
+            name: "uses namespace-boundary matching for text fallback",
+        },
+        {
+            definitionText: "const nodeLike = 'EST.Node';",
+            expected: false,
+            name: "does not match namespace text appearing only inside string literals in parser-backed fallback",
+        },
+    ])("$name", ({ definitionText, expected }) => {
         expect.hasAssertions();
 
         const definitionNode = {
@@ -245,7 +261,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
 
         const context = createRuleContext({
             definitionNode,
-            definitionText: "const nodeLike: EST.Node = value;",
+            definitionText,
             importStatements: [
                 createImportDeclarationFromTypeScriptEslintUtils([
                     createTSESTreeImportSpecifier("EST"),
@@ -262,7 +278,7 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 name: "nodeLike",
                 type: "Identifier",
             } as TSESTree.Identifier)
-        ).toBe(true);
+        ).toBe(expected);
     });
 
     it("returns true for namespace imports referenced in definition text fallback", () => {
@@ -292,64 +308,6 @@ describe(createTypeScriptEslintNodeExpressionSkipChecker, () => {
                 type: "Identifier",
             } as TSESTree.Identifier)
         ).toBe(true);
-    });
-
-    it("uses namespace-boundary matching for text fallback", () => {
-        expect.hasAssertions();
-
-        const definitionNode = {
-            type: "VariableDeclarator",
-        } as unknown as TSESTree.VariableDeclarator;
-
-        const context = createRuleContext({
-            definitionNode,
-            definitionText: "const nodeLike: BEST.Node = value;",
-            importStatements: [
-                createImportDeclarationFromTypeScriptEslintUtils([
-                    createTSESTreeImportSpecifier("EST"),
-                ]),
-            ],
-            variableName: "nodeLike",
-        });
-
-        const shouldSkipExpression =
-            createTypeScriptEslintNodeExpressionSkipChecker(context);
-
-        expect(
-            shouldSkipExpression({
-                name: "nodeLike",
-                type: "Identifier",
-            } as TSESTree.Identifier)
-        ).toBe(false);
-    });
-
-    it("does not match namespace text appearing only inside string literals in parser-backed fallback", () => {
-        expect.hasAssertions();
-
-        const definitionNode = {
-            type: "VariableDeclarator",
-        } as unknown as TSESTree.VariableDeclarator;
-
-        const context = createRuleContext({
-            definitionNode,
-            definitionText: "const nodeLike = 'EST.Node';",
-            importStatements: [
-                createImportDeclarationFromTypeScriptEslintUtils([
-                    createTSESTreeImportSpecifier("EST"),
-                ]),
-            ],
-            variableName: "nodeLike",
-        });
-
-        const shouldSkipExpression =
-            createTypeScriptEslintNodeExpressionSkipChecker(context);
-
-        expect(
-            shouldSkipExpression({
-                name: "nodeLike",
-                type: "Identifier",
-            } as TSESTree.Identifier)
-        ).toBe(false);
     });
 
     it("gracefully handles SourceCode objects without ast/body", () => {

@@ -5,5 +5,5 @@ export function assertToken(token: string | undefined): asserts token {
 }
 
 export function assertReady(ready: boolean): asserts ready {
-    if (!ready) throw new Error();
+    if (!ready) throw new Error("Service is not ready");
 }

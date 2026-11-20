@@ -44,6 +44,15 @@ interface SidebarLabelMutation {
     originalLabel: string;
 }
 
+/** Token styling and label content for one sidebar link. */
+interface SidebarLeadingToken {
+    link: HTMLAnchorElement;
+    remainderText: string;
+    separator?: string;
+    tokenClassName: string;
+    tokenText: string;
+}
+
 /** Dataset key used to mark links already tokenized by this enhancer. */
 const SIDEBAR_TOKENIZED_DATA_KEY = "sbTokenized";
 
@@ -67,49 +76,10 @@ function applySidebarLabelTokenColoring(): CleanupFunction {
                 continue;
             }
 
-            if (isRuntimeSidebarLink(link)) {
-                const runtimePrefix = getRuntimeSidebarKindPrefix(linkLabel);
-
-                if (runtimePrefix !== null) {
-                    const remainderText = linkLabel
-                        .slice(runtimePrefix.length)
-                        .trimStart();
-
-                    if (remainderText.length > 0) {
-                        mutations.push({
-                            element: link,
-                            originalLabel: linkLabel,
-                        });
-
-                        setSidebarLeadingToken({
-                            link,
-                            remainderText,
-                            separator: "",
-                            tokenClassName: "sb-inline-runtime-kind",
-                            tokenText: `${runtimePrefix}\u00A0`,
-                        });
-                    }
-
-                    continue;
-                }
-            }
-
-            if (isNumberedRuleSidebarLink(link)) {
-                const ruleNumberPrefix = getRuleNumberPrefix(linkLabel);
-
-                if (ruleNumberPrefix !== null) {
-                    mutations.push({
-                        element: link,
-                        originalLabel: linkLabel,
-                    });
-
-                    setSidebarLeadingToken({
-                        link,
-                        remainderText: ruleNumberPrefix.remainder,
-                        tokenClassName: "sb-inline-rule-number",
-                        tokenText: ruleNumberPrefix.numberToken,
-                    });
-                }
+            const token = getSidebarLeadingToken(link, linkLabel);
+            if (token) {
+                mutations.push({ element: link, originalLabel: linkLabel });
+                setSidebarLeadingToken(token);
             }
         }
     };
@@ -313,21 +283,14 @@ function createScrollIndicator(): CleanupFunction {
 function getRuleNumberPrefix(
     label: string
 ): null | Readonly<{ numberToken: string; remainder: string }> {
-    const match = /^(?<numberToken>\d{2,3}) (?<remainder>.+)$/u.exec(label);
-
-    if (match === null) {
+    if (!/^\d{2,3} .+$/u.test(label)) {
         return null;
     }
 
-    const { numberToken, remainder } = match.groups ?? {};
-
-    if (numberToken === undefined || remainder === undefined) {
-        return null;
-    }
-
+    const separator = label.indexOf(" ");
     return {
-        numberToken,
-        remainder,
+        numberToken: label.slice(0, separator),
+        remainder: label.slice(separator + 1),
     };
 }
 
@@ -348,6 +311,41 @@ function getRuntimeSidebarKindPrefix(
     }
 
     return null;
+}
+
+/** Resolve the leading token and remaining label for a supported sidebar link. */
+function getSidebarLeadingToken(
+    link: HTMLAnchorElement,
+    label: string
+): null | SidebarLeadingToken {
+    const runtimePrefix = isRuntimeSidebarLink(link)
+        ? getRuntimeSidebarKindPrefix(label)
+        : null;
+
+    if (runtimePrefix !== null) {
+        const remainderText = label.slice(runtimePrefix.length).trimStart();
+        return remainderText.length === 0
+            ? null
+            : {
+                  link,
+                  remainderText,
+                  separator: "",
+                  tokenClassName: "sb-inline-runtime-kind",
+                  tokenText: `${runtimePrefix}\u00A0`,
+              };
+    }
+
+    const rulePrefix = isNumberedRuleSidebarLink(link)
+        ? getRuleNumberPrefix(label)
+        : null;
+    return rulePrefix === null
+        ? null
+        : {
+              link,
+              remainderText: rulePrefix.remainder,
+              tokenClassName: "sb-inline-rule-number",
+              tokenText: rulePrefix.numberToken,
+          };
 }
 
 /**
@@ -545,15 +543,7 @@ function isSidebarLinkTokenized(link: HTMLAnchorElement): boolean {
  *
  * @param options - Token replacement parameters.
  */
-function setSidebarLeadingToken(
-    options: Readonly<{
-        link: HTMLAnchorElement;
-        remainderText: string;
-        separator?: string;
-        tokenClassName: string;
-        tokenText: string;
-    }>
-): void {
+function setSidebarLeadingToken(options: Readonly<SidebarLeadingToken>): void {
     const {
         link,
         remainderText,

@@ -916,15 +916,13 @@ export const resolveChangedUrlsFromManifest = ({
 };
 
 /**
- * Recursively collect JSON file paths under a directory.
+ * Yield metadata file paths in depth-first order as they are discovered.
  *
  * @param {string} directoryPath
  *
- * @returns {Promise<readonly string[]>}
+ * @returns {AsyncGenerator<string>}
  */
-const collectJsonFilePaths = async (directoryPath) => {
-    /** @type {string[]} */
-    const filePaths = [];
+async function* iterateJsonFilePaths(directoryPath) {
     const directoryEntries = await fs.readdir(directoryPath, {
         withFileTypes: true,
     });
@@ -933,17 +931,12 @@ const collectJsonFilePaths = async (directoryPath) => {
         const childPath = path.join(directoryPath, directoryEntry.name);
 
         if (directoryEntry.isDirectory()) {
-            filePaths.push(...(await collectJsonFilePaths(childPath)));
-            continue;
-        }
-
-        if (directoryEntry.isFile() && childPath.endsWith(".json")) {
-            filePaths.push(childPath);
+            yield* iterateJsonFilePaths(childPath);
+        } else if (directoryEntry.isFile() && childPath.endsWith(".json")) {
+            yield childPath;
         }
     }
-
-    return filePaths;
-};
+}
 
 /**
  * Generate a source-to-permalink manifest from the built Docusaurus metadata.
@@ -961,9 +954,6 @@ const createRouteManifestEntries = async ({ siteDirectoryPath, siteUrl }) => {
         ".docusaurus"
     );
     const sitePathnamePrefix = new URL(normalizeSiteUrl(siteUrl)).pathname;
-    const jsonFilePaths = await collectJsonFilePaths(
-        docusaurusMetadataDirectoryPath
-    );
     /** @type {DocusaurusRouteManifestEntry[]} */
     const manifestEntries = [];
     const seenEntries = new Set();
@@ -971,7 +961,9 @@ const createRouteManifestEntries = async ({ siteDirectoryPath, siteUrl }) => {
         .relative(REPOSITORY_ROOT, siteDirectoryPath)
         .replaceAll("\\", "/");
 
-    for (const jsonFilePath of jsonFilePaths) {
+    for await (const jsonFilePath of iterateJsonFilePaths(
+        docusaurusMetadataDirectoryPath
+    )) {
         const parsedJson = JSON.parse(await fs.readFile(jsonFilePath, "utf8"));
         const entries = collectRouteManifestEntriesFromData(
             parsedJson,

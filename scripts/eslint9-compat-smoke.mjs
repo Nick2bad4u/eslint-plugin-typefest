@@ -333,7 +333,7 @@ const runScenario = async ({
         }
     }
 
-    console.log(
+    return (
         `${pc.green("✓")}` +
             ` ${pc.bold(name)} ${pc.gray("->")} ${pc.bold(ruleId)} (${typed ? "typed" : "non-typed"}, fix=${fix}) produced ${pc.magenta(
                 String(matchingMessages.length)
@@ -391,8 +391,9 @@ const expectedEslintMajor = parseExpectedEslintMajor(
 );
 assertEslintMajor(expectedEslintMajor);
 
-for (const scenario of scenarios) {
-    await runScenario(scenario);
+const summaries = await Promise.all(scenarios.map(runScenario));
+for (const summary of summaries) {
+    console.log(summary);
 }
 
 console.log(pc.bold(pc.green("ESLint 9 compatibility smoke checks passed.")));

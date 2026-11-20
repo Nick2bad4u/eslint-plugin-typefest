@@ -127,11 +127,43 @@ const optionalDetailAllowedParentHeadings = new Set([
 const defaultHelperDocPathPattern =
     /(^|\/)docs\/rules\/(?!overview\.md$|getting-started\.md$|presets\/)[^/]+\.md$/u;
 const defaultRuleCatalogIdLinePattern = /^> \*\*Rule catalog ID:\*\* R\d{3}$/u;
+// One character before the suffix is sufficient to establish a nonempty package label.
 const defaultPackageDocumentationLabelPattern =
-    /^[^\r\n]+ package documentation:$/mu;
+    /[^\r\n] package documentation:$/mu;
 const eslintPluginPackagePrefix = "eslint-plugin-";
 
 const packageMetadataCache = new Map();
+
+/**
+ * Find a nonempty Markdown link label and destination in a single scan.
+ *
+ * @param {string} text
+ *
+ * @returns {boolean}
+ */
+const hasInlineLink = (text) => {
+    const lastDestinationEnd = text.lastIndexOf(")");
+    let labelStart = text.indexOf("[");
+
+    while (labelStart !== -1 && labelStart < lastDestinationEnd) {
+        const labelEnd = text.indexOf("]", labelStart + 1);
+        if (labelEnd === -1 || labelEnd + 2 >= lastDestinationEnd) {
+            return false;
+        }
+
+        if (
+            labelEnd > labelStart + 1 &&
+            text[labelEnd + 1] === "(" &&
+            text[labelEnd + 2] !== ")"
+        ) {
+            return true;
+        }
+
+        labelStart = text.indexOf("[", labelEnd + 1);
+    }
+
+    return false;
+};
 
 /**
  * @param {string} documentPath
@@ -707,7 +739,7 @@ export default function remarkLintRuleDocHeadings(options = {}) {
                 nextH2Heading
             );
 
-            if (!/\[[^\]]+\]\([^\)]+\)/u.test(deprecatedSectionContent)) {
+            if (!hasInlineLink(deprecatedSectionContent)) {
                 file.message(
                     "`## Deprecated` should include a link to the recommended replacement rule or package.",
                     deprecatedSectionHeading,

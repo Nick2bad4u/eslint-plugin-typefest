@@ -408,157 +408,29 @@ describe(createImportInsertionFix, () => {
         ]);
     });
 
-    it("inserts bare-module imports before relative imports when none are non-relative", () => {
-        expect.hasAssertions();
-
-        const relativeImport = {
-            range: [20, 60],
-            source: {
-                value: "./local-utils.js",
-            },
-            specifiers: [],
-            type: "ImportDeclaration",
-        } as unknown as TSESTree.ImportDeclaration;
-        const program = createProgram([relativeImport]);
-        const referenceNode = {
-            parent: program,
-            type: "Identifier",
-        } as unknown as TSESTree.Node;
-
-        const insertBeforeRangeCalls: {
-            range: readonly [number, number];
-            text: string;
-        }[] = [];
-
-        const fixer = {
-            insertTextAfter:
-                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
-            insertTextBeforeRange: (
-                range: readonly [number, number],
-                text: string
-            ) => {
-                insertBeforeRangeCalls.push({ range, text });
-
-                return text;
-            },
-        } as unknown as TSESLint.RuleFixer;
-
-        const fix = createImportInsertionFix({
-            fixer,
+    it.each([
+        {
             importDeclarationText: 'import { isDefined } from "ts-extras";',
-            referenceNode,
-        });
-
-        expect(fix).toBeTypeOf("string");
-        expect(insertBeforeRangeCalls).toStrictEqual([
-            {
-                range: [20, 20],
-                text: 'import { isDefined } from "ts-extras";\n',
-            },
-        ]);
-    });
-
-    it("inserts side-effect bare-module imports before relative imports when none are non-relative", () => {
-        expect.hasAssertions();
-
-        const relativeImport = {
-            range: [20, 60],
-            source: {
-                value: "./local-utils.js",
-            },
-            specifiers: [],
-            type: "ImportDeclaration",
-        } as unknown as TSESTree.ImportDeclaration;
-        const program = createProgram([relativeImport]);
-        const referenceNode = {
-            parent: program,
-            type: "Identifier",
-        } as unknown as TSESTree.Node;
-
-        const insertBeforeRangeCalls: {
-            range: readonly [number, number];
-            text: string;
-        }[] = [];
-
-        const fixer = {
-            insertTextAfter:
-                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
-            insertTextBeforeRange: (
-                range: readonly [number, number],
-                text: string
-            ) => {
-                insertBeforeRangeCalls.push({ range, text });
-
-                return text;
-            },
-        } as unknown as TSESLint.RuleFixer;
-
-        const fix = createImportInsertionFix({
-            fixer,
+            name: "inserts bare-module imports before relative imports when none are non-relative",
+        },
+        {
             importDeclarationText: 'import "ts-extras";',
-            referenceNode,
-        });
-
-        expect(fix).toBeTypeOf("string");
-        expect(insertBeforeRangeCalls).toStrictEqual([
-            {
-                range: [20, 20],
-                text: 'import "ts-extras";\n',
-            },
-        ]);
-    });
-
-    it("accepts empty-string side-effect module specifiers when positioning before relative imports", () => {
-        expect.hasAssertions();
-
-        const relativeImport = {
-            range: [20, 60],
-            source: {
-                value: "./local-utils.js",
-            },
-            specifiers: [],
-            type: "ImportDeclaration",
-        } as unknown as TSESTree.ImportDeclaration;
-        const program = createProgram([relativeImport]);
-        const referenceNode = {
-            parent: program,
-            type: "Identifier",
-        } as unknown as TSESTree.Node;
-
-        const insertBeforeRangeCalls: {
-            range: readonly [number, number];
-            text: string;
-        }[] = [];
-
-        const fixer = {
-            insertTextAfter:
-                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
-            insertTextBeforeRange: (
-                range: readonly [number, number],
-                text: string
-            ) => {
-                insertBeforeRangeCalls.push({ range, text });
-
-                return text;
-            },
-        } as unknown as TSESLint.RuleFixer;
-
-        const fix = createImportInsertionFix({
-            fixer,
+            name: "inserts side-effect bare-module imports before relative imports when none are non-relative",
+        },
+        {
             importDeclarationText: 'import "";',
-            referenceNode,
-        });
-
-        expect(fix).toBeTypeOf("string");
-        expect(insertBeforeRangeCalls).toStrictEqual([
-            {
-                range: [20, 20],
-                text: 'import "";\n',
-            },
-        ]);
-    });
-
-    it("accepts empty-string from-clause module specifiers when positioning before relative imports", () => {
+            name: "accepts empty-string side-effect module specifiers when positioning before relative imports",
+        },
+        {
+            importDeclarationText: 'import { isDefined } from "";',
+            name: "accepts empty-string from-clause module specifiers when positioning before relative imports",
+        },
+        {
+            importDeclarationText:
+                'import { fromClauseValue as localFromClauseValue } from "ts-extras";',
+            name: "inserts named imports whose local bindings include `from` before relative imports",
+        },
+    ])("$name", ({ importDeclarationText }) => {
         expect.hasAssertions();
 
         const relativeImport = {
@@ -595,7 +467,7 @@ describe(createImportInsertionFix, () => {
 
         const fix = createImportInsertionFix({
             fixer,
-            importDeclarationText: 'import { isDefined } from "";',
+            importDeclarationText,
             referenceNode,
         });
 
@@ -603,7 +475,7 @@ describe(createImportInsertionFix, () => {
         expect(insertBeforeRangeCalls).toStrictEqual([
             {
                 range: [20, 20],
-                text: 'import { isDefined } from "";\n',
+                text: `${importDeclarationText}\n`,
             },
         ]);
     });
@@ -658,57 +530,6 @@ describe(createImportInsertionFix, () => {
             {
                 target: externalImport,
                 text: '\nimport { isDefined } from "ts-extras" with { type: "js" };',
-            },
-        ]);
-    });
-
-    it("inserts named imports whose local bindings include `from` before relative imports", () => {
-        expect.hasAssertions();
-
-        const relativeImport = {
-            range: [20, 60],
-            source: {
-                value: "./local-utils.js",
-            },
-            specifiers: [],
-            type: "ImportDeclaration",
-        } as unknown as TSESTree.ImportDeclaration;
-        const program = createProgram([relativeImport]);
-        const referenceNode = {
-            parent: program,
-            type: "Identifier",
-        } as unknown as TSESTree.Node;
-
-        const insertBeforeRangeCalls: {
-            range: readonly [number, number];
-            text: string;
-        }[] = [];
-
-        const fixer = {
-            insertTextAfter:
-                vi.fn<(...arguments_: readonly unknown[]) => unknown>(),
-            insertTextBeforeRange: (
-                range: readonly [number, number],
-                text: string
-            ) => {
-                insertBeforeRangeCalls.push({ range, text });
-
-                return text;
-            },
-        } as unknown as TSESLint.RuleFixer;
-
-        const fix = createImportInsertionFix({
-            fixer,
-            importDeclarationText:
-                'import { fromClauseValue as localFromClauseValue } from "ts-extras";',
-            referenceNode,
-        });
-
-        expect(fix).toBeTypeOf("string");
-        expect(insertBeforeRangeCalls).toStrictEqual([
-            {
-                range: [20, 20],
-                text: 'import { fromClauseValue as localFromClauseValue } from "ts-extras";\n',
             },
         ]);
     });

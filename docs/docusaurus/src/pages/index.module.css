@@ -244,11 +244,13 @@
     font-weight: 780;
     letter-spacing: 0.01em;
     text-shadow: 0 1px 0 rgb(15 23 42 / 28%);
-    transition:
-        border-color 170ms ease,
-        box-shadow 170ms ease,
-        filter 170ms ease,
-        transform 170ms ease;
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            border-color 170ms ease,
+            box-shadow 170ms ease,
+            filter 170ms ease,
+            transform 170ms ease;
+    }
 }
 
 .heroActionButton::before {
@@ -264,9 +266,11 @@
     opacity: 0;
     pointer-events: none;
     transform: translateX(-60%) rotate(12deg);
-    transition:
-        opacity 190ms ease,
-        transform 520ms ease;
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            opacity 190ms ease,
+            transform 520ms ease;
+    }
 }
 
 .heroActionButton:hover,
@@ -352,9 +356,11 @@
     opacity: 0;
     pointer-events: none;
     transform: translateX(-60%) rotate(14deg);
-    transition:
-        opacity 220ms ease,
-        transform 620ms ease;
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            opacity 220ms ease,
+            transform 620ms ease;
+    }
 }
 
 .heroPanel:hover::before,
@@ -368,9 +374,11 @@
     block-size: auto;
     filter: drop-shadow(0 10px 18px rgb(15 23 42 / 45%));
     inline-size: clamp(11.5rem, 24vi, 17rem);
-    transition:
-        filter 210ms ease,
-        transform 210ms ease;
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            filter 210ms ease,
+            transform 210ms ease;
+    }
 
     .heroPanel:hover &,
     .heroPanel:focus-within & {
@@ -642,6 +650,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .heroActionButton:hover,
+    .heroActionButton:focus,
+    .heroPanel:hover .heroPanelLogo,
+    .heroPanel:focus-within .heroPanelLogo {
+        transform: none;
+    }
+
+    .heroActionButton::before,
+    .heroPanel::before {
+        display: none;
+    }
+
     .heroInlineLink {
         transition: none;
 

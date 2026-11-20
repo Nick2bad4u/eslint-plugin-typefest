@@ -517,38 +517,32 @@ const syncPresetsRulesMatrixSection = async ({
  * }} input
  */
 const syncPresetPageRuleTables = async ({ workspaceRoot, writeChanges }) => {
-    /** @type {boolean} */
-    let changed = false;
-
-    for (const presetConfigName of standardPresetConfigNames) {
-        const presetDocPath = resolve(
-            workspaceRoot,
-            presetsDocsDirectoryPath,
-            `${presetDocSlugByConfigName[presetConfigName]}.md`
-        );
-        const presetMarkdown = await readFile(presetDocPath, "utf8");
-        const generatedSection =
-            generateStandardPresetRulesSection(presetConfigName);
-        const replacementResult = replaceMarkdownSection({
-            generatedSection,
-            headingCandidates: [presetRulesSectionHeading],
-            markdown: presetMarkdown,
-        });
-
-        if (!replacementResult.changed) {
-            continue;
-        }
-
-        changed = true;
-
-        if (writeChanges) {
-            await writeFile(
-                presetDocPath,
-                replacementResult.nextMarkdown,
-                "utf8"
+    const standardPageChanges = await Promise.all(
+        standardPresetConfigNames.map(async (presetConfigName) => {
+            const presetDocPath = resolve(
+                workspaceRoot,
+                presetsDocsDirectoryPath,
+                `${presetDocSlugByConfigName[presetConfigName]}.md`
             );
-        }
-    }
+            const presetMarkdown = await readFile(presetDocPath, "utf8");
+            const replacementResult = replaceMarkdownSection({
+                generatedSection:
+                    generateStandardPresetRulesSection(presetConfigName),
+                headingCandidates: [presetRulesSectionHeading],
+                markdown: presetMarkdown,
+            });
+
+            if (replacementResult.changed && writeChanges) {
+                await writeFile(
+                    presetDocPath,
+                    replacementResult.nextMarkdown,
+                    "utf8"
+                );
+            }
+            return replacementResult.changed;
+        })
+    );
+    let changed = standardPageChanges.includes(true);
 
     const recommendedTypeCheckedDocPath = resolve(
         workspaceRoot,

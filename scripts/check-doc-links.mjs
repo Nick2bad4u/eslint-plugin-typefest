@@ -10,7 +10,8 @@
  * - --max-path-display and --concurrency CLI flags
  */
 
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdirSync, statSync } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import pc from "picocolors";
@@ -67,9 +68,35 @@ const IGNORED_DIRECTORIES = new Set([
     ".stryker-tmp",
 ]);
 
-// Capture Markdown links like [text](url) and images ![alt](url)
-// NOTE: for more accuracy use a Markdown parser (remark) instead of regex.
-const LINK_PATTERN = /!?\[[^\]]*]\(([^)]+)\)/g;
+/**
+ * Scan inline links and images in order. Each closing bracket ends the current
+ * label, including labels with nested opening brackets.
+ *
+ * @param {string} text
+ */
+function* markdownLinks(text) {
+    let position = 0;
+    while (position < text.length) {
+        const labelStart = text.indexOf("[", position);
+        if (labelStart === -1) return;
+        const labelEnd = text.indexOf("]", labelStart + 1);
+        if (labelEnd === -1) return;
+
+        position = labelEnd + 1;
+        if (text[position] !== "(") continue;
+
+        const linkStart = position + 1;
+        const linkEnd = text.indexOf(")", linkStart);
+        if (linkEnd === -1) return;
+        position = linkEnd + 1;
+        if (linkEnd > linkStart) {
+            yield {
+                isImage: text[labelStart - 1] === "!",
+                link: text.slice(linkStart, linkEnd),
+            };
+        }
+    }
+}
 
 const EXTERNAL_PROTOCOLS = [
     "http:",
@@ -81,8 +108,6 @@ const EXTERNAL_PROTOCOLS = [
     "vscode:",
     "file:",
 ];
-
-const LEADING_BANG = /^!/;
 
 /**
  * Truncate safely keeping the last `max` code points.
@@ -100,9 +125,9 @@ function truncateEnd(str, max) {
 /**
  * @param {import("node:fs").PathLike} entryPath
  */
-async function isDirectory(entryPath) {
+function isDirectory(entryPath) {
     try {
-        const entryStat = await stat(entryPath);
+        const entryStat = statSync(entryPath);
         return entryStat.isDirectory();
     } catch (error) {
         if (
@@ -120,14 +145,14 @@ async function isDirectory(entryPath) {
 /**
  * @param {string} startDirectory
  */
-async function collectMarkdownFiles(startDirectory) {
+function collectMarkdownFiles(startDirectory) {
     const results = [];
     const stack = [startDirectory];
 
     while (stack.length > 0) {
         const current = stack.pop();
         if (current === undefined) continue;
-        const entries = await readdir(current, { withFileTypes: true });
+        const entries = readdirSync(current, { withFileTypes: true });
         for (const entry of entries) {
             const entryName = entry.name;
             if (IGNORED_DIRECTORIES.has(entryName)) continue;
@@ -311,33 +336,30 @@ async function checkFile(markdownPath, issues, issueSet, metrics) {
     const content = await readFile(markdownPath, "utf8");
     // Skip fenced code blocks
     const contentWithoutCodeBlocks = content.replaceAll(/```[\s\S]*?```/g, "");
-    const matches = Array.from(contentWithoutCodeBlocks.matchAll(LINK_PATTERN));
-
-    if (matches.length === 0) {
-        metrics.filesWithNoLinks++;
-    } else {
-        metrics.filesWithLinks++;
-    }
-
-    for (const match of matches) {
-        const fullMatch = match[0];
-        const link = match[1];
-        if (LEADING_BANG.test(fullMatch)) {
+    let hasLinks = false;
+    for (const { isImage, link } of markdownLinks(contentWithoutCodeBlocks)) {
+        hasLinks = true;
+        if (isImage) {
             metrics.imageLinksIgnored++;
             continue;
         }
-        if (link) {
-            const broken = await validateLink(
-                markdownPathText,
-                link,
-                issues,
-                issueSet,
-                metrics
-            );
-            if (broken && failFast) {
-                throw new Error("Fail-fast triggered due to broken link");
-            }
+        // Keep each file's diagnostics in source order and stop on its first
+        // broken link in fail-fast mode.
+        const broken = await validateLink(
+            markdownPathText,
+            link,
+            issues,
+            issueSet,
+            metrics
+        );
+        if (broken && failFast) {
+            throw new Error("Fail-fast triggered due to broken link");
         }
+    }
+    if (hasLinks) {
+        metrics.filesWithLinks++;
+    } else {
+        metrics.filesWithNoLinks++;
     }
 }
 
@@ -410,7 +432,7 @@ async function main() {
     for (const directory of DOCS_DIRECTORIES) {
         const absoluteDirectory = resolve(ROOT_DIRECTORY, directory);
 
-        if (!(await isDirectory(absoluteDirectory))) {
+        if (!isDirectory(absoluteDirectory)) {
             if (isVerbose) {
                 console.log(
                     pc.yellow(
@@ -427,7 +449,7 @@ async function main() {
             );
         }
 
-        const markdownFiles = await collectMarkdownFiles(absoluteDirectory);
+        const markdownFiles = collectMarkdownFiles(absoluteDirectory);
         metrics.totalFilesChecked += markdownFiles.length;
 
         // Process files in batches to limit concurrency

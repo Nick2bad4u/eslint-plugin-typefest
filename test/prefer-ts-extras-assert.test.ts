@@ -40,8 +40,8 @@ const invalidFixtureFirstSuggestionOutput = [
 const invalidFixtureSecondSuggestionOutput = [
     'import { assert } from "ts-extras";',
     invalidFixtureCode.replace(
-        "    if (!ready) throw new Error();",
-        '    assert(ready, "");'
+        '    if (!ready) throw new Error("Service is not ready");',
+        '    assert(ready, "Service is not ready");'
     ),
 ].join("\n");
 

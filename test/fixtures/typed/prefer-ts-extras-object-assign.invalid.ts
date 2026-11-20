@@ -21,17 +21,20 @@ const monitorMetadata: MonitorMetadata = {
     owner: "platform",
 };
 
-const mergedMonitor = Object.assign({ ...monitorState }, monitorMetadata);
-const secondMergedMonitor = Object.assign({}, monitorState, monitorMetadata);
+const mergedMonitor = Object.assign(monitorState, monitorMetadata);
+const secondMergedMonitor = Object.assign(monitorMetadata, monitorState, {
+    owner: "operations",
+});
 const typedMergedMonitor = objectAssign({ ...monitorState }, monitorMetadata);
 
 if (
+    monitorMetadata.owner !== "operations" ||
     mergedMonitor.statusCode +
         secondMergedMonitor.statusCode +
         typedMergedMonitor.statusCode >
-    599
+        599
 ) {
-    throw new TypeError("Unexpected status code");
+    throw new TypeError("Unexpected merged monitor state");
 }
 
 export const typedFixtureModule = "typed-fixture-module";
