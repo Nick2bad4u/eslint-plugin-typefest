@@ -381,7 +381,9 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             });
 
             const unionTypeListener = listeners.TSUnionType;
+
             expect(unionTypeListener).toBeTypeOf("function");
+
             for (const node of nodes) {
                 unionTypeListener?.(node);
             }

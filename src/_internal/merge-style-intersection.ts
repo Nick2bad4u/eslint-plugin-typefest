@@ -9,6 +9,22 @@ import { getParentNode } from "./ast-node.js";
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
 import { unwrapParenthesizedTypeNode } from "./type-reference-node.js";
 
+/** Read the source from a two-argument reference ending with `keyof Source`. */
+const getOmittedKeySource = (
+    typeArguments: readonly TSESTree.TypeNode[]
+): TSESTree.TypeNode | undefined => {
+    const argument = arrayAt(typeArguments, 1);
+    if (!argument || typeArguments.length !== 2) {
+        return undefined;
+    }
+
+    const keys = unwrapParenthesizedTypeNode(argument);
+    return keys.type === AST_NODE_TYPES.TSTypeOperator &&
+        keys.operator === "keyof"
+        ? keys.typeAnnotation
+        : undefined;
+};
+
 /**
  * Match a key-removing type reference in an intersection containing its source.
  *
@@ -23,32 +39,16 @@ export const getMergeStyleIntersectionOperands = (
     const typeArguments = node.typeArguments?.params;
 
     if (
-        intersectionNode?.type !== AST_NODE_TYPES.TSIntersectionType ||
-        typeArguments?.length !== 2
+        !typeArguments ||
+        intersectionNode?.type !== AST_NODE_TYPES.TSIntersectionType
     ) {
         return undefined;
     }
 
     const destination = arrayFirst(typeArguments);
-    const omittedKeysType = arrayAt(typeArguments, 1);
+    const keyedSourceType = getOmittedKeySource(typeArguments);
 
-    if (!destination || !omittedKeysType) {
-        return undefined;
-    }
-
-    const normalizedOmittedKeysType =
-        unwrapParenthesizedTypeNode(omittedKeysType);
-
-    if (
-        normalizedOmittedKeysType.type !== AST_NODE_TYPES.TSTypeOperator ||
-        normalizedOmittedKeysType.operator !== "keyof"
-    ) {
-        return undefined;
-    }
-
-    const keyedSourceType = normalizedOmittedKeysType.typeAnnotation;
-
-    if (!keyedSourceType) {
+    if (!destination || !keyedSourceType) {
         return undefined;
     }
 
