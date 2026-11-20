@@ -82,6 +82,11 @@ const inlineFixableOutput = [
 ].join("\n");
 const inlineNoFixShadowedReplacementCode =
     "type Wrapper<UnknownMap> = ReadonlyMap<unknown, unknown>;";
+const inlineValidShadowedReadonlyMapCode = [
+    "type ReadonlyMap<K, V> = Map<K, V>;",
+    "",
+    "export type Input = ReadonlyMap<unknown, unknown>;",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -200,6 +205,7 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 
@@ -349,6 +355,11 @@ ruleTester.run("prefer-type-fest-unknown-map", rule, {
             code: inlineValidGlobalReadonlyMapCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.ReadonlyMap reference",
+        },
+        {
+            code: inlineValidShadowedReadonlyMapCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReadonlyMap that shadows the builtin",
         },
     ],
 });

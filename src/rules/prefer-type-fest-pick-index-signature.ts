@@ -8,10 +8,13 @@ import { isDefined } from "ts-extras";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
-    isIdentifierTypeReference,
+    isGlobalTypeReferenceNamed,
     unwrapParenthesizedTypeNode,
 } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const isEmptyObjectTypeLiteral = (node: Readonly<TSESTree.TypeNode>): boolean =>
     node.type === AST_NODE_TYPES.TSTypeLiteral && node.members.length === 0;
@@ -43,6 +46,7 @@ const isIndexedAccessOfMappedKey = (
     isMappedKeyReference(node.indexType, keyName);
 
 const isRecordUnknownReference = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>,
     keyName: string
 ): boolean => {
@@ -50,7 +54,7 @@ const isRecordUnknownReference = (
 
     if (
         normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedNode, "Record")
+        !isGlobalTypeReferenceNamed(context, normalizedNode, "Record")
     ) {
         return false;
     }
@@ -71,6 +75,7 @@ const isRecordUnknownReference = (
 };
 
 const isPickIndexSignatureKeyRemap = (
+    context: TypedRuleContext,
     node:
         | null
         | Readonly<TSESTree.TypeNode>
@@ -81,9 +86,10 @@ const isPickIndexSignatureKeyRemap = (
     isEmptyObjectTypeLiteral(unwrapParenthesizedTypeNode(node.checkType)) &&
     node.falseType.type === AST_NODE_TYPES.TSNeverKeyword &&
     isMappedKeyReference(node.trueType, keyName) &&
-    isRecordUnknownReference(node.extendsType, keyName);
+    isRecordUnknownReference(context, node.extendsType, keyName);
 
 const hasPickIndexSignatureMappedTypeShape = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSMappedType>
 ): boolean => {
     if (!hasDefaultMappedTypeModifiers(node)) {
@@ -114,7 +120,7 @@ const hasPickIndexSignatureMappedTypeShape = (
         return false;
     }
 
-    return isPickIndexSignatureKeyRemap(node.nameType, node.key.name);
+    return isPickIndexSignatureKeyRemap(context, node.nameType, node.key.name);
 };
 
 /**
@@ -125,7 +131,7 @@ const preferTypeFestPickIndexSignatureRule: ReturnType<typeof createTypedRule> =
         create(context) {
             return {
                 TSMappedType(node) {
-                    if (!hasPickIndexSignatureMappedTypeShape(node)) {
+                    if (!hasPickIndexSignatureMappedTypeShape(context, node)) {
                         return;
                     }
 

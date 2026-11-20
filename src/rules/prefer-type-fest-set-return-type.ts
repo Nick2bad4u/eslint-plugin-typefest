@@ -19,7 +19,10 @@ const preferTypeFestSetReturnTypeRule: ReturnType<typeof createTypedRule> =
             return {
                 TSFunctionType(node) {
                     const functionType =
-                        getParametersFunctionArgumentFromFunctionType(node);
+                        getParametersFunctionArgumentFromFunctionType(
+                            context,
+                            node
+                        );
                     const returnType = node.returnType?.typeAnnotation;
 
                     if (functionType === null || returnType === undefined) {
@@ -28,10 +31,12 @@ const preferTypeFestSetReturnTypeRule: ReturnType<typeof createTypedRule> =
 
                     if (
                         isReturnTypeReferenceForFunction(
+                            context,
                             returnType,
                             functionType
                         ) ||
                         isPromiseAwaitedReturnTypeReferenceForFunction(
+                            context,
                             returnType,
                             functionType
                         )

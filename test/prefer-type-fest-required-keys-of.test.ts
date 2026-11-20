@@ -166,5 +166,16 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(`${ruleId}.valid.ts`),
             name: "ignores reversed exclusion helpers",
         },
+        {
+            code: [
+                'import type { OptionalKeysOf } from "type-fest";',
+                "",
+                "type Exclude<Union, Excluded> = Union extends Excluded ? Union : never;",
+                "",
+                `export type Result<Type extends object> = ${toRequiredKeysOfHelper("Type")};`,
+            ].join("\n"),
+            filename: typedFixturePath(`${ruleId}.valid.ts`),
+            name: "ignores locally declared Exclude that shadows the builtin",
+        },
     ],
 });

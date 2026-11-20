@@ -89,6 +89,12 @@ const inlineValidGlobalRecordCode = [
     "",
     "type MonitorJsonShape = globalThis.Record<string, JsonValue>;",
 ].join("\n");
+const inlineValidShadowedRecordCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Record<Key extends PropertyKey, Value> = Map<Key, Value>;",
+    "type MonitorJsonShape = Record<string, JsonValue>;",
+].join("\n");
 const inlineValidLiteralNonStringKeyCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -187,6 +193,7 @@ const parseRecordTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
     tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
@@ -198,6 +205,7 @@ const parseRecordTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
+                scopeManager: parsed.scopeManager,
                 tsReference: statement.typeAnnotation,
             };
         }
@@ -259,6 +267,15 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                     };
                 };
 
+            const parsed = parser.parseForESLint(
+                [
+                    "type Matching = Record<string, JsonValue>;",
+                    "type Other = Box<string, JsonValue>;",
+                    "type Missing = Record<string>;",
+                    "type NonJson = Record<string, unknown>;",
+                ].join("\n"),
+                parserOptions
+            );
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
                 report(
@@ -266,100 +283,27 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                 ) {
                     reportCalls.push(descriptor);
                 },
-                sourceCode: {
-                    ast: {
-                        body: [],
-                    },
-                },
+                sourceCode: parsed,
             });
 
             const referenceListener = listeners.TSTypeReference;
-
             expect(referenceListener).toBeTypeOf("function");
 
-            const matchingRecordNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [
-                        {
-                            type: "TSStringKeyword",
-                        },
-                        {
-                            type: "TSTypeReference",
-                            typeName: {
-                                name: "JsonValue",
-                                type: "Identifier",
-                            },
-                        },
-                    ],
-                },
-                typeName: {
-                    name: "Record",
-                    type: "Identifier",
-                },
-            };
-            const nonRecordIdentifierNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [
-                        {
-                            type: "TSStringKeyword",
-                        },
-                        {
-                            type: "TSTypeReference",
-                            typeName: {
-                                name: "JsonValue",
-                                type: "Identifier",
-                            },
-                        },
-                    ],
-                },
-                typeName: {
-                    name: "Box",
-                    type: "Identifier",
-                },
-            };
-            const singleTypeArgumentNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [
-                        {
-                            type: "TSStringKeyword",
-                        },
-                    ],
-                },
-                typeName: {
-                    name: "Record",
-                    type: "Identifier",
-                },
-            };
-            const nonJsonValueRecordNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [
-                        {
-                            type: "TSStringKeyword",
-                        },
-                        {
-                            type: "TSUnknownKeyword",
-                        },
-                    ],
-                },
-                typeName: {
-                    name: "Record",
-                    type: "Identifier",
-                },
-            };
+            const references = parsed.ast.body.map((statement) => {
+                if (statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration) {
+                    throw new Error("Expected a type alias declaration");
+                }
 
-            referenceListener?.(matchingRecordNode);
-            referenceListener?.(nonRecordIdentifierNode);
-            referenceListener?.(singleTypeArgumentNode);
-            referenceListener?.(nonJsonValueRecordNode);
+                return statement.typeAnnotation;
+            });
+            for (const reference of references) {
+                referenceListener?.(reference);
+            }
 
             expect(reportCalls).toHaveLength(1);
             expect(reportCalls[0]).toMatchObject({
                 messageId: "preferJsonObject",
-                node: matchingRecordNode,
+                node: references[0],
             });
             expect(replacementFixCalls).toHaveLength(1);
             expect(replacementFixCalls[0]?.[1]).toBe("JsonObject");
@@ -417,7 +361,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                             "void seed;",
                         ].join("\n");
 
-                        const { ast, tsReference } =
+                        const { ast, scopeManager, tsReference } =
                             parseRecordTypeReferenceFromCode(code);
                         const reportCalls: JsonObjectReportDescriptor[] = [];
 
@@ -434,6 +378,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },
+                                scopeManager,
                             },
                         });
 
@@ -549,6 +494,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidGlobalRecordCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Record usage",
+        },
+        {
+            code: inlineValidShadowedRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Record that shadows the builtin",
         },
         {
             code: inlineValidLiteralNonStringKeyCode,

@@ -86,6 +86,16 @@ const nonAwaitedWrapperOfReturnTypeValidCode = [
     "type Wrapper<T> = T;",
     "type Result = Wrapper<ReturnType<() => Promise<string>>>;",
 ].join("\n");
+const shadowedAwaitedValidCode = [
+    "type Awaited<T> = T;",
+    "type Result = Awaited<ReturnType<() => Promise<string>>>;",
+].join("\n");
+const shadowedReturnTypeValidCode = [
+    "interface ReturnType<T> {",
+    "    readonly value: T;",
+    "}",
+    "type Result = Awaited<ReturnType<() => Promise<string>>>;",
+].join("\n");
 const inlineFixableCode = [
     'import type { AsyncReturnType } from "type-fest";',
     "",
@@ -121,6 +131,7 @@ const parseAwaitedTypeReferenceFromCode = (
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
     awaitedTypeReference: TSESTree.TSTypeReference;
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -132,6 +143,7 @@ const parseAwaitedTypeReferenceFromCode = (
             return {
                 ast: parsed.ast,
                 awaitedTypeReference: statement.typeAnnotation,
+                scopeManager: parsed.scopeManager,
             };
         }
     }
@@ -225,6 +237,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                 sourceCode: {
                     ast: parsed.ast,
                     getText: () => "() => Promise<string>",
+                    scopeManager: parsed.scopeManager,
                 },
             });
 
@@ -281,7 +294,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                         "void marker;",
                     ].join("\n");
 
-                    const { ast, awaitedTypeReference } =
+                    const { ast, awaitedTypeReference, scopeManager } =
                         parseAwaitedTypeReferenceFromCode(code);
                     const reportCalls: AsyncReturnTypeReportDescriptor[] = [];
 
@@ -298,6 +311,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                             getText(node: unknown): string {
                                 return getSourceTextForNode({ code, node });
                             },
+                            scopeManager,
                         },
                     });
 
@@ -437,6 +451,16 @@ ruleTester.run("prefer-type-fest-async-return-type", rule, {
             code: nonAwaitedWrapperOfReturnTypeValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Awaited wrappers around ReturnType operands",
+        },
+        {
+            code: shadowedAwaitedValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Awaited that shadows the builtin",
+        },
+        {
+            code: shadowedReturnTypeValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReturnType that shadows the builtin",
         },
     ],
 });

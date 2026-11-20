@@ -40,6 +40,7 @@ import {
     nonMatchingUnionValidCode,
     qualifiedGenericArrayValidCode,
     reversedGenericArrayMismatchedElementValidCode,
+    shadowedGenericArrayValidCode,
     singleTypeValidCode,
     threeMemberUnionValidCode,
     validFixtureName,
@@ -218,6 +219,7 @@ const parseQueryValueUnionFromCode = (
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
     expectedElementText: string;
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
     unionNode: TSESTree.TSUnionType;
     unionRange: readonly [number, number];
 }> => {
@@ -246,6 +248,7 @@ const parseQueryValueUnionFromCode = (
             return {
                 ast: parsedResult.ast,
                 expectedElementText,
+                scopeManager: parsedResult.scopeManager,
                 unionNode: statement.typeAnnotation,
                 unionRange: statement.typeAnnotation.range,
             };
@@ -308,37 +311,6 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
             node?: unknown;
         }[] = [];
 
-        const createIdentifierNode = (name: string) => ({
-            name,
-            type: "Identifier",
-        });
-        const createKeywordTypeNode = (
-            type: "TSNumberKeyword" | "TSStringKeyword",
-            text: string
-        ) => ({
-            text,
-            type,
-        });
-        const createTypeReferenceNode = (
-            referenceName: string,
-            genericArguments: Readonly<UnknownArray> = [],
-            text = referenceName
-        ) => ({
-            text,
-            type: "TSTypeReference",
-            typeArguments:
-                genericArguments.length === 0
-                    ? undefined
-                    : {
-                          params: genericArguments,
-                      },
-            typeName: createIdentifierNode(referenceName),
-        });
-        const createUnionNode = (...types: Readonly<UnknownArray>) => ({
-            type: "TSUnionType",
-            types,
-        });
-
         try {
             vi.resetModules();
 
@@ -370,6 +342,28 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                     };
                 };
 
+            const code = [
+                "type Right = string | Array<string>;",
+                "type Left = Array<string> | string;",
+                "type Other = string | Box<string>;",
+                "type Mismatch = Array<number> | string;",
+                "type Missing = string | Array;",
+                "type Three = string | Array<string> | null;",
+            ].join("\n");
+            const { ast, scopeManager } = parser.parseForESLint(
+                code,
+                parserOptions
+            );
+            const nodes = ast.body.map((statement) => {
+                if (
+                    statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                    statement.typeAnnotation.type !== AST_NODE_TYPES.TSUnionType
+                ) {
+                    throw new TypeError("Expected a union type alias");
+                }
+                return statement.typeAnnotation;
+            });
+            const [validRightGenericNode, validLeftGenericNode] = nodes;
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
                 report(
@@ -378,94 +372,35 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                     reportCalls.push(descriptor);
                 },
                 sourceCode: {
-                    getText(node: Readonly<{ text?: string }>) {
-                        return node.text ?? "";
+                    ast,
+                    getText(node: unknown) {
+                        return getSourceTextForNode({ code, node });
                     },
+                    scopeManager,
                 },
             });
 
             const unionTypeListener = listeners.TSUnionType;
-
             expect(unionTypeListener).toBeTypeOf("function");
+            for (const node of nodes) {
+                unionTypeListener?.(node);
+            }
 
-            const stringKeywordNode = createKeywordTypeNode(
-                "TSStringKeyword",
-                "string"
-            );
-            const numberKeywordNode = createKeywordTypeNode(
-                "TSNumberKeyword",
-                "number"
-            );
-
-            const validRightGenericNode = createUnionNode(
-                stringKeywordNode,
-                createTypeReferenceNode(
-                    "Array",
-                    [stringKeywordNode],
-                    "Array<string>"
-                )
-            );
-            const validLeftGenericNode = createUnionNode(
-                createTypeReferenceNode(
-                    "Array",
-                    [stringKeywordNode],
-                    "Array<string>"
-                ),
-                stringKeywordNode
-            );
-            const invalidNonArrayGenericNode = createUnionNode(
-                stringKeywordNode,
-                createTypeReferenceNode(
-                    "Box",
-                    [stringKeywordNode],
-                    "Box<string>"
-                )
-            );
-            const invalidMismatchedLeftGenericNode = createUnionNode(
-                createTypeReferenceNode(
-                    "Array",
-                    [numberKeywordNode],
-                    "Array<number>"
-                ),
-                stringKeywordNode
-            );
-            const invalidMissingGenericArgumentNode = createUnionNode(
-                stringKeywordNode,
-                createTypeReferenceNode("Array", [], "Array")
-            );
-            const invalidThreeMemberUnionNode = createUnionNode(
-                stringKeywordNode,
-                createTypeReferenceNode(
-                    "Array",
-                    [stringKeywordNode],
-                    "Array<string>"
-                ),
-                {
-                    text: "null",
-                    type: "TSNullKeyword",
-                }
-            );
-            const invalidUndefinedUnionMemberNode = createUnionNode(
-                stringKeywordNode,
-                undefined
-            );
-            const invalidUndefinedArrayTypeArgumentNode = createUnionNode(
-                stringKeywordNode,
-                createTypeReferenceNode(
-                    "Array",
-                    [undefined],
-                    "Array<undefined>"
-                )
-            );
-
-            unionTypeListener?.(validRightGenericNode);
-            unionTypeListener?.(validLeftGenericNode);
-            unionTypeListener?.(invalidNonArrayGenericNode);
-            unionTypeListener?.(invalidMismatchedLeftGenericNode);
-            unionTypeListener?.(invalidMissingGenericArgumentNode);
-            unionTypeListener?.(invalidThreeMemberUnionNode);
-            unionTypeListener?.(invalidUndefinedUnionMemberNode);
-            unionTypeListener?.(invalidUndefinedArrayTypeArgumentNode);
+            const [element, generic] = validRightGenericNode?.types ?? [];
+            if (generic?.type !== AST_NODE_TYPES.TSTypeReference) {
+                throw new TypeError("Expected the Array<string> fixture");
+            }
+            unionTypeListener?.({
+                ...validRightGenericNode,
+                types: [element, undefined],
+            });
+            unionTypeListener?.({
+                ...validRightGenericNode,
+                types: [
+                    element,
+                    { ...generic, typeArguments: { params: [undefined] } },
+                ],
+            });
 
             expect(reportCalls).toHaveLength(2);
             expect(reportCalls[0]).toMatchObject({
@@ -539,6 +474,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                         const {
                             ast,
                             expectedElementText,
+                            scopeManager,
                             unionNode,
                             unionRange,
                         } = parseQueryValueUnionFromCode(code);
@@ -562,6 +498,7 @@ describe("prefer-type-fest-arrayable internal generic Array<T> guard", () => {
                                 getText(node: unknown): string {
                                     return getSourceTextForNode({ code, node });
                                 },
+                                scopeManager,
                             },
                         });
 
@@ -746,6 +683,11 @@ ruleTester.run(ruleId, rule, {
             code: qualifiedGenericArrayValidCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Array qualified generic unions",
+        },
+        {
+            code: shadowedGenericArrayValidCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Array that shadows the builtin",
         },
         {
             code: inlineInvalidReadonlyArrayCode,

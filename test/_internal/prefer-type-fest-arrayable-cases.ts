@@ -39,6 +39,10 @@ export const nonArrayGenericMatchingElementValidCode: string = [
 ].join("\n");
 export const bothMembersAreNativeArraysValidCode =
     "type QueryValue = string[] | string[];";
+export const shadowedGenericArrayValidCode: string = [
+    "type Array<T> = { readonly items: T };",
+    "type QueryValue = string | Array<string>;",
+].join("\n");
 
 export const inlineFixableCode: string = [
     'import type { Arrayable } from "type-fest";',

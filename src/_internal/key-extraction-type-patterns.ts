@@ -9,8 +9,11 @@ import { arrayFirst } from "ts-extras";
  * @packageDocumentation
  * Shared AST pattern helpers for TypeFest `*KeysOf` extraction rules.
  */
+import type { TypedRuleContext } from "./typed-rule.js";
+
 import { setContainsValue } from "./set-membership.js";
 import { isBooleanLiteralType } from "./type-guard-conditional-patterns.js";
+import { isGlobalTypeReferenceNamed } from "./type-reference-node.js";
 
 const getSingleTypeArgument = (
     node: Readonly<TSESTree.TSTypeReference>
@@ -262,19 +265,18 @@ export const getMappedKeyExtractionInputType = (
  * `T extends unknown ? Exclude<keyof T, KeysOf<T>> : never`
  */
 export const getExcludeKeyExtractionInputType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>,
     localKeysOfNames: ReadonlySet<string>,
     typeFestNamespaceImportNames: ReadonlySet<string>,
-    keysOfTypeName: string,
-    sourceCode: Readonly<TSESLint.SourceCode>
+    keysOfTypeName: string
 ): TSESTree.TypeNode | undefined => {
+    const { sourceCode } = context;
     const inputType = getDistributedInputType(node);
 
     if (
         !inputType ||
-        node.trueType.type !== AST_NODE_TYPES.TSTypeReference ||
-        node.trueType.typeName.type !== AST_NODE_TYPES.Identifier ||
-        node.trueType.typeName.name !== "Exclude"
+        !isGlobalTypeReferenceNamed(context, node.trueType, "Exclude")
     ) {
         return undefined;
     }

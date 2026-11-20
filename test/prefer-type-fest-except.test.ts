@@ -110,6 +110,16 @@ const inlineValidOmitWithoutTypeArgumentsCode = [
     "type UserWithoutId = Omit<User>;",
 ].join("\n");
 const inlineValidBareOmitReferenceCode = "type OmitFactory = Omit;";
+const inlineValidShadowedOmitCode = [
+    "type Omit<T, K extends PropertyKey> = T & Record<K, never>;",
+    "",
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    'export type UserWithoutId = Omit<User, "id">;',
+].join("\n");
 const builtinOmitIgnoredByOptionsValidCode = [
     "type User = {",
     "    id: string;",
@@ -227,6 +237,7 @@ describe("prefer-type-fest-except source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 
@@ -374,6 +385,11 @@ ruleTester.run("prefer-type-fest-except", rule, {
             code: inlineValidBareOmitReferenceCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores bare Omit type reference",
+        },
+        {
+            code: inlineValidShadowedOmitCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Omit that shadows the builtin",
         },
         {
             code: builtinOmitIgnoredByOptionsValidCode,

@@ -144,6 +144,20 @@ const inlineValidQualifiedArrayTypeCode = [
     "",
     "type NotJsonArray = globalThis.Array<JsonValue> | ReadonlyArray<JsonValue>;",
 ].join("\n");
+const inlineValidShadowedArrayCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Array<T> = { readonly items: T };",
+    "type NotJsonArray = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
+const inlineValidShadowedReadonlyArrayCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "interface ReadonlyArray<T> {",
+    "    readonly items: T;",
+    "}",
+    "type NotJsonArray = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+].join("\n");
 const inlineValidReadonlyOperatorNonArrayTypeCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -257,6 +271,7 @@ const parseUnionTypeFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
     unionType: TSESTree.TSUnionType;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
@@ -268,6 +283,7 @@ const parseUnionTypeFromCode = (
         ) {
             return {
                 ast: parsed.ast,
+                scopeManager: parsed.scopeManager,
                 unionType: statement.typeAnnotation,
             };
         }
@@ -297,37 +313,6 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
             messageId?: string;
             node?: unknown;
         }[] = [];
-
-        const createIdentifierNode = (name: string) => ({
-            name,
-            type: "Identifier",
-        });
-        const createTypeReferenceNode = (
-            referenceName: string,
-            genericArguments: Readonly<UnknownArray> = []
-        ) => ({
-            type: "TSTypeReference",
-            ...(genericArguments.length > 0 && {
-                typeArguments: {
-                    params: genericArguments,
-                },
-            }),
-            typeName: createIdentifierNode(referenceName),
-        });
-        const jsonValueTypeReferenceNode = createTypeReferenceNode("JsonValue");
-        const createNativeArrayNode = (elementType: unknown) => ({
-            elementType,
-            type: "TSArrayType",
-        });
-        const createReadonlyNativeArrayNode = (elementType: unknown) => ({
-            operator: "readonly",
-            type: "TSTypeOperator",
-            typeAnnotation: createNativeArrayNode(elementType),
-        });
-        const createUnionNode = (...types: Readonly<UnknownArray>) => ({
-            type: "TSUnionType",
-            types,
-        });
 
         try {
             vi.resetModules();
@@ -360,6 +345,31 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                     };
                 };
 
+            const code = [
+                "type Native = JsonValue[] | readonly JsonValue[];",
+                "type Generic = Array<JsonValue> | ReadonlyArray<JsonValue>;",
+                "type Other = ArrayLike<JsonValue> | ReadonlyArrayLike<JsonValue>;",
+                "type MissingMutable = Array | ReadonlyArray<JsonValue>;",
+                "type MissingReadonly = Array<JsonValue> | ReadonlyArray;",
+                "type Mismatch = ReadonlyArray<JsonValue> | Array<UnknownValue>;",
+                "type OtherReadonly = Array<JsonValue> | ReadonlyArrayLike<JsonValue>;",
+                "type Keys = keyof JsonValue[] | readonly JsonValue[];",
+                "type Three = JsonValue[] | readonly JsonValue[] | null;",
+            ].join("\n");
+            const { ast, scopeManager } = parser.parseForESLint(
+                code,
+                parserOptions
+            );
+            const nodes = ast.body.map((statement) => {
+                if (
+                    statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                    statement.typeAnnotation.type !== AST_NODE_TYPES.TSUnionType
+                ) {
+                    throw new TypeError("Expected a union type alias");
+                }
+                return statement.typeAnnotation;
+            });
+            const [validNativePairNode, validGenericPairNode] = nodes;
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
                 report(
@@ -367,86 +377,17 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                 ) {
                     reportCalls.push(descriptor);
                 },
-                sourceCode: {
-                    ast: {
-                        body: [],
-                    },
-                },
+                sourceCode: { ast, scopeManager },
             });
 
-            const unionTypeListener = listeners.TSUnionType;
-
+            const unionTypeListener = getSelectorAwareNodeListener(
+                listeners,
+                "TSUnionType"
+            );
             expect(unionTypeListener).toBeTypeOf("function");
-
-            const validNativePairNode = createUnionNode(
-                createNativeArrayNode(jsonValueTypeReferenceNode),
-                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode)
-            );
-            const validGenericPairNode = createUnionNode(
-                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
-                createTypeReferenceNode("ReadonlyArray", [
-                    jsonValueTypeReferenceNode,
-                ])
-            );
-            const invalidNonTargetIdentifiersNode = createUnionNode(
-                createTypeReferenceNode("ArrayLike", [
-                    jsonValueTypeReferenceNode,
-                ]),
-                createTypeReferenceNode("ReadonlyArrayLike", [
-                    jsonValueTypeReferenceNode,
-                ])
-            );
-            const invalidMissingArrayTypeArgumentNode = createUnionNode(
-                createTypeReferenceNode("Array"),
-                createTypeReferenceNode("ReadonlyArray", [
-                    jsonValueTypeReferenceNode,
-                ])
-            );
-            const invalidMissingReadonlyTypeArgumentNode = createUnionNode(
-                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
-                createTypeReferenceNode("ReadonlyArray")
-            );
-            const invalidOneSidedGenericMatchNode = createUnionNode(
-                createTypeReferenceNode("ReadonlyArray", [
-                    jsonValueTypeReferenceNode,
-                ]),
-                createTypeReferenceNode("Array", [
-                    createTypeReferenceNode("UnknownValue"),
-                ])
-            );
-            const invalidGenericReadonlyIdentifierNode = createUnionNode(
-                createTypeReferenceNode("Array", [jsonValueTypeReferenceNode]),
-                createTypeReferenceNode("ReadonlyArrayLike", [
-                    jsonValueTypeReferenceNode,
-                ])
-            );
-            const invalidNonArrayLeftNativeNode = createUnionNode(
-                {
-                    operator: "keyof",
-                    type: "TSTypeOperator",
-                    typeAnnotation: createNativeArrayNode(
-                        jsonValueTypeReferenceNode
-                    ),
-                },
-                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode)
-            );
-            const invalidThreeMemberUnionNode = createUnionNode(
-                createNativeArrayNode(jsonValueTypeReferenceNode),
-                createReadonlyNativeArrayNode(jsonValueTypeReferenceNode),
-                {
-                    type: "TSNullKeyword",
-                }
-            );
-
-            unionTypeListener?.(validNativePairNode);
-            unionTypeListener?.(validGenericPairNode);
-            unionTypeListener?.(invalidNonTargetIdentifiersNode);
-            unionTypeListener?.(invalidMissingArrayTypeArgumentNode);
-            unionTypeListener?.(invalidMissingReadonlyTypeArgumentNode);
-            unionTypeListener?.(invalidOneSidedGenericMatchNode);
-            unionTypeListener?.(invalidGenericReadonlyIdentifierNode);
-            unionTypeListener?.(invalidNonArrayLeftNativeNode);
-            unionTypeListener?.(invalidThreeMemberUnionNode);
+            for (const node of nodes) {
+                unionTypeListener?.(node);
+            }
 
             expect(reportCalls).toHaveLength(2);
             expect(reportCalls[0]).toMatchObject({
@@ -509,7 +450,8 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                         `type Candidate = ${jsonArrayUnionText};`,
                     ].join("\n");
 
-                    const { ast, unionType } = parseUnionTypeFromCode(code);
+                    const { ast, scopeManager, unionType } =
+                        parseUnionTypeFromCode(code);
                     const reportCalls: JsonArrayReportDescriptor[] = [];
 
                     const listeners = authoredRuleModule.default.create({
@@ -520,6 +462,7 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                         },
                         sourceCode: {
                             ast,
+                            scopeManager,
                         },
                     });
 
@@ -696,6 +639,16 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidQualifiedArrayTypeCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Array qualified union",
+        },
+        {
+            code: inlineValidShadowedArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Array that shadows the builtin",
+        },
+        {
+            code: inlineValidShadowedReadonlyArrayCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared ReadonlyArray that shadows the builtin",
         },
         {
             code: inlineValidQualifiedJsonValueTypeReferenceCode,

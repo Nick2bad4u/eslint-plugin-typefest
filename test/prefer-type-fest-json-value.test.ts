@@ -101,6 +101,11 @@ const inlineValidLiteralNonStringKeyCode =
 const inlineValidNonUnknownValueCode =
     "type IpcPayload = Record<string, string>;";
 const inlineValidMapCode = "type IpcPayload = Map<string, unknown>;";
+const inlineValidShadowedRecordCode = [
+    "type Record<K extends PropertyKey, V> = Map<K, V>;",
+    "",
+    "export type IpcPayload = Record<string, unknown>;",
+].join("\n");
 
 const parserOptions = {
     ecmaVersion: "latest",
@@ -129,6 +134,7 @@ const parseJsonObjectTypeReferenceFromCode = (
     sourceText: string
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
     tsReference: TSESTree.TSTypeReference;
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
@@ -141,6 +147,7 @@ const parseJsonObjectTypeReferenceFromCode = (
         ) {
             return {
                 ast: parsed.ast,
+                scopeManager: parsed.scopeManager,
                 tsReference: statement.typeAnnotation,
             };
         }
@@ -209,31 +216,19 @@ describe("prefer-type-fest-json-value internal listener guards", () => {
                     };
                 };
 
+            const { ast, scopeManager, tsReference } =
+                parseJsonObjectTypeReferenceFromCode(
+                    "type Payload = Record<string, unknown>;"
+                );
             const listeners = authoredRuleModule.default.create({
                 filename: "src/example.ts",
                 report: (descriptor: unknown) => {
                     reportCalls.push(descriptor);
                 },
-                sourceCode: {
-                    ast: {
-                        body: [],
-                    },
-                },
+                sourceCode: { ast, scopeManager },
             });
 
-            listeners.TSTypeReference?.({
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [
-                        { type: "TSStringKeyword" },
-                        { type: "TSUnknownKeyword" },
-                    ],
-                },
-                typeName: {
-                    name: "Record",
-                    type: "Identifier",
-                },
-            });
+            listeners.TSTypeReference?.(tsReference);
 
             expect(reportCalls).toHaveLength(1);
             expect(reportCalls[0]).toMatchObject({
@@ -416,6 +411,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidMapCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores non-Record map type alias",
+        },
+        {
+            code: inlineValidShadowedRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Record that shadows the builtin",
         },
     ],
 });
