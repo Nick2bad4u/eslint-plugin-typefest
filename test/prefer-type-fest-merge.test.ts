@@ -1,5 +1,8 @@
+import parser from "@typescript-eslint/parser";
+import { Linter } from "eslint";
 import { describe, expect, it } from "vitest";
 
+import typefestPlugin from "../src/plugin";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import { createTypedRuleTester } from "./_internal/typed-rule-tester";
@@ -14,7 +17,7 @@ const docsDescription =
 const docsUrl =
     "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-type-fest-merge";
 const preferMergeMessage =
-    "Prefer `Merge<Destination, Source>` from type-fest over `{{omitTypeName}}<Destination, keyof Source> & Source` when the second object cleanly overrides the first.";
+    "For plain object types, consider replacing the `{{omitTypeName}}<Destination, keyof Source>` and `Source` members with `Merge<Destination, Source>` from type-fest. Keep the other intersection members.";
 
 const ruleTester = createTypedRuleTester();
 const rule = getPluginRule(ruleId);
@@ -35,8 +38,54 @@ describe("prefer-type-fest-merge metadata literals", () => {
     });
 });
 
+describe("coordination between Merge and Except rules", () => {
+    it("reports the merge pair once, ignores its shadow, and reports unrelated Omit usage", () => {
+        expect.hasAssertions();
+
+        const messages = new Linter().verify(
+            [
+                "type Combined<A, B, C> = Omit<A, keyof B> & C & B;",
+                "namespace Nested {",
+                "    type Omit<T, K> = [T, K];",
+                "    export type Local<A, B> = Omit<A, keyof B> & B;",
+                "}",
+                'export type Plain = Omit<{ id: string }, "id">;',
+            ].join("\n"),
+            {
+                files: ["**/*.ts"],
+                languageOptions: { parser },
+                plugins: { typefest: typefestPlugin },
+                rules: {
+                    "typefest/prefer-type-fest-except": "error",
+                    "typefest/prefer-type-fest-merge": "error",
+                },
+            },
+            { filename: "example.ts" }
+        );
+
+        expect(
+            messages.map(({ line, ruleId: id }) => [line, id])
+        ).toStrictEqual([
+            [1, "typefest/prefer-type-fest-merge"],
+            [6, "typefest/prefer-type-fest-except"],
+        ]);
+    });
+});
+
 ruleTester.run(ruleId, rule, {
     invalid: [
+        {
+            code: [
+                'import type { Except as Omit } from "type-fest";',
+                "type Base = { id: string; value: number };",
+                "type Source = { value: string };",
+                "export type Combined = Omit<Base, keyof Source> & Source;",
+            ].join("\n"),
+            errors: [
+                { data: { omitTypeName: "Omit" }, messageId: "preferMerge" },
+            ],
+            name: "recognizes the actual Except import even when renamed Omit",
+        },
         {
             code: [
                 'import type { Except, Merge } from "type-fest";',
@@ -47,7 +96,6 @@ ruleTester.run(ruleId, rule, {
                 "};",
                 "type Overrides = {",
                 "    name: number;",
-                "    readonly ok: true;",
                 "};",
                 "",
                 "type Combined = Except<Base, keyof Overrides> & Overrides;",
@@ -66,7 +114,6 @@ ruleTester.run(ruleId, rule, {
                 "};",
                 "type Overrides = {",
                 "    name: number;",
-                "    readonly ok: true;",
                 "};",
                 "",
                 "type Combined = Overrides & StrictExcept<Base, keyof Overrides>;",
@@ -139,6 +186,35 @@ ruleTester.run(ruleId, rule, {
     ],
     valid: [
         {
+            code: "type Combined<B> = Omit<{ x: 1 } | { y: 2 }, keyof B> & B;",
+            name: "ignores a union destination whose variants Merge would preserve",
+        },
+        {
+            code: "type Combined<A> = Omit<A, keyof (() => void)> & (() => void);",
+            name: "ignores a callable source whose call signature Merge would lose",
+        },
+        {
+            code: "type Combined<B> = Omit<{ [key: string]: string }, keyof B> & B;",
+            name: "ignores an operand with an explicit index signature",
+        },
+        {
+            code: [
+                "type Omit<T, K> = [T, K];",
+                "export type Combined<A, B> = Omit<A, keyof B> & B;",
+            ].join("\n"),
+            name: "ignores a local Omit type with different semantics",
+        },
+        {
+            code: [
+                'import type { Except as E } from "type-fest";',
+                "namespace Nested {",
+                "    type E<T, K> = [T, K];",
+                "    export type Combined<A, B> = E<A, keyof B> & B;",
+                "}",
+            ].join("\n"),
+            name: "ignores a nested type that shadows an imported Except alias",
+        },
+        {
             code: [
                 'import type { Merge } from "type-fest";',
                 "",
@@ -165,7 +241,6 @@ ruleTester.run(ruleId, rule, {
                 "};",
                 "type Overrides = {",
                 "    name: number;",
-                "    readonly ok: true;",
                 "};",
                 "",
                 "type Combined = Except<Base, keyof Overrides> | Overrides;",
@@ -182,7 +257,6 @@ ruleTester.run(ruleId, rule, {
                 "};",
                 "type Overrides = {",
                 "    name: number;",
-                "    readonly ok: true;",
                 "};",
                 "",
                 "type Combined = Except<Base, keyof Overrides> & Readonly<Overrides>;",

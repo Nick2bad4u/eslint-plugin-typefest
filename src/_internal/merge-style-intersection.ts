@@ -3,23 +3,22 @@
  * Shared detection for hand-written `Merge<Destination, Source>` intersections.
  */
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { arrayAt, arrayFirst } from "ts-extras";
 
 import { getParentNode } from "./ast-node.js";
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
 import { unwrapParenthesizedTypeNode } from "./type-reference-node.js";
 
 /**
- * Check whether a key-removing type reference such as `Omit<Destination, keyof
- * Source>` is a member of an intersection that also contains `Source`.
+ * Match a key-removing type reference in an intersection containing its source.
  *
  * @param node - Candidate key-removing type reference.
  *
- * @returns `true` when the reference encodes the `Merge<Destination, Source>`
- *   pattern; otherwise `false`.
+ * @returns The destination and source operands of a matching intersection.
  */
-export const isMergeStyleIntersectionMember = (
+export const getMergeStyleIntersectionOperands = (
     node: Readonly<TSESTree.TSTypeReference>
-): boolean => {
+): readonly [TSESTree.TypeNode, TSESTree.TypeNode] | undefined => {
     const intersectionNode = getParentNode(node);
     const typeArguments = node.typeArguments?.params;
 
@@ -27,13 +26,14 @@ export const isMergeStyleIntersectionMember = (
         intersectionNode?.type !== AST_NODE_TYPES.TSIntersectionType ||
         typeArguments?.length !== 2
     ) {
-        return false;
+        return undefined;
     }
 
-    const [, omittedKeysType] = typeArguments;
+    const destination = arrayFirst(typeArguments);
+    const omittedKeysType = arrayAt(typeArguments, 1);
 
-    if (omittedKeysType === undefined) {
-        return false;
+    if (!destination || !omittedKeysType) {
+        return undefined;
     }
 
     const normalizedOmittedKeysType =
@@ -43,16 +43,16 @@ export const isMergeStyleIntersectionMember = (
         normalizedOmittedKeysType.type !== AST_NODE_TYPES.TSTypeOperator ||
         normalizedOmittedKeysType.operator !== "keyof"
     ) {
-        return false;
+        return undefined;
     }
 
     const keyedSourceType = normalizedOmittedKeysType.typeAnnotation;
 
-    if (keyedSourceType === undefined) {
-        return false;
+    if (!keyedSourceType) {
+        return undefined;
     }
 
-    return intersectionNode.types.some(
+    const hasSource = intersectionNode.types.some(
         (memberType) =>
             memberType !== node &&
             areEquivalentTypeNodes(
@@ -60,4 +60,6 @@ export const isMergeStyleIntersectionMember = (
                 keyedSourceType
             )
     );
+
+    return hasSource ? [destination, keyedSourceType] : undefined;
 };

@@ -69,6 +69,8 @@ type Combined = Merge<Base, Overrides>;
 - [`prefer-type-fest-except`](./prefer-type-fest-except.md) does not report a builtin `Omit` that matches this pattern, so the two rules do not double-report it.
 - `Except<Destination, keyof Source>` only compiles when every key of `Source` also exists on `Destination`. `Merge<Destination, Source>` has no such constraint, so it also covers sources that add new keys.
 - It ignores intersections whose sibling type does not match the `keyof` operand exactly.
+- Preserve any additional members. For example, `Omit<Base, keyof Overrides> & Extra & Overrides` becomes `Merge<Base, Overrides> & Extra`.
+- Check the operands before changing a named type. The rule reads syntax and cannot see through aliases. `Merge` can preserve union variants, drop call signatures, and handle index signatures differently from the handwritten intersection. Use this recommendation for plain object types.
 
 ## Additional examples
 
