@@ -9,6 +9,7 @@ import {
     collectImportedTypeAliasMatches,
     createSafeTypeReferenceReplacementFix,
 } from "../_internal/imported-type-aliases.js";
+import { getMergeStyleIntersectionOperands } from "../_internal/merge-style-intersection.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
@@ -27,7 +28,7 @@ const defaultOption = {
     enforceBuiltinOmit: true,
 } as const;
 
-const defaultOptions = [defaultOption] as const;
+const defaultOptions: readonly [PreferTypeFestExceptOption] = [defaultOption];
 
 /**
  * ESLint rule definition for `prefer-type-fest-except`.
@@ -60,7 +61,11 @@ const preferTypeFestExceptRule: ReturnType<typeof createTypedRule> =
                     );
 
                     if (isBuiltinOmitReference) {
-                        if (!enforceBuiltinOmit) {
+                        if (
+                            !enforceBuiltinOmit ||
+                            getMergeStyleIntersectionOperands(node) !==
+                                undefined
+                        ) {
                             return;
                         }
 

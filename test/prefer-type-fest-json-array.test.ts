@@ -384,7 +384,9 @@ describe("prefer-type-fest-json-array internal JsonValue[] guard", () => {
                 listeners,
                 "TSUnionType"
             );
+
             expect(unionTypeListener).toBeTypeOf("function");
+
             for (const node of nodes) {
                 unionTypeListener?.(node);
             }

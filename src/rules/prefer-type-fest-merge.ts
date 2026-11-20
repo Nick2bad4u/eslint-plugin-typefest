@@ -4,68 +4,40 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
  * @packageDocumentation
  * ESLint rule implementation for `prefer-type-fest-merge`.
  */
-import { collectNamedImportLocalNamesFromSource } from "../_internal/imported-type-aliases.js";
+import { collectNamedImportSpecifierBindingsFromSource } from "../_internal/import-analysis.js";
+import { getMergeStyleIntersectionOperands } from "../_internal/merge-style-intersection.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
-import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { setContainsValue } from "../_internal/set-membership.js";
-import { unwrapParenthesizedTypeNode } from "../_internal/type-reference-node.js";
+import {
+    isGlobalTypeReferenceNamed,
+    unwrapParenthesizedTypeNode,
+} from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
-/**
- * Detect whether an `Except<Destination, keyof Source>` reference is the left
- * side of a merge-style intersection.
- *
- * @param node - Candidate type reference.
- * @param siblingType - Sibling type from the same intersection.
- * @param exceptLocalNames - In-scope local names bound to `Except`.
- *
- * @returns `true` when the reference encodes the `Merge<Destination, Source>`
- *   pattern; otherwise `false`.
- */
-const isMergeIntersectionExceptReference = (
-    node: Readonly<TSESTree.TSTypeReference>,
-    siblingType: Readonly<TSESTree.TypeNode>,
-    exceptLocalNames: ReadonlySet<string>
+const OMIT_TYPE_NAME = "Omit";
+const unsupportedOperandTypes: ReadonlySet<AST_NODE_TYPES> = new Set([
+    AST_NODE_TYPES.TSConstructorType,
+    AST_NODE_TYPES.TSFunctionType,
+    AST_NODE_TYPES.TSUnionType,
+]);
+const unsupportedMemberTypes: ReadonlySet<AST_NODE_TYPES> = new Set([
+    AST_NODE_TYPES.TSCallSignatureDeclaration,
+    AST_NODE_TYPES.TSConstructSignatureDeclaration,
+    AST_NODE_TYPES.TSIndexSignature,
+]);
+
+/** Skip operands whose visible syntax can give Merge different semantics. */
+const hasUnsupportedMergeShape = (
+    operand: Readonly<TSESTree.TypeNode>
 ): boolean => {
-    if (
-        node.typeName.type !== AST_NODE_TYPES.Identifier ||
-        !setContainsValue(exceptLocalNames, node.typeName.name)
-    ) {
-        return false;
-    }
-
-    const typeArguments = node.typeArguments?.params;
-
-    if (typeArguments?.length !== 2) {
-        return false;
-    }
-
-    const [, omittedKeysType] = typeArguments;
-
-    if (omittedKeysType === undefined) {
-        return false;
-    }
-
-    const normalizedOmittedKeysType =
-        unwrapParenthesizedTypeNode(omittedKeysType);
-
-    if (
-        normalizedOmittedKeysType.type !== AST_NODE_TYPES.TSTypeOperator ||
-        normalizedOmittedKeysType.operator !== "keyof"
-    ) {
-        return false;
-    }
-
-    const keyedSourceType = normalizedOmittedKeysType.typeAnnotation;
-
-    if (keyedSourceType === undefined) {
-        return false;
-    }
-
-    return areEquivalentTypeNodes(
-        unwrapParenthesizedTypeNode(siblingType),
-        keyedSourceType
+    const node = unwrapParenthesizedTypeNode(operand);
+    return (
+        setContainsValue(unsupportedOperandTypes, node.type) ||
+        (node.type === AST_NODE_TYPES.TSTypeLiteral &&
+            node.members.some((member) =>
+                setContainsValue(unsupportedMemberTypes, member.type)
+            ))
     );
 };
 
@@ -75,40 +47,45 @@ const isMergeIntersectionExceptReference = (
 const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const exceptLocalNames = collectNamedImportLocalNamesFromSource(
-                context.sourceCode,
-                TYPE_FEST_MODULE_SOURCE,
-                "Except"
+            const exceptReferences = new Set(
+                collectNamedImportSpecifierBindingsFromSource({
+                    allowTypeImportDeclaration: true,
+                    allowTypeImportSpecifier: true,
+                    sourceCode: context.sourceCode,
+                    sourceModuleName: TYPE_FEST_MODULE_SOURCE,
+                })
+                    .filter((binding) => binding.importedName === "Except")
+                    .flatMap(({ specifier }) =>
+                        context.sourceCode.getDeclaredVariables(specifier)
+                    )
+                    .flatMap((variable) =>
+                        variable.references.map(
+                            (reference) => reference.identifier
+                        )
+                    )
             );
 
             return {
                 'TSIntersectionType > TSTypeReference[typeName.type="Identifier"]'(
                     node: TSESTree.TSTypeReference
                 ) {
-                    const intersectionNode = node.parent;
-
                     if (
-                        intersectionNode.type !==
-                            AST_NODE_TYPES.TSIntersectionType ||
-                        intersectionNode.types.length !== 2
+                        node.typeName.type !== AST_NODE_TYPES.Identifier ||
+                        (!setContainsValue(exceptReferences, node.typeName) &&
+                            !isGlobalTypeReferenceNamed(
+                                context,
+                                node,
+                                OMIT_TYPE_NAME
+                            ))
                     ) {
                         return;
                     }
 
-                    const [leftType, rightType] = intersectionNode.types;
-
-                    if (leftType === undefined || rightType === undefined) {
-                        return;
-                    }
-
-                    const siblingType =
-                        leftType === node ? rightType : leftType;
-
+                    const operands = getMergeStyleIntersectionOperands(node);
                     if (
-                        !isMergeIntersectionExceptReference(
-                            node,
-                            siblingType,
-                            exceptLocalNames
+                        !operands ||
+                        operands.some((operand) =>
+                            hasUnsupportedMergeShape(operand)
                         )
                     ) {
                         return;
@@ -116,9 +93,10 @@ const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
 
                     reportWithOptionalFix({
                         context,
+                        data: { omitTypeName: node.typeName.name },
                         fix: null,
                         messageId: "preferMerge",
-                        node: intersectionNode,
+                        node,
                     });
                 },
             };
@@ -127,7 +105,7 @@ const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
             deprecated: false,
             docs: {
                 description:
-                    "require TypeFest Merge over Except<Destination, keyof Source> & Source intersections.",
+                    "require TypeFest Merge over Omit/Except<Destination, keyof Source> & Source intersections.",
                 frozen: false,
                 recommended: false,
                 requiresTypeChecking: false,
@@ -136,7 +114,7 @@ const preferTypeFestMergeRule: ReturnType<typeof createTypedRule> =
             },
             messages: {
                 preferMerge:
-                    "Prefer `Merge<Destination, Source>` from type-fest over `Except<Destination, keyof Source> & Source` when the second object cleanly overrides the first.",
+                    "For plain object types, consider replacing the `{{omitTypeName}}<Destination, keyof Source>` and `Source` members with `Merge<Destination, Source>` from type-fest. Keep the other intersection members.",
             },
             schema: [],
             type: "suggestion",

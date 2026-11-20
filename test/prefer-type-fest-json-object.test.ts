@@ -287,6 +287,7 @@ describe("prefer-type-fest-json-object internal Record<JsonValue> guard", () => 
             });
 
             const referenceListener = listeners.TSTypeReference;
+
             expect(referenceListener).toBeTypeOf("function");
 
             const references = parsed.ast.body.map((statement) => {

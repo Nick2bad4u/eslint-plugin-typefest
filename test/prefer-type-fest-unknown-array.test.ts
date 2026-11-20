@@ -272,7 +272,9 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
             });
 
             const referenceListener = listeners.TSTypeReference;
+
             expect(referenceListener).toBeTypeOf("function");
+
             for (const node of nodes) {
                 referenceListener?.(node);
             }
