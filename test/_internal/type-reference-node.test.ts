@@ -113,6 +113,15 @@ createRuleTester().run(
             },
             {
                 code: [
+                    "type Result<T> = T extends infer Omit",
+                    "    ? Omit",
+                    '    : Omit<{ id: string }, "id">;',
+                ].join("\n"),
+                errors: [{ line: 3, messageId: "globalTypeReference" }],
+                name: "resolves the built-in in the false branch outside an inferred type parameter's scope",
+            },
+            {
+                code: [
                     "namespace Local {",
                     "    type Omit<T, K extends PropertyKey> = T & Record<K, never>;",
                     '    export type Inner = Omit<{ id: string }, "id">;',
@@ -199,7 +208,7 @@ describe(isGlobalTypeReferenceNamed, () => {
 
         const context = {
             sourceCode: {
-                getScope: () => {
+                get scopeManager() {
                     throw new TypeError("scope failure");
                 },
             },
@@ -210,15 +219,15 @@ describe(isGlobalTypeReferenceNamed, () => {
         );
     });
 
-    it("treats references as global when scope lookup is unavailable", () => {
+    it("ignores references when the scope manager is unavailable", () => {
         expect.hasAssertions();
 
         const context = {
-            sourceCode: {},
+            sourceCode: { scopeManager: null },
         } as unknown as TSESLint.RuleContext<string, readonly unknown[]>;
 
         expect(isGlobalTypeReferenceNamed(context, omitReference, "Omit")).toBe(
-            true
+            false
         );
     });
 });

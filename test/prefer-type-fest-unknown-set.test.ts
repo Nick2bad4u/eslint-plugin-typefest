@@ -185,6 +185,7 @@ describe("prefer-type-fest-unknown-set source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 

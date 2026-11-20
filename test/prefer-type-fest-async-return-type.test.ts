@@ -131,6 +131,7 @@ const parseAwaitedTypeReferenceFromCode = (
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
     awaitedTypeReference: TSESTree.TSTypeReference;
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -142,6 +143,7 @@ const parseAwaitedTypeReferenceFromCode = (
             return {
                 ast: parsed.ast,
                 awaitedTypeReference: statement.typeAnnotation,
+                scopeManager: parsed.scopeManager,
             };
         }
     }
@@ -235,6 +237,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                 sourceCode: {
                     ast: parsed.ast,
                     getText: () => "() => Promise<string>",
+                    scopeManager: parsed.scopeManager,
                 },
             });
 
@@ -291,7 +294,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                         "void marker;",
                     ].join("\n");
 
-                    const { ast, awaitedTypeReference } =
+                    const { ast, awaitedTypeReference, scopeManager } =
                         parseAwaitedTypeReferenceFromCode(code);
                     const reportCalls: AsyncReturnTypeReportDescriptor[] = [];
 
@@ -308,6 +311,7 @@ describe("prefer-type-fest-async-return-type runtime safety assertions", () => {
                             getText(node: unknown): string {
                                 return getSourceTextForNode({ code, node });
                             },
+                            scopeManager,
                         },
                     });
 

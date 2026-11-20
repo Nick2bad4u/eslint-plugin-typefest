@@ -205,6 +205,7 @@ describe("prefer-type-fest-unknown-map source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 
