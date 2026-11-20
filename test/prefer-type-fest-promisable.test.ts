@@ -116,6 +116,7 @@ describe("prefer-type-fest-promisable source assertions", () => {
                     ast: parsedResult.ast,
                     getText: (node: unknown): string =>
                         getSourceTextForNode({ code, node }),
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 

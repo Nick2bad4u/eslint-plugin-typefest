@@ -256,6 +256,7 @@ describe("prefer-type-fest-except source assertions", () => {
                 report,
                 sourceCode: {
                     ast: parsedResult.ast,
+                    scopeManager: parsedResult.scopeManager,
                 },
             });
 

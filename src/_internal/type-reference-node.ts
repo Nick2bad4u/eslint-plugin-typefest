@@ -2,13 +2,12 @@ import type { UnknownArray } from "type-fest";
 
 import {
     AST_NODE_TYPES,
-    TSESLint,
+    type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
 
-import { resolveFirstValueInLinkedStructure } from "./cycle-safe-linked-search.js";
 import { safeTypeOperation } from "./safe-type-operation.js";
-import { getScopeFromContextSourceCode } from "./scope-resolution.js";
+import { setContainsValue } from "./set-membership.js";
 
 /**
  * @packageDocumentation
@@ -16,6 +15,12 @@ import { getScopeFromContextSourceCode } from "./scope-resolution.js";
  */
 
 const TS_PARENTHESIZED_TYPE = "TSParenthesizedType";
+
+/** References resolved by the parser to a particular global binding. */
+const globalReferences = new WeakMap<
+    TSESLint.Scope.Variable,
+    ReadonlySet<TSESTree.Node>
+>();
 
 const isTypeNodeLike = (value: unknown): value is Readonly<TSESTree.TypeNode> =>
     typeof value === "object" &&
@@ -73,31 +78,21 @@ export const isGlobalTypeReferenceNamed = <
 
     const result = safeTypeOperation({
         operation: () => {
-            const lookupResult = resolveFirstValueInLinkedStructure<
-                Readonly<TSESLint.Scope.Scope>,
-                boolean
-            >({
-                getNextNode: (scope) => scope.upper,
-                resolveValue: (scope) => {
-                    if (scope.type === TSESLint.Scope.ScopeType.global) {
-                        return { found: true, value: true };
-                    }
+            const variable =
+                context.sourceCode.scopeManager?.globalScope?.set.get(typeName);
+            if (variable === undefined) {
+                return false;
+            }
 
-                    const isShadowedInScope =
-                        scope.set
-                            .get(typeName)
-                            ?.defs.some(
-                                (definition) => definition.isTypeDefinition
-                            ) === true;
+            let references = globalReferences.get(variable);
+            if (references === undefined) {
+                references = new Set(
+                    variable.references.map((reference) => reference.identifier)
+                );
+                globalReferences.set(variable, references);
+            }
 
-                    return isShadowedInScope
-                        ? { found: true, value: false }
-                        : { found: false };
-                },
-                startNode: getScopeFromContextSourceCode(context, node),
-            });
-
-            return !lookupResult.found || lookupResult.value;
+            return setContainsValue(references, node.typeName);
         },
         reason: "scope-resolution-failed",
     });

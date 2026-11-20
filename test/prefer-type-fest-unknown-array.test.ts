@@ -162,6 +162,7 @@ const parseUnknownArrayCandidateFromCode = (
 ): Readonly<{
     ast: ReturnType<typeof parser.parseForESLint>["ast"];
     candidateNode: TSESTree.TSTypeOperator | TSESTree.TSTypeReference;
+    scopeManager: ReturnType<typeof parser.parseForESLint>["scopeManager"];
 }> => {
     const parsed = parser.parseForESLint(sourceText, parserOptions);
 
@@ -174,6 +175,7 @@ const parseUnknownArrayCandidateFromCode = (
             return {
                 ast: parsed.ast,
                 candidateNode: statement.typeAnnotation,
+                scopeManager: parsed.scopeManager,
             };
         }
 
@@ -181,6 +183,7 @@ const parseUnknownArrayCandidateFromCode = (
             return {
                 ast: parsed.ast,
                 candidateNode: statement.typeAnnotation,
+                scopeManager: parsed.scopeManager,
             };
         }
     }
@@ -241,6 +244,23 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                     };
                 };
 
+            const { ast, scopeManager } = parser.parseForESLint(
+                "type Values = ReadonlyArray<unknown>; type Other = Box<unknown>;",
+                parserOptions
+            );
+            const nodes = ast.body.map((statement) => {
+                if (
+                    statement.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                    statement.typeAnnotation.type !==
+                        AST_NODE_TYPES.TSTypeReference
+                ) {
+                    throw new TypeError(
+                        "Expected a type alias referencing a generic type"
+                    );
+                }
+                return statement.typeAnnotation;
+            });
+            const [readonlyArrayUnknownNode] = nodes;
             const listeners = undecoratedRuleModule.default.create({
                 filename: "src/example.ts",
                 report(
@@ -248,40 +268,14 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                 ) {
                     reportCalls.push(descriptor);
                 },
-                sourceCode: {
-                    ast: {
-                        body: [],
-                    },
-                },
+                sourceCode: { ast, scopeManager },
             });
 
             const referenceListener = listeners.TSTypeReference;
-
             expect(referenceListener).toBeTypeOf("function");
-
-            const readonlyArrayUnknownNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [{ type: "TSUnknownKeyword" }],
-                },
-                typeName: {
-                    name: "ReadonlyArray",
-                    type: "Identifier",
-                },
-            };
-            const customGenericUnknownNode = {
-                type: "TSTypeReference",
-                typeArguments: {
-                    params: [{ type: "TSUnknownKeyword" }],
-                },
-                typeName: {
-                    name: "Box",
-                    type: "Identifier",
-                },
-            };
-
-            referenceListener?.(readonlyArrayUnknownNode);
-            referenceListener?.(customGenericUnknownNode);
+            for (const node of nodes) {
+                referenceListener?.(node);
+            }
 
             expect(reportCalls).toHaveLength(1);
             expect(reportCalls[0]).toMatchObject({
@@ -353,7 +347,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                             .filter((line) => line.length > 0)
                             .join("\n");
 
-                        const { ast, candidateNode } =
+                        const { ast, candidateNode, scopeManager } =
                             parseUnknownArrayCandidateFromCode(generatedCode);
                         const reports: UnknownArrayReportDescriptor[] = [];
 
@@ -367,6 +361,7 @@ describe("prefer-type-fest-unknown-array internal readonly-array identifier guar
                             },
                             sourceCode: {
                                 ast,
+                                scopeManager,
                             },
                         });
 
