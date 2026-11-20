@@ -5,9 +5,11 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
  * Shared matchers for function-type wrappers built from `Parameters`,
  * `ReturnType`, and async return boxing helpers.
  */
+import type { TypedRuleContext } from "./typed-rule.js";
+
 import { areEquivalentTypeNodes } from "./normalize-expression-text.js";
 import {
-    isIdentifierTypeReference,
+    isGlobalTypeReferenceNamed,
     unwrapParenthesizedTypeNode,
 } from "./type-reference-node.js";
 
@@ -63,12 +65,14 @@ const getParameterTypeAnnotation = (
 /**
  * Match direct `(...args: Parameters<Function>) => ...` wrappers.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Function type node to inspect.
  *
  * @returns The wrapped function type argument when the function has exactly one
  *   rest parameter typed as `Parameters<Function>`; otherwise `null`.
  */
 export const getParametersFunctionArgumentFromFunctionType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSFunctionType>
 ): null | Readonly<TSESTree.TypeNode> => {
     if (node.params.length !== 1) {
@@ -85,7 +89,7 @@ export const getParametersFunctionArgumentFromFunctionType = (
 
     if (
         restParameterType?.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(restParameterType, "Parameters")
+        !isGlobalTypeReferenceNamed(context, restParameterType, "Parameters")
     ) {
         return null;
     }
@@ -96,12 +100,14 @@ export const getParametersFunctionArgumentFromFunctionType = (
 /**
  * Check whether a type node is `ReturnType<Function>` for a specific function.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Candidate return type node.
  * @param functionType - Wrapped function type.
  *
  * @returns `true` when the node is `ReturnType<Function>`.
  */
 export const isReturnTypeReferenceForFunction = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>,
     functionType: Readonly<TSESTree.TypeNode>
 ): boolean => {
@@ -109,7 +115,7 @@ export const isReturnTypeReferenceForFunction = (
 
     if (
         normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedNode, "ReturnType")
+        !isGlobalTypeReferenceNamed(context, normalizedNode, "ReturnType")
     ) {
         return false;
     }
@@ -128,12 +134,14 @@ export const isReturnTypeReferenceForFunction = (
 /**
  * Check whether a type node is `Promise<Awaited<ReturnType<Function>>>`.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Candidate return type node.
  * @param functionType - Wrapped function type.
  *
  * @returns `true` when the node is the canonical asyncified return shape.
  */
 export const isPromiseAwaitedReturnTypeReferenceForFunction = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>,
     functionType: Readonly<TSESTree.TypeNode>
 ): boolean => {
@@ -141,7 +149,7 @@ export const isPromiseAwaitedReturnTypeReferenceForFunction = (
 
     if (
         normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedNode, "Promise")
+        !isGlobalTypeReferenceNamed(context, normalizedNode, "Promise")
     ) {
         return false;
     }
@@ -150,7 +158,7 @@ export const isPromiseAwaitedReturnTypeReferenceForFunction = (
 
     if (
         promisedType?.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(promisedType, "Awaited")
+        !isGlobalTypeReferenceNamed(context, promisedType, "Awaited")
     ) {
         return false;
     }
@@ -159,6 +167,10 @@ export const isPromiseAwaitedReturnTypeReferenceForFunction = (
 
     return (
         awaitedInnerType !== null &&
-        isReturnTypeReferenceForFunction(awaitedInnerType, functionType)
+        isReturnTypeReferenceForFunction(
+            context,
+            awaitedInnerType,
+            functionType
+        )
     );
 };

@@ -57,6 +57,16 @@ ruleTester.run(ruleId, rule, {
             errors: [{ messageId: "preferDistributedPick" }],
             name: "reports extract-wrapped distributive Pick helpers",
         },
+        {
+            code: [
+                "type Extract<Type, Union> = Type & Union;",
+                "",
+                "type OnlyKeys<Union, Key extends keyof Union> =",
+                "    Union extends unknown ? Pick<Union, Extract<Key, string>> : never;",
+            ].join("\n"),
+            errors: [{ messageId: "preferDistributedPick" }],
+            name: "treats a locally declared Extract as an ordinary key type",
+        },
     ],
     valid: [
         {
@@ -79,6 +89,15 @@ ruleTester.run(ruleId, rule, {
                 "    Union extends string ? Pick<Union, never> : never;",
             ].join("\n"),
             name: "ignores conditional helpers that are not generic distributive wrappers",
+        },
+        {
+            code: [
+                "type Pick<ObjectType, Key extends PropertyKey> = ObjectType & Record<Key, unknown>;",
+                "",
+                "type OnlyKeys<Union, Key extends PropertyKey> =",
+                "    Union extends unknown ? Pick<Union, Key> : never;",
+            ].join("\n"),
+            name: "ignores locally declared Pick that shadows the builtin",
         },
     ],
 });

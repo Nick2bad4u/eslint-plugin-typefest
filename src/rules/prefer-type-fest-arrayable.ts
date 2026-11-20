@@ -11,22 +11,27 @@ import {
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const ARRAY_TYPE_NAME = "Array";
 
 /**
  * Extract the element type from `Array<T>` type references.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Type node to inspect.
  *
  * @returns Element type when the node is `Array<T>`; otherwise `null`.
  */
 const getArrayTypeReferenceElementType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>
 ): null | TSESTree.TypeNode => {
-    if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
+    if (!isGlobalTypeReferenceNamed(context, node, ARRAY_TYPE_NAME)) {
         return null;
     }
 
@@ -42,12 +47,14 @@ const getArrayTypeReferenceElementType = (
 /**
  * Extract the scalar element type from `T | T[]` or `T | Array<T>` unions.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Union type node to inspect.
  *
  * @returns The scalar `T` when the union matches an Arrayable pattern;
  *   otherwise `null`.
  */
 const getArrayableElementType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSUnionType>
 ): null | TSESTree.TypeNode => {
     const unionTypes = node.types;
@@ -78,16 +85,20 @@ const getArrayableElementType = (
             : null;
     }
 
-    const firstArrayElementType =
-        getArrayTypeReferenceElementType(firstUnionType);
+    const firstArrayElementType = getArrayTypeReferenceElementType(
+        context,
+        firstUnionType
+    );
     if (firstArrayElementType) {
         return areEquivalentTypeNodes(firstArrayElementType, secondUnionType)
             ? secondUnionType
             : null;
     }
 
-    const secondArrayElementType =
-        getArrayTypeReferenceElementType(secondUnionType);
+    const secondArrayElementType = getArrayTypeReferenceElementType(
+        context,
+        secondUnionType
+    );
     if (secondArrayElementType) {
         return areEquivalentTypeNodes(secondArrayElementType, firstUnionType)
             ? firstUnionType
@@ -114,7 +125,10 @@ const preferTypeFestArrayableRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSUnionType(node) {
-                    const arrayableElementType = getArrayableElementType(node);
+                    const arrayableElementType = getArrayableElementType(
+                        context,
+                        node
+                    );
 
                     if (!arrayableElementType) {
                         return;

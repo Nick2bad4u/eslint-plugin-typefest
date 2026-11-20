@@ -34,6 +34,10 @@ const invalidOutput = [
 ].join("\n");
 const shadowedInvalidCode =
     "type Result<IsNullable, T> = 0 extends 1 & T ? true : Extract<T, null> extends never ? false : true;";
+const shadowedExtractValidCode = [
+    "type Extract<Type, Union> = Type & Union;",
+    "type Result<T> = 0 extends 1 & T ? true : Extract<T, null> extends never ? false : true;",
+].join("\n");
 const parserOptions = {
     ecmaVersion: "latest",
     loc: true,
@@ -181,6 +185,11 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: 'import type { IsAny } from "type-fest"; type Result<T, U> = IsAny<T> extends true ? true : Extract<U, null> extends never ? false : true;',
             filename: typedFixturePath(`${ruleId}.valid.ts`),
             name: "ignores mismatched outer and inner inputs",
+        },
+        {
+            code: shadowedExtractValidCode,
+            filename: typedFixturePath(`${ruleId}.valid.ts`),
+            name: "ignores locally declared Extract that shadows the builtin",
         },
     ],
 });

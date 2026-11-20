@@ -19,7 +19,11 @@ import {
     hasFalseTrueBranches,
     isBooleanLiteralType,
 } from "../_internal/type-guard-conditional-patterns.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const EXTRACT_TYPE_NAME = "Extract" as const;
 const IS_ANY_TYPE_NAME = "IsAny" as const;
@@ -98,14 +102,13 @@ const getManualIsAnyCheckInput = (
 };
 
 const getExtractNullCheckInput = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>
 ): TSESTree.TypeNode | undefined => {
     if (
         !hasFalseTrueBranches(node) ||
         node.extendsType.type !== AST_NODE_TYPES.TSNeverKeyword ||
-        node.checkType.type !== AST_NODE_TYPES.TSTypeReference ||
-        node.checkType.typeName.type !== AST_NODE_TYPES.Identifier ||
-        node.checkType.typeName.name !== EXTRACT_TYPE_NAME
+        !isGlobalTypeReferenceNamed(context, node.checkType, EXTRACT_TYPE_NAME)
     ) {
         return undefined;
     }
@@ -125,6 +128,7 @@ const getExtractNullCheckInput = (
 };
 
 const getIsNullableTypeGuardInput = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>,
     isAnyLocalNames: ReadonlySet<string>,
     typeFestNamespaceImportNames: ReadonlySet<string>
@@ -142,7 +146,7 @@ const getIsNullableTypeGuardInput = (
             isAnyLocalNames,
             typeFestNamespaceImportNames
         ) ?? getManualIsAnyCheckInput(node);
-    const innerInput = getExtractNullCheckInput(node.falseType);
+    const innerInput = getExtractNullCheckInput(context, node.falseType);
 
     if (
         !outerInput ||
@@ -177,6 +181,7 @@ const preferTypeFestIsNullableRule: ReturnType<typeof createTypedRule> =
             return {
                 TSConditionalType(node: Readonly<TSESTree.TSConditionalType>) {
                     const checkedType = getIsNullableTypeGuardInput(
+                        context,
                         node,
                         isAnyLocalNames,
                         typeFestNamespaceImportNames

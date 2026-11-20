@@ -10,7 +10,7 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Built-in utility type used in verbose async return patterns. */
@@ -59,7 +59,13 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
 
             return {
                 'TSTypeReference[typeName.type="Identifier"]'(node) {
-                    if (!isIdentifierTypeReference(node, AWAITED_TYPE_NAME)) {
+                    if (
+                        !isGlobalTypeReferenceNamed(
+                            context,
+                            node,
+                            AWAITED_TYPE_NAME
+                        )
+                    ) {
                         return;
                     }
 
@@ -72,7 +78,8 @@ const preferTypeFestAsyncReturnTypeRule: ReturnType<typeof createTypedRule> =
                     }
 
                     if (
-                        !isIdentifierTypeReference(
+                        !isGlobalTypeReferenceNamed(
+                            context,
                             awaitedInnerType,
                             RETURN_TYPE_NAME
                         )

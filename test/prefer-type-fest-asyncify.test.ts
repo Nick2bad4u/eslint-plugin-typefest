@@ -75,5 +75,62 @@ ruleTester.run(ruleId, rule, {
             ].join("\n"),
             name: "ignores non-async SetReturnType compositions",
         },
+        {
+            code: [
+                'import type { Asyncify } from "type-fest";',
+                "",
+                "type Parameters<Function_ extends (...arguments_: any[]) => any> = [Function_];",
+                "",
+                "export type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =",
+                "    (...arguments_: Parameters<Function_>) => Promise<Awaited<ReturnType<Function_>>>;",
+            ].join("\n"),
+            name: "ignores locally declared Parameters that shadows the builtin",
+        },
+        {
+            code: [
+                'import type { Asyncify } from "type-fest";',
+                "",
+                "interface Promise<Value> {",
+                "    readonly value: Value;",
+                "}",
+                "",
+                "export type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =",
+                "    (...arguments_: Parameters<Function_>) => Promise<Awaited<ReturnType<Function_>>>;",
+            ].join("\n"),
+            name: "ignores locally declared Promise that shadows the builtin",
+        },
+        {
+            code: [
+                'import type { Asyncify } from "type-fest";',
+                "",
+                "type Awaited<Value> = Value;",
+                "",
+                "export type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =",
+                "    (...arguments_: Parameters<Function_>) => Promise<Awaited<ReturnType<Function_>>>;",
+            ].join("\n"),
+            name: "ignores locally declared Awaited that shadows the builtin",
+        },
+        {
+            code: [
+                'import type { Asyncify } from "type-fest";',
+                "",
+                "type ReturnType<Function_ extends (...arguments_: any[]) => any> = Function_;",
+                "",
+                "export type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =",
+                "    (...arguments_: Parameters<Function_>) => Promise<Awaited<ReturnType<Function_>>>;",
+            ].join("\n"),
+            name: "ignores locally declared ReturnType that shadows the builtin",
+        },
+        {
+            code: [
+                'import type { SetReturnType } from "type-fest";',
+                "",
+                "type ReturnType<Function_ extends (...arguments_: any[]) => any> = Function_;",
+                "",
+                "export type AsyncVersion<Function_ extends (...arguments_: any[]) => any> =",
+                "    SetReturnType<Function_, Promise<Awaited<ReturnType<Function_>>>>;",
+            ].join("\n"),
+            name: "ignores SetReturnType compositions whose ReturnType is locally declared",
+        },
     ],
 });

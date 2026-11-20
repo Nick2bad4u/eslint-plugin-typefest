@@ -34,6 +34,12 @@ const arrayShorthandInvalidOutput = [
 ].join("\n");
 const shadowedInvalidCode =
     "type Pairs<Entries, T> = Array<[keyof T, T[keyof T]]>;";
+const shadowedArrayValidCode = [
+    "interface Array<T> {",
+    "    readonly items: T;",
+    "}",
+    "export type Pairs<T> = Array<[keyof T, T[keyof T]]>;",
+].join("\n");
 const parserOptions = {
     ecmaVersion: "latest",
     loc: true,
@@ -148,6 +154,11 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             code: "type Pairs<T> = Array<[keyof T, T[string]]>;",
             filename: typedFixturePath(`${ruleId}.valid.ts`),
             name: "ignores entry arrays whose value key does not match keyof target",
+        },
+        {
+            code: shadowedArrayValidCode,
+            filename: typedFixturePath(`${ruleId}.valid.ts`),
+            name: "ignores locally declared Array that shadows the builtin",
         },
     ],
 });

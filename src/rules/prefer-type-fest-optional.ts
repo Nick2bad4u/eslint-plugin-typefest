@@ -1,8 +1,4 @@
-import {
-    AST_NODE_TYPES,
-    type TSESLint,
-    type TSESTree,
-} from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { arrayAt, arrayFirst } from "ts-extras";
 
 /**
@@ -15,7 +11,11 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const OPTIONAL_TYPE_NAME = "Optional" as const;
 const EXCLUDE_TYPE_NAME = "Exclude" as const;
@@ -57,10 +57,10 @@ const isNullishDeleteType = (node: Readonly<TSESTree.TypeNode>): boolean => {
 };
 
 const getOptionalInnerTypeText = ({
-    sourceCode,
+    context,
     typeNode,
 }: Readonly<{
-    sourceCode: Readonly<TSESLint.SourceCode>;
+    context: TypedRuleContext;
     typeNode: Readonly<TSESTree.TypeNode>;
 }>): null | string => {
     if (
@@ -72,13 +72,13 @@ const getOptionalInnerTypeText = ({
 
     const typeArguments = typeNode.typeArguments?.params ?? [];
 
-    if (typeNode.typeName.name === NON_NULLABLE_TYPE_NAME) {
+    if (isGlobalTypeReferenceNamed(context, typeNode, NON_NULLABLE_TYPE_NAME)) {
         const [innerType] = typeArguments;
 
-        return innerType ? sourceCode.getText(innerType) : null;
+        return innerType ? context.sourceCode.getText(innerType) : null;
     }
 
-    if (typeNode.typeName.name !== EXCLUDE_TYPE_NAME) {
+    if (!isGlobalTypeReferenceNamed(context, typeNode, EXCLUDE_TYPE_NAME)) {
         return null;
     }
 
@@ -88,7 +88,7 @@ const getOptionalInnerTypeText = ({
         return null;
     }
 
-    return sourceCode.getText(innerType);
+    return context.sourceCode.getText(innerType);
 };
 
 /**
@@ -131,7 +131,7 @@ const preferTypeFestOptionalRule: ReturnType<typeof createTypedRule> =
                     }
 
                     const innerTypeText = getOptionalInnerTypeText({
-                        sourceCode: context.sourceCode,
+                        context,
                         typeNode: optionalEquivalentMember,
                     });
 

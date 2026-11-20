@@ -14,7 +14,11 @@ import {
     reportWithOptionalFix,
     reportWithTypefestPolicy,
 } from "../_internal/rule-reporting.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 /**
  * Checks whether a key type is compatible with string-indexed JSON records.
@@ -32,17 +36,18 @@ const isStringLikeKeyType = (node: Readonly<TSESTree.TypeNode>): boolean =>
 /**
  * Detects `Record<string, unknown|any>` patterns targeted by this rule.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param typeNode - Type reference candidate.
  *
  * @returns `true` when the type reference matches a string-keyed record with
  *   `unknown` or `any` value type.
  */
 const isRecordLikeUnknownOrAny = (
+    context: TypedRuleContext,
     typeNode: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (
-        typeNode.typeName.type !== AST_NODE_TYPES.Identifier ||
-        typeNode.typeName.name !== "Record" ||
+        !isGlobalTypeReferenceNamed(context, typeNode, "Record") ||
         typeNode.typeArguments?.params.length !== 2
     ) {
         return false;
@@ -75,7 +80,7 @@ const preferTypeFestJsonValueRule: ReturnType<typeof createTypedRule> =
 
             return {
                 'TSTypeReference[typeName.type="Identifier"]'(node) {
-                    if (!isRecordLikeUnknownOrAny(node)) {
+                    if (!isRecordLikeUnknownOrAny(context, node)) {
                         return;
                     }
 

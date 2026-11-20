@@ -129,6 +129,16 @@ const inlineInvalidNonMergeIntersectionOmitCode = [
     ...mergeStyleOmitBaseCode,
     "type MergedUser = Omit<User, keyof UserOverrides> & Readonly<UserOverrides>;",
 ].join("\n");
+const inlineValidShadowedOmitCode = [
+    "type Omit<T, K extends PropertyKey> = T & Record<K, never>;",
+    "",
+    "type User = {",
+    "    id: string;",
+    "    name: string;",
+    "};",
+    "",
+    'export type UserWithoutId = Omit<User, "id">;',
+].join("\n");
 const builtinOmitIgnoredByOptionsValidCode = [
     "type User = {",
     "    id: string;",
@@ -399,6 +409,11 @@ ruleTester.run("prefer-type-fest-except", rule, {
             code: inlineValidBareOmitReferenceCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores bare Omit type reference",
+        },
+        {
+            code: inlineValidShadowedOmitCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Omit that shadows the builtin",
         },
         {
             code: builtinOmitIgnoredByOptionsValidCode,

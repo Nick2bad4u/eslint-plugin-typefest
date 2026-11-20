@@ -27,6 +27,19 @@ const invalidOutput = [
     "type Pair<T> = Entry<T>;",
 ].join("\n");
 const shadowedInvalidCode = "type Pair<Entry, T> = [keyof T, T[keyof T]];";
+const shadowedArrayInvalidCode = [
+    "interface Array<T> {",
+    "    readonly items: T;",
+    "}",
+    "export type Pairs<T> = Array<[keyof T, T[keyof T]]>;",
+].join("\n");
+const shadowedArrayInvalidOutput = [
+    'import type { Entry } from "type-fest";',
+    "interface Array<T> {",
+    "    readonly items: T;",
+    "}",
+    "export type Pairs<T> = Array<Entry<T>>;",
+].join("\n");
 const parserOptions = {
     ecmaVersion: "latest",
     loc: true,
@@ -102,6 +115,13 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             filename: typedFixturePath(`${ruleId}.invalid.ts`),
             name: "reports without autofix when Entry is shadowed",
             output: null,
+        },
+        {
+            code: shadowedArrayInvalidCode,
+            errors: [{ messageId: "preferEntry" }],
+            filename: typedFixturePath(`${ruleId}.invalid.ts`),
+            name: "reports tuples inside a locally declared Array that shadows the builtin",
+            output: shadowedArrayInvalidOutput,
         },
     ],
     valid: [

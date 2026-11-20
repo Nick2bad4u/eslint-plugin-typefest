@@ -7,10 +7,13 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { areEquivalentTypeNodes } from "../_internal/normalize-expression-text.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
-    isIdentifierTypeReference,
+    isGlobalTypeReferenceNamed,
     unwrapParenthesizedTypeNode,
 } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 const isDistributiveConditionalExtendsType = (
     node: Readonly<TSESTree.TypeNode>
@@ -44,6 +47,7 @@ const isKeyofBaseType = (
 };
 
 const isExtractOverKeyofBaseType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>,
     baseType: Readonly<TSESTree.TypeNode>
 ): boolean => {
@@ -51,7 +55,7 @@ const isExtractOverKeyofBaseType = (
 
     if (
         normalizedNode.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedNode, "Extract")
+        !isGlobalTypeReferenceNamed(context, normalizedNode, "Extract")
     ) {
         return false;
     }
@@ -71,6 +75,7 @@ const isExtractOverKeyofBaseType = (
 };
 
 const isDistributedPickEquivalent = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSConditionalType>
 ): boolean => {
     if (
@@ -84,7 +89,7 @@ const isDistributedPickEquivalent = (
 
     if (
         normalizedTrueType.type !== AST_NODE_TYPES.TSTypeReference ||
-        !isIdentifierTypeReference(normalizedTrueType, "Pick")
+        !isGlobalTypeReferenceNamed(context, normalizedTrueType, "Pick")
     ) {
         return false;
     }
@@ -111,10 +116,12 @@ const isDistributedPickEquivalent = (
     }
 
     return (
-        !isIdentifierTypeReference(
+        !isGlobalTypeReferenceNamed(
+            context,
             unwrapParenthesizedTypeNode(selectedKeysType),
             "Extract"
-        ) || isExtractOverKeyofBaseType(selectedKeysType, node.checkType)
+        ) ||
+        isExtractOverKeyofBaseType(context, selectedKeysType, node.checkType)
     );
 };
 
@@ -126,7 +133,7 @@ const preferTypeFestDistributedPickRule: ReturnType<typeof createTypedRule> =
         create(context) {
             return {
                 TSConditionalType(node) {
-                    if (!isDistributedPickEquivalent(node)) {
+                    if (!isDistributedPickEquivalent(context, node)) {
                         return;
                     }
 

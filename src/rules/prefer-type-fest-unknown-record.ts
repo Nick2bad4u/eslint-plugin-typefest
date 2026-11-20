@@ -10,11 +10,16 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 /**
  * Detects `Record<string, unknown>` references.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Type reference candidate.
  *
  * @returns `true` when the node is a two-argument `Record` with `string` keys
@@ -22,11 +27,11 @@ import { createTypedRule } from "../_internal/typed-rule.js";
  */
 
 const isRecordStringUnknown = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSTypeReference>
 ): boolean => {
     if (
-        node.typeName.type !== AST_NODE_TYPES.Identifier ||
-        node.typeName.name !== "Record" ||
+        !isGlobalTypeReferenceNamed(context, node, "Record") ||
         node.typeArguments?.params.length !== 2
     ) {
         return false;
@@ -55,7 +60,7 @@ const preferTypeFestUnknownRecordRule: ReturnType<typeof createTypedRule> =
 
             return {
                 'TSTypeReference[typeName.type="Identifier"]'(node) {
-                    if (!isRecordStringUnknown(node)) {
+                    if (!isRecordStringUnknown(context, node)) {
                         return;
                     }
 

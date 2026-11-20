@@ -10,8 +10,14 @@ import {
 } from "../_internal/imported-type-aliases.js";
 import { TYPE_FEST_MODULE_SOURCE } from "../_internal/module-source.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
-import { isIdentifierTypeReference } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    isGlobalTypeReferenceNamed,
+    isIdentifierTypeReference,
+} from "../_internal/type-reference-node.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 
 /** Built-in generic array type name. */
 const ARRAY_TYPE_NAME = "Array";
@@ -85,6 +91,7 @@ const isReadonlyJsonValueArrayType = (
 /**
  * Checks whether a node is `Array<JsonValue>`.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Type node to inspect.
  *
  * @returns `true` when the node is the generic `Array` reference with
@@ -92,9 +99,10 @@ const isReadonlyJsonValueArrayType = (
  */
 
 const isGenericJsonValueArrayType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>
 ): boolean => {
-    if (!isIdentifierTypeReference(node, ARRAY_TYPE_NAME)) {
+    if (!isGlobalTypeReferenceNamed(context, node, ARRAY_TYPE_NAME)) {
         return false;
     }
 
@@ -111,6 +119,7 @@ const isGenericJsonValueArrayType = (
 /**
  * Checks whether a node is `ReadonlyArray<JsonValue>`.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Type node to inspect.
  *
  * @returns `true` when the node is the generic `ReadonlyArray` reference with
@@ -118,9 +127,10 @@ const isGenericJsonValueArrayType = (
  */
 
 const isGenericReadonlyJsonValueArrayType = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TypeNode>
 ): boolean => {
-    if (!isIdentifierTypeReference(node, READONLY_ARRAY_TYPE_NAME)) {
+    if (!isGlobalTypeReferenceNamed(context, node, READONLY_ARRAY_TYPE_NAME)) {
         return false;
     }
 
@@ -138,6 +148,7 @@ const isGenericReadonlyJsonValueArrayType = (
  * Determines whether a union matches one of the explicit JSON array forms this
  * rule can replace.
  *
+ * @param context - Rule context used to resolve built-in type names.
  * @param node - Union node to inspect.
  *
  * @returns `true` for two-member unions equivalent to either JsonValue[] |
@@ -145,6 +156,7 @@ const isGenericReadonlyJsonValueArrayType = (
  */
 
 const hasJsonArrayUnionShape = (
+    context: TypedRuleContext,
     node: Readonly<TSESTree.TSUnionType>
 ): boolean => {
     if (!isTypeNodePair(node.types)) {
@@ -163,8 +175,8 @@ const hasJsonArrayUnionShape = (
         leftType: Readonly<TSESTree.TypeNode>,
         rightType: Readonly<TSESTree.TypeNode>
     ): boolean =>
-        isGenericJsonValueArrayType(leftType) &&
-        isGenericReadonlyJsonValueArrayType(rightType);
+        isGenericJsonValueArrayType(context, leftType) &&
+        isGenericReadonlyJsonValueArrayType(context, rightType);
 
     if (
         isNativePair(firstType, secondType) ||
@@ -195,7 +207,7 @@ const preferTypeFestJsonArrayRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSUnionType(node) {
-                    if (!hasJsonArrayUnionShape(node)) {
+                    if (!hasJsonArrayUnionShape(context, node)) {
                         return;
                     }
 

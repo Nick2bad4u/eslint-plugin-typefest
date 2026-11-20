@@ -89,6 +89,12 @@ const inlineValidGlobalRecordCode = [
     "",
     "type MonitorJsonShape = globalThis.Record<string, JsonValue>;",
 ].join("\n");
+const inlineValidShadowedRecordCode = [
+    'import type { JsonValue } from "type-fest";',
+    "",
+    "type Record<Key extends PropertyKey, Value> = Map<Key, Value>;",
+    "type MonitorJsonShape = Record<string, JsonValue>;",
+].join("\n");
 const inlineValidLiteralNonStringKeyCode = [
     'import type { JsonValue } from "type-fest";',
     "",
@@ -549,6 +555,11 @@ ruleTester.run(ruleId, rule, {
             code: inlineValidGlobalRecordCode,
             filename: typedFixturePath(validFixtureName),
             name: "ignores globalThis.Record usage",
+        },
+        {
+            code: inlineValidShadowedRecordCode,
+            filename: typedFixturePath(validFixtureName),
+            name: "ignores locally declared Record that shadows the builtin",
         },
         {
             code: inlineValidLiteralNonStringKeyCode,

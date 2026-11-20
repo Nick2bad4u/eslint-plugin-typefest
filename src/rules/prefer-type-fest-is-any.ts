@@ -26,7 +26,7 @@ const preferTypeFestIsAnyRule: ReturnType<typeof createTypedRule> =
 
             return {
                 TSConditionalType(node: Readonly<TSESTree.TSConditionalType>) {
-                    const checkedType = getIsAnyTypeGuardInput(node);
+                    const checkedType = getIsAnyTypeGuardInput(context, node);
 
                     if (!checkedType) {
                         return;
