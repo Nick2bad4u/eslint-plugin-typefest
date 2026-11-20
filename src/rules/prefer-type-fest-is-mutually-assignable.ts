@@ -19,6 +19,18 @@ const tupleName = (node: Readonly<TSESTree.TypeNode>): string | undefined => {
         : undefined;
 };
 
+/** Extract the inner check only when both failing paths return false. */
+const nestedBooleanCheck = (
+    node: Readonly<TSESTree.TSConditionalType>
+): TSESTree.TSConditionalType | undefined => {
+    const inner = node.trueType;
+    return inner.type === AST_NODE_TYPES.TSConditionalType &&
+        isBooleanLiteralType(node.falseType, false) &&
+        hasTrueFalseBranches(inner)
+        ? inner
+        : undefined;
+};
+
 /**
  * Prefer TypeFest IsMutuallyAssignable for symmetric tuple-wrapped
  * assignability tests.
@@ -30,13 +42,8 @@ const preferTypeFestIsMutuallyAssignableRule: ReturnType<
         const report = createUpstreamTypeReporter(context);
         return {
             TSConditionalType(node) {
-                const inner = node.trueType;
-                if (
-                    inner.type !== AST_NODE_TYPES.TSConditionalType ||
-                    !isBooleanLiteralType(node.falseType, false) ||
-                    !hasTrueFalseBranches(inner)
-                )
-                    return;
+                const inner = nestedBooleanCheck(node);
+                if (!inner) return;
                 const left = tupleName(node.checkType);
                 const right = tupleName(node.extendsType);
                 if (

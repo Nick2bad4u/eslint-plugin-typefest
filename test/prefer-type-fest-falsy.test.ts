@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-falsy";
 const fixture = "prefer-type-fest-falsy.ts";
@@ -62,18 +63,12 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Local = false | null | 0n | undefined | '' | 0;",
-                "type Local = Falsy;"
-            ),
+            output: expectedAliasReplacement(code, "Local", "Falsy"),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Local = false | null | 0n | undefined | '' | 0;",
-                "type Local = Falsy;"
-            ),
+            code: expectedAliasReplacement(code, "Local", "Falsy"),
             filename,
         },
         {

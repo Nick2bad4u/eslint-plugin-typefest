@@ -1,3 +1,8 @@
+import parser from "@typescript-eslint/parser";
+import { Linter } from "eslint";
+import { describe, expect, it } from "vitest";
+
+import typefestPlugin from "../src/plugin";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
@@ -8,6 +13,33 @@ import {
 const ruleId = "prefer-type-fest-empty-array";
 const fixture = "prefer-type-fest-empty-array.ts";
 const filename = typedFixturePath("upstream-latest", fixture);
+
+describe("same-name EmptyArray migration", () => {
+    it("preserves a same-named local alias and its comments when ESLint applies fixes", () => {
+        expect.hasAssertions();
+
+        const code = [
+            "export type EmptyArray = readonly [/* no arguments */];",
+            "export type LocalUse = EmptyArray;",
+        ].join("\n");
+        const result = new Linter().verifyAndFix(
+            code,
+            {
+                files: ["**/*.ts"],
+                languageOptions: { parser },
+                plugins: { typefest: typefestPlugin },
+                rules: { "typefest/prefer-type-fest-empty-array": "error" },
+            },
+            { filename }
+        );
+
+        expect(result.messages.map(({ messageId }) => messageId)).toStrictEqual(
+            ["preferEmptyArray"]
+        );
+        expect(result.fixed).toBe(false);
+        expect(result.output).toBe(code);
+    });
+});
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],

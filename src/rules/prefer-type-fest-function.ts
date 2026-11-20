@@ -1,41 +1,51 @@
-/** @packageDocumentation ESLint rule for AsyncFunction. */
+/** @packageDocumentation ESLint rule for canonical TypeFest function signatures. */
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { arrayFirst } from "ts-extras";
 
 import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 import { createUpstreamTypeReporter } from "../_internal/upstream-type-replacement.js";
 
-const isReadonlyArrayOrTuple = (
-    node: Readonly<TSESTree.TypeNode>
-): node is TSESTree.TSTypeOperator & {
-    typeAnnotation: TSESTree.TSArrayType | TSESTree.TSTupleType;
-} =>
-    node.type === AST_NODE_TYPES.TSTypeOperator &&
-    node.operator === "readonly" &&
-    (node.typeAnnotation?.type === AST_NODE_TYPES.TSArrayType ||
-        node.typeAnnotation?.type === AST_NODE_TYPES.TSTupleType);
-
-const isAnyRestArray = (node: Readonly<TSESTree.TypeNode>): boolean => {
-    const array = isReadonlyArrayOrTuple(node) ? node.typeAnnotation : node;
-    return (
-        array.type === AST_NODE_TYPES.TSArrayType &&
-        array.elementType.type === AST_NODE_TYPES.TSAnyKeyword
-    );
+/**
+ * Classify the operand once while preserving the original rest annotation for
+ * the fix.
+ */
+const getRestArguments = (node: Readonly<TSESTree.TypeNode>) => {
+    if (node.type === AST_NODE_TYPES.TSTypeReference)
+        return { anyArgs: false, node };
+    const array =
+        node.type === AST_NODE_TYPES.TSTypeOperator &&
+        node.operator === "readonly"
+            ? node.typeAnnotation
+            : node;
+    if (array?.type === AST_NODE_TYPES.TSArrayType) {
+        return {
+            anyArgs: array.elementType.type === AST_NODE_TYPES.TSAnyKeyword,
+            node,
+        };
+    }
+    return array?.type === AST_NODE_TYPES.TSTupleType
+        ? { anyArgs: false, node }
+        : undefined;
 };
 
-const getRestAnnotation = (
-    node: Readonly<TSESTree.TSFunctionType>
-): TSESTree.TypeNode | undefined => {
+/**
+ * Keep function-local type parameters and parameter bindings inside their
+ * original scope.
+ */
+const getAliasSignature = (node: Readonly<TSESTree.TSFunctionType>) => {
+    const rest = arrayFirst(node.params);
     if (
-        node.parent.type !== AST_NODE_TYPES.TSTypeAliasDeclaration ||
-        node.typeParameters !== undefined ||
-        node.params.length !== 1
+        rest?.type !== AST_NODE_TYPES.RestElement ||
+        !rest.typeAnnotation ||
+        !node.returnType
     )
         return undefined;
-    const [rest] = node.params;
-    return rest?.type === AST_NODE_TYPES.RestElement
-        ? rest.typeAnnotation?.typeAnnotation
-        : undefined;
+    const args = getRestArguments(rest.typeAnnotation.typeAnnotation);
+    return args && { args, result: node.returnType.typeAnnotation };
 };
 
 const isSimpleResult = (node: TSESTree.TypeNode): boolean =>
@@ -43,6 +53,23 @@ const isSimpleResult = (node: TSESTree.TypeNode): boolean =>
     (node.type === AST_NODE_TYPES.TSTypeReference &&
         node.typeArguments === undefined &&
         node.typeName.type === AST_NODE_TYPES.Identifier);
+
+/**
+ * Restrict moved return operands to simple types that do not capture the
+ * function's rest binding.
+ */
+const getSimplePromiseValue = (
+    context: TypedRuleContext,
+    result: TSESTree.TypeNode
+) => {
+    if (
+        !isGlobalTypeReferenceNamed(context, result, "Promise") ||
+        result.typeArguments?.params.length !== 1
+    )
+        return undefined;
+    const value = arrayFirst(result.typeArguments.params);
+    return value && isSimpleResult(value) ? value : undefined;
+};
 
 /**
  * Prefer TypeFest function types for canonical rest-argument function
@@ -53,44 +80,31 @@ const preferTypeFestFunctionRule: ReturnType<typeof createTypedRule> =
         create(context) {
             const report = createUpstreamTypeReporter(context);
             return {
-                TSFunctionType(node) {
-                    const args = getRestAnnotation(node);
-                    const result = node.returnType?.typeAnnotation;
-                    if (!args || !result) return;
-                    const anyArgs = isAnyRestArray(args);
+                "TSTypeAliasDeclaration > TSFunctionType:not([typeParameters])[params.length=1]"(
+                    node: Readonly<TSESTree.TSFunctionType>
+                ) {
+                    const signature = getAliasSignature(node);
+                    if (!signature) return;
+                    const { args, result } = signature;
                     if (
-                        anyArgs &&
+                        args.anyArgs &&
                         result.type === AST_NODE_TYPES.TSUnknownKeyword
                     ) {
                         report(node, "AnyFunction");
                         return;
                     }
+                    const value = getSimplePromiseValue(context, result);
+                    if (!value) return;
                     if (
-                        !isGlobalTypeReferenceNamed(
-                            context,
-                            result,
-                            "Promise"
-                        ) ||
-                        result.typeArguments?.params.length !== 1
-                    )
-                        return;
-                    const [value] = result.typeArguments.params;
-                    if (!value || !isSimpleResult(value)) return;
-                    if (
-                        anyArgs &&
+                        args.anyArgs &&
                         value.type === AST_NODE_TYPES.TSUnknownKeyword
                     ) {
                         report(node, "AnyAsyncFunction");
-                    } else if (
-                        args.type === AST_NODE_TYPES.TSTupleType ||
-                        args.type === AST_NODE_TYPES.TSArrayType ||
-                        args.type === AST_NODE_TYPES.TSTypeReference ||
-                        isReadonlyArrayOrTuple(args)
-                    ) {
+                    } else {
                         report(
                             node,
                             "AsyncFunction",
-                            context.sourceCode.getText(args),
+                            context.sourceCode.getText(args.node),
                             context.sourceCode.getText(value)
                         );
                     }

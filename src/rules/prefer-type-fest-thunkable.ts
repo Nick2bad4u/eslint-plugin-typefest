@@ -1,4 +1,8 @@
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 
 /**
  * @packageDocumentation
@@ -8,37 +12,52 @@ import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import { isTypeParameterReference } from "../_internal/type-parameter-reference.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
+/** Check whether a union member is a zero-argument thunk of the alias parameter. */
+const isThunkReturningParameter = (
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    parameter: Readonly<TSESTree.TSTypeParameter>,
+    member: Readonly<TSESTree.TypeNode>
+): boolean => {
+    if (
+        member.type !== AST_NODE_TYPES.TSFunctionType ||
+        member.params.length > 0 ||
+        member.typeParameters !== undefined
+    ) {
+        return false;
+    }
+
+    const returned = member.returnType?.typeAnnotation;
+    return (
+        returned !== undefined &&
+        isTypeParameterReference(sourceCode, parameter, returned)
+    );
+};
+
 /** Require TypeFest Thunkable for an alias wrapping its parameter in a thunk. */
 const preferTypeFestThunkableRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
             return {
                 TSTypeAliasDeclaration(node) {
-                    const parameters = node.typeParameters?.params;
                     const union = node.typeAnnotation;
                     if (
-                        parameters?.length !== 1 ||
+                        node.typeParameters?.params.length !== 1 ||
                         union.type !== AST_NODE_TYPES.TSUnionType ||
                         union.types.length !== 2
                     ) {
                         return;
                     }
 
-                    const [parameter] = parameters;
-                    const thunk = union.types.find(
-                        (member) =>
-                            member.type === AST_NODE_TYPES.TSFunctionType
-                    );
-                    const returned = thunk?.returnType?.typeAnnotation;
+                    const [parameter] = node.typeParameters.params;
                     if (
                         !parameter ||
-                        !returned ||
-                        thunk.params.length > 0 ||
-                        thunk.typeParameters !== undefined ||
-                        !isTypeParameterReference(
-                            context.sourceCode,
-                            parameter,
-                            returned
+                        union.types.every(
+                            (member) =>
+                                !isThunkReturningParameter(
+                                    context.sourceCode,
+                                    parameter,
+                                    member
+                                )
                         ) ||
                         union.types.every(
                             (member) =>

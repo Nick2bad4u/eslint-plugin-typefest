@@ -1,9 +1,30 @@
 /** @packageDocumentation ESLint rule for MinimumLengthArray. */
-import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { arrayAt } from "ts-extras";
 
 import { createTypedRule } from "../_internal/typed-rule.js";
 import { createUpstreamTypeReporter } from "../_internal/upstream-type-replacement.js";
+
+/** Return a plain rest element whose spelling can be compared without evaluating
+bindings. */
+const getRestItem = (
+    tuple: Readonly<TSESTree.TSTupleType>
+): TSESTree.TypeNode | undefined => {
+    const rest = arrayAt(tuple.elementTypes, -1);
+    if (
+        rest?.type !== AST_NODE_TYPES.TSRestType ||
+        rest.typeAnnotation.type !== AST_NODE_TYPES.TSArrayType
+    )
+        return undefined;
+    const item = rest.typeAnnotation.elementType;
+    if (item.type === AST_NODE_TYPES.TSTypeReference) {
+        return item.typeName.type === AST_NODE_TYPES.Identifier &&
+            item.typeArguments === undefined
+            ? item
+            : undefined;
+    }
+    return item.type.endsWith("Keyword") ? item : undefined;
+};
 
 /**
  * Prefer TypeFest MinimumLengthArray for homogeneous open tuples with two or
@@ -21,24 +42,8 @@ const preferTypeFestMinimumLengthArrayRule: ReturnType<typeof createTypedRule> =
                             node.parent.operator === "readonly")
                     )
                         return;
-                    const rest = arrayAt(node.elementTypes, -1);
-                    if (
-                        rest?.type !== AST_NODE_TYPES.TSRestType ||
-                        rest.typeAnnotation.type !== AST_NODE_TYPES.TSArrayType
-                    )
-                        return;
-                    const item = rest.typeAnnotation.elementType;
-                    if (
-                        item.type !== AST_NODE_TYPES.TSTypeReference &&
-                        !item.type.endsWith("Keyword")
-                    )
-                        return;
-                    if (
-                        item.type === AST_NODE_TYPES.TSTypeReference &&
-                        (item.typeName.type !== AST_NODE_TYPES.Identifier ||
-                            item.typeArguments)
-                    )
-                        return;
+                    const item = getRestItem(node);
+                    if (!item) return;
                     const text = context.sourceCode.getText(item);
                     if (
                         node.elementTypes

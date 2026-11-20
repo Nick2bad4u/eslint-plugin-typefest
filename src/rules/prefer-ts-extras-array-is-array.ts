@@ -4,6 +4,7 @@
  */
 import { isTypeFlagSet } from "@typescript-eslint/type-utils";
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { arrayFirst } from "ts-extras";
 import ts from "typescript";
 
 import { getGlobalIdentifierMemberCall } from "../_internal/global-identifier-member-call.js";
@@ -66,7 +67,7 @@ const preferTsExtrasArrayIsArrayRule: ReturnType<typeof createTypedRule> =
                     ) {
                         return;
                     }
-                    const [argument] = call.arguments;
+                    const argument = arrayFirst(call.arguments);
                     if (
                         !argument ||
                         argument.type === AST_NODE_TYPES.SpreadElement

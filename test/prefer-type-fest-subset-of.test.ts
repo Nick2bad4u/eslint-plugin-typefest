@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-subset-of";
 const fixture = "prefer-type-fest-subset-of.ts";
@@ -47,17 +48,19 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Allowed<Domain, Selection extends Domain> = Selection;",
-                "type Allowed<Domain, Selection extends Domain> = SubsetOf<Domain, Selection>;"
+            output: expectedAliasReplacement(
+                code,
+                "Allowed",
+                "SubsetOf<Domain, Selection>"
             ),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Allowed<Domain, Selection extends Domain> = Selection;",
-                "type Allowed<Domain, Selection extends Domain> = SubsetOf<Domain, Selection>;"
+            code: expectedAliasReplacement(
+                code,
+                "Allowed",
+                "SubsetOf<Domain, Selection>"
             ),
             filename,
         },

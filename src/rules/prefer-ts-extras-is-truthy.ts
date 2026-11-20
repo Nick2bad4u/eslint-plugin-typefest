@@ -3,9 +3,13 @@
  * Recognize builtin array filters whose output type can exclude falsy values.
  */
 import { AST_NODE_TYPES } from "@typescript-eslint/utils";
+import { arrayFirst, isDefined } from "ts-extras";
 import ts from "typescript";
 
-import { getIdentifierPropertyMemberCall } from "../_internal/member-call.js";
+import {
+    getIdentifierPropertyMemberCall,
+    type IdentifierPropertyMemberCallExpression,
+} from "../_internal/member-call.js";
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
 import {
     createTypedRule,
@@ -13,31 +17,85 @@ import {
     isGlobalIdentifierNamed,
 } from "../_internal/typed-rule.js";
 
-/** `isTruthy` excludes falsy literals but retains broad primitive types. */
-const hasFalsyMember = (type: ts.Type, checker: ts.TypeChecker): boolean => {
-    if (type === checker.getUnknownType()) {
-        return true;
+/** The literal types excluded by the upstream truthiness predicate. */
+const isFalsyLiteral = (type: ts.Type, checker: ts.TypeChecker): boolean => {
+    if (type.isLiteral()) {
+        const { value } = type;
+        return typeof value === "object"
+            ? value.base10Value === "0"
+            : value === "" || value === 0;
     }
 
-    const members = type.isUnion() ? type.types : [type];
-    return members.some(
-        (member) =>
-            member === checker.getNullType() ||
-            member === checker.getUndefinedType() ||
-            member === checker.getFalseType() ||
-            (member.isStringLiteral() && member.value === "") ||
-            (member.isNumberLiteral() && member.value === 0) ||
-            (member.isLiteral() &&
-                typeof member.value === "object" &&
-                member.value.base10Value === "0")
+    return (
+        type === checker.getNullType() ||
+        type === checker.getUndefinedType() ||
+        type === checker.getFalseType()
     );
+};
+
+/**
+ * Broad primitive types remain untouched, but unknown can exclude nullish
+ * values.
+ */
+const hasFalsyMember = (
+    element: ts.Type | undefined,
+    checker: ts.TypeChecker
+): boolean => {
+    if (!isDefined(element)) {
+        return false;
+    }
+    if (element === checker.getUnknownType()) {
+        return true;
+    }
+    const members = element.isUnion() ? element.types : [element];
+    return members.some((member) => isFalsyLiteral(member, checker));
+};
+
+/**
+ * Check both the receiver and the selected overload before inspecting its
+ * result.
+ */
+const canNarrowFilterResult = (
+    call: Readonly<IdentifierPropertyMemberCallExpression>,
+    {
+        checker,
+        parserServices,
+    }: Readonly<ReturnType<typeof getTypedRuleServices>>
+): boolean => {
+    const nodes = parserServices.esTreeNodeToTSNodeMap;
+    const receiver = checker.getTypeAtLocation(nodes.get(call.callee.object));
+    const members = receiver.isUnion() ? receiver.types : [receiver];
+    if (
+        members.some(
+            (member) =>
+                !checker.isArrayType(member) && !checker.isTupleType(member)
+        )
+    ) {
+        return false;
+    }
+
+    const tsCall = nodes.get(call);
+    const declaration = checker.getResolvedSignature(tsCall)?.getDeclaration();
+    if (
+        !declaration ||
+        parserServices.program?.isSourceFileDefaultLibrary(
+            declaration.getSourceFile()
+        ) !== true
+    ) {
+        return false;
+    }
+    const element = checker.getIndexTypeOfType(
+        checker.getTypeAtLocation(tsCall),
+        ts.IndexKind.Number
+    );
+    return hasFalsyMember(element, checker);
 };
 
 /** Recommend positive truthiness guards in builtin array filters. */
 const preferTsExtrasIsTruthyRule: ReturnType<typeof createTypedRule> =
     createTypedRule({
         create(context) {
-            const { checker, parserServices } = getTypedRuleServices(context);
+            const services = getTypedRuleServices(context);
 
             return {
                 'CallExpression[callee.type="MemberExpression"][callee.property.name="filter"][arguments.0.name="Boolean"]'(
@@ -53,7 +111,7 @@ const preferTsExtrasIsTruthyRule: ReturnType<typeof createTypedRule> =
                     ) {
                         return;
                     }
-                    const [callback] = call.arguments;
+                    const callback = arrayFirst(call.arguments);
                     if (
                         callback?.type !== AST_NODE_TYPES.Identifier ||
                         !isGlobalIdentifierNamed(context, callback, "Boolean")
@@ -61,46 +119,7 @@ const preferTsExtrasIsTruthyRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    const receiver = checker.getTypeAtLocation(
-                        parserServices.esTreeNodeToTSNodeMap.get(
-                            call.callee.object
-                        )
-                    );
-                    const members = receiver.isUnion()
-                        ? receiver.types
-                        : [receiver];
-                    if (
-                        members.some(
-                            (member) =>
-                                !checker.isArrayType(member) &&
-                                !checker.isTupleType(member)
-                        )
-                    ) {
-                        return;
-                    }
-
-                    const tsCall =
-                        parserServices.esTreeNodeToTSNodeMap.get(call);
-                    const declaration = checker
-                        .getResolvedSignature(tsCall)
-                        ?.getDeclaration();
-                    if (
-                        !declaration ||
-                        parserServices.program?.isSourceFileDefaultLibrary(
-                            declaration.getSourceFile()
-                        ) !== true
-                    ) {
-                        return;
-                    }
-
-                    const resultElement = checker.getIndexTypeOfType(
-                        checker.getTypeAtLocation(tsCall),
-                        ts.IndexKind.Number
-                    );
-                    if (
-                        resultElement &&
-                        hasFalsyMember(resultElement, checker)
-                    ) {
+                    if (canNarrowFilterResult(call, services)) {
                         reportWithOptionalFix({
                             context,
                             fix: null,

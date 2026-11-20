@@ -1,5 +1,12 @@
-import type { Falsy } from "type-fest";
+import type { IsEqual, Falsy } from "type-fest";
 
-export type Local = false | null | 0n | undefined | '' | 0;
+export type Local =
+    | false
+    | null
+    | 0n
+    | undefined
+    | ""
+    | 0;
 
-export type { Falsy };
+type Assert<Condition extends true> = Condition;
+export type VerifiedExample = Assert<IsEqual<Local, Falsy>>;

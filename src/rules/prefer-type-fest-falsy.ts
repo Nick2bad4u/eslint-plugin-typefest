@@ -1,9 +1,17 @@
 /** @packageDocumentation ESLint rule for Falsy. */
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { setHas } from "ts-extras";
 
 import { setContainsValue } from "../_internal/set-membership.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 import { createUpstreamTypeReporter } from "../_internal/upstream-type-replacement.js";
+
+const falsyLiterals = new Set([
+    "",
+    0,
+    0n,
+    false,
+] as const);
 
 const falsyMember = (
     node: Readonly<TSESTree.TypeNode>
@@ -24,9 +32,7 @@ const falsyMember = (
     )
         return undefined;
     const { value } = node.literal;
-    return value === false || value === 0 || value === 0n || value === ""
-        ? value
-        : undefined;
+    return setHas(falsyLiterals, value) ? value : undefined;
 };
 
 /** Prefer the TypeFest Falsy type for the complete union of falsy literal types. */

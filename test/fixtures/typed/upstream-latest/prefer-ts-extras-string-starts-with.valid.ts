@@ -17,5 +17,5 @@ export const helperResult: boolean = stringStartsWith(values, "config-");
 export const spreadResult: boolean = values.startsWith(...parameters);
 export const effectfulArgument: boolean = values.startsWith(buildSearch());
 export const customLookup: boolean = lookup.startsWith("config-");
-declare const boxed: String;
+const boxed: typeof String.prototype = Object("config-example.json");
 export const boxedResult: boolean = boxed.startsWith("config-");

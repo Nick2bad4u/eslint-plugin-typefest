@@ -1,3 +1,6 @@
+import parser from "@typescript-eslint/parser";
+import { describe, expect, it } from "vitest";
+
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -28,6 +31,37 @@ const cases = [
 ] as const;
 
 addTypeFestRuleMetadataSmokeTests(ruleName);
+
+describe(ruleName, () => {
+    it("preserves the native length narrowing of optional tuple unions", () => {
+        expect.hasAssertions();
+
+        const code = `import {isNonEmpty} from "ts-extras";
+type Pair = [string?, number?] | [true, true];
+declare const pair: Pair;
+if (pair.length !== 0) {
+    const length: 1 | 2 = pair.length;
+    void length;
+} else {
+    const length: 0 = pair.length;
+    void length;
+}
+if (!isNonEmpty(pair)) {
+    // @ts-expect-error The helper leaves an optional tuple length in this branch.
+    const length: 0 = pair.length;
+    void length;
+}`;
+        const { ast, services } = parser.parseForESLint(code, {
+            filePath: filename,
+            projectService: true,
+        });
+        const sourceFile = services.esTreeNodeToTSNodeMap.get(ast);
+
+        expect(
+            services.program?.getSemanticDiagnostics(sourceFile)
+        ).toStrictEqual([]);
+    });
+});
 
 createTypedRuleTester().run(ruleName, getPluginRule(ruleName), {
     invalid: [

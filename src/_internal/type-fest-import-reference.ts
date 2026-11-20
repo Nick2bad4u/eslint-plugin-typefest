@@ -1,11 +1,30 @@
 /** @packageDocumentation Resolve type-fest references at their actual use site. */
 import {
     AST_NODE_TYPES,
+    ASTUtils,
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
 
 import { getVariableInScopeChain } from "./scope-variable.js";
+
+/** Identify the original package and import specifier of a resolved binding. */
+export const matchesTypeFestDefinition = (
+    def: Readonly<TSESLint.Scope.Definition>,
+    exportedName: string,
+    namespace = false
+): boolean => {
+    if (
+        def.parent?.type !== AST_NODE_TYPES.ImportDeclaration ||
+        def.parent.source.value !== "type-fest"
+    )
+        return false;
+    return namespace
+        ? def.node.type === AST_NODE_TYPES.ImportNamespaceSpecifier
+        : def.node.type === AST_NODE_TYPES.ImportSpecifier &&
+              ASTUtils.isIdentifier(def.node.imported) &&
+              def.node.imported.name === exportedName;
+};
 
 /**
  * Recognize named, aliased or namespace imports, including nested
@@ -31,21 +50,8 @@ export const isTypeFestImport = (
         identifier.name
     );
     return (
-        binding?.defs.some((def) => {
-            if (
-                def.parent?.type !== AST_NODE_TYPES.ImportDeclaration ||
-                def.parent.source.value !== "type-fest"
-            )
-                return false;
-            if (isNamespace)
-                return (
-                    def.node.type === AST_NODE_TYPES.ImportNamespaceSpecifier
-                );
-            return (
-                def.node.type === AST_NODE_TYPES.ImportSpecifier &&
-                def.node.imported.type === AST_NODE_TYPES.Identifier &&
-                def.node.imported.name === exportedName
-            );
-        }) ?? false
+        binding?.defs.some((def) =>
+            matchesTypeFestDefinition(def, exportedName, isNamespace)
+        ) ?? false
     );
 };

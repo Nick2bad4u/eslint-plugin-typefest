@@ -11,7 +11,7 @@ import {
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
-import { arrayFirst, isEmpty } from "ts-extras";
+import { arrayAt, arrayFirst, isEmpty } from "ts-extras";
 import ts from "typescript";
 
 import { getIdentifierPropertyMemberCall } from "./member-call.js";
@@ -26,45 +26,100 @@ type SearchMethod =
     | "lastIndexOf"
     | "startsWith";
 
+const isStringSearch = (method: SearchMethod): boolean =>
+    method === "startsWith" || method === "endsWith";
+
+const isKnownSearchType = (type: ts.Type): boolean =>
+    !isTypeAnyType(type) && !isTypeNeverType(type);
+
+/**
+ * A local Map can inherit or borrow a native method while using different key
+ * types.
+ */
+const getNativeMapKeyType = (
+    checker: ts.TypeChecker,
+    receiver: ts.Type,
+    program: ts.Program
+) => {
+    const symbol = receiver.getSymbol();
+    const name = symbol?.getName();
+    if (name !== "Map" && name !== "ReadonlyMap") {
+        return undefined;
+    }
+    const builtinDeclaration = symbol?.declarations?.some(
+        (declaration) =>
+            ts.isInterfaceDeclaration(declaration) &&
+            program.isSourceFileDefaultLibrary(declaration.getSourceFile())
+    );
+    return builtinDeclaration === true
+        ? arrayFirst(getTypeCheckerTypeArguments(checker, receiver) ?? [])
+        : undefined;
+};
+
+/**
+ * An overload from an augmentation can change the return type or argument
+ * contract.
+ */
+const hasOnlyNativeMethods = (
+    checker: ts.TypeChecker,
+    program: ts.Program,
+    receiver: ts.Type,
+    method: SearchMethod
+): boolean => {
+    const declarations =
+        checker.getPropertyOfType(receiver, method)?.getDeclarations() ?? [];
+    return (
+        !isEmpty(declarations) &&
+        declarations.every(
+            (declaration) =>
+                ts.isMethodSignature(declaration) &&
+                program.isSourceFileDefaultLibrary(declaration.getSourceFile())
+        )
+    );
+};
+
 /** Match only concrete builtins. Structural substitutes may override the method. */
 const getSearchType = (
     checker: ts.TypeChecker,
     receiver: ts.Type,
     method: SearchMethod,
     program: ts.Program
-): ts.Type | undefined => {
+) => {
+    if (!hasOnlyNativeMethods(checker, program, receiver, method)) {
+        return undefined;
+    }
     if (method === "has") {
-        const symbol = receiver.getSymbol();
-        const name = symbol?.getName();
-        return (name === "Map" || name === "ReadonlyMap") &&
-            symbol?.declarations?.some(
-                (declaration) =>
-                    ts.isInterfaceDeclaration(declaration) &&
-                    program.isSourceFileDefaultLibrary(
-                        declaration.getSourceFile()
-                    )
-            ) === true
-            ? arrayFirst(getTypeCheckerTypeArguments(checker, receiver) ?? [])
+        return getNativeMapKeyType(checker, receiver, program);
+    }
+    if (isStringSearch(method)) {
+        const stringType = checker.getStringType();
+        return isKnownSearchType(receiver) &&
+            checker.isTypeAssignableTo(receiver, stringType)
+            ? stringType
             : undefined;
     }
-
-    if (method === "indexOf" || method === "lastIndexOf") {
-        return checker.isArrayType(receiver) || checker.isTupleType(receiver)
-            ? checker.getIndexTypeOfType(receiver, ts.IndexKind.Number)
-            : undefined;
-    }
-
-    // A String object coerces to a primitive in native calls but is not a string argument.
-    return !isTypeAnyType(receiver) &&
-        !isTypeNeverType(receiver) &&
-        checker.isTypeAssignableTo(receiver, checker.getStringType())
-        ? checker.getStringType()
+    return checker.isArrayType(receiver) || checker.isTupleType(receiver)
+        ? checker.getIndexTypeOfType(receiver, ts.IndexKind.Number)
         : undefined;
 };
 
+/** A missing map key can still have the declared key type. */
+const preservesMissingKeys = (
+    checker: ts.TypeChecker,
+    key: ts.Type,
+    candidate: ts.Type
+): boolean => {
+    if (candidate.isUnion()) {
+        return candidate.types.every(
+            (part) => !checker.isTypeAssignableTo(part, key)
+        );
+    }
+    return !candidate.isTypeParameter();
+};
+
 /**
- * Both search overloads accept related item/key types; string searches require
- * a string.
+ * String searches take a string; array and map searches additionally accept
+ * wider candidates.
  */
 const acceptsSearchValue = (
     checker: ts.TypeChecker,
@@ -72,31 +127,17 @@ const acceptsSearchValue = (
     expected: ts.Type,
     actual: ts.Type
 ): boolean => {
-    if (isTypeAnyType(actual) || isTypeNeverType(actual)) {
+    if (!isKnownSearchType(actual)) {
         return false;
     }
     if (checker.isTypeAssignableTo(actual, expected)) {
         return true;
     }
-    if (
-        method === "startsWith" ||
-        method === "endsWith" ||
-        !checker.isTypeAssignableTo(expected, actual)
-    ) {
-        return false;
-    }
-
-    // A map can lack a key of its declared type. Skip a wider union when the
-    // guard's false branch could discard one of its possible runtime keys.
-    if (method !== "has") {
-        return true;
-    }
-    if (actual.isUnion()) {
-        return actual.types.every(
-            (part) => !checker.isTypeAssignableTo(part, expected)
-        );
-    }
-    return !actual.isTypeParameter();
+    return (
+        !isStringSearch(method) &&
+        checker.isTypeAssignableTo(expected, actual) &&
+        (method !== "has" || preservesMissingKeys(checker, expected, actual))
+    );
 };
 
 /** Search offsets may be numeric, undefined, or a union of the two. */
@@ -113,6 +154,30 @@ const acceptsPosition = (
     );
 };
 
+/** Verify both arity and evaluation order before considering a helper call. */
+const getSearchArgument = (
+    node: Readonly<TSESTree.CallExpression>,
+    method: SearchMethod,
+    sourceCode: Readonly<TSESLint.SourceCode>
+) => {
+    const maximum = method === "has" ? 1 : 2;
+    if (
+        node.typeArguments !== undefined ||
+        node.arguments.length > maximum ||
+        node.arguments.some(
+            (argument) =>
+                argument.type === AST_NODE_TYPES.SpreadElement ||
+                ASTUtils.hasSideEffect(argument, sourceCode, {
+                    considerGetters: true,
+                    considerImplicitTypeConversion: true,
+                })
+        )
+    ) {
+        return undefined;
+    }
+    return arrayFirst(node.arguments);
+};
+
 /** Create a report-only listener for the corresponding standard-library method. */
 export const createNativeSearchListener = <MessageId extends string>(
     context: Readonly<TSESLint.RuleContext<MessageId, UnknownArray>>,
@@ -120,10 +185,12 @@ export const createNativeSearchListener = <MessageId extends string>(
     messageId: MessageId
 ): TSESLint.RuleListener => {
     const { checker, parserServices } = getTypedRuleServices(context);
-    const { program } = parserServices;
+    const { esTreeNodeToTSNodeMap, program } = parserServices;
     if (!program) {
         return {};
     }
+    const typeOf = (node: TSESTree.Node): ts.Type =>
+        checker.getTypeAtLocation(esTreeNodeToTSNodeMap.get(node));
 
     return {
         [`CallExpression[callee.property.name="${method}"]`](
@@ -133,70 +200,25 @@ export const createNativeSearchListener = <MessageId extends string>(
                 memberName: method,
                 node,
             });
-            if (!call) {
+            if (!call || ts.isOptionalChain(esTreeNodeToTSNodeMap.get(call))) {
                 return;
             }
-            const search = arrayFirst(call.arguments);
-            if (
-                search === undefined ||
-                call.typeArguments !== undefined ||
-                call.arguments.length > (method === "has" ? 1 : 2) ||
-                call.arguments.some(
-                    (argument) =>
-                        argument.type === AST_NODE_TYPES.SpreadElement ||
-                        ASTUtils.hasSideEffect(argument, context.sourceCode, {
-                            considerGetters: true,
-                            considerImplicitTypeConversion: true,
-                        })
-                )
-            ) {
+            const search = getSearchArgument(call, method, context.sourceCode);
+            if (!search) {
                 return;
             }
 
-            const tsCall = parserServices.esTreeNodeToTSNodeMap.get(call);
-            if (ts.isOptionalChain(tsCall)) {
-                return;
-            }
-
-            const receiver = checker.getTypeAtLocation(
-                parserServices.esTreeNodeToTSNodeMap.get(call.callee.object)
-            );
+            const receiver = typeOf(call.callee.object);
             const expected = getSearchType(checker, receiver, method, program);
-            const declarations = checker
-                .getPropertyOfType(receiver, method)
-                ?.getDeclarations();
-            if (
-                !expected ||
-                !declarations ||
-                isEmpty(declarations) ||
-                declarations.some(
-                    (declaration) =>
-                        !ts.isMethodSignature(declaration) ||
-                        !program.isSourceFileDefaultLibrary(
-                            declaration.getSourceFile()
-                        )
-                )
-            ) {
+            if (!expected) {
                 return;
             }
 
-            const actual = checker.getTypeAtLocation(
-                parserServices.esTreeNodeToTSNodeMap.get(search)
-            );
-            const offset = call.arguments[1];
-            if (
-                offset &&
-                !acceptsPosition(
-                    checker,
-                    checker.getTypeAtLocation(
-                        parserServices.esTreeNodeToTSNodeMap.get(offset)
-                    )
-                )
-            ) {
+            const offset = arrayAt(call.arguments, 1);
+            if (offset && !acceptsPosition(checker, typeOf(offset))) {
                 return;
             }
-
-            if (acceptsSearchValue(checker, method, expected, actual)) {
+            if (acceptsSearchValue(checker, method, expected, typeOf(search))) {
                 reportWithOptionalFix({
                     context,
                     fix: null,

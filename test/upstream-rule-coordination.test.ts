@@ -12,44 +12,42 @@ const except = "typefest/prefer-type-fest-except";
 const readonlyDate = "typefest/prefer-type-fest-readonly-date";
 
 describe("coordination between generic and upstream-specific rules", () => {
-    it.each(["parameters", "return-type"])(
-        "prefers the complete overload %s expression",
-        (kind) => {
-            expect.hasAssertions();
+    it.each([
+        ["parameters", ".ts"],
+        ["parameters", ".namespace.ts"],
+        ["return-type", ".ts"],
+        ["return-type", ".namespace.ts"],
+    ])("prefers the complete overload %s expression in %s", (kind, suffix) => {
+        expect.hasAssertions();
 
-            const basename = `prefer-type-fest-overload-${kind}`;
-            const rule = `typefest/${basename}`;
-            const fixture = `${basename}.ts`;
-            const code = readTypedFixture("upstream-latest", fixture);
-            const options = {
-                filename: typedFixturePath("upstream-latest", fixture),
-            };
-            const config = { ...plugin.configs.all, files: ["**/*.ts"] };
-            const linter = new Linter();
-            const diagnostics = linter.verify(code, config, options);
+        const basename = `prefer-type-fest-overload-${kind}`;
+        const rule = `typefest/${basename}`;
+        const fixture = `${basename}${suffix}`;
+        const code = readTypedFixture("upstream-latest", fixture);
+        const options = {
+            filename: typedFixturePath("upstream-latest", fixture),
+        };
+        const config = { ...plugin.configs.all, files: ["**/*.ts"] };
+        const linter = new Linter();
+        const diagnostics = linter.verify(code, config, options);
 
-            expect(diagnostics.map(({ ruleId }) => ruleId)).toStrictEqual([
-                rule,
-                rule,
-            ]);
+        expect(diagnostics.map(({ ruleId }) => ruleId)).toStrictEqual([rule]);
 
-            const fixed = linter.verifyAndFix(code, config, options);
+        const fixed = linter.verifyAndFix(code, config, options);
 
-            expect(fixed.output).not.toContain("ArrayElement");
-            expect(fixed.messages).toStrictEqual([]);
+        expect(fixed.output).not.toContain("ArrayElement");
+        expect(fixed.messages).toStrictEqual([]);
 
-            const standalone = linter.verify(
-                code,
-                { ...config, rules: { [arrayElement]: "error" } },
-                options
-            );
+        const standalone = linter.verify(
+            code,
+            { ...config, rules: { [arrayElement]: "error" } },
+            options
+        );
 
-            expect(standalone.map(({ ruleId }) => ruleId)).toStrictEqual([
-                arrayElement,
-                arrayElement,
-            ]);
-        }
-    );
+        expect(standalone.map(({ ruleId }) => ruleId)).toStrictEqual([
+            arrayElement,
+        ]);
+    });
 
     it("keeps Date's open setter pattern out of Except's constrained keys", () => {
         expect.hasAssertions();

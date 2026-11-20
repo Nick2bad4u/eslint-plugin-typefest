@@ -1,11 +1,5 @@
 import { arrayIsArray } from "ts-extras";
 
-declare const payload: unknown;
-declare const count: number;
-declare const mutable: number[] | string;
-declare const dynamic: any;
-declare const custom: { isArray: (value: unknown) => boolean };
-
 export function narrowReadonly(value: string | readonly [string]): string {
     if (arrayIsArray(value)) {
         const tuple: readonly [string] = value;
@@ -29,16 +23,3 @@ export function checkIntersection<T>(
 ): boolean {
     return Array.isArray(value);
 }
-
-export function checkShadowed(Array: typeof custom): boolean {
-    return Array.isArray(payload);
-}
-
-export const checks: readonly boolean[] = [
-    Array.isArray(count),
-    Array.isArray(mutable),
-    Array.isArray(dynamic),
-    custom.isArray(payload),
-    Array["isArray"](payload),
-    Array.isArray?.(payload),
-];

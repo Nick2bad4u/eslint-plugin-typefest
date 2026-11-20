@@ -16,5 +16,5 @@ export const helperResult: boolean = stringEndsWith(values, ".json");
 export const spreadResult: boolean = values.endsWith(...parameters);
 export const effectfulArgument: boolean = values.endsWith(buildSearch());
 export const customLookup: boolean = lookup.endsWith(".json");
-declare const boxed: String;
+const boxed: typeof String.prototype = Object("config-example.json");
 export const boxedResult: boolean = boxed.endsWith(".json");

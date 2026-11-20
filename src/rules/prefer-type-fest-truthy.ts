@@ -1,10 +1,46 @@
 /** @packageDocumentation ESLint rule for Truthy. */
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { arrayAt, arrayFirst } from "ts-extras";
 
 import { isTypeFestImport } from "../_internal/type-fest-import-reference.js";
 import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
-import { createTypedRule } from "../_internal/typed-rule.js";
+import {
+    createTypedRule,
+    type TypedRuleContext,
+} from "../_internal/typed-rule.js";
 import { createUpstreamTypeReporter } from "../_internal/upstream-type-replacement.js";
+
+/** Require both void and the actual imported Falsy type, in either order. */
+const isFalsyAndVoid = (
+    context: TypedRuleContext,
+    removed: Readonly<TSESTree.TypeNode> | undefined
+): boolean =>
+    removed?.type === AST_NODE_TYPES.TSUnionType &&
+    removed.types.length === 2 &&
+    removed.types.some((type) => type.type === AST_NODE_TYPES.TSVoidKeyword) &&
+    removed.types.some(
+        (type) =>
+            type.type === AST_NODE_TYPES.TSTypeReference &&
+            type.typeArguments === undefined &&
+            isTypeFestImport(context.sourceCode, type, "Falsy")
+    );
+
+/** Extract the preserved operand from the native Exclude utility. */
+const getTruthyInput = (
+    context: TypedRuleContext,
+    excluded: Readonly<TSESTree.TypeNode> | undefined
+) => {
+    if (
+        !excluded ||
+        !isGlobalTypeReferenceNamed(context, excluded, "Exclude") ||
+        excluded.typeArguments?.params.length !== 2
+    )
+        return undefined;
+    const { params } = excluded.typeArguments;
+    return isFalsyAndVoid(context, arrayAt(params, 1))
+        ? arrayFirst(params)
+        : undefined;
+};
 
 /**
  * Prefer TypeFest Truthy for the complete non-nullable exclusion of Falsy and
@@ -27,38 +63,16 @@ const preferTypeFestTruthyRule: ReturnType<typeof createTypedRule> =
                         node.typeArguments?.params.length !== 1
                     )
                         return;
-                    const [excluded] = node.typeArguments.params;
-                    if (
-                        !excluded ||
-                        !isGlobalTypeReferenceNamed(
-                            context,
-                            excluded,
-                            "Exclude"
-                        ) ||
-                        excluded.typeArguments?.params.length !== 2
-                    )
-                        return;
-                    const [input, removed] = excluded.typeArguments.params;
-                    if (
-                        input &&
-                        removed?.type === AST_NODE_TYPES.TSUnionType &&
-                        removed.types.length === 2 &&
-                        removed.types.some(
-                            (t) => t.type === AST_NODE_TYPES.TSVoidKeyword
-                        ) &&
-                        removed.types.some(
-                            (t) =>
-                                t.type === AST_NODE_TYPES.TSTypeReference &&
-                                !t.typeArguments &&
-                                isTypeFestImport(context.sourceCode, t, "Falsy")
-                        )
-                    ) {
+                    const input = getTruthyInput(
+                        context,
+                        arrayFirst(node.typeArguments.params)
+                    );
+                    if (input)
                         report(
                             node,
                             "Truthy",
                             context.sourceCode.getText(input)
                         );
-                    }
                 },
             };
         },

@@ -1,3 +1,6 @@
+import parser from "@typescript-eslint/parser";
+import { describe, expect, it } from "vitest";
+
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { getPluginRule } from "./_internal/ruleTester";
 import {
@@ -28,6 +31,28 @@ const cases = [
 ] as const;
 
 addTypeFestRuleMetadataSmokeTests(ruleName);
+
+describe(ruleName, () => {
+    it("checks the upstream narrowing overload and its upper limit", () => {
+        expect.hasAssertions();
+
+        const code = `import {hasAtLeast} from "ts-extras";
+declare const items: readonly string[];
+export const within: string = hasAtLeast(items, 2) ? items[1] : "";
+export const beyond: string | undefined = hasAtLeast(items, 1000) ? items[999] : undefined;
+// @ts-expect-error A minimum of 1000 returns boolean and leaves unchecked indices optional.
+export const absentNarrowing: string = beyond;`;
+        const { ast, services } = parser.parseForESLint(code, {
+            filePath: filename,
+            projectService: true,
+        });
+        const sourceFile = services.esTreeNodeToTSNodeMap.get(ast);
+
+        expect(
+            services.program?.getSemanticDiagnostics(sourceFile)
+        ).toStrictEqual([]);
+    });
+});
 
 createTypedRuleTester().run(ruleName, getPluginRule(ruleName), {
     invalid: [

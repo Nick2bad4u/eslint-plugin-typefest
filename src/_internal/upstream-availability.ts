@@ -14,13 +14,8 @@ import type { TypedRuleContext } from "./typed-rule.js";
 export type UpstreamRequirement = "ts-extras@2" | "type-fest@6";
 
 // Subsequent major releases can remove public exports; enable them after review.
-const supportedUpstreams: Record<
-    UpstreamRequirement,
-    { majors: readonly number[]; name: string }
-> = {
-    "ts-extras@2": { majors: [2, 3], name: "ts-extras" },
-    "type-fest@6": { majors: [6], name: "type-fest" },
-};
+const tsExtrasMajors = [2, 3] as const;
+const typeFestMajors = [6] as const;
 
 const fallbackCompilerOptions: ts.CompilerOptions = {
     moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -39,7 +34,7 @@ export const supportsUpstreamVersion = (
 ): boolean =>
     !version.includes("-") &&
     arrayIncludes(
-        supportedUpstreams[requirement].majors,
+        requirement === "ts-extras@2" ? tsExtrasMajors : typeFestMajors,
         Number.parseInt(version, 10)
     );
 
@@ -66,7 +61,7 @@ export const hasRequiredUpstream = (
         return previous;
     }
 
-    const { name } = supportedUpstreams[requirement];
+    const name = requirement === "ts-extras@2" ? "ts-extras" : "type-fest";
     const file = path.resolve(context.cwd, physicalFilename);
     const program = sourceCode.parserServices?.program;
     const { resolvedModule } = ts.resolveModuleName(

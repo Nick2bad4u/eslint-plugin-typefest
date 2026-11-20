@@ -2,7 +2,11 @@
  * @packageDocumentation
  * Prefer RequiredNonNullable over its homomorphic required-property mapping.
  */
-import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 import { isDefined } from "ts-extras";
 
 import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
@@ -12,12 +16,11 @@ import { createTypedRule } from "../_internal/typed-rule.js";
 
 /** Match a required mapped type that preserves keys and readonly modifiers. */
 const isRequiredKeyofMap = (
-    node: Readonly<TSESTree.TypeNode>
+    node: Readonly<TSESTree.TSMappedType>
 ): node is TSESTree.TSMappedType & {
     constraint: TSESTree.TSTypeOperator & { typeAnnotation: TSESTree.TypeNode };
     typeAnnotation: TSESTree.TSTypeReference;
 } =>
-    node.type === AST_NODE_TYPES.TSMappedType &&
     node.optional === "-" &&
     !isDefined(node.readonly) &&
     node.nameType === null &&
@@ -26,6 +29,29 @@ const isRequiredKeyofMap = (
     isDefined(node.constraint.typeAnnotation) &&
     node.typeAnnotation?.type === AST_NODE_TYPES.TSTypeReference;
 
+/** Check that the sole utility argument reads exactly the mapped property. */
+const hasMappedPropertyArgument = (
+    sourceCode: Readonly<TSESLint.SourceCode>,
+    input: Readonly<TSESTree.TSTypeParameter>,
+    mapped: Readonly<TSESTree.TSMappedType>,
+    value: Readonly<TSESTree.TSTypeReference>
+): boolean => {
+    const args = value.typeArguments?.params;
+    return (
+        args?.length === 1 &&
+        args.some(
+            (access) =>
+                access.type === AST_NODE_TYPES.TSIndexedAccessType &&
+                isTypeParameterReference(
+                    sourceCode,
+                    input,
+                    access.objectType
+                ) &&
+                isTypeParameterReference(sourceCode, mapped, access.indexType)
+        )
+    );
+};
+
 /** Rule definition for prefer-type-fest-required-non-nullable. */
 const preferTypeFestRequiredNonNullableRule: ReturnType<
     typeof createTypedRule
@@ -33,15 +59,23 @@ const preferTypeFestRequiredNonNullableRule: ReturnType<
     create(context) {
         const { sourceCode } = context;
         return {
-            TSTypeAliasDeclaration(node) {
-                const parameters = node.typeParameters?.params;
+            'TSTypeAliasDeclaration[typeAnnotation.type="TSMappedType"]'(
+                node: Readonly<
+                    TSESTree.TSTypeAliasDeclaration & {
+                        typeAnnotation: TSESTree.TSMappedType;
+                    }
+                >
+            ) {
+                const parameters = node.typeParameters;
                 const mapped = node.typeAnnotation;
-                if (parameters?.length !== 1 || !isRequiredKeyofMap(mapped)) {
+                if (
+                    parameters?.params.length !== 1 ||
+                    !isRequiredKeyofMap(mapped)
+                ) {
                     return;
                 }
-                const [input] = parameters;
+                const [input] = parameters.params;
                 const value = mapped.typeAnnotation;
-                const args = value.typeArguments?.params;
                 if (
                     !input ||
                     !isTypeParameterReference(
@@ -49,32 +83,22 @@ const preferTypeFestRequiredNonNullableRule: ReturnType<
                         input,
                         mapped.constraint.typeAnnotation
                     ) ||
-                    args?.length !== 1 ||
+                    !hasMappedPropertyArgument(
+                        sourceCode,
+                        input,
+                        mapped,
+                        value
+                    ) ||
                     !isGlobalTypeReferenceNamed(context, value, "NonNullable")
                 ) {
                     return;
                 }
-                const [access] = args;
-                if (
-                    access?.type === AST_NODE_TYPES.TSIndexedAccessType &&
-                    isTypeParameterReference(
-                        sourceCode,
-                        input,
-                        access.objectType
-                    ) &&
-                    isTypeParameterReference(
-                        sourceCode,
-                        mapped,
-                        access.indexType
-                    )
-                ) {
-                    reportWithOptionalFix({
-                        context,
-                        fix: null,
-                        messageId: "preferRequiredNonNullable",
-                        node: mapped,
-                    });
-                }
+                reportWithOptionalFix({
+                    context,
+                    fix: null,
+                    messageId: "preferRequiredNonNullable",
+                    node: mapped,
+                });
             },
         };
     },

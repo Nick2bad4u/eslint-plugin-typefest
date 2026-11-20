@@ -1,8 +1,18 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import { arrayAt, arrayFirst, arrayLast } from "ts-extras";
 
 import type { TypedRuleContext } from "./typed-rule.js";
 
 import { isGlobalTypeReferenceNamed } from "./type-reference-node.js";
+
+/** Match exactly the pattern that selects every string beginning with set. */
+const matchesSetterKey = (
+    keys: Readonly<TSESTree.TSTemplateLiteralType>
+): boolean =>
+    keys.types.length === 1 &&
+    arrayFirst(keys.quasis)?.value.cooked === "set" &&
+    arrayLast(keys.quasis)?.value.cooked === "" &&
+    arrayFirst(keys.types)?.type === AST_NODE_TYPES.TSStringKeyword;
 
 /** Read the global Date when a built-in Omit removes every set-prefixed key. */
 export const getDateWithoutSetters = (
@@ -12,21 +22,16 @@ export const getDateWithoutSetters = (
     if (node.typeArguments?.params.length !== 2) {
         return undefined;
     }
-    const [date, keys] = node.typeArguments.params;
+    const date = arrayFirst(node.typeArguments.params);
+    const keys = arrayAt(node.typeArguments.params, 1);
     if (
         !date ||
         keys?.type !== AST_NODE_TYPES.TSTemplateLiteralType ||
-        keys.types.length !== 1 ||
+        !matchesSetterKey(keys) ||
         !isGlobalTypeReferenceNamed(context, date, "Date") ||
         date.typeArguments !== undefined
     ) {
         return undefined;
     }
-    const [prefix, suffix] = keys.quasis;
-    const [substitution] = keys.types;
-    return prefix?.value.cooked === "set" &&
-        suffix?.value.cooked === "" &&
-        substitution?.type === AST_NODE_TYPES.TSStringKeyword
-        ? date
-        : undefined;
+    return date;
 };

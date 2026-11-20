@@ -4,22 +4,34 @@ import { Linter } from "eslint";
 
 import typefest from "../../src/plugin";
 
-/**
- * Apply a single rule to a real fixture filename and require a clean final
- * pass.
- */
+/** Apply a single rule to a real fixture and require a clean final pass. */
 export function applyUpstreamRuleFix(
     ruleName: string,
     code: string,
     filename: string
 ): string {
+    const result = verifyUpstreamRule(ruleName, code, filename);
+    if (!result.fixed || result.messages.length > 0) {
+        throw new Error(
+            `Expected a clean ESLint fix for ${ruleName}: ${result.messages.map((message) => message.message).join(", ")}`
+        );
+    }
+    return result.output;
+}
+
+/** Run the registered rule with the project's normal ESLint fix cycle. */
+export function verifyUpstreamRule(
+    ruleName: string,
+    code: string,
+    filename: string
+): Linter.FixReport {
     const linter = new Linter();
     const docs = typefest.rules?.[ruleName]?.meta?.docs;
     const projectService =
         docs !== undefined &&
         "requiresTypeChecking" in docs &&
         docs.requiresTypeChecking === true;
-    const result = linter.verifyAndFix(
+    return linter.verifyAndFix(
         code,
         [
             {
@@ -37,10 +49,4 @@ export function applyUpstreamRuleFix(
         ],
         { filename }
     );
-    if (!result.fixed || result.messages.length > 0) {
-        throw new Error(
-            `Expected a clean ESLint fix for ${ruleName}: ${result.messages.map((message) => message.message).join(", ")}`
-        );
-    }
-    return result.output;
 }

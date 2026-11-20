@@ -9,6 +9,14 @@ import { isBooleanLiteralType } from "../_internal/type-guard-conditional-patter
 import { createTypedRule } from "../_internal/typed-rule.js";
 import { createUpstreamTypeReporter } from "../_internal/upstream-type-replacement.js";
 
+const hasThreeTypeArguments = (
+    args: readonly TSESTree.TypeNode[] | undefined
+): args is readonly [
+    TSESTree.TypeNode,
+    TSESTree.TypeNode,
+    TSESTree.TypeNode,
+] => args?.length === 3;
+
 /** Recognize the exact TypeFest If composition used to define Not. */
 const rule: ReturnType<typeof createTypedRule> = createTypedRule({
     create(context) {
@@ -18,16 +26,13 @@ const rule: ReturnType<typeof createTypedRule> = createTypedRule({
                 node: TSESTree.TSTypeReference
             ) {
                 const args = node.typeArguments?.params;
-                if (args?.length !== 3) return;
+                if (!hasThreeTypeArguments(args)) return;
                 const [
                     condition,
                     ifTrue,
                     ifFalse,
                 ] = args;
                 if (
-                    condition &&
-                    ifTrue &&
-                    ifFalse &&
                     isBooleanLiteralType(ifTrue, false) &&
                     isBooleanLiteralType(ifFalse, true) &&
                     isTypeFestImport(context.sourceCode, node, "If")

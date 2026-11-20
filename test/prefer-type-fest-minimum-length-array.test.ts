@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-minimum-length-array";
 const fixture = "prefer-type-fest-minimum-length-array.ts";
@@ -45,17 +46,19 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Batch<T> = [T, T, ...T[]];",
-                "type Batch<T> = MinimumLengthArray<T, 2>;"
+            output: expectedAliasReplacement(
+                code,
+                "Batch",
+                "MinimumLengthArray<T, 2>"
             ),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Batch<T> = [T, T, ...T[]];",
-                "type Batch<T> = MinimumLengthArray<T, 2>;"
+            code: expectedAliasReplacement(
+                code,
+                "Batch",
+                "MinimumLengthArray<T, 2>"
             ),
             filename,
         },

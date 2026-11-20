@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-function";
 const fixture = "prefer-type-fest-function.ts";
@@ -72,17 +73,19 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Loader<Args extends readonly unknown[], Result> = (...args: Args) => Promise<Result>;",
-                "type Loader<Args extends readonly unknown[], Result> = AsyncFunction<Args, Result>;"
+            output: expectedAliasReplacement(
+                code,
+                "Loader",
+                "AsyncFunction<Args, Result>"
             ),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Loader<Args extends readonly unknown[], Result> = (...args: Args) => Promise<Result>;",
-                "type Loader<Args extends readonly unknown[], Result> = AsyncFunction<Args, Result>;"
+            code: expectedAliasReplacement(
+                code,
+                "Loader",
+                "AsyncFunction<Args, Result>"
             ),
             filename,
         },
@@ -93,6 +96,15 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 "type Generic = <T>(...args: T[]) => Promise<T>;",
                 "type Local<Promise, Args extends unknown[]> = (...args: Args) => Promise;",
                 "type Capture = (...args: string[]) => Promise<typeof args>;",
+                "type Nested = { run: (...args: string[]) => Promise<number> };",
+                "type Mixed = (id: string, ...args: string[]) => Promise<number>;",
+            ].join("\n"),
+            filename,
+        },
+        {
+            code: [
+                "export type Promise<Result> = { result: Result };",
+                "type Shadowed = (...args: any[]) => Promise<unknown>;",
             ].join("\n"),
             filename,
         },

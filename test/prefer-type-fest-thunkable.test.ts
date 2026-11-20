@@ -1,3 +1,8 @@
+import parser from "@typescript-eslint/parser";
+import { Linter } from "eslint";
+import { describe, expect, it } from "vitest";
+
+import typefestPlugin from "../src/plugin";
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
@@ -8,6 +13,31 @@ import {
 const ruleId = "prefer-type-fest-thunkable";
 const fixture = "prefer-type-fest-thunkable.ts";
 const filename = typedFixturePath("upstream-latest", fixture);
+
+describe("workspace resolution for Thunkable", () => {
+    it("uses the type-fest version nearest each linted file", () => {
+        expect.hasAssertions();
+
+        const code = readTypedFixture("upstream-latest", fixture);
+        const linter = new Linter();
+        const config = {
+            files: ["**/*.ts"],
+            languageOptions: { parser },
+            plugins: { typefest: typefestPlugin },
+            rules: { "typefest/prefer-type-fest-thunkable": "error" },
+        } as const satisfies Linter.Config;
+        const current = linter.verify(code, config, { filename });
+        const legacy = linter.verify(code, config, {
+            filename: typedFixturePath("prefer-ts-extras-array-at.valid.ts"),
+        });
+
+        expect(current.map(({ messageId }) => messageId)).toStrictEqual([
+            "preferThunkable",
+            "preferThunkable",
+        ]);
+        expect(legacy).toHaveLength(0);
+    });
+});
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],

@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-is-mutually-assignable";
 const fixture = "prefer-type-fest-is-mutually-assignable.ts";
@@ -47,17 +48,19 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Compatible<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;",
-                "type Compatible<A, B> = IsMutuallyAssignable<A, B>;"
+            output: expectedAliasReplacement(
+                code,
+                "Compatible",
+                "IsMutuallyAssignable<A, B>"
             ),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Compatible<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;",
-                "type Compatible<A, B> = IsMutuallyAssignable<A, B>;"
+            code: expectedAliasReplacement(
+                code,
+                "Compatible",
+                "IsMutuallyAssignable<A, B>"
             ),
             filename,
         },

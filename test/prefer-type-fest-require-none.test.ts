@@ -1,13 +1,35 @@
+import { describe, expect, it } from "vitest";
+
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
+import { verifyUpstreamRule } from "./_internal/upstream-fix-output";
 
 const ruleId = "prefer-type-fest-require-none";
 const fixture = "prefer-type-fest-require-none.ts";
 const filename = typedFixturePath("upstream-latest", fixture);
+
+describe("mapped property bindings", () => {
+    it("reports through a value-only PropertyKey binding and respects a local type binding", () => {
+        expect.hasAssertions();
+
+        const code = [
+            "export const PropertyKey = Symbol();",
+            "type Local<Keys extends PropertyKey> = { [P in Keys]?: never };",
+            "namespace Custom { type PropertyKey = string; export type Local<Keys extends PropertyKey> = { [P in Keys]?: never }; }",
+        ].join("\n");
+        const result = verifyUpstreamRule(ruleId, code, filename);
+
+        expect(
+            result.messages.map(({ line, messageId }) => [line, messageId])
+        ).toStrictEqual([[2, "preferRequireNone"]]);
+        expect(result.fixed).toBe(false);
+        expect(result.output).toBe(code);
+    });
+});
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],

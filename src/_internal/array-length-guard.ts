@@ -35,7 +35,8 @@ const getMinimum = (
         return literal + 1;
     }
 
-    return operator === (lengthOnLeft ? ">=" : "<=") ? literal : undefined;
+    const inclusiveOperator = lengthOnLeft ? ">=" : "<=";
+    return operator === inclusiveOperator ? literal : undefined;
 };
 
 const getLengthReceiver = (node: Readonly<TSESTree.Node>) => {
@@ -77,8 +78,10 @@ const getLengthComparison = (node: Readonly<TSESTree.BinaryExpression>) => {
         : undefined;
 };
 
-/** Literal tuple lengths can already establish the outcome or narrow an
-inequality. */
+/**
+ * Literal tuple lengths can already establish the outcome or narrow an
+ * inequality.
+ */
 const benefitsFromLengthGuard = (
     type: ts.Type,
     minimum: number,

@@ -1,7 +1,7 @@
 /** @packageDocumentation Recognize readonly Date projections with every setter removed. */
 import type { TSESTree } from "@typescript-eslint/utils";
 
-import { isEmpty } from "ts-extras";
+import { arrayFirst, isEmpty } from "ts-extras";
 
 import { getDateWithoutSetters } from "../_internal/date-setter-omit.js";
 import { isGlobalTypeReferenceNamed } from "../_internal/type-reference-node.js";
@@ -18,19 +18,19 @@ const preferTypeFestReadonlyDateRule: ReturnType<typeof createTypedRule> =
             const report = createUpstreamTypeReporter(context);
             const { checker, parserServices } = getTypedRuleServices(context);
             return {
-                'TSTypeReference[typeName.name="Readonly"]'(
-                    node: TSESTree.TSTypeReference
-                ) {
-                    const outer = node.typeArguments?.params;
-                    if (
-                        outer?.length !== 1 ||
-                        !isGlobalTypeReferenceNamed(context, node, "Readonly")
-                    ) {
-                        return;
+                'TSTypeReference[typeName.name="Readonly"][typeArguments.params.length=1]'(
+                    node: TSESTree.TSTypeReference & {
+                        typeArguments: TSESTree.TSTypeParameterInstantiation;
                     }
-                    const [omit] = outer;
+                ) {
+                    const omit = arrayFirst(node.typeArguments.params);
                     if (
                         !omit ||
+                        !isGlobalTypeReferenceNamed(
+                            context,
+                            node,
+                            "Readonly"
+                        ) ||
                         !isGlobalTypeReferenceNamed(context, omit, "Omit")
                     ) {
                         return;

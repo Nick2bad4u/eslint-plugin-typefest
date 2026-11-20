@@ -15,6 +15,22 @@ import {
 import { TYPE_FEST_MODULE_SOURCE } from "./module-source.js";
 import { reportWithOptionalFix } from "./rule-reporting.js";
 import { getVariableInScopeChain } from "./scope-variable.js";
+import { matchesTypeFestDefinition } from "./type-fest-import-reference.js";
+
+/** Rewriting an extends operand can break conditional-type inference. */
+const isInConditionalConstraint = (
+    source: Readonly<TSESLint.SourceCode>,
+    node: Readonly<TSESTree.TypeNode>
+): boolean =>
+    source
+        .getAncestors(node)
+        .some(
+            (ancestor) =>
+                ancestor.type === AST_NODE_TYPES.TSConditionalType &&
+                arrayFirst(ancestor.extendsType.range) <=
+                    arrayFirst(node.range) &&
+                ancestor.extendsType.range[1] >= node.range[1]
+        );
 
 /**
  * Preserve comments and let the normal import planner handle collisions and
@@ -32,18 +48,7 @@ export const createUpstreamTypeReporter = (
         typeName: string,
         ...args: readonly string[]
     ): boolean => {
-        if (
-            context.sourceCode
-                .getAncestors(node)
-                .some(
-                    (ancestor) =>
-                        ancestor.type === AST_NODE_TYPES.TSConditionalType &&
-                        arrayFirst(ancestor.extendsType.range) <=
-                            arrayFirst(node.range) &&
-                        ancestor.extendsType.range[1] >= node.range[1]
-                )
-        )
-            return false;
+        if (isInConditionalConstraint(context.sourceCode, node)) return false;
         const replacement =
             args.length === 0
                 ? typeName
@@ -54,13 +59,8 @@ export const createUpstreamTypeReporter = (
         );
         const canUseName =
             binding === null ||
-            binding.defs.some(
-                (def) =>
-                    def.parent?.type === AST_NODE_TYPES.ImportDeclaration &&
-                    def.parent.source.value === TYPE_FEST_MODULE_SOURCE &&
-                    def.node.type === AST_NODE_TYPES.ImportSpecifier &&
-                    def.node.imported.type === AST_NODE_TYPES.Identifier &&
-                    def.node.imported.name === typeName
+            binding.defs.some((def) =>
+                matchesTypeFestDefinition(def, typeName)
             );
         const fix =
             canUseName &&

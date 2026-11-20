@@ -9,6 +9,7 @@ import {
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
 import { applyUpstreamRuleFix } from "./_internal/upstream-fix-output";
+import { expectedAliasReplacement } from "./_internal/upstream-type-fixture";
 
 const ruleId = "prefer-type-fest-truthy";
 const fixture = "prefer-type-fest-truthy.ts";
@@ -46,18 +47,12 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 },
             ],
             filename,
-            output: code.replace(
-                "type Clean<T> = NonNullable<Exclude<T, Falsy | void>>;",
-                "type Clean<T> = Truthy<T>;"
-            ),
+            output: expectedAliasReplacement(code, "Clean", "Truthy<T>"),
         },
     ],
     valid: [
         {
-            code: code.replace(
-                "type Clean<T> = NonNullable<Exclude<T, Falsy | void>>;",
-                "type Clean<T> = Truthy<T>;"
-            ),
+            code: expectedAliasReplacement(code, "Clean", "Truthy<T>"),
             filename,
         },
         {
@@ -66,9 +61,21 @@ createRuleTester().run(ruleId, getPluginRule(ruleId), {
                 "type Partial<T> = NonNullable<T>;",
                 "type Local<T,Falsy> = NonNullable<Exclude<T, Falsy | void>>;",
                 "type Kept<T> = Exclude<T, Falsy>;",
+                "type Extra<T> = NonNullable<Exclude<T, Falsy | void | symbol>>;",
             ].join("\n"),
             filename,
         },
+        ...[
+            "type NonNullable<T> = { value: T };",
+            "type Exclude<T, Removed> = T & Removed;",
+        ].map((localUtility) => ({
+            code: [
+                'import type { Falsy, Truthy } from "type-fest";',
+                localUtility,
+                "type Shadowed<T> = NonNullable<Exclude<T, void | Falsy>>;",
+            ].join("\n"),
+            filename,
+        })),
         { code, filename: typedFixturePath("file.ts") },
     ],
 });

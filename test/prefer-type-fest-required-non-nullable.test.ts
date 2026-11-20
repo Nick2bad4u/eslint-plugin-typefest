@@ -1,13 +1,35 @@
+import { describe, expect, it } from "vitest";
+
 import { addTypeFestRuleMetadataSmokeTests } from "./_internal/rule-metadata-smoke";
 import { createRuleTester, getPluginRule } from "./_internal/ruleTester";
 import {
     readTypedFixture,
     typedFixturePath,
 } from "./_internal/typed-rule-tester";
+import { verifyUpstreamRule } from "./_internal/upstream-fix-output";
 
 const ruleId = "prefer-type-fest-required-non-nullable";
 const fixture = "prefer-type-fest-required-non-nullable.ts";
 const filename = typedFixturePath("upstream-latest", fixture);
+
+describe("mapped property bindings", () => {
+    it("reports through a value-only NonNullable binding and respects a local type binding", () => {
+        expect.hasAssertions();
+
+        const code = [
+            "export const NonNullable = Symbol();",
+            "type Local<T> = { [P in keyof T]-?: NonNullable<T[P]> };",
+            "namespace Custom { type NonNullable<V> = V; export type Local<T> = { [P in keyof T]-?: NonNullable<T[P]> }; }",
+        ].join("\n");
+        const result = verifyUpstreamRule(ruleId, code, filename);
+
+        expect(
+            result.messages.map(({ line, messageId }) => [line, messageId])
+        ).toStrictEqual([[2, "preferRequiredNonNullable"]]);
+        expect(result.fixed).toBe(false);
+        expect(result.output).toBe(code);
+    });
+});
 
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
