@@ -46,7 +46,8 @@ const sourceImportAnalysisCache = new WeakMap<
     SourceImportAnalysis
 >();
 
-const isIdentifierNode = (
+/** Validate the identifier representation used by named import specifiers. */
+export const isIdentifierNode = (
     value: unknown
 ): value is Readonly<TSESTree.Identifier> =>
     typeof value === "object" &&

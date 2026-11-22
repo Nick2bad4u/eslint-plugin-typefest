@@ -10,7 +10,10 @@ import {
     createSafeValueNodeTextReplacementFix,
 } from "../_internal/imported-value-symbols.js";
 import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    reportWithTypefestPolicy,
+} from "../_internal/rule-reporting.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
 /**
@@ -105,20 +108,41 @@ const preferTsExtrasIsPropertyPresentRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
-                    reportWithOptionalFix({
+                    const fix = createSafeValueNodeTextReplacementFix({
                         context,
-                        fix: createSafeValueNodeTextReplacementFix({
+                        importedName: "isPropertyPresent",
+                        imports: tsExtrasImports,
+                        replacementTextFactory: (localName) =>
+                            `${localName}(${JSON.stringify(propName)})`,
+                        reportFixIntent: "suggestion",
+                        sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
+                        targetNode: callback,
+                    });
+
+                    if (fix === null) {
+                        reportWithOptionalFix({
                             context,
-                            importedName: "isPropertyPresent",
-                            imports: tsExtrasImports,
-                            replacementTextFactory: (localName) =>
-                                `${localName}(${JSON.stringify(propName)})`,
-                            reportFixIntent: "autofix",
-                            sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
-                            targetNode: callback,
-                        }),
-                        messageId: "preferTsExtrasIsPropertyPresent",
-                        node: callback,
+                            fix,
+                            messageId: "preferTsExtrasIsPropertyPresent",
+                            node: callback,
+                        });
+
+                        return;
+                    }
+
+                    reportWithTypefestPolicy({
+                        context,
+                        descriptor: {
+                            messageId: "preferTsExtrasIsPropertyPresent",
+                            node: callback,
+                            suggest: [
+                                {
+                                    fix,
+                                    messageId:
+                                        "suggestTsExtrasIsPropertyPresent",
+                                },
+                            ],
+                        },
                     });
                 },
             };
@@ -140,10 +164,12 @@ const preferTsExtrasIsPropertyPresentRule: ReturnType<typeof createTypedRule> =
                 ],
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-is-property-present",
             },
-            fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasIsPropertyPresent:
                     "Prefer `isPropertyPresent` from `ts-extras` over an inline property-nullish filter callback.",
+                suggestTsExtrasIsPropertyPresent:
+                    "Use `isPropertyPresent` if the property is always an own data property.",
             },
             schema: [],
             type: "suggestion",

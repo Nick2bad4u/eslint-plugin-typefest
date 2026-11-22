@@ -8,7 +8,7 @@ import {
  * @packageDocumentation
  * Shared utilities for safely inserting import declarations in fixer output.
  */
-import { arrayAt, isInteger } from "ts-extras";
+import { arrayAt, arrayFirst, isInteger } from "ts-extras";
 
 import { getProgramNode } from "./ast-node.js";
 import { getBoundedCacheValue, setBoundedCacheValue } from "./bounded-cache.js";
@@ -19,7 +19,7 @@ import { isKnownWhitespaceCharacter } from "./text-character.js";
  * Cached insertion-layout metadata for one Program node.
  */
 type ProgramInsertionLayout = Readonly<{
-    firstRelativeImportDeclaration: null | Readonly<TSESTree.ImportDeclaration>;
+    firstRelativeImportStart: null | number;
     firstStatementStart: null | number;
     importDeclarations: readonly Readonly<TSESTree.ImportDeclaration>[];
     lastDirectiveStatement: null | Readonly<TSESTree.ExpressionStatement>;
@@ -277,6 +277,32 @@ const getNodeRangeStart = (node: Readonly<TSESTree.Node>): null | number => {
 };
 
 /**
+ * Insert before a next-line directive when it targets the anchor statement.
+ */
+const getStatementInsertionStart = (
+    statement: Readonly<TSESTree.ProgramStatement>,
+    program: Readonly<TSESTree.Program>
+): null | number => {
+    const start = getNodeRangeStart(statement);
+    if (start === null) {
+        return null;
+    }
+
+    const precedingDirective = program.comments?.findLast(
+        (comment) =>
+            comment.range[1] <= start &&
+            comment.loc.end.line === statement.loc.start.line - 1 &&
+            /^\s*(?:eslint-disable-next-line|@ts-(?:expect-error|ignore))\b/v.test(
+                comment.value
+            )
+    );
+
+    return precedingDirective === undefined
+        ? start
+        : arrayFirst(precedingDirective.range);
+};
+
+/**
  * Read and validate the Program end offset from its range tuple.
  *
  * @param programNode - Program node whose range end should be read.
@@ -342,11 +368,17 @@ const getProgramInsertionLayout = (
     const [firstStatement] = programNode.body;
 
     const layout: ProgramInsertionLayout = Object.freeze({
-        firstRelativeImportDeclaration,
+        firstRelativeImportStart:
+            firstRelativeImportDeclaration === null
+                ? null
+                : getStatementInsertionStart(
+                      firstRelativeImportDeclaration,
+                      programNode
+                  ),
         firstStatementStart:
             firstStatement === undefined
                 ? null
-                : getNodeRangeStart(firstStatement),
+                : getStatementInsertionStart(firstStatement, programNode),
         importDeclarations: Object.freeze(importDeclarations),
         lastDirectiveStatement,
         lastImportDeclaration: arrayAt(importDeclarations, -1) ?? null,
@@ -415,17 +447,13 @@ export const createImportInsertionFix = (
                 );
             }
 
-            if (insertionLayout.firstRelativeImportDeclaration !== null) {
-                const firstRelativeImportStart = getNodeRangeStart(
-                    insertionLayout.firstRelativeImportDeclaration
-                );
+            if (insertionLayout.firstRelativeImportStart !== null) {
+                const { firstRelativeImportStart } = insertionLayout;
 
-                if (firstRelativeImportStart !== null) {
-                    return fixer.insertTextBeforeRange(
-                        [firstRelativeImportStart, firstRelativeImportStart],
-                        `${normalizedImportDeclarationText}\n`
-                    );
-                }
+                return fixer.insertTextBeforeRange(
+                    [firstRelativeImportStart, firstRelativeImportStart],
+                    `${normalizedImportDeclarationText}\n`
+                );
             }
         }
     }

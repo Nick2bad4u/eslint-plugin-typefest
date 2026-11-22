@@ -6,17 +6,11 @@ Prefer [`keyIn`](https://github.com/sindresorhus/ts-extras/blob/main/source/key-
 
 ## Targeted pattern scope
 
-This rule focuses on direct `key in object` expressions that can be migrated to `keyIn(key, object)` with deterministic fixes.
-
-- Native `key in object` expressions that can use `keyIn(key, object)`.
-
-Alias indirection, wrapper helpers, and non-canonical call shapes are excluded to keep `keyIn(key, object)` migrations safe.
+This rule focuses on direct `key in object` expressions and reports `keyIn(object, key)` as an alternative.
 
 ## What this rule reports
 
-This rule reports `key in object` expressions when `keyIn(key, object)` is the intended replacement.
-
-- Native `key in object` expressions that can use `keyIn(key, object)`.
+The rule can autofix a safe literal key when the rewrite preserves evaluation and type narrowing. For dynamic keys, it can offer an editor suggestion.
 
 ## Why this rule exists
 
@@ -37,14 +31,14 @@ if (key in payload) {
 ## ✅ Correct
 
 ```ts
-if (keyIn(key, payload)) {
+if (keyIn(payload, key)) {
  // ...
 }
 ```
 
 ## Behavior and migration notes
 
-- Runtime semantics match the `in` operator for property existence on object/prototype chains.
+- `keyIn` checks the prototype chain and always returns `false` for `"__proto__"` and `"constructor"`. Use native `in` when those keys must be checked.
 - `keyIn` is useful when key values start as `string`/`PropertyKey` and need narrowing.
 - If your code intentionally requires direct `in` syntax (for style or tooling), keep native checks.
 
@@ -61,7 +55,7 @@ if (candidate in record) {
 ### ✅ Correct — Additional example
 
 ```ts
-if (keyIn(candidate, record)) {
+if (keyIn(record, candidate)) {
  console.log(record[candidate]);
 }
 ```

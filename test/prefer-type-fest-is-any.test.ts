@@ -142,6 +142,26 @@ ruleTester.run(ruleId, getPluginRule(ruleId), {
             name: "reports without autofix when IsAny is shadowed",
             output: null,
         },
+        {
+            code: "export type IsAny<T> = 0 extends 1 & T ? true : false;",
+            errors: [{ messageId: "preferIsAny" }],
+            filename: typedFixturePath(`${ruleId}.invalid.ts`),
+            name: "preserves a same-named local type alias",
+            output: null,
+        },
+        {
+            code: [
+                'import type { IsAny } from "type-fest";',
+                "export namespace Local {",
+                "    interface IsAny {}",
+                "    export type Result<T> = 0 extends 1 & T ? true : false;",
+                "}",
+            ].join("\n"),
+            errors: [{ messageId: "preferIsAny" }],
+            filename: typedFixturePath(`${ruleId}.invalid.ts`),
+            name: "preserves a nested type binding that shadows the canonical import",
+            output: null,
+        },
     ],
     valid: [
         {

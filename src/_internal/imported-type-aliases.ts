@@ -9,12 +9,16 @@ import {
  */
 import { keyIn } from "ts-extras";
 
-import { getParentNode } from "./ast-node.js";
-import { isAnyLinkedStructureNodeMatching } from "./cycle-safe-linked-search.js";
+import { getParentNode, getProgramSourceCode } from "./ast-node.js";
+import {
+    isAnyLinkedStructureNodeMatching,
+    resolveFirstValueInLinkedStructure,
+} from "./cycle-safe-linked-search.js";
 import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     collectNamedImportSpecifierBindingsFromSource,
     collectNamespaceImportLocalNamesFromSourceModule,
+    isIdentifierNode,
 } from "./import-analysis.js";
 import { createImportAwareFixes } from "./import-aware-fixes.js";
 import {
@@ -259,6 +263,51 @@ export function isTypeParameterNameShadowed(
 }
 
 /**
+ * Find the nearest explicit type binding. Value-only declarations do not shadow
+ * type references, and ambient globals have no local definitions.
+ */
+const findDeclaredTypeBinding = (
+    node: Readonly<TSESTree.Node>,
+    name: string
+): null | TSESLint.Scope.Variable => {
+    const sourceCode = getProgramSourceCode(node);
+    if (typeof sourceCode?.getScope !== "function") {
+        return null;
+    }
+
+    const binding = resolveFirstValueInLinkedStructure<
+        Readonly<TSESLint.Scope.Scope>,
+        TSESLint.Scope.Variable
+    >({
+        getNextNode: (scope) => scope.upper,
+        resolveValue: (scope) => {
+            const variable = scope.set.get(name);
+
+            return variable?.isTypeVariable === true && variable.defs.length > 0
+                ? { found: true, value: variable }
+                : { found: false };
+        },
+        startNode: sourceCode.getScope(node),
+    });
+
+    return binding.found ? binding.value : null;
+};
+
+/** Verify that a visible type binding comes from the intended named import. */
+const isReplacementImportBinding = (
+    variable: Readonly<TSESLint.Scope.Variable>,
+    sourceModuleName: string,
+    replacementName: string
+): boolean =>
+    variable.defs.every(
+        (definition) =>
+            definition.node.type === AST_NODE_TYPES.ImportSpecifier &&
+            isIdentifierNode(definition.node.imported) &&
+            definition.node.imported.name === replacementName &&
+            definition.node.parent.source?.value === sourceModuleName
+    );
+
+/**
  * Build a replacement fixer that optionally inserts a missing named type import
  * before applying the replacement.
  *
@@ -289,6 +338,19 @@ const createTypeReplacementFix = ({
         availableReplacementNames,
         replacementName
     );
+    const visibleBinding = findDeclaredTypeBinding(node, replacementName);
+    if (
+        visibleBinding !== null &&
+        (requiresImportInsertion ||
+            !isReplacementImportBinding(
+                visibleBinding,
+                sourceModuleName,
+                replacementName
+            ))
+    ) {
+        return null;
+    }
+
     if (!requiresImportInsertion) {
         return (fixer) => applyReplacement(fixer);
     }

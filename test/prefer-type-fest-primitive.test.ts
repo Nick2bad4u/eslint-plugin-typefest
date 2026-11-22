@@ -262,6 +262,13 @@ ruleTester.run(ruleId, rule, {
             name: "reports primitive union when replacement identifier is shadowed",
             output: null,
         },
+        {
+            code: "export type Primitive = null | undefined | string | number | boolean | symbol | bigint;",
+            errors: [{ messageId: "preferPrimitive" }],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "preserves a same-named primitive alias",
+            output: null,
+        },
     ],
     valid: [
         {

@@ -32,7 +32,6 @@ const invalidFixtureName = "prefer-ts-extras-is-property-defined.invalid.ts";
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
-    enforceRuleShape: true,
     messages: {
         preferTsExtrasIsPropertyDefined: preferTsExtrasIsPropertyDefinedMessage,
     },
@@ -40,9 +39,11 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 });
 
 describe("prefer-ts-extras-is-property-defined metadata literals", () => {
-    it("declares the authored docs URL literal", () => {
+    it("declares the authored docs URL and suggestion-only policy", () => {
         expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
+        expect(rule.meta.fixable).toBeUndefined();
+        expect(rule.meta.hasSuggestions).toBe(true);
     });
 });
 
@@ -77,129 +78,134 @@ describe("prefer-ts-extras-is-property-defined parse-safety guards", () => {
     });
 });
 
+const fixtureCode = readTypedFixture(invalidFixtureName);
+const importLine = 'import { isPropertyDefined } from "ts-extras";';
+
+const expectedSuggestion = (
+    code: string,
+    predicate: string,
+    propertyName: string
+) => ({
+    messageId: "preferTsExtrasIsPropertyDefined" as const,
+    suggestions: [
+        {
+            messageId: "suggestTsExtrasIsPropertyDefined" as const,
+            output:
+                (code.startsWith(importLine) ? "" : `${importLine}\n`) +
+                code.replace(
+                    predicate,
+                    `isPropertyDefined(${JSON.stringify(propertyName)})`
+                ),
+        },
+    ],
+});
+
+const getterPredicate = "(user) => user.name !== undefined";
+const getterCode = [
+    'class User { get name(): string | undefined { return "Ada"; } }',
+    "const users = [new User()];",
+    `const result = users.filter(${getterPredicate});`,
+].join("\n");
+
 ruleTester.run(ruleId, rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: fixtureCode,
             errors: [
-                { messageId: "preferTsExtrasIsPropertyDefined" },
-                { messageId: "preferTsExtrasIsPropertyDefined" },
-                { messageId: "preferTsExtrasIsPropertyDefined" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture inline property-undefined filter callbacks",
-            // Two passes: pass 1 inserts import + fixes first callback;
-            // pass 2 fixes remaining callbacks (import already present).
-            output: [
-                `import { isPropertyDefined } from "ts-extras";\n${readTypedFixture(
-                    invalidFixtureName
-                ).replace(
+                expectedSuggestion(
+                    fixtureCode,
                     "(user) => user.name !== undefined",
-                    'isPropertyDefined("name")'
-                )}`,
-                `import { isPropertyDefined } from "ts-extras";\n${readTypedFixture(
-                    invalidFixtureName
-                )
-                    .replace(
-                        "(user) => user.name !== undefined",
-                        'isPropertyDefined("name")'
-                    )
-                    .replace(
-                        "(user) => user.email !== undefined",
-                        'isPropertyDefined("email")'
-                    )
-                    .replace(
-                        '(user) => typeof user.name !== "undefined"',
-                        'isPropertyDefined("name")'
-                    )}`,
+                    "name"
+                ),
+                expectedSuggestion(
+                    fixtureCode,
+                    "(user) => user.email !== undefined",
+                    "email"
+                ),
+                expectedSuggestion(
+                    fixtureCode,
+                    '(user) => typeof user.name !== "undefined"',
+                    "name"
+                ),
             ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "keeps fixture callbacks and offers independent suggestions",
+            output: null,
+        },
+        ...(
+            [
+                [
+                    "(user) => typeof user.name !== 'undefined'",
+                    true,
+                    "typeof comparison",
+                ],
+                [
+                    "(user) => undefined !== user.name",
+                    true,
+                    "reversed operands",
+                ],
+                [
+                    "(user) => user.name !== undefined",
+                    false,
+                    "missing import",
+                ],
+                [
+                    "(user) => user.name !== undefined",
+                    true,
+                    "existing import",
+                ],
+            ] as const
+        ).map(
+            ([
+                predicate,
+                alreadyImported,
+                description,
+            ]) => {
+                const code = [
+                    ...(alreadyImported ? [importLine] : []),
+                    "interface User { name: string | undefined }",
+                    "declare const users: User[];",
+                    `const result = users.filter(${predicate});`,
+                ].join("\n");
+
+                return {
+                    code,
+                    errors: [expectedSuggestion(code, predicate, "name")],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: `suggests a replacement for ${description}`,
+                    output: null,
+                };
+            }
+        ),
+        {
+            code: getterCode,
+            errors: [expectedSuggestion(getterCode, getterPredicate, "name")],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "keeps native lookup for a class getter during autofix",
+            output: null,
         },
         {
             code: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                "const named = users.filter((user) => user.name !== undefined);",
+                "const isPropertyDefined = () => false;",
+                'const users = [{ name: "Ada" }];',
+                "const result = users.filter((user) => user.name !== undefined);",
             ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyDefined" }],
+            errors: [
+                {
+                    messageId: "preferTsExtrasIsPropertyDefined",
+                    suggestions: null,
+                },
+            ],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports item.prop !== undefined and autofixes to isPropertyDefined when import exists",
-            output: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                'const named = users.filter(isPropertyDefined("name"));',
-            ].join("\n"),
-        },
-        {
-            code: [
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                "const named = users.filter((user) => user.name !== undefined);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports item.prop !== undefined and inserts isPropertyDefined import when absent",
-            output: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                'const named = users.filter(isPropertyDefined("name"));',
-            ].join("\n"),
-        },
-        {
-            code: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                "const named = users.filter((user) => typeof user.name !== 'undefined');",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports typeof item.prop !== 'undefined' and autofixes to isPropertyDefined",
-            output: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                'const named = users.filter(isPropertyDefined("name"));',
-            ].join("\n"),
-        },
-        {
-            code: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                "const named = users.filter((user) => undefined !== user.name);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports undefined !== item.prop (reversed order) and autofixes",
-            output: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                'const named = users.filter(isPropertyDefined("name"));',
-            ].join("\n"),
-        },
-        {
-            code: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                "const named = users.filter((user) => user.name != undefined);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyDefined" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports item.prop != undefined (loose inequality) and autofixes",
-            output: [
-                'import { isPropertyDefined } from "ts-extras";',
-                "interface User { name: string | undefined }",
-                "declare const users: User[];",
-                'const named = users.filter(isPropertyDefined("name"));',
-            ].join("\n"),
+            name: "reports without suggesting a conflicting helper binding",
+            output: null,
         },
     ],
     valid: [
+        {
+            code: "const users = [{ name: null }]; users.filter((user) => user.name != undefined);",
+            name: "keeps loose undefined comparisons that also exclude null",
+        },
         {
             code: readTypedFixture(validFixtureName),
             filename: typedFixturePath(validFixtureName),

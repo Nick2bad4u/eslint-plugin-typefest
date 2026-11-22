@@ -1,4 +1,8 @@
-import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
+import {
+    AST_NODE_TYPES,
+    type TSESLint,
+    type TSESTree,
+} from "@typescript-eslint/utils";
 /**
  * @packageDocumentation
  * AST parent-chain traversal helpers used by multiple rule utilities.
@@ -6,6 +10,18 @@ import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils";
 import { keyIn } from "ts-extras";
 
 import { resolveFirstValueInLinkedStructure } from "./cycle-safe-linked-search.js";
+
+const sourceCodeByProgram = new WeakMap<
+    Readonly<TSESTree.Program>,
+    Readonly<TSESLint.SourceCode>
+>();
+
+/** Register the SourceCode used by shared fixers that only receive AST nodes. */
+export const registerProgramSourceCode = (
+    sourceCode: Readonly<TSESLint.SourceCode>
+): void => {
+    sourceCodeByProgram.set(sourceCode.ast, sourceCode);
+};
 
 /**
  * AST node shape that may carry a parser-populated `parent` reference.
@@ -64,4 +80,13 @@ export const getProgramNode = (
     });
 
     return lookupResult.found ? lookupResult.value : null;
+};
+
+/** Resolve the SourceCode associated with the node's current lint pass. */
+export const getProgramSourceCode = (
+    node: Readonly<TSESTree.Node>
+): Readonly<TSESLint.SourceCode> | undefined => {
+    const program = getProgramNode(node);
+
+    return program === null ? undefined : sourceCodeByProgram.get(program);
 };
