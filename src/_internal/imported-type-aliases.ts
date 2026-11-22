@@ -18,6 +18,7 @@ import {
     collectNamedImportLocalNamesByImportedNameFromSource,
     collectNamedImportSpecifierBindingsFromSource,
     collectNamespaceImportLocalNamesFromSourceModule,
+    isIdentifierNode,
 } from "./import-analysis.js";
 import { createImportAwareFixes } from "./import-aware-fixes.js";
 import {
@@ -301,7 +302,7 @@ const isReplacementImportBinding = (
     variable.defs.every(
         (definition) =>
             definition.node.type === AST_NODE_TYPES.ImportSpecifier &&
-            definition.node.imported.type === AST_NODE_TYPES.Identifier &&
+            isIdentifierNode(definition.node.imported) &&
             definition.node.imported.name === replacementName &&
             definition.node.parent.source?.value === sourceModuleName
     );

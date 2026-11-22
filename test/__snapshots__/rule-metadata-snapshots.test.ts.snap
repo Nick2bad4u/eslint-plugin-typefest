@@ -634,7 +634,7 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "hasSuggestions": true,
     "messageIds": [
       "preferTsExtrasIsPropertyDefined",
-      "replaceWithIsPropertyDefined",
+      "suggestTsExtrasIsPropertyDefined",
     ],
     "ruleId": "prefer-ts-extras-is-property-defined",
     "schemaLength": 0,
@@ -660,7 +660,7 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "hasSuggestions": true,
     "messageIds": [
       "preferTsExtrasIsPropertyPresent",
-      "replaceWithIsPropertyPresent",
+      "suggestTsExtrasIsPropertyPresent",
     ],
     "ruleId": "prefer-ts-extras-is-property-present",
     "schemaLength": 0,
@@ -731,7 +731,7 @@ exports[`rule metadata snapshots > keeps normalized rule metadata contract stabl
     "hasSuggestions": true,
     "messageIds": [
       "preferTsExtrasKeyIn",
-      "replaceWithKeyIn",
+      "suggestTsExtrasKeyIn",
     ],
     "ruleId": "prefer-ts-extras-key-in",
     "schemaLength": 0,

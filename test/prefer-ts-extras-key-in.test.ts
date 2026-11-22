@@ -495,7 +495,7 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             suggest: [
                                 {
                                     fix: "FIX",
-                                    messageId: "replaceWithKeyIn",
+                                    messageId: "suggestTsExtrasKeyIn",
                                 },
                             ],
                         });
@@ -743,7 +743,7 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                         messageId: "preferTsExtrasKeyIn",
                         suggestions: [
                             {
-                                messageId: "replaceWithKeyIn",
+                                messageId: "suggestTsExtrasKeyIn",
                                 output: inlineInvalidInOperatorOutput,
                             },
                         ],
@@ -760,7 +760,7 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                         messageId: "preferTsExtrasKeyIn",
                         suggestions: [
                             {
-                                messageId: "replaceWithKeyIn",
+                                messageId: "suggestTsExtrasKeyIn",
                                 output: inlineInvalidNoFilenameOutput,
                             },
                         ],
@@ -776,7 +776,7 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                         messageId: "preferTsExtrasKeyIn",
                         suggestions: [
                             {
-                                messageId: "replaceWithKeyIn",
+                                messageId: "suggestTsExtrasKeyIn",
                                 output: inlineFixableOutput,
                             },
                         ],
@@ -804,7 +804,7 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                         messageId: "preferTsExtrasKeyIn",
                         suggestions: [
                             {
-                                messageId: "replaceWithKeyIn",
+                                messageId: "suggestTsExtrasKeyIn",
                                 output: inlineInvalidMemberRightOperandOutput,
                             },
                         ],

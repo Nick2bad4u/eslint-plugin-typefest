@@ -220,7 +220,8 @@ const preferTsExtrasIsPropertyDefinedRule: ReturnType<typeof createTypedRule> =
                             suggest: [
                                 {
                                     fix,
-                                    messageId: "replaceWithIsPropertyDefined",
+                                    messageId:
+                                        "suggestTsExtrasIsPropertyDefined",
                                 },
                             ],
                         },
@@ -249,7 +250,7 @@ const preferTsExtrasIsPropertyDefinedRule: ReturnType<typeof createTypedRule> =
             messages: {
                 preferTsExtrasIsPropertyDefined:
                     "Prefer `isPropertyDefined` from `ts-extras` over an inline property-undefined filter callback.",
-                replaceWithIsPropertyDefined:
+                suggestTsExtrasIsPropertyDefined:
                     "Use `isPropertyDefined` if the property is always an own data property.",
             },
             schema: [],

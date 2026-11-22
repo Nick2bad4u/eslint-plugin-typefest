@@ -26,9 +26,46 @@ import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
 import { createTypedRule } from "../_internal/typed-rule.js";
 
+type KeyOperand = Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>;
+
 type RuleContext = Readonly<
     Parameters<ReturnType<typeof createTypedRule>["create"]>[0]
 >;
+
+/** Skip TypeScript wrappers without changing the emitted key expression. */
+const unwrapKeyOperand = (node: KeyOperand): KeyOperand => {
+    if (
+        node.type === AST_NODE_TYPES.TSAsExpression ||
+        node.type === AST_NODE_TYPES.TSNonNullExpression ||
+        node.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+        node.type === AST_NODE_TYPES.TSTypeAssertion
+    ) {
+        return unwrapKeyOperand(node.expression);
+    }
+
+    return node;
+};
+
+/** Read a literal key value without evaluating any JavaScript. */
+const getStaticKeyValue = (
+    node: KeyOperand
+): TSESTree.Literal["value"] | undefined => {
+    if (node.type === AST_NODE_TYPES.Literal) {
+        return node.value;
+    }
+
+    return node.type === AST_NODE_TYPES.TemplateLiteral &&
+        node.expressions.length === 0
+        ? arrayFirst(node.quasis)?.value.cooked
+        : undefined;
+};
+
+/** Only keys that the helper treats like native `in` can be autofixed. */
+const canAutofixStaticKey = (value: unknown): boolean =>
+    typeof value === "number" ||
+    (typeof value === "string" &&
+        value !== "__proto__" &&
+        value !== "constructor");
 
 /**
  * Determine whether native membership can be replaced automatically or requires
@@ -36,8 +73,9 @@ type RuleContext = Readonly<
  */
 const getKeyFixIntent = (
     context: RuleContext,
-    node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
+    operand: KeyOperand
 ): ImportFixIntent | null => {
+    const node = unwrapKeyOperand(operand);
     if (node.type === AST_NODE_TYPES.Identifier) {
         const scopeResolutionResult = safeTypeOperation({
             operation: () => {
@@ -53,32 +91,7 @@ const getKeyFixIntent = (
             : null;
     }
 
-    if (
-        node.type === AST_NODE_TYPES.TSAsExpression ||
-        node.type === AST_NODE_TYPES.TSNonNullExpression ||
-        node.type === AST_NODE_TYPES.TSSatisfiesExpression ||
-        node.type === AST_NODE_TYPES.TSTypeAssertion
-    ) {
-        return getKeyFixIntent(context, node.expression);
-    }
-
-    const value =
-        node.type === AST_NODE_TYPES.Literal
-            ? node.value
-            : node.type === AST_NODE_TYPES.TemplateLiteral &&
-                node.expressions.length === 0
-              ? arrayFirst(node.quasis)?.value.cooked
-              : undefined;
-
-    if (
-        value === "__proto__" ||
-        value === "constructor" ||
-        (typeof value !== "string" && typeof value !== "number")
-    ) {
-        return null;
-    }
-
-    return "autofix";
+    return canAutofixStaticKey(getStaticKeyValue(node)) ? "autofix" : null;
 };
 
 /**
@@ -156,7 +169,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                                 suggest: [
                                     {
                                         fix,
-                                        messageId: "replaceWithKeyIn",
+                                        messageId: "suggestTsExtrasKeyIn",
                                     },
                                 ],
                             },
@@ -195,7 +208,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
             messages: {
                 preferTsExtrasKeyIn:
                     "Prefer `keyIn` from `ts-extras` over `key in object` checks for stronger narrowing.",
-                replaceWithKeyIn:
+                suggestTsExtrasKeyIn:
                     "Use `keyIn` if the key cannot be `__proto__` or `constructor`.",
             },
             schema: [],

@@ -89,7 +89,7 @@ const expectedSuggestion = (
     messageId: "preferTsExtrasIsPropertyDefined" as const,
     suggestions: [
         {
-            messageId: "replaceWithIsPropertyDefined" as const,
+            messageId: "suggestTsExtrasIsPropertyDefined" as const,
             output:
                 (code.startsWith(importLine) ? "" : `${importLine}\n`) +
                 code.replace(

@@ -138,7 +138,8 @@ const preferTsExtrasIsPropertyPresentRule: ReturnType<typeof createTypedRule> =
                             suggest: [
                                 {
                                     fix,
-                                    messageId: "replaceWithIsPropertyPresent",
+                                    messageId:
+                                        "suggestTsExtrasIsPropertyPresent",
                                 },
                             ],
                         },
@@ -167,7 +168,7 @@ const preferTsExtrasIsPropertyPresentRule: ReturnType<typeof createTypedRule> =
             messages: {
                 preferTsExtrasIsPropertyPresent:
                     "Prefer `isPropertyPresent` from `ts-extras` over an inline property-nullish filter callback.",
-                replaceWithIsPropertyPresent:
+                suggestTsExtrasIsPropertyPresent:
                     "Use `isPropertyPresent` if the property is always an own data property.",
             },
             schema: [],
