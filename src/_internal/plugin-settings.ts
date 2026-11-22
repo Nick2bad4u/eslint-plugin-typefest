@@ -7,7 +7,7 @@ import type { JsonObject, UnknownArray } from "type-fest";
 
 import { isPresent, objectHasOwn } from "ts-extras";
 
-import { getProgramNode } from "./ast-node.js";
+import { getProgramNode, registerProgramSourceCode } from "./ast-node.js";
 
 /** Top-level `settings` key for this plugin. */
 const TYPEFEST_SETTINGS_KEY = "typefest";
@@ -148,6 +148,7 @@ export const registerProgramSettingsForContext = (
     }
 
     settingsByProgram.set(programNode, parsedSettings);
+    registerProgramSourceCode(context.sourceCode);
 
     return parsedSettings;
 };

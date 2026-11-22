@@ -283,6 +283,41 @@ const createProgram = (
     }) as unknown as TSESTree.Program;
 
 describe(createImportInsertionFix, () => {
+    it.each([
+        ["// eslint-disable-next-line no-debugger", "debugger;"],
+        ["// @ts-expect-error: the module is optional", 'import "./optional";'],
+    ])(
+        "keeps %s attached to the following statement",
+        (directive, statement) => {
+            expect.hasAssertions();
+
+            const sourceText = `${directive}\n${statement}`;
+            const { ast: program } = parser.parseForESLint(sourceText, {
+                ...parserOptions,
+                comment: true,
+            });
+            const importDeclarationText =
+                'import type { Primitive } from "type-fest";';
+            const insertTextBeforeRange =
+                vi.fn<TSESLint.RuleFixer["insertTextBeforeRange"]>();
+            const fixer = {
+                insertTextBeforeRange,
+            } as unknown as TSESLint.RuleFixer;
+
+            createImportInsertionFix({
+                fixer,
+                importDeclarationText,
+                moduleSpecifierHint: "type-fest",
+                referenceNode: program,
+            });
+
+            expect(insertTextBeforeRange).toHaveBeenCalledExactlyOnceWith(
+                [0, 0],
+                `${importDeclarationText}\n`
+            );
+        }
+    );
+
     it("returns null for blank import text", () => {
         expect.hasAssertions();
 

@@ -378,7 +378,7 @@ describe("prefer-ts-extras-key-in metadata literals", () => {
 });
 
 describe("prefer-ts-extras-key-in fast-check fix safety", () => {
-    it("fast-check: identifier in-expressions report and produce parseable keyIn replacement", async () => {
+    it("fast-check: identifier in-expressions produce a parseable keyIn suggestion", async () => {
         expect.hasAssertions();
 
         try {
@@ -490,26 +490,15 @@ describe("prefer-ts-extras-key-in fast-check fix safety", () => {
                             messageId: "preferTsExtrasKeyIn",
                         });
 
-                        const createSafeFixInvocationCount =
-                            createSafeValueNodeTextReplacementFixMock.mock.calls
-                                .length;
-
-                        if (createSafeFixInvocationCount === 0) {
-                            const reportFix = reportCalls[0]?.fix;
-
-                            if (
-                                reportFix !== undefined &&
-                                typeof reportFix !== "function"
-                            ) {
-                                throw new TypeError(
-                                    "Expected fallback keyIn fix to be a function"
-                                );
-                            }
-
-                            return;
-                        }
-
-                        expect(reportCalls[0]?.fix).toBe("FIX");
+                        expect(reportCalls[0]?.fix).toBeUndefined();
+                        expect(reportCalls[0]).toMatchObject({
+                            suggest: [
+                                {
+                                    fix: "FIX",
+                                    messageId: "replaceWithKeyIn",
+                                },
+                            ],
+                        });
                         expect(
                             createSafeValueNodeTextReplacementFixMock
                         ).toHaveBeenCalledTimes(1);
@@ -752,32 +741,50 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                 errors: [
                     {
                         messageId: "preferTsExtrasKeyIn",
+                        suggestions: [
+                            {
+                                messageId: "replaceWithKeyIn",
+                                output: inlineInvalidInOperatorOutput,
+                            },
+                        ],
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "reports direct in-operator membership check",
-                output: inlineInvalidInOperatorOutput,
+                name: "suggests dynamic-key membership without autofixing",
+                output: null,
             },
             {
                 code: inlineInvalidNoFilenameCode,
                 errors: [
                     {
                         messageId: "preferTsExtrasKeyIn",
+                        suggestions: [
+                            {
+                                messageId: "replaceWithKeyIn",
+                                output: inlineInvalidNoFilenameOutput,
+                            },
+                        ],
                     },
                 ],
                 name: "reports in-operator check without explicit filename",
-                output: inlineInvalidNoFilenameOutput,
+                output: null,
             },
             {
                 code: inlineFixableCode,
                 errors: [
                     {
                         messageId: "preferTsExtrasKeyIn",
+                        suggestions: [
+                            {
+                                messageId: "replaceWithKeyIn",
+                                output: inlineFixableOutput,
+                            },
+                        ],
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes identifier in-operator check when keyIn import is in scope",
-                output: inlineFixableOutput,
+                name: "suggests identifier rewrite when keyIn import is in scope",
+                output: null,
             },
             {
                 code: inlineInvalidLiteralLeftOperandCode,
@@ -795,11 +802,31 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                 errors: [
                     {
                         messageId: "preferTsExtrasKeyIn",
+                        suggestions: [
+                            {
+                                messageId: "replaceWithKeyIn",
+                                output: inlineInvalidMemberRightOperandOutput,
+                            },
+                        ],
                     },
                 ],
                 filename: typedFixturePath(invalidFixtureName),
-                name: "autofixes member-right in-operator check",
-                output: inlineInvalidMemberRightOperandOutput,
+                name: "suggests member-right in-operator check",
+                output: null,
+            },
+            {
+                code: [
+                    "declare const payload: Record<string, unknown>;",
+                    'const hasConstructor = "constructor" in payload;',
+                    "const hasPrototype = `__proto__` in payload;",
+                ].join("\n"),
+                errors: [
+                    { messageId: "preferTsExtrasKeyIn", suggestions: null },
+                    { messageId: "preferTsExtrasKeyIn", suggestions: null },
+                ],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "keeps literal prototype keys checked by the native operator",
+                output: null,
             },
             {
                 code: inlineInvalidLogicalGuardCode,

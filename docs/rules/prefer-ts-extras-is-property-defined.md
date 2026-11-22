@@ -9,7 +9,6 @@ This rule only inspects inline `.filter(...)` predicates that perform an explici
 - Inline property-undefined predicates inside `.filter(...)`, including:
   - `filter((item) => item.prop !== undefined)`
   - `filter((item) => undefined !== item.prop)`
-  - `filter((item) => item.prop != undefined)`
   - `filter((item) => typeof item.prop !== "undefined")`
 
 Named predicate references, multi-argument callbacks, and broader callback logic are not matched unless they preserve this property-undefined-check shape.
@@ -43,8 +42,9 @@ const named = users.filter(isPropertyDefined("name"));
 
 ## Behavior and migration notes
 
-- `isPropertyDefined('prop')` checks `item[prop] !== undefined` and narrows the result type accordingly.
-- The autofix preserves the property name as a string literal.
+- `isPropertyDefined("prop")` narrows the result by checking that an own data property has a value other than `undefined`. Getter and inherited property lookups can produce different results.
+- Apply the editor suggestion only when each item has a suitable own data property. ESLint leaves the callback unchanged during autofix.
+- Loose comparisons against `undefined` also exclude `null`, so this rule skips them.
 - Deep property access (e.g., `user.address.street !== undefined`) is intentionally excluded — only single-level property checks are flagged.
 - Computed property access (e.g., `user[key] !== undefined`) is intentionally excluded.
 
@@ -56,7 +56,7 @@ const named = users.filter(isPropertyDefined("name"));
 const named = users.filter((user) => typeof user.name !== "undefined");
 ```
 
-### ✅ Correct — typeof form fixed
+### ✅ Correct — typeof form after applying the suggestion
 
 ```ts
 const named = users.filter(isPropertyDefined("name"));

@@ -32,7 +32,6 @@ const invalidFixtureName = "prefer-ts-extras-is-property-present.invalid.ts";
 addTypeFestRuleMetadataSmokeTests(ruleId, {
     defaultOptions: [],
     docsDescription,
-    enforceRuleShape: true,
     messages: {
         preferTsExtrasIsPropertyPresent: preferTsExtrasIsPropertyPresentMessage,
     },
@@ -40,9 +39,11 @@ addTypeFestRuleMetadataSmokeTests(ruleId, {
 });
 
 describe("prefer-ts-extras-is-property-present metadata literals", () => {
-    it("declares the authored docs URL literal", () => {
+    it("declares the authored docs URL and suggestion-only policy", () => {
         expect.hasAssertions();
         expect(rule.meta.docs?.url).toBe(docsUrl);
+        expect(rule.meta.fixable).toBeUndefined();
+        expect(rule.meta.hasSuggestions).toBe(true);
     });
 });
 
@@ -77,89 +78,102 @@ describe("prefer-ts-extras-is-property-present parse-safety guards", () => {
     });
 });
 
+const fixtureCode = readTypedFixture(invalidFixtureName);
+const importLine = 'import { isPropertyPresent } from "ts-extras";';
+
+const expectedSuggestion = (
+    code: string,
+    predicate: string,
+    propertyName: string
+) => ({
+    messageId: "preferTsExtrasIsPropertyPresent" as const,
+    suggestions: [
+        {
+            messageId: "replaceWithIsPropertyPresent" as const,
+            output:
+                (code.startsWith(importLine) ? "" : `${importLine}\n`) +
+                code.replace(
+                    predicate,
+                    `isPropertyPresent(${JSON.stringify(propertyName)})`
+                ),
+        },
+    ],
+});
+
+const getterPredicate = "(post) => post.title != null";
+const getterCode = [
+    'class BasePost { get title(): string | null { return "Ada"; } }',
+    "class Post extends BasePost {}",
+    "const posts = [new Post()];",
+    `const result = posts.filter(${getterPredicate});`,
+].join("\n");
+
 ruleTester.run(ruleId, rule, {
     invalid: [
         {
-            code: readTypedFixture(invalidFixtureName),
+            code: fixtureCode,
             errors: [
-                { messageId: "preferTsExtrasIsPropertyPresent" },
-                { messageId: "preferTsExtrasIsPropertyPresent" },
-            ],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports fixture inline property-nullish filter callbacks",
-            // Pass 1: first error claims the import (title fixed); second error
-            // suppressed because it can't also insert the import in the same pass.
-            // Pass 2: both remaining callbacks fixed (import already present,
-            // no coordination needed).
-            output: [
-                `import { isPropertyPresent } from "ts-extras";\n${readTypedFixture(
-                    invalidFixtureName
-                ).replace(
+                expectedSuggestion(
+                    fixtureCode,
                     "(post) => post.title != null",
-                    'isPropertyPresent("title")'
-                )}`,
-                `import { isPropertyPresent } from "ts-extras";\n${readTypedFixture(
-                    invalidFixtureName
-                )
-                    .replace(
-                        "(post) => post.title != null",
-                        'isPropertyPresent("title")'
-                    )
-                    .replace(
-                        "(post) => post.body != null",
-                        'isPropertyPresent("body")'
-                    )}`,
+                    "title"
+                ),
+                expectedSuggestion(
+                    fixtureCode,
+                    "(post) => post.body != null",
+                    "body"
+                ),
             ],
-        },
-        {
-            code: [
-                'import { isPropertyPresent } from "ts-extras";',
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                "const titled = posts.filter((post) => post.title != null);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyPresent" }],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports item.prop != null and autofixes to isPropertyPresent when import exists",
-            output: [
-                'import { isPropertyPresent } from "ts-extras";',
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                'const titled = posts.filter(isPropertyPresent("title"));',
-            ].join("\n"),
+            name: "keeps fixture callbacks and offers independent suggestions",
+            output: null,
         },
+        ...(
+            [
+                [
+                    "(post) => null != post.title",
+                    true,
+                    "reversed operands",
+                ],
+                [
+                    "(post) => post.title != null",
+                    false,
+                    "missing import",
+                ],
+                [
+                    "(post) => post.title != null",
+                    true,
+                    "existing import",
+                ],
+            ] as const
+        ).map(
+            ([
+                predicate,
+                alreadyImported,
+                description,
+            ]) => {
+                const code = [
+                    ...(alreadyImported ? [importLine] : []),
+                    "interface Post { title: string | null | undefined }",
+                    "declare const posts: Post[];",
+                    `const result = posts.filter(${predicate});`,
+                ].join("\n");
+
+                return {
+                    code,
+                    errors: [expectedSuggestion(code, predicate, "title")],
+                    filename: typedFixturePath(invalidFixtureName),
+                    name: `suggests a replacement for ${description}`,
+                    output: null,
+                };
+            }
+        ),
         {
-            code: [
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                "const titled = posts.filter((post) => post.title != null);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyPresent" }],
+            code: getterCode,
+            errors: [expectedSuggestion(getterCode, getterPredicate, "title")],
             filename: typedFixturePath(invalidFixtureName),
-            name: "reports item.prop != null and inserts isPropertyPresent import when absent",
-            output: [
-                'import { isPropertyPresent } from "ts-extras";',
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                'const titled = posts.filter(isPropertyPresent("title"));',
-            ].join("\n"),
-        },
-        {
-            code: [
-                'import { isPropertyPresent } from "ts-extras";',
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                "const titled = posts.filter((post) => null != post.title);",
-            ].join("\n"),
-            errors: [{ messageId: "preferTsExtrasIsPropertyPresent" }],
-            filename: typedFixturePath(invalidFixtureName),
-            name: "reports null != item.prop (reversed order) and autofixes",
-            output: [
-                'import { isPropertyPresent } from "ts-extras";',
-                "interface Post { title: string | null | undefined }",
-                "declare const posts: Post[];",
-                'const titled = posts.filter(isPropertyPresent("title"));',
-            ].join("\n"),
+            name: "keeps native lookup for an inherited getter during autofix",
+            output: null,
         },
     ],
     valid: [

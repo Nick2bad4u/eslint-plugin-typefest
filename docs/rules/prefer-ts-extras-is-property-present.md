@@ -41,8 +41,8 @@ const titled = posts.filter(isPropertyPresent("title"));
 
 ## Behavior and migration notes
 
-- `isPropertyPresent('prop')` checks `item[prop] != null`, which is `true` when the value is neither `null` nor `undefined`.
-- The autofix preserves the property name as a string literal.
+- `isPropertyPresent("prop")` checks that an own data property has a value other than `null` or `undefined`. Getter and inherited property lookups can produce different results.
+- Apply the editor suggestion only when each item has a suitable own data property. ESLint leaves the callback unchanged during autofix.
 - Strict null checks (e.g., `post.title !== null`) are intentionally excluded — those do not narrow away `undefined`.
 - Deep property access (e.g., `post.meta.title != null`) is intentionally excluded — only single-level property checks are flagged.
 - Computed property access (e.g., `post[key] != null`) is intentionally excluded.
@@ -55,7 +55,7 @@ const titled = posts.filter(isPropertyPresent("title"));
 const titled = posts.filter((post) => null != post.title);
 ```
 
-### ✅ Correct — reversed operands fixed
+### ✅ Correct — reversed operands after applying the suggestion
 
 ```ts
 const titled = posts.filter(isPropertyPresent("title"));

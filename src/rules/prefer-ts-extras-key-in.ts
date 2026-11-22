@@ -3,18 +3,24 @@ import {
     type TSESLint,
     type TSESTree,
 } from "@typescript-eslint/utils";
+import { arrayFirst } from "ts-extras";
 
 /**
  * @packageDocumentation
  * ESLint rule implementation for `prefer-ts-extras-key-in`.
  */
+import type { ImportFixIntent } from "../_internal/import-fix-coordinator.js";
+
 import {
     collectDirectNamedValueImportsFromSource,
     createSafeValueNodeTextReplacementFix,
     getFunctionCallArgumentText,
 } from "../_internal/imported-value-symbols.js";
 import { TS_EXTRAS_MODULE_SOURCE } from "../_internal/module-source.js";
-import { reportWithOptionalFix } from "../_internal/rule-reporting.js";
+import {
+    reportWithOptionalFix,
+    reportWithTypefestPolicy,
+} from "../_internal/rule-reporting.js";
 import { safeTypeOperation } from "../_internal/safe-type-operation.js";
 import { getVariableInScopeChain } from "../_internal/scope-variable.js";
 import { isTypePredicateExpressionAutofixSafe } from "../_internal/type-predicate-autofix-safety.js";
@@ -25,17 +31,13 @@ type RuleContext = Readonly<
 >;
 
 /**
- * Determine whether a key expression can be safely reordered into `keyIn(...)`
- * argument position without changing side-effect semantics.
+ * Determine whether native membership can be replaced automatically or requires
+ * an explicit decision about keys rejected by `keyIn`.
  */
-const isAutofixSafeKeyExpression = (
+const getKeyFixIntent = (
     context: RuleContext,
     node: Readonly<TSESTree.Expression | TSESTree.PrivateIdentifier>
-): node is TSESTree.Expression => {
-    if (node.type === AST_NODE_TYPES.PrivateIdentifier) {
-        return false;
-    }
-
+): ImportFixIntent | null => {
     if (node.type === AST_NODE_TYPES.Identifier) {
         const scopeResolutionResult = safeTypeOperation({
             operation: () => {
@@ -46,19 +48,9 @@ const isAutofixSafeKeyExpression = (
             reason: "key-in-autofix-key-scope-resolution-failed",
         });
 
-        if (!scopeResolutionResult.ok) {
-            return false;
-        }
-
-        return scopeResolutionResult.value;
-    }
-
-    if (node.type === AST_NODE_TYPES.Literal) {
-        return true;
-    }
-
-    if (node.type === AST_NODE_TYPES.TemplateLiteral) {
-        return node.expressions.length === 0;
+        return scopeResolutionResult.ok && scopeResolutionResult.value
+            ? "suggestion"
+            : null;
     }
 
     if (
@@ -67,10 +59,26 @@ const isAutofixSafeKeyExpression = (
         node.type === AST_NODE_TYPES.TSSatisfiesExpression ||
         node.type === AST_NODE_TYPES.TSTypeAssertion
     ) {
-        return isAutofixSafeKeyExpression(context, node.expression);
+        return getKeyFixIntent(context, node.expression);
     }
 
-    return false;
+    const value =
+        node.type === AST_NODE_TYPES.Literal
+            ? node.value
+            : node.type === AST_NODE_TYPES.TemplateLiteral &&
+                node.expressions.length === 0
+              ? arrayFirst(node.quasis)?.value.cooked
+              : undefined;
+
+    if (
+        value === "__proto__" ||
+        value === "constructor" ||
+        (typeof value !== "string" && typeof value !== "number")
+    ) {
+        return null;
+    }
+
+    return "autofix";
 };
 
 /**
@@ -92,11 +100,12 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
              * `keyIn(object, key)` when key/object operand ordering is safe.
              */
             const createKeyInFix = (
-                node: Readonly<TSESTree.BinaryExpression>
+                node: Readonly<TSESTree.BinaryExpression>,
+                reportFixIntent: ImportFixIntent
             ): null | TSESLint.ReportFixFunction => {
                 if (
                     !isTypePredicateExpressionAutofixSafe(node) ||
-                    !isAutofixSafeKeyExpression(context, node.left)
+                    node.left.type === AST_NODE_TYPES.PrivateIdentifier
                 ) {
                     return null;
                 }
@@ -120,6 +129,7 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                     imports: tsExtrasImports,
                     replacementTextFactory: (replacementName) =>
                         `${replacementName}(${objectText}, ${keyText})`,
+                    reportFixIntent,
                     sourceModuleName: TS_EXTRAS_MODULE_SOURCE,
                     targetNode: node,
                 });
@@ -131,9 +141,33 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                         return;
                     }
 
+                    const reportFixIntent = getKeyFixIntent(context, node.left);
+                    const fix =
+                        reportFixIntent === null
+                            ? null
+                            : createKeyInFix(node, reportFixIntent);
+
+                    if (reportFixIntent === "suggestion" && fix !== null) {
+                        reportWithTypefestPolicy({
+                            context,
+                            descriptor: {
+                                messageId: "preferTsExtrasKeyIn",
+                                node,
+                                suggest: [
+                                    {
+                                        fix,
+                                        messageId: "replaceWithKeyIn",
+                                    },
+                                ],
+                            },
+                        });
+
+                        return;
+                    }
+
                     reportWithOptionalFix({
                         context,
-                        fix: createKeyInFix(node),
+                        fix,
                         messageId: "preferTsExtrasKeyIn",
                         node,
                     });
@@ -157,9 +191,12 @@ const preferTsExtrasKeyInRule: ReturnType<typeof createTypedRule> =
                 url: "https://nick2bad4u.github.io/eslint-plugin-typefest/docs/rules/prefer-ts-extras-key-in",
             },
             fixable: "code",
+            hasSuggestions: true,
             messages: {
                 preferTsExtrasKeyIn:
                     "Prefer `keyIn` from `ts-extras` over `key in object` checks for stronger narrowing.",
+                replaceWithKeyIn:
+                    "Use `keyIn` if the key cannot be `__proto__` or `constructor`.",
             },
             schema: [],
             type: "suggestion",
