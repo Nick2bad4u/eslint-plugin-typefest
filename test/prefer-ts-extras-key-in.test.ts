@@ -798,6 +798,19 @@ describe(`${ruleId} rule-tester cases`, { timeout: 120_000 }, () => {
                 output: inlineInvalidLiteralLeftOperandOutput,
             },
             {
+                code: inlineInvalidLiteralLeftOperandCode.replace(
+                    '"id" in payload',
+                    '("id" as const) in payload'
+                ),
+                errors: [{ messageId: "preferTsExtrasKeyIn" }],
+                filename: typedFixturePath(invalidFixtureName),
+                name: "autofixes a safe literal key while preserving its TypeScript assertion",
+                output: inlineInvalidLiteralLeftOperandOutput.replace(
+                    'keyIn(payload, "id")',
+                    'keyIn(payload, "id" as const)'
+                ),
+            },
+            {
                 code: inlineInvalidMemberRightOperandCode,
                 errors: [
                     {

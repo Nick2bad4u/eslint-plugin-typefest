@@ -175,6 +175,22 @@ ruleTester.run(ruleId, rule, {
             name: "keeps native lookup for an inherited getter during autofix",
             output: null,
         },
+        {
+            code: [
+                "const isPropertyPresent = () => false;",
+                'const posts = [{ title: "Ada" }];',
+                "const result = posts.filter((post) => post.title != null);",
+            ].join("\n"),
+            errors: [
+                {
+                    messageId: "preferTsExtrasIsPropertyPresent",
+                    suggestions: null,
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without suggesting a conflicting helper binding",
+            output: null,
+        },
     ],
     valid: [
         {

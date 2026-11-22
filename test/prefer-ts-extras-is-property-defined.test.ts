@@ -184,6 +184,22 @@ ruleTester.run(ruleId, rule, {
             name: "keeps native lookup for a class getter during autofix",
             output: null,
         },
+        {
+            code: [
+                "const isPropertyDefined = () => false;",
+                'const users = [{ name: "Ada" }];',
+                "const result = users.filter((user) => user.name !== undefined);",
+            ].join("\n"),
+            errors: [
+                {
+                    messageId: "preferTsExtrasIsPropertyDefined",
+                    suggestions: null,
+                },
+            ],
+            filename: typedFixturePath(invalidFixtureName),
+            name: "reports without suggesting a conflicting helper binding",
+            output: null,
+        },
     ],
     valid: [
         {
